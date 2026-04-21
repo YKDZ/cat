@@ -1,17 +1,26 @@
 #!/usr/bin/env node
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 
-import { buildIndex, loadIndex, saveIndex, findSymbols } from "./ir-index.js";
-import { createLlmsTxtRenderer } from "./renderer/llms-txt-renderer.js";
-import { createOverviewRenderer } from "./renderer/overview-renderer.js";
-import { createPackageRenderer } from "./renderer/package-renderer.js";
+import { loadIndex, saveIndex, findSymbols } from "./ir-index.js";
 import { createPackageScanner } from "./scanner/package-scanner.js";
 import { AutodocConfigSchema } from "./types.js";
+import { buildReferenceCatalog } from "./reference/compiler.js";
+import { collectFragments } from "./semantic/fragment-collector.js";
+import { buildSemanticCatalog } from "./semantic/compiler.js";
+import { buildAllPairedPages } from "./assembler/paired-pages.js";
+import { buildAllSectionIndexes } from "./assembler/subject-index.js";
+import { buildCompatProjections } from "./assembler/compat-projections.js";
+import { buildAgentCatalog } from "./assembler/agent-catalog.js";
+import { runValidation } from "./validation/run.js";
+import { formatFindings, hasErrors } from "./validation/findings.js";
+import type { AutodocConfig } from "./types.js";
+
+// ── Config loading ─────────────────────────────────────────────────────────────
 
 const findFileUpwards = (
   startDir: string,
@@ -106,98 +115,219 @@ const loadConfig = async (args: string[] = []) => {
     config.output.path = resolve(wsRoot, values.output);
   }
 
-  return config;
+  return { config, workspaceRoot: wsRoot };
 };
 
-const runGenerate = async (args: string[]): Promise<void> => {
-  const config = await loadConfig(args);
-  const outputDir = config.output.path;
-  await mkdir(join(outputDir, "packages"), { recursive: true });
+// ── Build pipeline helpers ─────────────────────────────────────────────────────
 
-  // 1. Scan → PackageIR[]
+const buildCompileChain = async (
+  config: AutodocConfig,
+  workspaceRoot: string,
+) => {
   console.log("Scanning packages...");
   const scanner = createPackageScanner(config);
   const packages = await scanner.scanAll();
+  const referenceCatalog = buildReferenceCatalog(packages);
 
-  // 2. Render overview (remark AST)
-  const overviewRenderer = createOverviewRenderer(config);
-  await writeFile(
-    join(outputDir, "overview.md"),
-    overviewRenderer.render(packages),
-  );
+  console.log("Collecting semantic fragments...");
+  const fragments = await collectFragments({
+    workspaceRoot,
+    readmeGlobs: ["packages/*/README.md", "apps/*/README.md"],
+    semanticMdGlobs: config.fragments ?? [],
+  });
+  const { catalog: semanticCatalog, findings: semanticFindings } =
+    buildSemanticCatalog(fragments, null, referenceCatalog);
 
-  // 3. Render per-package docs (remark AST, TS signature)
-  const pkgRenderer = createPackageRenderer();
-  await Promise.all(
-    packages.map(async (pkg) => {
-      const isHighPriority =
-        config.packages.find((p) => p.name === pkg.name)?.priority === "high";
-      const content = pkgRenderer.renderPackage(pkg, {
-        detailed: isHighPriority ?? false,
-      });
-      const shortName = pkg.name.replace("@cat/", "");
-      await writeFile(join(outputDir, "packages", `${shortName}.md`), content);
-    }),
-  );
+  return { referenceCatalog, semanticCatalog, semanticFindings };
+};
 
-  // 4. Render llms.txt
-  if (config.llmsTxt.enabled) {
-    const llmsRenderer = createLlmsTxtRenderer();
-    await writeFile(join(outputDir, "llms.txt"), llmsRenderer.render(packages));
+const writeOutputFiles = async (
+  config: AutodocConfig,
+  workspaceRoot: string,
+  outputDir: string,
+  registry: import("./subjects/registry.js").SubjectRegistry | null,
+  sections: import("./subjects/ir.js").SectionIR[] | null,
+  referenceCatalog: import("./reference/compiler.js").ReferenceCatalog,
+  semanticCatalog: import("./semantic/ir.js").SemanticCatalog,
+) => {
+  // Compat projections
+  const compat = buildCompatProjections(config, referenceCatalog);
+  await mkdir(join(outputDir, "packages"), { recursive: true });
+  await writeFile(join(outputDir, "overview.md"), compat.overviewMd);
+  if (compat.llmsTxt !== null) {
+    await writeFile(join(outputDir, "llms.txt"), compat.llmsTxt);
+  }
+  for (const [shortName, content] of compat.packagePages) {
+    await writeFile(join(outputDir, "packages", `${shortName}.md`), content);
+  }
+  await saveIndex(compat.symbolIndex, join(outputDir, ".symbol-index.json"));
+
+  // 2.0 outputs — only if registry + sections available
+  if (registry && sections) {
+    // Section indexes
+    const sectionIndexes = buildAllSectionIndexes(sections, registry.subjects);
+    for (const [sectionId, content] of sectionIndexes) {
+      await mkdir(join(outputDir, sectionId), { recursive: true });
+      await writeFile(join(outputDir, sectionId, "index.md"), content);
+    }
+
+    // Paired pages
+    const pairedPages = buildAllPairedPages(
+      registry.subjects,
+      semanticCatalog,
+      referenceCatalog,
+    );
+    for (const page of pairedPages) {
+      const dir = join(outputDir, dirname(page.basePath));
+      await mkdir(dir, { recursive: true });
+      await writeFile(join(outputDir, `${page.basePath}.zh.md`), page.zhContent);
+      await writeFile(join(outputDir, `${page.basePath}.en.md`), page.enContent);
+    }
+
+    // Agent catalog
+    await mkdir(join(outputDir, "agent"), { recursive: true });
+    const agentCatalog = buildAgentCatalog(
+      registry.subjects,
+      sections,
+      semanticCatalog,
+      referenceCatalog,
+    );
+    await writeFile(
+      join(outputDir, "agent", "subjects.json"),
+      agentCatalog.subjectsJson,
+    );
+    await writeFile(
+      join(outputDir, "agent", "references.json"),
+      agentCatalog.referencesJson,
+    );
+  }
+};
+
+// ── Collect existing output paths ─────────────────────────────────────────────
+
+const collectOutputPaths = (outputDir: string): Set<string> => {
+  const paths = new Set<string>();
+  if (!existsSync(outputDir)) return paths;
+
+  const walkDir = (dir: string) => {
+    try {
+      const entries = readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const full = join(dir, entry.name);
+        const rel = relative(outputDir, full);
+        if (entry.isDirectory()) {
+          walkDir(full);
+        } else {
+          paths.add(rel);
+        }
+      }
+    } catch {
+      // skip unreadable dirs
+    }
+  };
+  walkDir(outputDir);
+  return paths;
+};
+
+// ── Subcommands ────────────────────────────────────────────────────────────────
+
+const runGenerate = async (args: string[]): Promise<void> => {
+  const { config, workspaceRoot } = await loadConfig(args);
+  const outputDir = config.output.path;
+
+  const { referenceCatalog, semanticCatalog, semanticFindings } =
+    await buildCompileChain(config, workspaceRoot);
+
+  if (semanticFindings.length > 0) {
+    console.warn(formatFindings(semanticFindings));
   }
 
-  // 5. Save symbol index
-  const index = buildIndex(packages);
-  await saveIndex(index, join(outputDir, ".symbol-index.json"));
+  // Run Tier-1 validation to get registry + sections
+  console.log("Running Tier-1 validation...");
+  const { registry, sections } = await runValidation(config, workspaceRoot, {
+    tiers: [1],
+  });
 
-  console.log(
-    `Documentation generated in ${outputDir} (${packages.length} packages, ${index.length} symbols)`,
+  console.log("Writing outputs...");
+  await writeOutputFiles(
+    config,
+    workspaceRoot,
+    outputDir,
+    registry,
+    sections,
+    referenceCatalog,
+    semanticCatalog,
   );
+
+  const index = referenceCatalog.toSymbolIndex();
+  console.log(
+    `Documentation generated in ${outputDir} (${referenceCatalog.packages.length} packages, ${index.length} symbols)`,
+  );
+};
+
+const runValidateCmd = async (args: string[]): Promise<void> => {
+  const { config, workspaceRoot } = await loadConfig(args);
+
+  const { referenceCatalog, semanticCatalog, semanticFindings } =
+    await buildCompileChain(config, workspaceRoot);
+
+  const { findings } = await runValidation(
+    config,
+    workspaceRoot,
+    {
+      tiers: [1, 2, 3],
+      referenceCatalog,
+      semanticCatalog,
+      existingOutputPaths: collectOutputPaths(config.output.path),
+    },
+  );
+
+  const allFindings = [...semanticFindings, ...findings];
+
+  // Write agent/findings.json if output dir exists
+  const agentDir = join(config.output.path, "agent");
+  if (existsSync(config.output.path)) {
+    await mkdir(agentDir, { recursive: true });
+    await writeFile(
+      join(agentDir, "findings.json"),
+      JSON.stringify(allFindings, null, 2),
+    );
+  }
+
+  if (allFindings.length > 0) {
+    console.log(formatFindings(allFindings));
+  } else {
+    console.log("Validation passed — no findings.");
+  }
+
+  if (hasErrors(allFindings)) {
+    process.exit(1);
+  }
 };
 
 const runCheck = async (args: string[]): Promise<void> => {
-  const config = await loadConfig(args);
+  const { config, workspaceRoot } = await loadConfig(args);
 
-  console.log("Scanning packages...");
-  const scanner = createPackageScanner(config);
-  const packages = await scanner.scanAll();
-
-  const overviewRenderer = createOverviewRenderer(config);
-  const pkgRenderer = createPackageRenderer();
-  const llmsRenderer = createLlmsTxtRenderer();
+  const { referenceCatalog, semanticCatalog, semanticFindings } =
+    await buildCompileChain(config, workspaceRoot);
 
   const tmpDir = await mkdtemp(join(tmpdir(), "autodoc-check-"));
   try {
-    await mkdir(join(tmpDir, "packages"), { recursive: true });
-
-    const overviewContent = overviewRenderer.render(packages);
-    await writeFile(join(tmpDir, "overview.md"), overviewContent);
-
-    if (config.llmsTxt.enabled) {
-      const llmsContent = llmsRenderer.render(packages);
-      await writeFile(join(tmpDir, "llms.txt"), llmsContent);
-    }
-
-    await Promise.all(
-      packages.map(async (pkg) => {
-        const isHighPriority =
-          config.packages.find((p) => p.name === pkg.name)?.priority === "high";
-        const pkgContent = pkgRenderer.renderPackage(pkg, {
-          detailed: isHighPriority ?? false,
-        });
-        const shortName = pkg.name.replace("@cat/", "");
-        await writeFile(
-          join(tmpDir, "packages", `${shortName}.md`),
-          pkgContent,
-        );
-      }),
+    // Write to temp dir
+    const { registry, sections } = await runValidation(config, workspaceRoot, {
+      tiers: [1],
+    });
+    await writeOutputFiles(
+      config,
+      workspaceRoot,
+      tmpDir,
+      registry,
+      sections,
+      referenceCatalog,
+      semanticCatalog,
     );
 
-    // Also write temp index for comparison
-    const index = buildIndex(packages);
-    await saveIndex(index, join(tmpDir, ".symbol-index.json"));
-
-    // Compare generated files against existing
+    // Compare against committed outputs
     const outputDir = config.output.path;
     let outdated = false;
 
@@ -209,6 +339,7 @@ const runCheck = async (args: string[]): Promise<void> => {
         outdated = true;
         return;
       }
+      if (!existsSync(generated)) return;
       const existingContent = readFileSync(existing, "utf-8");
       const generatedContent = readFileSync(generated, "utf-8");
       if (existingContent !== generatedContent) {
@@ -220,19 +351,40 @@ const runCheck = async (args: string[]): Promise<void> => {
     checkFile("overview.md");
     if (config.llmsTxt.enabled) checkFile("llms.txt");
     checkFile(".symbol-index.json");
-    for (const pkg of packages) {
+    for (const pkg of referenceCatalog.packages) {
       const shortName = pkg.name.replace("@cat/", "");
       checkFile(`packages/${shortName}.md`);
     }
 
-    if (outdated) {
-      console.error(
-        "\nDocumentation is outdated. Run 'pnpm autodoc' and commit.",
-      );
-      process.exit(1);
-    } else {
-      console.log("Documentation is up-to-date.");
+    // Also run full validation (Tier-1 + Tier-2 + Tier-3)
+    const tmpPaths = collectOutputPaths(tmpDir);
+    const { findings } = await runValidation(
+      config,
+      workspaceRoot,
+      {
+        tiers: [1, 2, 3],
+        referenceCatalog,
+        semanticCatalog,
+        existingOutputPaths: tmpPaths,
+      },
+    );
+
+    const allFindings = [...semanticFindings, ...findings];
+    if (allFindings.length > 0) {
+      console.log(formatFindings(allFindings));
     }
+
+    if (outdated) {
+      console.error("\nDocumentation is outdated. Run 'pnpm autodoc' and commit.");
+      process.exit(1);
+    }
+
+    if (hasErrors(allFindings)) {
+      console.error("\nValidation errors detected.");
+      process.exit(1);
+    }
+
+    console.log("Documentation is up-to-date and valid.");
   } finally {
     await rm(tmpDir, { recursive: true });
   }
@@ -254,7 +406,7 @@ const runLookup = async (args: string[]): Promise<void> => {
     process.exit(1);
   }
 
-  const config = await loadConfig(args);
+  const { config } = await loadConfig(args);
   const indexPath = join(config.output.path, ".symbol-index.json");
 
   if (!existsSync(indexPath)) {
@@ -276,7 +428,11 @@ const runLookup = async (args: string[]): Promise<void> => {
     hasResults = true;
     for (const entry of results) {
       console.log(entry.id);
-      console.log(`  File: ${entry.filePath}:${entry.line}-${entry.endLine}`);
+      const colInfo = entry.column !== undefined ? `:${entry.column}` : "";
+      console.log(
+        `  File: ${entry.filePath}:${entry.line}-${entry.endLine}${colInfo}`,
+      );
+      console.log(`  Key: ${entry.stableKey ?? entry.id}`);
       console.log(`  Kind: ${entry.kind}`);
       console.log(`  Package: ${entry.packageName}`);
       if (entry.description) console.log(`  Description: ${entry.description}`);
@@ -296,6 +452,9 @@ const main = async () => {
   switch (subcommand) {
     case "check":
       await runCheck(args.slice(1));
+      break;
+    case "validate":
+      await runValidateCmd(args.slice(1));
       break;
     case "lookup":
       await runLookup(args.slice(1));
