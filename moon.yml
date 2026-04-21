@@ -53,6 +53,20 @@ tasks:
     deps:
       - "shared:build"
       - "autodoc:build"
+      - "graph:build"
+      - "core:build"
+      - "plugin-core:build"
+      - "domain:build"
+      - "operations:build"
+      - "db:build"
+      - "permissions:build"
+      - "workflow:build"
+      - "server-shared:build"
+      - "auth:build"
+      - "message:build"
+      - "agent:build"
+      - "agent-tools:build"
+      - "vcs:build"
     options:
       cache: false
       runFromWorkspaceRoot: true
