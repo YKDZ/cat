@@ -191,6 +191,8 @@ export class PluginManager {
         `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
       );
 
+    await this.ensureDefinitionSynced(drizzle, pluginId);
+
     await executeCommand({ db: drizzle }, installPlugin, {
       pluginId,
       scopeType: this.scopeType,
