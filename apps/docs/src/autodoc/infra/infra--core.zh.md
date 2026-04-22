@@ -1,6 +1,6 @@
 # 核心业务服务
 
-> **Section**: 服务  ·  **Subject ID**: `services/core`
+> **Section**: 基础设施  ·  **Subject ID**: `infra/core`
 
 `@cat/core` 提供两类轻量基础设施原语，被整个后端服务层复用。
 

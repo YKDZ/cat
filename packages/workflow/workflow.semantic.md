@@ -1,5 +1,5 @@
 ---
-subject: services/workflow
+subject: infra/workflow
 ---
 
 `@cat/workflow` 在 `@cat/graph` 的 DAG 基础之上，提供面向业务的工作流 DSL、预定义任务注册表以及与 VCS 的透明集成，是 CAT 所有自动化流程的执行引擎。
@@ -66,27 +66,4 @@ await executeWithVCS(
 
 ## 自动翻译流水线
 
-自动翻译是 `@cat/workflow` 最典型的跨包协作流程，实现了从可翻译元素上传到译文产出的全链路自动化。
-
-```
-元素上传 → element:created 事件（@cat/domain）
-  ↓
-findOrCreateAutoTranslatePROp（@cat/operations）
-  ↓  查找或创建专属自动翻译 PR，绑定 Isolation 模式分支
-自动翻译 DAG（@cat/workflow）
-  ├─→ vectorizeElementOp     — 向量化源文本
-  ├─→ recallMemoriesOp       — 翻译记忆三通道召回
-  ├─→ recallTermsOp          — 术语匹配
-  ├─→ LLM 翻译（携带记忆/术语提示）
-  └─→ submitTranslation      — 写入 Isolation 分支 Changeset（@cat/vcs）
-        ↓
-      PR 变更集（草稿状态）
-        ↓  前端 readWithOverlay
-      编辑器 Ghost Text — 译者可直接接受或覆盖
-```
-
-**幂等性**：同一文档同一目标语言始终只维护一个自动翻译 PR，元素变更时在已有 PR 分支追加 Changeset 而非新建 PR。
-
-**事件驱动**：工作流监听 `element:created` / `element:updated` 事件（`@cat/core` EventBus）自动触发，无需人工干预。
-
-**质量门控**：翻译完成后自动运行 `runQACheckOp`；若存在严重问题（如术语不一致），PR 状态标记为需人工审核。
+自动翻译是 `@cat/workflow` 最典型的跨包协作流程，通过监听 `element:created` 事件自动触发 `runAutoTranslatePipeline`，将候选翻译写入 open AUTO_TRANSLATE PR 的 changeset，最终由前端 overlay 读取并以 Ghost Text 形式呈现给译者。详细的端到端链路记录在 `infra/workflow` 主题的 Ghost Text 预翻译回显链路章节中。

@@ -64,6 +64,23 @@
     "enPage": "infra/infra--auth.en.md"
   },
   {
+    "id": "infra/core",
+    "title": {
+      "zh": "核心业务服务",
+      "en": "Core Business Services"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/core",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--core.zh.md",
+    "enPage": "infra/infra--core.en.md"
+  },
+  {
     "id": "infra/db",
     "title": {
       "zh": "数据库访问层",
@@ -77,6 +94,28 @@
     "fragmentCount": 1,
     "zhPage": "infra/infra--db.zh.md",
     "enPage": "infra/infra--db.en.md"
+  },
+  {
+    "id": "infra/eval",
+    "title": {
+      "zh": "评测框架",
+      "en": "Eval Framework"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/eval",
+    "secondaryAssociations": [
+      "@cat/agent",
+      "@cat/workflow"
+    ],
+    "dependsOn": [
+      "ai/agent",
+      "domain/core",
+      "infra/workflow"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--eval.zh.md",
+    "enPage": "infra/infra--eval.en.md"
   },
   {
     "id": "infra/file-parsers",
@@ -94,6 +133,23 @@
     "enPage": "infra/infra--file-parsers.en.md"
   },
   {
+    "id": "infra/graph",
+    "title": {
+      "zh": "图计算引擎",
+      "en": "Graph Computing Engine"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/graph",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--graph.zh.md",
+    "enPage": "infra/infra--graph.en.md"
+  },
+  {
     "id": "infra/message",
     "title": {
       "zh": "消息队列与通知",
@@ -107,6 +163,23 @@
     "fragmentCount": 1,
     "zhPage": "infra/infra--message.zh.md",
     "enPage": "infra/infra--message.en.md"
+  },
+  {
+    "id": "infra/operations",
+    "title": {
+      "zh": "操作与任务系统",
+      "en": "Operations & Tasks"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/operations",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 9,
+    "zhPage": "infra/infra--operations.zh.md",
+    "enPage": "infra/infra--operations.en.md"
   },
   {
     "id": "infra/permissions",
@@ -136,7 +209,7 @@
     "secondaryAssociations": [],
     "dependsOn": [],
     "public": true,
-    "fragmentCount": 1,
+    "fragmentCount": 2,
     "zhPage": "infra/infra--plugin-core.zh.md",
     "enPage": "infra/infra--plugin-core.en.md"
   },
@@ -235,93 +308,20 @@
     "enPage": "infra/infra--vcs.en.md"
   },
   {
-    "id": "services/core",
-    "title": {
-      "zh": "核心业务服务",
-      "en": "Core Business Services"
-    },
-    "section": "services",
-    "primaryOwner": "@cat/core",
-    "secondaryAssociations": [],
-    "dependsOn": [
-      "domain/core"
-    ],
-    "public": true,
-    "fragmentCount": 1,
-    "zhPage": "services/services--core.zh.md",
-    "enPage": "services/services--core.en.md"
-  },
-  {
-    "id": "services/eval",
-    "title": {
-      "zh": "评测框架",
-      "en": "Eval Framework"
-    },
-    "section": "services",
-    "primaryOwner": "@cat/eval",
-    "secondaryAssociations": [
-      "@cat/agent",
-      "@cat/workflow"
-    ],
-    "dependsOn": [
-      "ai/agent",
-      "domain/core",
-      "services/workflow"
-    ],
-    "public": true,
-    "fragmentCount": 1,
-    "zhPage": "services/services--eval.zh.md",
-    "enPage": "services/services--eval.en.md"
-  },
-  {
-    "id": "services/graph",
-    "title": {
-      "zh": "图计算引擎",
-      "en": "Graph Computing Engine"
-    },
-    "section": "services",
-    "primaryOwner": "@cat/graph",
-    "secondaryAssociations": [],
-    "dependsOn": [
-      "domain/core"
-    ],
-    "public": true,
-    "fragmentCount": 1,
-    "zhPage": "services/services--graph.zh.md",
-    "enPage": "services/services--graph.en.md"
-  },
-  {
-    "id": "services/operations",
-    "title": {
-      "zh": "操作与任务系统",
-      "en": "Operations & Tasks"
-    },
-    "section": "services",
-    "primaryOwner": "@cat/operations",
-    "secondaryAssociations": [],
-    "dependsOn": [
-      "domain/core"
-    ],
-    "public": true,
-    "fragmentCount": 1,
-    "zhPage": "services/services--operations.zh.md",
-    "enPage": "services/services--operations.en.md"
-  },
-  {
-    "id": "services/workflow",
+    "id": "infra/workflow",
     "title": {
       "zh": "工作流引擎",
       "en": "Workflow Engine"
     },
-    "section": "services",
+    "section": "infra",
     "primaryOwner": "@cat/workflow",
     "secondaryAssociations": [],
     "dependsOn": [
       "domain/core"
     ],
     "public": true,
-    "fragmentCount": 1,
-    "zhPage": "services/services--workflow.zh.md",
-    "enPage": "services/services--workflow.en.md"
+    "fragmentCount": 2,
+    "zhPage": "infra/infra--workflow.zh.md",
+    "enPage": "infra/infra--workflow.en.md"
   }
 ]

@@ -1,5 +1,5 @@
 ---
-subject: services/operations
+subject: infra/operations
 ---
 
 `@cat/operations` 是 CAT 后端的业务流程编排层，位于 API 路由与领域模型（`@cat/domain`）之间，将复杂的多步骤操作封装为单一函数，避免业务逻辑泄漏到路由处理器中。
@@ -15,15 +15,11 @@ subject: services/operations
 
 ## 主要能力分区
 
-**自动翻译操作**：`autoTranslateElementOp` 触发 NLP 向量化 → 记忆召回 → 术语匹配 → LLM 翻译的完整链路；`findOrCreateAutoTranslatePROp` 查找或新建专属自动翻译 PR，确保幂等。
+**术语与记忆**：`createTermOp`（新建术语条目并触发向量化）、`termRecallOp`（词汇/形态/语义三通道术语召回）、`collectMemoryRecallOp`（精确/trigram/variant/语义四通道翻译记忆召回）。
 
-**NLP / 向量化 Pipeline**：`vectorizeElementOp` 将元素文本嵌入，写入向量数据库；`recallMemoriesOp`（翻译记忆召回）与 `recallTermsOp`（术语匹配）基于向量相似度与关键字双通道搜索返回最佳候选。
+**自动翻译**：`fetchBestTranslationCandidateOp`（并行查询 advisor 与记忆，选取最优候选）、`runAutoTranslatePipeline`（批量预翻译流水线，写入 AUTO_TRANSLATE PR changeset）。
 
-**记忆与术语**：`addTMRecordOp`（翻译记忆入库）、`addTermOp`（术语条目添加）、`searchTMOp`（精确 + trigram + 语义三通道搜索）。
-
-**PR / VCS 工作流**：`createPROp`（创建 PR）、`mergePROp`（合并 PR，触发 Changeset 应用）、`createBranchOp`（创建隔离分支）、`applyChangesetOp`（将草稿变更集写入主线）。
-
-**质量检查**：`runQACheckOp` 对译文执行一致性、术语合规、长度比率等规则检查，聚合为 `QAReport`。
+**质量检查与 NLP**：`qaTranslationOp`（完整 QA 管线：tokenize → QA_CHECKER 插件 → 持久化结果）、`tokenizeOp`（调度所有 TOKENIZER 服务，按 priority 顺序执行）。
 
 ## VCS 透明化
 

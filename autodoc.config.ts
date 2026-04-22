@@ -14,15 +14,9 @@ export const sections = [
     public: true,
   },
   {
-    id: "services",
-    title: { zh: "服务", en: "Services" },
-    order: 3,
-    public: true,
-  },
-  {
     id: "ai",
     title: { zh: "AI 系统", en: "AI System" },
-    order: 4,
+    order: 3,
     public: true,
   },
 ] as const satisfies AutodocConfig["sections"];

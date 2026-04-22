@@ -1,5 +1,5 @@
 ---
-subject: services/eval
+subject: infra/eval
 ---
 
 `@cat/eval` 是 CAT 的 Agent 与翻译质量评测框架，通过标准化的 Suite 配置、场景策略与评分指标，对 Agent 行为和翻译记忆/术语召回效果进行可重复、可比较的评测。

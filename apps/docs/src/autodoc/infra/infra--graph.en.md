@@ -1,6 +1,6 @@
 # Graph Computing Engine
 
-> **Section**: Services  ·  **Subject ID**: `services/graph`
+> **Section**: Infra  ·  **Subject ID**: `infra/graph`
 
 **Primary package**: `@cat/graph`
 

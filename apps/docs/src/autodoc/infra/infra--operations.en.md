@@ -1,6 +1,6 @@
 # Operations & Tasks
 
-> **Section**: Services  ·  **Subject ID**: `services/operations`
+> **Section**: Infra  ·  **Subject ID**: `infra/operations`
 
 **Primary package**: `@cat/operations`
 

@@ -1,6 +1,6 @@
 # Core Business Services
 
-> **Section**: Services  ·  **Subject ID**: `services/core`
+> **Section**: Infra  ·  **Subject ID**: `infra/core`
 
 **Primary package**: `@cat/core`
 

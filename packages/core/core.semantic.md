@@ -1,5 +1,5 @@
 ---
-subject: services/core
+subject: infra/core
 ---
 
 `@cat/core` 提供两类轻量基础设施原语，被整个后端服务层复用。
