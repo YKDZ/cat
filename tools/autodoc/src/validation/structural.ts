@@ -1,6 +1,6 @@
-import type { ValidationFinding } from "./findings.js";
-import type { SubjectRegistry } from "../subjects/registry.js";
 import type { SubjectIR } from "../subjects/ir.js";
+import type { SubjectRegistry } from "../subjects/registry.js";
+import type { ValidationFinding } from "./findings.js";
 
 /**
  * @zh Tier-1 结构校验：对 manifest 语法以外的跨 subject 约束进行校验。
@@ -16,7 +16,9 @@ export const validateStructural = (
   const findings: ValidationFinding[] = [];
 
   for (const subject of registry.subjects) {
-    findings.push(...validateSubjectConstraints(subject, registry, knownPackageNames));
+    findings.push(
+      ...validateSubjectConstraints(subject, registry, knownPackageNames),
+    );
   }
 
   return findings;
@@ -31,7 +33,10 @@ const validateSubjectConstraints = (
   const loc = { file: subject.manifestPath };
 
   // Primary owner must be a known package if any packages are configured
-  if (knownPackageNames.size > 0 && !knownPackageNames.has(subject.primaryOwner)) {
+  if (
+    knownPackageNames.size > 0 &&
+    !knownPackageNames.has(subject.primaryOwner)
+  ) {
     findings.push({
       severity: "warning",
       tier: 1,
@@ -91,7 +96,11 @@ const validateSubjectConstraints = (
     }
 
     // Package-type members should reference known packages
-    if (member.type === "package" && knownPackageNames.size > 0 && !knownPackageNames.has(member.ref)) {
+    if (
+      member.type === "package" &&
+      knownPackageNames.size > 0 &&
+      !knownPackageNames.has(member.ref)
+    ) {
       findings.push({
         severity: "warning",
         tier: 1,

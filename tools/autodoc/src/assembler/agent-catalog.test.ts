@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 
-import { ReferenceCatalog } from "../reference/compiler.js";
 import type { SemanticCatalog } from "../semantic/ir.js";
 import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 
+import { ReferenceCatalog } from "../reference/compiler.js";
 import { buildAgentCatalog } from "./agent-catalog.js";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ const makeSubject = (id: string, opts: Partial<SubjectIR> = {}): SubjectIR => {
     semanticFragments: [],
     dependsOn: [],
     public: true,
-    manifestPath: `autodoc.subjects/packages/${id}.subject.ts`,
+    manifestPath: `packages/${id}/${id}.subject.ts`,
     ...opts,
   };
 };
@@ -62,7 +62,9 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      expect(() => { JSON.parse(subjectsJson); }).not.toThrow();
+      expect(() => {
+        JSON.parse(subjectsJson);
+      }).not.toThrow();
     });
 
     it("includes all public subjects", () => {
@@ -144,7 +146,9 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         makeReferenceCatalog(),
       );
-      expect(() => { JSON.parse(referencesJson); }).not.toThrow();
+      expect(() => {
+        JSON.parse(referencesJson);
+      }).not.toThrow();
     });
 
     it("includes symbols from packages", () => {
@@ -182,8 +186,7 @@ describe("buildAgentCatalog", () => {
         makeSemanticCatalog(),
         catalog,
       );
-      const parsed: { id: string; name: string }[] =
-        JSON.parse(referencesJson);
+      const parsed: { id: string; name: string }[] = JSON.parse(referencesJson);
 
       expect(parsed).toHaveLength(1);
       expect(parsed[0].id).toBe("@cat/domain:src/index:MyType");

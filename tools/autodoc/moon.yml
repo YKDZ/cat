@@ -10,8 +10,8 @@ tasks:
     command: "node dist/cli.js generate"
     inputs:
       - "/autodoc.config.ts"
-      - "/sections.config.ts"
-      - "/autodoc.subjects/**/*.subject.ts"
+      - "/packages/*/*.subject.ts"
+      - "/apps/docs/src/.vitepress/autodoc/sections/*.subject.ts"
       - "/**/*.semantic.md"
     deps:
       - "~:build"
@@ -23,8 +23,8 @@ tasks:
     command: "node dist/cli.js check"
     inputs:
       - "/autodoc.config.ts"
-      - "/sections.config.ts"
-      - "/autodoc.subjects/**/*.subject.ts"
+      - "/packages/*/*.subject.ts"
+      - "/apps/docs/src/.vitepress/autodoc/sections/*.subject.ts"
       - "/**/*.semantic.md"
     deps:
       - "~:build"
@@ -36,8 +36,8 @@ tasks:
     command: "node dist/cli.js validate"
     inputs:
       - "/autodoc.config.ts"
-      - "/sections.config.ts"
-      - "/autodoc.subjects/**/*.subject.ts"
+      - "/packages/*/*.subject.ts"
+      - "/apps/docs/src/.vitepress/autodoc/sections/*.subject.ts"
       - "/**/*.semantic.md"
     deps:
       - "~:build"

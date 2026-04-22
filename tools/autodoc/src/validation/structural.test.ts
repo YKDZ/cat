@@ -27,7 +27,8 @@ const makeSubjectIR = (
   semanticFragments: partial.semanticFragments ?? [],
   dependsOn: partial.dependsOn ?? [],
   public: partial.public ?? true,
-  manifestPath: partial.manifestPath ?? `autodoc.subjects/packages/${partial.id}.subject.ts`,
+  manifestPath:
+    partial.manifestPath ?? `packages/${partial.id}/${partial.id}.subject.ts`,
 });
 
 // ── SubjectRegistry ───────────────────────────────────────────────────────────
@@ -36,7 +37,10 @@ describe("SubjectRegistry", () => {
   const section = makeSectionIR("domain");
   const subjects = [
     makeSubjectIR({ id: "domain", primaryOwner: "@cat/domain" }, section),
-    makeSubjectIR({ id: "operations", primaryOwner: "@cat/operations" }, section),
+    makeSubjectIR(
+      { id: "operations", primaryOwner: "@cat/operations" },
+      section,
+    ),
   ];
 
   const registry = new SubjectRegistry(subjects, [section]);
@@ -84,9 +88,15 @@ describe("buildMembershipIndex", () => {
 
   it("builds primary and secondary membership entries", () => {
     const memberships = buildMembershipIndex(registry);
-    expect(memberships.find((m) => m.packageName === "@cat/domain")?.role).toBe("primary");
-    expect(memberships.find((m) => m.packageName === "@cat/operations")?.role).toBe("secondary");
-    expect(memberships.find((m) => m.packageName === "@cat/ops")?.role).toBe("primary");
+    expect(memberships.find((m) => m.packageName === "@cat/domain")?.role).toBe(
+      "primary",
+    );
+    expect(
+      memberships.find((m) => m.packageName === "@cat/operations")?.role,
+    ).toBe("secondary");
+    expect(memberships.find((m) => m.packageName === "@cat/ops")?.role).toBe(
+      "primary",
+    );
   });
 });
 
@@ -132,7 +142,9 @@ describe("validateStructural", () => {
     );
     const registry = new SubjectRegistry([subject], [section]);
     const findings = validateStructural(registry, knownPackages);
-    expect(findings.some((f) => f.code === "UNKNOWN_SECONDARY_ASSOCIATION")).toBe(true);
+    expect(
+      findings.some((f) => f.code === "UNKNOWN_SECONDARY_ASSOCIATION"),
+    ).toBe(true);
   });
 
   it("warns when secondary association duplicates primary owner", () => {
@@ -146,7 +158,9 @@ describe("validateStructural", () => {
     );
     const registry = new SubjectRegistry([subject], [section]);
     const findings = validateStructural(registry, knownPackages);
-    expect(findings.some((f) => f.code === "SECONDARY_DUPLICATES_PRIMARY")).toBe(true);
+    expect(
+      findings.some((f) => f.code === "SECONDARY_DUPLICATES_PRIMARY"),
+    ).toBe(true);
   });
 
   it("errors when dependsOn references missing subject", () => {
@@ -178,7 +192,9 @@ describe("validateStructural", () => {
     );
     const registry = new SubjectRegistry([subjectA, subjectB], [section]);
     const findings = validateStructural(registry, knownPackages);
-    expect(findings.filter((f) => f.code === "DEPENDENCY_NOT_FOUND")).toHaveLength(0);
+    expect(
+      findings.filter((f) => f.code === "DEPENDENCY_NOT_FOUND"),
+    ).toHaveLength(0);
   });
 
   it("produces no findings when known packages set is empty (skip package validation)", () => {
@@ -189,6 +205,8 @@ describe("validateStructural", () => {
     const registry = new SubjectRegistry([subject], [section]);
     const findings = validateStructural(registry, new Set());
     // Empty known packages → no UNKNOWN_PRIMARY_OWNER warnings
-    expect(findings.filter((f) => f.code === "UNKNOWN_PRIMARY_OWNER")).toHaveLength(0);
+    expect(
+      findings.filter((f) => f.code === "UNKNOWN_PRIMARY_OWNER"),
+    ).toHaveLength(0);
   });
 });

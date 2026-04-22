@@ -3,6 +3,7 @@ import type { ReferenceCatalog } from "../reference/compiler.js";
 import type { AutodocConfig } from "../types.js";
 
 import { buildIndex } from "../ir-index.js";
+import { getPackageDocSlug } from "../package-doc-path.js";
 import { createLlmsTxtRenderer } from "../renderer/llms-txt-renderer.js";
 import { createOverviewRenderer } from "../renderer/overview-renderer.js";
 import { createPackageRenderer } from "../renderer/package-renderer.js";
@@ -36,7 +37,7 @@ export const buildCompatProjections = (
   const packages = referenceCatalog.packages;
   const overviewRenderer = createOverviewRenderer(config);
   const pkgRenderer = createPackageRenderer();
-  const llmsRenderer = createLlmsTxtRenderer();
+  const llmsRenderer = createLlmsTxtRenderer(config);
 
   const overviewMd = overviewRenderer.render(packages);
 
@@ -46,9 +47,9 @@ export const buildCompatProjections = (
   for (const pkg of packages) {
     const isHighPriority =
       config.packages.find((p) => p.name === pkg.name)?.priority === "high";
-    const shortName = pkg.name.replace("@cat/", "");
+    const slug = getPackageDocSlug(pkg.name, config.packageDocs ?? {});
     packagePages.set(
-      shortName,
+      slug,
       pkgRenderer.renderPackage(pkg, { detailed: isHighPriority ?? false }),
     );
   }

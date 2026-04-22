@@ -40,6 +40,16 @@
 
 * [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (13 functions, 18 types)
 
+* [**@cat/file-parsers**](./packages/file-parsers.md) (0 functions, 4 types)
+
+* [**@cat/seed**](./packages/seed.md) (6 functions, 15 types)
+
+* [**@cat/source-collector**](./packages/source-collector.md) (5 functions, 5 types)
+
+* [**@cat/screenshot-collector**](./packages/screenshot-collector.md) (10 functions, 6 types)
+
+* [**@cat/eval**](./packages/eval.md) (9 functions, 29 types)
+
 ## Core Package Dependencies
 
 ```

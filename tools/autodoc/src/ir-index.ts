@@ -11,12 +11,15 @@ const SymbolIndexEntrySchema = z.object({
   filePath: z.string(),
   line: z.int(),
   endLine: z.int(),
+  column: z.number().int().optional(),
+  endColumn: z.number().int().optional(),
+  stableKey: z.string().optional(),
   packageName: z.string(),
 });
 
 /**
- * @zh 扁平化的符号索引条目。
- * @en Flattened symbol index entry.
+ * @zh 扁平化的符号索引条目（ReferenceCatalog 的兼容投影）。
+ * @en Flattened symbol index entry (compatibility projection from ReferenceCatalog).
  */
 export interface SymbolIndexEntry {
   /** @zh 符号唯一 ID @en Unique symbol ID */
@@ -33,13 +36,22 @@ export interface SymbolIndexEntry {
   line: number;
   /** @zh 结束行号 @en End line number */
   endLine: number;
+  /** @zh 起始列号（0-based） @en Start column (0-based) */
+  column?: number;
+  /** @zh 结束列号（0-based） @en End column (0-based) */
+  endColumn?: number;
+  /**
+   * @zh 跨版本稳定键（对重载函数含参数类型指纹）。
+   * @en Cross-version stable key (overloaded functions include a type fingerprint).
+   */
+  stableKey?: string;
   /** @zh 所属包名 @en Package name */
   packageName: string;
 }
 
 /**
- * @zh 从 PackageIR[] 构建扁平索引。
- * @en Build a flat index from PackageIR[].
+ * @zh 从 PackageIR[] 构建扁平索引（ReferenceCatalog 兼容投影）。
+ * @en Build a flat index from PackageIR[] (ReferenceCatalog compatibility projection).
  */
 export const buildIndex = (packages: PackageIR[]): SymbolIndexEntry[] => {
   const entries: SymbolIndexEntry[] = [];
@@ -54,6 +66,9 @@ export const buildIndex = (packages: PackageIR[]): SymbolIndexEntry[] => {
           filePath: sym.sourceLocation.filePath,
           line: sym.sourceLocation.line,
           endLine: sym.sourceLocation.endLine,
+          column: sym.sourceLocation.column,
+          endColumn: sym.sourceLocation.endColumn,
+          stableKey: sym.stableKey,
           packageName: pkg.name,
         });
       }

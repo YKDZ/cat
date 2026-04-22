@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
-import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 import type { SemanticCatalog } from "../semantic/ir.js";
+import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 
 import { SubjectRegistry } from "../subjects/registry.js";
 import { validatePublication } from "./publication.js";
@@ -29,27 +29,31 @@ const makeSubject = (
   semanticFragments: [],
   dependsOn: [],
   public: opts.public ?? true,
-  manifestPath: `autodoc.subjects/packages/${id}.subject.ts`,
+  manifestPath: `packages/${id}/${id}.subject.ts`,
 });
 
 const makeSemanticCatalog = (subjects: string[] = []): SemanticCatalog => ({
   getFragments: (id: string) =>
     subjects.includes(id)
-      ? [{
-          subjectId: id,
-          body: "fragment",
-          sourcePath: "README.md",
-          startLine: 1,
-          sourceType: "readme-anchor",
-          referencedStableKeys: [],
-        }]
+      ? [
+          {
+            subjectId: id,
+            body: "fragment",
+            sourcePath: "README.md",
+            startLine: 1,
+            sourceType: "readme-anchor",
+            referencedStableKeys: [],
+          },
+        ]
       : [],
   subjectIds: () => subjects,
   fragmentCount: subjects.length,
 });
 
-const makeRegistry = (subjects: SubjectIR[], sections: SectionIR[]): SubjectRegistry =>
-  new SubjectRegistry(subjects, sections);
+const makeRegistry = (
+  subjects: SubjectIR[],
+  sections: SectionIR[],
+): SubjectRegistry => new SubjectRegistry(subjects, sections);
 
 const makeOutputPaths = (...paths: string[]): Set<string> => new Set(paths);
 
@@ -82,7 +86,10 @@ describe("validatePublication (Tier-3)", () => {
     const registry = makeRegistry([subject], [section]);
     const catalog = makeSemanticCatalog(["domain/core"]);
     // Only EN page and index, no ZH page
-    const paths = makeOutputPaths("domain/domain--core.en.md", "domain/index.md");
+    const paths = makeOutputPaths(
+      "domain/domain--core.en.md",
+      "domain/index.md",
+    );
 
     const findings = validatePublication(registry, [section], catalog, paths);
     const finding = findings.find((f) => f.code === "MISSING_ZH_PAGE");
@@ -98,7 +105,10 @@ describe("validatePublication (Tier-3)", () => {
     const subject = makeSubject("domain/core", section);
     const registry = makeRegistry([subject], [section]);
     const catalog = makeSemanticCatalog(["domain/core"]);
-    const paths = makeOutputPaths("domain/domain--core.zh.md", "domain/index.md");
+    const paths = makeOutputPaths(
+      "domain/domain--core.zh.md",
+      "domain/index.md",
+    );
 
     const findings = validatePublication(registry, [section], catalog, paths);
     const finding = findings.find((f) => f.code === "MISSING_EN_PAGE");
@@ -126,7 +136,10 @@ describe("validatePublication (Tier-3)", () => {
     const subject = makeSubject("domain/core", section);
     const registry = makeRegistry([subject], [section]);
     const catalog = makeSemanticCatalog([]); // no fragments for domain/core
-    const paths = makeOutputPaths(...subjectPaths("domain", "domain/core"), "domain/index.md");
+    const paths = makeOutputPaths(
+      ...subjectPaths("domain", "domain/core"),
+      "domain/index.md",
+    );
 
     const findings = validatePublication(registry, [section], catalog, paths);
     const finding = findings.find((f) => f.code === "SUBJECT_NO_FRAGMENTS");
@@ -137,7 +150,9 @@ describe("validatePublication (Tier-3)", () => {
   });
 
   it("skips non-public subjects", () => {
-    const privateSubject = makeSubject("domain/private", section, { public: false });
+    const privateSubject = makeSubject("domain/private", section, {
+      public: false,
+    });
     const registry = makeRegistry([privateSubject], [section]);
     const catalog = makeSemanticCatalog([]);
     const paths = makeOutputPaths("domain/index.md"); // no pages for private subject
@@ -157,9 +172,16 @@ describe("validatePublication (Tier-3)", () => {
     const catalog = makeSemanticCatalog([]);
     const paths = makeOutputPaths(); // nothing exists
 
-    const findings = validatePublication(registry, [privateSection], catalog, paths);
+    const findings = validatePublication(
+      registry,
+      [privateSection],
+      catalog,
+      paths,
+    );
     // Non-public section should not trigger MISSING_SECTION_INDEX
-    const indexMissing = findings.filter((f) => f.code === "MISSING_SECTION_INDEX");
+    const indexMissing = findings.filter(
+      (f) => f.code === "MISSING_SECTION_INDEX",
+    );
     expect(indexMissing).toHaveLength(0);
   });
 
@@ -186,7 +208,12 @@ describe("validatePublication (Tier-3)", () => {
       "services/index.md",
     );
 
-    const findings = validatePublication(registry, [makeSection("services")], catalog, paths);
+    const findings = validatePublication(
+      registry,
+      [makeSection("services")],
+      catalog,
+      paths,
+    );
     expect(findings).toHaveLength(0);
   });
 });

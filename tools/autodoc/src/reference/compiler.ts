@@ -1,5 +1,5 @@
-import type { PackageIR, SymbolIR } from "../ir.js";
 import type { SymbolIndexEntry } from "../ir-index.js";
+import type { PackageIR, SymbolIR } from "../ir.js";
 
 import { buildIndex } from "../ir-index.js";
 

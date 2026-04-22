@@ -3,7 +3,7 @@ import type { MarkdownOptions } from "vitepress";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vitepress";
 
-import sections from "../../../../sections.config.js";
+import { sections } from "../../../../autodoc.config";
 import MermaidExample from "./mermaid-markdown-all.js";
 
 const allMarkdownTransformers: MarkdownOptions = {

@@ -1,6 +1,6 @@
-import type { SubjectIR, SectionIR } from "../subjects/ir.js";
 import type { ReferenceCatalog } from "../reference/compiler.js";
 import type { SemanticCatalog } from "../semantic/ir.js";
+import type { SubjectIR, SectionIR } from "../subjects/ir.js";
 
 // ── Agent subject entry ────────────────────────────────────────────────────────
 
@@ -33,9 +33,9 @@ export interface AgentReferenceEntry {
 // ── Agent catalog ─────────────────────────────────────────────────────────────
 
 export interface AgentCatalogOutput {
-  /** @zh agent/subjects.json 内容（已排序） @en Content for agent/subjects.json (sorted) */
+  /** @zh subjects catalog 内容（已排序，JSON 字符串） @en Machine-readable subjects catalog (sorted JSON string) */
   subjectsJson: string;
-  /** @zh agent/references.json 内容（已排序） @en Content for agent/references.json (sorted) */
+  /** @zh references catalog 内容（已排序，JSON 字符串） @en Machine-readable references catalog (sorted JSON string) */
   referencesJson: string;
 }
 
@@ -86,11 +86,12 @@ const buildReferenceEntries = (
 };
 
 /**
- * @zh 生成 agent/subjects.json 与 agent/references.json 的 JSON 字符串。
- * 输出键顺序与排序均稳定，可 schema 校验。
+ * @zh 生成机器可读的 subjects catalog 与 references catalog JSON 字符串。
+ * 输出键顺序与排序均稳定，可 schema 校验。输出路径由调用方通过 config.catalog 决定。
  *
- * @en Generate the JSON strings for agent/subjects.json and agent/references.json.
- * Key order and sort order are both stable for schema validation.
+ * @en Generate the JSON strings for the machine-readable subjects catalog and references catalog.
+ * Key order and sort order are both stable for schema validation. Output paths are determined
+ * by the caller via config.catalog.
  */
 export const buildAgentCatalog = (
   subjects: SubjectIR[],

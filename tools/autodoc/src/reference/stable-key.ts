@@ -16,7 +16,9 @@ export const makeStableKey = (
   if (!isOverloaded) return id;
   // Always append parens for overloaded symbols, even with no parameters
   const paramFingerprint = (parameters ?? [])
-    .map((p) => p.type.replace(/\s+/g, "").replace(/[^a-zA-Z0-9_<>[\]|&,().]/g, ""))
+    .map((p) =>
+      p.type.replace(/\s+/g, "").replace(/[^a-zA-Z0-9_<>[\]|&,().]/g, ""),
+    )
     .join(",");
   return `${id}(${paramFingerprint})`;
 };

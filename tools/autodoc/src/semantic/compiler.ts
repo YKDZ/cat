@@ -53,10 +53,15 @@ class SemanticCatalogImpl implements SemanticCatalog {
 
 // ── Validation helpers ─────────────────────────────────────────────────────────
 
+export interface SemanticValidationOptions {
+  validatePrimaryLanguage?: boolean;
+}
+
 const validateFragments = (
   fragments: SemanticFragment[],
   registry: SubjectRegistry | null,
   catalog: ReferenceCatalog | null,
+  options: SemanticValidationOptions,
 ): ValidationFinding[] => {
   const findings: ValidationFinding[] = [];
   const knownSubjectIds = new Set(registry?.subjects.map((s) => s.id) ?? []);
@@ -75,16 +80,18 @@ const validateFragments = (
       });
     }
 
-    // 2. Language contract: semantic layer must be primarily Chinese
-    const lang = detectPrimaryLanguage(frag.body);
-    if (lang === "en") {
-      findings.push({
-        severity: "warning",
-        tier: 2,
-        code: "FRAGMENT_ENGLISH_DOMINANT",
-        message: `Fragment at "${frag.sourcePath}:${frag.startLine}" (subject: "${frag.subjectId}") appears to be primarily English. The semantic layer should contain Chinese content.`,
-        location: { file: frag.sourcePath, line: frag.startLine },
-      });
+    // 2. Language contract: opt-in warning for English-dominant fragments
+    if (options.validatePrimaryLanguage) {
+      const lang = detectPrimaryLanguage(frag.body);
+      if (lang === "en") {
+        findings.push({
+          severity: "warning",
+          tier: 2,
+          code: "FRAGMENT_ENGLISH_DOMINANT",
+          message: `Fragment at "${frag.sourcePath}:${frag.startLine}" (subject: "${frag.subjectId}") appears to be primarily English. The semantic layer should contain Chinese content.`,
+          location: { file: frag.sourcePath, line: frag.startLine },
+        });
+      }
     }
 
     // 3. Duplicate body per subject (same source file + same subject)
@@ -138,8 +145,14 @@ export const buildSemanticCatalog = (
   fragments: SemanticFragment[],
   registry: SubjectRegistry | null = null,
   referenceCatalog: ReferenceCatalog | null = null,
+  options: SemanticValidationOptions = {},
 ): SemanticCompilerResult => {
-  const findings = validateFragments(fragments, registry, referenceCatalog);
+  const findings = validateFragments(
+    fragments,
+    registry,
+    referenceCatalog,
+    options,
+  );
   const catalog = new SemanticCatalogImpl(fragments);
   return { catalog, findings };
 };
