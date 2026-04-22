@@ -1,8 +1,9 @@
-# Workflow Engine
+# Eval Framework
 
-> **Section**: Services  ·  **Subject ID**: `services/workflow`
+> **Section**: Infra  ·  **Subject ID**: `infra/eval`
 
-**Primary package**: `@cat/workflow`
+**Primary package**: `@cat/eval`
+**Also covers**: `@cat/agent`, `@cat/workflow`
 
 ## API Reference
 
@@ -73,8 +74,10 @@ and a `comp |
 | `JoinNodeExecutor` | function |  |
 | `LoopNodeExecutor` | function |  |
 | `ParallelNodeExecutor` | function |  |
-| *(41 more)* | | |
+| *(128 more)* | | |
 
 ## Related Topics
 
+- [`ai/agent`](../ai/ai--agent.en.md)
+- [`infra/workflow`](../infra/infra--workflow.en.md)
 - [`domain/core`](../domain/domain--core.en.md)

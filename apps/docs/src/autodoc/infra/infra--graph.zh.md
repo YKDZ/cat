@@ -1,6 +1,6 @@
 # 图计算引擎
 
-> **Section**: 服务  ·  **Subject ID**: `services/graph`
+> **Section**: 基础设施  ·  **Subject ID**: `infra/graph`
 
 `@cat/graph` 是整个 CAT 系统中图计算与黑板数据共享的基础层，被 `@cat/workflow`（顺序工作流）和 `@cat/agent`（ReAct 循环）共同复用。
 

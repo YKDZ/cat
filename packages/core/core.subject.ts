@@ -1,9 +1,9 @@
 import { defineSubject } from "@tools/autodoc";
 
 export default defineSubject({
-  id: "services/core",
+  id: "infra/core",
   title: { zh: "核心业务服务", en: "Core Business Services" },
-  section: "services",
+  section: "infra",
   primaryOwner: "@cat/core",
   secondaryAssociations: [],
   members: [{ type: "package", ref: "@cat/core" }],

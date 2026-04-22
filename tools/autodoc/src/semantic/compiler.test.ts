@@ -1,9 +1,13 @@
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, it, expect } from "vitest";
 
 import type { SubjectRegistry } from "../subjects/registry.js";
 
 import { buildSemanticCatalog } from "./compiler.js";
 import {
+  collectFragments,
   collectFragmentsFromString,
   parseSemanticMdFrontmatterPublic,
 } from "./fragment-collector.js";
@@ -130,6 +134,37 @@ title: 认证模块
       "semantic-md",
     );
     expect(frags).toHaveLength(0);
+  });
+});
+
+describe("collectFragments (glob-based nested discovery)", () => {
+  it("discovers nested semantic md files via glob collection", async () => {
+    const workspaceRoot = await mkdtemp(join(tmpdir(), "autodoc-fragments-"));
+    const nestedDir = join(workspaceRoot, "packages/operations/topics");
+    await mkdir(nestedDir, { recursive: true });
+    await writeFile(
+      join(nestedDir, "04-term-recall.semantic.md"),
+      `---
+subject: infra/operations
+title: 术语回归
+---
+
+术语回归正文。`,
+    );
+
+    const frags = await collectFragments({
+      workspaceRoot,
+      readmeGlobs: [],
+      semanticMdGlobs: ["**/*.semantic.md"],
+    });
+
+    expect(frags).toHaveLength(1);
+    expect(frags[0].subjectId).toBe("infra/operations");
+    expect(frags[0].title).toBe("术语回归");
+    expect(frags[0].sourcePath).toBe(
+      "packages/operations/topics/04-term-recall.semantic.md",
+    );
+    await rm(workspaceRoot, { recursive: true, force: true });
   });
 });
 

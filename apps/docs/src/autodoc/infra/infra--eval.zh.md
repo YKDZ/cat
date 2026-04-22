@@ -1,6 +1,6 @@
 # 评测框架
 
-> **Section**: 服务  ·  **Subject ID**: `services/eval`
+> **Section**: 基础设施  ·  **Subject ID**: `infra/eval`
 
 `@cat/eval` 是 CAT 的 Agent 与翻译质量评测框架，通过标准化的 Suite 配置、场景策略与评分指标，对 Agent 行为和翻译记忆/术语召回效果进行可重复、可比较的评测。
 
@@ -44,5 +44,5 @@
 ## 相关主题
 
 - [`ai/agent`](../ai/ai--agent.zh.md)
-- [`services/workflow`](../services/services--workflow.zh.md)
+- [`infra/workflow`](../infra/infra--workflow.zh.md)
 - [`domain/core`](../domain/domain--core.zh.md)

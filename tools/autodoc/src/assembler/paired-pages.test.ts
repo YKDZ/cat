@@ -98,6 +98,23 @@ describe("buildPairedPage", () => {
       expect(page.zhContent).toContain("描述文本。");
     });
 
+    it("renders multiple titled fragments for one subject", () => {
+      const subject = makeSubject({ id: "infra/operations" });
+      const catalog = makeSemanticCatalog({
+        "infra/operations": [
+          makeFragment("infra/operations", "总览。", "概览"),
+          makeFragment("infra/operations", "回归细节。", "术语回归"),
+        ],
+      });
+      const page = buildPairedPage(subject, catalog, makeReferenceCatalog());
+
+      expect(page.zhContent).toContain("## 概览");
+      expect(page.zhContent).toContain("## 术语回归");
+      expect(page.zhContent.indexOf("## 概览")).toBeLessThan(
+        page.zhContent.indexOf("## 术语回归"),
+      );
+    });
+
     it("shows placeholder when no fragments", () => {
       const subject = makeSubject({ id: "domain/empty" });
       const page = buildPairedPage(

@@ -1,11 +1,1 @@
-[
-  {
-    "severity": "warning",
-    "tier": 3,
-    "code": "SUBJECT_NO_FRAGMENTS",
-    "message": "Subject \"infra/db\" has no semantic fragments; ZH page will be empty",
-    "location": {
-      "file": "packages/db/db.subject.ts"
-    }
-  }
-]
+[]
