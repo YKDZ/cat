@@ -21,6 +21,9 @@ tasks:
 
   typecheck:
     script: "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json"
+    deps:
+      - "^:build"
+      - "autodoc:build"
 
 workspace:
   inheritedTasks:
