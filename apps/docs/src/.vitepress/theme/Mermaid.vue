@@ -23,7 +23,7 @@ const svg = ref("");
 const code = ref(decodeURIComponent(props.graph));
 const showModal = ref(false);
 const showSource = ref(false);
-const mermaidContainer = useTemplateRef<HTMLButtonElement>("mermaidContainer");
+const mermaidContainer = useTemplateRef<HTMLDivElement>("mermaidContainer");
 const isHovered = useElementHover(mermaidContainer);
 const isRendering = ref(false);
 // This is a hack to force v-html to re-render, otherwise the diagram disappears
@@ -45,15 +45,31 @@ mermaid.registerIconPacks([
   },
 ]);
 
+const ensureZenumlRegistered = (() => {
+  let registrationPromise: Promise<void> | null = null;
+
+  return () => {
+    if (!registrationPromise) {
+      registrationPromise = import("@mermaid-js/mermaid-zenuml")
+        .then(({ default: zenuml }) => {
+          return mermaid.registerExternalDiagrams([zenuml]);
+        })
+        .catch((error) => {
+          registrationPromise = null;
+          throw error;
+        });
+    }
+
+    return registrationPromise;
+  };
+})();
+
 const render = async (
   id: string,
   code: string,
   config: MermaidConfig,
 ): Promise<string> => {
-  const zenuml = await import("@zenuml/core");
-  const init = mermaid.registerExternalDiagrams([zenuml]);
-
-  await init;
+  await ensureZenumlRegistered();
   mermaid.initialize(config);
   const { svg } = await mermaid.render(id, code);
   return svg;

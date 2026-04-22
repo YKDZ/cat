@@ -5,12 +5,13 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/.vitepress/**/*.ts"],
+  "include": ["src/**/*.ts", "src/.vitepress/**/*.ts", "src/**/*.vue"],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

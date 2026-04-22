@@ -10,10 +10,11 @@
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.2.3",
+    "@mermaid-js/mermaid-zenuml": "^0.2.2",
     "@vueuse/core": "^14.2.1",
-    "@zenuml/core": "^3.47.2",
     "mermaid": "^11.14.0",
     "vitepress": "2.0.0-alpha.17",
-    "vue": "catalog:"
+    "vue": "catalog:",
+    "vue-tsc": "^3.2.7"
   }
 }

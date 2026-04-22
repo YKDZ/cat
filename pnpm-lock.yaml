@@ -812,21 +812,24 @@ importers:
       '@iconify/tailwind4':
         specifier: ^1.2.3
         version: 1.2.3(tailwindcss@4.2.2)
+      '@mermaid-js/mermaid-zenuml':
+        specifier: ^0.2.2
+        version: 0.2.2(@babel/core@7.29.0)(@babel/template@7.28.6)(mermaid@11.14.0)(tsx@4.21.0)(yaml@2.8.3)
       '@vueuse/core':
         specifier: ^14.2.1
-        version: 14.2.1(vue@3.5.32(typescript@5.9.3))
-      '@zenuml/core':
-        specifier: ^3.47.2
-        version: 3.47.2(@babel/core@7.29.0)(@babel/template@7.28.6)(tsx@4.21.0)(yaml@2.8.3)
+        version: 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
       mermaid:
         specifier: ^11.14.0
         version: 11.14.0
       vitepress:
         specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17(@types/node@25.6.0)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.10)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.1.0)(yaml@2.8.3)
+        version: 2.0.0-alpha.17(@types/node@25.6.0)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.10)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@6.0.0-beta)(universal-cookie@8.1.0)(yaml@2.8.3)
       vue:
         specifier: 'catalog:'
-        version: 3.5.32(typescript@5.9.3)
+        version: 3.5.32(typescript@6.0.0-beta)
+      vue-tsc:
+        specifier: ^3.2.7
+        version: 3.2.7(typescript@6.0.0-beta)
 
   apps/eval:
     dependencies:
@@ -3083,6 +3086,11 @@ packages:
 
   '@marijn/find-cluster-break@1.0.2':
     resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
+
+  '@mermaid-js/mermaid-zenuml@0.2.2':
+    resolution: {integrity: sha512-sUjwk4NWUpy9uaHypYSIGJDks10ZaZo5CHH9lx9xcmyqv9w7yvd4vecUmlUQxmlHStYO+aqSkYKX5/gFjDfypw==}
+    peerDependencies:
+      mermaid: ^10 || ^11
 
   '@mermaid-js/parser@1.1.0':
     resolution: {integrity: sha512-gxK9ZX2+Fex5zu8LhRQoMeMPEHbc73UKZ0FQ54YrQtUxE1VVhMwzeNtKRPAu5aXks4FasbMe4xB4bWrmq6Jlxw==}
@@ -11404,6 +11412,17 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
+  '@mermaid-js/mermaid-zenuml@0.2.2(@babel/core@7.29.0)(@babel/template@7.28.6)(mermaid@11.14.0)(tsx@4.21.0)(yaml@2.8.3)':
+    dependencies:
+      '@zenuml/core': 3.47.2(@babel/core@7.29.0)(@babel/template@7.28.6)(tsx@4.21.0)(yaml@2.8.3)
+      mermaid: 11.14.0
+    transitivePeerDependencies:
+      - '@babel/core'
+      - '@babel/template'
+      - '@types/react'
+      - tsx
+      - yaml
+
   '@mermaid-js/parser@1.1.0':
     dependencies:
       langium: 4.2.2
@@ -14160,11 +14179,11 @@ snapshots:
       - rollup
       - supports-color
 
-  '@vitejs/plugin-vue@6.0.6(vite@7.3.2(@types/node@25.6.0)(jiti@1.21.7)(lightningcss@1.32.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.32(typescript@5.9.3))':
+  '@vitejs/plugin-vue@6.0.6(vite@7.3.2(@types/node@25.6.0)(jiti@1.21.7)(lightningcss@1.32.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
       '@rolldown/pluginutils': 1.0.0-rc.13
       vite: 7.3.2(@types/node@25.6.0)(jiti@1.21.7)(lightningcss@1.32.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-      vue: 3.5.32(typescript@5.9.3)
+      vue: 3.5.32(typescript@6.0.0-beta)
 
   '@vitejs/plugin-vue@6.0.6(vite@8.0.8(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
@@ -14425,12 +14444,6 @@ snapshots:
       '@vue/shared': 3.5.32
       csstype: 3.2.3
 
-  '@vue/server-renderer@3.5.32(vue@3.5.32(typescript@5.9.3))':
-    dependencies:
-      '@vue/compiler-ssr': 3.5.32
-      '@vue/shared': 3.5.32
-      vue: 3.5.32(typescript@5.9.3)
-
   '@vue/server-renderer@3.5.32(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
       '@vue/compiler-ssr': 3.5.32
@@ -14469,30 +14482,12 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vueuse/core@14.2.1(vue@3.5.32(typescript@5.9.3))':
-    dependencies:
-      '@types/web-bluetooth': 0.0.21
-      '@vueuse/metadata': 14.2.1
-      '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@5.9.3))
-      vue: 3.5.32(typescript@5.9.3)
-
   '@vueuse/core@14.2.1(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
       '@vueuse/metadata': 14.2.1
       '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
       vue: 3.5.32(typescript@6.0.0-beta)
-
-  '@vueuse/integrations@14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@5.9.3))':
-    dependencies:
-      '@vueuse/core': 14.2.1(vue@3.5.32(typescript@5.9.3))
-      '@vueuse/shared': 14.2.1(vue@3.5.32(typescript@5.9.3))
-      vue: 3.5.32(typescript@5.9.3)
-    optionalDependencies:
-      axios: 1.14.0
-      focus-trap: 8.0.1
-      qrcode: 1.5.4
-      universal-cookie: 8.1.0
 
   '@vueuse/integrations@14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
@@ -14515,10 +14510,6 @@ snapshots:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
-
-  '@vueuse/shared@14.2.1(vue@3.5.32(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.32(typescript@5.9.3)
 
   '@vueuse/shared@14.2.1(vue@3.5.32(typescript@6.0.0-beta))':
     dependencies:
@@ -18940,7 +18931,7 @@ snapshots:
       tsx: 4.21.0
       yaml: 2.8.3
 
-  vitepress@2.0.0-alpha.17(@types/node@25.6.0)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.10)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@5.9.3)(universal-cookie@8.1.0)(yaml@2.8.3):
+  vitepress@2.0.0-alpha.17(@types/node@25.6.0)(axios@1.14.0)(jiti@1.21.7)(lightningcss@1.32.0)(postcss@8.5.10)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.21.0)(typescript@6.0.0-beta)(universal-cookie@8.1.0)(yaml@2.8.3):
     dependencies:
       '@docsearch/css': 4.6.2
       '@docsearch/js': 4.6.2
@@ -18950,17 +18941,17 @@ snapshots:
       '@shikijs/transformers': 3.23.0
       '@shikijs/types': 3.23.0
       '@types/markdown-it': 14.1.2
-      '@vitejs/plugin-vue': 6.0.6(vite@7.3.2(@types/node@25.6.0)(jiti@1.21.7)(lightningcss@1.32.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.32(typescript@5.9.3))
+      '@vitejs/plugin-vue': 6.0.6(vite@7.3.2(@types/node@25.6.0)(jiti@1.21.7)(lightningcss@1.32.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3))(vue@3.5.32(typescript@6.0.0-beta))
       '@vue/devtools-api': 8.1.1
       '@vue/shared': 3.5.32
-      '@vueuse/core': 14.2.1(vue@3.5.32(typescript@5.9.3))
-      '@vueuse/integrations': 14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@5.9.3))
+      '@vueuse/core': 14.2.1(vue@3.5.32(typescript@6.0.0-beta))
+      '@vueuse/integrations': 14.2.1(axios@1.14.0)(focus-trap@8.0.1)(qrcode@1.5.4)(universal-cookie@8.1.0)(vue@3.5.32(typescript@6.0.0-beta))
       focus-trap: 8.0.1
       mark.js: 8.11.1
       minisearch: 7.2.0
       shiki: 3.23.0
       vite: 7.3.2(@types/node@25.6.0)(jiti@1.21.7)(lightningcss@1.32.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
-      vue: 3.5.32(typescript@5.9.3)
+      vue: 3.5.32(typescript@6.0.0-beta)
     optionalDependencies:
       postcss: 8.5.10
     transitivePeerDependencies:
@@ -19130,16 +19121,6 @@ snapshots:
       '@volar/typescript': 2.4.28
       '@vue/language-core': 3.2.7
       typescript: 6.0.0-beta
-
-  vue@3.5.32(typescript@5.9.3):
-    dependencies:
-      '@vue/compiler-dom': 3.5.32
-      '@vue/compiler-sfc': 3.5.32
-      '@vue/runtime-dom': 3.5.32
-      '@vue/server-renderer': 3.5.32(vue@3.5.32(typescript@5.9.3))
-      '@vue/shared': 3.5.32
-    optionalDependencies:
-      typescript: 5.9.3
 
   vue@3.5.32(typescript@6.0.0-beta):
     dependencies:
