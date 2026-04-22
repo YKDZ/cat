@@ -6,7 +6,7 @@ tags:
 
 tasks:
   build:
-    command: "vitepress build src"
+    script: "vitepress build src"
 
   dev:
     command: "vitepress dev src"
