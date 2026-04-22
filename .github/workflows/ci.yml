@@ -35,16 +35,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Codegen Check
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run root:codegen-check --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run root:codegen-check
 
       - name: Format Check (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :fmt-check --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :fmt-check
 
       - name: Typecheck (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :typecheck --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :typecheck
 
       - name: Lint (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :lint --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :lint
 
   unit-tests:
     name: Unit Tests
@@ -70,7 +70,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run Unit Tests (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :test-unit --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :test-unit
 
   integration-tests:
     name: Integration Tests
@@ -114,7 +114,7 @@ jobs:
       - name: Run Integration Tests (affected)
         env:
           TEST_DATABASE_URL: "postgres://user:pass@localhost:5432/cat"
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :test-integration --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :test-integration
 
   e2e-tests:
     name: E2E Tests
@@ -175,7 +175,7 @@ jobs:
           pnpm load-plugins
 
       - name: Build App
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app:build --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app:build
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
           REDIS_URL: redis://localhost:6379
@@ -210,7 +210,7 @@ jobs:
           echo "Server is up!"
 
       - name: Run E2E Tests
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app-e2e:test-e2e --quiet
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app-e2e:test-e2e
         env:
           PORT: 3000
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
