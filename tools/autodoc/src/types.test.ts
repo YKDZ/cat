@@ -31,11 +31,11 @@ describe("AutodocConfigSchema", () => {
     }
   });
 
-  it("parses a full 2.0 config with all fields", () => {
+  it("parses a full 2.0 config with all fields (file-path sections)", () => {
     const fullConfig = {
       ...minimalConfig,
-      subjects: "autodoc.subjects/**/*.subject.ts",
-      sections: "sections.config.ts",
+      subjects: "packages/*/*.subject.ts",
+      sections: "some-sections.config.ts",
       fragments: ["**/*.semantic.md"],
       structuredAssets: [
         { package: "@cat/domain", file: "packages/domain/src/schemas.ts" },
@@ -44,10 +44,36 @@ describe("AutodocConfigSchema", () => {
     const result = AutodocConfigSchema.safeParse(fullConfig);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.subjects).toBe("autodoc.subjects/**/*.subject.ts");
-      expect(result.data.sections).toBe("sections.config.ts");
+      expect(result.data.subjects).toBe("packages/*/*.subject.ts");
+      expect(result.data.sections).toBe("some-sections.config.ts");
       expect(result.data.fragments).toEqual(["**/*.semantic.md"]);
       expect(result.data.structuredAssets).toHaveLength(1);
+    }
+  });
+
+  it("accepts sections as an inline array", () => {
+    const inlineSections = [
+      {
+        id: "domain",
+        title: { zh: "领域", en: "Domain" },
+        order: 1,
+        public: true,
+      },
+      {
+        id: "services",
+        title: { zh: "服务", en: "Services" },
+        order: 2,
+        public: true,
+      },
+    ];
+    const result = AutodocConfigSchema.safeParse({
+      ...minimalConfig,
+      sections: inlineSections,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(Array.isArray(result.data.sections)).toBe(true);
+      expect(result.data.sections).toHaveLength(2);
     }
   });
 
@@ -55,8 +81,8 @@ describe("AutodocConfigSchema", () => {
     const result = AutodocConfigSchema.safeParse({
       ...minimalConfig,
       subjects: [
-        "autodoc.subjects/packages/*.subject.ts",
-        "autodoc.subjects/subsystems/*.subject.ts",
+        "packages/*/*.subject.ts",
+        "apps/docs/src/.vitepress/autodoc/sections/*.subject.ts",
       ],
     });
     expect(result.success).toBe(true);
@@ -73,7 +99,7 @@ describe("AutodocConfigSchema", () => {
     });
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.output.path).toBe("apps/docs/src/autodoc");
+      expect(result.data.output.path).toBe("autodoc");
       expect(result.data.output.format).toBe("markdown");
     }
   });
@@ -121,6 +147,106 @@ describe("AutodocConfigSchema", () => {
       ...minimalConfig,
       structuredAssets: [{ package: "@cat/domain" }], // missing 'file'
     });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses configurable projections, catalog paths, and semantic validation", () => {
+    const result = AutodocConfigSchema.safeParse({
+      packages: [{ path: "packages/domain", name: "@acme/domain" }],
+      output: {},
+      project: {
+        name: "Acme Platform",
+        summary: "Internal documentation compiler.",
+      },
+      packageDocs: {
+        stripPrefix: "@acme/",
+      },
+      readmeGlobs: ["packages/*/README.md", "apps/*/README.md"],
+      overview: {
+        title: "Acme Platform Overview",
+        sections: [
+          {
+            type: "links",
+            heading: "Apps",
+            items: [
+              {
+                label: "@acme/web",
+                description: "apps/web — Web frontend",
+              },
+            ],
+          },
+          {
+            type: "packages",
+            heading: "Core Packages",
+            priorities: ["high", "medium"],
+          },
+          {
+            type: "code",
+            heading: "Dependencies",
+            content: "web → api → domain",
+          },
+        ],
+      },
+      llmsTxt: {
+        enabled: true,
+        title: "Acme Docs",
+        summary: "Workspace documentation bundle.",
+        projectInfo: ["Tech stack: TypeScript, Hono"],
+        featuredPackages: [
+          {
+            package: "@acme/domain",
+            summary: "Domain rules and business operations.",
+            stats: [
+              {
+                label: "Commands",
+                kinds: ["function"],
+                pathIncludes: "commands/",
+              },
+            ],
+          },
+        ],
+      },
+      catalog: {
+        directory: "catalog",
+        subjectsFile: "subjects.json",
+        referencesFile: "refs.json",
+        findingsFile: "findings.json",
+      },
+      validation: {
+        semantic: {
+          validatePrimaryLanguage: false,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("fails when overview section type is unknown", () => {
+    const result = AutodocConfigSchema.safeParse({
+      packages: [],
+      output: {},
+      llmsTxt: { enabled: false },
+      overview: {
+        sections: [{ type: "table", heading: "Bad" }],
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("fails when llmsTxt featured package stats are missing labels", () => {
+    const result = AutodocConfigSchema.safeParse({
+      packages: [],
+      output: {},
+      llmsTxt: {
+        enabled: true,
+        featuredPackages: [
+          { package: "@acme/domain", summary: "x", stats: [{}] },
+        ],
+      },
+    });
+
     expect(result.success).toBe(false);
   });
 });

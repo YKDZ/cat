@@ -24,6 +24,11 @@
 - [@cat/agent](./packages/agent.md): 13 exported functions — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser
 - [@cat/agent-tools](./packages/agent-tools.md): 3 exported functions — Built-in agent tools: kanban, translation, session management
 - [@cat/vcs](./packages/vcs.md): 13 exported functions — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies
+- [@cat/file-parsers](./packages/file-parsers.md): 0 exported functions
+- [@cat/seed](./packages/seed.md): 6 exported functions
+- [@cat/source-collector](./packages/source-collector.md): 5 exported functions
+- [@cat/screenshot-collector](./packages/screenshot-collector.md): 10 exported functions
+- [@cat/eval](./packages/eval.md): 9 exported functions
 
 ## @cat/domain
 

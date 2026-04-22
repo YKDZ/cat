@@ -59,7 +59,9 @@ export const extractZodSchemaAssets = (
 
     for (const decl of stmt.getDeclarations()) {
       const init = decl.getInitializer();
-      const zodType = isZodSchemaCall(init as Parameters<typeof isZodSchemaCall>[0]);
+      const zodType = isZodSchemaCall(
+        init as Parameters<typeof isZodSchemaCall>[0],
+      );
       if (!zodType) continue;
 
       assets.push({

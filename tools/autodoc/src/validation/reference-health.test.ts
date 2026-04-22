@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 
-import { ReferenceCatalog } from "../reference/compiler.js";
 import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 
+import { ReferenceCatalog } from "../reference/compiler.js";
 import { SubjectRegistry } from "../subjects/registry.js";
 import { validateReferenceHealth } from "./reference-health.js";
 
@@ -33,7 +33,7 @@ const makeSubject = (
   semanticFragments: [],
   dependsOn: [],
   public: true,
-  manifestPath: `autodoc.subjects/packages/${id}.subject.ts`,
+  manifestPath: `packages/${id}/${id}.subject.ts`,
 });
 
 const makeReferenceCatalog = (packageNames: string[]): ReferenceCatalog =>

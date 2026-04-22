@@ -12,7 +12,9 @@ import { buildAgentCatalog } from "./assembler/agent-catalog.js";
 import { buildCompatProjections } from "./assembler/compat-projections.js";
 import { buildAllPairedPages } from "./assembler/paired-pages.js";
 import { buildAllSectionIndexes } from "./assembler/subject-index.js";
+import { getCatalogOutputPaths } from "./catalog-output.js";
 import { loadIndex, saveIndex, findSymbols } from "./ir-index.js";
+import { getPackageDocSlug } from "./package-doc-path.js";
 import { buildReferenceCatalog } from "./reference/compiler.js";
 import { createPackageScanner } from "./scanner/package-scanner.js";
 import { buildSemanticCatalog } from "./semantic/compiler.js";
@@ -133,11 +135,14 @@ const buildCompileChain = async (
   console.log("Collecting semantic fragments...");
   const fragments = await collectFragments({
     workspaceRoot,
-    readmeGlobs: ["packages/*/README.md", "apps/*/README.md"],
+    readmeGlobs: config.readmeGlobs,
     semanticMdGlobs: config.fragments ?? [],
   });
   const { catalog: semanticCatalog, findings: semanticFindings } =
-    buildSemanticCatalog(fragments, null, referenceCatalog);
+    buildSemanticCatalog(fragments, null, referenceCatalog, {
+      validatePrimaryLanguage:
+        config.validation?.semantic?.validatePrimaryLanguage ?? false,
+    });
 
   return { referenceCatalog, semanticCatalog, semanticFindings };
 };
@@ -187,20 +192,15 @@ const writeOutputFiles = async (
         const dir = join(outputDir, dirname(page.basePath));
         await mkdir(dir, { recursive: true });
         await Promise.all([
-          writeFile(
-            join(outputDir, `${page.basePath}.zh.md`),
-            page.zhContent,
-          ),
-          writeFile(
-            join(outputDir, `${page.basePath}.en.md`),
-            page.enContent,
-          ),
+          writeFile(join(outputDir, `${page.basePath}.zh.md`), page.zhContent),
+          writeFile(join(outputDir, `${page.basePath}.en.md`), page.enContent),
         ]);
       }),
     );
 
     // Agent catalog
-    await mkdir(join(outputDir, "agent"), { recursive: true });
+    const catalogPaths = getCatalogOutputPaths(config);
+    await mkdir(join(outputDir, catalogPaths.directory), { recursive: true });
     const agentCatalog = buildAgentCatalog(
       registry.subjects,
       sections,
@@ -208,11 +208,11 @@ const writeOutputFiles = async (
       referenceCatalog,
     );
     await writeFile(
-      join(outputDir, "agent", "subjects.json"),
+      join(outputDir, catalogPaths.subjectsRelativePath),
       agentCatalog.subjectsJson,
     );
     await writeFile(
-      join(outputDir, "agent", "references.json"),
+      join(outputDir, catalogPaths.referencesRelativePath),
       agentCatalog.referencesJson,
     );
   }
@@ -295,12 +295,14 @@ const runValidateCmd = async (args: string[]): Promise<void> => {
 
   const allFindings = [...semanticFindings, ...findings];
 
-  // Write agent/findings.json if output dir exists
-  const agentDir = join(config.output.path, "agent");
+  // Write findings.json if output dir exists
+  const catalogPaths = getCatalogOutputPaths(config);
   if (existsSync(config.output.path)) {
-    await mkdir(agentDir, { recursive: true });
+    await mkdir(join(config.output.path, catalogPaths.directory), {
+      recursive: true,
+    });
     await writeFile(
-      join(agentDir, "findings.json"),
+      join(config.output.path, catalogPaths.findingsRelativePath),
       JSON.stringify(allFindings, null, 2),
     );
   }
@@ -363,9 +365,13 @@ const runCheck = async (args: string[]): Promise<void> => {
     if (config.llmsTxt.enabled) checkFile("llms.txt");
     checkFile(".symbol-index.json");
     for (const pkg of referenceCatalog.packages) {
-      const shortName = pkg.name.replace("@cat/", "");
-      checkFile(`packages/${shortName}.md`);
+      const slug = getPackageDocSlug(pkg.name, config.packageDocs ?? {});
+      checkFile(`packages/${slug}.md`);
     }
+
+    const catalogPaths = getCatalogOutputPaths(config);
+    checkFile(catalogPaths.subjectsRelativePath);
+    checkFile(catalogPaths.referencesRelativePath);
 
     // Also run full validation (Tier-1 + Tier-2 + Tier-3)
     const tmpPaths = collectOutputPaths(tmpDir);

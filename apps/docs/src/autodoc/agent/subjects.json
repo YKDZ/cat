@@ -1,0 +1,327 @@
+[
+  {
+    "id": "ai/agent",
+    "title": {
+      "zh": "AI Agent 核心",
+      "en": "AI Agent Core"
+    },
+    "section": "ai",
+    "primaryOwner": "@cat/agent",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "ai/ai--agent.zh.md",
+    "enPage": "ai/ai--agent.en.md"
+  },
+  {
+    "id": "ai/agent-tools",
+    "title": {
+      "zh": "AI Agent 工具集",
+      "en": "AI Agent Tools"
+    },
+    "section": "ai",
+    "primaryOwner": "@cat/agent-tools",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "ai/agent"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "ai/ai--agent-tools.zh.md",
+    "enPage": "ai/ai--agent-tools.en.md"
+  },
+  {
+    "id": "domain/core",
+    "title": {
+      "zh": "领域核心模型",
+      "en": "Domain Core Model"
+    },
+    "section": "domain",
+    "primaryOwner": "@cat/domain",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "domain/domain--core.zh.md",
+    "enPage": "domain/domain--core.en.md"
+  },
+  {
+    "id": "infra/auth",
+    "title": {
+      "zh": "认证与授权",
+      "en": "Authentication & Authorization"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/auth",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--auth.zh.md",
+    "enPage": "infra/infra--auth.en.md"
+  },
+  {
+    "id": "infra/db",
+    "title": {
+      "zh": "数据库访问层",
+      "en": "Database Access Layer"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/db",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 0,
+    "zhPage": "infra/infra--db.zh.md",
+    "enPage": "infra/infra--db.en.md"
+  },
+  {
+    "id": "infra/file-parsers",
+    "title": {
+      "zh": "文件解析器",
+      "en": "File Parsers"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/file-parsers",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--file-parsers.zh.md",
+    "enPage": "infra/infra--file-parsers.en.md"
+  },
+  {
+    "id": "infra/message",
+    "title": {
+      "zh": "消息队列与通知",
+      "en": "Messaging & Notifications"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/message",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--message.zh.md",
+    "enPage": "infra/infra--message.en.md"
+  },
+  {
+    "id": "infra/permissions",
+    "title": {
+      "zh": "权限系统",
+      "en": "Permissions System"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/permissions",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--permissions.zh.md",
+    "enPage": "infra/infra--permissions.en.md"
+  },
+  {
+    "id": "infra/plugin-core",
+    "title": {
+      "zh": "插件服务核心",
+      "en": "Plugin Core Interface"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/plugin-core",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--plugin-core.zh.md",
+    "enPage": "infra/infra--plugin-core.en.md"
+  },
+  {
+    "id": "infra/screenshot-collector",
+    "title": {
+      "zh": "截图采集器",
+      "en": "Screenshot Collector"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/screenshot-collector",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--screenshot-collector.zh.md",
+    "enPage": "infra/infra--screenshot-collector.en.md"
+  },
+  {
+    "id": "infra/seed",
+    "title": {
+      "zh": "开发数据播种",
+      "en": "Dev Data Seeding"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/seed",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--seed.zh.md",
+    "enPage": "infra/infra--seed.en.md"
+  },
+  {
+    "id": "infra/server-shared",
+    "title": {
+      "zh": "服务器共享模块",
+      "en": "Server Shared Module"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/server-shared",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--server-shared.zh.md",
+    "enPage": "infra/infra--server-shared.en.md"
+  },
+  {
+    "id": "infra/shared",
+    "title": {
+      "zh": "共享工具库",
+      "en": "Shared Utilities"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/shared",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--shared.zh.md",
+    "enPage": "infra/infra--shared.en.md"
+  },
+  {
+    "id": "infra/source-collector",
+    "title": {
+      "zh": "源码元素采集器",
+      "en": "Source Collector"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/source-collector",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--source-collector.zh.md",
+    "enPage": "infra/infra--source-collector.en.md"
+  },
+  {
+    "id": "infra/vcs",
+    "title": {
+      "zh": "版本控制集成",
+      "en": "Version Control Integration"
+    },
+    "section": "infra",
+    "primaryOwner": "@cat/vcs",
+    "secondaryAssociations": [],
+    "dependsOn": [],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "infra/infra--vcs.zh.md",
+    "enPage": "infra/infra--vcs.en.md"
+  },
+  {
+    "id": "services/core",
+    "title": {
+      "zh": "核心业务服务",
+      "en": "Core Business Services"
+    },
+    "section": "services",
+    "primaryOwner": "@cat/core",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "services/services--core.zh.md",
+    "enPage": "services/services--core.en.md"
+  },
+  {
+    "id": "services/eval",
+    "title": {
+      "zh": "评测框架",
+      "en": "Eval Framework"
+    },
+    "section": "services",
+    "primaryOwner": "@cat/eval",
+    "secondaryAssociations": [
+      "@cat/agent",
+      "@cat/workflow"
+    ],
+    "dependsOn": [
+      "ai/agent",
+      "domain/core",
+      "services/workflow"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "services/services--eval.zh.md",
+    "enPage": "services/services--eval.en.md"
+  },
+  {
+    "id": "services/graph",
+    "title": {
+      "zh": "图计算引擎",
+      "en": "Graph Computing Engine"
+    },
+    "section": "services",
+    "primaryOwner": "@cat/graph",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "services/services--graph.zh.md",
+    "enPage": "services/services--graph.en.md"
+  },
+  {
+    "id": "services/operations",
+    "title": {
+      "zh": "操作与任务系统",
+      "en": "Operations & Tasks"
+    },
+    "section": "services",
+    "primaryOwner": "@cat/operations",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "services/services--operations.zh.md",
+    "enPage": "services/services--operations.en.md"
+  },
+  {
+    "id": "services/workflow",
+    "title": {
+      "zh": "工作流引擎",
+      "en": "Workflow Engine"
+    },
+    "section": "services",
+    "primaryOwner": "@cat/workflow",
+    "secondaryAssociations": [],
+    "dependsOn": [
+      "domain/core"
+    ],
+    "public": true,
+    "fragmentCount": 1,
+    "zhPage": "services/services--workflow.zh.md",
+    "enPage": "services/services--workflow.en.md"
+  }
+]

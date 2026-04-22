@@ -1,20 +1,17 @@
-import { z } from "zod";
-
 import type {
   SubjectManifestConfig,
   PublicationMemberConfig,
+  SectionConfig,
 } from "../types.js";
 
-// ── Section IR (resolved from sections.config.ts) ─────────────────────────────
+import { SectionConfigSchema, SectionsFileSchema } from "../types.js";
 
-export const SectionIRSchema = z.object({
-  id: z.string(),
-  title: z.object({ zh: z.string(), en: z.string() }),
-  order: z.number().int().positive(),
-  public: z.boolean(),
-});
+// ── Section IR (re-exported from types for backward compatibility) ─────────────
 
-export type SectionIR = z.infer<typeof SectionIRSchema>;
+/** @zh Section 的运行时表示（与 SectionConfig 同形）@en Runtime representation of a section (same shape as SectionConfig) */
+export type SectionIR = SectionConfig;
+export { SectionConfigSchema as SectionIRSchema, SectionsFileSchema };
+export type { SectionsFile } from "../types.js";
 
 // ── Publication member IR ──────────────────────────────────────────────────────
 
@@ -70,16 +67,6 @@ export interface MembershipIR {
   /** @zh 归属角色（primary 或 secondary） @en Membership role */
   role: "primary" | "secondary";
 }
-
-// ── Raw sections.config.ts schema ─────────────────────────────────────────────
-
-/**
- * @zh sections.config.ts 默认导出的内容结构（用于 autodoc 加载时验证）。
- * @en Shape of the default export from sections.config.ts (used for validation on load).
- */
-export const SectionsFileSchema = z.array(SectionIRSchema);
-
-export type SectionsFile = z.infer<typeof SectionsFileSchema>;
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 

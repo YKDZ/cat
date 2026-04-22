@@ -1,6 +1,6 @@
-import type { SubjectRegistry } from "../subjects/registry.js";
-import type { SectionIR } from "../subjects/ir.js";
 import type { SemanticCatalog } from "../semantic/ir.js";
+import type { SectionIR } from "../subjects/ir.js";
+import type { SubjectRegistry } from "../subjects/registry.js";
 import type { ValidationFinding } from "./findings.js";
 
 /**

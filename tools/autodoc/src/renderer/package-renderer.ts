@@ -132,7 +132,7 @@ export const createPackageRenderer = (): {
               md.paragraph(
                 md.inlineCode(t.name),
                 md.text(
-                  ` (${t.kind})${t.description ? ` — ${t.description}` : ""}`,
+                  ` (${t.kind})${t.description ? ` — ${t.description.replace(/</g, "&lt;").replace(/>/g, "&gt;")}` : ""}`,
                 ),
               ),
             ),

@@ -1,17 +1,17 @@
 import { resolve } from "node:path";
 
-import type { AutodocConfig } from "../types.js";
-import type { ValidationFinding } from "./findings.js";
-import type { SubjectRegistry } from "../subjects/registry.js";
 import type { ReferenceCatalog } from "../reference/compiler.js";
 import type { SemanticCatalog } from "../semantic/ir.js";
 import type { SectionIR } from "../subjects/ir.js";
+import type { SubjectRegistry } from "../subjects/registry.js";
+import type { AutodocConfig } from "../types.js";
+import type { ValidationFinding } from "./findings.js";
 
-import { loadSections } from "../subjects/sections.js";
 import { loadRegistry } from "../subjects/registry.js";
-import { validateStructural } from "./structural.js";
-import { validateReferenceHealth } from "./reference-health.js";
+import { loadSections } from "../subjects/sections.js";
 import { validatePublication } from "./publication.js";
+import { validateReferenceHealth } from "./reference-health.js";
+import { validateStructural } from "./structural.js";
 
 export interface ValidationRunOptions {
   /** @zh 仅运行指定的 tier，默认运行所有 tier。 @en Run only the specified tiers. Defaults to all. */
@@ -51,25 +51,30 @@ export const runValidation = async (
       severity: "warning",
       tier: 1,
       code: "NO_SECTIONS_CONFIG",
-      message: "No sections config path specified; subject section binding cannot be validated",
+      message:
+        "No sections config specified; subject section binding cannot be validated",
       location: undefined,
     });
     return { findings: allFindings, registry: null, sections: null };
   }
 
-  const sectionsPath = resolve(workspaceRoot, config.sections);
   let sections: SectionIR[];
-  try {
-    sections = await loadSections(sectionsPath);
-  } catch (err) {
-    allFindings.push({
-      severity: "error",
-      tier: 1,
-      code: "SECTIONS_LOAD_ERROR",
-      message: `Failed to load sections config at "${config.sections}": ${String(err)}`,
-      location: { file: config.sections },
-    });
-    return { findings: allFindings, registry: null, sections: null };
+  if (Array.isArray(config.sections)) {
+    sections = config.sections;
+  } else {
+    const sectionsPath = resolve(workspaceRoot, config.sections);
+    try {
+      sections = await loadSections(sectionsPath);
+    } catch (err) {
+      allFindings.push({
+        severity: "error",
+        tier: 1,
+        code: "SECTIONS_LOAD_ERROR",
+        message: `Failed to load sections config at "${config.sections}": ${String(err)}`,
+        location: { file: config.sections },
+      });
+      return { findings: allFindings, registry: null, sections: null };
+    }
   }
 
   // ── Skip Tier-1 if not requested ───────────────────────────────────────────
@@ -83,7 +88,8 @@ export const runValidation = async (
       severity: "warning",
       tier: 1,
       code: "NO_SUBJECTS_GLOB",
-      message: "No subjects glob specified; subject manifest validation skipped",
+      message:
+        "No subjects glob specified; subject manifest validation skipped",
       location: undefined,
     });
     return { findings: allFindings, registry: null, sections };
@@ -103,7 +109,10 @@ export const runValidation = async (
 
   // ── Tier-2: Reference health ───────────────────────────────────────────────
   if (requestedTiers.includes(2) && options.referenceCatalog) {
-    const tier2Findings = validateReferenceHealth(registry, options.referenceCatalog);
+    const tier2Findings = validateReferenceHealth(
+      registry,
+      options.referenceCatalog,
+    );
     allFindings.push(...tier2Findings);
   }
 

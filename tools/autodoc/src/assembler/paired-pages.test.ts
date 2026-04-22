@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 
-import { ReferenceCatalog } from "../reference/compiler.js";
 import type { SemanticCatalog, SemanticFragment } from "../semantic/ir.js";
 import type { SectionIR, SubjectIR } from "../subjects/ir.js";
 
+import { ReferenceCatalog } from "../reference/compiler.js";
 import { buildPairedPage, buildAllPairedPages } from "./paired-pages.js";
 
 // ── Test fixtures ─────────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ const makeSubject = (
   semanticFragments: partial.semanticFragments ?? [],
   dependsOn: partial.dependsOn ?? [],
   public: partial.public ?? true,
-  manifestPath: `autodoc.subjects/packages/${partial.id}.subject.ts`,
+  manifestPath: `packages/${partial.id}/${partial.id}.subject.ts`,
 });
 
 const makeSemanticCatalog = (

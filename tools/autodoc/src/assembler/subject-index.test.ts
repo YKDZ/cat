@@ -27,7 +27,7 @@ const makeSubject = (
   semanticFragments: [],
   dependsOn: [],
   public: opts.public ?? true,
-  manifestPath: `autodoc.subjects/packages/${id}.subject.ts`,
+  manifestPath: `packages/${id}/${id}.subject.ts`,
 });
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -85,7 +85,9 @@ describe("buildSectionIndex", () => {
   it("excludes non-public subjects", () => {
     const section = makeSection("domain");
     const publicSubject = makeSubject("domain/public", section);
-    const privateSubject = makeSubject("domain/private", section, { public: false });
+    const privateSubject = makeSubject("domain/private", section, {
+      public: false,
+    });
 
     const content = buildSectionIndex(section, [publicSubject, privateSubject]);
 
@@ -95,8 +97,12 @@ describe("buildSectionIndex", () => {
 
   it("sorts subjects alphabetically by ZH title", () => {
     const section = makeSection("domain");
-    const b = makeSubject("domain/b", section, { title: { zh: "Beta", en: "Beta" } });
-    const a = makeSubject("domain/a", section, { title: { zh: "Alpha", en: "Alpha" } });
+    const b = makeSubject("domain/b", section, {
+      title: { zh: "Beta", en: "Beta" },
+    });
+    const a = makeSubject("domain/a", section, {
+      title: { zh: "Alpha", en: "Alpha" },
+    });
 
     const content = buildSectionIndex(section, [b, a]);
     const alphaPos = content.indexOf("Alpha");
@@ -119,7 +125,10 @@ describe("buildAllSectionIndexes", () => {
 
   it("skips non-public sections", () => {
     const publicSection: SectionIR = { ...makeSection("domain"), public: true };
-    const privateSection: SectionIR = { ...makeSection("internal"), public: false };
+    const privateSection: SectionIR = {
+      ...makeSection("internal"),
+      public: false,
+    };
 
     const indexes = buildAllSectionIndexes([publicSection, privateSection], []);
 

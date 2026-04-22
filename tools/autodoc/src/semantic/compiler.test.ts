@@ -1,10 +1,12 @@
 import { describe, it, expect } from "vitest";
 
+import type { SubjectRegistry } from "../subjects/registry.js";
+
+import { buildSemanticCatalog } from "./compiler.js";
 import {
   collectFragmentsFromString,
   parseSemanticMdFrontmatterPublic,
 } from "./fragment-collector.js";
-import { buildSemanticCatalog } from "./compiler.js";
 
 describe("collectFragmentsFromString (readme-anchor)", () => {
   it("collects a simple anchor fragment", () => {
@@ -17,7 +19,11 @@ describe("collectFragmentsFromString (readme-anchor)", () => {
 
 Other content.
 `;
-    const frags = collectFragmentsFromString(md, "packages/workflow/README.md", "readme-anchor");
+    const frags = collectFragmentsFromString(
+      md,
+      "packages/workflow/README.md",
+      "readme-anchor",
+    );
     expect(frags).toHaveLength(1);
     expect(frags[0].subjectId).toBe("workflow/core");
     expect(frags[0].sourcePath).toBe("packages/workflow/README.md");
@@ -42,7 +48,11 @@ B 的描述。
   });
 
   it("returns empty when no anchors found", () => {
-    const frags = collectFragmentsFromString("# Hello", "README.md", "readme-anchor");
+    const frags = collectFragmentsFromString(
+      "# Hello",
+      "README.md",
+      "readme-anchor",
+    );
     expect(frags).toHaveLength(0);
   });
 
@@ -100,7 +110,11 @@ title: 认证模块
 
 认证模块提供 JWT 令牌验证与刷新能力。
 `;
-    const frags = collectFragmentsFromString(content, "pkg/auth.semantic.md", "semantic-md");
+    const frags = collectFragmentsFromString(
+      content,
+      "pkg/auth.semantic.md",
+      "semantic-md",
+    );
     expect(frags).toHaveLength(1);
     expect(frags[0].subjectId).toBe("pkg/auth");
     expect(frags[0].title).toBe("认证模块");
@@ -110,7 +124,11 @@ title: 认证模块
 
   it("returns empty array when subject is missing", () => {
     const content = `---\ntitle: No Subject\n---\n正文。`;
-    const frags = collectFragmentsFromString(content, "x.semantic.md", "semantic-md");
+    const frags = collectFragmentsFromString(
+      content,
+      "x.semantic.md",
+      "semantic-md",
+    );
     expect(frags).toHaveLength(0);
   });
 });
@@ -118,9 +136,30 @@ title: 认证模块
 describe("buildSemanticCatalog", () => {
   it("indexes fragments by subjectId", () => {
     const frags = [
-      { subjectId: "a", body: "文本A", sourcePath: "f.md", startLine: 1, sourceType: "readme-anchor" as const, referencedStableKeys: [] },
-      { subjectId: "b", body: "文本B", sourcePath: "g.md", startLine: 1, sourceType: "readme-anchor" as const, referencedStableKeys: [] },
-      { subjectId: "a", body: "文本A2", sourcePath: "h.md", startLine: 1, sourceType: "semantic-md" as const, referencedStableKeys: [] },
+      {
+        subjectId: "a",
+        body: "文本A",
+        sourcePath: "f.md",
+        startLine: 1,
+        sourceType: "readme-anchor" as const,
+        referencedStableKeys: [],
+      },
+      {
+        subjectId: "b",
+        body: "文本B",
+        sourcePath: "g.md",
+        startLine: 1,
+        sourceType: "readme-anchor" as const,
+        referencedStableKeys: [],
+      },
+      {
+        subjectId: "a",
+        body: "文本A2",
+        sourcePath: "h.md",
+        startLine: 1,
+        sourceType: "semantic-md" as const,
+        referencedStableKeys: [],
+      },
     ];
     const { catalog } = buildSemanticCatalog(frags);
     expect(catalog.getFragments("a")).toHaveLength(2);
@@ -144,9 +183,10 @@ describe("buildSemanticCatalog", () => {
       referencedStableKeys: [],
     };
     // Simulate a minimal registry with known subjects
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     const fakeRegistry = {
       subjects: [{ id: "real/subject" }],
-    } as any;
+    } as SubjectRegistry;
     const { findings } = buildSemanticCatalog([frag], fakeRegistry, null);
     const errorFindings = findings.filter(
       (f) => f.code === "UNRESOLVED_SUBJECT_BINDING",
@@ -155,27 +195,59 @@ describe("buildSemanticCatalog", () => {
     expect(errorFindings[0].severity).toBe("error");
   });
 
-  it("emits warning for English-dominant fragment", () => {
+  it("does not emit a primary-language warning by default", () => {
     const frag = {
       subjectId: "pkg/x",
-      body: "This module provides authentication utilities for the CAT system. It handles JWT validation and refresh tokens.",
+      body: "This module provides authentication utilities for the CAT system.",
       sourcePath: "README.md",
       startLine: 1,
       sourceType: "readme-anchor" as const,
       referencedStableKeys: [],
     };
+
     const { findings } = buildSemanticCatalog([frag]);
-    const langFindings = findings.filter(
-      (f) => f.code === "FRAGMENT_ENGLISH_DOMINANT",
+    expect(
+      findings.find((f) => f.code === "FRAGMENT_ENGLISH_DOMINANT"),
+    ).toBeUndefined();
+  });
+
+  it("emits a primary-language warning when explicitly enabled", () => {
+    const frag = {
+      subjectId: "pkg/x",
+      body: "This module provides authentication utilities for the CAT system.",
+      sourcePath: "README.md",
+      startLine: 1,
+      sourceType: "readme-anchor" as const,
+      referencedStableKeys: [],
+    };
+
+    const { findings } = buildSemanticCatalog([frag], null, null, {
+      validatePrimaryLanguage: true,
+    });
+
+    expect(findings.some((f) => f.code === "FRAGMENT_ENGLISH_DOMINANT")).toBe(
+      true,
     );
-    expect(langFindings).toHaveLength(1);
-    expect(langFindings[0].severity).toBe("warning");
   });
 
   it("emits warning for duplicate fragments from same source file", () => {
     const frags = [
-      { subjectId: "pkg/a", body: "中文A", sourcePath: "README.md", startLine: 1, sourceType: "readme-anchor" as const, referencedStableKeys: [] },
-      { subjectId: "pkg/a", body: "中文B", sourcePath: "README.md", startLine: 10, sourceType: "readme-anchor" as const, referencedStableKeys: [] },
+      {
+        subjectId: "pkg/a",
+        body: "中文A",
+        sourcePath: "README.md",
+        startLine: 1,
+        sourceType: "readme-anchor" as const,
+        referencedStableKeys: [],
+      },
+      {
+        subjectId: "pkg/a",
+        body: "中文B",
+        sourcePath: "README.md",
+        startLine: 10,
+        sourceType: "readme-anchor" as const,
+        referencedStableKeys: [],
+      },
     ];
     const { findings } = buildSemanticCatalog(frags);
     const dupFindings = findings.filter((f) => f.code === "DUPLICATE_FRAGMENT");

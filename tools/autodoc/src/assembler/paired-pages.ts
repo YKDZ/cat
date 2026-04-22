@@ -1,6 +1,6 @@
-import type { SubjectIR } from "../subjects/ir.js";
-import type { SemanticCatalog } from "../semantic/ir.js";
 import type { ReferenceCatalog } from "../reference/compiler.js";
+import type { SemanticCatalog } from "../semantic/ir.js";
+import type { SubjectIR } from "../subjects/ir.js";
 
 /**
  * @zh 单个 subject 的成对页面内容（ZH + EN）。
@@ -52,7 +52,9 @@ const buildZhPage = (
     lines.push("## 相关主题");
     lines.push("");
     for (const dep of subject.dependsOn) {
-      lines.push(`- [\`${dep}\`](../${dep.split("/").pop()}.zh.md)`);
+      const [section, ...rest] = dep.split("/");
+      const slug = [section, ...rest].join("--");
+      lines.push(`- [\`${dep}\`](../${section}/${slug}.zh.md)`);
     }
     lines.push("");
   }
@@ -86,9 +88,7 @@ const buildEnPage = (
   // Symbol reference table — collect from primaryOwner and secondaryAssociations
   const pkgs = [subject.primaryOwner, ...subject.secondaryAssociations];
   const subjectSymbols = referenceCatalog.packages
-    .filter((p) =>
-      pkgs.includes(p.name),
-    )
+    .filter((p) => pkgs.includes(p.name))
     .flatMap((p) => p.modules.flatMap((m) => m.symbols));
 
   if (subjectSymbols.length > 0) {
@@ -98,7 +98,11 @@ const buildEnPage = (
     lines.push("| ------ | ---- | ----------- |");
     for (const sym of subjectSymbols.slice(0, 50)) {
       const desc = sym.description
-        ? sym.description.replace(/\|/g, "\\|").slice(0, 80)
+        ? sym.description
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/\|/g, "\\|")
+            .slice(0, 80)
         : "";
       lines.push(`| \`${sym.name}\` | ${sym.kind} | ${desc} |`);
     }
@@ -113,7 +117,9 @@ const buildEnPage = (
     lines.push("## Related Topics");
     lines.push("");
     for (const dep of subject.dependsOn) {
-      lines.push(`- [\`${dep}\`](../${dep.split("/").pop()}.en.md)`);
+      const [section, ...rest] = dep.split("/");
+      const slug = [section, ...rest].join("--");
+      lines.push(`- [\`${dep}\`](../${section}/${slug}.en.md)`);
     }
     lines.push("");
   }

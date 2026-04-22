@@ -1,73 +1,82 @@
 import type { PackageIR } from "../ir.js";
+import type { AutodocConfig } from "../types.js";
 
-export const createLlmsTxtRenderer = (): {
-  render: (packages: PackageIR[]) => string;
-} => {
+import { getPackageDocHref } from "../package-doc-path.js";
+
+const countMatchingSymbols = (
+  pkg: PackageIR,
+  stat: {
+    kinds?: Array<"function" | "interface" | "type" | "enum" | "const">;
+    pathIncludes?: string;
+  },
+): number =>
+  pkg.modules.reduce((sum, mod) => {
+    if (stat.pathIncludes && !mod.relativePath.includes(stat.pathIncludes)) {
+      return sum;
+    }
+
+    return (
+      sum +
+      mod.symbols.filter((symbol) =>
+        stat.kinds ? stat.kinds.includes(symbol.kind) : true,
+      ).length
+    );
+  }, 0);
+
+export const createLlmsTxtRenderer = (
+  config?: AutodocConfig,
+): { render: (packages: PackageIR[]) => string } => {
   const render = (packages: PackageIR[]): string => {
+    const llmsConfig = config?.llmsTxt ?? {
+      enabled: true,
+      title: undefined,
+      summary: undefined,
+      projectInfo: [],
+      featuredPackages: [],
+    };
     const lines: string[] = [];
+    const title = llmsConfig.title ?? config?.project?.name ?? "Autodoc";
+    const summary = llmsConfig.summary ?? config?.project?.summary;
 
-    lines.push("# CAT");
-    lines.push("");
-    lines.push(
-      "> A secure, efficient, and easily extensible self-hosted Computer-Assisted Translation web application.",
-    );
-    lines.push("");
-    lines.push("## Project Info");
-    lines.push("");
-    lines.push(
-      "- Tech stack: TypeScript, Vue 3, Hono, Drizzle ORM, PostgreSQL",
-    );
-    lines.push("- License: GPL-3.0-only (main app), MIT (packages/plugins)");
-    lines.push("");
-    lines.push("## Package Documentation");
-    lines.push("");
+    lines.push(`# ${title}`, "");
+    if (summary) lines.push(`> ${summary}`, "");
 
+    if (llmsConfig.projectInfo.length > 0) {
+      lines.push("## Project Info", "");
+      for (const item of llmsConfig.projectInfo) lines.push(`- ${item}`);
+      lines.push("");
+    }
+
+    lines.push("## Package Documentation", "");
     for (const pkg of packages) {
-      const shortName = pkg.name.replace("@cat/", "");
-      const url = `./packages/${shortName}.md`;
       const funcCount = pkg.modules.reduce(
-        (sum, m) => sum + m.symbols.filter((s) => s.kind === "function").length,
+        (sum, mod) =>
+          sum +
+          mod.symbols.filter((symbol) => symbol.kind === "function").length,
         0,
       );
       lines.push(
-        `- [${pkg.name}](${url}): ${funcCount} exported functions — ${pkg.description ?? ""}`,
+        `- [${pkg.name}](${getPackageDocHref(pkg.name, config?.packageDocs ?? {})}): ${funcCount} exported functions${pkg.description ? ` — ${pkg.description}` : ""}`,
       );
     }
     lines.push("");
 
-    // Core package summaries
-    const domainPkg = packages.find((p) => p.name === "@cat/domain");
-    const operationsPkg = packages.find((p) => p.name === "@cat/operations");
+    for (const feature of llmsConfig.featuredPackages) {
+      const pkg = packages.find(
+        (candidate) => candidate.name === feature.package,
+      );
+      if (!pkg) continue;
 
-    if (domainPkg) {
-      lines.push("## @cat/domain");
-      lines.push("");
       lines.push(
-        "Domain layer using CQRS pattern. Commands mutate state, Queries read data.",
+        `## ${feature.heading ?? feature.package}`,
+        "",
+        feature.summary,
+        "",
       );
-      lines.push("");
-      const commands = domainPkg.modules.filter((m) =>
-        m.relativePath.includes("commands/"),
-      );
-      const queries = domainPkg.modules.filter((m) =>
-        m.relativePath.includes("queries/"),
-      );
-      lines.push(
-        `- Commands: ${commands.flatMap((c) => c.symbols.filter((s) => s.kind === "function")).length}`,
-      );
-      lines.push(
-        `- Queries: ${queries.flatMap((q) => q.symbols.filter((s) => s.kind === "function")).length}`,
-      );
-      lines.push("");
-    }
-
-    if (operationsPkg) {
-      lines.push("## @cat/operations");
-      lines.push("");
-      lines.push(
-        "Operations layer composing domain operations. Functions use `Op` suffix with Zod schema input validation.",
-      );
-      lines.push("");
+      for (const stat of feature.stats) {
+        lines.push(`- ${stat.label}: ${countMatchingSymbols(pkg, stat)}`);
+      }
+      if (feature.stats.length > 0) lines.push("");
     }
 
     return lines.join("\n");

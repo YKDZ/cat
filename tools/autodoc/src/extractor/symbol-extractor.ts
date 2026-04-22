@@ -12,6 +12,12 @@ import { SyntaxKind, Node } from "ts-morph";
 
 import type { SymbolIR, ModuleIR, ParameterIR, SourceLocation } from "../ir.js";
 
+import { buildSignatureSnapshot } from "../reference/signature.js";
+import { getSpan } from "../reference/span.js";
+import {
+  makeStableKey,
+  isOverloadedInModule,
+} from "../reference/stable-key.js";
 import { extractEnDescription, extractEnInline } from "./tsdoc-parser.js";
 
 /**
@@ -51,21 +57,19 @@ const getReturnDescription = (jsdoc: JSDoc | undefined): string | undefined => {
   return comment.replace(/^-\s*/, "").trim() || undefined;
 };
 
-const getSourceLocation = (
-  node: {
-    getSourceFile: () => SourceFile;
-    getStartLineNumber: () => number;
-    getEndLineNumber: () => number;
-  },
-  rootPath: string,
-): SourceLocation => ({
-  filePath: node
-    .getSourceFile()
-    .getFilePath()
-    .replace(rootPath + "/", ""),
-  line: node.getStartLineNumber(),
-  endLine: node.getEndLineNumber(),
-});
+const getSourceLocation = (node: Node, rootPath: string): SourceLocation => {
+  const span = getSpan(node);
+  return {
+    filePath: node
+      .getSourceFile()
+      .getFilePath()
+      .replace(rootPath + "/", ""),
+    line: span.line,
+    endLine: span.endLine,
+    column: span.column,
+    endColumn: span.endColumn,
+  };
+};
 
 const makeSymbolId = (
   pkgName: string,
@@ -369,6 +373,14 @@ export const createSymbolExtractor = (
     for (const enumDecl of sourceFile.getEnums()) {
       const sym = extractEnumDefinition(enumDecl, relativePath);
       if (sym?.isExported) symbols.push(sym);
+    }
+
+    // Enrich symbols with stableKey and signatureSnapshot
+    const allNames = symbols.map((s) => s.name);
+    for (const sym of symbols) {
+      const overloaded = isOverloadedInModule(sym.name, allNames);
+      sym.stableKey = makeStableKey(sym.id, sym.parameters, overloaded);
+      sym.signatureSnapshot = buildSignatureSnapshot(sym);
     }
 
     return {

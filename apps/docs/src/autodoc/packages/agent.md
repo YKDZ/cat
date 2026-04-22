@@ -238,7 +238,7 @@ export const registerBuiltinAgents = async (db: DbHandle): Promise<void>
 
 * `LLMGatewayRequest` (interface) — Options for issuing an LLM request through LLMGateway.
 
-* `LLMPriority` (type) — Priority levels for LLM requests: CRITICAL > HIGH > NORMAL > LOW
+* `LLMPriority` (type) — Priority levels for LLM requests: CRITICAL \&gt; HIGH \&gt; NORMAL \&gt; LOW
 
 * `AgentRunLogEvent` (interface) — L01: Agent run-level log event (run start/end).
 

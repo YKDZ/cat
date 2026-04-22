@@ -6,7 +6,7 @@ description: Explore the project architecture using auto-generated documentation
 # Project Architecture Exploration via Autodoc
 
 Use the auto-generated documentation to understand the CAT monorepo structure.
-AutoDoc 2.0 organises the output into **sections** (domain / infrastructure / services / ai),
+AutoDoc organises the output into **sections** (domain / infra / services / ai ...),
 each with subject-centric paired pages and a section index.
 
 ## Step 1: Read the Overview
@@ -23,7 +23,7 @@ Read `apps/docs/src/autodoc/overview.md` for:
 Each Discovery Section has an `index.md` listing its subjects:
 
 - `apps/docs/src/autodoc/domain/index.md` — domain model subjects
-- `apps/docs/src/autodoc/infrastructure/index.md` — infrastructure subjects
+- `apps/docs/src/autodoc/infra/index.md` — infrastructure subjects
 - `apps/docs/src/autodoc/services/index.md` — service subjects
 - `apps/docs/src/autodoc/ai/index.md` — AI system subjects
 
@@ -73,4 +73,3 @@ To validate without writing (shows findings only):
 ```bash
 pnpm moon run autodoc:validate
 ```
-

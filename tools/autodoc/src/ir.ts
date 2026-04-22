@@ -9,6 +9,10 @@ export interface SourceLocation {
   line: number;
   /** @zh 结束行号（1-based） @en End line number (1-based) */
   endLine: number;
+  /** @zh 起始列号（0-based） @en Start column (0-based) */
+  column?: number;
+  /** @zh 结束列号（0-based） @en End column (0-based) */
+  endColumn?: number;
 }
 
 /**
@@ -48,6 +52,16 @@ export interface PropertyIR {
 export interface SymbolIR {
   /** @zh 符号唯一 ID，格式为 "pkg:module/path:name" @en Unique symbol ID in format "pkg:module/path:name" */
   id: string;
+  /**
+   * @zh 跨版本稳定的符号键；对重载函数包含参数类型指纹。
+   * @en Cross-version stable symbol key; overloaded functions include a parameter-type fingerprint.
+   */
+  stableKey?: string;
+  /**
+   * @zh 签名结构快照，用于签名漂移检测。
+   * @en Signature structure snapshot for drift detection.
+   */
+  signatureSnapshot?: string;
   /** @zh 符号名称 @en Symbol name */
   name: string;
   /** @zh 符号类型 @en Symbol kind */

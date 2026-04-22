@@ -1,7 +1,7 @@
 import { Project } from "ts-morph";
 import { describe, it, expect } from "vitest";
 
-import type { PackageIR } from "../ir.js";
+import type { PackageIR, ParameterIR, SymbolIR } from "../ir.js";
 
 import { createSymbolExtractor } from "../extractor/symbol-extractor.js";
 import { buildReferenceCatalog } from "./compiler.js";
@@ -22,7 +22,12 @@ const makePackageIR = (code: string, pkgName = "@cat/test"): PackageIR => {
   const { sourceFile } = makeProject(code);
   const extractor = createSymbolExtractor(pkgName, ROOT);
   const mod = extractor.extractModuleInfo(sourceFile);
-  return { name: pkgName, path: "/tmp/test", priority: "medium" as const, modules: [mod] };
+  return {
+    name: pkgName,
+    path: "/tmp/test",
+    priority: "medium" as const,
+    modules: [mod],
+  };
 };
 
 describe("ReferenceCatalog", () => {
@@ -143,10 +148,10 @@ describe("makeStableKey overloads", () => {
   it("overloaded key appends parameter types fingerprint", () => {
     const id = "@cat/test:src/index:fn";
     const params = [
-      { name: "x", type: "string" },
-      { name: "y", type: "number" },
-    ];
-    const key = makeStableKey(id, params as any, true);
+      { name: "x", type: "string", optional: false },
+      { name: "y", type: "number", optional: false },
+    ] satisfies ParameterIR[];
+    const key = makeStableKey(id, params, true);
     expect(key).toMatch(/^@cat\/test:src\/index:fn\(string,number\)$/);
   });
 
@@ -192,17 +197,39 @@ export const fn = (x: string, y: number): boolean => true;
 
   it("detects drift when param types change", () => {
     const before = {
+      id: "sym1",
+      name: "fn",
+      isAsync: false,
+      isExported: true,
+      sourceLocation: {
+        filePath: "src/index.ts",
+        line: 1,
+        column: 1,
+        endLine: 1,
+        endColumn: 20,
+      },
       kind: "function" as const,
-      parameters: [{ name: "x", type: "string" }],
+      parameters: [{ name: "x", type: "string", optional: false }],
       returnType: "void",
-    };
+    } satisfies SymbolIR;
     const after = {
+      id: "sym2",
+      name: "fn",
+      isAsync: false,
+      isExported: true,
+      sourceLocation: {
+        filePath: "src/index.ts",
+        line: 1,
+        column: 1,
+        endLine: 1,
+        endColumn: 20,
+      },
       kind: "function" as const,
-      parameters: [{ name: "x", type: "number" }],
+      parameters: [{ name: "x", type: "number", optional: false }],
       returnType: "void",
-    };
-    const snapBefore = buildSignatureSnapshot(before as any);
-    const snapAfter = buildSignatureSnapshot(after as any);
+    } satisfies SymbolIR;
+    const snapBefore = buildSignatureSnapshot(before);
+    const snapAfter = buildSignatureSnapshot(after);
     const drift = detectSignatureDrift(snapBefore, snapAfter);
     expect(drift).not.toBeNull();
     expect(typeof drift).toBe("string");
@@ -210,10 +237,21 @@ export const fn = (x: string, y: number): boolean => true;
 
   it("no drift for identical snapshots", () => {
     const sym = {
+      id: "sym1",
+      name: "fn",
+      isAsync: false,
+      isExported: true,
+      sourceLocation: {
+        filePath: "src/index.ts",
+        line: 1,
+        column: 1,
+        endLine: 1,
+        endColumn: 20,
+      },
       kind: "interface" as const,
       properties: [{ name: "id", type: "string", optional: false }],
-    };
-    const snap = buildSignatureSnapshot(sym as any);
+    } satisfies SymbolIR;
+    const snap = buildSignatureSnapshot(sym);
     const drift = detectSignatureDrift(snap, snap);
     expect(drift).toBeNull();
   });
