@@ -20,7 +20,7 @@ tasks:
       persistent: true
 
   typecheck:
-    command: "tsc --noEmit -p tsconfig.app.json"
+    script: "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json"
 
 workspace:
   inheritedTasks:
