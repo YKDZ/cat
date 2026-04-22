@@ -24,7 +24,6 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/shared": "workspace:*"
   }

@@ -74,7 +74,7 @@
     "secondaryAssociations": [],
     "dependsOn": [],
     "public": true,
-    "fragmentCount": 0,
+    "fragmentCount": 1,
     "zhPage": "infra/infra--db.zh.md",
     "enPage": "infra/infra--db.en.md"
   },

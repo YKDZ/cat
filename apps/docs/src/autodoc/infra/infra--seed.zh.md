@@ -2,7 +2,7 @@
 
 > **Section**: 基础设施  ·  **Subject ID**: `infra/seed`
 
-`@cat/seed` 提供开发与测试环境的数据播种基础设施，通过声明式 YAML 配置文件驱动数据库初始化，是 E2E 测试、Agent 评测（`@cat/eval`）和截图采集（`@cat/screenshot-collector`）的前置依赖。
+`@cat/seed` 提供开发与测试环境的数据播种基础设施，通过声明式 YAML 配置文件驱动数据库初始化，是 E2E 测试、评测（`@cat/eval`）和截图采集（`@cat/screenshot-collector`）的前置依赖。
 
 ## DevSeed 配置
 
@@ -27,7 +27,7 @@
 ## 使用场景
 
 - **E2E 测试**（Playwright）：在 `globalSetup` 中调用 `runSeed(config)` 初始化浏览器测试所需的用户与项目数据。
-- **Agent 评测**（`@cat/eval`）：每个评测 Suite 的 `setup` 阶段加载对应 dataset，确保评测环境隔离可重复。
+- **评测**（`@cat/eval`）：每个评测 Suite 的 `setup` 阶段加载对应 dataset，确保评测环境隔离可重复。
 - **截图采集**（`@cat/screenshot-collector`）：需要真实数据驱动页面渲染，播种后再执行截图脚本。
 
 ## 相关主题
