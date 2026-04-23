@@ -9520,8 +9520,18 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 54,
+    "line": 56,
     "description": "Run the full precision pipeline on a flat list of raw multi-lane results.\n\nThis function is surface-agnostic: it works with both RawTermResult[] and\nRawMemoryResult[] (and mixed arrays, if ever needed)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/precision-pipeline:suppressTier3IfClearTier1Winner",
+    "stableKey": "@cat/operations:packages/operations/src/precision/precision-pipeline:suppressTier3IfClearTier1Winner",
+    "name": "suppressTier3IfClearTier1Winner",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/precision-pipeline.ts",
+    "line": 39,
+    "description": "After model reranking, suppress Tier-3 candidates when the top result is a\nclear Tier-1 winner (no recoverable-conflict note). This prevents low-certainty\nsingle-path noise from appearing alongside a definitive high-confidence match.\n@internal — exposed for unit testing only; use runPrecisionPipeline for production code."
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/query-profiler:profileQuery",
@@ -9531,7 +9541,7 @@
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/query-profiler.ts",
     "line": 16,
-    "description": "Extract a QueryProfile from the raw query text.\n\nRules:\n- tokenCount   = word-boundary split on Unicode letters/digits (\\p{L}|\\p{N})+\n- contentWordDensity = tokens that are not pure-stop-words and not pure punct\n- isShortQuery  = tokenCount <= 3\n- hasNumericAnchor = any token matches /^\\d[\\d.,]*$/\n- hasPlaceholderAnchor = any token matches %s / %d / {N} / {WORD} patterns\n- isTemplateLike = hasPlaceholderAnchor OR (isShortQuery AND hasNumericAnchor)\n- hasEntityWord  = any token with 2+ consecutive uppercase letters OR CamelCase ≥6 chars"
+    "description": "Extract a QueryProfile from the raw query text.\n\nRules:\n- tokenCount   = word-boundary split on Unicode letters/digits (\\p{L}|\\p{N})+\n- contentWordDensity = tokens that are not pure-stop-words and not pure punct\n- isShortQuery  = tokenCount <= 3 AND contentWordDensity >= 0.5\n- hasNumericAnchor = any token matches /^\\d[\\d.,]*$/\n- hasPlaceholderAnchor = any token matches %s / %d / {N} / {WORD} patterns\n- isTemplateLike = hasPlaceholderAnchor OR (isShortQuery AND hasNumericAnchor)\n- hasEntityWord  = any token with 2+ consecutive uppercase letters OR CamelCase ≥6 chars"
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/query-topic-resolver:resolveQueryTopic",

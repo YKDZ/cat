@@ -6,7 +6,7 @@ Operations layer: business workflows composing domain operations
 
 * **Modules**: 71
 
-* **Exported functions**: 80
+* **Exported functions**: 81
 
 * **Exported types**: 110
 
@@ -1098,6 +1098,18 @@ export function buildFusionLedger(raw: RawResult[]): RecallCandidate[]
 export async function applyModelReranker(ranked: RecallCandidate[], envelope: { shouldInvokeModel: boolean; eligibleBand: { start: number; end: number; }; reasons: string[]; }): Promise<RecallCandidate[]>
 ```
 
+### `suppressTier3IfClearTier1Winner`
+
+```ts
+/**
+ * After model reranking, suppress Tier-3 candidates when the top result is a
+ * clear Tier-1 winner (no recoverable-conflict note). This prevents low-certainty
+ * single-path noise from appearing alongside a definitive high-confidence match.
+ * @internal — exposed for unit testing only; use runPrecisionPipeline for production code.
+ */
+export function suppressTier3IfClearTier1Winner(ranked: RecallCandidate[]): RecallCandidate[]
+```
+
 ### `runPrecisionPipeline`
 
 ```ts
@@ -1119,7 +1131,7 @@ export async function runPrecisionPipeline(raw: RawResult[], opts: PrecisionPipe
  * Rules:
  * - tokenCount   = word-boundary split on Unicode letters/digits (\p{L}|\p{N})+
  * - contentWordDensity = tokens that are not pure-stop-words and not pure punct
- * - isShortQuery  = tokenCount <= 3
+ * - isShortQuery  = tokenCount <= 3 AND contentWordDensity >= 0.5
  * - hasNumericAnchor = any token matches /^\d[\d.,]*$/
  * - hasPlaceholderAnchor = any token matches %s / %d / {N} / {WORD} patterns
  * - isTemplateLike = hasPlaceholderAnchor OR (isShortQuery AND hasNumericAnchor)
