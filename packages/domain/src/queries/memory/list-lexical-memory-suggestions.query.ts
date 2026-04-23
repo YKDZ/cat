@@ -121,11 +121,10 @@ export const listExactMemorySuggestions: Query<
     adaptationMethod: "exact",
     evidences: [
       {
-        channel: "lexical",
+        channel: "exact",
         matchedText: row.source,
-        matchedVariantText: row.source,
         confidence: 1,
-        note: "exact source-string match",
+        note: "exact source-string equality",
       },
     ],
     matchedText: row.source,
@@ -237,11 +236,10 @@ export const listTrgmMemorySuggestions: Query<
     confidence: row.confidence,
     evidences: [
       {
-        channel: "lexical",
+        channel: "trgm",
         matchedText: row.source,
-        matchedVariantText: row.source,
         confidence: row.confidence,
-        note: "pg_trgm source-string match",
+        note: "pg_trgm source-string similarity",
       },
     ],
     matchedText: row.source,

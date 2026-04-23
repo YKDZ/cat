@@ -7,6 +7,7 @@ subject: domain/core
 ## 命令（Command）
 
 命令代表一次带副作用的写操作，每个命令的执行结果由 `Command<C, R>` 类型描述：
+
 - `result`（`R`）：执行成功后的返回值（如新建实体的 ID）。
 - `events`：本次命令产生的零或多个 `DomainEvent`，由上层服务发布到 `DomainEventBus`。
 
@@ -34,12 +35,12 @@ subject: domain/core
 
 ## 聚合组织
 
-| 聚合 | 主要命令/查询 |
-|---|---|
-| Project / Document | 创建/归档/配置，以及文档元数据管理 |
-| Element | 可翻译元素的 CRUD 与批量导入 |
-| Translation | 提交、审核、自动填充 |
-| Glossary / Term | 术语库条目管理 |
-| TranslationMemory | 记忆记录入库与检索 |
-| VCS / PR / Changeset | 分支、变更集、拉取请求全生命周期 |
-| Agent / AgentRun | Agent 会话与运行记录 |
+| 聚合                 | 主要命令/查询                      |
+| -------------------- | ---------------------------------- |
+| Project / Document   | 创建/归档/配置，以及文档元数据管理 |
+| Element              | 可翻译元素的 CRUD 与批量导入       |
+| Translation          | 提交、审核、自动填充               |
+| Glossary / Term      | 术语库条目管理                     |
+| TranslationMemory    | 记忆记录入库与检索                 |
+| VCS / PR / Changeset | 分支、变更集、拉取请求全生命周期   |
+| Agent / AgentRun     | Agent 会话与运行记录               |

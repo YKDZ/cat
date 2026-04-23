@@ -280,7 +280,7 @@ describe("memory recall integration", () => {
     expect(reversedExactResults[0]?.translation).toBe("Order 42 is completed");
     expect(
       reversedExactResults[0]?.evidences.some(
-        (evidence) => evidence.channel === "lexical",
+        (evidence) => evidence.channel === "exact",
       ),
     ).toBe(true);
 

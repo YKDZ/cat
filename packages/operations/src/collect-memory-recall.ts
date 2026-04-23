@@ -16,12 +16,15 @@ import {
 } from "@cat/server-shared";
 import * as z from "zod";
 
+import type { RawMemoryResult } from "./precision/types";
+
 import {
   fillTemplate,
   mappingToSlots,
   placeholderize,
 } from "./memory-template";
 import { joinLemmas } from "./nlp-normalization";
+import { runPrecisionPipeline } from "./precision/precision-pipeline";
 import { searchMemoryOp } from "./search-memory";
 import { tokenizeOp } from "./tokenize";
 
@@ -352,5 +355,41 @@ export const collectMemoryRecallOp = async (
     }
   }
 
-  return [...seen.values()].sort((a, b) => b.confidence - a.confidence);
+  // The seen Map already holds per-item merged suggestions from all channels.
+  // Convert to RawMemoryResult for the precision pipeline.
+  const rawMemoryResults = [...seen.values()].map(
+    (m): RawMemoryResult => ({
+      surface: "memory",
+      id: m.id,
+      memoryId: m.memoryId,
+      source: m.source,
+      translation: m.translation,
+      confidence: m.confidence,
+      matchedText: m.matchedText,
+      matchedVariantText: m.matchedVariantText,
+      matchedVariantType: m.matchedVariantType,
+      adaptedTranslation: m.adaptedTranslation,
+      adaptationMethod: m.adaptationMethod,
+      evidences: m.evidences,
+    }),
+  );
+
+  const ranked = await runPrecisionPipeline(rawMemoryResults, {
+    queryText: input.text,
+    maxResults: input.maxAmount,
+  });
+
+  // Re-attach full MemorySuggestion fields from seen Map (createdAt, updatedAt, etc.)
+  return ranked.flatMap((c): MemorySuggestion[] => {
+    if (c.surface !== "memory") return [];
+    const raw = seen.get(c.id);
+    if (!raw) return [];
+    return [
+      {
+        ...raw,
+        confidence: c.confidence,
+        evidences: c.evidences,
+      },
+    ];
+  });
 };

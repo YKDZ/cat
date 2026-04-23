@@ -9,8 +9,11 @@ import {
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
+import type { RawTermResult } from "./precision/types";
+
 import { joinLemmas } from "./nlp-normalization";
 import { nlpSegmentOp } from "./nlp-segment";
+import { runPrecisionPipeline } from "./precision/precision-pipeline";
 import { semanticSearchTermsOp } from "./semantic-search-terms";
 
 export const CollectTermRecallInputSchema = z.object({
@@ -27,51 +30,6 @@ export const CollectTermRecallInputSchema = z.object({
 export type CollectTermRecallInput = z.input<
   typeof CollectTermRecallInputSchema
 >;
-
-const mergeTermMatches = (matches: LookedUpTerm[]): LookedUpTerm[] => {
-  const merged = new Map<number, LookedUpTerm>();
-
-  for (const match of matches) {
-    const existing = merged.get(match.conceptId);
-    if (!existing) {
-      merged.set(match.conceptId, {
-        ...match,
-        evidences: [...match.evidences],
-      });
-      continue;
-    }
-
-    const base =
-      match.confidence > existing.confidence
-        ? { ...match, evidences: [...match.evidences] }
-        : { ...existing, evidences: [...existing.evidences] };
-    const extra = match.confidence > existing.confidence ? existing : match;
-    const evidenceKey = (evidence: LookedUpTerm["evidences"][number]) =>
-      [
-        evidence.channel,
-        evidence.matchedText ?? "",
-        evidence.matchedVariantText ?? "",
-        evidence.matchedVariantType ?? "",
-        evidence.note ?? "",
-      ].join("\0");
-    const seen = new Set(base.evidences.map(evidenceKey));
-
-    for (const evidence of extra.evidences) {
-      const key = evidenceKey(evidence);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      base.evidences.push(evidence);
-    }
-
-    base.confidence = Math.max(existing.confidence, match.confidence);
-    base.matchedText = base.matchedText ?? extra.matchedText;
-    merged.set(match.conceptId, base);
-  }
-
-  return [...merged.values()].sort(
-    (a, b) => b.confidence - a.confidence || b.term.length - a.term.length,
-  );
-};
 
 const normalizeRecallQuery = async (
   text: string,
@@ -152,8 +110,40 @@ export const collectTermRecallOp = async (
     );
   }
 
-  return mergeTermMatches((await Promise.all(tasks)).flat()).slice(
-    0,
-    input.maxAmount,
+  const rawTermResults = (await Promise.all(tasks)).flat().map(
+    (r): RawTermResult => ({
+      surface: "term",
+      conceptId: r.conceptId,
+      glossaryId: r.glossaryId,
+      term: r.term,
+      translation: r.translation,
+      definition: r.definition,
+      confidence: r.confidence,
+      matchedText: r.matchedText,
+      evidences: r.evidences,
+    }),
   );
+
+  // ── Precision Pipeline ────────────────────────────────────────────
+  const ranked = await runPrecisionPipeline(rawTermResults, {
+    queryText: input.text,
+    maxResults: input.maxAmount,
+  });
+
+  // ── Project precision-pipeline output back to LookedUpTerm shape ──
+  return ranked.flatMap((c): LookedUpTerm[] => {
+    if (c.surface !== "term") return [];
+    return [
+      {
+        term: c.term,
+        translation: c.translation,
+        definition: c.definition,
+        conceptId: c.conceptId,
+        glossaryId: c.glossaryId,
+        confidence: c.confidence,
+        evidences: c.evidences,
+        matchedText: c.matchedText,
+      },
+    ];
+  });
 };
