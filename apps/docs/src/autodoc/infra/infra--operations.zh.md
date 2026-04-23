@@ -127,9 +127,28 @@ Operations 层通过 `executeWithVCS(fn, vcsContext)` 包装器（来自 `@cat/w
 
 ---
 
+## Precision Pipeline（精排层）
+
+`collectTermRecallOp` 收集原始多路结果后，由 `runPrecisionPipeline`（[precision-pipeline.ts](../src/precision/precision-pipeline.ts)）对候选进行精排。Pipeline 按顺序执行以下步骤：
+
+| 步骤 | 组件                                   | 作用                                                                                |
+| ---- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1    | **QueryProfiler**                      | 提取查询特征（tokenCount、contentWordDensity、hasNumericAnchor、isTemplateLike 等） |
+| 2    | **Fusion Ledger**                      | 将多路原始结果按 conceptId 合并为候选，融合 evidence 列表                           |
+| 3    | **Budget Gate**                        | 分配 `reserved`（Tier-1 候选）/ `competitive` 预算槽位                              |
+| 4    | **Taxonomy Registry + Topic Resolver** | 将 term subjects 映射到规范话题，推断 QueryTopicHypothesis                          |
+| 5    | **Scope & Anchor Guard**               | 范围过滤、话题冲突检测、数字锚点校验；发出 hard-filter 或 recoverable-demotion      |
+| 6    | **Deterministic Layered Ranker**       | 三级桶分级（Tier 1 精确命中、Tier 2 多证据共识、Tier 3 单路径或未知话题）           |
+| 7    | **Ambiguity Gate**                     | 四条规则评估是否需要模型重排；Clear Tier-1 winner 不进入 model band                 |
+| 8    | **Model Reranker stub**                | 当前无操作存根；Ambiguity Gate 触发时保留重排入口                                   |
+
+Pipeline 结果中，Tier-1 clear winner（无 recoverable-conflict）顶部时，Tier-3 候选会被 `suppressTier3IfClearTier1Winner` 静默压制，防止单路径噪声干扰最终展示。
+
+---
+
 ## 回归测试
 
-`term-recall-regression.test.ts`（[源码](../src/term-recall-regression.test.ts)）通过 fixture 驱动的回归门，在 vitest 中对三条通道的命中行为做快照断言，防止静默退化。测试用例覆盖：词汇通道的子串命中、形态通道跨词形变化命中、语义通道跨义近义词命中。
+`term-recall-regression.test.ts`（[源码](../src/term-recall-regression.test.ts)）通过 fixture 驱动的回归门，在 vitest 中对三条通道的命中行为做快照断言，防止静默退化。测试用例覆盖：词汇通道的子串命中、形态通道跨词形变化命中、语义通道跨义近义词命中，以及 Precision Pipeline 层的精排行为（Tier 分配、entity-short-query 保护、跨话题冲突抑制）。
 
 ## 记忆回归与模板适配
 
@@ -229,9 +248,20 @@ Operations 层通过 `executeWithVCS(fn, vcsContext)` 包装器（来自 `@cat/w
 
 ---
 
+## Precision Pipeline（精排层）
+
+`collectMemoryRecallOp` 收集原始多路结果后，由 `runPrecisionPipeline`（[precision-pipeline.ts](../src/precision/precision-pipeline.ts)）对候选进行精排。流程与 term 侧完全共享同一 Pipeline Orchestrator，步骤见 04-term-recall.semantic.md。
+
+Memory 侧特有的特征：
+
+- **Template 保护**：Scope & Anchor Guard 对持有 `channel: "template"` 证据的候选免除数字锚点冲突检查，避免 `Press Enter to switch to {VAR_0}` 类模板被误 hard-filter。
+- **语义 hard-negative 抑制**：当 top 候选是 clear Tier-1 winner（模板/精确命中），`suppressTier3IfClearTier1Winner` 会抑制所有 Tier-3 候选（如偶然语义命中的 witch 等 hard-negative），保障高置信度结果不被噪声候选稀释。
+
+---
+
 ## 回归测试
 
-`memory-recall-regression.test.ts`（[源码](../src/memory-recall-regression.test.ts)）通过 fixture 回归门验证四条通道各自的命中行为不发生静默退化。测试场景包括：exact 精确命中、trgm 近似命中、variant 词形变化命中、TOKEN_TEMPLATE 模板适配正确性。
+`memory-recall-regression.test.ts`（[源码](../src/memory-recall-regression.test.ts)）通过 fixture 回归门验证四条通道各自的命中行为不发生静默退化。测试场景包括：exact 精确命中、trgm 近似命中、variant 词形变化命中、TOKEN_TEMPLATE 模板适配正确性，以及 Precision Pipeline 层的精排行为（Tier 分配、template vs semantic hard-negative 竞争场景）。
 
 ## 自动翻译候选选择
 

@@ -88,7 +88,7 @@ Concurrency safety is |
 
 Sends the candidate translation and gloss |
 | `LlmRefineTranslationInput` | type |  |
-| *(140 more)* | | |
+| *(141 more)* | | |
 
 ## Related Topics
 
