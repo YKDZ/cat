@@ -86,9 +86,87 @@ title: 术语回归与重排
 | 5    | **Scope & Anchor Guard**               | 范围过滤、话题冲突检测、数字锚点校验；发出 hard-filter 或 recoverable-demotion      |
 | 6    | **Deterministic Layered Ranker**       | 三级桶分级（Tier 1 精确命中、Tier 2 多证据共识、Tier 3 单路径或未知话题）           |
 | 7    | **Ambiguity Gate**                     | 四条规则评估是否需要模型重排；Clear Tier-1 winner 不进入 model band                 |
-| 8    | **Model Reranker stub**                | 当前无操作存根；Ambiguity Gate 触发时保留重排入口                                   |
+| 8    | **Model Reranker**                     | 在 Ambiguity Gate 打开的 `eligibleBand` 内调用 `RERANK_PROVIDER` 插件进行模型重排；fail-closed，band 外候选顺序不变 |
 
 Pipeline 结果中，Tier-1 clear winner（无 recoverable-conflict）顶部时，Tier-3 候选会被 `suppressTier3IfClearTier1Winner` 静默压制，防止单路径噪声干扰最终展示。
+
+---
+
+## Model Reranker（模型重排层）
+
+`applyModelReranker`（[model-reranker.ts](../src/precision/model-reranker.ts)）在 Ambiguity Gate 完成评估后介入，对 `eligibleBand` 内的候选发起模型重排。整个流程 **fail-closed**：任何失败路径均回退到确定性顺序，不破坏已有精排结果。
+
+### 跳过条件
+
+- `envelope.shouldInvokeModel === false`：Ambiguity Gate 未触发，直接跳过并追加 `model-reranker-skipped` 决策记录。
+- `rerankMode === "baseline"`：显式设置为 baseline 模式（供 eval 对比用），即使 Gate 触发也跳过。
+
+### Orchestrator 流程
+
+`orchestrateRerank`（[orchestrator.ts](../src/rerank/orchestrator.ts)）负责 provider 解析、调用与响应校验：
+
+1. **Provider 解析**：通过 `resolvePluginManager` + `firstOrGivenService("RERANK_PROVIDER", rerankProviderId)` 查找服务实例；若无实例则立即返回 `unavailable` trace。
+2. **归一化**：`normalizePrecisionCandidates` 将 band 内候选转为 `RerankCandidateDocument`，term 填写 `title`/`sourceText`/`targetText`/`definitionText`，memory 填写 `title`/`sourceText`/`targetText`。
+3. **调用 provider**：`provider.service.rerank({ request, signal })` 同时受 `rerankTimeoutMs`（默认 3000 ms）和外部 `AbortSignal` 双重约束。
+4. **校验响应**：`validateScoreCoverage` 验证 candidateId 一一对应、无重复、分数为有限数值；校验失败返回 `invalid-response`。
+5. **排序**：校验通过后按 `score` 降序排列 candidateId，交由 `applyBandOrder` 仅写回 `[eligibleBand.start, eligibleBand.end)` 区间；前缀与尾部候选原样保留。
+
+### Fail-Closed Outcomes
+
+| Outcome            | 触发条件                               | 排序行为   |
+| ------------------ | -------------------------------------- | ---------- |
+| `unavailable`      | 无 RERANK_PROVIDER 实例                | 确定性顺序 |
+| `cancelled`        | `signal.aborted === true`              | 确定性顺序 |
+| `timeout`          | 错误消息含 "timeout" 关键字            | 确定性顺序 |
+| `fail-closed`      | 其他异常                               | 确定性顺序 |
+| `invalid-response` | candidateId 不全 / 重复 / 非有限数值   | 确定性顺序 |
+
+每个候选都会收到对应的 `rankingDecisions` 条目（`model-reranker-applied`、`model-reranker-skipped`、`model-reranker-unavailable` 等），供 eval `decision-note` scorer 和内部 trace 消费。
+
+### RERANK_PROVIDER 插件
+
+`RERANK_PROVIDER` 是插件系统新增的服务类型（与 `LLM_PROVIDER`、`TEXT_VECTORIZER` 等并列）。首个实现 `@cat-plugin/tei-rerank-provider` 适配 HuggingFace TEI `/rerank` 端点：
+
+- **请求**：`POST /rerank`，body `{ query, texts, raw_scores: false }`，`texts` 为 band 内候选的 `sourceText` 列表。
+- **响应解析**：`results[*].{ index, relevance_score }` 通过 `index` 回映到稳定的 `candidateId`。
+- **超时与取消**：合并 `AbortSignal.timeout(timeoutMs)` 与调用方 `signal`，超时 → `timeout`，取消 → `cancelled`。
+- **Provider metadata**（`providerId`、`modelId`、`endpoint`、`latencyMs`）仅记录在内部 trace，**不进入**面向用户的 recall API 响应。
+
+---
+
+## Context-Route 重排（rerankTermRecallOp）
+
+`rerankTermRecallOp`（[recall-context-rerank.ts](../src/recall-context-rerank.ts)）在路由层（`findTerm`）对 `termRecallOp` 的结果做一次可选的上下文感知重排。不依赖 Ambiguity Gate，而是使用**邻近元素信号**独立决定是否打开 band。
+
+### 上下文信号采集
+
+`loadNeighborContext` 查询当前元素前后各 `MAX_CONTEXT_WINDOW`（= 3）个邻近元素，提取：
+
+- `neighborSources`：邻近元素的原文
+- `neighborTranslations`：邻近元素已审批的译文（过滤 null 值）
+
+若加载失败（任何异常），直接返回原始 `terms` 顺序（**fail-closed**）。
+
+### Context Band Selector
+
+`selectContextBand`（[context-band-selector.ts](../src/rerank/context-band-selector.ts)）决定重排范围：
+
+1. 锚定 `ranked[0]`（置信度最高的候选）。
+2. 依次评估后续候选：只要与 anchor 的置信度差 ≤ 0.08 **且**候选有至少一项正向上下文信号，就纳入 band。
+3. band 成员 < 2 时返回 `null`，不触发重排。
+
+| 信号             | 参考文本                              | 评估候选字段                      |
+| ---------------- | ------------------------------------- | --------------------------------- |
+| `sourceOverlap`  | `[queryText, ...neighborSources]`     | `matchedText` 或 `term`           |
+| `targetOverlap`  | `neighborTranslations`（已审批译文）  | `translation`                     |
+| `conceptOverlap` | `[queryText]`                         | concept 定义 + subject 名称与定义 |
+
+### 调用共享 Orchestrator
+
+band 打开后，将 band 内术语归一化（含 `contextText`：concept 定义 + subject 信息）并调用 `orchestrateRerank`（trigger: `"context-route"`），传入 `contextHints.neighborSources` 与 `contextHints.approvedNeighborTranslations` 供 provider 参考。
+
+- 仅重排 band 内候选顺序，**原始 `confidence` 值不变**，band 外（尾部）位置也不变。
+- provider 不可用或重排失败时，返回原始 `terms`（fail-closed）。
 
 ---
 
