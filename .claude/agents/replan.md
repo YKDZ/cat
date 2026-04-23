@@ -33,7 +33,19 @@ When the user provides supplementary context:
 
 ## Output File
 
-Write the refined plan to a **new file** by appending a revision suffix to the input filename. For example, if the input is `PLAN-feature-auth.md`, write to `PLAN-feature-auth.r1.md` (increment the number if a prior revision exists: `.r2.md`, `.r3.md`, etc.). Do NOT overwrite the input file.
+Determine the output path **solely from the input file path** — no other context is needed.
+
+The input always lives inside `todo/<namespace>/`. Detect the current revision number from the filename:
+
+| Input filename | Output filename  |
+| -------------- | ---------------- |
+| `plan.md`      | `plan.r1.md`     |
+| `plan.r1.md`   | `plan.r2.md`     |
+| `plan.rN.md`   | `plan.r<N+1>.md` |
+
+Write the refined plan to **`todo/<namespace>/plan.r<N+1>.md`** — same directory as the input.
+
+Do NOT overwrite the input file. Do NOT use `PLAN-` prefix or any other naming pattern.
 
 ## Full Rewrite Requirement
 

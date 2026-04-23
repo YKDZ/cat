@@ -28,7 +28,21 @@ Every project goes through this process. A todo list, a single-function utility,
 
 ## Output File
 
-Write the spec to `todo/<feature-name>.md` (or the user's preferred location). Do NOT number revisions — that's rebrainstorm's job.
+### Namespace Inference
+
+Derive a short **kebab-case namespace** from the user's idea (e.g., `oauth-login`, `translation-memory`, `bulk-export`). This becomes the permanent directory for all documents in this workflow chain.
+
+Rules:
+
+- Use 1–4 lowercase hyphenated words that uniquely identify the feature
+- Avoid generic terms like `feature`, `improvement`, `fix`
+- If the user supplies an explicit name or file path hint, honour it
+
+### Output Path
+
+Write the spec to **`todo/<namespace>/spec.md`**.
+
+Create the `todo/<namespace>/` directory if it does not exist. Do NOT use any other location or naming pattern.
 
 ## Process (MUST follow this order)
 
@@ -178,7 +192,7 @@ Fix issues inline.
 
 After writing and self-reviewing the spec, present it to the user:
 
-> "Design spec written to `<path>` with N decision blocks. Review the decisions, fill in your choices (`Final decision: [X]`), then invoke **rebrainstorm** on the file to produce a refined version."
+> "Design spec written to `todo/<namespace>/spec.md` with N decision blocks. Review the decisions, fill in your choices (`Final decision: [X]`), then invoke **rebrainstorm** on the file to produce a refined version."
 >
 > "If there are no decisions to resolve (or after all iterations), the spec is ready for **iplan**."
 

@@ -20,7 +20,18 @@ If the file path is ambiguous, infer from context. If truly unclear, state what 
 
 ## Output File
 
-Write the plan to a **new file** named `PLAN-<spec-basename>.md` in the **same directory** as the spec file. For example, if the spec is `docs/feature-auth.md`, write to `docs/PLAN-feature-auth.md`. Do NOT overwrite the spec file.
+Determine the output path **solely from the input file path** — no other context is needed.
+
+The input always lives inside `todo/<namespace>/` (either `spec.md` or `spec.rN.md`). The plan always goes to the **same directory**:
+
+```
+todo/<namespace>/spec.md       →  todo/<namespace>/plan.md
+todo/<namespace>/spec.r3.md   →  todo/<namespace>/plan.md
+```
+
+Write the plan to **`todo/<namespace>/plan.md`** regardless of the spec revision number.
+
+Do NOT use `PLAN-` prefix, do NOT place the file in the spec's parent directory if the spec is nested, do NOT overwrite the spec file.
 
 ## Critical Constraint: No Assumptions About Existing Code
 
