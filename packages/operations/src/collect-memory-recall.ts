@@ -16,7 +16,7 @@ import {
 } from "@cat/server-shared";
 import * as z from "zod";
 
-import type { RawMemoryResult } from "./precision/types";
+import type { MemorySuggestionWithPrecision, RawMemoryResult } from "./precision/types";
 
 import {
   fillTemplate,
@@ -24,6 +24,7 @@ import {
   placeholderize,
 } from "./memory-template";
 import { joinLemmas } from "./nlp-normalization";
+import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { runPrecisionPipeline } from "./precision/precision-pipeline";
 import { searchMemoryOp } from "./search-memory";
 import { tokenizeOp } from "./tokenize";
@@ -75,7 +76,7 @@ export type CollectMemoryRecallInput = z.input<
 export const collectMemoryRecallOp = async (
   data: CollectMemoryRecallInput,
   ctx?: OperationContext,
-): Promise<MemorySuggestion[]> => {
+): Promise<MemorySuggestionWithPrecision[]> => {
   const input = CollectMemoryRecallInputSchema.parse(data);
   if (input.memoryIds.length === 0) return [];
 
@@ -374,13 +375,21 @@ export const collectMemoryRecallOp = async (
     }),
   );
 
+  // ── Sparse Lexical Lane ───────────────────────────────────────────
+  const sparseContentWords = input.sourceNlpTokens
+    ? input.sourceNlpTokens
+        .filter((t) => !t.isStop && !t.isPunct)
+        .map((t) => t.lemma.toLowerCase())
+    : text.toLowerCase().split(/\s+/).filter(Boolean);
+  augmentWithSparseLane(rawMemoryResults, sparseContentWords);
+
   const ranked = await runPrecisionPipeline(rawMemoryResults, {
     queryText: input.text,
     maxResults: input.maxAmount,
   });
 
   // Re-attach full MemorySuggestion fields from seen Map (createdAt, updatedAt, etc.)
-  return ranked.flatMap((c): MemorySuggestion[] => {
+  return ranked.flatMap((c): MemorySuggestionWithPrecision[] => {
     if (c.surface !== "memory") return [];
     const raw = seen.get(c.id);
     if (!raw) return [];
@@ -389,6 +398,7 @@ export const collectMemoryRecallOp = async (
         ...raw,
         confidence: c.confidence,
         evidences: c.evidences,
+        rankingDecisions: c.rankingDecisions,
       },
     ];
   });

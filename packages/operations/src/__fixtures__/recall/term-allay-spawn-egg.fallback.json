@@ -1,0 +1,108 @@
+{
+  "name": "Allay Spawn Egg → should NOT surface Silk Touch / Fire Aspect",
+  "description": "Entity name query: 'Allay Spawn Egg' must rank the Allay Spawn Egg concept above enchantment terms (Silk Touch, Fire Aspect) which might score via semantic similarity.",
+  "kind": "term",
+  "matrix": "fallback",
+  "query": {
+    "text": "Allay Spawn Egg",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 601,
+    "minimumTopConfidence": 0.75,
+    "requiredChannels": ["lexical"],
+    "requiredVariantTypes": [],
+    "missIds": [602, 603],
+    "expectedTier": "1"
+  },
+  "mock": {
+    "term": {
+      "nlpTokens": [
+        {
+          "text": "Allay",
+          "lemma": "allay",
+          "pos": "NOUN",
+          "start": 0,
+          "end": 5,
+          "isStop": false,
+          "isPunct": false
+        },
+        {
+          "text": "Spawn",
+          "lemma": "spawn",
+          "pos": "NOUN",
+          "start": 6,
+          "end": 11,
+          "isStop": false,
+          "isPunct": false
+        },
+        {
+          "text": "Egg",
+          "lemma": "egg",
+          "pos": "NOUN",
+          "start": 12,
+          "end": 15,
+          "isStop": false,
+          "isPunct": false
+        }
+      ],
+      "lexical": [
+        {
+          "term": "Allay Spawn Egg",
+          "translation": "悦灵刷怪蛋",
+          "confidence": 0.95,
+          "definition": "Spawn egg for the Allay mob.",
+          "conceptId": 601,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "Allay Spawn Egg",
+          "evidences": [
+            {
+              "channel": "lexical",
+              "matchedText": "Allay Spawn Egg",
+              "confidence": 0.95,
+              "note": "full surface match"
+            }
+          ]
+        }
+      ],
+      "morphological": [],
+      "semantic": [
+        {
+          "term": "Silk Touch",
+          "translation": "精准采集",
+          "confidence": 0.68,
+          "definition": "Enchantment that allows blocks to be harvested as-is.",
+          "conceptId": 602,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "Allay Spawn Egg",
+          "evidences": [
+            {
+              "channel": "semantic",
+              "matchedText": "Allay Spawn Egg",
+              "confidence": 0.68,
+              "note": "spurious semantic hit"
+            }
+          ]
+        },
+        {
+          "term": "Fire Aspect",
+          "translation": "火焰附加",
+          "confidence": 0.64,
+          "definition": "Enchantment that sets targets on fire.",
+          "conceptId": 603,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "Allay Spawn Egg",
+          "evidences": [
+            {
+              "channel": "semantic",
+              "matchedText": "Allay Spawn Egg",
+              "confidence": 0.64,
+              "note": "spurious semantic hit"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,3 +1,6 @@
+// packages/operations/src/precision/types.ts
+import type { LookedUpTerm } from "@cat/domain";
+import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import type {
   AmbiguityEnvelope,
   AnchorSignature,
@@ -8,7 +11,6 @@ import type {
   QueryTopicHypothesis,
   RankingDecision,
 } from "@cat/shared/schema/precision-recall";
-// packages/operations/src/precision/types.ts
 import type { RecallEvidence } from "@cat/shared/schema/recall";
 
 // ─── Raw lane result (term side) ─────────────────────────────────
@@ -69,3 +71,14 @@ export type PrecisionContext = {
 /** Stable identity key for a candidate (uniquely distinguishes term/memory). */
 export const candidateKey = (c: RawResult): string =>
   c.surface === "term" ? `term:${c.conceptId}` : `memory:${c.id}`;
+
+// ─── Precision-annotated caller-facing types ──────────────────────
+/** LookedUpTerm extended with optional pipeline decision trace (for regression testing). */
+export type LookedUpTermWithPrecision = LookedUpTerm & {
+  rankingDecisions?: RankingDecision[];
+};
+
+/** MemorySuggestion extended with optional pipeline decision trace (for regression testing). */
+export type MemorySuggestionWithPrecision = MemorySuggestion & {
+  rankingDecisions?: RankingDecision[];
+};

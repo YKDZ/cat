@@ -30,6 +30,22 @@ export type PrecisionPipelineOptions = {
 };
 
 /**
+ * After model reranking, suppress Tier-3 candidates when the top result is a
+ * clear Tier-1 winner (no recoverable-conflict note). This prevents low-certainty
+ * single-path noise from appearing alongside a definitive high-confidence match.
+ */
+function suppressTier3IfClearTier1Winner(
+  ranked: RecallCandidate[],
+): RecallCandidate[] {
+  const top = ranked[0];
+  if (!top || top.tier !== "1") return ranked;
+  if (top.rankingDecisions.some((d) => d.action === "recoverable-demotion")) {
+    return ranked;
+  }
+  return ranked.filter((c) => c.tier !== "3");
+}
+
+/**
  * Run the full precision pipeline on a flat list of raw multi-lane results.
  *
  * This function is surface-agnostic: it works with both RawTermResult[] and
@@ -85,7 +101,8 @@ export async function runPrecisionPipeline(
     const envelope = evaluateAmbiguity(ranked, hypothesis);
 
     // ── Step 8: Optional Model Reranker ──────────────────────────
-    return applyModelReranker(ranked, envelope);
+    const reranked = await applyModelReranker(ranked, envelope);
+    return suppressTier3IfClearTier1Winner(reranked);
   }
 
   // Taxonomy unavailable — run scope/anchor guard with unknown hypothesis,
@@ -101,5 +118,6 @@ export async function runPrecisionPipeline(
   );
   const ranked = applyDeterministicRanking(guarded, profile, unknownHypothesis);
   const envelope = evaluateAmbiguity(ranked, unknownHypothesis);
-  return applyModelReranker(ranked, envelope);
+  const reranked = await applyModelReranker(ranked, envelope);
+  return suppressTier3IfClearTier1Winner(reranked);
 }

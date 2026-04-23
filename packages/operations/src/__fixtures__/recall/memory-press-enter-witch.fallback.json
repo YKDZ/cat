@@ -1,0 +1,88 @@
+{
+  "name": "Press Enter to switch to %s → should NOT surface witch memory",
+  "description": "Template sentence with placeholder: exact/template match for the Press Enter template must rank above a witch memory that only matches semantically.",
+  "kind": "memory",
+  "matrix": "fallback",
+  "query": {
+    "text": "Press Enter to switch to %s",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 701,
+    "minimumTopConfidence": 0.9,
+    "requiredChannels": ["template"],
+    "requiredVariantTypes": ["TOKEN_TEMPLATE"],
+    "missIds": [702],
+    "expectedTier": "1"
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        {
+          "type": "text",
+          "value": "Press Enter to switch to ",
+          "start": 0,
+          "end": 24
+        },
+        { "type": "variable", "value": "%s", "start": 24, "end": 26 }
+      ],
+      "exact": [],
+      "trgm": [],
+      "variant": [
+        {
+          "id": 701,
+          "source": "Press Enter to switch to %s",
+          "translation": "按 Enter 切换到 %s",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.98,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "sourceTemplate": "Press Enter to switch to {VAR_0}",
+          "translationTemplate": "按 Enter 切换到 {VAR_0}",
+          "slotMapping": [
+            {
+              "placeholder": "src:{VAR_0}",
+              "value": "%s",
+              "tokenType": "variable"
+            },
+            {
+              "placeholder": "tgt:{VAR_0}",
+              "value": "%s",
+              "tokenType": "variable"
+            }
+          ],
+          "matchedText": "Press Enter to switch to {VAR_0}",
+          "matchedVariantText": "Press Enter to switch to {VAR_0}",
+          "matchedVariantType": "TOKEN_TEMPLATE",
+          "evidences": [
+            {
+              "channel": "template",
+              "matchedText": "Press Enter to switch to {VAR_0}",
+              "matchedVariantType": "TOKEN_TEMPLATE",
+              "confidence": 0.98,
+              "note": "template recall"
+            }
+          ]
+        }
+      ],
+      "semantic": [
+        {
+          "id": 702,
+          "source": "witch",
+          "translation": "女巫",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.71,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "matchedText": "witch",
+          "evidences": []
+        }
+      ]
+    }
+  }
+}
