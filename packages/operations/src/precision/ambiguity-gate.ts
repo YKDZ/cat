@@ -41,10 +41,14 @@ export function evaluateAmbiguity(
   const reasons: string[] = [];
 
   // ── Rule 1: confidence gap ───────────────────────────────────────
+  // Clear Tier-1 winners are excluded: a dominant high-confidence Tier-1 match
+  // should not be sent to the model just because a distant lower-tier candidate
+  // happens to be within the gap threshold.
   const top = ranked[0];
   const second = ranked[1];
   if (
     second &&
+    !isClearTier1(top) &&
     top.confidence - second.confidence < TIER1_SCORE_GAP_THRESHOLD
   ) {
     reasons.push(
@@ -96,11 +100,22 @@ export function evaluateAmbiguity(
 
   // Eligible band: all non-Tier-1-protected candidates
   const bandStart = ranked.findIndex((c) => !isClearTier1(c));
+
+  if (bandStart === -1) {
+    // All candidates are protected clear Tier-1 winners — model band is empty
+    // and no reranking should occur regardless of accumulated reasons.
+    return {
+      shouldInvokeModel: false,
+      eligibleBand: { start: 0, end: 0 },
+      reasons: [],
+    };
+  }
+
   const bandEnd = ranked.length;
 
   return {
     shouldInvokeModel: true,
-    eligibleBand: { start: Math.max(0, bandStart), end: bandEnd },
+    eligibleBand: { start: bandStart, end: bandEnd },
     reasons,
   };
 }

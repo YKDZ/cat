@@ -23,6 +23,7 @@ const makeTermCand = (
   overrides: {
     term?: string;
     topicAssignment?: RecallCandidate["topicAssignment"];
+    evidences?: RecallCandidate["evidences"];
   } = {},
 ): RecallCandidate => ({
   surface: "term",
@@ -32,7 +33,7 @@ const makeTermCand = (
   translation: "bar",
   definition: null,
   confidence: 0.8,
-  evidences: [],
+  evidences: overrides.evidences ?? [],
   rankingDecisions: [],
   topicAssignment: overrides.topicAssignment,
 });
@@ -104,5 +105,20 @@ describe("applyGuardsToCandidates", () => {
     expect(result).toHaveLength(0);
     expect(cand.hardFiltered).toBe(true);
     expect(cand.hardFilterReason).toContain("anchor-conflict");
+  });
+
+  it("skips numeric anchor conflict when candidate has template evidence", () => {
+    const cand = makeTermCand(1, {
+      term: "Order {VAR_0} done",
+      evidences: [{ channel: "template", confidence: 0.98 }],
+    });
+    const result = applyGuardsToCandidates(
+      [cand],
+      "Order 42 done",
+      HYPOTHESIS_UNKNOWN,
+      { allowedScopeIds: [] },
+    );
+    expect(result).toHaveLength(1);
+    expect(cand.hardFiltered).toBeFalsy();
   });
 });
