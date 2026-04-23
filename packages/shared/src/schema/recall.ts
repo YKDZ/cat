@@ -2,13 +2,25 @@ import * as z from "zod";
 
 // ─── Recall Channel ───────────────────────────────────────────────
 
-/** The retrieval channel that produced a given recall evidence entry. */
+/** The retrieval channel that produced a given recall evidence entry.
+ *  "exact"         — exact source-string equality (memory side)
+ *  "trgm"          — pg_trgm trigram similarity
+ *  "lexical"       — ILIKE + word_similarity (term side)
+ *  "morphological" — lemma/LEMMA variant match
+ *  "sparse"        — content-word-weighted sparse lexical
+ *  "template"      — TOKEN_TEMPLATE variant
+ *  "fragment"      — FRAGMENT variant
+ *  "semantic"      — dense vector similarity
+ */
 export const RecallChannelValues = [
+  "exact",
+  "trgm",
   "lexical",
   "morphological",
-  "semantic",
+  "sparse",
   "template",
   "fragment",
+  "semantic",
 ] as const;
 
 export const RecallChannelSchema = z.enum(RecallChannelValues);

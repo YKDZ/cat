@@ -139,6 +139,10 @@
       "types": "./dist/schema/recall.d.ts",
       "import": "./dist/schema/recall.js"
     },
+    "./schema/precision-recall": {
+      "types": "./dist/schema/precision-recall.d.ts",
+      "import": "./dist/schema/precision-recall.js"
+    },
     "./schema/project-setting": {
       "types": "./dist/schema/project-setting.d.ts",
       "import": "./dist/schema/project-setting.js"
