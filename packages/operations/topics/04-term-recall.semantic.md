@@ -73,6 +73,25 @@ title: 术语回归与重排
 
 ---
 
+## Precision Pipeline（精排层）
+
+`collectTermRecallOp` 收集原始多路结果后，由 `runPrecisionPipeline`（[precision-pipeline.ts](../src/precision/precision-pipeline.ts)）对候选进行精排。Pipeline 按顺序执行以下步骤：
+
+| 步骤 | 组件                                   | 作用                                                                                |
+| ---- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| 1    | **QueryProfiler**                      | 提取查询特征（tokenCount、contentWordDensity、hasNumericAnchor、isTemplateLike 等） |
+| 2    | **Fusion Ledger**                      | 将多路原始结果按 conceptId 合并为候选，融合 evidence 列表                           |
+| 3    | **Budget Gate**                        | 分配 `reserved`（Tier-1 候选）/ `competitive` 预算槽位                              |
+| 4    | **Taxonomy Registry + Topic Resolver** | 将 term subjects 映射到规范话题，推断 QueryTopicHypothesis                          |
+| 5    | **Scope & Anchor Guard**               | 范围过滤、话题冲突检测、数字锚点校验；发出 hard-filter 或 recoverable-demotion      |
+| 6    | **Deterministic Layered Ranker**       | 三级桶分级（Tier 1 精确命中、Tier 2 多证据共识、Tier 3 单路径或未知话题）           |
+| 7    | **Ambiguity Gate**                     | 四条规则评估是否需要模型重排；Clear Tier-1 winner 不进入 model band                 |
+| 8    | **Model Reranker stub**                | 当前无操作存根；Ambiguity Gate 触发时保留重排入口                                   |
+
+Pipeline 结果中，Tier-1 clear winner（无 recoverable-conflict）顶部时，Tier-3 候选会被 `suppressTier3IfClearTier1Winner` 静默压制，防止单路径噪声干扰最终展示。
+
+---
+
 ## 回归测试
 
-`term-recall-regression.test.ts`（[源码](../src/term-recall-regression.test.ts)）通过 fixture 驱动的回归门，在 vitest 中对三条通道的命中行为做快照断言，防止静默退化。测试用例覆盖：词汇通道的子串命中、形态通道跨词形变化命中、语义通道跨义近义词命中。
+`term-recall-regression.test.ts`（[源码](../src/term-recall-regression.test.ts)）通过 fixture 驱动的回归门，在 vitest 中对三条通道的命中行为做快照断言，防止静默退化。测试用例覆盖：词汇通道的子串命中、形态通道跨词形变化命中、语义通道跨义近义词命中，以及 Precision Pipeline 层的精排行为（Tier 分配、entity-short-query 保护、跨话题冲突抑制）。

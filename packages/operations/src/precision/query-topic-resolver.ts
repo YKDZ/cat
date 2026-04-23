@@ -26,7 +26,13 @@ export function resolveQueryTopic(
   candidates: RecallCandidate[],
   _profile: QueryProfile,
 ): QueryTopicHypothesis {
-  const reserved = candidates.filter((c) => c.budgetClass === "reserved");
+  // Only count reserved candidates that are not in conflict with the hypothesis;
+  // conflict candidates would dilute the frequency and skew the result.
+  const reserved = candidates.filter(
+    (c) =>
+      c.budgetClass === "reserved" &&
+      c.topicAssignment?.matchState !== "conflict",
+  );
 
   const topicFreq = new Map<string, number>();
   for (const c of reserved) {
@@ -45,7 +51,10 @@ export function resolveQueryTopic(
   }
 
   const sorted = [...topicFreq.entries()].sort((a, b) => b[1] - a[1]);
-  const [topTopic, topCount] = sorted[0] ?? ["", 0];
+  if (sorted.length === 0) {
+    return { topicIds: [], confidence: "unknown" };
+  }
+  const [topTopic, topCount] = sorted[0];
   const [, secondCount] = sorted[1] ?? ["", 0];
 
   if (topCount >= 2) {

@@ -33,8 +33,10 @@ export type PrecisionPipelineOptions = {
  * After model reranking, suppress Tier-3 candidates when the top result is a
  * clear Tier-1 winner (no recoverable-conflict note). This prevents low-certainty
  * single-path noise from appearing alongside a definitive high-confidence match.
+ *
+ * @internal — exposed for unit testing only; use runPrecisionPipeline for production code.
  */
-function suppressTier3IfClearTier1Winner(
+export function suppressTier3IfClearTier1Winner(
   ranked: RecallCandidate[],
 ): RecallCandidate[] {
   const top = ranked[0];
@@ -62,6 +64,7 @@ export async function runPrecisionPipeline(
     taxonomyOptions,
     compatibilityTable,
     termSubjectMap = new Map<number, string[]>(),
+    providerStatuses = [],
   } = opts;
 
   if (raw.length === 0) return [];
@@ -76,7 +79,11 @@ export async function runPrecisionPipeline(
   const budgeted = applyBudgetGate(ledger, profile, { maxTotal: maxResults });
 
   // ── Step 4: Taxonomy & Topic Resolution ──────────────────────────
-  const taxonomyAvailable = Boolean(taxonomyOptions);
+  const taxonomyAvailable =
+    Boolean(taxonomyOptions) &&
+    !providerStatuses.some(
+      (s) => s.capability === "taxonomy-registry" && !s.available,
+    );
   if (taxonomyAvailable && taxonomyOptions) {
     const registry = createTaxonomyRegistry(
       taxonomyOptions,

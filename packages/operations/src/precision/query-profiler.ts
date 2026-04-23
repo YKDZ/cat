@@ -7,7 +7,7 @@ import type { QueryProfile } from "@cat/shared/schema/precision-recall";
  * Rules:
  * - tokenCount   = word-boundary split on Unicode letters/digits (\p{L}|\p{N})+
  * - contentWordDensity = tokens that are not pure-stop-words and not pure punct
- * - isShortQuery  = tokenCount <= 3
+ * - isShortQuery  = tokenCount <= 3 AND contentWordDensity >= 0.5
  * - hasNumericAnchor = any token matches /^\d[\d.,]*$/
  * - hasPlaceholderAnchor = any token matches %s / %d / {N} / {WORD} patterns
  * - isTemplateLike = hasPlaceholderAnchor OR (isShortQuery AND hasNumericAnchor)
@@ -64,7 +64,7 @@ export function profileQuery(text: string): QueryProfile {
 
   const hasPlaceholderAnchor = /(%[sd]|\{[^}]+\}|\$[a-zA-Z_]\w*)/.test(text);
 
-  const isShortQuery = tokenCount <= 3;
+  const isShortQuery = tokenCount <= 3 && contentWordDensity >= 0.5;
 
   const isTemplateLike =
     hasPlaceholderAnchor || (isShortQuery && hasNumericAnchor);
