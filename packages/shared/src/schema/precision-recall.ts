@@ -1,6 +1,8 @@
 // packages/shared/src/schema/precision-recall.ts
 import * as z from "zod";
 
+import { RerankBandSchema } from "@/schema/rerank.ts";
+
 // ─── Evidence Lane ────────────────────────────────────────────────
 /** Fine-grained retrieval lane inside the Fusion Ledger. */
 export const EvidenceLaneValues = [
@@ -128,10 +130,8 @@ export type RankingDecision = z.infer<typeof RankingDecisionSchema>;
 export const AmbiguityEnvelopeSchema = z.object({
   /** Whether the model reranker should be invoked. */
   shouldInvokeModel: z.boolean(),
-  /** Indices into the ranked array that may be reordered by the model. */
-  eligibleBand: z.object({ start: z.int(), end: z.int() }),
-  /** Reason(s) the gate fired. */
-  reasons: z.array(z.string()),
+  /** Bounded slice of the ranked array that may be reordered by the model. */
+  eligibleBand: RerankBandSchema,
 });
 export type AmbiguityEnvelope = z.infer<typeof AmbiguityEnvelopeSchema>;
 

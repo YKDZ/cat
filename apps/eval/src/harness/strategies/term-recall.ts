@@ -54,6 +54,10 @@ export const termRecallStrategy = {
                 minSemanticSimilarity:
                   (params.minSemanticSimilarity as number) ?? 0.6,
                 maxAmount: (params.maxAmount as number) ?? 10,
+                rerankMode:
+                  (params.rerankMode as "baseline" | "reranked") ?? "reranked",
+                rerankProviderId: params.rerankProviderId as number | undefined,
+                rerankTimeoutMs: (params.rerankTimeoutMs as number) ?? 3000,
               },
               {
                 traceId,
@@ -102,6 +106,11 @@ export const termRecallStrategy = {
       );
     }
 
-    return { scenarioType: "term-recall", testSetName: testSet.name, cases };
+    return {
+      scenarioType: "term-recall",
+      scenarioName: scenario.name,
+      testSetName: testSet.name,
+      cases,
+    };
   },
 };

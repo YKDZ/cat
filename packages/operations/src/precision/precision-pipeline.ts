@@ -27,6 +27,11 @@ export type PrecisionPipelineOptions = {
   /** Term subjects keyed by conceptId, used for taxonomy assignment. */
   termSubjectMap?: Map<number, string[]>;
   providerStatuses?: ProviderStatus[];
+  pluginManager?: unknown;
+  signal?: AbortSignal;
+  rerankMode?: "baseline" | "reranked";
+  rerankProviderId?: number;
+  rerankTimeoutMs?: number;
 };
 
 /**
@@ -65,6 +70,11 @@ export async function runPrecisionPipeline(
     compatibilityTable,
     termSubjectMap = new Map<number, string[]>(),
     providerStatuses = [],
+    pluginManager,
+    signal,
+    rerankMode,
+    rerankProviderId,
+    rerankTimeoutMs,
   } = opts;
 
   if (raw.length === 0) return [];
@@ -108,7 +118,16 @@ export async function runPrecisionPipeline(
     const envelope = evaluateAmbiguity(ranked, hypothesis);
 
     // ── Step 8: Optional Model Reranker ──────────────────────────
-    const reranked = await applyModelReranker(ranked, envelope);
+    const reranked = await applyModelReranker({
+      ranked,
+      queryText,
+      envelope,
+      pluginManager,
+      signal,
+      rerankMode,
+      rerankProviderId,
+      rerankTimeoutMs,
+    });
     return suppressTier3IfClearTier1Winner(reranked);
   }
 
@@ -125,6 +144,15 @@ export async function runPrecisionPipeline(
   );
   const ranked = applyDeterministicRanking(guarded, profile, unknownHypothesis);
   const envelope = evaluateAmbiguity(ranked, unknownHypothesis);
-  const reranked = await applyModelReranker(ranked, envelope);
+  const reranked = await applyModelReranker({
+    ranked,
+    queryText,
+    envelope,
+    pluginManager,
+    signal,
+    rerankMode,
+    rerankProviderId,
+    rerankTimeoutMs,
+  });
   return suppressTier3IfClearTier1Winner(reranked);
 }

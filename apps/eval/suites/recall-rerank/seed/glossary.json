@@ -1,0 +1,57 @@
+{
+  "glossary": {
+    "name": "Recall Rerank Terminology Glossary",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:term:memory-bank",
+        "definition": "A translation memory repository storing previously translated segments",
+        "terms": [
+          {
+            "term": "memory bank",
+            "termLanguageId": "en",
+            "translation": "记忆库",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:source-text",
+        "definition": "The original text to be translated",
+        "terms": [
+          {
+            "term": "source text",
+            "termLanguageId": "en",
+            "translation": "源文本",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:target-language",
+        "definition": "The destination language into which the text is translated",
+        "terms": [
+          {
+            "term": "target language",
+            "termLanguageId": "en",
+            "translation": "目标语言",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:glossary",
+        "definition": "A curated collection of term pairs and their approved translations",
+        "terms": [
+          {
+            "term": "glossary",
+            "termLanguageId": "en",
+            "translation": "术语表",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}

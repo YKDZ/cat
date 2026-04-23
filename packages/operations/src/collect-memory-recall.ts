@@ -58,6 +58,9 @@ export const CollectMemoryRecallInputSchema = z.object({
       }),
     )
     .optional(),
+  rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
+  rerankProviderId: z.int().optional(),
+  rerankTimeoutMs: z.int().positive().default(3000),
 });
 
 export type CollectMemoryRecallInput = z.input<
@@ -389,6 +392,11 @@ export const collectMemoryRecallOp = async (
   const ranked = await runPrecisionPipeline(rawMemoryResults, {
     queryText: input.text,
     maxResults: input.maxAmount,
+    pluginManager,
+    signal: ctx?.signal,
+    rerankMode: input.rerankMode,
+    rerankProviderId: input.rerankProviderId,
+    rerankTimeoutMs: input.rerankTimeoutMs,
   });
 
   // Re-attach full MemorySuggestion fields from seen Map (createdAt, updatedAt, etc.)

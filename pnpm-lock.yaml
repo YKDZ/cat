@@ -327,6 +327,22 @@ importers:
         specifier: 'catalog:'
         version: 8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
 
+  '@cat-plugin/tei-rerank-provider':
+    dependencies:
+      '@cat/plugin-core':
+        specifier: workspace:*
+        version: link:../../packages/plugin-core
+      '@cat/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      vite:
+        specifier: 'catalog:'
+        version: 8.0.8(@types/node@25.6.0)(esbuild@0.28.0)(jiti@2.6.1)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.3)
+
   '@cat-plugin/tiny-widget':
     devDependencies:
       '@cat/plugin-core':

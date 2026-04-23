@@ -33,8 +33,7 @@ export function evaluateAmbiguity(
   if (ranked.length === 0) {
     return {
       shouldInvokeModel: false,
-      eligibleBand: { start: 0, end: 0 },
-      reasons: [],
+      eligibleBand: { start: 0, end: 0, reasons: [] },
     };
   }
 
@@ -93,8 +92,7 @@ export function evaluateAmbiguity(
   if (reasons.length === 0) {
     return {
       shouldInvokeModel: false,
-      eligibleBand: { start: 0, end: 0 },
-      reasons: [],
+      eligibleBand: { start: 0, end: 0, reasons: [] },
     };
   }
 
@@ -106,8 +104,7 @@ export function evaluateAmbiguity(
     // and no reranking should occur regardless of accumulated reasons.
     return {
       shouldInvokeModel: false,
-      eligibleBand: { start: 0, end: 0 },
-      reasons: [],
+      eligibleBand: { start: 0, end: 0, reasons: [] },
     };
   }
 
@@ -115,7 +112,6 @@ export function evaluateAmbiguity(
 
   return {
     shouldInvokeModel: true,
-    eligibleBand: { start: bandStart, end: bandEnd },
-    reasons,
+    eligibleBand: { start: bandStart, end: bandEnd, reasons },
   };
 }

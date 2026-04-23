@@ -8,6 +8,7 @@ import type { EmailProviderService } from "@/services/email-provider";
 import type { FileExporter, FileImporter } from "@/services/file-handler";
 import type { LLMProvider } from "@/services/llm-provider";
 import type { NlpWordSegmenter } from "@/services/nlp-word-segmenter";
+import type { RerankProvider } from "@/services/rerank-provider";
 import type { StorageProvider } from "@/services/storage-provider";
 import type { TextVectorizer } from "@/services/text-vectorizer";
 import type { TranslationAdvisor } from "@/services/translation-advisor";
@@ -24,6 +25,7 @@ export type PluginServiceTypeMap = {
   TOKENIZER: Tokenizer;
   VECTOR_STORAGE: VectorStorage;
   LLM_PROVIDER: LLMProvider;
+  RERANK_PROVIDER: RerankProvider;
   AGENT_TOOL_PROVIDER: AgentToolProvider;
   AGENT_CONTEXT_PROVIDER: AgentContextProvider;
   NLP_WORD_SEGMENTER: NlpWordSegmenter;

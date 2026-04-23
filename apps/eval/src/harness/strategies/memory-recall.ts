@@ -51,6 +51,10 @@ export const memoryRecallStrategy = {
                 minVariantSimilarity:
                   (params.minVariantSimilarity as number) ?? 0.7,
                 maxAmount: (params.maxAmount as number) ?? 5,
+                rerankMode:
+                  (params.rerankMode as "baseline" | "reranked") ?? "reranked",
+                rerankProviderId: params.rerankProviderId as number | undefined,
+                rerankTimeoutMs: (params.rerankTimeoutMs as number) ?? 3000,
               },
               {
                 traceId,
@@ -99,6 +103,11 @@ export const memoryRecallStrategy = {
       );
     }
 
-    return { scenarioType: "memory-recall", testSetName: testSet.name, cases };
+    return {
+      scenarioType: "memory-recall",
+      scenarioName: scenario.name,
+      testSetName: testSet.name,
+      cases,
+    };
   },
 };

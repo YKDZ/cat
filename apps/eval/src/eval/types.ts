@@ -29,6 +29,7 @@ export type CaseEvaluation = {
 
 export type ScenarioEvaluation = {
   scenarioType: string;
+  scenarioName?: string;
   testSetName: string;
   caseEvaluations: CaseEvaluation[];
   aggregates: Record<string, number>;
