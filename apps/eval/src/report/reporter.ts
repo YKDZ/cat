@@ -61,14 +61,24 @@ export const generateReport = (
   lines.push("");
 
   for (const se of evaluation.scenarioEvaluations) {
-    lines.push(`## ${se.scenarioType} — ${se.testSetName}`);
+    const heading = se.scenarioName
+      ? `${se.scenarioName} (${se.scenarioType})`
+      : se.scenarioType;
+    lines.push(`## ${heading} — ${se.testSetName}`);
     lines.push("");
 
     lines.push("| Metric | Value | Threshold | Status |");
     lines.push("|--------|-------|-----------|--------|");
 
     for (const [metric, value] of Object.entries(se.aggregates)) {
-      const tr = thresholdResults.find((t) => t.metric === metric);
+      const metricKeys = [
+        se.scenarioName ? `${se.scenarioName}.${metric}` : undefined,
+        `${se.scenarioType}.${metric}`,
+        metric,
+      ].filter((v): v is string => Boolean(v));
+      const tr = metricKeys
+        .map((key) => thresholdResults.find((entry) => entry.metric === key))
+        .find((entry) => entry !== undefined);
       const thresholdStr = tr?.threshold ?? "—";
       const statusStr = tr ? (tr.passed ? "✅ PASS" : "❌ FAIL") : "ℹ️ INFO";
       const valueStr = metric.includes("latency")

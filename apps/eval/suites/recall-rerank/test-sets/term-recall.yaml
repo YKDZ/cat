@@ -1,0 +1,42 @@
+name: recall-rerank-terms
+cases:
+  - id: rerank-term-001
+    inputText: "Please check the memory bank for a previous translation of this phrase."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:term:memory-bank"
+        term: "memory bank"
+        translation: "记忆库"
+        mustBeTopK: 1
+    negativeTerms: []
+  - id: rerank-term-002
+    inputText: "The source text has been updated and needs retranslation."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:term:source-text"
+        term: "source text"
+        translation: "源文本"
+        mustBeTopK: 1
+    negativeTerms: []
+  - id: rerank-term-003
+    inputText: "Select a target language for your translation project."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:term:target-language"
+        term: "target language"
+        translation: "目标语言"
+        mustBeTopK: 1
+    negativeTerms: []
+  - id: rerank-term-004
+    inputText: "Consult the project glossary before translating product names."
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:term:glossary"
+        term: "glossary"
+        translation: "术语表"
+        mustBeTopK: 1
+    negativeTerms: []

@@ -66,6 +66,7 @@ export const evaluate = (
 
     scenarioEvaluations.push({
       scenarioType: sr.scenarioType,
+      scenarioName: sr.scenarioName,
       testSetName: sr.testSetName,
       caseEvaluations,
       aggregates,

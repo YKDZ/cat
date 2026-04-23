@@ -30,6 +30,7 @@ export const PluginServiceTypeValues = [
   "QA_CHECKER",
   "TOKENIZER",
   "LLM_PROVIDER",
+  "RERANK_PROVIDER",
   "AGENT_TOOL_PROVIDER",
   "AGENT_CONTEXT_PROVIDER",
   "NLP_WORD_SEGMENTER",

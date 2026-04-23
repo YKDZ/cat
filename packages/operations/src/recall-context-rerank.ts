@@ -3,11 +3,13 @@ import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import type { EnrichedTermMatch } from "@cat/shared/schema/term-recall";
 
 import { executeQuery, getDbHandle, listNeighborElements } from "@cat/domain";
+import { resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
-const SOURCE_OVERLAP_WEIGHT = 0.06;
-const TARGET_OVERLAP_WEIGHT = 0.04;
-const CONCEPT_OVERLAP_WEIGHT = 0.03;
+import { applyBandOrder } from "./rerank/apply-band-order";
+import { selectContextBand } from "./rerank/context-band-selector";
+import { orchestrateRerank } from "./rerank/orchestrator";
+
 const MAX_CONTEXT_WINDOW = 3;
 
 const tokenize = (text: string): string[] =>
@@ -33,29 +35,6 @@ const overlapRatio = (left: string, rightTexts: string[]): number => {
   return best;
 };
 
-const withRerankNote = <
-  T extends { confidence: number; evidences: MemorySuggestion["evidences"] },
->(
-  item: T,
-  boost: number,
-  notes: string[],
-  fallbackChannel: MemorySuggestion["evidences"][number]["channel"],
-): T => {
-  if (boost <= 0 || notes.length === 0) return item;
-  return {
-    ...item,
-    confidence: Math.min(1, item.confidence + boost),
-    evidences: [
-      ...item.evidences,
-      {
-        channel: item.evidences[0]?.channel ?? fallbackChannel,
-        confidence: Math.min(1, boost),
-        note: `rerank: ${notes.join("; ")}`,
-      },
-    ],
-  };
-};
-
 const loadNeighborContext = async (elementId: number) => {
   const { client: drizzle } = await getDbHandle();
   const neighbors = await executeQuery({ db: drizzle }, listNeighborElements, {
@@ -75,116 +54,201 @@ export const RecallContextRerankInputSchema = z.object({
   elementId: z.int(),
   queryText: z.string(),
   memories: z.array(z.any()),
+  rerankProviderId: z.int().optional(),
+  rerankTimeoutMs: z.int().positive().optional(),
 });
 
 export type RecallContextRerankInput = {
   elementId: number;
   queryText: string;
   memories: MemorySuggestion[];
+  rerankProviderId?: number;
+  rerankTimeoutMs?: number;
 };
 
 export const TermRecallContextRerankInputSchema = z.object({
   elementId: z.int(),
   queryText: z.string(),
   terms: z.array(z.any()),
+  rerankProviderId: z.int().optional(),
+  rerankTimeoutMs: z.int().positive().optional(),
 });
 
 export type TermRecallContextRerankInput = {
   elementId: number;
   queryText: string;
   terms: EnrichedTermMatch[];
+  rerankProviderId?: number;
+  rerankTimeoutMs?: number;
 };
 
 export const recallContextRerankOp = async (
   data: RecallContextRerankInput,
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<MemorySuggestion[]> => {
   if (data.memories.length <= 1) return data.memories;
 
-  const { neighborSources, neighborTranslations } = await loadNeighborContext(
-    data.elementId,
-  );
+  let neighborSources: string[] = [];
+  let neighborTranslations: string[] = [];
+  try {
+    const context = await loadNeighborContext(data.elementId);
+    neighborSources = context.neighborSources;
+    neighborTranslations = context.neighborTranslations;
+  } catch {
+    // Fail closed — deterministic order
+    return data.memories;
+  }
+
   const sourceContexts = [data.queryText, ...neighborSources];
 
-  return data.memories
-    .map((memory) => {
-      const sourceOverlap = overlapRatio(memory.source, sourceContexts);
-      const translationOverlap = overlapRatio(
-        memory.translation,
-        neighborTranslations,
-      );
-      const notes: string[] = [];
-      if (sourceOverlap > 0) {
-        notes.push(`neighbor source overlap +${sourceOverlap.toFixed(2)}`);
-      }
-      if (translationOverlap > 0) {
-        notes.push(
-          `approved translation overlap +${translationOverlap.toFixed(2)}`,
-        );
-      }
-      return withRerankNote(
-        memory,
-        sourceOverlap * SOURCE_OVERLAP_WEIGHT +
-          translationOverlap * TARGET_OVERLAP_WEIGHT,
-        notes,
-        "semantic",
-      );
-    })
-    .sort((a, b) => b.confidence - a.confidence);
+  const band = selectContextBand({
+    queryText: data.queryText,
+    ranked: data.memories,
+    getCandidateId: (m) => `memory:${m.id}`,
+    getConfidence: (m) => m.confidence,
+    getPositiveSignals: (m) => ({
+      sourceOverlap: overlapRatio(m.source, sourceContexts),
+      targetOverlap: overlapRatio(m.translation, neighborTranslations),
+    }),
+  });
+
+  if (!band) return data.memories;
+
+  const bandMemories = data.memories.slice(band.start, band.end);
+  const normalized = bandMemories.map((m, index) => ({
+    candidateId: `memory:${m.id}`,
+    surface: "memory" as const,
+    originalIndex: index,
+    originalConfidence: m.confidence,
+    title: m.source,
+    sourceText: m.source,
+    targetText: m.translation,
+  }));
+
+  const pluginManager = resolvePluginManager(ctx?.pluginManager);
+  const result = await orchestrateRerank({
+    request: {
+      trigger: "context-route",
+      surface: "memory",
+      queryText: data.queryText,
+      band,
+      candidates: normalized,
+      contextHints: {
+        neighborSources,
+        approvedNeighborTranslations: neighborTranslations,
+      },
+      rerankProviderId: data.rerankProviderId,
+      timeoutMs: data.rerankTimeoutMs,
+    },
+    pluginManager,
+    signal: ctx?.signal,
+  });
+
+  if (result.trace.outcome !== "applied") return data.memories;
+
+  // Reorder band using returned ID order, preserving original confidence values
+  const byId = new Map(data.memories.map((m) => [`memory:${m.id}`, m]));
+  const reorderedBand = result.orderedCandidateIds.flatMap((id) => {
+    const m = byId.get(id);
+    return m ? [m] : [];
+  });
+
+  return applyBandOrder(data.memories, band, reorderedBand);
 };
 
 export const rerankTermRecallOp = async (
   data: TermRecallContextRerankInput,
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<EnrichedTermMatch[]> => {
   if (data.terms.length <= 1) return data.terms;
 
-  const { neighborSources, neighborTranslations } = await loadNeighborContext(
-    data.elementId,
-  );
+  let neighborSources: string[] = [];
+  let neighborTranslations: string[] = [];
+  try {
+    const context = await loadNeighborContext(data.elementId);
+    neighborSources = context.neighborSources;
+    neighborTranslations = context.neighborTranslations;
+  } catch {
+    // Fail closed — deterministic order
+    return data.terms;
+  }
+
   const sourceContexts = [data.queryText, ...neighborSources];
 
-  return data.terms
-    .map((term) => {
-      const termSourceOverlap = overlapRatio(
-        term.matchedText ?? term.term,
-        sourceContexts,
-      );
-      const termTargetOverlap = overlapRatio(
-        term.translation,
-        neighborTranslations,
-      );
-      const conceptContext = [
-        term.definition ?? "",
-        term.concept.definition ?? "",
-        ...term.concept.subjects.flatMap((subject) => [
-          subject.name,
-          subject.defaultDefinition ?? "",
-        ]),
-      ].join(" ");
-      const conceptOverlap = overlapRatio(conceptContext, [data.queryText]);
+  const band = selectContextBand({
+    queryText: data.queryText,
+    ranked: data.terms,
+    getCandidateId: (t) => `term:${t.conceptId}`,
+    getConfidence: (t) => t.confidence,
+    getPositiveSignals: (t) => ({
+      sourceOverlap: overlapRatio(t.matchedText ?? t.term, sourceContexts),
+      targetOverlap: overlapRatio(t.translation, neighborTranslations),
+      conceptOverlap: overlapRatio(
+        [
+          t.definition ?? "",
+          t.concept.definition ?? "",
+          ...t.concept.subjects.flatMap((s) => [
+            s.name,
+            s.defaultDefinition ?? "",
+          ]),
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        [data.queryText],
+      ),
+    }),
+  });
 
-      const notes: string[] = [];
-      if (termSourceOverlap > 0) {
-        notes.push(`query/source overlap +${termSourceOverlap.toFixed(2)}`);
-      }
-      if (termTargetOverlap > 0) {
-        notes.push(
-          `approved translation overlap +${termTargetOverlap.toFixed(2)}`,
-        );
-      }
-      if (conceptOverlap > 0) {
-        notes.push(`concept context overlap +${conceptOverlap.toFixed(2)}`);
-      }
+  if (!band) return data.terms;
 
-      return withRerankNote(
-        term,
-        termSourceOverlap * SOURCE_OVERLAP_WEIGHT +
-          termTargetOverlap * TARGET_OVERLAP_WEIGHT +
-          conceptOverlap * CONCEPT_OVERLAP_WEIGHT,
-        notes,
-        "lexical",
-      );
-    })
-    .sort((a, b) => b.confidence - a.confidence);
+  const bandTerms = data.terms.slice(band.start, band.end);
+  const normalized = bandTerms.map((term, index) => ({
+    candidateId: `term:${term.conceptId}`,
+    surface: "term" as const,
+    originalIndex: index,
+    originalConfidence: term.confidence,
+    title: term.term,
+    sourceText: term.matchedText ?? term.term,
+    targetText: term.translation,
+    definitionText: term.definition ?? undefined,
+    contextText: [
+      term.concept.definition ?? "",
+      ...term.concept.subjects.flatMap((subject) => [
+        subject.name,
+        subject.defaultDefinition ?? "",
+      ]),
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  }));
+
+  const pluginManager = resolvePluginManager(ctx?.pluginManager);
+  const result = await orchestrateRerank({
+    request: {
+      trigger: "context-route",
+      surface: "term",
+      queryText: data.queryText,
+      band,
+      candidates: normalized,
+      contextHints: {
+        neighborSources,
+        approvedNeighborTranslations: neighborTranslations,
+      },
+      rerankProviderId: data.rerankProviderId,
+      timeoutMs: data.rerankTimeoutMs,
+    },
+    pluginManager,
+    signal: ctx?.signal,
+  });
+
+  if (result.trace.outcome !== "applied") return data.terms;
+
+  // Reorder band using returned ID order, preserving original confidence values
+  const byId = new Map(data.terms.map((t) => [`term:${t.conceptId}`, t]));
+  const reorderedBand = result.orderedCandidateIds.flatMap((id) => {
+    const t = byId.get(id);
+    return t ? [t] : [];
+  });
+
+  return applyBandOrder(data.terms, band, reorderedBand);
 };

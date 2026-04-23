@@ -43,7 +43,9 @@ describe("evaluateAmbiguity", () => {
     ];
     const env = evaluateAmbiguity(ranked, CONF);
     expect(env.shouldInvokeModel).toBe(true);
-    expect(env.reasons.some((r) => r.startsWith("confidence-gap"))).toBe(true);
+    expect(
+      env.eligibleBand.reasons.some((r) => r.startsWith("confidence-gap")),
+    ).toBe(true);
   });
 
   it("fires on evidence divergence", () => {
@@ -62,7 +64,9 @@ describe("evaluateAmbiguity", () => {
       make(2, 0.91, "3", ["semantic"]),
     ];
     const env = evaluateAmbiguity(ranked, CONF);
-    expect(env.reasons.some((r) => r.startsWith("confidence-gap"))).toBe(false);
+    expect(
+      env.eligibleBand.reasons.some((r) => r.startsWith("confidence-gap")),
+    ).toBe(false);
   });
 
   it("returns shouldInvokeModel=false when all candidates are clear Tier-1", () => {
@@ -76,7 +80,7 @@ describe("evaluateAmbiguity", () => {
       confidence: "unknown",
     });
     expect(env.shouldInvokeModel).toBe(false);
-    expect(env.eligibleBand).toEqual({ start: 0, end: 0 });
+    expect(env.eligibleBand).toMatchObject({ start: 0, end: 0 });
   });
 
   it("returns empty band when no candidates", () => {

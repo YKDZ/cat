@@ -52,6 +52,7 @@ export const agentTranslateStrategy = {
 
     return {
       scenarioType: "agent-translate",
+      scenarioName: scenario.name,
       testSetName: testSet.name,
       cases,
     };

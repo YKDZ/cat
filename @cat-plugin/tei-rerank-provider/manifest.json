@@ -1,0 +1,41 @@
+{
+  "$schema": "../../packages/plugin-core/manifest-schema.json",
+  "id": "tei-rerank-provider",
+  "version": "0.1.0",
+  "entry": "dist/index.js",
+  "services": [
+    {
+      "type": "RERANK_PROVIDER",
+      "dynamic": true
+    }
+  ],
+  "config": {
+    "oneOf": [
+      {
+        "type": "object",
+        "required": ["baseURL"],
+        "properties": {
+          "id": { "type": "string" },
+          "baseURL": { "type": "string", "format": "url" },
+          "model-id": { "type": "string" },
+          "timeoutMs": { "type": "number", "default": 3000 },
+          "authorization": { "type": "string" }
+        }
+      },
+      {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["baseURL"],
+          "properties": {
+            "id": { "type": "string" },
+            "baseURL": { "type": "string", "format": "url" },
+            "model-id": { "type": "string" },
+            "timeoutMs": { "type": "number", "default": 3000 },
+            "authorization": { "type": "string" }
+          }
+        }
+      }
+    ]
+  }
+}

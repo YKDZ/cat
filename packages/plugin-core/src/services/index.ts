@@ -9,6 +9,7 @@ export * from "./text-vectorizer.ts";
 export * from "./vector-storage.ts";
 export * from "./tokenizer.ts";
 export * from "./llm-provider.ts";
+export * from "./rerank-provider.ts";
 export * from "./agent-context-provider.ts";
 export * from "./nlp-word-segmenter.ts";
 export * from "./email-provider.ts";

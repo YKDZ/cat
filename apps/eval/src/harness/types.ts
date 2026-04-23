@@ -26,6 +26,7 @@ export type CaseResult = {
 
 export type ScenarioResult = {
   scenarioType: string;
+  scenarioName?: string;
   testSetName: string;
   cases: CaseResult[];
 };

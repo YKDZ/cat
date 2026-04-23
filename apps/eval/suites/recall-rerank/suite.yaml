@@ -1,0 +1,62 @@
+name: recall-rerank
+description: |
+  Paired baseline vs reranked term recall evaluation.
+  Runs two scenarios against the same test set: one with model reranking
+  disabled (baseline) and one with the TEI reranker active (reranked).
+  Compare metrics under the same thresholds to verify reranking parity.
+
+seed:
+  project: seed/project.json
+  glossary: seed/glossary.json
+
+plugins:
+  loader: real
+  overrides:
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: "${VECTORIZER_MODEL_ID:-qwen3-embedding:4b}"
+        baseURL: "${VECTORIZER_BASE_URL:-http://172.17.0.1:11435/v1}"
+        apiKey: "${VECTORIZER_API_KEY:-dummy-key}"
+    - plugin: pgvector-storage
+      scope: GLOBAL
+      config: {}
+    - plugin: spacy-segmenter
+      scope: GLOBAL
+      config:
+        serverUrl: "${SPACY_SERVER_URL:-http://172.17.0.1:8000}"
+
+scenarios:
+  - name: baseline
+    type: term-recall
+    test-set: test-sets/term-recall.yaml
+    scorers: [precision, recall, f1, mrr, hit-rate, latency]
+    params:
+      rerankMode: baseline
+      maxAmount: 10
+      wordSimilarityThreshold: 0.3
+      minMorphologySimilarity: 0.7
+      minSemanticSimilarity: 0.6
+      timeoutMs: 60000
+
+  - name: reranked
+    type: term-recall
+    test-set: test-sets/term-recall.yaml
+    scorers: [precision, recall, f1, mrr, hit-rate, latency]
+    params:
+      rerankMode: reranked
+      maxAmount: 10
+      wordSimilarityThreshold: 0.3
+      minMorphologySimilarity: 0.7
+      minSemanticSimilarity: 0.6
+      timeoutMs: 60000
+
+thresholds:
+  # Baseline thresholds (keyed by scenario name)
+  baseline.precision: ">= 0.85"
+  baseline.recall: ">= 0.85"
+  baseline.f1: ">= 0.85"
+  # Reranked must not regress below baseline floor
+  reranked.precision: ">= 0.85"
+  reranked.recall: ">= 0.85"
+  reranked.f1: ">= 0.85"

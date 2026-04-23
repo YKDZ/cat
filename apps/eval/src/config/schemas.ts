@@ -43,6 +43,7 @@ export const ScorerNameSchema = z.enum([
 // ── Scenario ─────────────────────────────────────────────────────────
 
 export const ScenarioConfigSchema = z.object({
+  name: z.string().optional(),
   type: z.enum(["term-recall", "memory-recall", "agent-translate"]),
   "test-set": z.string(),
   scorers: z.array(ScorerNameSchema).min(1),

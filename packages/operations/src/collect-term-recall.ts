@@ -29,6 +29,9 @@ export const CollectTermRecallInputSchema = z.object({
   minMorphologySimilarity: z.number().min(0).max(1).default(0.7),
   minSemanticSimilarity: z.number().min(0).max(1).default(0.6),
   maxAmount: z.int().min(1).default(20),
+  rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
+  rerankProviderId: z.int().optional(),
+  rerankTimeoutMs: z.int().positive().default(3000),
 });
 
 export type CollectTermRecallInput = z.input<
@@ -155,6 +158,11 @@ export const collectTermRecallOp = async (
   const ranked = await runPrecisionPipeline(rawTermResults, {
     queryText: input.text,
     maxResults: input.maxAmount,
+    pluginManager,
+    signal: ctx?.signal,
+    rerankMode: input.rerankMode,
+    rerankProviderId: input.rerankProviderId,
+    rerankTimeoutMs: input.rerankTimeoutMs,
   });
 
   // ── Project precision-pipeline output back to LookedUpTerm shape ──

@@ -425,11 +425,17 @@ export const findTerm = authed
       },
     );
 
-    const reranked = await rerankTermRecallOp({
-      elementId,
-      queryText: element.value,
-      terms: recall.terms,
-    });
+    const reranked = await rerankTermRecallOp(
+      {
+        elementId,
+        queryText: element.value,
+        terms: recall.terms,
+      },
+      {
+        pluginManager: context.pluginManager,
+        traceId: crypto.randomUUID(),
+      },
+    );
 
     for (const term of reranked) {
       if (term.confidence < minConfidence) continue;
