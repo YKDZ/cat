@@ -1,5 +1,9 @@
 // === Types ===
 export type { OperationContext } from "./types";
+export type {
+  MemorySuggestionWithPrecision,
+  LookedUpTermWithPrecision,
+} from "./precision/types";
 
 // === Memory utilities ===
 export { insertMemory } from "./memory";

@@ -9,12 +9,15 @@ import {
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
-import type { LookedUpTermWithPrecision, RawTermResult } from "./precision/types";
+import type {
+  LookedUpTermWithPrecision,
+  RawTermResult,
+} from "./precision/types";
 
 import { joinLemmas } from "./nlp-normalization";
 import { nlpSegmentOp } from "./nlp-segment";
-import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { runPrecisionPipeline } from "./precision/precision-pipeline";
+import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { semanticSearchTermsOp } from "./semantic-search-terms";
 
 export const CollectTermRecallInputSchema = z.object({
