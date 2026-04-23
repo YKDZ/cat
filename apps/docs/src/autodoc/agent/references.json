@@ -7983,7 +7983,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 138
+    "line": 139
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:MemoryRecallTestSet",
@@ -7992,7 +7992,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 136
+    "line": 137
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:ReferenceTranslation",
@@ -8001,7 +8001,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 162
+    "line": 163
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:ScenarioConfig",
@@ -8010,7 +8010,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 74
+    "line": 75
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:SuiteConfig",
@@ -8019,7 +8019,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 73
+    "line": 74
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TermRecallTestCase",
@@ -8028,7 +8028,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 137
+    "line": 138
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TermRecallTestSet",
@@ -8037,7 +8037,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 135
+    "line": 136
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TranslationTestCase",
@@ -8046,7 +8046,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 163
+    "line": 164
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TranslationTestSet",
@@ -8055,7 +8055,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 164
+    "line": 165
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/engine:evaluate",
@@ -8100,7 +8100,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/eval/types.ts",
-    "line": 37
+    "line": 38
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/types:ScenarioEvaluation",
@@ -8208,7 +8208,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/harness/types.ts",
-    "line": 33
+    "line": 34
   },
   {
     "id": "@cat/eval:apps/eval/src/observability/otel:initObservability",
@@ -8711,7 +8711,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 63
+    "line": 66
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -8720,7 +8720,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 79,
+    "line": 82,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -8730,7 +8730,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 34
+    "line": 37
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-term-recall:collectTermRecallOp",
@@ -8739,7 +8739,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 73
+    "line": 76
   },
   {
     "id": "@cat/operations:packages/operations/src/create-element:CreateElementInput",
@@ -9501,8 +9501,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/model-reranker.ts",
-    "line": 18,
-    "description": "Optional Model Reranker (stub).\n\nCurrently a no-op: returns the input order unchanged.\nFuture: call a model service for candidates within envelope.eligibleBand.\n\nContract:\n - MUST NOT reorder candidates outside the eligible band.\n - MUST NOT move a clear Tier-1 winner out of position 0 if they were\n   not included in the eligible band.\n - If the model service fails, MUST return the deterministic order unchanged."
+    "line": 50
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/precision-pipeline:PrecisionPipelineOptions",
@@ -9520,7 +9519,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 56,
+    "line": 61,
     "description": "Run the full precision pipeline on a flat list of raw multi-lane results.\n\nThis function is surface-agnostic: it works with both RawTermResult[] and\nRawMemoryResult[] (and mixed arrays, if ever needed)."
   },
   {
@@ -9530,7 +9529,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 39,
+    "line": 44,
     "description": "After model reranking, suppress Tier-3 candidates when the top result is a\nclear Tier-1 winner (no recoverable-conflict note). This prevents low-certainty\nsingle-path noise from appearing alongside a definitive high-confidence match.\n@internal — exposed for unit testing only; use runPrecisionPipeline for production code."
   },
   {
@@ -9837,7 +9836,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 80
+    "line": 61
   },
   {
     "id": "@cat/operations:packages/operations/src/recall-context-rerank:recallContextRerankOp",
@@ -9846,7 +9845,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 98
+    "line": 85
   },
   {
     "id": "@cat/operations:packages/operations/src/recall-context-rerank:rerankTermRecallOp",
@@ -9855,7 +9854,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 136
+    "line": 159
   },
   {
     "id": "@cat/operations:packages/operations/src/recall-context-rerank:TermRecallContextRerankInput",
@@ -9864,7 +9863,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 92
+    "line": 77
   },
   {
     "id": "@cat/operations:packages/operations/src/register-domain-event-handlers:registerDomainEventHandlers",
@@ -9885,6 +9884,64 @@
     "filePath": "packages/operations/src/register-vectorization-consumer.ts",
     "line": 14,
     "description": "Register the vectorization queue consumer. Event-driven + startup recovery."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/rerank/apply-band-order:applyBandOrder",
+    "stableKey": "@cat/operations:packages/operations/src/rerank/apply-band-order:applyBandOrder",
+    "name": "applyBandOrder",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/rerank/apply-band-order.ts",
+    "line": 1
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/rerank/context-band-selector:selectContextBand",
+    "stableKey": "@cat/operations:packages/operations/src/rerank/context-band-selector:selectContextBand",
+    "name": "selectContextBand",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/rerank/context-band-selector.ts",
+    "line": 25,
+    "description": "Select a bounded ambiguous top cluster for context-route reranking.\n\nAnchors on the highest-ranked candidate. Extends the band only while\ncandidates remain locally plausible by deterministic proximity AND have\npositive context evidence. Returns null when the cluster is not genuinely\nambiguous or the top candidate is clearly ahead."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/rerank/normalize:normalizePrecisionCandidates",
+    "stableKey": "@cat/operations:packages/operations/src/rerank/normalize:normalizePrecisionCandidates",
+    "name": "normalizePrecisionCandidates",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/rerank/normalize.ts",
+    "line": 46,
+    "description": "Normalize a slice of RecallCandidates into RerankCandidateDocuments.\nThe index is relative to the slice (for stable candidateId ordering)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/rerank/normalize:normalizePrecisionMemoryCandidate",
+    "stableKey": "@cat/operations:packages/operations/src/rerank/normalize:normalizePrecisionMemoryCandidate",
+    "name": "normalizePrecisionMemoryCandidate",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/rerank/normalize.ts",
+    "line": 29,
+    "description": "Normalize a memory candidate into a RerankCandidateDocument for provider submission."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/rerank/normalize:normalizePrecisionTermCandidate",
+    "stableKey": "@cat/operations:packages/operations/src/rerank/normalize:normalizePrecisionTermCandidate",
+    "name": "normalizePrecisionTermCandidate",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/rerank/normalize.ts",
+    "line": 12,
+    "description": "Normalize a term candidate into a RerankCandidateDocument for provider submission."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/rerank/orchestrator:orchestrateRerank",
+    "stableKey": "@cat/operations:packages/operations/src/rerank/orchestrator:orchestrateRerank",
+    "name": "orchestrateRerank",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/rerank/orchestrator.ts",
+    "line": 78
   },
   {
     "id": "@cat/operations:packages/operations/src/retrieve-embeddings:RetrieveEmbeddingsInput",
@@ -11329,7 +11386,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/types/plugin.ts",
-    "line": 33
+    "line": 35
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/types/plugin:PluginServiceTypeMap",
@@ -11338,7 +11395,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/types/plugin.ts",
-    "line": 16
+    "line": 17
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/utils/config:getConfigInstance",
@@ -12789,7 +12846,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 201
+    "line": 202
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentSessionStatus",
@@ -12798,7 +12855,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 125
+    "line": 126
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentSessionTrustPolicy",
@@ -12807,7 +12864,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 199
+    "line": 200
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentToolConfirmationStatus",
@@ -12816,7 +12873,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 197
+    "line": 198
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentToolTarget",
@@ -12825,7 +12882,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 196
+    "line": 197
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AsyncStatus",
@@ -12834,7 +12891,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 340
+    "line": 341
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangeAction",
@@ -12843,7 +12900,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 317
+    "line": 318
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetEntryAsyncStatus",
@@ -12852,7 +12909,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 350
+    "line": 351
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetStatus",
@@ -12861,7 +12918,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 288
+    "line": 289
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CommentReactionType",
@@ -12870,7 +12927,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 111
+    "line": 112
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CommentTargetType",
@@ -12879,7 +12936,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 113
+    "line": 114
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CrossReferenceSourceType",
@@ -12888,7 +12945,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 267
+    "line": 268
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CrossReferenceTargetType",
@@ -12897,7 +12954,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 274
+    "line": 275
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EntityBranchStatus",
@@ -12906,7 +12963,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 250
+    "line": 251
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EntityType",
@@ -12915,7 +12972,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 311
+    "line": 312
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:IssueCommentTargetType",
@@ -12924,7 +12981,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 256
+    "line": 257
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:IssueStatus",
@@ -12933,7 +12990,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 227
+    "line": 228
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageCategory",
@@ -12942,7 +12999,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 217
+    "line": 218
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageChannel",
@@ -12951,7 +13008,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 207
+    "line": 208
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:NotificationStatus",
@@ -12960,7 +13017,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 221
+    "line": 222
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ObjectType",
@@ -12969,7 +13026,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 173
+    "line": 174
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PermissionAction",
@@ -12978,7 +13035,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 194
+    "line": 195
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PluginServiceType",
@@ -12987,7 +13044,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 106
+    "line": 107
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PullRequestStatus",
@@ -12996,7 +13053,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 238
+    "line": 239
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PullRequestType",
@@ -13005,7 +13062,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 242
+    "line": 243
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallQuerySide",
@@ -13014,7 +13071,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 369
+    "line": 370
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallVariantType",
@@ -13023,7 +13080,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 363
+    "line": 364
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:Relation",
@@ -13032,7 +13089,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 190
+    "line": 191
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ResourceType",
@@ -13041,7 +13098,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 112
+    "line": 113
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ReviewStatus",
@@ -13050,7 +13107,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 334
+    "line": 335
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RiskLevel",
@@ -13059,7 +13116,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 323
+    "line": 324
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ScopeType",
@@ -13068,7 +13125,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 107
+    "line": 108
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:SubjectType",
@@ -13077,7 +13134,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 177
+    "line": 178
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TaskStatus",
@@ -13086,7 +13143,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 108
+    "line": 109
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TermStatus",
@@ -13095,7 +13152,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 115
+    "line": 116
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TermType",
@@ -13104,7 +13161,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 114
+    "line": 115
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TokenType",
@@ -13122,7 +13179,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 109
+    "line": 110
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/extraction:CaptureResult",
@@ -13465,7 +13522,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 115
+    "line": 117
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:BudgetClass",
@@ -13474,7 +13531,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 40
+    "line": 42
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:CandidateTopicAssignment",
@@ -13483,7 +13540,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 72
+    "line": 74
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:EvidenceLane",
@@ -13492,7 +13549,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 17
+    "line": 19
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:MemoryTopicBinding",
@@ -13501,7 +13558,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 85
+    "line": 87
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:ProviderStatus",
@@ -13519,7 +13576,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 36
+    "line": 38
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicConfidence",
@@ -13528,7 +13585,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 94
+    "line": 96
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicHypothesis",
@@ -13537,7 +13594,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 102
+    "line": 104
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:RankingDecision",
@@ -13546,7 +13603,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 125
+    "line": 127
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:ScopeEnvelope",
@@ -13555,7 +13612,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 49
+    "line": 51
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:TopicMatchState",
@@ -13564,7 +13621,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 57
+    "line": 59
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/project-setting:ProjectSettingPayload",
@@ -13601,6 +13658,60 @@
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
     "line": 51
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/rerank:RerankBand",
+    "stableKey": "@cat/shared:packages/shared/src/schema/rerank:RerankBand",
+    "name": "RerankBand",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/rerank.ts",
+    "line": 92
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/rerank:RerankCandidateDocument",
+    "stableKey": "@cat/shared:packages/shared/src/schema/rerank:RerankCandidateDocument",
+    "name": "RerankCandidateDocument",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/rerank.ts",
+    "line": 89
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/rerank:RerankDecisionTrace",
+    "stableKey": "@cat/shared:packages/shared/src/schema/rerank:RerankDecisionTrace",
+    "name": "RerankDecisionTrace",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/rerank.ts",
+    "line": 88
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/rerank:RerankProviderCall",
+    "stableKey": "@cat/shared:packages/shared/src/schema/rerank:RerankProviderCall",
+    "name": "RerankProviderCall",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/rerank.ts",
+    "line": 47
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/rerank:RerankRequest",
+    "stableKey": "@cat/shared:packages/shared/src/schema/rerank:RerankRequest",
+    "name": "RerankRequest",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/rerank.ts",
+    "line": 86
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/rerank:RerankResponse",
+    "stableKey": "@cat/shared:packages/shared/src/schema/rerank:RerankResponse",
+    "name": "RerankResponse",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/rerank.ts",
+    "line": 87
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/term-recall:ConceptContext",

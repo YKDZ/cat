@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 44
+* **Modules**: 45
 
 * **Exported functions**: 25
 
-* **Exported types**: 193
+* **Exported types**: 199
 
 ## Function Index
 
@@ -556,6 +556,18 @@ export const safeJoinURL = (base: string, path: string): string
 * `RecallEvidence` (type)
 
 * `RecallDebugContext` (type)
+
+* `RerankProviderCall` (type)
+
+* `RerankRequest` (type)
+
+* `RerankResponse` (type)
+
+* `RerankDecisionTrace` (type)
+
+* `RerankCandidateDocument` (type)
+
+* `RerankBand` (type)
 
 * `TermMatch` (type)
 
