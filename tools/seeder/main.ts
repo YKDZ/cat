@@ -12,7 +12,9 @@ const main = async (): Promise<void> => {
   const outputBindingsPath =
     outputBindingsIdx !== -1 ? args[outputBindingsIdx + 1] : undefined;
   const datasetDir = args.find(
-    (a, i) => !a.startsWith("--") && i !== outputBindingsIdx + 1,
+    (a, i) =>
+      !a.startsWith("--") &&
+      (outputBindingsIdx === -1 || i !== outputBindingsIdx + 1),
   );
 
   if (!datasetDir) {
