@@ -15,21 +15,21 @@
 
 ## 场景策略
 
-| 策略 | 评测目标 |
-|---|---|
-| `TermRecall` | 术语库召回：给定源文本，检查 `search_termbase` 工具能否召回所有期望术语 |
-| `MemoryRecall` | 翻译记忆召回：检查 `search_tm` 三通道（精确/trigram/语义）能否命中历史译文 |
-| `AgentTranslate` | 端到端 Agent 翻译：运行完整 ReAct 循环，评测最终提交的译文质量 |
+| 策略             | 评测目标                                                                   |
+| ---------------- | -------------------------------------------------------------------------- |
+| `TermRecall`     | 术语库召回：给定源文本，检查 `search_termbase` 工具能否召回所有期望术语    |
+| `MemoryRecall`   | 翻译记忆召回：检查 `search_tm` 三通道（精确/trigram/语义）能否命中历史译文 |
+| `AgentTranslate` | 端到端 Agent 翻译：运行完整 ReAct 循环，评测最终提交的译文质量             |
 
 ## 评分器
 
-| 评分器 | 说明 |
-|---|---|
-| `precision` / `recall` / `f1` | 集合匹配精准率、召回率与调和均值 |
-| `mrr`（Mean Reciprocal Rank） | 召回结果排名质量 |
-| `latency` | 端到端执行时间（毫秒） |
-| `chrF` | 字符 n-gram 级别译文相似度（用于 AgentTranslate） |
-| `bleu` | BLEU 分数（可选，需提供参考译文） |
+| 评分器                        | 说明                                              |
+| ----------------------------- | ------------------------------------------------- |
+| `precision` / `recall` / `f1` | 集合匹配精准率、召回率与调和均值                  |
+| `mrr`（Mean Reciprocal Rank） | 召回结果排名质量                                  |
+| `latency`                     | 端到端执行时间（毫秒）                            |
+| `chrF`                        | 字符 n-gram 级别译文相似度（用于 AgentTranslate） |
+| `bleu`                        | BLEU 分数（可选，需提供参考译文）                 |
 
 ## Harness 执行引擎
 

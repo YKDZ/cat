@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 70
+* **Modules**: 71
 
-* **Exported functions**: 78
+* **Exported functions**: 80
 
-* **Exported types**: 108
+* **Exported types**: 110
 
 ## Function Index
 
@@ -120,13 +120,13 @@ export const buildTermRecallVariantsOp = async (data: BuildTermRecallVariantsInp
  * highest confidence across all channels. Evidence from multiple channels
  * is merged onto the winning result.
  */
-export const collectMemoryRecallOp = async (data: CollectMemoryRecallInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const collectMemoryRecallOp = async (data: CollectMemoryRecallInput, ctx?: OperationContext): Promise<MemorySuggestionWithPrecision[]>
 ```
 
 ### `collectTermRecallOp`
 
 ```ts
-export const collectTermRecallOp = async (data: CollectTermRecallInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
+export const collectTermRecallOp = async (data: CollectTermRecallInput, ctx?: OperationContext): Promise<LookedUpTermWithPrecision[]>
 ```
 
 ### `createElementOp`
@@ -1188,6 +1188,35 @@ export function applyGuards(candidate: RecallCandidate, queryText: string, hypot
 export function applyGuardsToCandidates(candidates: RecallCandidate[], queryText: string, hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }, opts: ScopeGuardOptions): RecallCandidate[]
 ```
 
+### `computeSparseEvidence`
+
+```ts
+/**
+ * Compute a sparse lexical evidence entry for a candidate.
+ *
+ * Score = (number of matched content words) / (total query content words)
+ * A score above minScore generates an evidence entry with channel="sparse".
+ * @param — non-stop, non-punct lowercased tokens from query
+ * @param — source text of the candidate
+ * @param — minimum score to emit evidence (default 0.3)
+ *
+ * @param queryContentWords - — non-stop, non-punct lowercased tokens from query
+ * @param candidateSource - — source text of the candidate
+ * @param minScore - — minimum score to emit evidence (default 0.3)
+ */
+export function computeSparseEvidence(queryContentWords: string[], candidateSource: string, minScore?: number): { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; } | null
+```
+
+### `augmentWithSparseLane`
+
+```ts
+/**
+ * Augment raw results with sparse evidence where applicable.
+ * Mutates the evidences array of each result in-place.
+ */
+export function augmentWithSparseLane(results: RawResult[], queryContentWords: string[], minScore?: number)
+```
+
 ### `createTaxonomyRegistry`
 
 ```ts
@@ -1357,6 +1386,10 @@ export const candidateKey = (c: RawResult): string
 * `RecallCandidate` (type)
 
 * `PrecisionContext` (type)
+
+* `LookedUpTermWithPrecision` (type) — LookedUpTerm extended with optional pipeline decision trace (for regression testing).
+
+* `MemorySuggestionWithPrecision` (type) — MemorySuggestion extended with optional pipeline decision trace (for regression testing).
 
 * `QaTranslationInput` (type)
 

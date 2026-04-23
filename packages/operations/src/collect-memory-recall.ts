@@ -16,7 +16,10 @@ import {
 } from "@cat/server-shared";
 import * as z from "zod";
 
-import type { MemorySuggestionWithPrecision, RawMemoryResult } from "./precision/types";
+import type {
+  MemorySuggestionWithPrecision,
+  RawMemoryResult,
+} from "./precision/types";
 
 import {
   fillTemplate,
@@ -24,8 +27,8 @@ import {
   placeholderize,
 } from "./memory-template";
 import { joinLemmas } from "./nlp-normalization";
-import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { runPrecisionPipeline } from "./precision/precision-pipeline";
+import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { searchMemoryOp } from "./search-memory";
 import { tokenizeOp } from "./tokenize";
 

@@ -1,5 +1,6 @@
 // packages/operations/src/precision/sparse-lane.ts
 import type { RecallEvidence } from "@cat/shared/schema/recall";
+
 import type { RawResult } from "./types";
 
 /**
@@ -25,7 +26,7 @@ export function computeSparseEvidence(
 
   for (const word of queryContentWords) {
     if (sourceLower.includes(word)) {
-      hits++;
+      hits += 1;
       matchedWords.push(word);
     }
   }

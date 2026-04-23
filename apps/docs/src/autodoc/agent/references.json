@@ -7983,7 +7983,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 137
+    "line": 138
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:MemoryRecallTestSet",
@@ -7992,7 +7992,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 135
+    "line": 136
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:ReferenceTranslation",
@@ -8001,7 +8001,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 161
+    "line": 162
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:ScenarioConfig",
@@ -8010,7 +8010,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 73
+    "line": 74
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:SuiteConfig",
@@ -8019,7 +8019,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 72
+    "line": 73
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TermRecallTestCase",
@@ -8028,7 +8028,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 136
+    "line": 137
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TermRecallTestSet",
@@ -8037,7 +8037,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 134
+    "line": 135
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TranslationTestCase",
@@ -8046,7 +8046,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 162
+    "line": 163
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TranslationTestSet",
@@ -8055,7 +8055,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 163
+    "line": 164
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/engine:evaluate",
@@ -8073,7 +8073,7 @@
     "kind": "function",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/eval/scorers/index.ts",
-    "line": 44
+    "line": 46
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/scorers/index:getScorer",
@@ -8082,7 +8082,7 @@
     "kind": "function",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/eval/scorers/index.ts",
-    "line": 35
+    "line": 37
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/types:CaseEvaluation",
@@ -8711,7 +8711,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 59
+    "line": 63
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -8720,7 +8720,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 75,
+    "line": 79,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -8730,7 +8730,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 30
+    "line": 34
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-term-recall:collectTermRecallOp",
@@ -8739,7 +8739,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 54
+    "line": 73
   },
   {
     "id": "@cat/operations:packages/operations/src/create-element:CreateElementInput",
@@ -9520,7 +9520,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 38,
+    "line": 54,
     "description": "Run the full precision pipeline on a flat list of raw multi-lane results.\n\nThis function is surface-agnostic: it works with both RawTermResult[] and\nRawMemoryResult[] (and mixed arrays, if ever needed)."
   },
   {
@@ -9592,6 +9592,26 @@
     "line": 9
   },
   {
+    "id": "@cat/operations:packages/operations/src/precision/sparse-lane:augmentWithSparseLane",
+    "stableKey": "@cat/operations:packages/operations/src/precision/sparse-lane:augmentWithSparseLane",
+    "name": "augmentWithSparseLane",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/sparse-lane.ts",
+    "line": 49,
+    "description": "Augment raw results with sparse evidence where applicable.\nMutates the evidences array of each result in-place."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/sparse-lane:computeSparseEvidence",
+    "stableKey": "@cat/operations:packages/operations/src/precision/sparse-lane:computeSparseEvidence",
+    "name": "computeSparseEvidence",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/sparse-lane.ts",
+    "line": 16,
+    "description": "Compute a sparse lexical evidence entry for a candidate.\n\nScore = (number of matched content words) / (total query content words)\nA score above minScore generates an evidence entry with channel=\"sparse\".\n@param — non-stop, non-punct lowercased tokens from query\n@param — source text of the candidate\n@param — minimum score to emit evidence (default 0.3)"
+  },
+  {
     "id": "@cat/operations:packages/operations/src/precision/taxonomy-registry:assignTopics",
     "stableKey": "@cat/operations:packages/operations/src/precision/taxonomy-registry:assignTopics",
     "name": "assignTopics",
@@ -9646,8 +9666,28 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 70,
+    "line": 72,
     "description": "Stable identity key for a candidate (uniquely distinguishes term/memory)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:LookedUpTermWithPrecision",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:LookedUpTermWithPrecision",
+    "name": "LookedUpTermWithPrecision",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 77,
+    "description": "LookedUpTerm extended with optional pipeline decision trace (for regression testing)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:MemorySuggestionWithPrecision",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:MemorySuggestionWithPrecision",
+    "name": "MemorySuggestionWithPrecision",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 82,
+    "description": "MemorySuggestion extended with optional pipeline decision trace (for regression testing)."
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:PrecisionContext",
@@ -9656,7 +9696,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 61
+    "line": 63
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:RawMemoryResult",
@@ -9665,7 +9705,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 28
+    "line": 30
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:RawResult",
@@ -9674,7 +9714,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 45
+    "line": 47
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:RawTermResult",
@@ -9683,7 +9723,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 15
+    "line": 17
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:RecallCandidate",
@@ -9692,7 +9732,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 48
+    "line": 50
   },
   {
     "id": "@cat/operations:packages/operations/src/qa-translation:QaTranslationInput",
@@ -10161,7 +10201,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/testing/recall-fixture-schema.ts",
-    "line": 113
+    "line": 116
   },
   {
     "id": "@cat/operations:packages/operations/src/tokenize:TokenizeInput",
