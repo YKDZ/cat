@@ -9,10 +9,11 @@ import {
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
-import type { RawTermResult } from "./precision/types";
+import type { LookedUpTermWithPrecision, RawTermResult } from "./precision/types";
 
 import { joinLemmas } from "./nlp-normalization";
 import { nlpSegmentOp } from "./nlp-segment";
+import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { runPrecisionPipeline } from "./precision/precision-pipeline";
 import { semanticSearchTermsOp } from "./semantic-search-terms";
 
@@ -51,10 +52,25 @@ const normalizeRecallQuery = async (
   return joinLemmas(contentTokens, languageId).trim();
 };
 
+const getNlpContentWords = async (
+  text: string,
+  languageId: string,
+  ctx?: OperationContext,
+): Promise<string[]> => {
+  try {
+    const segmented = await nlpSegmentOp({ text, languageId }, ctx);
+    return segmented.tokens
+      .filter((t) => !t.isStop && !t.isPunct)
+      .map((t) => t.lemma.toLowerCase());
+  } catch {
+    return [];
+  }
+};
+
 export const collectTermRecallOp = async (
   data: CollectTermRecallInput,
   ctx?: OperationContext,
-): Promise<LookedUpTerm[]> => {
+): Promise<LookedUpTermWithPrecision[]> => {
   const input = CollectTermRecallInputSchema.parse(data);
   if (input.glossaryIds.length === 0) return [];
 
@@ -124,6 +140,14 @@ export const collectTermRecallOp = async (
     }),
   );
 
+  // ── Sparse Lexical Lane ───────────────────────────────────────────
+  const contentWords = await getNlpContentWords(
+    input.text,
+    input.sourceLanguageId,
+    ctx,
+  );
+  augmentWithSparseLane(rawTermResults, contentWords);
+
   // ── Precision Pipeline ────────────────────────────────────────────
   const ranked = await runPrecisionPipeline(rawTermResults, {
     queryText: input.text,
@@ -131,7 +155,7 @@ export const collectTermRecallOp = async (
   });
 
   // ── Project precision-pipeline output back to LookedUpTerm shape ──
-  return ranked.flatMap((c): LookedUpTerm[] => {
+  return ranked.flatMap((c): LookedUpTermWithPrecision[] => {
     if (c.surface !== "term") return [];
     return [
       {
@@ -143,6 +167,7 @@ export const collectTermRecallOp = async (
         confidence: c.confidence,
         evidences: c.evidences,
         matchedText: c.matchedText,
+        rankingDecisions: c.rankingDecisions,
       },
     ];
   });

@@ -88,6 +88,7 @@ export const RecallFixtureSchema = z.object({
     requiredVariantTypes: z.array(z.string()).default([]),
     expectedTranslation: z.string().optional(),
     missIds: z.array(z.int()).default([]),
+    expectedTier: z.enum(["1", "2", "3"]).optional(),
   }),
   mock: z.object({
     term: z
@@ -96,6 +97,7 @@ export const RecallFixtureSchema = z.object({
         lexical: z.array(TermResultSchema).default([]),
         morphological: z.array(TermResultSchema).default([]),
         semantic: z.array(TermResultSchema).default([]),
+        sparse: z.array(TermResultSchema).default([]),
       })
       .optional(),
     memory: z
@@ -105,6 +107,7 @@ export const RecallFixtureSchema = z.object({
         trgm: z.array(MemoryResultSchema).default([]),
         variant: z.array(MemoryResultSchema).default([]),
         semantic: z.array(MemoryResultSchema).default([]),
+        sparse: z.array(MemoryResultSchema).default([]),
       })
       .optional(),
   }),

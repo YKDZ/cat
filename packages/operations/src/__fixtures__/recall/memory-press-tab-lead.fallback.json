@@ -1,0 +1,76 @@
+{
+  "name": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions → should NOT surface Lead",
+  "description": "Long template sentence: the long-sentence template memory must rank above the 'Lead' item memory which only lexically overlaps on 'leave'.",
+  "kind": "memory",
+  "matrix": "fallback",
+  "query": {
+    "text": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 801,
+    "minimumTopConfidence": 0.85,
+    "requiredChannels": ["template"],
+    "requiredVariantTypes": ["TOKEN_TEMPLATE"],
+    "missIds": [802],
+    "expectedTier": "1"
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        {
+          "type": "text",
+          "value": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+          "start": 0,
+          "end": 73
+        }
+      ],
+      "exact": [],
+      "trgm": [],
+      "variant": [
+        {
+          "id": 801,
+          "source": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+          "translation": "按 Tab 循环到下一个建议，或按 Escape 离开建议",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.97,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "sourceTemplate": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+          "translationTemplate": "按 Tab 循环到下一个建议，或按 Escape 离开建议",
+          "slotMapping": [],
+          "matchedText": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+          "matchedVariantText": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+          "matchedVariantType": "TOKEN_TEMPLATE",
+          "evidences": [
+            {
+              "channel": "template",
+              "matchedText": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+              "matchedVariantType": "TOKEN_TEMPLATE",
+              "confidence": 0.97,
+              "note": "full template match"
+            }
+          ]
+        }
+      ],
+      "semantic": [
+        {
+          "id": 802,
+          "source": "Lead",
+          "translation": "拴绳",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 0.73,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "matchedText": "Lead",
+          "evidences": []
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "name": "Zombie Head → should NOT surface Hardcore Mode!",
+  "description": "Entity-word short query: 'Zombie Head' must rank the Zombie Head concept above Hardcore Mode despite Hardcore Mode having a high lexical trgm similarity to 'mode'.",
+  "kind": "term",
+  "matrix": "fallback",
+  "query": {
+    "text": "Zombie Head",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 501,
+    "minimumTopConfidence": 0.7,
+    "requiredChannels": ["lexical"],
+    "requiredVariantTypes": [],
+    "missIds": [502],
+    "expectedTier": "1"
+  },
+  "mock": {
+    "term": {
+      "nlpTokens": [
+        {
+          "text": "Zombie",
+          "lemma": "zombie",
+          "pos": "NOUN",
+          "start": 0,
+          "end": 6,
+          "isStop": false,
+          "isPunct": false
+        },
+        {
+          "text": "Head",
+          "lemma": "head",
+          "pos": "NOUN",
+          "start": 7,
+          "end": 11,
+          "isStop": false,
+          "isPunct": false
+        }
+      ],
+      "lexical": [
+        {
+          "term": "Zombie Head",
+          "translation": "僵尸头颅",
+          "confidence": 0.95,
+          "definition": "A mob head item dropped by a zombie.",
+          "conceptId": 501,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "Zombie Head",
+          "evidences": [
+            {
+              "channel": "lexical",
+              "matchedText": "Zombie Head",
+              "confidence": 0.95,
+              "note": "surface match"
+            }
+          ]
+        },
+        {
+          "term": "Hardcore Mode",
+          "translation": "极限模式",
+          "confidence": 0.72,
+          "definition": "The one-life game mode in Minecraft.",
+          "conceptId": 502,
+          "glossaryId": "11111111-1111-4111-8111-111111111111",
+          "matchedText": "Head",
+          "evidences": [
+            {
+              "channel": "lexical",
+              "matchedText": "Head",
+              "confidence": 0.72,
+              "note": "partial head match"
+            }
+          ]
+        }
+      ],
+      "morphological": [],
+      "semantic": []
+    }
+  }
+}

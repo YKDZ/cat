@@ -111,5 +111,12 @@ describe("term recall regression fixtures", () => {
     for (const missId of fixture.expected.missIds) {
       expect(resultIds.has(missId)).toBe(false);
     }
+
+    if (fixture.expected.expectedTier) {
+      const tierDecision = (
+        top as { rankingDecisions?: Array<{ action: string; tier?: string }> }
+      )?.rankingDecisions?.find((d) => d.action === "tier-assigned");
+      expect(tierDecision?.tier).toBe(fixture.expected.expectedTier);
+    }
   });
 });

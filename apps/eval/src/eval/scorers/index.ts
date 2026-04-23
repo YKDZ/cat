@@ -4,6 +4,7 @@ import { agentLatencyScorer } from "./agent-latency";
 import { channelCoverageScorer } from "./channel-coverage";
 import { chrfScorer } from "./chrf";
 import { confidenceScorer } from "./confidence";
+import { decisionNoteScorer } from "./decision-note";
 import { f1Scorer } from "./f1";
 import { hitRateScorer } from "./hit-rate";
 import { instructionAdherenceScorer } from "./instruction-adherence";
@@ -24,6 +25,7 @@ const scorerRegistry = new Map<string, Scorer>([
   ["negative-exclusion", negativeExclusionScorer],
   ["confidence", confidenceScorer],
   ["channel-coverage", channelCoverageScorer],
+  ["decision-note", decisionNoteScorer],
   ["latency", latencyScorer],
   ["instruction-adherence", instructionAdherenceScorer],
   ["term-compliance", termComplianceScorer],

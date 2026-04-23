@@ -31,6 +31,7 @@ export const ScorerNameSchema = z.enum([
   "negative-exclusion",
   "confidence",
   "channel-coverage",
+  "decision-note",
   "latency",
   "instruction-adherence",
   "term-compliance",
