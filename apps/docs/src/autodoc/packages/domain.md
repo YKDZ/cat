@@ -934,7 +934,7 @@ export const registerPluginDefinition: Command<
 ### `syncPluginServices`
 
 ```ts
-export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }[]; }) => {...}
+export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx: DbContext, command: { pluginInstallationId: number; services: { serviceId: string; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "RERANK_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }[]; }) => {...}
 ```
 
 ### `uninstallPlugin`
@@ -2748,7 +2748,7 @@ export const getPluginInstallation: Query<
 export const getPluginServiceById: Query<
   GetPluginServiceByIdQuery,
   PluginServiceIdentity | null
-> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }) => {...}
+> = async (ctx: DbContext, query: { serviceDbId: number; serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "RERANK_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }) => {...}
 ```
 
 ### `getPluginServiceByType`
@@ -2790,7 +2790,7 @@ export const listInstalledPlugins: Query<
 export const listInstalledServicesByType: Query<
   ListInstalledServicesByTypeQuery,
   InstalledServiceRecord[]
-> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
+> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "RERANK_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; scopeType: "GLOBAL" | "PROJECT" | "USER"; scopeId: string; }) => {...}
 ```
 
 ### `listPluginServiceIdsByType`
@@ -2799,7 +2799,7 @@ export const listInstalledServicesByType: Query<
 export const listPluginServiceIdsByType: Query<
   ListPluginServiceIdsByTypeQuery,
   string[]
-> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }) => {...}
+> = async (ctx: DbContext, query: { serviceType: "AUTH_FACTOR" | "STORAGE_PROVIDER" | "FILE_IMPORTER" | "FILE_EXPORTER" | "TRANSLATION_ADVISOR" | "TEXT_VECTORIZER" | "VECTOR_STORAGE" | "QA_CHECKER" | "TOKENIZER" | "LLM_PROVIDER" | "RERANK_PROVIDER" | "AGENT_TOOL_PROVIDER" | "AGENT_CONTEXT_PROVIDER" | "NLP_WORD_SEGMENTER" | "EMAIL_PROVIDER"; }) => {...}
 ```
 
 ### `listPluginServicesForInstallation`

@@ -4,9 +4,9 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 71
+* **Modules**: 75
 
-* **Exported functions**: 81
+* **Exported functions**: 87
 
 * **Exported types**: 110
 
@@ -653,13 +653,13 @@ export const rebasePRFull = async (ctx: DbContext, input: RebasePRFullInput): Pr
 ### `recallContextRerankOp`
 
 ```ts
-export const recallContextRerankOp = async (data: RecallContextRerankInput, _ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `rerankTermRecallOp`
 
 ```ts
-export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, _ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
+export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
 ```
 
 ### `registerDomainEventHandlers`
@@ -1033,7 +1033,7 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
  * Returns an AmbiguityEnvelope describing whether and where to invoke the model.
  * Clear Tier-1 winners (tier="1" and no recoverable-conflict) are EXCLUDED from the band.
  */
-export function evaluateAmbiguity(ranked: RecallCandidate[], hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }): { shouldInvokeModel: boolean; eligibleBand: { start: number; end: number; }; reasons: string[]; }
+export function evaluateAmbiguity(ranked: RecallCandidate[], hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }): { shouldInvokeModel: boolean; eligibleBand: { start: number; end: number; reasons: string[]; anchorCandidateId?: string | undefined; }; }
 ```
 
 ### `applyBudgetGate`
@@ -1083,19 +1083,7 @@ export function buildFusionLedger(raw: RawResult[]): RecallCandidate[]
 ### `applyModelReranker`
 
 ```ts
-/**
- * Optional Model Reranker (stub).
- *
- * Currently a no-op: returns the input order unchanged.
- * Future: call a model service for candidates within envelope.eligibleBand.
- *
- * Contract:
- *  - MUST NOT reorder candidates outside the eligible band.
- *  - MUST NOT move a clear Tier-1 winner out of position 0 if they were
- *    not included in the eligible band.
- *  - If the model service fails, MUST return the deterministic order unchanged.
- */
-export async function applyModelReranker(ranked: RecallCandidate[], envelope: { shouldInvokeModel: boolean; eligibleBand: { start: number; end: number; }; reasons: string[]; }): Promise<RecallCandidate[]>
+export async function applyModelReranker(input: ApplyModelRerankerInput): Promise<RecallCandidate[]>
 ```
 
 ### `suppressTier3IfClearTier1Winner`
@@ -1261,6 +1249,71 @@ export function assignTopics(candidates: RecallCandidate[], registry: TaxonomyRe
  * Stable identity key for a candidate (uniquely distinguishes term/memory).
  */
 export const candidateKey = (c: RawResult): string
+```
+
+### packages/operations/src/rerank
+
+### `applyBandOrder`
+
+```ts
+export const applyBandOrder = (ranked: T[], band: { start: number; end: number }, orderedBand: T[]): T[]
+```
+
+### `selectContextBand`
+
+```ts
+/**
+ * Select a bounded ambiguous top cluster for context-route reranking.
+ *
+ * Anchors on the highest-ranked candidate. Extends the band only while
+ * candidates remain locally plausible by deterministic proximity AND have
+ * positive context evidence. Returns null when the cluster is not genuinely
+ * ambiguous or the top candidate is clearly ahead.
+ */
+export const selectContextBand = ({
+  ranked,
+  getCandidateId,
+  getConfidence,
+  getPositiveSignals,
+}: SelectContextBandInput<T>): { start: number; end: number; reasons: string[]; anchorCandidateId?: string | undefined; } | null
+```
+
+### `normalizePrecisionTermCandidate`
+
+```ts
+/**
+ * Normalize a term candidate into a RerankCandidateDocument for provider submission.
+ */
+export const normalizePrecisionTermCandidate = (c: RecallCandidate & RawTermResult, index: number): { candidateId: string; surface: "term" | "memory"; originalIndex: number; originalConfidence: number; title: string; sourceText: string; targetText?: string | undefined; definitionText?: string | undefined; contextText?: string | undefined; }
+```
+
+### `normalizePrecisionMemoryCandidate`
+
+```ts
+/**
+ * Normalize a memory candidate into a RerankCandidateDocument for provider submission.
+ */
+export const normalizePrecisionMemoryCandidate = (c: RecallCandidate & RawMemoryResult, index: number): { candidateId: string; surface: "term" | "memory"; originalIndex: number; originalConfidence: number; title: string; sourceText: string; targetText?: string | undefined; definitionText?: string | undefined; contextText?: string | undefined; }
+```
+
+### `normalizePrecisionCandidates`
+
+```ts
+/**
+ * Normalize a slice of RecallCandidates into RerankCandidateDocuments.
+ * The index is relative to the slice (for stable candidateId ordering).
+ */
+export const normalizePrecisionCandidates = (_queryText: string, band: RecallCandidate[]): { candidateId: string; surface: "term" | "memory"; originalIndex: number; originalConfidence: number; title: string; sourceText: string; targetText?: string | undefined; definitionText?: string | undefined; contextText?: string | undefined; }[]
+```
+
+### `orchestrateRerank`
+
+```ts
+export const orchestrateRerank = async ({
+  request,
+  pluginManager,
+  signal,
+}: OrchestrateRerankInput): Promise<OrchestrateRerankResult>
 ```
 
 ## Type Index
