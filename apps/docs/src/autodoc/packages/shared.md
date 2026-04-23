@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 43
+* **Modules**: 44
 
 * **Exported functions**: 25
 
-* **Exported types**: 180
+* **Exported types**: 193
 
 ## Function Index
 
@@ -522,6 +522,32 @@ export const safeJoinURL = (base: string, path: string): string
 * `PluginData` (type)
 
 * `TranslationSuggestion` (type)
+
+* `EvidenceLane` (type)
+
+* `QueryProfile` (type)
+
+* `BudgetClass` (type)
+
+* `ScopeEnvelope` (type)
+
+* `TopicMatchState` (type)
+
+* `CandidateTopicAssignment` (type)
+
+* `MemoryTopicBinding` (type)
+
+* `QueryTopicConfidence` (type)
+
+* `QueryTopicHypothesis` (type)
+
+* `AnchorSignature` (type)
+
+* `RankingDecision` (type)
+
+* `AmbiguityEnvelope` (type)
+
+* `ProviderStatus` (type)
 
 * `ProjectSettingPayload` (type)
 

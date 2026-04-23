@@ -6475,7 +6475,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 153
+    "line": 152
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:ListTrgmMemorySuggestionsQuery",
@@ -6484,7 +6484,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 149
+    "line": 148
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:RawMemorySuggestion",
@@ -8711,7 +8711,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 56
+    "line": 59
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -8720,7 +8720,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 72,
+    "line": 75,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -8730,7 +8730,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 27
+    "line": 30
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-term-recall:collectTermRecallOp",
@@ -8739,7 +8739,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 96
+    "line": 54
   },
   {
     "id": "@cat/operations:packages/operations/src/create-element:CreateElementInput",
@@ -9444,6 +9444,255 @@
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
     "line": 35
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/ambiguity-gate:evaluateAmbiguity",
+    "stableKey": "@cat/operations:packages/operations/src/precision/ambiguity-gate:evaluateAmbiguity",
+    "name": "evaluateAmbiguity",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/ambiguity-gate.ts",
+    "line": 29,
+    "description": "Evaluate four ambiguity rules:\n1. Top-tier confidence gap too small (< THRESHOLD between rank-0 and rank-1 in same tier).\n2. Top candidates' evidence families diverge (no shared channel at all).\n3. Query topic hypothesis is weak / conflicting / unknown AND anchors don't resolve.\n4. Top candidate has a recoverable-conflict decision note.\n\nReturns an AmbiguityEnvelope describing whether and where to invoke the model.\nClear Tier-1 winners (tier=\"1\" and no recoverable-conflict) are EXCLUDED from the band."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/budget-gate:applyBudgetGate",
+    "stableKey": "@cat/operations:packages/operations/src/precision/budget-gate:applyBudgetGate",
+    "name": "applyBudgetGate",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/budget-gate.ts",
+    "line": 23,
+    "description": "Reserved criteria (any ONE is sufficient):\n - memory exact match (channel \"exact\" present in evidences)\n - term complete surface equality (channel \"lexical\" with confidence >= 0.95)\n - template match (channel \"template\" present)\n - multi-evidence candidate with anchor-compatible match (hasNumericAnchor or hasPlaceholderAnchor)\n\nAll remaining candidates enter the competitive pool up to maxTotal.\nThe budget gate annotates each candidate's `budgetClass` in-place and\nreturns the trimmed array in reserved-first order."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/budget-gate:BudgetGateOptions",
+    "stableKey": "@cat/operations:packages/operations/src/precision/budget-gate:BudgetGateOptions",
+    "name": "BudgetGateOptions",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/budget-gate.ts",
+    "line": 6
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/deterministic-ranker:applyDeterministicRanking",
+    "stableKey": "@cat/operations:packages/operations/src/precision/deterministic-ranker:applyDeterministicRanking",
+    "name": "applyDeterministicRanking",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/deterministic-ranker.ts",
+    "line": 71,
+    "description": "Assign tiers to all candidates, sort by tier then in-tier score,\nand record tier assignments in rankingDecisions."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/fusion-ledger:buildFusionLedger",
+    "stableKey": "@cat/operations:packages/operations/src/precision/fusion-ledger:buildFusionLedger",
+    "name": "buildFusionLedger",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/fusion-ledger.ts",
+    "line": 28,
+    "description": "Build a Fusion Ledger from a flat list of raw results from all lanes.\n\nFor each unique candidate (by candidateKey):\n - Keeps the body fields from the highest-confidence lane result.\n - Unions evidences from all lanes (deduped by evidenceKey).\n - Sets confidence = max across all lanes.\n - Records a \"ledger-merged\" RankingDecision.\n\nReturns RecallCandidate[] sorted by descending confidence."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/model-reranker:applyModelReranker",
+    "stableKey": "@cat/operations:packages/operations/src/precision/model-reranker:applyModelReranker",
+    "name": "applyModelReranker",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/model-reranker.ts",
+    "line": 18,
+    "description": "Optional Model Reranker (stub).\n\nCurrently a no-op: returns the input order unchanged.\nFuture: call a model service for candidates within envelope.eligibleBand.\n\nContract:\n - MUST NOT reorder candidates outside the eligible band.\n - MUST NOT move a clear Tier-1 winner out of position 0 if they were\n   not included in the eligible band.\n - If the model service fails, MUST return the deterministic order unchanged."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/precision-pipeline:PrecisionPipelineOptions",
+    "stableKey": "@cat/operations:packages/operations/src/precision/precision-pipeline:PrecisionPipelineOptions",
+    "name": "PrecisionPipelineOptions",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/precision-pipeline.ts",
+    "line": 21
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/precision-pipeline:runPrecisionPipeline",
+    "stableKey": "@cat/operations:packages/operations/src/precision/precision-pipeline:runPrecisionPipeline",
+    "name": "runPrecisionPipeline",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/precision-pipeline.ts",
+    "line": 38,
+    "description": "Run the full precision pipeline on a flat list of raw multi-lane results.\n\nThis function is surface-agnostic: it works with both RawTermResult[] and\nRawMemoryResult[] (and mixed arrays, if ever needed)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/query-profiler:profileQuery",
+    "stableKey": "@cat/operations:packages/operations/src/precision/query-profiler:profileQuery",
+    "name": "profileQuery",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/query-profiler.ts",
+    "line": 16,
+    "description": "Extract a QueryProfile from the raw query text.\n\nRules:\n- tokenCount   = word-boundary split on Unicode letters/digits (\\p{L}|\\p{N})+\n- contentWordDensity = tokens that are not pure-stop-words and not pure punct\n- isShortQuery  = tokenCount <= 3\n- hasNumericAnchor = any token matches /^\\d[\\d.,]*$/\n- hasPlaceholderAnchor = any token matches %s / %d / {N} / {WORD} patterns\n- isTemplateLike = hasPlaceholderAnchor OR (isShortQuery AND hasNumericAnchor)\n- hasEntityWord  = any token with 2+ consecutive uppercase letters OR CamelCase ≥6 chars"
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/query-topic-resolver:resolveQueryTopic",
+    "stableKey": "@cat/operations:packages/operations/src/precision/query-topic-resolver:resolveQueryTopic",
+    "name": "resolveQueryTopic",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/query-topic-resolver.ts",
+    "line": 25,
+    "description": "Infer a QueryTopicHypothesis from the query profile + the Tier-1 candidates\nalready present in the ledger after the Budget Gate.\n\nStrategy:\n 1. Collect topicIds from all candidates that have budgetClass=\"reserved\"\n    AND topicAssignment.matchState != \"conflict\".\n 2. Find the majority topicId (highest frequency).\n 3. Set confidence:\n    - \"confident\"   if ≥2 reserved candidates agree on the majority topic\n    - \"weak\"        if only 1 candidate provides the majority topic\n    - \"conflicting\" if top-2 topics have the same frequency > 0\n    - \"unknown\"     if no reserved candidate has a topic assignment\n\nNOTE: element context is NOT an input here (per spec §Component Design / Query Topic Resolver)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:applyGuards",
+    "stableKey": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:applyGuards",
+    "name": "applyGuards",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
+    "line": 68,
+    "description": "Apply all three guards to a single candidate.\n\nHard-filter (non-recoverable) conditions per spec §Component Design / Scope & Anchor Guard:\n - Scope: candidate scopeId not in allowedScopeIds (when allowedScopeIds.length > 0)\n - Topic: topicAssignment.matchState === \"conflict\" AND query hypothesis is \"confident\"\n - Anchor: numeric conflict (query has numbers, candidate has different numbers)\n\nRecoverable-conflict conditions:\n - Topic: topicAssignment.matchState === \"unknown\" AND query hypothesis is \"confident\"\n - Anchor: placeholder count mismatch (query has placeholders not in candidate)"
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:applyGuardsToCandidates",
+    "stableKey": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:applyGuardsToCandidates",
+    "name": "applyGuardsToCandidates",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
+    "line": 143,
+    "description": "Apply guards to all candidates in the ledger.\nHard-filtered candidates are marked with hardFiltered=true and removed from return value.\nRecoverable-conflict candidates get a demotion decision note."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:buildAnchorSignature",
+    "stableKey": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:buildAnchorSignature",
+    "name": "buildAnchorSignature",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
+    "line": 27,
+    "description": "Build an AnchorSignature comparing query vs candidate source text."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:GuardResult",
+    "stableKey": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:GuardResult",
+    "name": "GuardResult",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
+    "line": 51
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:ScopeGuardOptions",
+    "stableKey": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:ScopeGuardOptions",
+    "name": "ScopeGuardOptions",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/taxonomy-registry:assignTopics",
+    "stableKey": "@cat/operations:packages/operations/src/precision/taxonomy-registry:assignTopics",
+    "name": "assignTopics",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/taxonomy-registry.ts",
+    "line": 112,
+    "description": "Apply taxonomy assignments to an array of RecallCandidates in-place.\nMutates `candidate.topicAssignment`."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/taxonomy-registry:CompatibilityTable",
+    "stableKey": "@cat/operations:packages/operations/src/precision/taxonomy-registry:CompatibilityTable",
+    "name": "CompatibilityTable",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/taxonomy-registry.ts",
+    "line": 20,
+    "description": "Canonical topic compatibility table: topicId → Set of compatible topicIds"
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/taxonomy-registry:createTaxonomyRegistry",
+    "stableKey": "@cat/operations:packages/operations/src/precision/taxonomy-registry:createTaxonomyRegistry",
+    "name": "createTaxonomyRegistry",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/taxonomy-registry.ts",
+    "line": 44,
+    "description": "Create a TaxonomyRegistry from static options.\n\nCompatible-topic resolution (first phase): two topics are compatible if\nthey are identical OR if the compatibility table explicitly lists them as\ncompatible. Anything else is \"unknown\" if the candidate has no topic\nassignment, or \"conflict\" if it has a topic assignment that is NOT in the\ncompatible set."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/taxonomy-registry:TaxonomyRegistry",
+    "stableKey": "@cat/operations:packages/operations/src/precision/taxonomy-registry:TaxonomyRegistry",
+    "name": "TaxonomyRegistry",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/taxonomy-registry.ts",
+    "line": 22
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/taxonomy-registry:TaxonomyRegistryOptions",
+    "stableKey": "@cat/operations:packages/operations/src/precision/taxonomy-registry:TaxonomyRegistryOptions",
+    "name": "TaxonomyRegistryOptions",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/taxonomy-registry.ts",
+    "line": 10
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:candidateKey",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:candidateKey",
+    "name": "candidateKey",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 70,
+    "description": "Stable identity key for a candidate (uniquely distinguishes term/memory)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:PrecisionContext",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:PrecisionContext",
+    "name": "PrecisionContext",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 61
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:RawMemoryResult",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:RawMemoryResult",
+    "name": "RawMemoryResult",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 28
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:RawResult",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:RawResult",
+    "name": "RawResult",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 45
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:RawTermResult",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:RawTermResult",
+    "name": "RawTermResult",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 15
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/precision/types:RecallCandidate",
+    "stableKey": "@cat/operations:packages/operations/src/precision/types:RecallCandidate",
+    "name": "RecallCandidate",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/precision/types.ts",
+    "line": 48
   },
   {
     "id": "@cat/operations:packages/operations/src/qa-translation:QaTranslationInput",
@@ -13151,6 +13400,123 @@
     "line": 62
   },
   {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:AmbiguityEnvelope",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:AmbiguityEnvelope",
+    "name": "AmbiguityEnvelope",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 136
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:AnchorSignature",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:AnchorSignature",
+    "name": "AnchorSignature",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 115
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:BudgetClass",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:BudgetClass",
+    "name": "BudgetClass",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 40
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:CandidateTopicAssignment",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:CandidateTopicAssignment",
+    "name": "CandidateTopicAssignment",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 72
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:EvidenceLane",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:EvidenceLane",
+    "name": "EvidenceLane",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:MemoryTopicBinding",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:MemoryTopicBinding",
+    "name": "MemoryTopicBinding",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 85
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:ProviderStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:ProviderStatus",
+    "name": "ProviderStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 153
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryProfile",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:QueryProfile",
+    "name": "QueryProfile",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 36
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicConfidence",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicConfidence",
+    "name": "QueryTopicConfidence",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 94
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicHypothesis",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicHypothesis",
+    "name": "QueryTopicHypothesis",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 102
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:RankingDecision",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:RankingDecision",
+    "name": "RankingDecision",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 125
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:ScopeEnvelope",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:ScopeEnvelope",
+    "name": "ScopeEnvelope",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 49
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/precision-recall:TopicMatchState",
+    "stableKey": "@cat/shared:packages/shared/src/schema/precision-recall:TopicMatchState",
+    "name": "TopicMatchState",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/precision-recall.ts",
+    "line": 57
+  },
+  {
     "id": "@cat/shared:packages/shared/src/schema/project-setting:ProjectSettingPayload",
     "stableKey": "@cat/shared:packages/shared/src/schema/project-setting:ProjectSettingPayload",
     "name": "ProjectSettingPayload",
@@ -13166,7 +13532,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 15
+    "line": 27
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallDebugContext",
@@ -13175,7 +13541,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 58
+    "line": 70
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallEvidence",
@@ -13184,7 +13550,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 39
+    "line": 51
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/term-recall:ConceptContext",

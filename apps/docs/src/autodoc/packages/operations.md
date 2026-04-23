@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 59
+* **Modules**: 70
 
-* **Exported functions**: 64
+* **Exported functions**: 78
 
-* **Exported types**: 96
+* **Exported types**: 108
 
 ## Function Index
 
@@ -120,13 +120,13 @@ export const buildTermRecallVariantsOp = async (data: BuildTermRecallVariantsInp
  * highest confidence across all channels. Evidence from multiple channels
  * is merged onto the winning result.
  */
-export const collectMemoryRecallOp = async (data: CollectMemoryRecallInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const collectMemoryRecallOp = async (data: CollectMemoryRecallInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `collectTermRecallOp`
 
 ```ts
-export const collectTermRecallOp = async (data: CollectTermRecallInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
+export const collectTermRecallOp = async (data: CollectTermRecallInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
 ```
 
 ### `createElementOp`
@@ -653,13 +653,13 @@ export const rebasePRFull = async (ctx: DbContext, input: RebasePRFullInput): Pr
 ### `recallContextRerankOp`
 
 ```ts
-export const recallContextRerankOp = async (data: RecallContextRerankInput, _ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const recallContextRerankOp = async (data: RecallContextRerankInput, _ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `rerankTermRecallOp`
 
 ```ts
-export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, _ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
+export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, _ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
 ```
 
 ### `registerDomainEventHandlers`
@@ -788,7 +788,7 @@ export const searchChunkOp = async (payload: SearchChunkInput, ctx?: OperationCo
  *
  * @returns List of matching memory entries (sorted by confidence descending)
  */
-export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
+export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
 ```
 
 ### `semanticSearchTermsOp`
@@ -854,7 +854,7 @@ export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput
 /**
  * Streaming memory search backed by the aggregated recall helper.
  */
-export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
+export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
 ```
 
 ### `streamSearchTermsOp`
@@ -871,7 +871,7 @@ export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: Operat
  *
  * @returns Async iterable that yields deduplicated term match results
  */
-export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
+export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
 ```
 
 ### `termRecallOp`
@@ -889,7 +889,7 @@ export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: Operatio
  *
  * @returns Term matches enriched with concept subject information
  */
-export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "lexical" | "morphological" | "semantic" | "template" | "fragment"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
+export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
 ```
 
 ### `tokenizeOp`
@@ -1018,6 +1018,210 @@ export const processVectorizationBatch = async (queue: TaskQueue<VectorizationTa
 export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerId }: VectorizeInput, ctx?: OperationContext): Promise<{ chunkSetIds: number[]; }>
 ```
 
+### packages/operations/src/precision
+
+### `evaluateAmbiguity`
+
+```ts
+/**
+ * Evaluate four ambiguity rules:
+ * 1. Top-tier confidence gap too small (< THRESHOLD between rank-0 and rank-1 in same tier).
+ * 2. Top candidates' evidence families diverge (no shared channel at all).
+ * 3. Query topic hypothesis is weak / conflicting / unknown AND anchors don't resolve.
+ * 4. Top candidate has a recoverable-conflict decision note.
+ *
+ * Returns an AmbiguityEnvelope describing whether and where to invoke the model.
+ * Clear Tier-1 winners (tier="1" and no recoverable-conflict) are EXCLUDED from the band.
+ */
+export function evaluateAmbiguity(ranked: RecallCandidate[], hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }): { shouldInvokeModel: boolean; eligibleBand: { start: number; end: number; }; reasons: string[]; }
+```
+
+### `applyBudgetGate`
+
+```ts
+/**
+ * Reserved criteria (any ONE is sufficient):
+ *  - memory exact match (channel "exact" present in evidences)
+ *  - term complete surface equality (channel "lexical" with confidence >= 0.95)
+ *  - template match (channel "template" present)
+ *  - multi-evidence candidate with anchor-compatible match (hasNumericAnchor or hasPlaceholderAnchor)
+ *
+ * All remaining candidates enter the competitive pool up to maxTotal.
+ * The budget gate annotates each candidate's `budgetClass` in-place and
+ * returns the trimmed array in reserved-first order.
+ */
+export function applyBudgetGate(candidates: RecallCandidate[], profile: { tokenCount: number; contentWordDensity: number; hasNumericAnchor: boolean; hasPlaceholderAnchor: boolean; isTemplateLike: boolean; isShortQuery: boolean; hasEntityWord: boolean; }, opts: BudgetGateOptions): RecallCandidate[]
+```
+
+### `applyDeterministicRanking`
+
+```ts
+/**
+ * Assign tiers to all candidates, sort by tier then in-tier score,
+ * and record tier assignments in rankingDecisions.
+ */
+export function applyDeterministicRanking(candidates: RecallCandidate[], profile: { tokenCount: number; contentWordDensity: number; hasNumericAnchor: boolean; hasPlaceholderAnchor: boolean; isTemplateLike: boolean; isShortQuery: boolean; hasEntityWord: boolean; }, hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }): RecallCandidate[]
+```
+
+### `buildFusionLedger`
+
+```ts
+/**
+ * Build a Fusion Ledger from a flat list of raw results from all lanes.
+ *
+ * For each unique candidate (by candidateKey):
+ *  - Keeps the body fields from the highest-confidence lane result.
+ *  - Unions evidences from all lanes (deduped by evidenceKey).
+ *  - Sets confidence = max across all lanes.
+ *  - Records a "ledger-merged" RankingDecision.
+ *
+ * Returns RecallCandidate[] sorted by descending confidence.
+ */
+export function buildFusionLedger(raw: RawResult[]): RecallCandidate[]
+```
+
+### `applyModelReranker`
+
+```ts
+/**
+ * Optional Model Reranker (stub).
+ *
+ * Currently a no-op: returns the input order unchanged.
+ * Future: call a model service for candidates within envelope.eligibleBand.
+ *
+ * Contract:
+ *  - MUST NOT reorder candidates outside the eligible band.
+ *  - MUST NOT move a clear Tier-1 winner out of position 0 if they were
+ *    not included in the eligible band.
+ *  - If the model service fails, MUST return the deterministic order unchanged.
+ */
+export async function applyModelReranker(ranked: RecallCandidate[], envelope: { shouldInvokeModel: boolean; eligibleBand: { start: number; end: number; }; reasons: string[]; }): Promise<RecallCandidate[]>
+```
+
+### `runPrecisionPipeline`
+
+```ts
+/**
+ * Run the full precision pipeline on a flat list of raw multi-lane results.
+ *
+ * This function is surface-agnostic: it works with both RawTermResult[] and
+ * RawMemoryResult[] (and mixed arrays, if ever needed).
+ */
+export async function runPrecisionPipeline(raw: RawResult[], opts: PrecisionPipelineOptions): Promise<RecallCandidate[]>
+```
+
+### `profileQuery`
+
+```ts
+/**
+ * Extract a QueryProfile from the raw query text.
+ *
+ * Rules:
+ * - tokenCount   = word-boundary split on Unicode letters/digits (\p{L}|\p{N})+
+ * - contentWordDensity = tokens that are not pure-stop-words and not pure punct
+ * - isShortQuery  = tokenCount <= 3
+ * - hasNumericAnchor = any token matches /^\d[\d.,]*$/
+ * - hasPlaceholderAnchor = any token matches %s / %d / {N} / {WORD} patterns
+ * - isTemplateLike = hasPlaceholderAnchor OR (isShortQuery AND hasNumericAnchor)
+ * - hasEntityWord  = any token with 2+ consecutive uppercase letters OR CamelCase ≥6 chars
+ */
+export function profileQuery(text: string): { tokenCount: number; contentWordDensity: number; hasNumericAnchor: boolean; hasPlaceholderAnchor: boolean; isTemplateLike: boolean; isShortQuery: boolean; hasEntityWord: boolean; }
+```
+
+### `resolveQueryTopic`
+
+```ts
+/**
+ * Infer a QueryTopicHypothesis from the query profile + the Tier-1 candidates
+ * already present in the ledger after the Budget Gate.
+ *
+ * Strategy:
+ *  1. Collect topicIds from all candidates that have budgetClass="reserved"
+ *     AND topicAssignment.matchState != "conflict".
+ *  2. Find the majority topicId (highest frequency).
+ *  3. Set confidence:
+ *     - "confident"   if ≥2 reserved candidates agree on the majority topic
+ *     - "weak"        if only 1 candidate provides the majority topic
+ *     - "conflicting" if top-2 topics have the same frequency > 0
+ *     - "unknown"     if no reserved candidate has a topic assignment
+ *
+ * NOTE: element context is NOT an input here (per spec §Component Design / Query Topic Resolver).
+ */
+export function resolveQueryTopic(candidates: RecallCandidate[], _profile: { tokenCount: number; contentWordDensity: number; hasNumericAnchor: boolean; hasPlaceholderAnchor: boolean; isTemplateLike: boolean; isShortQuery: boolean; hasEntityWord: boolean; }): { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }
+```
+
+### `buildAnchorSignature`
+
+```ts
+/**
+ * Build an AnchorSignature comparing query vs candidate source text.
+ */
+export function buildAnchorSignature(queryText: string, candidateSource: string): { queryNumbers: string[]; queryPlaceholders: string[]; candidateNumbers: string[]; candidatePlaceholders: string[]; numbersCompatible: boolean; placeholdersCompatible: boolean; }
+```
+
+### `applyGuards`
+
+```ts
+/**
+ * Apply all three guards to a single candidate.
+ *
+ * Hard-filter (non-recoverable) conditions per spec §Component Design / Scope & Anchor Guard:
+ *  - Scope: candidate scopeId not in allowedScopeIds (when allowedScopeIds.length > 0)
+ *  - Topic: topicAssignment.matchState === "conflict" AND query hypothesis is "confident"
+ *  - Anchor: numeric conflict (query has numbers, candidate has different numbers)
+ *
+ * Recoverable-conflict conditions:
+ *  - Topic: topicAssignment.matchState === "unknown" AND query hypothesis is "confident"
+ *  - Anchor: placeholder count mismatch (query has placeholders not in candidate)
+ */
+export function applyGuards(candidate: RecallCandidate, queryText: string, hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }, opts: ScopeGuardOptions): { result: GuardResult; note: string; }
+```
+
+### `applyGuardsToCandidates`
+
+```ts
+/**
+ * Apply guards to all candidates in the ledger.
+ * Hard-filtered candidates are marked with hardFiltered=true and removed from return value.
+ * Recoverable-conflict candidates get a demotion decision note.
+ */
+export function applyGuardsToCandidates(candidates: RecallCandidate[], queryText: string, hypothesis: { topicIds: string[]; confidence: "unknown" | "confident" | "weak" | "conflicting"; note?: string | undefined; }, opts: ScopeGuardOptions): RecallCandidate[]
+```
+
+### `createTaxonomyRegistry`
+
+```ts
+/**
+ * Create a TaxonomyRegistry from static options.
+ *
+ * Compatible-topic resolution (first phase): two topics are compatible if
+ * they are identical OR if the compatibility table explicitly lists them as
+ * compatible. Anything else is "unknown" if the candidate has no topic
+ * assignment, or "conflict" if it has a topic assignment that is NOT in the
+ * compatible set.
+ */
+export function createTaxonomyRegistry(opts: TaxonomyRegistryOptions, compatibility?: CompatibilityTable): TaxonomyRegistry
+```
+
+### `assignTopics`
+
+```ts
+/**
+ * Apply taxonomy assignments to an array of RecallCandidates in-place.
+ * Mutates `candidate.topicAssignment`.
+ */
+export function assignTopics(candidates: RecallCandidate[], registry: TaxonomyRegistry, queryTopicIds: string[], termSubjectMap: Map<number, string[]>)
+```
+
+### `candidateKey`
+
+```ts
+/**
+ * Stable identity key for a candidate (uniquely distinguishes term/memory).
+ */
+export const candidateKey = (c: RawResult): string
+```
+
 ## Type Index
 
 * `AdaptMemoryInput` (type)
@@ -1129,6 +1333,30 @@ export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerI
 * `ParseFileInput` (type)
 
 * `ParseFileOutput` (type)
+
+* `BudgetGateOptions` (type)
+
+* `PrecisionPipelineOptions` (type)
+
+* `ScopeGuardOptions` (type)
+
+* `GuardResult` (type)
+
+* `TaxonomyRegistryOptions` (type)
+
+* `CompatibilityTable` (type) — Canonical topic compatibility table: topicId → Set of compatible topicIds
+
+* `TaxonomyRegistry` (type)
+
+* `RawTermResult` (type)
+
+* `RawMemoryResult` (type)
+
+* `RawResult` (type)
+
+* `RecallCandidate` (type)
+
+* `PrecisionContext` (type)
 
 * `QaTranslationInput` (type)
 
