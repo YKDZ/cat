@@ -16,15 +16,6 @@ export {
   type SlotMappingEntry,
 } from "./memory-template";
 
-// === Leaf Operations ===
-export {
-  adaptMemoryOp,
-  AdaptMemoryInputSchema,
-  AdaptMemoryOutputSchema,
-  type AdaptMemoryInput,
-  type AdaptMemoryOutput,
-} from "./adapt-memory";
-
 export {
   fetchAdviseOp,
   FetchAdviseInputSchema,
@@ -226,6 +217,15 @@ export {
   type LlmRefineTranslationInput,
   type LlmRefineTranslationOutput,
 } from "./llm-refine-translation";
+
+export {
+  smartSuggestOp,
+  SmartSuggestInputSchema,
+  SmartSuggestOutputSchema,
+  deriveSmartSuggestConfidence,
+  type SmartSuggestInput,
+  type SmartSuggestOutput,
+} from "./smart-suggest";
 
 // === Level 3+ Operations ===
 export {

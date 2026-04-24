@@ -7,7 +7,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Context } from "@/utils/context";
 
 const opMocks = vi.hoisted(() => ({
-  adaptMemoryOp: vi.fn(),
   collectMemoryRecallOp: vi.fn(),
   recallContextRerankOp: vi.fn(),
   rerankTermRecallOp: vi.fn(),
@@ -35,7 +34,6 @@ vi.mock("@cat/operations", async () => {
 
   return {
     ...actual,
-    adaptMemoryOp: opMocks.adaptMemoryOp,
     collectMemoryRecallOp: opMocks.collectMemoryRecallOp,
     recallContextRerankOp: opMocks.recallContextRerankOp,
     rerankTermRecallOp: opMocks.rerankTermRecallOp,
@@ -160,7 +158,7 @@ describe("recall routes", () => {
     ]);
   });
 
-  it("memory.onNew yields base then adapted fused memory suggestions and finishes naturally", async () => {
+  it("memory.onNew yields all memories directly without LLM adaptation", async () => {
     const element = {
       id: 1,
       value: "Order 43 completed",
@@ -171,59 +169,108 @@ describe("recall routes", () => {
 
     domainMocks.getElementWithChunkIds.mockResolvedValue(element);
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
-      if (query === getElementWithChunkIds) {
-        return element;
-      }
-      if (query === listMemoryIdsByProject) {
+      if (query === getElementWithChunkIds) return element;
+      if (query === listMemoryIdsByProject)
         return ["22222222-2222-4222-8222-222222222222"];
-      }
       return [];
     });
 
-    const baseMemory = {
-      id: 301,
-      source: "Order 42 completed",
-      translation: "订单 42 已完成",
-      confidence: 0.83,
-      memoryId: "22222222-2222-4222-8222-222222222222",
-      translationChunkSetId: null,
-      creatorId: null,
-      createdAt: new Date("2024-01-01T00:00:00.000Z"),
-      updatedAt: new Date("2024-01-01T00:00:00.000Z"),
-      evidences: [
-        {
-          channel: "template",
-          matchedVariantType: "TOKEN_TEMPLATE",
-          confidence: 0.83,
-        },
-      ],
-    };
+    const memories = [
+      {
+        id: 301,
+        source: "Order 42 completed",
+        translation: "订单 42 已完成",
+        confidence: 0.83,
+        memoryId: "22222222-2222-4222-8222-222222222222",
+        translationChunkSetId: null,
+        creatorId: null,
+        createdAt: new Date("2024-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-01-01T00:00:00.000Z"),
+        evidences: [],
+      },
+      {
+        id: 302,
+        source: "Order completed",
+        translation: "订单已完成",
+        confidence: 0.7,
+        memoryId: "22222222-2222-4222-8222-222222222222",
+        translationChunkSetId: null,
+        creatorId: null,
+        createdAt: new Date("2024-01-01T00:00:00.000Z"),
+        updatedAt: new Date("2024-01-01T00:00:00.000Z"),
+        evidences: [],
+      },
+    ];
 
-    opMocks.collectMemoryRecallOp.mockResolvedValue([baseMemory]);
-    opMocks.recallContextRerankOp.mockResolvedValue([baseMemory]);
-    opMocks.adaptMemoryOp.mockResolvedValue({
-      adaptedTranslation: "订单 43 已完成",
-    });
+    opMocks.collectMemoryRecallOp.mockResolvedValue(memories);
+    opMocks.recallContextRerankOp.mockResolvedValue(memories);
 
     const stream = await call(
       onNewMemory,
-      {
-        elementId: 1,
-        translationLanguageId: "zh-Hans",
-      },
+      { elementId: 1, translationLanguageId: "zh-Hans" },
       { context: createContext() },
     );
 
     const results = await collect(stream);
 
+    // All memories yielded directly — no adaptationPending, no LLM round-trip
     expect(results).toHaveLength(2);
-    expect(results[0]).toEqual(expect.objectContaining({ id: 301 }));
-    expect(results[1]).toEqual(
-      expect.objectContaining({
-        id: 301,
-        adaptedTranslation: "订单 43 已完成",
-        adaptationMethod: "llm-adapted",
-      }),
+    expect(results[0]).toEqual(
+      expect.objectContaining({ id: 301, confidence: 0.83 }),
     );
+    expect(results[0]).not.toHaveProperty("adaptationPending");
+    expect(results[1]).toEqual(
+      expect.objectContaining({ id: 302, confidence: 0.7 }),
+    );
+    expect(results[1]).not.toHaveProperty("adaptationPending");
+  });
+
+  it("memory.onNew yields exact-match memories without calling any LLM operation", async () => {
+    const element = {
+      id: 1,
+      value: "Order 43 completed",
+      languageId: "en",
+      projectId: "33333333-3333-4333-8333-333333333333",
+      chunkIds: [1],
+    };
+
+    domainMocks.getElementWithChunkIds.mockResolvedValue(element);
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getElementWithChunkIds) return element;
+      if (query === listMemoryIdsByProject)
+        return ["22222222-2222-4222-8222-222222222222"];
+      return [];
+    });
+
+    const exactMemory = {
+      id: 302,
+      source: "Order 43 completed",
+      translation: "订单 43 已完成",
+      confidence: 1,
+      adaptationMethod: "exact" as const,
+      memoryId: "22222222-2222-4222-8222-222222222222",
+      translationChunkSetId: null,
+      creatorId: null,
+      createdAt: new Date("2024-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2024-01-01T00:00:00.000Z"),
+      evidences: [],
+    };
+
+    opMocks.collectMemoryRecallOp.mockResolvedValue([exactMemory]);
+    opMocks.recallContextRerankOp.mockResolvedValue([exactMemory]);
+
+    const stream = await call(
+      onNewMemory,
+      { elementId: 1, translationLanguageId: "zh-Hans" },
+      { context: createContext() },
+    );
+
+    const results = await collect(stream);
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toEqual(
+      expect.objectContaining({ id: 302, adaptationMethod: "exact" }),
+    );
+    expect(results[0]).not.toHaveProperty("adaptationPending");
   });
 });

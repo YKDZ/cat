@@ -1,4 +1,3 @@
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import type { VCSContext } from "@cat/vcs";
 
 import {
@@ -12,12 +11,7 @@ import {
   listOwnedMemories,
   listProjectMemories,
 } from "@cat/domain";
-import {
-  adaptMemoryOp,
-  collectMemoryRecallOp,
-  recallContextRerankOp,
-} from "@cat/operations";
-import { serverLogger as logger } from "@cat/server-shared";
+import { collectMemoryRecallOp, recallContextRerankOp } from "@cat/operations";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
 import * as z from "zod";
 
@@ -195,50 +189,8 @@ export const onNew = authed
       },
     );
 
-    const adaptationTasks: Promise<MemorySuggestion | null>[] = [];
-
     for (const memory of reranked) {
       yield memory;
-
-      if (
-        memory.adaptationMethod === "exact" ||
-        memory.adaptationMethod === "token-replaced" ||
-        memory.confidence >= 1
-      ) {
-        continue;
-      }
-
-      adaptationTasks.push(
-        adaptMemoryOp({
-          sourceText: element.value,
-          memorySource: memory.source,
-          memoryTranslation: memory.translation,
-          sourceLanguageId: element.languageId,
-          translationLanguageId,
-        })
-          .then(({ adaptedTranslation }) =>
-            adaptedTranslation
-              ? {
-                  ...memory,
-                  adaptedTranslation,
-                  adaptationMethod: "llm-adapted" as const,
-                }
-              : null,
-          )
-          .catch((err: unknown) => {
-            logger
-              .withSituation("WORKER")
-              .error(err, "LLM memory adaptation failed");
-            return null;
-          }),
-      );
-    }
-
-    const adaptedMemories = await Promise.all(adaptationTasks);
-    for (const adapted of adaptedMemories) {
-      if (adapted) {
-        yield adapted;
-      }
     }
   });
 
