@@ -5479,6 +5479,34 @@
     "line": 15
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/element/list-element-comments.query:CommentThread",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-element-comments.query:CommentThread",
+    "name": "CommentThread",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/list-element-comments.query.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/element/list-element-comments.query:listElementComments",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-element-comments.query:listElementComments",
+    "name": "listElementComments",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/list-element-comments.query.ts",
+    "line": 34,
+    "description": "Query comments on an element with their replies, ordered by most recent."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/element/list-element-comments.query:ListElementCommentsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-element-comments.query:ListElementCommentsQuery",
+    "name": "ListElementCommentsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/list-element-comments.query.ts",
+    "line": 13
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/element/list-element-source-texts.query:ElementSourceText",
     "stableKey": "@cat/domain:packages/domain/src/queries/element/list-element-source-texts.query:ElementSourceText",
     "name": "ElementSourceText",
@@ -7714,6 +7742,34 @@
     "line": 11
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ApprovedTranslationEntry",
+    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ApprovedTranslationEntry",
+    "name": "ApprovedTranslationEntry",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/translation/list-document-approved-translations.query.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:listDocumentApprovedTranslations",
+    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:listDocumentApprovedTranslations",
+    "name": "listDocumentApprovedTranslations",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/translation/list-document-approved-translations.query.ts",
+    "line": 38,
+    "description": "Query approved translations from other elements in the same document,\nordered by proximity to the current element."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ListDocumentApprovedTranslationsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ListDocumentApprovedTranslationsQuery",
+    "name": "ListDocumentApprovedTranslationsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/translation/list-document-approved-translations.query.ts",
+    "line": 23
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/translation/list-qa-results-by-translation.query:listQaResultsByTranslation",
     "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-qa-results-by-translation.query:listQaResultsByTranslation",
     "name": "listQaResultsByTranslation",
@@ -9123,6 +9179,53 @@
     "line": 94
   },
   {
+    "id": "@cat/operations:packages/operations/src/llm-translate:deriveLlmTranslateConfidence",
+    "stableKey": "@cat/operations:packages/operations/src/llm-translate:deriveLlmTranslateConfidence",
+    "name": "deriveLlmTranslateConfidence",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/llm-translate.ts",
+    "line": 140,
+    "description": "Derive a confidence score for an LLM translation suggestion.\n\nBase score from memory match confidence, plus fixed bonuses per context signal present.\nHard cap at 0.85, rounded to 4 decimal places."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateConfig",
+    "stableKey": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateConfig",
+    "name": "LlmTranslateConfig",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/llm-translate.ts",
+    "line": 49
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateInput",
+    "stableKey": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateInput",
+    "name": "LlmTranslateInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/llm-translate.ts",
+    "line": 85
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/llm-translate:llmTranslateOp",
+    "stableKey": "@cat/operations:packages/operations/src/llm-translate:llmTranslateOp",
+    "name": "llmTranslateOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/llm-translate.ts",
+    "line": 453,
+    "description": "Built-in LLM Translation Suggestion (first-party suggestion source).\n\nSelf-loads element info, neighbor translations, element contexts, element metadata,\napproved translations, and comments via domain queries. Combines with\ncaller-provided memory recall and term recall results, then calls the LLM\nonce to produce a translation suggestion.\n\nReturns `{ suggestion: null }` when:\n- No LLM_PROVIDER is available\n- The LLM call fails\n- The element is not found\n- Database access fails"
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateOutput",
+    "stableKey": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateOutput",
+    "name": "LlmTranslateOutput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/llm-translate.ts",
+    "line": 113
+  },
+  {
     "id": "@cat/operations:packages/operations/src/load-element-texts:LoadElementTextsInput",
     "stableKey": "@cat/operations:packages/operations/src/load-element-texts:LoadElementTextsInput",
     "name": "LoadElementTextsInput",
@@ -10164,44 +10267,6 @@
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/semantic-search-terms.ts",
     "line": 31
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/smart-suggest:deriveSmartSuggestConfidence",
-    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:deriveSmartSuggestConfidence",
-    "name": "deriveSmartSuggestConfidence",
-    "kind": "function",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/smart-suggest.ts",
-    "line": 101,
-    "description": "Derive a confidence score for a Smart Suggestion.\n\nPolicy (spec §\"Confidence Semantics\"):\n- Strong memory support (≥ 0.9) raises confidence significantly.\n- Medium memory support (≥ 0.7) provides a moderate boost.\n- Absence of memory reduces confidence but does not forbid generation.\n- Terms and neighbor context add a small positive signal.\n- Hard cap at 0.85 to avoid overclaiming generative output."
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestInput",
-    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestInput",
-    "name": "SmartSuggestInput",
-    "kind": "type",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/smart-suggest.ts",
-    "line": 86
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/smart-suggest:smartSuggestOp",
-    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:smartSuggestOp",
-    "name": "smartSuggestOp",
-    "kind": "function",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/smart-suggest.ts",
-    "line": 191,
-    "description": "Built-in Smart Suggestion (first-party suggestion source).\n\nCombines pre-loaded memory matches, glossary terms, element metadata,\nand neighbor context, then makes a single LLM call to produce one\nsuggestion. Performs no internal DB queries — all context is passed in.\n\nReturns `{ suggestion: null }` when no LLM_PROVIDER is available or\nwhen the LLM call fails."
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestOutput",
-    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestOutput",
-    "name": "SmartSuggestOutput",
-    "kind": "type",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/smart-suggest.ts",
-    "line": 87
   },
   {
     "id": "@cat/operations:packages/operations/src/statistical-term-align:StatisticalTermAlignInput",

@@ -59,4 +59,4 @@
 | `UpdateAgentDefinitionCommand` | type |  |
 | `createApiKey` | function |  |
 | `CreateApiKeyCommand` | interface |  |
-| *(714 more)* | | |
+| *(720 more)* | | |
