@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   listExactMemorySuggestions: Symbol("listExactMemorySuggestions"),
   listTrgmMemorySuggestions: Symbol("listTrgmMemorySuggestions"),
   listVariantMemorySuggestions: Symbol("listVariantMemorySuggestions"),
+  listBm25MemorySuggestions: Symbol("listBm25MemorySuggestions"),
 }));
 
 vi.mock("@cat/domain", async () => {
@@ -25,6 +26,7 @@ vi.mock("@cat/domain", async () => {
     listExactMemorySuggestions: mocks.listExactMemorySuggestions,
     listTrgmMemorySuggestions: mocks.listTrgmMemorySuggestions,
     listVariantMemorySuggestions: mocks.listVariantMemorySuggestions,
+    listBm25MemorySuggestions: mocks.listBm25MemorySuggestions,
   };
 });
 
@@ -78,6 +80,12 @@ describe("memory recall regression fixtures", () => {
       }
       if (query === mocks.listVariantMemorySuggestions) {
         return reviveMemoryRows(memoryMock?.variant ?? []);
+      }
+      if (query === mocks.listBm25MemorySuggestions) {
+        return reviveMemoryRows(memoryMock?.bm25 ?? []).map((row) => ({
+          ...row,
+          rawScore: row.confidence,
+        }));
       }
       return [];
     });

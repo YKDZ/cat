@@ -306,4 +306,46 @@ describe("memory recall integration", () => {
       ),
     ).toBe(true);
   });
+
+  it("returns BM25 evidence for long English keyword queries", async () => {
+    const results = await collectMemoryRecallOp(
+      {
+        text: "completed order 42 status",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        memoryIds: [memoryId],
+        minSimilarity: 0.99,
+        minVariantSimilarity: 0.99,
+        maxAmount: 5,
+      },
+      { traceId: "memory-recall-bm25-en" },
+    );
+
+    expect(results[0]?.source).toBe("Order 42 is completed");
+    expect(results[0]?.translation).toBe("订单 42 已完成");
+    expect(results[0]?.evidences.some((e) => e.channel === "bm25")).toBe(true);
+    expect(results[0]?.confidence).toBeGreaterThan(0);
+    expect(results[0]?.confidence).toBeLessThanOrEqual(1);
+  });
+
+  it("returns caller-oriented BM25 results for zh-Hans to en queries", async () => {
+    const results = await collectMemoryRecallOp(
+      {
+        text: "发票 42 完成",
+        sourceLanguageId: "zh-Hans",
+        translationLanguageId: "en",
+        memoryIds: [memoryId],
+        minSimilarity: 0.99,
+        minVariantSimilarity: 0.99,
+        maxAmount: 5,
+      },
+      { traceId: "memory-recall-bm25-zh-hans" },
+    );
+
+    expect(results[0]?.source).toBe("发票 42 已完成");
+    expect(results[0]?.translation).toBe("Invoice 42 Completed");
+    expect(results[0]?.evidences.some((e) => e.channel === "bm25")).toBe(true);
+    expect(results[0]?.confidence).toBeGreaterThan(0);
+    expect(results[0]?.confidence).toBeLessThanOrEqual(1);
+  });
 });

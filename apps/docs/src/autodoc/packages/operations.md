@@ -4,34 +4,15 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 75
+* **Modules**: 76
 
-* **Exported functions**: 87
+* **Exported functions**: 91
 
 * **Exported types**: 110
 
 ## Function Index
 
 ### packages/operations/src
-
-### `adaptMemoryOp`
-
-```ts
-/**
- * Adapt a memory translation to fit the current source text via LLM.
- *
- * Returns `{ adaptedTranslation: null }` when:
- * - No LLM_PROVIDER is available
- * - The LLM signals the texts are too different (`[SKIP]`)
- * - Any error occurs during the LLM call
- *
- * @param input - Adaptation input parameters
- * @param _ctx - Operation context (unused)
- *
- * @returns Adapted translation string, or `null` on failure
- */
-export const adaptMemoryOp = async (input: AdaptMemoryInput, _ctx?: OperationContext): Promise<{ adaptedTranslation: string | null; }>
-```
 
 ### `addTermToConceptOp`
 
@@ -392,6 +373,24 @@ export const loadElementTextsOp = async (data: LoadElementTextsInput, _ctx?: Ope
 export const lookupTermsForElementOp = async (elementId: number, translationLanguageId: string, _ctx?: OperationContext): Promise<{ term: string; termLanguageId: string; translation: string; translationLanguageId: string; definition?: string | null | undefined; subjectIds?: number[] | null | undefined; conceptId?: number | null | undefined; glossaryId?: string | null | undefined; }[]>
 ```
 
+### `compressBm25Score`
+
+```ts
+export function compressBm25Score(rawScore: number, _profile: "bm25-ratio-k1-v1"): number
+```
+
+### `buildMemoryRecallBm25Capabilities`
+
+```ts
+export function buildMemoryRecallBm25Capabilities(fullCatalog: string[], filterLanguageIds?: string[]): { languageId: string; enabled: boolean; textSearchConfig: string | null; tokenizerLabel: string | null; compressionProfile: "bm25-ratio-k1-v1" | null; disabledReason: string | null; }[]
+```
+
+### `collectBm25MemorySuggestionsOp`
+
+```ts
+export async function collectBm25MemorySuggestionsOp(input: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }, drizzle: import("drizzle-orm/node-postgres").NodePgDatabase<import("@cat/db").DrizzleSchema, import("drizzle-orm").EmptyRelations> & { $client: import("pg").Client; }): Promise<RawMemorySuggestion[]>
+```
+
 ### `placeholderize`
 
 ```ts
@@ -653,13 +652,13 @@ export const rebasePRFull = async (ctx: DbContext, input: RebasePRFullInput): Pr
 ### `recallContextRerankOp`
 
 ```ts
-export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `rerankTermRecallOp`
 
 ```ts
-export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
+export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
 ```
 
 ### `registerDomainEventHandlers`
@@ -788,7 +787,7 @@ export const searchChunkOp = async (payload: SearchChunkInput, ctx?: OperationCo
  *
  * @returns List of matching memory entries (sorted by confidence descending)
  */
-export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
+export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
 ```
 
 ### `semanticSearchTermsOp`
@@ -810,6 +809,41 @@ export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationCon
  * @returns Semantically related term matches
  */
 export const semanticSearchTermsOp = async (data: SemanticSearchTermsInput, _ctx?: OperationContext): Promise<SemanticSearchTermsOutput>
+```
+
+### `deriveSmartSuggestConfidence`
+
+```ts
+/**
+ * Derive a confidence score for a Smart Suggestion.
+ *
+ * Policy (spec §"Confidence Semantics"):
+ * - Strong memory support (≥ 0.9) raises confidence significantly.
+ * - Medium memory support (≥ 0.7) provides a moderate boost.
+ * - Absence of memory reduces confidence but does not forbid generation.
+ * - Terms and neighbor context add a small positive signal.
+ * - Hard cap at 0.85 to avoid overclaiming generative output.
+ */
+export const deriveSmartSuggestConfidence = (memories: SmartSuggestInput["memories"], terms: SmartSuggestInput["terms"], neighborTranslations: SmartSuggestInput["neighborTranslations"]): number
+```
+
+### `smartSuggestOp`
+
+```ts
+/**
+ * Built-in Smart Suggestion (first-party suggestion source).
+ *
+ * Combines pre-loaded memory matches, glossary terms, element metadata,
+ * and neighbor context, then makes a single LLM call to produce one
+ * suggestion. Performs no internal DB queries — all context is passed in.
+ *
+ * Returns `{ suggestion: null }` when no LLM_PROVIDER is available or
+ * when the LLM call fails.
+ *
+ * @param data - Smart suggestion input
+ * @param ctx - Operation context
+ */
+export const smartSuggestOp = async (data: SmartSuggestInput, ctx?: OperationContext): Promise<{ suggestion: { translation: string; confidence: number; meta?: { source: "smart-suggestion"; signalClasses: ("source" | "term" | "memory" | "context")[]; } | undefined; } | null; }>
 ```
 
 ### `statisticalTermAlignOp`
@@ -854,7 +888,7 @@ export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput
 /**
  * Streaming memory search backed by the aggregated recall helper.
  */
-export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
+export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
 ```
 
 ### `streamSearchTermsOp`
@@ -871,7 +905,7 @@ export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: Operat
  *
  * @returns Async iterable that yields deduplicated term match results
  */
-export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
+export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
 ```
 
 ### `termRecallOp`
@@ -889,7 +923,7 @@ export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: Operatio
  *
  * @returns Term matches enriched with concept subject information
  */
-export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
+export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
 ```
 
 ### `tokenizeOp`
@@ -1204,7 +1238,7 @@ export function applyGuardsToCandidates(candidates: RecallCandidate[], queryText
  * @param candidateSource - — source text of the candidate
  * @param minScore - — minimum score to emit evidence (default 0.3)
  */
-export function computeSparseEvidence(queryContentWords: string[], candidateSource: string, minScore?: number): { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; } | null
+export function computeSparseEvidence(queryContentWords: string[], candidateSource: string, minScore?: number): { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; } | null
 ```
 
 ### `augmentWithSparseLane`
@@ -1317,10 +1351,6 @@ export const orchestrateRerank = async ({
 ```
 
 ## Type Index
-
-* `AdaptMemoryInput` (type)
-
-* `AdaptMemoryOutput` (type)
 
 * `AddTermToConceptInput` (type)
 
@@ -1497,6 +1527,10 @@ export const orchestrateRerank = async ({
 * `SemanticSearchTermsInput` (type)
 
 * `SemanticSearchTermsOutput` (type)
+
+* `SmartSuggestInput` (type)
+
+* `SmartSuggestOutput` (type)
 
 * `StatisticalTermAlignInput` (type)
 

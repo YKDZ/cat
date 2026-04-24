@@ -1123,6 +1123,18 @@ export const vectorizedString = pgTable(
       "gin",
       sql`${table.value} gin_trgm_ops`,
     ),
+    index("idx_vectorized_string_value_en_bm25_rum")
+      .using(
+        "rum",
+        sql`to_tsvector('english', ${table.value}) rum_tsvector_ops`,
+      )
+      .where(sql`${table.languageId} = 'en'`),
+    index("idx_vectorized_string_value_zh_hans_bm25_rum")
+      .using(
+        "rum",
+        sql`to_tsvector('cat_zh_hans', ${table.value}) rum_tsvector_ops`,
+      )
+      .where(sql`${table.languageId} = 'zh-Hans'`),
     // Index for faster language lookup
     index().using("btree", table.languageId.asc().nullsLast()),
     // Index for status-based filtering

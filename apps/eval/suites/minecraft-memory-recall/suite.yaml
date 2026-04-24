@@ -25,9 +25,12 @@ plugins:
 scenarios:
   - type: memory-recall
     test-set: test-sets/memory-recall.yaml
-    scorers: [precision, recall, f1, hit-rate, latency]
+    scorers: [precision, recall, f1, hit-rate, channel-coverage, latency]
     params:
       maxAmount: 5
       minSimilarity: 0.72
       minVariantSimilarity: 0.7
       timeoutMs: 60000
+
+thresholds:
+  channel-coverage: ">= 1"

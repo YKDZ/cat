@@ -8,11 +8,6 @@
 
 | Symbol | Kind | Description |
 | ------ | ---- | ----------- |
-| `adaptMemoryOp` | function | Adapt a memory translation to fit the current source text via LLM.
-
-Returns `{ a |
-| `AdaptMemoryInput` | type |  |
-| `AdaptMemoryOutput` | type |  |
 | `addTermToConceptOp` | function | Add a term entry to an existing termConcept.
 
 After the write completes, the dom |
@@ -88,7 +83,12 @@ Concurrency safety is |
 
 Sends the candidate translation and gloss |
 | `LlmRefineTranslationInput` | type |  |
-| *(147 more)* | | |
+| `LlmRefineTranslationOutput` | type |  |
+| `llmTermAlignOp` | function | LLM term alignment (fallback strategy).
+
+Uses the LLM to judge candidate pairs t |
+| `LlmTermAlignInput` | type |  |
+| *(151 more)* | | |
 
 ## Related Topics
 

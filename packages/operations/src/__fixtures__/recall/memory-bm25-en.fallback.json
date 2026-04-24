@@ -1,0 +1,48 @@
+{
+  "name": "memory-bm25-en",
+  "description": "BM25 recall surfaces a keyword-heavy English memory without depending on sparse or semantic lanes.",
+  "kind": "memory",
+  "matrix": "fallback",
+  "query": {
+    "text": "allow passengers to teleport through nether and end portals",
+    "sourceLanguageId": "en",
+    "translationLanguageId": "zh-Hans"
+  },
+  "expected": {
+    "topId": 401,
+    "minimumTopConfidence": 0.83,
+    "requiredChannels": ["bm25"],
+    "requiredVariantTypes": [],
+    "missIds": []
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        {
+          "type": "text",
+          "value": "allow passengers to teleport through nether and end portals",
+          "start": 0,
+          "end": 57
+        }
+      ],
+      "exact": [],
+      "trgm": [],
+      "variant": [],
+      "bm25": [
+        {
+          "id": 401,
+          "source": "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways.",
+          "translation": "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 5,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "evidences": []
+        }
+      ],
+      "semantic": []
+    }
+  }
+}

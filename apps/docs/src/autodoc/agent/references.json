@@ -6307,6 +6307,15 @@
     "line": 11
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/language/list-all-languages.query:listAllLanguages",
+    "stableKey": "@cat/domain:packages/domain/src/queries/language/list-all-languages.query:listAllLanguages",
+    "name": "listAllLanguages",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/language/list-all-languages.query.ts",
+    "line": 5
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/language/list-languages.query:listLanguages",
     "stableKey": "@cat/domain:packages/domain/src/queries/language/list-languages.query:listLanguages",
     "name": "listLanguages",
@@ -6449,6 +6458,33 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-all-memories.query.ts",
     "line": 8
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:listBm25MemorySuggestions",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:listBm25MemorySuggestions",
+    "name": "listBm25MemorySuggestions",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-bm25-memory-suggestions.query.ts",
+    "line": 83
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:ListBm25MemorySuggestionsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:ListBm25MemorySuggestionsQuery",
+    "name": "ListBm25MemorySuggestionsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-bm25-memory-suggestions.query.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:RawBm25MemorySuggestion",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:RawBm25MemorySuggestion",
+    "name": "RawBm25MemorySuggestion",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-bm25-memory-suggestions.query.ts",
+    "line": 31
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:listExactMemorySuggestions",
@@ -8583,34 +8619,6 @@
     "description": "Message send request payload."
   },
   {
-    "id": "@cat/operations:packages/operations/src/adapt-memory:AdaptMemoryInput",
-    "stableKey": "@cat/operations:packages/operations/src/adapt-memory:AdaptMemoryInput",
-    "name": "AdaptMemoryInput",
-    "kind": "type",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/adapt-memory.ts",
-    "line": 36
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/adapt-memory:adaptMemoryOp",
-    "stableKey": "@cat/operations:packages/operations/src/adapt-memory:adaptMemoryOp",
-    "name": "adaptMemoryOp",
-    "kind": "function",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/adapt-memory.ts",
-    "line": 83,
-    "description": "Adapt a memory translation to fit the current source text via LLM.\n\nReturns `{ adaptedTranslation: null }` when:\n- No LLM_PROVIDER is available\n- The LLM signals the texts are too different (`[SKIP]`)\n- Any error occurs during the LLM call"
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/adapt-memory:AdaptMemoryOutput",
-    "stableKey": "@cat/operations:packages/operations/src/adapt-memory:AdaptMemoryOutput",
-    "name": "AdaptMemoryOutput",
-    "kind": "type",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/adapt-memory.ts",
-    "line": 37
-  },
-  {
     "id": "@cat/operations:packages/operations/src/add-term-to-concept:AddTermToConceptInput",
     "stableKey": "@cat/operations:packages/operations/src/add-term-to-concept:AddTermToConceptInput",
     "name": "AddTermToConceptInput",
@@ -8711,7 +8719,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 66
+    "line": 67
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -8720,7 +8728,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 82,
+    "line": 83,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -9169,6 +9177,33 @@
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/lookup-terms.ts",
     "line": 15
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/memory-recall-bm25:buildMemoryRecallBm25Capabilities",
+    "stableKey": "@cat/operations:packages/operations/src/memory-recall-bm25:buildMemoryRecallBm25Capabilities",
+    "name": "buildMemoryRecallBm25Capabilities",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/memory-recall-bm25.ts",
+    "line": 47
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/memory-recall-bm25:collectBm25MemorySuggestionsOp",
+    "stableKey": "@cat/operations:packages/operations/src/memory-recall-bm25:collectBm25MemorySuggestionsOp",
+    "name": "collectBm25MemorySuggestionsOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/memory-recall-bm25.ts",
+    "line": 74
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/memory-recall-bm25:compressBm25Score",
+    "stableKey": "@cat/operations:packages/operations/src/memory-recall-bm25:compressBm25Score",
+    "name": "compressBm25Score",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/memory-recall-bm25.ts",
+    "line": 39
   },
   {
     "id": "@cat/operations:packages/operations/src/memory-template:fillTemplate",
@@ -10131,6 +10166,44 @@
     "line": 31
   },
   {
+    "id": "@cat/operations:packages/operations/src/smart-suggest:deriveSmartSuggestConfidence",
+    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:deriveSmartSuggestConfidence",
+    "name": "deriveSmartSuggestConfidence",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/smart-suggest.ts",
+    "line": 101,
+    "description": "Derive a confidence score for a Smart Suggestion.\n\nPolicy (spec §\"Confidence Semantics\"):\n- Strong memory support (≥ 0.9) raises confidence significantly.\n- Medium memory support (≥ 0.7) provides a moderate boost.\n- Absence of memory reduces confidence but does not forbid generation.\n- Terms and neighbor context add a small positive signal.\n- Hard cap at 0.85 to avoid overclaiming generative output."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestInput",
+    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestInput",
+    "name": "SmartSuggestInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/smart-suggest.ts",
+    "line": 86
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/smart-suggest:smartSuggestOp",
+    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:smartSuggestOp",
+    "name": "smartSuggestOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/smart-suggest.ts",
+    "line": 191,
+    "description": "Built-in Smart Suggestion (first-party suggestion source).\n\nCombines pre-loaded memory matches, glossary terms, element metadata,\nand neighbor context, then makes a single LLM call to produce one\nsuggestion. Performs no internal DB queries — all context is passed in.\n\nReturns `{ suggestion: null }` when no LLM_PROVIDER is available or\nwhen the LLM call fails."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestOutput",
+    "stableKey": "@cat/operations:packages/operations/src/smart-suggest:SmartSuggestOutput",
+    "name": "SmartSuggestOutput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/smart-suggest.ts",
+    "line": 87
+  },
+  {
     "id": "@cat/operations:packages/operations/src/statistical-term-align:StatisticalTermAlignInput",
     "stableKey": "@cat/operations:packages/operations/src/statistical-term-align:StatisticalTermAlignInput",
     "name": "StatisticalTermAlignInput",
@@ -10268,7 +10341,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/testing/recall-fixture-schema.ts",
-    "line": 116
+    "line": 117
   },
   {
     "id": "@cat/operations:packages/operations/src/tokenize:TokenizeInput",
@@ -13318,6 +13391,42 @@
     "description": "Values serializable to JSON; `Date` is allowed and will be converted to ISO string by `JSON.stringify`.\nSafer than `unknown` — functions, symbols, and other non-serializable types are rejected."
   },
   {
+    "id": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CapabilityDirectory",
+    "stableKey": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CapabilityDirectory",
+    "name": "MemoryRecallBm25CapabilityDirectory",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/memory-recall.ts",
+    "line": 33
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CapabilityEntry",
+    "stableKey": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CapabilityEntry",
+    "name": "MemoryRecallBm25CapabilityEntry",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/memory-recall.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CapabilityQuery",
+    "stableKey": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CapabilityQuery",
+    "name": "MemoryRecallBm25CapabilityQuery",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/memory-recall.ts",
+    "line": 30
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CompressionProfile",
+    "stableKey": "@cat/shared:packages/shared/src/schema/memory-recall:MemoryRecallBm25CompressionProfile",
+    "name": "MemoryRecallBm25CompressionProfile",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/memory-recall.ts",
+    "line": 24
+  },
+  {
     "id": "@cat/shared:packages/shared/src/schema/misc:AdaptationMethod",
     "stableKey": "@cat/shared:packages/shared/src/schema/misc:AdaptationMethod",
     "name": "AdaptationMethod",
@@ -13513,7 +13622,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 136
+    "line": 137
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:AnchorSignature",
@@ -13522,7 +13631,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 117
+    "line": 118
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:BudgetClass",
@@ -13531,7 +13640,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 42
+    "line": 43
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:CandidateTopicAssignment",
@@ -13540,7 +13649,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 74
+    "line": 75
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:EvidenceLane",
@@ -13549,7 +13658,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 19
+    "line": 20
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:MemoryTopicBinding",
@@ -13558,7 +13667,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 87
+    "line": 88
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:ProviderStatus",
@@ -13567,7 +13676,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 153
+    "line": 154
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryProfile",
@@ -13576,7 +13685,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 38
+    "line": 39
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicConfidence",
@@ -13585,7 +13694,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 96
+    "line": 97
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:QueryTopicHypothesis",
@@ -13594,7 +13703,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 104
+    "line": 105
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:RankingDecision",
@@ -13603,7 +13712,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 127
+    "line": 128
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:ScopeEnvelope",
@@ -13612,7 +13721,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 51
+    "line": 52
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/precision-recall:TopicMatchState",
@@ -13621,7 +13730,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/precision-recall.ts",
-    "line": 59
+    "line": 60
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/project-setting:ProjectSettingPayload",
@@ -13639,7 +13748,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 27
+    "line": 29
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallDebugContext",
@@ -13648,7 +13757,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 70
+    "line": 72
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallEvidence",
@@ -13657,7 +13766,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 51
+    "line": 53
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankBand",

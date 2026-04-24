@@ -21,6 +21,7 @@ import type {
   RawMemoryResult,
 } from "./precision/types";
 
+import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25";
 import {
   fillTemplate,
   mappingToSlots,
@@ -312,6 +313,24 @@ export const collectMemoryRecallOp = async (
       .error(err, "collectMemoryRecallOp: variant match failed");
   }
 
+  try {
+    const bm25Results = await collectBm25MemorySuggestionsOp(
+      {
+        text,
+        sourceLanguageId: input.sourceLanguageId,
+        translationLanguageId: input.translationLanguageId,
+        memoryIds: input.memoryIds,
+        maxAmount: input.maxAmount,
+      },
+      drizzle,
+    );
+    await Promise.all(bm25Results.map(async (r) => pushResult(r.id, r)));
+  } catch (err) {
+    logger
+      .withSituation("OP")
+      .error(err, "collectMemoryRecallOp: bm25 match failed");
+  }
+
   const vectorStorage =
     input.vectorStorageId !== undefined
       ? { id: input.vectorStorageId }
@@ -381,7 +400,7 @@ export const collectMemoryRecallOp = async (
     }),
   );
 
-  // ── Sparse Lexical Lane ───────────────────────────────────────────
+  // ── Sparse Lexical Lane (heuristic post-merge evidence augmenter) ──
   const sparseContentWords = input.sourceNlpTokens
     ? input.sourceNlpTokens
         .filter((t) => !t.isStop && !t.isPunct)

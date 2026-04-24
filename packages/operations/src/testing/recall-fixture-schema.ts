@@ -106,6 +106,7 @@ export const RecallFixtureSchema = z.object({
         exact: z.array(MemoryResultSchema).default([]),
         trgm: z.array(MemoryResultSchema).default([]),
         variant: z.array(MemoryResultSchema).default([]),
+        bm25: z.array(MemoryResultSchema).default([]),
         semantic: z.array(MemoryResultSchema).default([]),
         sparse: z.array(MemoryResultSchema).default([]),
       })

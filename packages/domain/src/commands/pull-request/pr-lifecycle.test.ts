@@ -1,7 +1,10 @@
-import { DrizzleDB, user } from "@cat/db";
+import { combinedSchema, type DrizzleDB, user } from "@cat/db";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { Client } from "pg";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -15,13 +18,17 @@ import {
   updateProjectFeatures,
 } from "@/commands";
 import { executeCommand, executeQuery } from "@/executor";
-import { getDbHandle } from "@/infrastructure";
 import { getIssue } from "@/queries";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-let cleanup: (() => Promise<void>) | undefined;
+declare global {
+  // oxlint-disable-next-line no-var
+  var __DRIZZLE_DB__: DrizzleDB | undefined;
+}
+
+type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
 
 const getPgErrorCode = (error: unknown): string | undefined => {
   if (typeof error !== "object" || error === null) return undefined;
@@ -29,37 +36,59 @@ const getPgErrorCode = (error: unknown): string | undefined => {
   return typeof code === "string" ? code : undefined;
 };
 
-const setupTestDB = async (): Promise<
-  DrizzleDB & { cleanup: () => Promise<void> }
-> => {
-  process.env.DATABASE_URL =
+const setupTestDB = async (): Promise<TestDB> => {
+  const connectionString =
     process.env.TEST_DATABASE_URL ||
     process.env.DATABASE_URL ||
     "postgres://user:pass@localhost:5432/cat";
 
-  const db = new DrizzleDB();
-  await db.connect();
-  const client = db.client.$client;
+  const client = new Client({ connectionString });
+  await client.connect();
 
   try {
-    await client.query(`CREATE EXTENSION IF NOT EXISTS vector SCHEMA public`);
+    await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
   } catch (err: unknown) {
     const code = getPgErrorCode(err);
     if (code !== "23505" && code !== "42710") throw err;
   }
   try {
-    await client.query(`ALTER EXTENSION vector SET SCHEMA public`);
+    await client.query("ALTER EXTENSION vector SET SCHEMA public");
   } catch {
     // already set
   }
+
   try {
-    await client.query(`CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public`);
+    await client.query("CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public");
   } catch (err: unknown) {
     const code = getPgErrorCode(err);
     if (code !== "23505" && code !== "42710") throw err;
   }
   try {
-    await client.query(`ALTER EXTENSION pg_trgm SET SCHEMA public`);
+    await client.query("ALTER EXTENSION pg_trgm SET SCHEMA public");
+  } catch {
+    // already set
+  }
+
+  try {
+    await client.query("CREATE EXTENSION IF NOT EXISTS rum SCHEMA public");
+  } catch (err: unknown) {
+    const code = getPgErrorCode(err);
+    if (code !== "23505" && code !== "42710") throw err;
+  }
+  try {
+    await client.query("ALTER EXTENSION rum SET SCHEMA public");
+  } catch {
+    // already set
+  }
+
+  try {
+    await client.query("CREATE EXTENSION IF NOT EXISTS zhparser SCHEMA public");
+  } catch (err: unknown) {
+    const code = getPgErrorCode(err);
+    if (code !== "23505" && code !== "42710") throw err;
+  }
+  try {
+    await client.query("ALTER EXTENSION zhparser SET SCHEMA public");
   } catch {
     // already set
   }
@@ -67,30 +96,72 @@ const setupTestDB = async (): Promise<
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
   await client.query(`CREATE SCHEMA "${schemaName}"`);
   await client.query(`SET search_path TO "${schemaName}", public`);
-  await db.migrate(path.resolve(__dirname, "../../../../db/drizzle"));
+  await client.query(`
+    DO $$
+    DECLARE
+      current_schema_name text := current_schema();
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_ts_config cfg
+        JOIN pg_namespace ns ON ns.oid = cfg.cfgnamespace
+        WHERE cfg.cfgname = 'cat_zh_hans'
+          AND ns.nspname = current_schema_name
+      ) THEN
+        EXECUTE format(
+          'CREATE TEXT SEARCH CONFIGURATION %I.cat_zh_hans (PARSER = zhparser)',
+          current_schema_name
+        );
+        EXECUTE format(
+          'ALTER TEXT SEARCH CONFIGURATION %I.cat_zh_hans ADD MAPPING FOR n, v, a, i, e, l WITH simple',
+          current_schema_name
+        );
+      END IF;
+    END
+    $$;
+  `);
 
-  globalThis["__DRIZZLE_DB__"] = db;
+  const db = drizzle({
+    client,
+    schema: combinedSchema,
+    casing: "snake_case",
+  });
+  await migrate(db, {
+    migrationsFolder: path.resolve(__dirname, "../../../../db/drizzle"),
+    migrationsSchema: schemaName,
+  });
 
-  const cleanupDB = async () => {
-    if (globalThis["__DRIZZLE_DB__"] === db) {
-      delete globalThis["__DRIZZLE_DB__"];
+  const drizzleDB: DrizzleDB = {
+    client: db,
+    connect: async () => Promise.resolve(),
+    disconnect: async () => Promise.resolve(),
+    migrate: async () => Promise.resolve(),
+    ping: async () => {
+      await client.query("SELECT 1");
+    },
+  };
+  globalThis.__DRIZZLE_DB__ = drizzleDB;
+
+  const cleanup = async () => {
+    if (globalThis.__DRIZZLE_DB__?.client === db) {
+      delete globalThis.__DRIZZLE_DB__;
     }
     try {
       await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
     } finally {
-      await db.disconnect();
+      await client.end();
     }
   };
 
-  return Object.assign(db, { cleanup: cleanupDB });
+  return Object.assign(drizzleDB, { cleanup });
 };
 
+let testDb: TestDB;
+
 beforeAll(async () => {
-  const db = await setupTestDB();
-  cleanup = db.cleanup;
+  testDb = await setupTestDB();
   // Insert the creator user to satisfy FK constraint
-  const { client } = await getDbHandle();
-  await client
+  await testDb.client
     .insert(user)
     .values({
       id: CREATOR_ID,
@@ -101,7 +172,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await cleanup?.();
+  await testDb?.cleanup();
 });
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -109,8 +180,7 @@ afterAll(async () => {
 const CREATOR_ID = randomUUID();
 
 const makeProject = async () => {
-  const { client: db } = await getDbHandle();
-  return await executeCommand({ db }, createProject, {
+  return await executeCommand({ db: testDb.client }, createProject, {
     name: `test-project-${randomUUID()}`,
     description: null,
     creatorId: CREATOR_ID,
@@ -121,7 +191,7 @@ const makeProject = async () => {
 
 describe("PR Lifecycle", () => {
   test("创建 PR → DRAFT → OPEN → REVIEW → MERGED", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     const pr = await executeCommand({ db }, createPR, {
@@ -153,7 +223,7 @@ describe("PR Lifecycle", () => {
   });
 
   test("PR merge 时自动关闭关联 Issue", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     const issue = await executeCommand({ db }, createIssue, {
@@ -192,7 +262,7 @@ describe("PR Lifecycle", () => {
   });
 
   test("PR 关闭不自动关闭关联 Issue", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     const issue = await executeCommand({ db }, createIssue, {
@@ -223,7 +293,7 @@ describe("PR Lifecycle", () => {
   });
 
   test("无 Issue 的 PR 可独立创建和合并", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     const pr = await executeCommand({ db }, createPR, {
@@ -242,7 +312,7 @@ describe("PR Lifecycle", () => {
   });
 
   test("一个 Issue 可有多个 PR", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     const issue = await executeCommand({ db }, createIssue, {
@@ -278,7 +348,7 @@ describe("PR Lifecycle", () => {
 
 describe("PR Feature Toggle & Cascade", () => {
   test("存在活跃 PR 时拒绝关闭 PR 功能", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     // Enable PR feature first
@@ -305,7 +375,7 @@ describe("PR Feature Toggle & Cascade", () => {
   });
 
   test("无活跃 PR 时可关闭 PR 功能", async () => {
-    const { client: db } = await getDbHandle();
+    const db = testDb.client;
     const proj = await makeProject();
 
     // Enable PR feature

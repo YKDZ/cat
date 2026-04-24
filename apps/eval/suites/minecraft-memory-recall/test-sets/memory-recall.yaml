@@ -35,6 +35,7 @@ cases:
       - memoryItemRef: "mem:gamerule:gamerule_entitiesWithPassengersCanUsePortals_description"
         expectedSource: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
         expectedTranslation: "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。"
+        requiredChannels: ["bm25"]
     negativeMemories: []
   - id: mc-mem-005
     inputText: "Break your way into a Nether Fortress"
@@ -80,6 +81,7 @@ cases:
       - memoryItemRef: "mem:gamerule:gamerule_spawnChunkRadius_description"
         expectedSource: "The amount of chunks that stay loaded around the overworld spawn position."
         expectedTranslation: "主世界出生点周围保持加载的区块数量。"
+        requiredChannels: ["bm25"]
     negativeMemories: []
   - id: mc-mem-010
     inputText: "Weaken and then cure a Zombie Villager"
@@ -149,6 +151,7 @@ cases:
       - memoryItemRef: "mem:gamerule:gamerule_universalAnger_description"
         expectedSource: "Angered neutral mobs attack any nearby player, not just the player that angered them. Works best if forgiveDeadPlayers is disabled."
         expectedTranslation: "愤怒的中立生物将攻击附近的所有玩家，而不再限于激怒它们的玩家。禁用“宽恕死亡玩家”可达到最佳效果。"
+        requiredChannels: ["bm25"]
     negativeMemories: []
   - id: mc-mem-016
     inputText: "Steve starved to death while fighting the Zombie"
@@ -374,4 +377,14 @@ cases:
       - memoryItemRef: "mem:death:death_attack_cactus"
         expectedSource: "Steve was pricked to death"
         expectedTranslation: "Steve被戳死了"
+    negativeMemories: []
+  - id: mc-mem-041
+    inputText: "允许实体乘客通过下界和末地传送门传送"
+    sourceLanguage: zh-Hans
+    targetLanguage: en
+    expectedMemories:
+      - memoryItemRef: "mem:bm25:entitiesWithPassengersCanUsePortals_zh"
+        expectedSource: "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。"
+        expectedTranslation: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
+        requiredChannels: ["bm25"]
     negativeMemories: []

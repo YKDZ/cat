@@ -77,21 +77,6 @@ jobs:
     needs: static
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: pgvector/pgvector:pg18
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: cat
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U user -d cat"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -110,6 +95,35 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build Postgres Search Runtime
+        run: docker build -t cat-postgres-search-runtime apps/postgres-search-runtime
+
+      - name: Run Postgres Search Runtime
+        run: |
+          docker run -d --name cat-search-runtime \
+            -e POSTGRES_USER=user \
+            -e POSTGRES_PASSWORD=pass \
+            -e POSTGRES_DB=cat \
+            -p 5432:5432 \
+            cat-postgres-search-runtime
+
+      - name: Wait for Postgres Search Runtime
+        timeout-minutes: 2
+        run: |
+          for _ in $(seq 1 30); do
+            status="$(docker inspect -f '{{.State.Health.Status}}' cat-search-runtime)"
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              docker logs cat-search-runtime
+              exit 1
+            fi
+            sleep 2
+          done
+          docker logs cat-search-runtime
+          exit 1
 
       - name: Run Integration Tests (affected)
         env:
@@ -133,20 +147,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      postgres:
-        image: pgvector/pgvector:pg18
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: pass
-          POSTGRES_DB: cat
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U user -d cat"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -165,6 +165,35 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build Postgres Search Runtime
+        run: docker build -t cat-postgres-search-runtime apps/postgres-search-runtime
+
+      - name: Run Postgres Search Runtime
+        run: |
+          docker run -d --name cat-search-runtime-e2e \
+            -e POSTGRES_USER=user \
+            -e POSTGRES_PASSWORD=pass \
+            -e POSTGRES_DB=cat \
+            -p 5432:5432 \
+            cat-postgres-search-runtime
+
+      - name: Wait for Postgres Search Runtime
+        timeout-minutes: 2
+        run: |
+          for _ in $(seq 1 30); do
+            status="$(docker inspect -f '{{.State.Health.Status}}' cat-search-runtime-e2e)"
+            if [ "$status" = "healthy" ]; then
+              exit 0
+            fi
+            if [ "$status" = "unhealthy" ]; then
+              docker logs cat-search-runtime-e2e
+              exit 1
+            fi
+            sleep 2
+          done
+          docker logs cat-search-runtime-e2e
+          exit 1
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps

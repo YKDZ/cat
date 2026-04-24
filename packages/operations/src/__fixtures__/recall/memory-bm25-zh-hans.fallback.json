@@ -1,0 +1,44 @@
+{
+  "name": "memory-bm25-zh-hans",
+  "description": "BM25 recall keeps caller-oriented source and translation fields for zh-Hans to en queries.",
+  "kind": "memory",
+  "matrix": "fallback",
+  "query": {
+    "text": "发票 42 完成",
+    "sourceLanguageId": "zh-Hans",
+    "translationLanguageId": "en"
+  },
+  "expected": {
+    "topId": 402,
+    "minimumTopConfidence": 0.8,
+    "requiredChannels": ["bm25"],
+    "requiredVariantTypes": [],
+    "expectedTranslation": "Invoice 42 Completed",
+    "missIds": []
+  },
+  "mock": {
+    "memory": {
+      "queryTokens": [
+        { "type": "text", "value": "发票 42 完成", "start": 0, "end": 8 }
+      ],
+      "exact": [],
+      "trgm": [],
+      "variant": [],
+      "bm25": [
+        {
+          "id": 402,
+          "source": "发票 42 已完成",
+          "translation": "Invoice 42 Completed",
+          "translationChunkSetId": null,
+          "memoryId": "22222222-2222-4222-8222-222222222222",
+          "creatorId": null,
+          "confidence": 4,
+          "createdAt": "2024-01-01T00:00:00.000Z",
+          "updatedAt": "2024-01-01T00:00:00.000Z",
+          "evidences": []
+        }
+      ],
+      "semantic": []
+    }
+  }
+}

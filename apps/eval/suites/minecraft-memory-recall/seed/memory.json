@@ -234,6 +234,13 @@
         "translationLanguage": "zh-Hans"
       },
       {
+        "ref": "mem:bm25:entitiesWithPassengersCanUsePortals_zh",
+        "source": "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。",
+        "translation": "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways.",
+        "sourceLanguage": "zh-Hans",
+        "translationLanguage": "en"
+      },
+      {
         "ref": "mem:adv:advancements_husbandry_obtain_sniffer_egg_description",
         "source": "Obtain a Sniffer Egg",
         "translation": "获得嗅探兽蛋",

@@ -8,9 +8,16 @@ import { WebSocket } from "partysocket";
 import { useBranchStore } from "@/app/stores/branch";
 import { clientLogger as logger } from "@/app/utils/logger";
 
+const wsOrigin =
+  typeof window === "undefined"
+    ? "ws://localhost:3000"
+    : window.location.origin
+        .replace(/^https:\/\//, "wss://")
+        .replace(/^http:\/\//, "ws://");
+
 const link = new RPCLink({
   // oxlint-disable-next-line no-unsafe-type-assertion -- partysocket types readyState as number instead of 0|1|2|3
-  websocket: new WebSocket("ws://localhost:3000/api/ws") as unknown as Pick<
+  websocket: new WebSocket(`${wsOrigin}/api/ws`) as unknown as Pick<
     globalThis.WebSocket,
     "addEventListener" | "send" | "readyState"
   >,

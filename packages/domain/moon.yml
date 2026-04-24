@@ -17,7 +17,7 @@ tasks:
       cache: true
 
   test-unit:
-    command: "vitest run --config ../../vitest.config.ts --project=domain --include='**/*.spec.ts'"
+    command: "vitest run --config ../../vitest.config.ts --project=domain 'src/**/*.spec.ts'"
     inputs:
       - "@group(sources)"
       - "@group(tests)"
@@ -27,7 +27,7 @@ tasks:
       cache: true
 
   test-integration:
-    command: "vitest run --config ../../vitest.config.ts --project=domain --include='**/*.test.ts'"
+    command: "vitest run --config ../../vitest.config.ts --project=domain 'src/**/*.test.ts'"
     inputs:
       - "@group(sources)"
       - "@group(tests)"

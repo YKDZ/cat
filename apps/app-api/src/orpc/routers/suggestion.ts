@@ -2,10 +2,20 @@ import {
   executeQuery,
   getElementWithChunkIds,
   listMemoryIdsByProject,
+  listNeighborElements,
   listProjectGlossaryIds,
 } from "@cat/domain";
-import { AsyncMessageQueue, hash } from "@cat/server-shared";
-import { serverLogger as logger } from "@cat/server-shared";
+import {
+  collectMemoryRecallOp,
+  type MemorySuggestionWithPrecision,
+  smartSuggestOp,
+  termRecallOp,
+} from "@cat/operations";
+import {
+  AsyncMessageQueue,
+  hash,
+  serverLogger as logger,
+} from "@cat/server-shared";
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
@@ -36,6 +46,7 @@ export const onNew = authed
     } = context;
     const { elementId, languageId } = input;
 
+    // ── Load element and project bindings ────────────────────────────────────
     const element = await executeQuery(
       { db: drizzle },
       getElementWithChunkIds,
@@ -46,19 +57,88 @@ export const onNew = authed
       throw new Error(`Element with ID ${elementId} not found`);
     }
 
-    const glossaryIds = await executeQuery(
-      { db: drizzle },
-      listProjectGlossaryIds,
-      { projectId: element.projectId },
-    );
+    const [glossaryIds, memoryIds] = await Promise.all([
+      executeQuery({ db: drizzle }, listProjectGlossaryIds, {
+        projectId: element.projectId,
+      }),
+      executeQuery({ db: drizzle }, listMemoryIdsByProject, {
+        projectId: element.projectId,
+      }),
+    ]);
 
-    const memoryIds = await executeQuery(
-      { db: drizzle },
-      listMemoryIdsByProject,
-      { projectId: element.projectId },
-    );
+    // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
+    const [recalledMemories, termContext, neighbors] = await Promise.all([
+      memoryIds.length > 0
+        ? collectMemoryRecallOp(
+            {
+              text: element.value,
+              sourceLanguageId: element.languageId,
+              translationLanguageId: languageId,
+              memoryIds,
+              chunkIds: element.chunkIds,
+            },
+            { pluginManager, traceId: crypto.randomUUID() },
+          ).catch((err: unknown) => {
+            logger
+              .withSituation("RPC")
+              .warn(
+                { err },
+                "suggestion.onNew: memory recall failed, continuing without",
+              );
+            return [] as MemorySuggestionWithPrecision[];
+          })
+        : Promise.resolve([]),
+      glossaryIds.length > 0
+        ? termRecallOp(
+            {
+              text: element.value,
+              sourceLanguageId: element.languageId,
+              translationLanguageId: languageId,
+              glossaryIds,
+            },
+            { pluginManager, traceId: crypto.randomUUID() },
+          ).catch((err: unknown) => {
+            logger
+              .withSituation("RPC")
+              .warn(
+                { err },
+                "suggestion.onNew: term recall failed, continuing without",
+              );
+            return { terms: [] };
+          })
+        : Promise.resolve({ terms: [] }),
+      executeQuery({ db: drizzle }, listNeighborElements, {
+        elementId,
+        windowSize: 3,
+      }).catch(() => []),
+    ]);
 
+    // Flatten context for downstream consumers
+    const preloadedMemoriesForAdvisors = recalledMemories.map((m) => ({
+      source: m.source,
+      translation: m.adaptedTranslation ?? m.translation,
+      confidence: m.confidence,
+    }));
+
+    const preloadedTermsForAdvisors = termContext.terms.map((t) => ({
+      term: t.term,
+      translation: t.translation,
+      confidence: t.confidence,
+      definition: t.definition,
+      concept: t.concept,
+    }));
+
+    const neighborTranslations = neighbors
+      .map((n) =>
+        n.approvedTranslation
+          ? { source: n.value, translation: n.approvedTranslation }
+          : null,
+      )
+      .filter((n): n is NonNullable<typeof n> => n !== null);
+
+    // ── Suggestion queue (receives both Smart Suggest and advisor results) ────
     const suggestionsQueue = new AsyncMessageQueue<TranslationSuggestion>();
+
     const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(
       "workflow:suggestion:ready",
       async (event) => {
@@ -82,14 +162,42 @@ export const onNew = authed
 
     const advisors = pluginManager.getServices("TRANSLATION_ADVISOR");
 
-    const advisorAmount = advisors.length;
+    // ── Run Smart Suggestion and external advisors concurrently ──────────────
+    const smartSuggestTask = smartSuggestOp(
+      {
+        sourceText: element.value,
+        sourceLanguageId: element.languageId,
+        targetLanguageId: languageId,
+        memories: recalledMemories.map((m) => ({
+          source: m.source,
+          translation: m.translation,
+          adaptedTranslation: m.adaptedTranslation,
+          confidence: m.confidence,
+        })),
+        terms: termContext.terms.map((t) => ({
+          term: t.term,
+          translation: t.translation,
+          definition: t.definition,
+        })),
+        neighborTranslations,
+      },
+      { pluginManager, traceId: crypto.randomUUID() },
+    )
+      .then(({ suggestion }) => {
+        if (suggestion) {
+          suggestionsQueue.push(suggestion);
+        }
+      })
+      .catch((err: unknown) => {
+        logger
+          .withSituation("RPC")
+          .warn(
+            { err },
+            "suggestion.onNew: Smart Suggestion failed, continuing",
+          );
+      });
 
-    if (advisorAmount === 0) {
-      return;
-    }
-
-    // TODO 复用建议工作流
-    const processSuggestions = advisors.map(async (advisor) => {
+    const advisorTasks = advisors.map(async (advisor) => {
       const elementHash = hash({
         ...element,
         targetLanguageId: languageId,
@@ -116,6 +224,8 @@ export const onNew = authed
           translationLanguageId: languageId,
           eventElementId: elementId,
           eventAdvisorId: advisor.dbId,
+          preloadedMemories: preloadedMemoriesForAdvisors,
+          preloadedTerms: preloadedTermsForAdvisors,
         },
         {
           pluginManager,
@@ -130,7 +240,7 @@ export const onNew = authed
       await cacheStore.set(cacheKey, advisorSuggestions, 60 * 60);
     });
 
-    void Promise.all(processSuggestions)
+    void Promise.all([smartSuggestTask, ...advisorTasks])
       .then(() => {
         suggestionsQueue.close();
       })

@@ -13,7 +13,8 @@ services:
       - 6379:6379
 
   postgresql:
-    image: pgvector/pgvector:pg18
+    build:
+      context: ../../../postgres-search-runtime
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass

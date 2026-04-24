@@ -30,7 +30,8 @@ services:
       timeout: 3s
 
   postgresql:
-    image: pgvector/pgvector:pg18
+    build:
+      context: ../postgres-search-runtime
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass

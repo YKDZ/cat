@@ -177,7 +177,7 @@
       "domain/core"
     ],
     "public": true,
-    "fragmentCount": 9,
+    "fragmentCount": 10,
     "zhPage": "infra/infra--operations.zh.md",
     "enPage": "infra/infra--operations.en.md"
   },
