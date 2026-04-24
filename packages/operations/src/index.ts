@@ -225,13 +225,15 @@ export {
 } from "./llm-refine-translation";
 
 export {
-  smartSuggestOp,
-  SmartSuggestInputSchema,
-  SmartSuggestOutputSchema,
-  deriveSmartSuggestConfidence,
-  type SmartSuggestInput,
-  type SmartSuggestOutput,
-} from "./smart-suggest";
+  llmTranslateOp,
+  LlmTranslateInputSchema,
+  LlmTranslateOutputSchema,
+  LlmTranslateConfigSchema,
+  deriveLlmTranslateConfidence,
+  type LlmTranslateInput,
+  type LlmTranslateOutput,
+  type LlmTranslateConfig,
+} from "./llm-translate";
 
 // === Level 3+ Operations ===
 export {

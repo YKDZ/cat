@@ -2,13 +2,12 @@ import {
   executeQuery,
   getElementWithChunkIds,
   listMemoryIdsByProject,
-  listNeighborElements,
   listProjectGlossaryIds,
 } from "@cat/domain";
 import {
   collectMemoryRecallOp,
+  llmTranslateOp,
   type MemorySuggestionWithPrecision,
-  smartSuggestOp,
   termRecallOp,
 } from "@cat/operations";
 import {
@@ -67,7 +66,7 @@ export const onNew = authed
     ]);
 
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
-    const [recalledMemories, termContext, neighbors] = await Promise.all([
+    const [recalledMemories, termContext] = await Promise.all([
       memoryIds.length > 0
         ? collectMemoryRecallOp(
             {
@@ -107,10 +106,6 @@ export const onNew = authed
             return { terms: [] };
           })
         : Promise.resolve({ terms: [] }),
-      executeQuery({ db: drizzle }, listNeighborElements, {
-        elementId,
-        windowSize: 3,
-      }).catch(() => []),
     ]);
 
     // Flatten context for downstream consumers
@@ -127,14 +122,6 @@ export const onNew = authed
       definition: t.definition,
       concept: t.concept,
     }));
-
-    const neighborTranslations = neighbors
-      .map((n) =>
-        n.approvedTranslation
-          ? { source: n.value, translation: n.approvedTranslation }
-          : null,
-      )
-      .filter((n): n is NonNullable<typeof n> => n !== null);
 
     // ── Suggestion queue (receives both Smart Suggest and advisor results) ────
     const suggestionsQueue = new AsyncMessageQueue<TranslationSuggestion>();
@@ -162,12 +149,12 @@ export const onNew = authed
 
     const advisors = pluginManager.getServices("TRANSLATION_ADVISOR");
 
-    // ── Run Smart Suggestion and external advisors concurrently ──────────────
-    const smartSuggestTask = smartSuggestOp(
+    // ── Run LLM Translate and external advisors concurrently ──────────────
+    const llmTranslateTask = llmTranslateOp(
       {
-        sourceText: element.value,
-        sourceLanguageId: element.languageId,
+        elementId,
         targetLanguageId: languageId,
+        config: {},
         memories: recalledMemories.map((m) => ({
           source: m.source,
           translation: m.translation,
@@ -179,7 +166,6 @@ export const onNew = authed
           translation: t.translation,
           definition: t.definition,
         })),
-        neighborTranslations,
       },
       { pluginManager, traceId: crypto.randomUUID() },
     )
@@ -191,10 +177,7 @@ export const onNew = authed
       .catch((err: unknown) => {
         logger
           .withSituation("RPC")
-          .warn(
-            { err },
-            "suggestion.onNew: Smart Suggestion failed, continuing",
-          );
+          .warn({ err }, "suggestion.onNew: LLM Translate failed, continuing");
       });
 
     const advisorTasks = advisors.map(async (advisor) => {
@@ -240,7 +223,7 @@ export const onNew = authed
       await cacheStore.set(cacheKey, advisorSuggestions, 60 * 60);
     });
 
-    void Promise.all([smartSuggestTask, ...advisorTasks])
+    void Promise.all([llmTranslateTask, ...advisorTasks])
       .then(() => {
         suggestionsQueue.close();
       })

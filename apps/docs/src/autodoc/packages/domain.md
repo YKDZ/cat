@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 311
+* **Modules**: 313
 
-* **Exported functions**: 333
+* **Exported functions**: 335
 
-* **Exported types**: 431
+* **Exported types**: 435
 
 ## Function Index
 
@@ -2055,6 +2055,18 @@ export const listCachedVectorizedStrings: Query<
 > = async (ctx: DbContext, query: { items: { text: string; languageId: string; }[]; }) => {...}
 ```
 
+### `listElementComments`
+
+```ts
+/**
+ * Query comments on an element with their replies, ordered by most recent.
+ */
+export const listElementComments: Query<
+  ListElementCommentsQuery,
+  CommentThread[]
+> = async (ctx: DbContext, query: { elementId: number; maxCount: number; }) => {...}
+```
+
 ### `listElementSourceTexts`
 
 ```ts
@@ -3100,6 +3112,19 @@ export const getTranslationVoteTotal: Query<
 > = async (ctx: DbContext, query: { translationId: number; }) => {...}
 ```
 
+### `listDocumentApprovedTranslations`
+
+```ts
+/**
+ * Query approved translations from other elements in the same document,
+ * ordered by proximity to the current element.
+ */
+export const listDocumentApprovedTranslations: Query<
+  ListDocumentApprovedTranslationsQuery,
+  ApprovedTranslationEntry[]
+> = async (ctx: DbContext, query: { elementId: number; languageId: string; maxCount: number; }) => {...}
+```
+
 ### `listQaResultsByTranslation`
 
 ```ts
@@ -3734,6 +3759,10 @@ export const searchChunkCosineSimilarity: Query<
 
 * `CachedVectorizedString` (type)
 
+* `ListElementCommentsQuery` (type)
+
+* `CommentThread` (type)
+
 * `ListElementSourceTextsQuery` (type)
 
 * `ElementSourceText` (type)
@@ -4017,6 +4046,10 @@ export const searchChunkCosineSimilarity: Query<
 * `GetSelfTranslationVoteQuery` (type)
 
 * `GetTranslationVoteTotalQuery` (type)
+
+* `ListDocumentApprovedTranslationsQuery` (type)
+
+* `ApprovedTranslationEntry` (type)
 
 * `ListQaResultsByTranslationQuery` (type)
 

@@ -88,7 +88,7 @@ Sends the candidate translation and gloss |
 
 Uses the LLM to judge candidate pairs t |
 | `LlmTermAlignInput` | type |  |
-| *(151 more)* | | |
+| *(152 more)* | | |
 
 ## Related Topics
 

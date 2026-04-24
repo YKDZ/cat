@@ -3,7 +3,7 @@ import {
   findOpenAutoTranslatePR,
   getElementWithChunkIds,
 } from "@cat/domain";
-import { smartSuggestOp } from "@cat/operations";
+import { llmTranslateOp } from "@cat/operations";
 import { readWithOverlay } from "@cat/vcs";
 import * as z from "zod";
 
@@ -20,12 +20,6 @@ export const suggest = authed
       currentInput: z.string(),
       /** Cursor position within currentInput */
       cursorPosition: z.int(),
-      /** Translation memory hints (pre-fetched by the frontend, optional) */
-      memoryHints: z.string().optional(),
-      /** Glossary term hints (pre-fetched by the frontend, optional) */
-      termHints: z.string().optional(),
-      /** Serialised neighbouring translated segments (optional) */
-      neighborElements: z.string().optional(),
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
@@ -70,38 +64,22 @@ export const suggest = authed
       }
     }
 
-    // No pre-translate result — try Smart Suggestion (interactive fallback path)
-    const parseHintsSafe = <T>(raw: string | undefined): T[] => {
-      if (!raw) return [];
-      try {
-        const parsed: unknown = JSON.parse(raw);
-        // oxlint-disable-next-line no-unsafe-type-assertion
-        return Array.isArray(parsed) ? (parsed as unknown[] as T[]) : [];
-      } catch {
-        return [];
-      }
-    };
-
-    const { suggestion } = await smartSuggestOp(
+    // No pre-translate result — try LLM Translate (interactive fallback path)
+    const { suggestion } = await llmTranslateOp(
       {
-        sourceText: elem.value,
-        sourceLanguageId: elem.languageId,
+        elementId,
         targetLanguageId: languageId,
-        memories: parseHintsSafe<{
-          source: string;
-          translation: string;
-          confidence: number;
-          adaptedTranslation?: string;
-        }>(input.memoryHints),
-        terms: parseHintsSafe<{
-          term: string;
-          translation: string;
-          definition: string | null;
-        }>(input.termHints),
-        neighborTranslations: parseHintsSafe<{
-          source: string;
-          translation: string;
-        }>(input.neighborElements),
+        config: {
+          memory: true,
+          term: true,
+          elementMeta: true,
+          neighborTranslations: true,
+          elementContexts: { enabled: false },
+          approvedTranslations: { enabled: false },
+          comments: { enabled: false },
+        },
+        memories: [],
+        terms: [],
       },
       { pluginManager: context.pluginManager, traceId: crypto.randomUUID() },
     );

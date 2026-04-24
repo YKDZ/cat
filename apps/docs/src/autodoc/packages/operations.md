@@ -8,7 +8,7 @@ Operations layer: business workflows composing domain operations
 
 * **Exported functions**: 91
 
-* **Exported types**: 110
+* **Exported types**: 111
 
 ## Function Index
 
@@ -335,6 +335,45 @@ export const llmTermAlignOp = async (data: LlmTermAlignInput, ctx?: OperationCon
  * @returns Enhanced candidate list and the count of newly added LLM candidates
  */
 export const llmTermEnhanceOp = async (data: LlmTermEnhanceInput, ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; documentFrequency: number; source: "statistical" | "llm" | "both"; existsInGlossary: boolean; existingConceptId: number | null; definition: string | null; subjects: string[] | null; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; llmCandidatesAdded: number; }>
+```
+
+### `deriveLlmTranslateConfidence`
+
+```ts
+/**
+ * Derive a confidence score for an LLM translation suggestion.
+ *
+ * Base score from memory match confidence, plus fixed bonuses per context signal present.
+ * Hard cap at 0.85, rounded to 4 decimal places.
+ *
+ * @param ctx - Confidence context signals
+ *
+ * @returns Confidence score between 0 and 0.85
+ */
+export const deriveLlmTranslateConfidence = (ctx: ConfidenceContext): number
+```
+
+### `llmTranslateOp`
+
+```ts
+/**
+ * Built-in LLM Translation Suggestion (first-party suggestion source).
+ *
+ * Self-loads element info, neighbor translations, element contexts, element metadata,
+ * approved translations, and comments via domain queries. Combines with
+ * caller-provided memory recall and term recall results, then calls the LLM
+ * once to produce a translation suggestion.
+ *
+ * Returns `{ suggestion: null }` when:
+ * - No LLM_PROVIDER is available
+ * - The LLM call fails
+ * - The element is not found
+ * - Database access fails
+ *
+ * @param data - LLM translate input
+ * @param ctx - Operation context
+ */
+export const llmTranslateOp = async (data: LlmTranslateInput, ctx?: OperationContext): Promise<{ suggestion: { translation: string; confidence: number; meta?: { source: "llm-translate"; signalClasses: ("source" | "term" | "memory" | "neighborTranslations" | "elementMeta" | "elementContexts" | "approvedTranslations" | "comments")[]; } | undefined; } | null; }>
 ```
 
 ### `loadElementTextsOp`
@@ -809,41 +848,6 @@ export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationCon
  * @returns Semantically related term matches
  */
 export const semanticSearchTermsOp = async (data: SemanticSearchTermsInput, _ctx?: OperationContext): Promise<SemanticSearchTermsOutput>
-```
-
-### `deriveSmartSuggestConfidence`
-
-```ts
-/**
- * Derive a confidence score for a Smart Suggestion.
- *
- * Policy (spec §"Confidence Semantics"):
- * - Strong memory support (≥ 0.9) raises confidence significantly.
- * - Medium memory support (≥ 0.7) provides a moderate boost.
- * - Absence of memory reduces confidence but does not forbid generation.
- * - Terms and neighbor context add a small positive signal.
- * - Hard cap at 0.85 to avoid overclaiming generative output.
- */
-export const deriveSmartSuggestConfidence = (memories: SmartSuggestInput["memories"], terms: SmartSuggestInput["terms"], neighborTranslations: SmartSuggestInput["neighborTranslations"]): number
-```
-
-### `smartSuggestOp`
-
-```ts
-/**
- * Built-in Smart Suggestion (first-party suggestion source).
- *
- * Combines pre-loaded memory matches, glossary terms, element metadata,
- * and neighbor context, then makes a single LLM call to produce one
- * suggestion. Performs no internal DB queries — all context is passed in.
- *
- * Returns `{ suggestion: null }` when no LLM_PROVIDER is available or
- * when the LLM call fails.
- *
- * @param data - Smart suggestion input
- * @param ctx - Operation context
- */
-export const smartSuggestOp = async (data: SmartSuggestInput, ctx?: OperationContext): Promise<{ suggestion: { translation: string; confidence: number; meta?: { source: "smart-suggestion"; signalClasses: ("source" | "term" | "memory" | "context")[]; } | undefined; } | null; }>
 ```
 
 ### `statisticalTermAlignOp`
@@ -1422,6 +1426,12 @@ export const orchestrateRerank = async ({
 
 * `LlmTermEnhanceOutput` (type)
 
+* `LlmTranslateConfig` (type)
+
+* `LlmTranslateInput` (type)
+
+* `LlmTranslateOutput` (type)
+
 * `LoadElementTextsInput` (type)
 
 * `LoadElementTextsOutput` (type)
@@ -1527,10 +1537,6 @@ export const orchestrateRerank = async ({
 * `SemanticSearchTermsInput` (type)
 
 * `SemanticSearchTermsOutput` (type)
-
-* `SmartSuggestInput` (type)
-
-* `SmartSuggestOutput` (type)
 
 * `StatisticalTermAlignInput` (type)
 

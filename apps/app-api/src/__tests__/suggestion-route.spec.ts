@@ -10,7 +10,7 @@ import type { Context } from "@/utils/context";
 const opMocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
   termRecallOp: vi.fn(),
-  smartSuggestOp: vi.fn(),
+  llmTranslateOp: vi.fn(),
 }));
 
 const domainMocks = vi.hoisted(() => ({
@@ -42,7 +42,7 @@ vi.mock("@cat/operations", async () => {
     ...actual,
     collectMemoryRecallOp: opMocks.collectMemoryRecallOp,
     termRecallOp: opMocks.termRecallOp,
-    smartSuggestOp: opMocks.smartSuggestOp,
+    llmTranslateOp: opMocks.llmTranslateOp,
   };
 });
 
@@ -152,15 +152,15 @@ describe("suggestion.onNew", () => {
 
     opMocks.collectMemoryRecallOp.mockResolvedValue([]);
     opMocks.termRecallOp.mockResolvedValue({ terms: [] });
-    opMocks.smartSuggestOp.mockResolvedValue({ suggestion: null });
+    opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
   });
 
   it("yields Smart Suggestion when LLM is available and no external advisors are configured", async () => {
-    opMocks.smartSuggestOp.mockResolvedValue({
+    opMocks.llmTranslateOp.mockResolvedValue({
       suggestion: {
         translation: "保存更改",
         confidence: 0.5,
-        meta: { source: "smart-suggestion", signalClasses: ["source"] },
+        meta: { source: "llm-translate", signalClasses: ["source"] },
       },
     });
 
@@ -180,11 +180,19 @@ describe("suggestion.onNew", () => {
       }),
     );
     expect(results[0]).not.toHaveProperty("advisorId");
-    expect(opMocks.smartSuggestOp).toHaveBeenCalledOnce();
+    expect(opMocks.llmTranslateOp).toHaveBeenCalledOnce();
+    expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        elementId: 10,
+        targetLanguageId: "zh-Hans",
+        config: {},
+      }),
+      expect.anything(),
+    );
   });
 
   it("does not yield when Smart Suggestion returns null", async () => {
-    opMocks.smartSuggestOp.mockResolvedValue({ suggestion: null });
+    opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
 
     const stream = await call(
       onNewSuggestion,
@@ -197,7 +205,7 @@ describe("suggestion.onNew", () => {
   });
 
   it("stream completes without throwing when Smart Suggestion rejects", async () => {
-    opMocks.smartSuggestOp.mockRejectedValue(new Error("LLM unavailable"));
+    opMocks.llmTranslateOp.mockRejectedValue(new Error("LLM unavailable"));
 
     const stream = await call(
       onNewSuggestion,
@@ -210,7 +218,7 @@ describe("suggestion.onNew", () => {
     expect(results).toHaveLength(0);
   });
 
-  it("passes preloaded memories to smartSuggestOp when memories are available", async () => {
+  it("passes preloaded memories to llmTranslateOp when memories are available", async () => {
     const memory = {
       id: 1,
       source: "Save changes",
@@ -233,7 +241,7 @@ describe("suggestion.onNew", () => {
     });
 
     opMocks.collectMemoryRecallOp.mockResolvedValue([memory]);
-    opMocks.smartSuggestOp.mockResolvedValue({ suggestion: null });
+    opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
 
     const stream = await call(
       onNewSuggestion,
@@ -243,8 +251,11 @@ describe("suggestion.onNew", () => {
 
     await collect(stream);
 
-    expect(opMocks.smartSuggestOp).toHaveBeenCalledWith(
+    expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
       expect.objectContaining({
+        elementId: 10,
+        targetLanguageId: "zh-Hans",
+        config: {},
         memories: expect.arrayContaining([
           expect.objectContaining({ source: "Save changes", confidence: 0.95 }),
         ]),
@@ -266,7 +277,7 @@ describe("ghost-text.suggest", () => {
       return null;
     });
 
-    opMocks.smartSuggestOp.mockResolvedValue({ suggestion: null });
+    opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
   });
 
   it("yields pre-translate result when auto-translate PR is found", async () => {
@@ -299,15 +310,15 @@ describe("ghost-text.suggest", () => {
     expect(results).toHaveLength(1);
     expect(results[0]).toEqual({ text: "保存更改 (pre-translate)" });
     // Smart Suggestion NOT called when pre-translate result exists
-    expect(opMocks.smartSuggestOp).not.toHaveBeenCalled();
+    expect(opMocks.llmTranslateOp).not.toHaveBeenCalled();
   });
 
   it("falls back to Smart Suggestion when no auto-translate PR result", async () => {
-    opMocks.smartSuggestOp.mockResolvedValue({
+    opMocks.llmTranslateOp.mockResolvedValue({
       suggestion: {
         translation: "保存更改",
         confidence: 0.5,
-        meta: { source: "smart-suggestion", signalClasses: ["source"] },
+        meta: { source: "llm-translate", signalClasses: ["source"] },
       },
     });
 
@@ -325,11 +336,23 @@ describe("ghost-text.suggest", () => {
     const results = await collect(stream);
     expect(results).toHaveLength(1);
     expect(results[0]).toEqual({ text: "保存更改" });
-    expect(opMocks.smartSuggestOp).toHaveBeenCalledOnce();
+    expect(opMocks.llmTranslateOp).toHaveBeenCalledOnce();
+    expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        elementId: 10,
+        targetLanguageId: "zh-Hans",
+        config: expect.objectContaining({
+          elementContexts: { enabled: false },
+          approvedTranslations: { enabled: false },
+          comments: { enabled: false },
+        }),
+      }),
+      expect.anything(),
+    );
   });
 
   it("yields nothing when both auto-translate and Smart Suggestion produce no result", async () => {
-    opMocks.smartSuggestOp.mockResolvedValue({ suggestion: null });
+    opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
 
     const stream = await call(
       ghostTextSuggest,
