@@ -15,7 +15,7 @@ subject: infra/operations
 
 ## 主要能力分区
 
-**术语与记忆**：`createTermOp`（新建术语条目并触发向量化）、`termRecallOp`（词汇/形态/语义三通道术语召回）、`collectMemoryRecallOp`（精确/trigram/variant/语义四通道翻译记忆召回）。
+**术语与记忆**：`createTermOp`（新建术语条目并触发向量化）、`termRecallOp`（词汇、形态、语义多路术语召回）、`collectMemoryRecallOp`（精确 / trigram / variant / bm25 / 语义五条候选通道的翻译记忆召回，随后再追加 `sparse` 启发式证据）。
 
 **自动翻译**：`fetchBestTranslationCandidateOp`（并行查询 advisor 与记忆，选取最优候选）、`runAutoTranslatePipeline`（批量预翻译流水线，写入 AUTO_TRANSLATE PR changeset）。
 

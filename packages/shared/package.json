@@ -143,6 +143,10 @@
       "types": "./dist/schema/precision-recall.d.ts",
       "import": "./dist/schema/precision-recall.js"
     },
+    "./schema/memory-recall": {
+      "types": "./dist/schema/memory-recall.d.ts",
+      "import": "./dist/schema/memory-recall.js"
+    },
     "./schema/rerank": {
       "types": "./dist/schema/rerank.d.ts",
       "import": "./dist/schema/rerank.js"

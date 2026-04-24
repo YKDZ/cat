@@ -186,6 +186,12 @@ export {
   CollectMemoryRecallInputSchema,
   type CollectMemoryRecallInput,
 } from "./collect-memory-recall";
+export {
+  BM25_DISABLED_REASON,
+  buildMemoryRecallBm25Capabilities,
+  compressBm25Score,
+  MEMORY_RECALL_BM25_REGISTRY,
+} from "./memory-recall-bm25";
 
 export {
   qaTranslationOp,

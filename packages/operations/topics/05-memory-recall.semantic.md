@@ -5,7 +5,7 @@ title: 记忆回归与模板适配
 
 ## 整体流程
 
-`collectMemoryRecallOp`（[collect-memory-recall.ts](../src/collect-memory-recall.ts)）是对外接口，顺序执行四条回归通道，并维护一个以 `memoryItemId` 为 key 的全局 `seen` Map，实现跨通道去重与 evidence 合并，最终按置信度降序返回。
+`collectMemoryRecallOp`（[collect-memory-recall.ts](../src/collect-memory-recall.ts)）是对外接口，顺序执行五条候选通道（exact / trgm / variant / bm25 / semantic），并维护一个以 `memoryItemId` 为 key 的全局 `seen` Map，实现跨通道去重与 evidence 合并，最终按置信度降序返回。
 
 每条通道的结果都通过 `pushResult` 写入 `seen`：若该 id 已存在，则合并 evidences（按五元组 key 去重）并保留最高置信度；若不存在则直接插入。对于有 TOKEN_TEMPLATE 的命中条目，还会触发模板适配尝试。
 
@@ -18,7 +18,7 @@ title: 记忆回归与模板适配
 **实现**：`listExactMemorySuggestions`（Domain 查询）  
 **输入**：原始 `text`  
 **机制**：对记忆库中的 source 文本做精确字符串等值查询，匹配置信度固定为 1.0。  
-**特点**：最快、最确定，是四路中优先级最高的通道。执行失败时会 `logger.error` 记录但不阻塞后续通道。
+**特点**：最快、最确定，是候选通道中优先级最高的通道。执行失败时会 `logger.error` 记录但不阻塞后续通道。
 
 ---
 
@@ -51,7 +51,16 @@ title: 记忆回归与模板适配
 
 ---
 
-## 通道 4：Semantic（向量语义匹配）
+## 通道 4：BM25（RUM 全文检索）
+
+**实现**：`collectBm25MemorySuggestionsOp` + `listBm25MemorySuggestions`  
+**输入**：原始 `text`  
+**机制**：仅对静态 BM25 registry 宣告支持的语言启用（首批为 `en` / `zh-Hans`），使用 PostgreSQL 全文检索、`rum_fts_rank_vbm25()` 和 `VectorizedString.value` 上的语言专用 RUM 表达式索引执行检索。召回结果在 Operations 层通过固定压缩函数归一化到 `0–1`，并追加 `channel: "bm25"` evidence。  
+**特点**：这是第五条正式候选通道；它依赖共享搜索运行时（`pgvector` + `pg_trgm` + `rum` + `zhparser` + `cat_zh_hans`），与后置 `sparse` 启发式证据明确分离。
+
+---
+
+## 通道 5：Semantic（向量语义匹配）
 
 **实现**：`searchMemoryOp`（[search-memory.ts](../src/search-memory.ts)）  
 **依赖**：`VECTOR_STORAGE` 插件（必须）；`TEXT_VECTORIZER` 插件（仅在未直接传入 `queryVectors` 时需要）  
@@ -99,6 +108,12 @@ title: 记忆回归与模板适配
 
 ---
 
+## Static Registry 与 Capability Route
+
+BM25 的语言支持信息不通过运行时探测暴露，而是由 `memory-recall-bm25.ts` 中的静态 registry 统一声明：当前仅 `en`（`english`）与 `zh-Hans`（`cat_zh_hans`）为 enabled，其它产品语言通过 `memory.getRecallCapabilities` 路由合成为 disabled capability，并携带稳定原因 `not-in-bm25-first-rollout`。
+
+---
+
 ## Precision Pipeline（精排层）
 
 `collectMemoryRecallOp` 收集原始多路结果后，由 `runPrecisionPipeline`（[precision-pipeline.ts](../src/precision/precision-pipeline.ts)）对候选进行精排。流程与 term 侧完全共享同一 Pipeline Orchestrator，步骤见 04-term-recall.semantic.md，包含 Step 8 **Model Reranker**（RERANK_PROVIDER 插件，fail-closed）。
@@ -131,4 +146,4 @@ Memory 侧特有的特征：
 
 ## 回归测试
 
-`memory-recall-regression.test.ts`（[源码](../src/memory-recall-regression.test.ts)）通过 fixture 回归门验证四条通道各自的命中行为不发生静默退化。测试场景包括：exact 精确命中、trgm 近似命中、variant 词形变化命中、TOKEN_TEMPLATE 模板适配正确性，以及 Precision Pipeline 层的精排行为（Tier 分配、template vs semantic hard-negative 竞争场景）。
+`memory-recall-regression.test.ts`（[源码](../src/memory-recall-regression.test.ts)）通过 fixture 回归门验证五条候选通道各自的命中行为不发生静默退化。测试场景包括：exact 精确命中、trgm 近似命中、variant 词形变化命中、BM25 关键词命中、TOKEN_TEMPLATE 模板适配正确性，以及 Precision Pipeline 层的精排行为（Tier 分配、template vs semantic hard-negative 竞争场景）。`sparse` 仍只在 merge 之后作为启发式证据增强，不参与候选召回。

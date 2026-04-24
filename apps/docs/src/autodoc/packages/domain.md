@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 309
+* **Modules**: 311
 
-* **Exported functions**: 331
+* **Exported functions**: 333
 
-* **Exported types**: 429
+* **Exported types**: 431
 
 ## Function Index
 
@@ -2160,7 +2160,7 @@ export const countGlossaryConcepts: Query<
  * the given concept IDs. Pairs with no matching term in either language are
  * omitted.
  */
-export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
+export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
 ```
 
 ### `buildConceptVectorizationText`
@@ -2446,6 +2446,15 @@ export const getLanguage: Query<
 > = async (ctx: DbContext, query: { languageId: string; }) => {...}
 ```
 
+### `listAllLanguages`
+
+```ts
+export const listAllLanguages: Query<
+  Record<string, never>,
+  Array<typeof language.$inferSelect>
+> = async (ctx: DbContext) => {...}
+```
+
 ### `listLanguages`
 
 ```ts
@@ -2508,6 +2517,15 @@ export const listAllMemories: Query<
   ListAllMemoriesQuery,
   Array<typeof memory.$inferSelect>
 > = async (ctx: DbContext, _query: Record) => {...}
+```
+
+### `listBm25MemorySuggestions`
+
+```ts
+export const listBm25MemorySuggestions: Query<
+  ListBm25MemorySuggestionsQuery,
+  RawBm25MemorySuggestion[]
+> = async (ctx: DbContext, query: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }) => {...}
 ```
 
 ### `listExactMemorySuggestions`
@@ -3843,6 +3861,10 @@ export const searchChunkCosineSimilarity: Query<
 * `GetSearchMemoryChunkRangeQuery` (type)
 
 * `ListAllMemoriesQuery` (type)
+
+* `ListBm25MemorySuggestionsQuery` (type)
+
+* `RawBm25MemorySuggestion` (type)
 
 * `RawMemorySuggestion` (type)
 

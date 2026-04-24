@@ -7,16 +7,30 @@ import {
   executeQuery,
   getElementWithChunkIds,
   getMemory,
+  listAllLanguages,
   listMemoryIdsByProject,
   listOwnedMemories,
   listProjectMemories,
 } from "@cat/domain";
-import { collectMemoryRecallOp, recallContextRerankOp } from "@cat/operations";
+import {
+  buildMemoryRecallBm25Capabilities,
+  collectMemoryRecallOp,
+  recallContextRerankOp,
+} from "@cat/operations";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
+import {
+  MemoryRecallBm25CapabilityDirectorySchema,
+  MemoryRecallBm25CapabilityQuerySchema,
+} from "@cat/shared/schema/memory-recall";
 import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
-import { authed, checkElementPermission, checkPermission } from "@/orpc/server";
+import {
+  authed,
+  base,
+  checkElementPermission,
+  checkPermission,
+} from "@/orpc/server";
 import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 export const create = authed
@@ -315,4 +329,23 @@ export const searchByText = authed
     for (const memory of memories) {
       yield memory;
     }
+  });
+
+export const getRecallCapabilities = base
+  .input(MemoryRecallBm25CapabilityQuerySchema)
+  .output(MemoryRecallBm25CapabilityDirectorySchema)
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const languages = await executeQuery({ db: drizzle }, listAllLanguages, {});
+    const fullCatalog = languages.map((row) => row.id);
+
+    return {
+      capabilities: buildMemoryRecallBm25Capabilities(
+        fullCatalog,
+        input.languageIds,
+      ),
+    };
   });

@@ -1,0 +1,15 @@
+language: "python"
+layer: "application"
+stack: "backend"
+
+tasks:
+  docker-build:
+    command: "docker build -t cat-postgres-search-runtime ."
+    options:
+      cache: false
+      runInCI: false
+
+workspace:
+  inheritedTasks:
+    exclude:
+      ["build", "lint", "lint-fix", "fmt", "fmt-check", "typecheck", "test"]

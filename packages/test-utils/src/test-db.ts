@@ -58,10 +58,64 @@ export const setupTestDB = async (): Promise<TestDB> => {
     // Ignore
   }
 
+  try {
+    await client.query("CREATE EXTENSION IF NOT EXISTS rum SCHEMA public");
+  } catch (err: unknown) {
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    const pgError = err as { code?: string };
+    if (pgError.code !== "23505" && pgError.code !== "42710") {
+      throw err;
+    }
+  }
+  try {
+    await client.query("ALTER EXTENSION rum SET SCHEMA public");
+  } catch {
+    // Ignore
+  }
+
+  try {
+    await client.query("CREATE EXTENSION IF NOT EXISTS zhparser SCHEMA public");
+  } catch (err: unknown) {
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    const pgError = err as { code?: string };
+    if (pgError.code !== "23505" && pgError.code !== "42710") {
+      throw err;
+    }
+  }
+  try {
+    await client.query("ALTER EXTENSION zhparser SET SCHEMA public");
+  } catch {
+    // Ignore
+  }
+
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
   await client.query(`CREATE SCHEMA "${schemaName}"`);
-  // Include public in search_path so that extensions installed in public (like vector) are visible
+  // Include public in search_path so that extensions installed in public are visible
   await client.query(`SET search_path TO "${schemaName}", public`);
+  await client.query(`
+    DO $$
+    DECLARE
+      current_schema_name text := current_schema();
+    BEGIN
+      IF NOT EXISTS (
+        SELECT 1
+        FROM pg_ts_config cfg
+        JOIN pg_namespace ns ON ns.oid = cfg.cfgnamespace
+        WHERE cfg.cfgname = 'cat_zh_hans'
+          AND ns.nspname = current_schema_name
+      ) THEN
+        EXECUTE format(
+          'CREATE TEXT SEARCH CONFIGURATION %I.cat_zh_hans (PARSER = zhparser)',
+          current_schema_name
+        );
+        EXECUTE format(
+          'ALTER TEXT SEARCH CONFIGURATION %I.cat_zh_hans ADD MAPPING FOR n, v, a, i, e, l WITH simple',
+          current_schema_name
+        );
+      END IF;
+    END
+    $$;
+  `);
 
   const db = drizzle({
     client,

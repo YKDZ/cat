@@ -15,6 +15,7 @@ const opMocks = vi.hoisted(() => ({
 
 const domainMocks = vi.hoisted(() => ({
   getElementWithChunkIds: vi.fn(),
+  listAllLanguages: vi.fn(),
 }));
 
 vi.mock("@cat/domain", async () => {
@@ -25,6 +26,7 @@ vi.mock("@cat/domain", async () => {
     ...actual,
     executeQuery: vi.fn(),
     getElementWithChunkIds: domainMocks.getElementWithChunkIds,
+    listAllLanguages: domainMocks.listAllLanguages,
   };
 });
 
@@ -57,12 +59,16 @@ vi.mock("@cat/permissions", async () => {
 
 import {
   getElementWithChunkIds,
+  listAllLanguages,
   listMemoryIdsByProject,
   listProjectGlossaryIds,
 } from "@cat/domain";
 
 import { searchTerm } from "@/orpc/routers/glossary";
-import { onNew as onNewMemory } from "@/orpc/routers/memory";
+import {
+  getRecallCapabilities,
+  onNew as onNewMemory,
+} from "@/orpc/routers/memory";
 
 const createContext = (): Context => {
   const base = createAuthedTestContext();
@@ -272,5 +278,58 @@ describe("recall routes", () => {
       expect.objectContaining({ id: 302, adaptationMethod: "exact" }),
     );
     expect(results[0]).not.toHaveProperty("adaptationPending");
+  });
+
+  it("memory.getRecallCapabilities returns full-catalog and filtered BM25 capabilities", async () => {
+    const languages = [{ id: "en" }, { id: "ja" }, { id: "zh-Hans" }];
+
+    domainMocks.listAllLanguages.mockResolvedValue(languages);
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === listAllLanguages) return languages;
+      return [];
+    });
+
+    const fullCatalog = await call(
+      getRecallCapabilities,
+      { languageIds: [] },
+      { context: createContext() },
+    );
+
+    expect(fullCatalog.capabilities).toEqual([
+      expect.objectContaining({
+        languageId: "en",
+        enabled: true,
+        textSearchConfig: "english",
+      }),
+      expect.objectContaining({
+        languageId: "ja",
+        enabled: false,
+        disabledReason: "not-in-bm25-first-rollout",
+      }),
+      expect.objectContaining({
+        languageId: "zh-Hans",
+        enabled: true,
+        textSearchConfig: "cat_zh_hans",
+      }),
+    ]);
+
+    const filtered = await call(
+      getRecallCapabilities,
+      { languageIds: ["zh-Hans", "ja"] },
+      { context: createContext() },
+    );
+
+    expect(filtered.capabilities).toEqual([
+      expect.objectContaining({
+        languageId: "zh-Hans",
+        enabled: true,
+        textSearchConfig: "cat_zh_hans",
+      }),
+      expect.objectContaining({
+        languageId: "ja",
+        enabled: false,
+        disabledReason: "not-in-bm25-first-rollout",
+      }),
+    ]);
   });
 });

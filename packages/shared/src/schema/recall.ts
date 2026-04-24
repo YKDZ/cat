@@ -10,6 +10,7 @@ import * as z from "zod";
  *  "sparse"        — content-word-weighted sparse lexical
  *  "template"      — TOKEN_TEMPLATE variant
  *  "fragment"      — FRAGMENT variant
+ *  "bm25"          — PostgreSQL full-text BM25 ranking
  *  "semantic"      — dense vector similarity
  */
 export const RecallChannelValues = [
@@ -20,6 +21,7 @@ export const RecallChannelValues = [
   "sparse",
   "template",
   "fragment",
+  "bm25",
   "semantic",
 ] as const;
 

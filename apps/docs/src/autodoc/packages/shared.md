@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 45
+* **Modules**: 46
 
 * **Exported functions**: 25
 
-* **Exported types**: 199
+* **Exported types**: 203
 
 ## Function Index
 
@@ -480,6 +480,14 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `SerializableType` (type) — Values serializable to JSON; \`Date\` is allowed and will be converted to ISO string by \`JSON.stringify\`.
   Safer than \`unknown\` — functions, symbols, and other non-serializable types are rejected.
+
+* `MemoryRecallBm25CompressionProfile` (type)
+
+* `MemoryRecallBm25CapabilityEntry` (type)
+
+* `MemoryRecallBm25CapabilityQuery` (type)
+
+* `MemoryRecallBm25CapabilityDirectory` (type)
 
 * `FileMeta` (type)
 
