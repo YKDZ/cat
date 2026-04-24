@@ -1,4 +1,3 @@
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
 import type { VCSContext } from "@cat/vcs";
 
 import {
@@ -8,21 +7,30 @@ import {
   executeQuery,
   getElementWithChunkIds,
   getMemory,
+  listAllLanguages,
   listMemoryIdsByProject,
   listOwnedMemories,
   listProjectMemories,
 } from "@cat/domain";
 import {
-  adaptMemoryOp,
+  buildMemoryRecallBm25Capabilities,
   collectMemoryRecallOp,
   recallContextRerankOp,
 } from "@cat/operations";
-import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
+import {
+  MemoryRecallBm25CapabilityDirectorySchema,
+  MemoryRecallBm25CapabilityQuerySchema,
+} from "@cat/shared/schema/memory-recall";
 import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
-import { authed, checkElementPermission, checkPermission } from "@/orpc/server";
+import {
+  authed,
+  base,
+  checkElementPermission,
+  checkPermission,
+} from "@/orpc/server";
 import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 
 export const create = authed
@@ -195,50 +203,8 @@ export const onNew = authed
       },
     );
 
-    const adaptationTasks: Promise<MemorySuggestion | null>[] = [];
-
     for (const memory of reranked) {
       yield memory;
-
-      if (
-        memory.adaptationMethod === "exact" ||
-        memory.adaptationMethod === "token-replaced" ||
-        memory.confidence >= 1
-      ) {
-        continue;
-      }
-
-      adaptationTasks.push(
-        adaptMemoryOp({
-          sourceText: element.value,
-          memorySource: memory.source,
-          memoryTranslation: memory.translation,
-          sourceLanguageId: element.languageId,
-          translationLanguageId,
-        })
-          .then(({ adaptedTranslation }) =>
-            adaptedTranslation
-              ? {
-                  ...memory,
-                  adaptedTranslation,
-                  adaptationMethod: "llm-adapted" as const,
-                }
-              : null,
-          )
-          .catch((err: unknown) => {
-            logger
-              .withSituation("WORKER")
-              .error(err, "LLM memory adaptation failed");
-            return null;
-          }),
-      );
-    }
-
-    const adaptedMemories = await Promise.all(adaptationTasks);
-    for (const adapted of adaptedMemories) {
-      if (adapted) {
-        yield adapted;
-      }
     }
   });
 
@@ -363,4 +329,23 @@ export const searchByText = authed
     for (const memory of memories) {
       yield memory;
     }
+  });
+
+export const getRecallCapabilities = base
+  .input(MemoryRecallBm25CapabilityQuerySchema)
+  .output(MemoryRecallBm25CapabilityDirectorySchema)
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    const languages = await executeQuery({ db: drizzle }, listAllLanguages, {});
+    const fullCatalog = languages.map((row) => row.id);
+
+    return {
+      capabilities: buildMemoryRecallBm25Capabilities(
+        fullCatalog,
+        input.languageIds,
+      ),
+    };
   });

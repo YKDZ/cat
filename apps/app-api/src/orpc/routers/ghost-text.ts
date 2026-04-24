@@ -3,6 +3,7 @@ import {
   findOpenAutoTranslatePR,
   getElementWithChunkIds,
 } from "@cat/domain";
+import { smartSuggestOp } from "@cat/operations";
 import { readWithOverlay } from "@cat/vcs";
 import * as z from "zod";
 
@@ -69,5 +70,45 @@ export const suggest = authed
       }
     }
 
-    // No pre-translate result available — frontend handles fallback
+    // No pre-translate result — try Smart Suggestion (interactive fallback path)
+    const parseHintsSafe = <T>(raw: string | undefined): T[] => {
+      if (!raw) return [];
+      try {
+        const parsed: unknown = JSON.parse(raw);
+        // oxlint-disable-next-line no-unsafe-type-assertion
+        return Array.isArray(parsed) ? (parsed as unknown[] as T[]) : [];
+      } catch {
+        return [];
+      }
+    };
+
+    const { suggestion } = await smartSuggestOp(
+      {
+        sourceText: elem.value,
+        sourceLanguageId: elem.languageId,
+        targetLanguageId: languageId,
+        memories: parseHintsSafe<{
+          source: string;
+          translation: string;
+          confidence: number;
+          adaptedTranslation?: string;
+        }>(input.memoryHints),
+        terms: parseHintsSafe<{
+          term: string;
+          translation: string;
+          definition: string | null;
+        }>(input.termHints),
+        neighborTranslations: parseHintsSafe<{
+          source: string;
+          translation: string;
+        }>(input.neighborElements),
+      },
+      { pluginManager: context.pluginManager, traceId: crypto.randomUUID() },
+    );
+
+    if (suggestion) {
+      yield { text: suggestion.translation };
+    }
+
+    // No suggestion — frontend handles its own fallback
   });

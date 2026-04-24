@@ -16,15 +16,6 @@ export {
   type SlotMappingEntry,
 } from "./memory-template";
 
-// === Leaf Operations ===
-export {
-  adaptMemoryOp,
-  AdaptMemoryInputSchema,
-  AdaptMemoryOutputSchema,
-  type AdaptMemoryInput,
-  type AdaptMemoryOutput,
-} from "./adapt-memory";
-
 export {
   fetchAdviseOp,
   FetchAdviseInputSchema,
@@ -195,6 +186,12 @@ export {
   CollectMemoryRecallInputSchema,
   type CollectMemoryRecallInput,
 } from "./collect-memory-recall";
+export {
+  BM25_DISABLED_REASON,
+  buildMemoryRecallBm25Capabilities,
+  compressBm25Score,
+  MEMORY_RECALL_BM25_REGISTRY,
+} from "./memory-recall-bm25";
 
 export {
   qaTranslationOp,
@@ -226,6 +223,15 @@ export {
   type LlmRefineTranslationInput,
   type LlmRefineTranslationOutput,
 } from "./llm-refine-translation";
+
+export {
+  smartSuggestOp,
+  SmartSuggestInputSchema,
+  SmartSuggestOutputSchema,
+  deriveSmartSuggestConfidence,
+  type SmartSuggestInput,
+  type SmartSuggestOutput,
+} from "./smart-suggest";
 
 // === Level 3+ Operations ===
 export {

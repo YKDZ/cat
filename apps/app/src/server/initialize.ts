@@ -40,6 +40,8 @@ import { createDefaultGraphRuntime } from "@cat/workflow";
 import { access } from "fs/promises";
 import { join, resolve } from "path";
 
+import { assertSearchRuntimeHealth } from "./search-runtime-health";
+
 const getStringSetting = async (
   drizzle: DrizzleClient,
   key: string,
@@ -76,6 +78,7 @@ export const initializeApp = async (): Promise<void> => {
     }
 
     await ensureDB(drizzleDB);
+    await assertSearchRuntimeHealth(drizzleDB.client);
 
     const redis = await getRedisHandle();
     await redis.ping();

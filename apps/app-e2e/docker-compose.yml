@@ -16,7 +16,8 @@ services:
       - 6379:6379
 
   postgresql:
-    image: pgvector/pgvector:pg18
+    build:
+      context: ../postgres-search-runtime
     container_name: e2e_postgresql
     environment:
       POSTGRES_USER: user
