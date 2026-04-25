@@ -3,6 +3,21 @@ layer: "library"
 stack: "infrastructure"
 
 tasks:
+  build:
+    script: "tsx scripts/sync-public-contract.ts && vite build"
+
+  sync-contract:
+    command: "tsx scripts/sync-public-contract.ts"
+    options:
+      cache: false
+
+  verify-contract:
+    command: "tsx scripts/verify-root-contract.ts"
+    deps:
+      - "~:build"
+    options:
+      cache: false
+
   typecheck:
     script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
 
