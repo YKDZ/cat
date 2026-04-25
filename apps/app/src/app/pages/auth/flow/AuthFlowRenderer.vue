@@ -4,6 +4,7 @@ import { navigate } from "vike/client/router";
 import { computed, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { reconnectWs } from "@/app/rpc/ws";
 import { useAuthFlowStore } from "@/app/stores/auth-flow.ts";
 
 import IdentifierInput from "./node-components/IdentifierInput.vue";
@@ -52,6 +53,7 @@ const handleSubmit = async (input: Record<string, unknown>): Promise<void> => {
 
 watch(sessionCreated, async (val) => {
   if (val) {
+    reconnectWs();
     await navigate("/");
   }
 });
