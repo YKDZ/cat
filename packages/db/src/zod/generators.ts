@@ -478,8 +478,8 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
     declarations: [
       {
         kind: "table",
-        schemaExportName: "AgentDefinitionSchema",
-        typeExportName: "AgentDefinition",
+        schemaExportName: "StoredAgentDefinitionSchema",
+        typeExportName: "StoredAgentDefinition",
         buildShape: buildSelectShape(agentDefinition),
         overrides: {
           llmConfig: "safeZDotJson.nullable()",
