@@ -31,7 +31,7 @@
 | `CollectionContext` | type |  |
 | `CollectionContextData` | type |  |
 | `CollectionElementLocation` | type |  |
-| `AgentDefinition` | type |  |
+| `StoredAgentDefinition` | type |  |
 | `AgentSession` | type |  |
 | `AgentRun` | type |  |
 | `AgentEvent` | type |  |

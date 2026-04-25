@@ -26,15 +26,15 @@ PreCheck ──→ Reasoning ──→ Tool（可选）──→ Decision ──
 
 ## 黑板数据结构（AgentBlackboardData）
 
-| 字段 | 说明 |
-|---|---|
-| `messages` | 完整消息历史（system / user / assistant / tool） |
-| `tool_calls` | 当前轮次 LLM 生成的工具调用列表 |
-| `tool_results` | 工具执行结果 |
-| `current_turn` | 已执行轮次（PreCheck 递增） |
-| `finish_called` | `finish` 工具是否被调用 |
-| `token_usage` | 累计 prompt + completion token 数 |
-| `scratchpad` | Agent 工作笔记（由 `update_scratchpad` 工具写入） |
+| 字段            | 说明                                              |
+| --------------- | ------------------------------------------------- |
+| `messages`      | 完整消息历史（system / user / assistant / tool）  |
+| `tool_calls`    | 当前轮次 LLM 生成的工具调用列表                   |
+| `tool_results`  | 工具执行结果                                      |
+| `current_turn`  | 已执行轮次（PreCheck 递增）                       |
+| `finish_called` | `finish` 工具是否被调用                           |
+| `token_usage`   | 累计 prompt + completion token 数                 |
+| `scratchpad`    | Agent 工作笔记（由 `update_scratchpad` 工具写入） |
 
 ## 关键组件
 

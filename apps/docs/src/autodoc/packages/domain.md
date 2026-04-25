@@ -2172,7 +2172,7 @@ export const countGlossaryConcepts: Query<
  * the given concept IDs. Pairs with no matching term in either language are
  * omitted.
  */
-export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "template" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
+export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "template" | "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
 ```
 
 ### `buildConceptVectorizationText`
