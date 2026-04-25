@@ -44,10 +44,6 @@ tasks:
       pnpm moon run db:codegen-schemas --quiet
       git diff --exit-code -- packages/shared/src/schema/drizzle || { echo "ERROR: Drizzle Zod schemas are out of date. Run 'pnpm moon run db:codegen-schemas' and commit." >&2; exit 1; }
 
-      echo "=== Shared public contract check ==="
-      pnpm moon run shared:sync-contract --quiet
-      git diff --exit-code -- packages/shared/package.json packages/shared/src/compat || { echo "ERROR: Shared public contract is out of date. Run 'pnpm moon run shared:sync-contract' and commit." >&2; exit 1; }
-
       echo "=== Autodoc check ==="
       pnpm moon run autodoc:check --quiet
 

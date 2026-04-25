@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PullRequestStatus } from "@cat/shared/schema/enum";
+import type { PullRequestStatus } from "@cat/shared";
 
 import { Badge, Button } from "@cat/ui";
 import { Bot, CircleDot, CircleCheck, GitMerge } from "@lucide/vue";

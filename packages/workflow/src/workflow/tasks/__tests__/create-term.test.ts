@@ -10,7 +10,7 @@ import {
 } from "@cat/domain";
 import { registerDomainEventHandlers } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 import {
   installTestVectorizationQueue,
   setupTestDB,

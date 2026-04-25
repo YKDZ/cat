@@ -1,5 +1,5 @@
 import type { AgentRunMetadataRow, DbHandle } from "@cat/domain";
-import type { JSONObject, JSONType } from "@cat/shared/schema/json";
+import type { JSONObject, JSONType } from "@cat/shared";
 
 import {
   executeCommand,

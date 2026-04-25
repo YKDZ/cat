@@ -1,11 +1,11 @@
-import type { TermData } from "@cat/shared/schema/misc";
+import type { TermData } from "@cat/shared";
 
 import {
   TokenTypeSchema,
   type PluginServiceType,
   type TokenType,
-} from "@cat/shared/schema/enum";
-import { JSONObjectSchema, type JSONObject } from "@cat/shared/schema/json";
+} from "@cat/shared";
+import { JSONObjectSchema, type JSONObject } from "@cat/shared";
 import z from "zod";
 
 import type { IPluginService } from "./service";

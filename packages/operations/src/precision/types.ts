@@ -1,6 +1,6 @@
 // packages/operations/src/precision/types.ts
 import type { LookedUpTerm } from "@cat/domain";
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { MemorySuggestion } from "@cat/shared";
 import type {
   AmbiguityEnvelope,
   AnchorSignature,
@@ -10,8 +10,8 @@ import type {
   QueryProfile,
   QueryTopicHypothesis,
   RankingDecision,
-} from "@cat/shared/schema/precision-recall";
-import type { RecallEvidence } from "@cat/shared/schema/recall";
+} from "@cat/shared";
+import type { RecallEvidence } from "@cat/shared";
 
 // ─── Raw lane result (term side) ─────────────────────────────────
 export type RawTermResult = {

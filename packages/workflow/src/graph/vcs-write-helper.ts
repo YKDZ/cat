@@ -1,4 +1,4 @@
-import type { SerializableType } from "@cat/shared/schema/json";
+import type { SerializableType } from "@cat/shared";
 
 import type { TypedNodeContext } from "@/graph/dsl/types";
 

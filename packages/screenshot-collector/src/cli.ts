@@ -2,13 +2,10 @@
 
 // oxlint-disable no-console
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- CLI JSON parsing requires casting
-import type { CollectionPayload } from "@cat/shared/schema/collection";
+import type { CollectionPayload } from "@cat/shared";
 
-import { CollectionPayloadSchema } from "@cat/shared/schema/collection";
-import {
-  CaptureResultSchema,
-  ExtractionResultSchema,
-} from "@cat/shared/schema/extraction";
+import { CollectionPayloadSchema } from "@cat/shared";
+import { CaptureResultSchema, ExtractionResultSchema } from "@cat/shared";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";

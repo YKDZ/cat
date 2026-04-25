@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/drizzle/document";
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Document } from "@cat/shared";
+import type { Project } from "@cat/shared";
 
 import { Button } from "@cat/ui";
 import {

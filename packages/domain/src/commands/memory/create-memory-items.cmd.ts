@@ -1,5 +1,5 @@
 import { memoryItem } from "@cat/db";
-import { safeZDotJson } from "@cat/shared/schema/json";
+import { safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

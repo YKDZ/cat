@@ -1,7 +1,7 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { translatableElementContext } from "@cat/db";
-import { TranslatableElementContextTypeValues } from "@cat/shared/schema/enum";
+import { TranslatableElementContextTypeValues } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

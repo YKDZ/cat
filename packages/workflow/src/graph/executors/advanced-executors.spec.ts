@@ -1,4 +1,4 @@
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 
 import { describe, expect, it } from "vitest";
 

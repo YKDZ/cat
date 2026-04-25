@@ -1311,7 +1311,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/agent/create-agent-definition.cmd.ts",
-    "line": 43
+    "line": 40
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/agent/create-agent-definition.cmd:CreateAgentDefinitionCommand",
@@ -1320,7 +1320,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/agent/create-agent-definition.cmd.ts",
-    "line": 39
+    "line": 36
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/agent/create-agent-run.cmd:createAgentRun",
@@ -3022,7 +3022,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/plugin/install-plugin.cmd.ts",
-    "line": 25
+    "line": 22
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/plugin/install-plugin.cmd:InstallPluginCommand",
@@ -3031,7 +3031,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/plugin/install-plugin.cmd.ts",
-    "line": 23
+    "line": 20
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/plugin/register-plugin-definition.cmd:registerPluginDefinition",
@@ -4248,7 +4248,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/agent/list-agent-definitions.query.ts",
-    "line": 21
+    "line": 18
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/agent/list-agent-definitions.query:ListAgentDefinitionsQuery",
@@ -4257,7 +4257,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/agent/list-agent-definitions.query.ts",
-    "line": 17
+    "line": 14
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/agent/list-agent-events.query:AgentEventRow",
@@ -4725,7 +4725,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 19
+    "line": 16
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:getChangesetByExternalId",
@@ -4734,7 +4734,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 42
+    "line": 39
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:GetChangesetByExternalIdQuery",
@@ -4743,7 +4743,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 38
+    "line": 35
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:getChangesetEntries",
@@ -4752,7 +4752,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 95
+    "line": 92
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:GetChangesetEntriesQuery",
@@ -4761,7 +4761,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 91
+    "line": 88
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:GetChangesetQuery",
@@ -4770,7 +4770,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 17
+    "line": 14
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:listChangesets",
@@ -4779,7 +4779,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 66
+    "line": 63
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/get-changeset.query:ListChangesetsQuery",
@@ -4788,7 +4788,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/changeset/get-changeset.query.ts",
-    "line": 64
+    "line": 61
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/changeset/list-branch-changeset-entries.query:listBranchChangesetEntries",
@@ -6494,7 +6494,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-bm25-memory-suggestions.query.ts",
-    "line": 83
+    "line": 80
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:ListBm25MemorySuggestionsQuery",
@@ -6503,7 +6503,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-bm25-memory-suggestions.query.ts",
-    "line": 27
+    "line": 24
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-bm25-memory-suggestions.query:RawBm25MemorySuggestion",
@@ -6512,7 +6512,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-bm25-memory-suggestions.query.ts",
-    "line": 31
+    "line": 28
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:listExactMemorySuggestions",
@@ -6521,7 +6521,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 43
+    "line": 40
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:ListExactMemorySuggestionsQuery",
@@ -6530,7 +6530,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 39
+    "line": 36
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:listTrgmMemorySuggestions",
@@ -6539,7 +6539,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 152
+    "line": 149
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:ListTrgmMemorySuggestionsQuery",
@@ -6548,7 +6548,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 148
+    "line": 145
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:RawMemorySuggestion",
@@ -6557,7 +6557,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 20
+    "line": 17
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-memories-by-creator.query:listMemoriesByCreator",
@@ -7131,7 +7131,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/list-installed-services-by-type.query.ts",
-    "line": 20
+    "line": 17
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/list-installed-services-by-type.query:listInstalledServicesByType",
@@ -7140,7 +7140,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/list-installed-services-by-type.query.ts",
-    "line": 27
+    "line": 24
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/list-installed-services-by-type.query:ListInstalledServicesByTypeQuery",
@@ -7149,7 +7149,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/list-installed-services-by-type.query.ts",
-    "line": 16
+    "line": 13
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/list-plugin-service-ids-by-type.query:listPluginServiceIdsByType",
@@ -7176,7 +7176,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/list-plugin-services-for-installation.query.ts",
-    "line": 26
+    "line": 23
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/list-plugin-services-for-installation.query:ListPluginServicesForInstallationQuery",
@@ -7185,7 +7185,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/list-plugin-services-for-installation.query.ts",
-    "line": 16
+    "line": 13
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/list-plugin-services-for-installation.query:PluginServiceRecord",
@@ -7194,7 +7194,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/list-plugin-services-for-installation.query.ts",
-    "line": 20
+    "line": 17
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/list-plugin-services.query:listPluginServices",
@@ -7477,7 +7477,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/pull-request/list-prs.query.ts",
-    "line": 26,
+    "line": 23,
     "description": "List PRs in a project with optional status filter and pagination."
   },
   {
@@ -7487,7 +7487,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/pull-request/list-prs.query.ts",
-    "line": 20
+    "line": 17
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:getTranslationQaContext",
@@ -9479,7 +9479,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/nlp-intl-fallback.ts",
-    "line": 157,
+    "line": 153,
     "description": "Built-in fallback segmentation based on Intl.Segmenter.\n\nCalled automatically when no NLP_WORD_SEGMENTER plugin is available.\nLimitations: no POS tagging (pos set to \"X\" or \"PUNCT\"/\"NUM\"), no\nlemmatization (lemma equals the lowercased text), and stop-word\ncoverage is limited to basic English vocabulary."
   },
   {
@@ -9590,7 +9590,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/ambiguity-gate.ts",
-    "line": 29,
+    "line": 26,
     "description": "Evaluate four ambiguity rules:\n1. Top-tier confidence gap too small (< THRESHOLD between rank-0 and rank-1 in same tier).\n2. Top candidates' evidence families diverge (no shared channel at all).\n3. Query topic hypothesis is weak / conflicting / unknown AND anchors don't resolve.\n4. Top candidate has a recoverable-conflict decision note.\n\nReturns an AmbiguityEnvelope describing whether and where to invoke the model.\nClear Tier-1 winners (tier=\"1\" and no recoverable-conflict) are EXCLUDED from the band."
   },
   {
@@ -9619,7 +9619,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/deterministic-ranker.ts",
-    "line": 71,
+    "line": 68,
     "description": "Assign tiers to all candidates, sort by tier then in-tier score,\nand record tier assignments in rankingDecisions."
   },
   {
@@ -9648,7 +9648,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 21
+    "line": 20
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/precision-pipeline:runPrecisionPipeline",
@@ -9657,7 +9657,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 61,
+    "line": 60,
     "description": "Run the full precision pipeline on a flat list of raw multi-lane results.\n\nThis function is surface-agnostic: it works with both RawTermResult[] and\nRawMemoryResult[] (and mixed arrays, if ever needed)."
   },
   {
@@ -9667,7 +9667,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/precision-pipeline.ts",
-    "line": 44,
+    "line": 43,
     "description": "After model reranking, suppress Tier-3 candidates when the top result is a\nclear Tier-1 winner (no recoverable-conflict note). This prevents low-certainty\nsingle-path noise from appearing alongside a definitive high-confidence match.\n@internal — exposed for unit testing only; use runPrecisionPipeline for production code."
   },
   {
@@ -9687,7 +9687,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/query-topic-resolver.ts",
-    "line": 25,
+    "line": 22,
     "description": "Infer a QueryTopicHypothesis from the query profile + the Tier-1 candidates\nalready present in the ledger after the Budget Gate.\n\nStrategy:\n 1. Collect topicIds from all candidates that have budgetClass=\"reserved\"\n    AND topicAssignment.matchState != \"conflict\".\n 2. Find the majority topicId (highest frequency).\n 3. Set confidence:\n    - \"confident\"   if ≥2 reserved candidates agree on the majority topic\n    - \"weak\"        if only 1 candidate provides the majority topic\n    - \"conflicting\" if top-2 topics have the same frequency > 0\n    - \"unknown\"     if no reserved candidate has a topic assignment\n\nNOTE: element context is NOT an input here (per spec §Component Design / Query Topic Resolver)."
   },
   {
@@ -9697,7 +9697,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
-    "line": 68,
+    "line": 65,
     "description": "Apply all three guards to a single candidate.\n\nHard-filter (non-recoverable) conditions per spec §Component Design / Scope & Anchor Guard:\n - Scope: candidate scopeId not in allowedScopeIds (when allowedScopeIds.length > 0)\n - Topic: topicAssignment.matchState === \"conflict\" AND query hypothesis is \"confident\"\n - Anchor: numeric conflict (query has numbers, candidate has different numbers)\n\nRecoverable-conflict conditions:\n - Topic: topicAssignment.matchState === \"unknown\" AND query hypothesis is \"confident\"\n - Anchor: placeholder count mismatch (query has placeholders not in candidate)"
   },
   {
@@ -9707,7 +9707,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
-    "line": 143,
+    "line": 140,
     "description": "Apply guards to all candidates in the ledger.\nHard-filtered candidates are marked with hardFiltered=true and removed from return value.\nRecoverable-conflict candidates get a demotion decision note."
   },
   {
@@ -9717,7 +9717,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
-    "line": 27,
+    "line": 24,
     "description": "Build an AnchorSignature comparing query vs candidate source text."
   },
   {
@@ -9727,7 +9727,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
-    "line": 51
+    "line": 48
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/scope-anchor-guard:ScopeGuardOptions",
@@ -9736,7 +9736,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/scope-anchor-guard.ts",
-    "line": 9
+    "line": 6
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/sparse-lane:augmentWithSparseLane",
@@ -9916,7 +9916,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/qa.ts",
-    "line": 43
+    "line": 40
   },
   {
     "id": "@cat/operations:packages/operations/src/qa:qaOp",
@@ -9925,7 +9925,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/qa.ts",
-    "line": 75,
+    "line": 72,
     "description": "Quality check.\n\nRuns all registered QA_CHECKER plugin services against the source\ntext and translation text."
   },
   {
@@ -9935,7 +9935,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/qa.ts",
-    "line": 44
+    "line": 41
   },
   {
     "id": "@cat/operations:packages/operations/src/rebase-pr-full:rebasePRFull",
@@ -10219,7 +10219,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/search-memory.ts",
-    "line": 54
+    "line": 51
   },
   {
     "id": "@cat/operations:packages/operations/src/search-memory:searchMemoryOp",
@@ -10228,7 +10228,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/search-memory.ts",
-    "line": 72,
+    "line": 69,
     "description": "Search translation memory.\n\nSearches for matching translation memory entries within the specified\nmemory banks via vector similarity. Supports two query modes:\nlookups by chunkIds (pre-stored embeddings) or queryVectors (raw vectors)."
   },
   {
@@ -10238,7 +10238,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/search-memory.ts",
-    "line": 55
+    "line": 52
   },
   {
     "id": "@cat/operations:packages/operations/src/semantic-search-terms:SemanticSearchTermsInput",
@@ -10585,7 +10585,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/audit.ts",
-    "line": 51
+    "line": 47
   },
   {
     "id": "@cat/permissions:packages/permissions/src/audit:AuditEventMap",
@@ -10594,7 +10594,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/audit.ts",
-    "line": 18
+    "line": 14
   },
   {
     "id": "@cat/permissions:packages/permissions/src/audit:AuditEventType",
@@ -10603,7 +10603,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/audit.ts",
-    "line": 52
+    "line": 48
   },
   {
     "id": "@cat/permissions:packages/permissions/src/audit:registerAuditHandler",
@@ -10612,7 +10612,7 @@
     "kind": "function",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/audit.ts",
-    "line": 94,
+    "line": 90,
     "description": "注册 handler：批量写入 authAuditLog 表。\n使用微批处理（收集 50 条或每 5 秒，一次 batch insert）。"
   },
   {
@@ -10641,7 +10641,7 @@
     "kind": "function",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/engine.ts",
-    "line": 66
+    "line": 62
   },
   {
     "id": "@cat/permissions:packages/permissions/src/engine:PermissionEngine",
@@ -10650,7 +10650,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/engine.ts",
-    "line": 24
+    "line": 20
   },
   {
     "id": "@cat/permissions:packages/permissions/src/relations:AscendRule",
@@ -10749,7 +10749,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/types.ts",
-    "line": 16,
+    "line": 12,
     "description": "鉴权上下文，在各入口层创建后透传"
   },
   {
@@ -10759,7 +10759,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/types.ts",
-    "line": 8,
+    "line": 4,
     "description": "完成的认证因子信息"
   },
   {
@@ -10769,7 +10769,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/types.ts",
-    "line": 39,
+    "line": 35,
     "description": "引用某个具体对象"
   },
   {
@@ -10779,7 +10779,7 @@
     "kind": "type",
     "packageName": "@cat/permissions",
     "filePath": "packages/permissions/src/types.ts",
-    "line": 45,
+    "line": 41,
     "description": "引用某个主体"
   },
   {
@@ -11296,7 +11296,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/nlp-word-segmenter.ts",
-    "line": 31,
+    "line": 28,
     "description": "批量分词请求上下文"
   },
   {
@@ -11306,7 +11306,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/nlp-word-segmenter.ts",
-    "line": 19,
+    "line": 16,
     "description": "分词请求上下文"
   },
   {
@@ -11416,7 +11416,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/text-vectorizer.ts",
-    "line": 9
+    "line": 6
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/text-vectorizer:VectorizeContext",
@@ -11425,7 +11425,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/text-vectorizer.ts",
-    "line": 13
+    "line": 10
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/tokenizer:ParserContext",
@@ -11607,7 +11607,7 @@
     "kind": "function",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/route.ts",
-    "line": 59,
+    "line": 56,
     "description": "Load bindings from a JSON file and validate."
   },
   {
@@ -11617,7 +11617,7 @@
     "kind": "function",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/route.ts",
-    "line": 18,
+    "line": 15,
     "description": "Load a route manifest from a JSON or YAML file.\nSupports both new RouteManifest format and legacy array-of-routes format."
   },
   {
@@ -11627,7 +11627,7 @@
     "kind": "function",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/route.ts",
-    "line": 70,
+    "line": 67,
     "description": "Merge bindings: file bindings as base, CLI bindings override."
   },
   {
@@ -11637,7 +11637,7 @@
     "kind": "function",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/route.ts",
-    "line": 80,
+    "line": 77,
     "description": "Resolve a RouteManifest into concrete ScreenshotRoute[] by replacing $ref placeholders."
   },
   {
@@ -11647,7 +11647,7 @@
     "kind": "interface",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/screenshot.ts",
-    "line": 168
+    "line": 165
   },
   {
     "id": "@cat/screenshot-collector:packages/screenshot-collector/src/screenshot:captureScreenshots",
@@ -11656,7 +11656,7 @@
     "kind": "function",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/screenshot.ts",
-    "line": 182,
+    "line": 179,
     "description": "Capture screenshots for elements across routes, returning CaptureResult.\nSimilar to collectScreenshots but works with ExtractionResult elements\nand returns the new CaptureResult format."
   },
   {
@@ -11666,7 +11666,7 @@
     "kind": "function",
     "packageName": "@cat/screenshot-collector",
     "filePath": "packages/screenshot-collector/src/screenshot.ts",
-    "line": 52,
+    "line": 49,
     "description": "Collect screenshots: launch browser, traverse routes, locate elements and screenshot.\nFor each route, iterates unique element texts and takes one screenshot per text.\nEach screenshot is associated with the first element matching that text (not all)."
   },
   {
@@ -15384,7 +15384,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/qa.ts",
-    "line": 51
+    "line": 48
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/term-alignment:AlignedGroup",

@@ -1,9 +1,5 @@
 import type { CacheStore, DbHandle } from "@cat/domain";
-import type {
-  ObjectType,
-  Relation,
-  SubjectType,
-} from "@cat/shared/schema/permission";
+import type { ObjectType, Relation, SubjectType } from "@cat/shared";
 
 import {
   executeCommand,

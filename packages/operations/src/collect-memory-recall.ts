@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
-import type { SlotMappingEntry } from "@cat/shared/schema/drizzle/memory";
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { SlotMappingEntry } from "@cat/shared";
+import type { MemorySuggestion } from "@cat/shared";
 
 import {
   executeQuery,

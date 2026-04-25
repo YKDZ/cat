@@ -1,5 +1,5 @@
 import type { OperationContext } from "@cat/domain";
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { MemorySuggestion } from "@cat/shared";
 
 import { AsyncMessageQueue } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";

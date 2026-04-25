@@ -1,8 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-import type { NlpSegmentResult } from "@cat/shared/schema/nlp";
+import type { NlpSegmentResult } from "@cat/shared";
 
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
-import { NlpSegmentResultSchema } from "@cat/shared/schema/nlp";
+import { NlpSegmentResultSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { intlSegmenterFallback } from "./nlp-intl-fallback";

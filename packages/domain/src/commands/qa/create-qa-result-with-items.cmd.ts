@@ -1,7 +1,7 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { qaResult, qaResultItem } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command, DbHandle } from "@/types";

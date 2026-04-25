@@ -1,5 +1,5 @@
 // packages/operations/src/precision/query-profiler.ts
-import type { QueryProfile } from "@cat/shared/schema/precision-recall";
+import type { QueryProfile } from "@cat/shared";
 
 /**
  * Extract a QueryProfile from the raw query text.

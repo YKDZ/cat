@@ -5,12 +5,9 @@ import {
   AgentPromptConfigSchema,
   AgentSecurityPolicySchema,
   OrchestrationSchema,
-} from "@cat/shared/schema/agent";
-import {
-  AgentDefinitionTypeSchema,
-  ScopeTypeSchema,
-} from "@cat/shared/schema/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+} from "@cat/shared";
+import { AgentDefinitionTypeSchema, ScopeTypeSchema } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

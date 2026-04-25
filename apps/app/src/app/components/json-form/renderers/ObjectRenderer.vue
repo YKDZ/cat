@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared";
 
-import { _JSONSchemaSchema, type _JSONSchema } from "@cat/shared/schema/json";
+import { _JSONSchemaSchema, type _JSONSchema } from "@cat/shared";
 import {
   FormDescription,
   FormField,

@@ -5,10 +5,10 @@ import type {
   NlpSegmentResult,
   NlpToken,
 } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { NlpWordSegmenter } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
+import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
 

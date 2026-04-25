@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { Memory } from "@cat/shared";
 
 import { TableCell, TableRow } from "@cat/ui";
 import { navigate } from "vike/client/router";

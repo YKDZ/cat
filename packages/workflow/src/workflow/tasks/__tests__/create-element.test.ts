@@ -9,7 +9,7 @@ import {
   listAllElements,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 import {
   installTestVectorizationQueue,
   setupTestDB,

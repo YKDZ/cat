@@ -1,4 +1,4 @@
-import type { CollectionElement } from "@cat/shared/schema/collection";
+import type { CollectionElement } from "@cat/shared";
 import type {
   DirectiveNode,
   ElementNode,

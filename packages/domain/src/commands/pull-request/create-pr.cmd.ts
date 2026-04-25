@@ -1,7 +1,7 @@
 import { getColumns, pullRequest } from "@cat/db";
-import { PullRequestTypeSchema } from "@cat/shared/schema/enum";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { PullRequestTypeSchema } from "@cat/shared";
+import { safeZDotJson } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

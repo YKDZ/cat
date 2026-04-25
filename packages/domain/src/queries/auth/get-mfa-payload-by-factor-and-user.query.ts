@@ -1,7 +1,7 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared";
 
 import { and, eq, mfaProvider, pluginService } from "@cat/db";
-import { assertSingleOrNull } from "@cat/shared/utils";
+import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

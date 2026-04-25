@@ -1,11 +1,11 @@
-import type { JSONType } from "@cat/shared/schema/json";
-import type { TranslationAdvise } from "@cat/shared/schema/plugin";
+import type { JSONType } from "@cat/shared";
+import type { TranslationAdvise } from "@cat/shared";
 
 import {
   TranslationAdvisor,
   type GetSuggestionsContext,
 } from "@cat/plugin-core";
-import { logger } from "@cat/shared/utils";
+import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
 

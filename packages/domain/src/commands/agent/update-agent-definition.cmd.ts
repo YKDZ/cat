@@ -5,8 +5,8 @@ import {
   AgentPromptConfigSchema,
   AgentSecurityPolicySchema,
   OrchestrationSchema,
-} from "@cat/shared/schema/agent";
-import { AgentDefinitionTypeSchema } from "@cat/shared/schema/enum";
+} from "@cat/shared";
+import { AgentDefinitionTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

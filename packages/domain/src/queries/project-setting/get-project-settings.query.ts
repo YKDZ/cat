@@ -1,5 +1,5 @@
 import { eq, projectSetting } from "@cat/db";
-import { ProjectSettingPayloadSchema } from "@cat/shared/schema/project-setting";
+import { ProjectSettingPayloadSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

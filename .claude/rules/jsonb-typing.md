@@ -34,12 +34,8 @@ paths:
 ### 导入路径
 
 ```ts
-import type {
-  JSONType,
-  NonNullJSONType,
-  JSONObject,
-} from "@cat/shared/schema/json";
-import { safeZDotJson, nonNullSafeZDotJson } from "@cat/shared/schema/json";
+import type { JSONType, NonNullJSONType, JSONObject } from "@cat/shared";
+import { safeZDotJson, nonNullSafeZDotJson } from "@cat/shared";
 ```
 
 ### 通用 JSON 字段

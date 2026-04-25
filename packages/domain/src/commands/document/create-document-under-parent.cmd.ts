@@ -7,8 +7,8 @@ import {
   increment,
   sql,
 } from "@cat/db";
-import { Document } from "@cat/shared/schema/drizzle/document";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { Document } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 
 import { getProjectRootDocument } from "@/queries/document/get-project-root-document.query";
 

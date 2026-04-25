@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+import type { JSONSchema, NonNullJSONType } from "@cat/shared";
 
 import { Button } from "@cat/ui";
 import { Save } from "@lucide/vue";

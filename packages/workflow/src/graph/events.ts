@@ -1,6 +1,6 @@
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 
-import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
+import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import { EventIdSchema, NodeTypeSchema } from "@/graph/types";

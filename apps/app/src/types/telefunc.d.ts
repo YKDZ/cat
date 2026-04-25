@@ -1,8 +1,8 @@
 import type { DrizzleDB, RedisConnection } from "@cat/db";
 import type { AuthContext } from "@cat/permissions";
 import type { PluginManager } from "@cat/plugin-core";
-import type { User } from "@cat/shared/schema/drizzle/user";
-import type { HTTPHelpers } from "@cat/shared/utils";
+import type { User } from "@cat/shared";
+import type { HTTPHelpers } from "@cat/shared";
 
 declare module "telefunc" {
   namespace Telefunc {

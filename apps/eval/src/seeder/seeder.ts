@@ -3,7 +3,7 @@
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
 // oxlint-disable typescript-eslint/no-unsafe-return -- vectorize result requires cast
 import type { ExecutorContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { RedisConnection, sql } from "@cat/db";
 import {

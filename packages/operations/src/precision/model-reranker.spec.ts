@@ -1,5 +1,5 @@
-import type { AmbiguityEnvelope } from "@cat/shared/schema/precision-recall";
-import type { RerankRequest, RerankResponse } from "@cat/shared/schema/rerank";
+import type { AmbiguityEnvelope } from "@cat/shared";
+import type { RerankRequest, RerankResponse } from "@cat/shared";
 
 import { PluginManager, RerankProvider } from "@cat/plugin-core";
 import { describe, expect, it, vi } from "vitest";

@@ -1,7 +1,7 @@
 import type { CacheStore } from "@cat/domain";
-import type { Relation } from "@cat/shared/schema/permission";
+import type { Relation } from "@cat/shared";
 
-import { RelationValues } from "@cat/shared/schema/enum";
+import { RelationValues } from "@cat/shared";
 
 const permCacheKey = (
   subjectType: string,

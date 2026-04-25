@@ -4,9 +4,9 @@ import {
   llmRefineTranslationOp,
   termRecallOp,
 } from "@cat/operations";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
-import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
+import { safeZDotJson } from "@cat/shared";
+import { MemorySuggestionSchema } from "@cat/shared";
+import { TranslationAdviseSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "@/graph/dsl";

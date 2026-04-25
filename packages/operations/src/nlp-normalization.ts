@@ -1,4 +1,4 @@
-import type { NlpToken } from "@cat/shared/schema/nlp";
+import type { NlpToken } from "@cat/shared";
 
 export const isCjkLanguage = (languageId: string): boolean => {
   const lang = languageId.split("-")[0]?.toLowerCase() ?? "";

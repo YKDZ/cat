@@ -1,4 +1,4 @@
-import type { PluginServiceType } from "@cat/shared/schema/enum";
+import type { PluginServiceType } from "@cat/shared";
 
 import { Readable } from "node:stream";
 

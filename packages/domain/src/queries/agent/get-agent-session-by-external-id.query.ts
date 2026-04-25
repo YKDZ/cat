@@ -1,7 +1,7 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { agentDefinition, agentSession, and, eq } from "@cat/db";
-import { assertSingleOrNull } from "@cat/shared/utils";
+import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

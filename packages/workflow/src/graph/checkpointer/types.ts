@@ -1,4 +1,4 @@
-import type { JSONObject, NonNullJSONType } from "@cat/shared/schema/json";
+import type { JSONObject, NonNullJSONType } from "@cat/shared";
 
 import type { AgentEvent } from "@/graph/events";
 import type {

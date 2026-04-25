@@ -1,6 +1,6 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
-import { assertSingleOrNull } from "@cat/shared/utils";
+import { assertSingleOrNull } from "@cat/shared";
 import { and, eq } from "drizzle-orm";
 
 import type { DrizzleClient, DrizzleTransaction } from "@/drizzle/db.ts";

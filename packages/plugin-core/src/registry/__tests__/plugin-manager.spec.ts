@@ -6,7 +6,7 @@
  * PluginDiscoveryService is mocked inline so its singleton does not leak state.
  */
 import type { DrizzleClient } from "@cat/domain";
-import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
+import type { PluginData, PluginManifest } from "@cat/shared";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 

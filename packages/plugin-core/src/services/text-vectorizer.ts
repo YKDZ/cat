@@ -1,8 +1,5 @@
-import type { PluginServiceType } from "@cat/shared/schema/enum";
-import type {
-  UnvectorizedTextData,
-  VectorizedTextData,
-} from "@cat/shared/schema/misc";
+import type { PluginServiceType } from "@cat/shared";
+import type { UnvectorizedTextData, VectorizedTextData } from "@cat/shared";
 
 import type { IPluginService } from "@/services/service";
 

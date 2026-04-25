@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import type {
-  IssueComment,
-  IssueCommentThread,
-} from "@cat/shared/schema/drizzle/issue-comment";
-import type { CrossReference } from "@cat/shared/schema/drizzle/issue-comment";
+import type { IssueComment, IssueCommentThread } from "@cat/shared";
+import type { CrossReference } from "@cat/shared";
 
 import { Badge, Button, Separator } from "@cat/ui";
 import { CircleDot, CircleCheck, ChevronLeft } from "@lucide/vue";

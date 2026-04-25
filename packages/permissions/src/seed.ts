@@ -1,5 +1,5 @@
 import type { DbHandle } from "@cat/domain";
-import type { Relation } from "@cat/shared/schema/permission";
+import type { Relation } from "@cat/shared";
 
 import {
   executeCommand,

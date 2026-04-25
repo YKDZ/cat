@@ -6,10 +6,7 @@ import {
   getSearchMemoryChunkRange,
   listMemorySuggestionsByChunkIds,
 } from "@cat/domain";
-import {
-  MemorySuggestionSchema,
-  type MemorySuggestion,
-} from "@cat/shared/schema/misc";
+import { MemorySuggestionSchema, type MemorySuggestion } from "@cat/shared";
 import * as z from "zod";
 
 import { searchChunkOp } from "./search-chunk";

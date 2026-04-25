@@ -1,5 +1,5 @@
-import type { NlpSegmentResult } from "@cat/shared/schema/nlp";
-import type { PluginManifest } from "@cat/shared/schema/plugin";
+import type { NlpSegmentResult } from "@cat/shared";
+import type { PluginManifest } from "@cat/shared";
 
 import { NlpWordSegmenter, type CatPlugin } from "@cat/plugin-core";
 

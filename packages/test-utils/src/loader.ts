@@ -1,6 +1,6 @@
-import type { VectorizedTextData } from "@cat/shared/schema/misc";
-import type { PluginData, PluginManifest } from "@cat/shared/schema/plugin";
-import type { TranslationAdvise } from "@cat/shared/schema/plugin";
+import type { VectorizedTextData } from "@cat/shared";
+import type { PluginData, PluginManifest } from "@cat/shared";
+import type { TranslationAdvise } from "@cat/shared";
 
 import { and, cosineDistance, desc, gt, inArray, sql } from "@cat/db";
 import { chunk } from "@cat/db";

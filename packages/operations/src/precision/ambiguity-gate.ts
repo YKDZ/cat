@@ -1,8 +1,5 @@
 // packages/operations/src/precision/ambiguity-gate.ts
-import type {
-  AmbiguityEnvelope,
-  QueryTopicHypothesis,
-} from "@cat/shared/schema/precision-recall";
+import type { AmbiguityEnvelope, QueryTopicHypothesis } from "@cat/shared";
 
 import type { RecallCandidate } from "./types";
 

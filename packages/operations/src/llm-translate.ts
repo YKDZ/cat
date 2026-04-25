@@ -14,7 +14,7 @@ import {
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
-import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
+import { TranslationAdviseSchema } from "@cat/shared";
 import * as z from "zod";
 
 // ─── Config schema ─────────────────────────────────────────────────────────────

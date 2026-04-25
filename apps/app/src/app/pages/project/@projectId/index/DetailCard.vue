@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Project } from "@cat/shared";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import { Button } from "@cat/ui";

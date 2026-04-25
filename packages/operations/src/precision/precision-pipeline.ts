@@ -1,5 +1,4 @@
-// packages/operations/src/precision/precision-pipeline.ts
-import type { ProviderStatus } from "@cat/shared/schema/precision-recall";
+import type { ProviderStatus } from "@cat/shared";
 
 import type { RawResult, RecallCandidate } from "./types";
 

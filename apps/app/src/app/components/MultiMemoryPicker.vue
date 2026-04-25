@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { Memory } from "@cat/shared";
 
 import { useQuery } from "@pinia/colada";
 import { usePageContext } from "vike-vue/usePageContext";

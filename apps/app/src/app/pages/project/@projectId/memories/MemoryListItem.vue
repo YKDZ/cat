@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Memory } from "@cat/shared";
+import type { Project } from "@cat/shared";
 
 import { TableRow, TableCell } from "@cat/ui";
 import { Button } from "@cat/ui";

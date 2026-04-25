@@ -1,5 +1,5 @@
 import type { CatPlugin } from "@cat/plugin-core";
-import type { PluginManifest } from "@cat/shared/schema/plugin";
+import type { PluginManifest } from "@cat/shared";
 
 import {
   createElements,
@@ -11,7 +11,7 @@ import {
   executeCommand,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 import { setupTestDB, TestPluginLoader, type TestDB } from "@cat/test-utils";
 import { createRequire } from "node:module";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";

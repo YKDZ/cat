@@ -10,10 +10,7 @@ import {
   type QAChecker,
   type Token,
 } from "@cat/plugin-core";
-import {
-  QaResultItemSchema,
-  type QaResultItem,
-} from "@cat/shared/schema/drizzle/qa";
+import { QaResultItemSchema, type QaResultItem } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "@/graph/dsl";

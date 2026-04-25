@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import {
-  MessageCategoryValues,
-  MessageChannelValues,
-} from "@cat/shared/schema/enum";
+import { MessageCategoryValues, MessageChannelValues } from "@cat/shared";
 import {
   Card,
   CardContent,

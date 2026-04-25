@@ -1,8 +1,4 @@
-import type {
-  NlpSegmentResult,
-  NlpSentence,
-  NlpToken,
-} from "@cat/shared/schema/nlp";
+import type { NlpSegmentResult, NlpSentence, NlpToken } from "@cat/shared";
 
 /**
  * 基础英文停用词列表（用于 Intl.Segmenter 回退模式）

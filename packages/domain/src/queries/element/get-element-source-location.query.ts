@@ -6,8 +6,8 @@ import {
   file as fileTable,
   translatableElement,
 } from "@cat/db";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { safeZDotJson } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

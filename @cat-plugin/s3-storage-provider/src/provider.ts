@@ -1,5 +1,5 @@
 import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 import type { Readable } from "node:stream";
 
 import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";

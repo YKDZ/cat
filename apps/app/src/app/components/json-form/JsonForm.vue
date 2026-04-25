@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
 
 import IJsonForm from "./IJsonForm.vue";
 

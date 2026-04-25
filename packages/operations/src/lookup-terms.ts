@@ -1,4 +1,4 @@
-import { TermMatchSchema } from "@cat/shared/schema/term-recall";
+import { TermMatchSchema } from "@cat/shared";
 import * as z from "zod";
 
 export const LookupTermsInputSchema = z.object({

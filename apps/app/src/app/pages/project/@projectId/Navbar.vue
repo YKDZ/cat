@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Project } from "@cat/shared";
 import type { Component } from "vue";
 
 import {

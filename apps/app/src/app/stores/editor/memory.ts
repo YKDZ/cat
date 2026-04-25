@@ -1,4 +1,4 @@
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { MemorySuggestion } from "@cat/shared";
 
 import { defineStore, storeToRefs } from "pinia";
 import { ref, shallowRef } from "vue";

@@ -1,8 +1,4 @@
-import type {
-  ObjectType,
-  Relation,
-  SubjectType,
-} from "@cat/shared/schema/permission";
+import type { ObjectType, Relation, SubjectType } from "@cat/shared";
 
 /** 完成的认证因子信息 */
 export type CompletedFactor = {

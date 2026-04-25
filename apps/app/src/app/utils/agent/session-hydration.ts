@@ -1,6 +1,6 @@
-import type { AgentSessionMetadata } from "@cat/shared/schema/agent";
+import type { AgentSessionMetadata } from "@cat/shared";
 
-import { AgentSessionMetadataSchema } from "@cat/shared/schema/agent";
+import { AgentSessionMetadataSchema } from "@cat/shared";
 
 import type {
   AgentMessageItem,

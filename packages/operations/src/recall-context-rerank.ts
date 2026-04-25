@@ -1,6 +1,6 @@
 import type { OperationContext } from "@cat/domain";
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
-import type { EnrichedTermMatch } from "@cat/shared/schema/term-recall";
+import type { MemorySuggestion } from "@cat/shared";
+import type { EnrichedTermMatch } from "@cat/shared";
 
 import { executeQuery, getDbHandle, listNeighborElements } from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";

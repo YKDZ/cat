@@ -1,5 +1,5 @@
 import { blob } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

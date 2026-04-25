@@ -1,5 +1,5 @@
 // packages/operations/src/precision/fusion-ledger.ts
-import type { RecallEvidence } from "@cat/shared/schema/recall";
+import type { RecallEvidence } from "@cat/shared";
 
 import type { RawResult, RecallCandidate } from "./types";
 

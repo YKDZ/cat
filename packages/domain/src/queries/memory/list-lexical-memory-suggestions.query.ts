@@ -1,4 +1,4 @@
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { MemorySuggestion } from "@cat/shared";
 
 import {
   aliasedTable,
@@ -9,10 +9,7 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
-import {
-  SlotMappingEntrySchema,
-  type SlotMappingEntry,
-} from "@cat/shared/schema/drizzle/memory";
+import { SlotMappingEntrySchema, type SlotMappingEntry } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

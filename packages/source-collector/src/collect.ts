@@ -1,5 +1,5 @@
 // oxlint-disable no-console
-import type { CollectionPayload } from "@cat/shared/schema/collection";
+import type { CollectionPayload } from "@cat/shared";
 
 import type { CollectOptions } from "./types.ts";
 

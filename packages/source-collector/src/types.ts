@@ -1,4 +1,4 @@
-import type { CollectionElement } from "@cat/shared/schema/collection";
+import type { CollectionElement } from "@cat/shared";
 
 /**
  * @zh 源码提取器的提取选项。

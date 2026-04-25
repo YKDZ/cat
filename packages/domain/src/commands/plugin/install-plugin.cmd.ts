@@ -4,12 +4,9 @@ import {
   pluginConfigInstance,
   pluginInstallation,
 } from "@cat/db";
-import { ScopeTypeSchema } from "@cat/shared/schema/enum";
-import { JSONSchemaSchema } from "@cat/shared/schema/json";
-import {
-  assertSingleNonNullish,
-  getDefaultFromSchema,
-} from "@cat/shared/utils";
+import { ScopeTypeSchema } from "@cat/shared";
+import { JSONSchemaSchema } from "@cat/shared";
+import { assertSingleNonNullish, getDefaultFromSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

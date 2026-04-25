@@ -1,5 +1,5 @@
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { DrizzleDateTimeSchema } from "@cat/shared/schema/misc";
+import { safeZDotJson } from "@cat/shared";
+import { DrizzleDateTimeSchema } from "@cat/shared";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { defineStore, storeToRefs } from "pinia";
 import { watch } from "vue";

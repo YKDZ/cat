@@ -1,10 +1,7 @@
-import type { RouteManifest } from "@cat/shared/schema/extraction";
+import type { RouteManifest } from "@cat/shared";
 
-import {
-  NavigationStepSchema,
-  RouteManifestSchema,
-} from "@cat/shared/schema/extraction";
-import { resolveRouteTemplate } from "@cat/shared/utils";
+import { NavigationStepSchema, RouteManifestSchema } from "@cat/shared";
+import { resolveRouteTemplate } from "@cat/shared";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { z } from "zod";

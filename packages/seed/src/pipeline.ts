@@ -4,7 +4,7 @@
 import type { DrizzleClient, DrizzleTransaction } from "@cat/db";
 import type { ExecutorContext } from "@cat/domain";
 import type { PluginLoader } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import {
   pluginInstallation,

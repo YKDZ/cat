@@ -1,8 +1,5 @@
-import type { PluginServiceType } from "@cat/shared/schema/enum";
-import type {
-  RerankProviderCall,
-  RerankResponse,
-} from "@cat/shared/schema/rerank";
+import type { PluginServiceType } from "@cat/shared";
+import type { RerankProviderCall, RerankResponse } from "@cat/shared";
 
 import type { IPluginService } from "@/services/service";
 

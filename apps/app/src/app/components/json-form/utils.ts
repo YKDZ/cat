@@ -1,4 +1,4 @@
-import type { _JSONSchema } from "@cat/shared/schema/json";
+import type { _JSONSchema } from "@cat/shared";
 import type { InjectionKey } from "vue";
 
 export const schemaKey = Symbol() as InjectionKey<_JSONSchema>;

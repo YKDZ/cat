@@ -1,4 +1,4 @@
-import type { MessageCategory, MessageChannel } from "@cat/shared/schema/enum";
+import type { MessageCategory, MessageChannel } from "@cat/shared";
 
 import { userMessagePreference } from "@cat/db";
 import { and, eq } from "@cat/db";

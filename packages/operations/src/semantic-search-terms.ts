@@ -9,7 +9,7 @@ import {
   type VectorStorage,
 } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/server-shared";
-import { TermMatchSchema } from "@cat/shared/schema/term-recall";
+import { TermMatchSchema } from "@cat/shared";
 import * as z from "zod";
 
 export const SemanticSearchTermsInputSchema = z.object({

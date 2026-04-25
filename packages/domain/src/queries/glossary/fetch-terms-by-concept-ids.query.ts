@@ -1,4 +1,4 @@
-import type { TermMatch } from "@cat/shared/schema/term-recall";
+import type { TermMatch } from "@cat/shared";
 
 import {
   aliasedTable,

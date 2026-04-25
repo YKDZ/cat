@@ -4,13 +4,9 @@ import type {
   AgentConstraints,
   AgentSecurityPolicy,
   Orchestration,
-} from "@cat/shared/schema/agent";
-import type {
-  _JSONSchema,
-  JSONType,
-  NonNullJSONType,
-} from "@cat/shared/schema/json";
-import type { ProjectSettingPayload } from "@cat/shared/schema/project-setting";
+} from "@cat/shared";
+import type { _JSONSchema, JSONType, NonNullJSONType } from "@cat/shared";
+import type { ProjectSettingPayload } from "@cat/shared";
 
 import {
   PluginServiceTypeValues,
@@ -51,7 +47,7 @@ import {
   IssueCommentTargetTypeValues,
   CrossReferenceSourceTypeValues,
   CrossReferenceTargetTypeValues,
-} from "@cat/shared/schema/enum";
+} from "@cat/shared";
 import { sql } from "drizzle-orm";
 import {
   pgEnum,

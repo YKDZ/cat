@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TranslatableElementContext } from "@cat/shared/schema/drizzle/document";
+import type { TranslatableElementContext } from "@cat/shared";
 
 import { Card, CardContent } from "@cat/ui";
 

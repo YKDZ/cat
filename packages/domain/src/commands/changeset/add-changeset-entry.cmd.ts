@@ -4,9 +4,9 @@ import {
   ChangeActionSchema,
   EntityTypeSchema,
   RiskLevelSchema,
-} from "@cat/shared/schema/enum";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+} from "@cat/shared";
+import { safeZDotJson } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

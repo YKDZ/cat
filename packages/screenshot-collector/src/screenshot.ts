@@ -1,11 +1,8 @@
 // oxlint-disable no-console
 // oxlint-disable no-await-in-loop -- Playwright browser operations are inherently sequential (single page context)
 // oxlint-disable typescript-eslint/no-unsafe-member-access -- Playwright evaluate() callbacks run in browser context
-import type { CollectionElement } from "@cat/shared/schema/collection";
-import type {
-  CaptureResult,
-  ExtractionResult,
-} from "@cat/shared/schema/extraction";
+import type { CollectionElement } from "@cat/shared";
+import type { CaptureResult, ExtractionResult } from "@cat/shared";
 import type { Page } from "playwright";
 
 import { mkdir } from "node:fs/promises";

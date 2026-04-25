@@ -1,4 +1,4 @@
-import { logger } from "@cat/shared/utils";
+import { logger } from "@cat/shared";
 
 import type { CacheStore } from "@/cache/types";
 

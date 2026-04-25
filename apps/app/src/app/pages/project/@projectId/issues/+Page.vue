@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { IssueStatus } from "@cat/shared/schema/enum";
+import type { IssueStatus } from "@cat/shared";
 
 import { Button } from "@cat/ui";
 import { CircleDot, CircleCheck } from "@lucide/vue";

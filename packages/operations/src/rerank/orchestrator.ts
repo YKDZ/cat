@@ -4,7 +4,7 @@ import type {
   RerankRequest,
   RerankResponse,
   RerankScoreEntrySchema,
-} from "@cat/shared/schema/rerank";
+} from "@cat/shared";
 
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";

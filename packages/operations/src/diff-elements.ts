@@ -10,7 +10,7 @@ import {
   listCachedVectorizedStrings,
   listElementsForDiff,
 } from "@cat/domain";
-import { safeZDotJson } from "@cat/shared/schema/json";
+import { safeZDotJson } from "@cat/shared";
 import { isDeepStrictEqual } from "node:util";
 import * as z from "zod";
 

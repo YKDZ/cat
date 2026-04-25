@@ -1,6 +1,6 @@
 import { eq, getColumns, pullRequest } from "@cat/db";
-import { PullRequestStatusSchema } from "@cat/shared/schema/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { PullRequestStatusSchema } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

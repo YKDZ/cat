@@ -1,8 +1,5 @@
 // packages/operations/src/precision/deterministic-ranker.ts
-import type {
-  QueryProfile,
-  QueryTopicHypothesis,
-} from "@cat/shared/schema/precision-recall";
+import type { QueryProfile, QueryTopicHypothesis } from "@cat/shared";
 
 import type { RecallCandidate } from "./types";
 

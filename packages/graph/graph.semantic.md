@@ -29,11 +29,11 @@ subject: infra/graph
 
 `evaluateCondition(condition, data)` 对快照数据求值结构化条件，支持操作符：
 
-| 操作符 | 含义 |
-|---|---|
-| `eq` / `neq` | 严格相等 / 不等 |
+| 操作符                  | 含义            |
+| ----------------------- | --------------- |
+| `eq` / `neq`            | 严格相等 / 不等 |
 | `exists` / `not_exists` | 字段非空 / 为空 |
-| `in` | 值在数组中 |
-| `gt` / `lt` | 数值大于 / 小于 |
+| `in`                    | 值在数组中      |
+| `gt` / `lt`             | 数值大于 / 小于 |
 
 `resolvePath(data, "a.b.c")` 用于从嵌套对象中按点分隔路径提取字段值；`parseExpectedValue` 将字符串字面量转为类型化原始值（boolean、number、null 或 string），避免类型比较歧义。

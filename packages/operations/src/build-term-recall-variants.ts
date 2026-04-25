@@ -1,5 +1,5 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import {
   executeCommand,

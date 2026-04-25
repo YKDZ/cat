@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import type {
-  IssueComment,
-  IssueCommentThread,
-} from "@cat/shared/schema/drizzle/issue-comment";
+import type { IssueComment, IssueCommentThread } from "@cat/shared";
 
 import { useI18n } from "vue-i18n";
 
