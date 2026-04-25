@@ -242,7 +242,7 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `CollectionElementLocation` (type)
 
-* `AgentDefinition` (type)
+* `StoredAgentDefinition` (type)
 
 * `AgentSession` (type)
 

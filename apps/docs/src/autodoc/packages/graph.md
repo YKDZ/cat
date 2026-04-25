@@ -42,7 +42,7 @@ export const buildPatch = (args: {
   actorId: NodeId;
   parentSnapshotVersion: number;
   updates: Record<string, unknown>;
-}): { metadata: { patchId: string; parentSnapshotVersion: number; actorId: string; timestamp: string; }; updates: import("@cat/shared/schema/json").JSONObject; }
+}): { metadata: { patchId: string; parentSnapshotVersion: number; actorId: string; timestamp: string; }; updates: import("@cat/shared").JSONObject; }
 ```
 
 ### `resolvePath`
