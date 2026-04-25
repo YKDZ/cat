@@ -10,4 +10,4 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && corepack enable \
     && pnpm setup \
-    && pnpm install -g @github/copilot
+    && pnpm install -g @github/copilot @anthropic-ai/claude-code
