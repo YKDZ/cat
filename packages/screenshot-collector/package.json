@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@cat/shared": "workspace:*",
-    "playwright": "^1.52.0",
+    "playwright": "^1.59.1",
     "yaml": "catalog:",
     "zod": "catalog:"
   },

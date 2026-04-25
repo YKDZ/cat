@@ -32,7 +32,7 @@
     "vee-validate": "^4.15.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.2",
+    "@tailwindcss/vite": "^4.2.4",
     "@tanstack/vue-table": "^8.21.3",
     "@types/node": "catalog:",
     "@vue/tsconfig": "^0.9.1",

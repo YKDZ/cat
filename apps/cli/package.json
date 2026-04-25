@@ -13,8 +13,8 @@
     "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-cli --include='**/*.spec.ts'"
   },
   "dependencies": {
-    "@orpc/client": "^1.13.14",
-    "@orpc/server": "^1.13.14"
+    "@orpc/client": "^1.14.0",
+    "@orpc/server": "^1.14.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",

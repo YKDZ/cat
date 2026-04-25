@@ -12,23 +12,23 @@ allowBuilds:
   vue-demi: true
 
 catalog:
-  "@vue/compiler-dom": ^3.5.32
-  "@vue/compiler-sfc": ^3.5.32
+  "@types/mdast": "^4.0.4"
   "@types/node": ^24.12.2
-  tsx: ^4.21.0
-  unplugin-dts: 1.0.0-beta.6
-  vite: ^8.0.8
-  vitest: ^4.1.4
-  vue: ^3.5.32
-  zod: ^4.3.6
-  yaml: ^2.8.3
-  unified: ^11.0.5
+  "@vue/compiler-dom": ^3.5.33
+  "@vue/compiler-sfc": ^3.5.33
+  remark-frontmatter: ^5.0.0
+  remark-gfm: ^4.0.1
   remark-parse: ^11.0.0
   remark-stringify: ^11.0.0
-  remark-gfm: ^4.0.1
-  remark-frontmatter: ^5.0.0
-  "@types/mdast": "^4.0.4"
+  tsx: ^4.21.0
+  unified: ^11.0.5
+  unplugin-dts: 1.0.0-beta.6
+  vite: ^8.0.10
+  vitest: ^4.1.5
+  vue: ^3.5.33
+  yaml: ^2.8.3
+  zod: ^4.3.6
 
 linkWorkspacePackages: true
 
-syncInjectedDepsAfterScripts: ["build"]
+syncInjectedDepsAfterScripts: [ "build" ]
