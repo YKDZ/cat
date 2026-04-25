@@ -23,7 +23,7 @@ import {
   UpdatePRStatusCommandSchema,
 } from "@cat/domain";
 import { mergePRFull, rebasePRFull } from "@cat/operations";
-import { PullRequestSchema } from "@cat/shared/schema/drizzle/pull-request";
+import { PullRequestSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";

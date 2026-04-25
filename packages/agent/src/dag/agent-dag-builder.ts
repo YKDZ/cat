@@ -1,9 +1,6 @@
 import type { GraphDefinition } from "@cat/graph";
 import type { PluginManager } from "@cat/plugin-core";
-import type {
-  AgentConstraints,
-  AgentSessionMetadata,
-} from "@cat/shared/schema/agent";
+import type { AgentConstraints, AgentSessionMetadata } from "@cat/shared";
 
 import type { LLMGateway } from "../llm/llm-gateway.ts";
 import type { AgentLogger } from "../observability/agent-logger.ts";

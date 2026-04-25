@@ -1,8 +1,8 @@
-import type { Document } from "@cat/shared/schema/drizzle/document";
-import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { Language } from "@cat/shared/schema/drizzle/misc";
-import type { Plugin } from "@cat/shared/schema/drizzle/plugin";
+import type { Document } from "@cat/shared";
+import type { Glossary } from "@cat/shared";
+import type { Memory } from "@cat/shared";
+import type { Language } from "@cat/shared";
+import type { Plugin } from "@cat/shared";
 import type { InjectionKey, Ref } from "vue";
 
 export const documentKey = Symbol() as InjectionKey<Document>;

@@ -9,7 +9,7 @@
  */
 
 import type { LLMChunk } from "@cat/plugin-core";
-import type { ParsedAgentDefinition } from "@cat/shared/schema/agent";
+import type { ParsedAgentDefinition } from "@cat/shared";
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 

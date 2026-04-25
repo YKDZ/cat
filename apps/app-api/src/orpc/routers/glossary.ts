@@ -25,10 +25,10 @@ import {
 } from "@cat/domain";
 import { rerankTermRecallOp, termRecallOp } from "@cat/operations";
 import { firstOrGivenService } from "@cat/server-shared";
-import { GlossarySchema } from "@cat/shared/schema/drizzle/glossary";
-import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
-import { JSONObjectSchema } from "@cat/shared/schema/json";
-import { TermDataSchema } from "@cat/shared/schema/misc";
+import { GlossarySchema } from "@cat/shared";
+import { TermStatusValues, TermTypeValues } from "@cat/shared";
+import { JSONObjectSchema } from "@cat/shared";
+import { TermDataSchema } from "@cat/shared";
 import { listWithOverlay } from "@cat/vcs";
 import {
   createTermGraph,

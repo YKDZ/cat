@@ -11,14 +11,11 @@ import {
   listRootComments,
   upsertCommentReaction,
 } from "@cat/domain";
-import {
-  CommentSchema,
-  CommentReactionSchema,
-} from "@cat/shared/schema/drizzle/comment";
+import { CommentSchema, CommentReactionSchema } from "@cat/shared";
 import {
   CommentReactionTypeSchema,
   CommentTargetTypeSchema,
-} from "@cat/shared/schema/enum";
+} from "@cat/shared";
 import { listWithOverlay } from "@cat/vcs";
 import * as z from "zod";
 

@@ -26,15 +26,9 @@ import {
   getDownloadUrl,
   firstOrGivenService,
 } from "@cat/server-shared";
-import {
-  DocumentSchema,
-  TranslatableElementSchema,
-} from "@cat/shared/schema/drizzle/document";
-import {
-  ElementTranslationStatusSchema,
-  FileMetaSchema,
-} from "@cat/shared/schema/misc";
-import { sanitizeFileName } from "@cat/shared/utils";
+import { DocumentSchema, TranslatableElementSchema } from "@cat/shared";
+import { ElementTranslationStatusSchema, FileMetaSchema } from "@cat/shared";
+import { sanitizeFileName } from "@cat/shared";
 import { listWithOverlay, readWithOverlay } from "@cat/vcs";
 import { runGraph, upsertDocumentGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";

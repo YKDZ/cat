@@ -1,5 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
-import type { AgentConstraints } from "@cat/shared/schema/agent";
+import type { AgentConstraints } from "@cat/shared";
 
 import { Blackboard, buildPatch } from "@cat/graph";
 import { determineWriteMode, getPermissionEngine } from "@cat/permissions";

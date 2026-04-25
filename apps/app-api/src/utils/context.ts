@@ -14,8 +14,8 @@ import { type AuthContext, loadUserSystemRoles } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import { userFromSessionId } from "@cat/server-shared";
 import { RedisCacheStore, RedisSessionStore } from "@cat/server-shared";
-import { User } from "@cat/shared/schema/drizzle/user";
-import { createHTTPHelpers, HTTPHelpers } from "@cat/shared/utils";
+import { User } from "@cat/shared";
+import { createHTTPHelpers, HTTPHelpers } from "@cat/shared";
 
 import { generateCsrfToken } from "@/middleware/csrf.ts";
 

@@ -8,7 +8,7 @@ import {
 import {
   ProjectSettingPatchSchema,
   ProjectSettingPayloadSchema,
-} from "@cat/shared/schema/project-setting";
+} from "@cat/shared";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 

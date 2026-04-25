@@ -1,4 +1,4 @@
-import type { AgentConstraints } from "@cat/shared/schema/agent";
+import type { AgentConstraints } from "@cat/shared";
 
 // ─── ErrorRecovery Budget Snapshot ───────────────────────────────────────────
 

@@ -26,15 +26,9 @@ import {
 } from "@cat/domain";
 import { AsyncMessageQueue, firstOrGivenService } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
-import {
-  QaResultItemSchema,
-  QaResultSchema,
-} from "@cat/shared/schema/drizzle/qa";
-import {
-  TranslationSchema,
-  TranslationVoteSchema,
-} from "@cat/shared/schema/drizzle/translation";
-import { JSONObjectSchema } from "@cat/shared/schema/json";
+import { QaResultItemSchema, QaResultSchema } from "@cat/shared";
+import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
+import { JSONObjectSchema } from "@cat/shared";
 import { listWithOverlay } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,

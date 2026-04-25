@@ -1,4 +1,4 @@
-import type { Logger } from "@cat/shared/utils";
+import type { Logger } from "@cat/shared";
 
 // ─── Log Event Types ──────────────────────────────────────────────────────────
 

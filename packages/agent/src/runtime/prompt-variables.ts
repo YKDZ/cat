@@ -1,7 +1,4 @@
-import type {
-  AgentConstraints,
-  AgentSessionMetadata,
-} from "@cat/shared/schema/agent";
+import type { AgentConstraints, AgentSessionMetadata } from "@cat/shared";
 
 /**
  * @zh 构造传给 PromptEngine 的变量映射。

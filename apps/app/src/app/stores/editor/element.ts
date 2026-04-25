@@ -1,10 +1,10 @@
-import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
+import type { TranslatableElement } from "@cat/shared";
 
-import { TranslatableElementSchema } from "@cat/shared/schema/drizzle/document";
+import { TranslatableElementSchema } from "@cat/shared";
 import {
   ElementTranslationStatusSchema,
   type ElementTranslationStatus,
-} from "@cat/shared/schema/misc";
+} from "@cat/shared";
 import { defineStore, storeToRefs } from "pinia";
 import { reactive, computed } from "vue";
 import * as z from "zod";

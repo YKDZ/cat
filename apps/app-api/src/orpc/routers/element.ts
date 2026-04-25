@@ -8,8 +8,8 @@ import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
 import {
   TranslatableElementContextSchema,
   type TranslatableElementContext,
-} from "@cat/shared/schema/drizzle/document";
-import { safeZDotJson } from "@cat/shared/schema/json";
+} from "@cat/shared";
+import { safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkElementPermission } from "@/orpc/server";

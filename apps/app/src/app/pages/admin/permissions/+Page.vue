@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { ObjectType, Relation } from "@cat/shared/schema/permission";
-import type { SubjectType } from "@cat/shared/schema/permission";
+import type { ObjectType, Relation } from "@cat/shared";
+import type { SubjectType } from "@cat/shared";
 
 import {
   ObjectTypeSchema,
   RelationSchema,
   SubjectTypeSchema,
-} from "@cat/shared/schema/permission";
+} from "@cat/shared";
 import {
   Button,
   Input,

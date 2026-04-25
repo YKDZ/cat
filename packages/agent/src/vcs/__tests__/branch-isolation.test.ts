@@ -11,7 +11,7 @@
  * - Abandon: abandoned branch changes don't affect main
  */
 
-import type { ChangeAction, EntityType } from "@cat/shared/schema/enum";
+import type { ChangeAction, EntityType } from "@cat/shared";
 import type { TestDB } from "@cat/test-utils";
 
 import {

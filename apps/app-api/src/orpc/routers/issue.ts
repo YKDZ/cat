@@ -22,7 +22,7 @@ import {
   updateIssue,
   UpdateIssueCommandSchema,
 } from "@cat/domain";
-import { IssueSchema } from "@cat/shared/schema/drizzle/issue";
+import { IssueSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";

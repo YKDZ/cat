@@ -1,5 +1,5 @@
 import type { AgentRunMetadataRow } from "@cat/domain";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import {
   createAgentDefinition,
@@ -34,13 +34,10 @@ import {
   AgentSessionMetadataSchema,
   AgentSecurityPolicySchema,
   OrchestrationSchema,
-} from "@cat/shared/schema/agent";
-import { AgentDefinitionSchema } from "@cat/shared/schema/drizzle/agent";
-import {
-  AgentDefinitionTypeSchema,
-  ScopeTypeSchema,
-} from "@cat/shared/schema/enum";
-import { JSONObjectSchema } from "@cat/shared/schema/json";
+} from "@cat/shared";
+import { StoredAgentDefinitionSchema } from "@cat/shared";
+import { AgentDefinitionTypeSchema, ScopeTypeSchema } from "@cat/shared";
+import { JSONObjectSchema } from "@cat/shared";
 import { createAgentEvent, type AgentEvent } from "@cat/workflow";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod";
@@ -223,7 +220,7 @@ export const list = authed
   )
   .output(
     z.array(
-      AgentDefinitionSchema.omit({ id: true }).extend({ id: z.uuidv4() }),
+      StoredAgentDefinitionSchema.omit({ id: true }).extend({ id: z.uuidv4() }),
     ),
   )
   .handler(async ({ context, input }) => {

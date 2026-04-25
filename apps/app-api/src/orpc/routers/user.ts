@@ -14,8 +14,8 @@ import {
   getServiceFromDBId,
   preparePresignedPutFile,
 } from "@cat/server-shared";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
-import { FileMetaSchema } from "@cat/shared/schema/misc";
+import { UserSchema } from "@cat/shared";
+import { FileMetaSchema } from "@cat/shared";
 import { ORPCError } from "@orpc/client";
 import { createHash, randomUUID } from "node:crypto";
 import { join } from "node:path";
