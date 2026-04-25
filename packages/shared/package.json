@@ -22,146 +22,144 @@
       "import": "./dist/index.js"
     },
     "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "import": "./dist/utils.js"
+      "types": "./dist/compat/utils.d.ts",
+      "import": "./dist/compat/utils.js"
     },
     "./schema/json": {
-      "types": "./dist/schema/json.d.ts",
-      "import": "./dist/schema/json.js"
+      "types": "./dist/compat/schema/json.d.ts",
+      "import": "./dist/compat/schema/json.js"
     },
     "./schema/misc": {
-      "types": "./dist/schema/misc.d.ts",
-      "import": "./dist/schema/misc.js"
+      "types": "./dist/compat/schema/misc.d.ts",
+      "import": "./dist/compat/schema/misc.js"
     },
     "./schema/ce": {
-      "types": "./dist/schema/ce.d.ts",
-      "import": "./dist/schema/ce.js"
+      "types": "./dist/compat/schema/ce.d.ts",
+      "import": "./dist/compat/schema/ce.js"
     },
     "./schema/plugin": {
-      "types": "./dist/schema/plugin.d.ts",
-      "import": "./dist/schema/plugin.js"
+      "types": "./dist/compat/schema/plugin.d.ts",
+      "import": "./dist/compat/schema/plugin.js"
     },
     "./schema/enum": {
-      "types": "./dist/schema/enum.d.ts",
-      "import": "./dist/schema/enum.js",
-      "require": "./dist/schema/enum.cjs"
+      "types": "./dist/compat/schema/enum.d.ts",
+      "import": "./dist/compat/schema/enum.js"
     },
     "./schema/drizzle/document": {
-      "types": "./dist/schema/drizzle/document.d.ts",
-      "import": "./dist/schema/drizzle/document.js"
+      "types": "./dist/compat/schema/drizzle/document.d.ts",
+      "import": "./dist/compat/schema/drizzle/document.js"
     },
     "./schema/drizzle/file": {
-      "types": "./dist/schema/drizzle/file.d.ts",
-      "import": "./dist/schema/drizzle/file.js"
+      "types": "./dist/compat/schema/drizzle/file.d.ts",
+      "import": "./dist/compat/schema/drizzle/file.js"
     },
     "./schema/drizzle/qa": {
-      "types": "./dist/schema/drizzle/qa.d.ts",
-      "import": "./dist/schema/drizzle/qa.js"
+      "types": "./dist/compat/schema/drizzle/qa.d.ts",
+      "import": "./dist/compat/schema/drizzle/qa.js"
     },
     "./schema/drizzle/glossary": {
-      "types": "./dist/schema/drizzle/glossary.d.ts",
-      "import": "./dist/schema/drizzle/glossary.js"
+      "types": "./dist/compat/schema/drizzle/glossary.d.ts",
+      "import": "./dist/compat/schema/drizzle/glossary.js"
     },
     "./schema/drizzle/agent": {
-      "types": "./dist/schema/drizzle/agent.d.ts",
-      "import": "./dist/schema/drizzle/agent.js"
+      "types": "./dist/compat/schema/drizzle/agent.d.ts",
+      "import": "./dist/compat/schema/drizzle/agent.js"
     },
     "./schema/drizzle/changeset": {
-      "types": "./dist/schema/drizzle/changeset.d.ts",
-      "import": "./dist/schema/drizzle/changeset.js"
+      "types": "./dist/compat/schema/drizzle/changeset.d.ts",
+      "import": "./dist/compat/schema/drizzle/changeset.js"
     },
     "./schema/drizzle/memory": {
-      "types": "./dist/schema/drizzle/memory.d.ts",
-      "import": "./dist/schema/drizzle/memory.js"
+      "types": "./dist/compat/schema/drizzle/memory.d.ts",
+      "import": "./dist/compat/schema/drizzle/memory.js"
     },
     "./schema/drizzle/misc": {
-      "types": "./dist/schema/drizzle/misc.d.ts",
-      "import": "./dist/schema/drizzle/misc.js"
+      "types": "./dist/compat/schema/drizzle/misc.d.ts",
+      "import": "./dist/compat/schema/drizzle/misc.js"
     },
     "./schema/drizzle/plugin": {
-      "types": "./dist/schema/drizzle/plugin.d.ts",
-      "import": "./dist/schema/drizzle/plugin.js"
+      "types": "./dist/compat/schema/drizzle/plugin.d.ts",
+      "import": "./dist/compat/schema/drizzle/plugin.js"
     },
     "./schema/drizzle/project": {
-      "types": "./dist/schema/drizzle/project.d.ts",
-      "import": "./dist/schema/drizzle/project.js"
+      "types": "./dist/compat/schema/drizzle/project.d.ts",
+      "import": "./dist/compat/schema/drizzle/project.js"
     },
     "./schema/drizzle/translation": {
-      "types": "./dist/schema/drizzle/translation.d.ts",
-      "import": "./dist/schema/drizzle/translation.js"
+      "types": "./dist/compat/schema/drizzle/translation.d.ts",
+      "import": "./dist/compat/schema/drizzle/translation.js"
     },
     "./schema/drizzle/user": {
-      "types": "./dist/schema/drizzle/user.d.ts",
-      "import": "./dist/schema/drizzle/user.js"
+      "types": "./dist/compat/schema/drizzle/user.d.ts",
+      "import": "./dist/compat/schema/drizzle/user.js"
     },
     "./schema/drizzle/vector": {
-      "types": "./dist/schema/drizzle/vector.d.ts",
-      "import": "./dist/schema/drizzle/vector.js"
+      "types": "./dist/compat/schema/drizzle/vector.d.ts",
+      "import": "./dist/compat/schema/drizzle/vector.js"
     },
     "./schema/drizzle/comment": {
-      "types": "./dist/schema/drizzle/comment.d.ts",
-      "import": "./dist/schema/drizzle/comment.js",
-      "require": "./dist/schema/drizzle/comment.cjs"
+      "types": "./dist/compat/schema/drizzle/comment.d.ts",
+      "import": "./dist/compat/schema/drizzle/comment.js"
     },
     "./schema/drizzle/issue": {
-      "types": "./dist/schema/drizzle/issue.d.ts",
-      "import": "./dist/schema/drizzle/issue.js"
+      "types": "./dist/compat/schema/drizzle/issue.d.ts",
+      "import": "./dist/compat/schema/drizzle/issue.js"
     },
     "./schema/drizzle/pull-request": {
-      "types": "./dist/schema/drizzle/pull-request.d.ts",
-      "import": "./dist/schema/drizzle/pull-request.js"
+      "types": "./dist/compat/schema/drizzle/pull-request.d.ts",
+      "import": "./dist/compat/schema/drizzle/pull-request.js"
     },
     "./schema/drizzle/entity-branch": {
-      "types": "./dist/schema/drizzle/entity-branch.d.ts",
-      "import": "./dist/schema/drizzle/entity-branch.js"
+      "types": "./dist/compat/schema/drizzle/entity-branch.d.ts",
+      "import": "./dist/compat/schema/drizzle/entity-branch.js"
     },
     "./schema/drizzle/issue-comment": {
-      "types": "./dist/schema/drizzle/issue-comment.d.ts",
-      "import": "./dist/schema/drizzle/issue-comment.js"
+      "types": "./dist/compat/schema/drizzle/issue-comment.d.ts",
+      "import": "./dist/compat/schema/drizzle/issue-comment.js"
     },
     "./schema/agent": {
-      "types": "./dist/schema/agent.d.ts",
-      "import": "./dist/schema/agent.js"
+      "types": "./dist/compat/schema/agent.d.ts",
+      "import": "./dist/compat/schema/agent.js"
     },
     "./schema/nlp": {
-      "types": "./dist/schema/nlp.d.ts",
-      "import": "./dist/schema/nlp.js"
+      "types": "./dist/compat/schema/nlp.d.ts",
+      "import": "./dist/compat/schema/nlp.js"
     },
     "./schema/permission": {
-      "types": "./dist/schema/permission.d.ts",
-      "import": "./dist/schema/permission.js"
+      "types": "./dist/compat/schema/permission.d.ts",
+      "import": "./dist/compat/schema/permission.js"
     },
     "./schema/term-recall": {
-      "types": "./dist/schema/term-recall.d.ts",
-      "import": "./dist/schema/term-recall.js"
+      "types": "./dist/compat/schema/term-recall.d.ts",
+      "import": "./dist/compat/schema/term-recall.js"
     },
     "./schema/recall": {
-      "types": "./dist/schema/recall.d.ts",
-      "import": "./dist/schema/recall.js"
+      "types": "./dist/compat/schema/recall.d.ts",
+      "import": "./dist/compat/schema/recall.js"
     },
     "./schema/precision-recall": {
-      "types": "./dist/schema/precision-recall.d.ts",
-      "import": "./dist/schema/precision-recall.js"
+      "types": "./dist/compat/schema/precision-recall.d.ts",
+      "import": "./dist/compat/schema/precision-recall.js"
     },
     "./schema/memory-recall": {
-      "types": "./dist/schema/memory-recall.d.ts",
-      "import": "./dist/schema/memory-recall.js"
+      "types": "./dist/compat/schema/memory-recall.d.ts",
+      "import": "./dist/compat/schema/memory-recall.js"
     },
     "./schema/rerank": {
-      "types": "./dist/schema/rerank.d.ts",
-      "import": "./dist/schema/rerank.js"
+      "types": "./dist/compat/schema/rerank.d.ts",
+      "import": "./dist/compat/schema/rerank.js"
     },
     "./schema/project-setting": {
-      "types": "./dist/schema/project-setting.d.ts",
-      "import": "./dist/schema/project-setting.js"
+      "types": "./dist/compat/schema/project-setting.d.ts",
+      "import": "./dist/compat/schema/project-setting.js"
     },
     "./schema/collection": {
-      "types": "./dist/schema/collection.d.ts",
-      "import": "./dist/schema/collection.js"
+      "types": "./dist/compat/schema/collection.d.ts",
+      "import": "./dist/compat/schema/collection.js"
     },
     "./schema/extraction": {
-      "types": "./dist/schema/extraction.d.ts",
-      "import": "./dist/schema/extraction.js"
+      "types": "./dist/compat/schema/extraction.d.ts",
+      "import": "./dist/compat/schema/extraction.js"
     }
   },
   "dependencies": {
