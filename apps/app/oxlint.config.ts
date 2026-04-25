@@ -101,18 +101,5 @@ export default defineConfig({
         ],
       },
     },
-
-    {
-      files: [
-        "src/app/stores/agent.ts",
-        "src/app/utils/provide.ts",
-        "src/app/stores/editor/element.ts",
-        "src/app/components/PluginConfigForm.vue",
-        "src/app/pages/admin/permissions/+Page.vue",
-      ],
-      rules: {
-        "cat/no-shared-subpath-import": "error",
-      },
-    },
   ],
 });

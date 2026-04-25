@@ -4,8 +4,8 @@
   "license": "GPL-3.0-only",
   "type": "module",
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
-    "tailwindcss": "^4.2.2"
+    "@tailwindcss/vite": "^4.2.4",
+    "tailwindcss": "^4.2.4"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",

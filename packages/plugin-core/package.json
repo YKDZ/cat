@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@cat/domain": "workspace:*",
-    "hono": "^4.12.14",
+    "hono": "^4.12.15",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
