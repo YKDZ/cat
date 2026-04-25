@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import type {
-  PluginConfig,
-  PluginConfigInstance,
-} from "@cat/shared/schema/drizzle/plugin";
-import type { ScopeType } from "@cat/shared/schema/enum";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { PluginConfig, PluginConfigInstance } from "@cat/shared";
+import type { ScopeType } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 import { navigate } from "vike/client/router";
 import { ref } from "vue";

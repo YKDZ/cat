@@ -3,7 +3,7 @@ import type { Root, Yaml } from "mdast";
 import {
   AgentDefinitionMetadataSchema,
   type ParsedAgentDefinition,
-} from "@cat/shared/schema/agent";
+} from "@cat/shared";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkParse from "remark-parse";
 import { unified } from "unified";

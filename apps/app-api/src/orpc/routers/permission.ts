@@ -4,7 +4,7 @@ import {
   PermissionCheckSchema,
   RelationSchema,
   SubjectTypeSchema,
-} from "@cat/shared/schema/permission";
+} from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";

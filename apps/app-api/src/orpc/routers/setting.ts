@@ -4,7 +4,7 @@ import {
   getSetting,
   setSetting,
 } from "@cat/domain";
-import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
+import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";

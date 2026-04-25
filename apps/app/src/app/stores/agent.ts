@@ -1,6 +1,6 @@
-import type { ToolConfirmResponse } from "@cat/shared/schema/agent";
-import type { AgentSessionMetadata } from "@cat/shared/schema/agent";
-import type { AgentDefinitionType, ScopeType } from "@cat/shared/schema/enum";
+import type { ToolConfirmResponse } from "@cat/shared";
+import type { AgentSessionMetadata } from "@cat/shared";
+import type { AgentDefinitionType, ScopeType } from "@cat/shared";
 
 import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";

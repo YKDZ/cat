@@ -15,9 +15,9 @@ import {
   CollectionContextDataSchema,
   CollectionPayloadSchema,
   type CollectionContextData,
-} from "@cat/shared/schema/collection";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { sanitizeFileName } from "@cat/shared/utils";
+} from "@cat/shared";
+import { safeZDotJson } from "@cat/shared";
+import { sanitizeFileName } from "@cat/shared";
 import { runGraph, ingestCollectionGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";

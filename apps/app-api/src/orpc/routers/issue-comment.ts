@@ -22,7 +22,7 @@ import {
   IssueCommentSchema,
   IssueCommentThreadSchema,
   CrossReferenceSchema,
-} from "@cat/shared/schema/drizzle/issue-comment";
+} from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";

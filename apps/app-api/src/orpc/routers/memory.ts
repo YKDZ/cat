@@ -17,11 +17,11 @@ import {
   collectMemoryRecallOp,
   recallContextRerankOp,
 } from "@cat/operations";
-import { MemorySchema } from "@cat/shared/schema/drizzle/memory";
+import { MemorySchema } from "@cat/shared";
 import {
   MemoryRecallBm25CapabilityDirectorySchema,
   MemoryRecallBm25CapabilityQuerySchema,
-} from "@cat/shared/schema/memory-recall";
+} from "@cat/shared";
 import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";

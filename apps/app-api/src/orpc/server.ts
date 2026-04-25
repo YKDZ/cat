@@ -1,4 +1,4 @@
-import type { ObjectType, Relation } from "@cat/shared/schema/permission";
+import type { ObjectType, Relation } from "@cat/shared";
 
 import {
   getDocument,

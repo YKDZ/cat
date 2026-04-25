@@ -1,4 +1,4 @@
-import type { User } from "@cat/shared/schema/drizzle/user";
+import type { User } from "@cat/shared";
 
 import {
   executeCommand,
@@ -8,7 +8,7 @@ import {
   updateApiKeyLastUsed,
   type DbHandle,
 } from "@cat/domain";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
+import { UserSchema } from "@cat/shared";
 import { createHash } from "node:crypto";
 
 export const hashApiKey = (raw: string): string =>

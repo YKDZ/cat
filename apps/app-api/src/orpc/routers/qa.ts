@@ -1,4 +1,4 @@
-import type { QaResultItem } from "@cat/shared/schema/drizzle/qa";
+import type { QaResultItem } from "@cat/shared";
 
 import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";

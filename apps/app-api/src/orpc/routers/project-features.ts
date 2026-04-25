@@ -3,7 +3,7 @@ import {
   updateProjectFeatures,
   UpdateProjectFeaturesCommandSchema,
 } from "@cat/domain";
-import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
+import { ProjectSchema } from "@cat/shared";
 
 import { authed, checkPermission } from "@/orpc/server";
 

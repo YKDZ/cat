@@ -1,8 +1,5 @@
 import type { BlackboardSnapshot } from "@cat/graph";
-import type {
-  AgentSessionMetadata,
-  ParsedAgentDefinition,
-} from "@cat/shared/schema/agent";
+import type { AgentSessionMetadata, ParsedAgentDefinition } from "@cat/shared";
 
 import {
   completeAgentSession,
@@ -18,7 +15,7 @@ import {
   saveAgentRunSnapshot,
 } from "@cat/domain";
 import { BlackboardSnapshotSchema } from "@cat/graph";
-import { AgentSessionMetadataSchema } from "@cat/shared/schema/agent";
+import { AgentSessionMetadataSchema } from "@cat/shared";
 
 import { buildAgentDAG } from "../dag/agent-dag-builder.ts";
 

@@ -21,9 +21,9 @@ import {
   unlinkProjectMemories,
   updateProject,
 } from "@cat/domain";
-import { DocumentSchema } from "@cat/shared/schema/drizzle/document";
-import { LanguageSchema } from "@cat/shared/schema/drizzle/misc";
-import { ProjectSchema } from "@cat/shared/schema/drizzle/project";
+import { DocumentSchema } from "@cat/shared";
+import { LanguageSchema } from "@cat/shared";
+import { ProjectSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkPermission } from "@/orpc/server";

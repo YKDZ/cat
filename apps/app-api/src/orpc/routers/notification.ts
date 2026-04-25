@@ -13,7 +13,7 @@ import {
   MessageCategorySchema,
   MessageChannelSchema,
   NotificationStatusSchema,
-} from "@cat/shared/schema/enum";
+} from "@cat/shared";
 import * as z from "zod";
 
 import { authed } from "@/orpc/server";

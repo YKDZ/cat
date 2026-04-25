@@ -1,4 +1,4 @@
-import type { HTTPHelpers } from "@cat/shared/utils";
+import type { HTTPHelpers } from "@cat/shared";
 
 import {
   createSessionRecord,

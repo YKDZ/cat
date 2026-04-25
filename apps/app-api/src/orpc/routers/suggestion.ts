@@ -18,7 +18,7 @@ import {
 import {
   TranslationSuggestionSchema,
   type TranslationSuggestion,
-} from "@cat/shared/schema/plugin";
+} from "@cat/shared";
 import {
   fetchAdviseGraph,
   getGlobalGraphRuntime,

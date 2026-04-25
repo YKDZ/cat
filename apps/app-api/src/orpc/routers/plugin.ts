@@ -15,15 +15,15 @@ import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
   PluginSchema,
-} from "@cat/shared/schema/drizzle/plugin";
-import { ScopeTypeSchema } from "@cat/shared/schema/enum";
-import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
+} from "@cat/shared";
+import { ScopeTypeSchema } from "@cat/shared";
+import { nonNullSafeZDotJson } from "@cat/shared";
 import {
   AuthMethodSchema,
   TranslationAdvisorDataSchema,
   type AuthMethod,
   type TranslationAdvisorData,
-} from "@cat/shared/schema/misc";
+} from "@cat/shared";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 

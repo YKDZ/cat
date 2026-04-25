@@ -7,7 +7,7 @@ import {
   reviewChangeset,
   reviewChangesetEntry,
 } from "@cat/domain";
-import { ChangesetStatusSchema } from "@cat/shared/schema/enum";
+import { ChangesetStatusSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { authed } from "@/orpc/server";
