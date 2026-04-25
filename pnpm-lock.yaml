@@ -757,6 +757,9 @@ importers:
       '@cat/agent-tools':
         specifier: workspace:*
         version: link:../../packages/agent-tools
+      '@cat/oxlint-plugin':
+        specifier: workspace:*
+        version: link:../../packages/oxlint-plugin
       '@cat/test-utils':
         specifier: workspace:*
         version: link:../../packages/test-utils
@@ -980,6 +983,9 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
+      '@cat/oxlint-plugin':
+        specifier: workspace:*
+        version: link:../oxlint-plugin
       '@cat/test-utils':
         specifier: workspace:*
         version: link:../test-utils

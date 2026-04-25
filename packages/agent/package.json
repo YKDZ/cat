@@ -24,6 +24,7 @@
     "yaml": "catalog:"
   },
   "devDependencies": {
+    "@cat/oxlint-plugin": "workspace:*",
     "@cat/test-utils": "workspace:*",
     "@types/mdast": "catalog:",
     "@types/node": "catalog:",

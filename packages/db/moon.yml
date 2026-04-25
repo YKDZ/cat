@@ -21,8 +21,6 @@ tasks:
 
   codegen-schemas:
     command: "tsx src/zod/codegen.ts"
-    deps:
-      - "shared:build"
     options:
       cache: false
 

@@ -16,6 +16,7 @@ import {
 } from "@/app/stores/editor/element.ts";
 import { useProfileStore } from "@/app/stores/profile.ts";
 import { hashJSON } from "@/app/utils/hash.ts";
+import { clientLogger } from "@/app/utils/logger";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const context = storeToRefs(useEditorContextStore());
@@ -153,7 +154,12 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       languageId: context.languageToId.value,
     });
 
-    if (!firstUntranslatedElement) return;
+    if (!firstUntranslatedElement) {
+      clientLogger.debug(
+        "[toNextUntranslated] No more untranslated elements found.",
+      );
+      return;
+    }
 
     await toElement(firstUntranslatedElement.id);
     await navigate(

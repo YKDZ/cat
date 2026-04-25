@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@cat/agent-tools": "workspace:*",
+    "@cat/oxlint-plugin": "workspace:*",
     "@cat/test-utils": "workspace:*",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
