@@ -3,7 +3,7 @@ import * as z from "zod";
 import { DrizzleDateTimeSchema } from "../misc.ts";
 import { nonNullSafeZDotJson, safeZDotJson } from "../json.ts";
 
-export const AgentDefinitionSchema = z.object({
+export const StoredAgentDefinitionSchema = z.object({
   id: z.int(),
   externalId: z.uuidv4(),
   scopeType: z.enum(["GLOBAL", "PROJECT", "USER"]),
@@ -26,7 +26,7 @@ export const AgentDefinitionSchema = z.object({
   updatedAt: DrizzleDateTimeSchema,
 });
 
-export type AgentDefinition = z.infer<typeof AgentDefinitionSchema>;
+export type StoredAgentDefinition = z.infer<typeof StoredAgentDefinitionSchema>;
 
 export const AgentSessionSchema = z.object({
   id: z.int(),
