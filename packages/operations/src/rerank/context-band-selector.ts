@@ -1,4 +1,4 @@
-import type { RerankBand } from "@cat/shared/schema/rerank";
+import type { RerankBand } from "@cat/shared";
 
 type PositiveSignals = {
   sourceOverlap: number;

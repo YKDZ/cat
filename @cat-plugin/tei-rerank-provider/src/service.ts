@@ -1,7 +1,4 @@
-import type {
-  RerankProviderCall,
-  RerankResponse,
-} from "@cat/shared/schema/rerank";
+import type { RerankProviderCall, RerankResponse } from "@cat/shared";
 
 import { RerankProvider } from "@cat/plugin-core";
 import * as z from "zod";

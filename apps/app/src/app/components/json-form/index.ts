@@ -1,8 +1,4 @@
-import type {
-  _JSONSchema,
-  JSONSchema,
-  NonNullJSONType,
-} from "@cat/shared/schema/json";
+import type { _JSONSchema, JSONSchema, NonNullJSONType } from "@cat/shared";
 import type { DefineComponent } from "vue";
 
 import ArrayRenderer from "./renderers/ArrayRenderer.vue";

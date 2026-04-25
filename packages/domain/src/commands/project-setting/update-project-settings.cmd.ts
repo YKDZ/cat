@@ -3,7 +3,7 @@ import {
   ProjectSettingPatchSchema,
   ProjectSettingPayloadSchema,
   type ProjectSettingPayload,
-} from "@cat/shared/schema/project-setting";
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

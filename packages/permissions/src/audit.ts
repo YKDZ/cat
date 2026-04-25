@@ -1,9 +1,5 @@
 import type { DbHandle } from "@cat/domain";
-import type {
-  ObjectType,
-  Relation,
-  SubjectType,
-} from "@cat/shared/schema/permission";
+import type { ObjectType, Relation, SubjectType } from "@cat/shared";
 
 import { InProcessEventBus, type AnyEventOf } from "@cat/core";
 import { executeCommand } from "@cat/domain";
@@ -13,7 +9,7 @@ import {
   PermissionActionSchema,
   RelationSchema,
   SubjectTypeSchema,
-} from "@cat/shared/schema/permission";
+} from "@cat/shared";
 
 export type AuditEventMap = {
   "permission:checked": {

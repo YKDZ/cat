@@ -3,7 +3,7 @@ import type {
   CandidateTopicAssignment,
   MemoryTopicBinding,
   TopicMatchState,
-} from "@cat/shared/schema/precision-recall";
+} from "@cat/shared";
 
 import type { RecallCandidate } from "./types";
 

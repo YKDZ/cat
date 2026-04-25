@@ -7,7 +7,7 @@ import {
   executeQuery,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish, zip } from "@cat/shared/utils";
+import { assertSingleNonNullish, zip } from "@cat/shared";
 import {
   installTestVectorizationQueue,
   setupTestDB,

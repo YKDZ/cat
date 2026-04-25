@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Memory } from "@cat/shared";
+import type { Project } from "@cat/shared";
 
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@cat/ui";
 import { useI18n } from "vue-i18n";

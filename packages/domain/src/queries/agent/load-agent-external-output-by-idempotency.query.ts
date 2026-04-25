@@ -1,4 +1,4 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared";
 
 import { agentExternalOutput, and, eq } from "@cat/db";
 import * as z from "zod";

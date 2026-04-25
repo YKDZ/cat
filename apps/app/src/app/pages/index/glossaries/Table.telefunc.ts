@@ -1,4 +1,4 @@
-import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+import type { Glossary } from "@cat/shared";
 
 import { listGlossariesByCreator } from "@cat/domain";
 

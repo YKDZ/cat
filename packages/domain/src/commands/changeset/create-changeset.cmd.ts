@@ -1,6 +1,6 @@
 import { changeset, getColumns } from "@cat/db";
-import { ChangesetStatusSchema } from "@cat/shared/schema/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { ChangesetStatusSchema } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

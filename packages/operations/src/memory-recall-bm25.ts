@@ -1,7 +1,7 @@
 import type {
   MemoryRecallBm25CapabilityEntry,
   MemoryRecallBm25CompressionProfile,
-} from "@cat/shared/schema/memory-recall";
+} from "@cat/shared";
 
 import {
   executeQuery,

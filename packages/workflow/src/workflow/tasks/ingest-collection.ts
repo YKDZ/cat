@@ -1,4 +1,4 @@
-import type { CollectionPayload } from "@cat/shared/schema/collection";
+import type { CollectionPayload } from "@cat/shared";
 
 import {
   createDocumentUnderParent,
@@ -10,7 +10,7 @@ import {
   listElementIdsByDocument,
   listElementsForDiff,
 } from "@cat/domain";
-import { CollectionPayloadSchema } from "@cat/shared/schema/collection";
+import { CollectionPayloadSchema } from "@cat/shared";
 import { isDeepStrictEqual } from "node:util";
 import * as z from "zod";
 

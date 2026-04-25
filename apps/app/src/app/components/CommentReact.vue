@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import type {
-  Comment,
-  CommentReaction,
-} from "@cat/shared/schema/drizzle/comment";
-import type { CommentReactionType } from "@cat/shared/schema/enum";
+import type { Comment, CommentReaction } from "@cat/shared";
+import type { CommentReactionType } from "@cat/shared";
 
 import { Button } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";

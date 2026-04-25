@@ -1,8 +1,5 @@
-import type { PluginServiceType } from "@cat/shared/schema/enum";
-import type {
-  NlpSegmentResult,
-  NlpBatchSegmentResult,
-} from "@cat/shared/schema/nlp";
+import type { PluginServiceType } from "@cat/shared";
+import type { NlpSegmentResult, NlpBatchSegmentResult } from "@cat/shared";
 
 import type { IPluginService } from "./service";
 
@@ -11,7 +8,7 @@ export type {
   NlpSentence,
   NlpSegmentResult,
   NlpBatchSegmentResult,
-} from "@cat/shared/schema/nlp";
+} from "@cat/shared";
 
 /**
  * 分词请求上下文

@@ -1,4 +1,4 @@
-import type { AmbiguityEnvelope } from "@cat/shared/schema/precision-recall";
+import type { AmbiguityEnvelope } from "@cat/shared";
 
 import type { RecallCandidate } from "./types";
 

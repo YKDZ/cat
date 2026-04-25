@@ -1,4 +1,4 @@
-import type { Plugin, PluginConfig } from "@cat/shared/schema/drizzle/plugin";
+import type { Plugin, PluginConfig } from "@cat/shared";
 import type { PageContextServer } from "vike/types";
 
 import { render } from "vike/abort";

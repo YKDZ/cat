@@ -1,5 +1,5 @@
-import type { MessageCategory, MessageChannel } from "@cat/shared/schema/enum";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { MessageCategory, MessageChannel } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 import { domainEvent, domainEventBus } from "@cat/domain/events";
 

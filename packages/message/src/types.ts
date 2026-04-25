@@ -1,5 +1,5 @@
-import type { MessageCategory, MessageChannel } from "@cat/shared/schema/enum";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { MessageCategory, MessageChannel } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 /** @zh 消息发送请求载荷。 @en Message send request payload. */
 export type MessageRequest = {

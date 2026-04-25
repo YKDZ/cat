@@ -5,9 +5,9 @@ import {
   pluginConfigInstance,
   pluginInstallation,
 } from "@cat/db";
-import { ScopeTypeSchema } from "@cat/shared/schema/enum";
-import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { ScopeTypeSchema } from "@cat/shared";
+import { nonNullSafeZDotJson } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

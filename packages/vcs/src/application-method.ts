@@ -1,5 +1,5 @@
 import type { DbHandle } from "@cat/domain";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 /**
  * @zh 变更集条目的核心字段（与 DB changesetEntry 行对应）。

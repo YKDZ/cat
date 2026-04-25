@@ -1,5 +1,5 @@
 import { eq, pluginConfigInstance } from "@cat/db";
-import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
+import { nonNullSafeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

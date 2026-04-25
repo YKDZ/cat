@@ -1,6 +1,6 @@
 import type { GlobalContextClient } from "vike/types";
 
-import { getCookieFunc } from "@cat/shared/utils";
+import { getCookieFunc } from "@cat/shared";
 import { usePreferredLanguages } from "@vueuse/core";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";

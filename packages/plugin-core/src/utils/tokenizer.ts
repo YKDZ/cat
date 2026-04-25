@@ -1,4 +1,4 @@
-import type { TermData } from "@cat/shared/schema/misc";
+import type { TermData } from "@cat/shared";
 
 import type { Token, Tokenizer } from "@/services/tokenizer.ts";
 

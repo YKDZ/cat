@@ -1,9 +1,6 @@
 import { and, changeset, changesetEntry, eq, getColumns } from "@cat/db";
-import {
-  ChangesetStatusSchema,
-  EntityTypeSchema,
-} from "@cat/shared/schema/enum";
-import { assertSingleOrNull } from "@cat/shared/utils";
+import { ChangesetStatusSchema, EntityTypeSchema } from "@cat/shared";
+import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

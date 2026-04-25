@@ -1,6 +1,6 @@
 // oxlint-disable no-console
-import type { CollectionContext } from "@cat/shared/schema/collection";
-import type { ExtractionResult } from "@cat/shared/schema/extraction";
+import type { CollectionContext } from "@cat/shared";
+import type { ExtractionResult } from "@cat/shared";
 
 import { glob } from "glob";
 import { readFile } from "node:fs/promises";

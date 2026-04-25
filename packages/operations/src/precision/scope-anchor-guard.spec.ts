@@ -1,4 +1,4 @@
-import type { QueryTopicHypothesis } from "@cat/shared/schema/precision-recall";
+import type { QueryTopicHypothesis } from "@cat/shared";
 
 import { describe, expect, it } from "vitest";
 

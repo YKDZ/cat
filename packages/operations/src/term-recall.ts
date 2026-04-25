@@ -5,7 +5,7 @@ import {
   getDbHandle,
   listConceptSubjectsByConceptIds,
 } from "@cat/domain";
-import { EnrichedTermMatchSchema } from "@cat/shared/schema/term-recall";
+import { EnrichedTermMatchSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { collectTermRecallOp } from "./collect-term-recall";

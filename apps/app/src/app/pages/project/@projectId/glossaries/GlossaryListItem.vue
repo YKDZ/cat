@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Glossary } from "@cat/shared";
+import type { Project } from "@cat/shared";
 
 import { TableRow, TableCell } from "@cat/ui";
 import { Button } from "@cat/ui";

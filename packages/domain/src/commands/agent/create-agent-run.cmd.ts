@@ -1,6 +1,6 @@
 import { agentRun, agentSession, eq } from "@cat/db";
-import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { nonNullSafeZDotJson } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

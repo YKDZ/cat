@@ -1,4 +1,4 @@
-import type { RerankRequest, RerankResponse } from "@cat/shared/schema/rerank";
+import type { RerankRequest, RerankResponse } from "@cat/shared";
 
 import { PluginManager } from "@cat/plugin-core";
 import { RerankProvider } from "@cat/plugin-core";

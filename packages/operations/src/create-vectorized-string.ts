@@ -8,7 +8,7 @@ import {
   getDbHandle,
 } from "@cat/domain";
 import { getVectorizationQueue } from "@cat/server-shared";
-import { UnvectorizedTextData } from "@cat/shared/schema/misc";
+import { UnvectorizedTextData } from "@cat/shared";
 import * as z from "zod";
 
 export const CreateVectorizedStringInputSchema = z.object({

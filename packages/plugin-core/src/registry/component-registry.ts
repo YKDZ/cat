@@ -1,4 +1,4 @@
-import { CustomElementNameSchema } from "@cat/shared/schema/ce";
+import { CustomElementNameSchema } from "@cat/shared";
 import * as z from "zod";
 
 export const ComponentRecordSchema = z.object({

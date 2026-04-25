@@ -1,9 +1,9 @@
 import type { PluginManager } from "@cat/plugin-core";
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
-import { JSONObjectSchema } from "@cat/shared/schema/json";
+import { JSONObjectSchema } from "@cat/shared";
 import assert from "node:assert";
 
 import { getStoredGraphRuntime } from "@/graph/runtime-store";

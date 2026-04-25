@@ -1,5 +1,5 @@
 import { agentRun } from "@cat/db";
-import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared/schema/json";
+import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

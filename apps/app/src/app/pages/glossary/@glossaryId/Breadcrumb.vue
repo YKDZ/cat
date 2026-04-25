@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+import type { Glossary } from "@cat/shared";
 
 import Slash from "@/app/components/Slash.vue";
 import UserAvatar from "@/app/components/UserAvatar.vue";

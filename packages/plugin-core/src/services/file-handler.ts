@@ -1,6 +1,6 @@
-import type { PluginServiceType } from "@cat/shared/schema/enum";
+import type { PluginServiceType } from "@cat/shared";
 
-import { JSONType } from "@cat/shared/schema/json";
+import { JSONType } from "@cat/shared";
 
 import type { IPluginService } from "@/services/service";
 

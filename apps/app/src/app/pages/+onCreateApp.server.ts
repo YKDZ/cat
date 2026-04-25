@@ -2,7 +2,7 @@ import type { GlobalContextServer, PageContextServer } from "vike/types";
 import type { ComputedRef } from "vue";
 
 import { executeQuery, getSetting } from "@cat/domain";
-import { parsePreferredLanguage } from "@cat/shared/utils";
+import { parsePreferredLanguage } from "@cat/shared";
 import { readFile } from "node:fs/promises";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";

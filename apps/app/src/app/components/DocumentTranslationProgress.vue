@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/drizzle/document";
-import type { Language } from "@cat/shared/schema/drizzle/misc";
+import type { Document } from "@cat/shared";
+import type { Language } from "@cat/shared";
 
-import { toShortFixed } from "@cat/shared/utils";
+import { toShortFixed } from "@cat/shared";
 import { useQuery } from "@pinia/colada";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";

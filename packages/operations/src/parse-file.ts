@@ -8,8 +8,8 @@ import {
   type StorageProvider,
 } from "@cat/plugin-core";
 import { getServiceFromDBId, readableToBuffer } from "@cat/server-shared";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { assertFirstNonNullish } from "@cat/shared/utils";
+import { safeZDotJson } from "@cat/shared";
+import { assertFirstNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 export const ParseFileInputSchema = z.object({

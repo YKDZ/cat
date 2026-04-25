@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TranslationSuggestion } from "@cat/shared/schema/plugin";
+import type { TranslationSuggestion } from "@cat/shared";
 
 import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";

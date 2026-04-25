@@ -7,10 +7,7 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
-import {
-  SlotMappingEntrySchema,
-  type SlotMappingEntry,
-} from "@cat/shared/schema/drizzle/memory";
+import { SlotMappingEntrySchema, type SlotMappingEntry } from "@cat/shared";
 import * as z from "zod";
 
 import type { RawMemorySuggestion } from "@/queries/memory/list-lexical-memory-suggestions.query";

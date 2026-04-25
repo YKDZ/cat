@@ -34,7 +34,7 @@ import {
   serverLogger as logger,
   setVectorizationQueue,
 } from "@cat/server-shared";
-import { assertPromise } from "@cat/shared/utils";
+import { assertPromise } from "@cat/shared";
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import { createDefaultGraphRuntime } from "@cat/workflow";
 import { access } from "fs/promises";

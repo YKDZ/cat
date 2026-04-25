@@ -5,8 +5,8 @@ import type {
   SessionStore,
 } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
-import type { User } from "@cat/shared/schema/drizzle/user";
-import type { HTTPHelpers } from "@cat/shared/utils";
+import type { User } from "@cat/shared";
+import type { HTTPHelpers } from "@cat/shared";
 
 /**
  * 与 `@cat/app-api` Context 结构兼容的测试上下文类型。

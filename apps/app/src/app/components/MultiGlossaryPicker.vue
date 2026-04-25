@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Glossary } from "@cat/shared/schema/drizzle/glossary";
+import type { Glossary } from "@cat/shared";
 
 import { useQuery } from "@pinia/colada";
 import { usePageContext } from "vike-vue/usePageContext";

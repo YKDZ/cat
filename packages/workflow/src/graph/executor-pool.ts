@@ -1,4 +1,4 @@
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 
 import type { Checkpointer } from "@/graph/checkpointer";
 import type { EventEnvelopeInput } from "@/graph/events";

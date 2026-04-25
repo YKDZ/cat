@@ -1,4 +1,4 @@
-import type { TermData } from "@cat/shared/schema/misc";
+import type { TermData } from "@cat/shared";
 
 import { describe, expect, it } from "vitest";
 

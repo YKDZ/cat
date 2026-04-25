@@ -1,5 +1,5 @@
 import type { DbHandle } from "@cat/domain";
-import type { MessageChannel } from "@cat/shared/schema/enum";
+import type { MessageChannel } from "@cat/shared";
 
 import { executeQuery, getEnabledChannels } from "@cat/domain";
 import { serverLogger } from "@cat/server-shared";

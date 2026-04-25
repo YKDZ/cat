@@ -1,5 +1,5 @@
-import type { JSONType } from "@cat/shared/schema/json";
-import type { VectorizedTextData } from "@cat/shared/schema/misc";
+import type { JSONType } from "@cat/shared";
+import type { VectorizedTextData } from "@cat/shared";
 
 import { TextVectorizer, type VectorizeContext } from "@cat/plugin-core";
 import OpenAI from "openai";

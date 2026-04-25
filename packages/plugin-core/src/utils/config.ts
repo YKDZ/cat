@@ -1,6 +1,6 @@
 import type { DbHandle } from "@cat/domain";
-import type { ScopeType } from "@cat/shared/schema/enum";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { ScopeType } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 import { executeQuery, getPluginConfigInstance } from "@cat/domain";
 

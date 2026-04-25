@@ -7,7 +7,7 @@ import {
   detectMobile,
   userFromSessionId,
 } from "@cat/server-shared";
-import { parsePreferredLanguage } from "@cat/shared/utils";
+import { parsePreferredLanguage } from "@cat/shared";
 import { createPinia } from "pinia";
 
 const getStringSetting = async (

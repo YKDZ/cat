@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { _JSONSchema, NonNullJSONType } from "@cat/shared/schema/json";
+import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
 
-import { _JSONSchemaSchema } from "@cat/shared/schema/json";
-import { getDefaultFromSchema } from "@cat/shared/utils";
+import { _JSONSchemaSchema } from "@cat/shared";
+import { getDefaultFromSchema } from "@cat/shared";
 import {
   Button,
   Card,

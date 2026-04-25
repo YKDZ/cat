@@ -3,7 +3,7 @@ import {
   ObjectTypeSchema,
   RelationSchema,
   SubjectTypeSchema,
-} from "@cat/shared/schema/permission";
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

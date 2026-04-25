@@ -17,7 +17,7 @@ export const BlobSchema = z.object({
   key: z.string(),
   storageProviderId: z.int(),
   referenceCount: z.int(),
-  hash: z.instanceof(Buffer).nullable(),
+  hash: z.custom<Buffer>().nullable(),
   createdAt: DrizzleDateTimeSchema,
 });
 

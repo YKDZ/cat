@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { User } from "@cat/shared/schema/drizzle/user";
+import type { User } from "@cat/shared";
 
 import {
   DropdownMenu,

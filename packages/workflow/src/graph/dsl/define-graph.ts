@@ -1,4 +1,4 @@
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 import type * as z from "zod";
 
 import type { GraphDefinition, NodeDefinition } from "@/graph/types";

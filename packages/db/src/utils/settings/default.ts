@@ -1,5 +1,5 @@
 /* eslint-disable @cspell/spellchecker */
-import { nonNullSafeZDotJson } from "@cat/shared/schema/json";
+import { nonNullSafeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 export const DefaultSettingDataSchema = z.object({

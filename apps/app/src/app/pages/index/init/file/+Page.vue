@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Project } from "@cat/shared";
 
 import { Separator } from "@cat/ui";
 import { Settings } from "@lucide/vue";

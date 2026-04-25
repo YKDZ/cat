@@ -7,7 +7,7 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
-import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
+import { TermStatusValues, TermTypeValues } from "@cat/shared";
 import * as z from "zod";
 
 export const AddTermToConceptInputSchema = z.object({

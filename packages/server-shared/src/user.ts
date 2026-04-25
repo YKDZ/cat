@@ -1,4 +1,4 @@
-import type { User } from "@cat/shared/schema/drizzle/user";
+import type { User } from "@cat/shared";
 
 import {
   executeQuery,
@@ -6,7 +6,7 @@ import {
   getUser,
   type DbHandle,
 } from "@cat/domain";
-import { UserSchema } from "@cat/shared/schema/drizzle/user";
+import { UserSchema } from "@cat/shared";
 
 export const userFromSessionId = async (
   drizzle: DbHandle,

@@ -1,5 +1,5 @@
 import type { DbHandle, DrizzleClient, DrizzleTransaction } from "@cat/domain";
-import type { PluginServiceType, ScopeType } from "@cat/shared/schema/enum";
+import type { PluginServiceType, ScopeType } from "@cat/shared";
 
 import {
   checkServiceReferences,
@@ -22,12 +22,12 @@ import {
   getSessionStore,
   type PluginCapabilities,
 } from "@cat/domain";
-import { JSONSchemaSchema, type JSONObject } from "@cat/shared/schema/json";
+import { JSONSchemaSchema, type JSONObject } from "@cat/shared";
 import {
   getDefaultFromSchema,
   assertSingleNonNullish,
   logger,
-} from "@cat/shared/utils";
+} from "@cat/shared";
 import { Hono } from "hono";
 import { readFile } from "node:fs/promises";
 

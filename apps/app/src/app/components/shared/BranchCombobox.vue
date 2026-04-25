@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PullRequest } from "@cat/shared/schema/drizzle/pull-request";
+import type { PullRequest } from "@cat/shared";
 
 import {
   Combobox,

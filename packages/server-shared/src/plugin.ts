@@ -1,11 +1,11 @@
-import type { PluginServiceType } from "@cat/shared/schema/enum";
+import type { PluginServiceType } from "@cat/shared";
 
 import {
   PluginManager,
   type IPluginService,
   type PluginServiceMap,
 } from "@cat/plugin-core";
-import { assertFirstNonNullish } from "@cat/shared/utils";
+import { assertFirstNonNullish } from "@cat/shared";
 import path, { join, resolve } from "node:path";
 import { cwd } from "node:process";
 

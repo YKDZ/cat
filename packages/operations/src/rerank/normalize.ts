@@ -1,4 +1,4 @@
-import type { RerankCandidateDocument } from "@cat/shared/schema/rerank";
+import type { RerankCandidateDocument } from "@cat/shared";
 
 import type {
   RecallCandidate,

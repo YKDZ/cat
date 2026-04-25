@@ -1,8 +1,8 @@
-import type { MessageCategory } from "@cat/shared/schema/enum";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { MessageCategory } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 import { notification } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

@@ -86,7 +86,7 @@ const serializeSchema = (schema: unknown): string => {
       return `z.array(${serializeSchema(Reflect.get(def, "element"))})`;
     }
     case "custom": {
-      return "z.instanceof(Buffer)";
+      return "z.custom<Buffer>()";
     }
     case "null": {
       return "z.null()";

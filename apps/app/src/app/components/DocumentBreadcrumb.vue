@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared/schema/drizzle/document";
+import type { Document } from "@cat/shared";
 
 import { computed } from "vue";
 

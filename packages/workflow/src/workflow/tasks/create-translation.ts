@@ -1,7 +1,7 @@
 import { createTranslations, executeCommand, getDbHandle } from "@cat/domain";
 import { insertMemory } from "@cat/operations";
-import { safeZDotJson } from "@cat/shared/schema/json";
-import { zip } from "@cat/shared/utils";
+import { safeZDotJson } from "@cat/shared";
+import { zip } from "@cat/shared";
 import { randomUUID } from "node:crypto";
 import * as z from "zod";
 

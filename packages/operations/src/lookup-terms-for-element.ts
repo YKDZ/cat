@@ -1,5 +1,5 @@
 import type { OperationContext } from "@cat/domain";
-import type { TermData } from "@cat/shared/schema/misc";
+import type { TermData } from "@cat/shared";
 
 import { getDbHandle } from "@cat/domain";
 import {

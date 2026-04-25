@@ -1,5 +1,5 @@
 import { createGlossaryTerms, executeCommand, getDbHandle } from "@cat/domain";
-import { TermDataSchema } from "@cat/shared/schema/misc";
+import { TermDataSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { generateCacheKey } from "@/graph/cache";

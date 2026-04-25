@@ -7,7 +7,7 @@ import {
   notExists,
   sql,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { assertSingleNonNullish } from "@cat/shared";
 
 /**
  * Query the root document for a project — the document with no parent in the

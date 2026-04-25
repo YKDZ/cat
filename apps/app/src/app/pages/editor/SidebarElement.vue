@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { TranslatableElement } from "@cat/shared/schema/drizzle/document";
-import type { ElementTranslationStatus } from "@cat/shared/schema/misc";
+import type { TranslatableElement } from "@cat/shared";
+import type { ElementTranslationStatus } from "@cat/shared";
 
 import { SidebarMenuButton } from "@cat/ui";
 import { storeToRefs } from "pinia";

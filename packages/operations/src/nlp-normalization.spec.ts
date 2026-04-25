@@ -1,4 +1,4 @@
-import type { NlpToken } from "@cat/shared/schema/nlp";
+import type { NlpToken } from "@cat/shared";
 
 import { describe, expect, it } from "vitest";
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NotificationStatus } from "@cat/shared/schema/enum";
+import type { NotificationStatus } from "@cat/shared";
 
 import {
   Badge,

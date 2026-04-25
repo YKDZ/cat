@@ -22,15 +22,15 @@ const myWorkflow = defineGraph({
 
 ## 节点执行器类型
 
-| 类型 | 行为 |
-|---|---|
-| `Transform` | 调用 handler 函数，将返回值 merge 到黑板 |
-| `Router` | 依据黑板状态通过 `EdgeCondition` 选择下一节点 |
-| `Parallel` | 并发执行多条出边对应的子图，等待全部完成 |
-| `Join` | 汇聚 Parallel 的多路结果到黑板 |
-| `Loop` | 循环执行子图直至 `exitCondition` 满足 |
-| `SubGraph` | 嵌套执行另一个 `GraphDefinition` |
-| `HumanInput` | 暂停执行并向用户请求输入，支持审核场景 |
+| 类型         | 行为                                          |
+| ------------ | --------------------------------------------- |
+| `Transform`  | 调用 handler 函数，将返回值 merge 到黑板      |
+| `Router`     | 依据黑板状态通过 `EdgeCondition` 选择下一节点 |
+| `Parallel`   | 并发执行多条出边对应的子图，等待全部完成      |
+| `Join`       | 汇聚 Parallel 的多路结果到黑板                |
+| `Loop`       | 循环执行子图直至 `exitCondition` 满足         |
+| `SubGraph`   | 嵌套执行另一个 `GraphDefinition`              |
+| `HumanInput` | 暂停执行并向用户请求输入，支持审核场景        |
 
 ## StepHandlerRegistry
 
@@ -56,10 +56,10 @@ StepHandlerRegistry.register("fetchData", async (ctx) => { ... });
 `executeWithVCS(fn, vcsContext)` 包装器在 handler 内部提供 VCS 上下文注入，使写操作自动路由到正确的分支（Direct 或 Isolation）：
 
 ```typescript
-await executeWithVCS(
-  (vcs) => submitTranslation(elementId, text, { vcs }),
-  { branchId, mode: "isolation" }
-);
+await executeWithVCS((vcs) => submitTranslation(elementId, text, { vcs }), {
+  branchId,
+  mode: "isolation",
+});
 ```
 
 这使 handler 编写者无需关心当前是否处于 PR 草稿分支，业务逻辑与 VCS 模式完全解耦。

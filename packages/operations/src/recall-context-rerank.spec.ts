@@ -1,5 +1,5 @@
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
-import type { RerankRequest, RerankResponse } from "@cat/shared/schema/rerank";
+import type { MemorySuggestion } from "@cat/shared";
+import type { RerankRequest, RerankResponse } from "@cat/shared";
 
 import { PluginManager, RerankProvider } from "@cat/plugin-core";
 import { describe, expect, it, vi } from "vitest";

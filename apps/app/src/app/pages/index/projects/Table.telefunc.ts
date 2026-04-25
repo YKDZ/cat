@@ -1,4 +1,4 @@
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Project } from "@cat/shared";
 
 import { listProjectsByCreator } from "@cat/domain";
 

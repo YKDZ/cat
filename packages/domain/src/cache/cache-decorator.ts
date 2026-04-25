@@ -1,4 +1,4 @@
-import { logger } from "@cat/shared/utils";
+import { logger } from "@cat/shared";
 import { createHash } from "node:crypto";
 
 import type { CacheOptions, CacheStore, SessionStore } from "@/cache/types";

@@ -1,5 +1,5 @@
 import { searchMemoryOp } from "@cat/operations";
-import { MemorySuggestionSchema } from "@cat/shared/schema/misc";
+import { MemorySuggestionSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "@/graph/dsl";

@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import type {
-  IssueComment,
-  IssueCommentThread,
-} from "@cat/shared/schema/drizzle/issue-comment";
-import type { CrossReference } from "@cat/shared/schema/drizzle/issue-comment";
+import type { IssueComment, IssueCommentThread } from "@cat/shared";
+import type { CrossReference } from "@cat/shared";
 
 import {
   Badge,

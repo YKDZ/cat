@@ -8,7 +8,7 @@ import {
   getReqHeader,
   setResHeader,
   getCookieFunc,
-} from "@cat/shared/utils";
+} from "@cat/shared";
 
 export const createHTTPHelpers = (
   req: IncomingMessage,

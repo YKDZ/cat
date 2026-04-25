@@ -1,8 +1,5 @@
 import { and, eq, ilike, ne, pullRequest } from "@cat/db";
-import {
-  PullRequestStatusSchema,
-  PullRequestTypeSchema,
-} from "@cat/shared/schema/enum";
+import { PullRequestStatusSchema, PullRequestTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

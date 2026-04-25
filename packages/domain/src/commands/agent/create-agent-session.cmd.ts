@@ -1,11 +1,11 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { agentDefinition, agentSession, eq } from "@cat/db";
 import {
   AgentSessionMetadataSchema,
   type AgentSessionMetadata,
-} from "@cat/shared/schema/agent";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+} from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

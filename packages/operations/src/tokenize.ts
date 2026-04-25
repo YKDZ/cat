@@ -2,7 +2,7 @@ import type { OperationContext } from "@cat/domain";
 
 import { tokenize, type Tokenizer, TokenSchema } from "@cat/plugin-core";
 import { resolvePluginManager } from "@cat/server-shared";
-import { TermDataSchema } from "@cat/shared/schema/misc";
+import { TermDataSchema } from "@cat/shared";
 import z from "zod";
 
 export const TokenizeInputSchema = z.object({

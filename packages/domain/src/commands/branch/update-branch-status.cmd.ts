@@ -1,6 +1,6 @@
 import { entityBranch, eq, getColumns } from "@cat/db";
-import { EntityBranchStatusSchema } from "@cat/shared/schema/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { EntityBranchStatusSchema } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

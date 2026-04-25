@@ -1,5 +1,5 @@
 // packages/operations/src/precision/budget-gate.ts
-import type { QueryProfile } from "@cat/shared/schema/precision-recall";
+import type { QueryProfile } from "@cat/shared";
 
 import type { RecallCandidate } from "./types";
 

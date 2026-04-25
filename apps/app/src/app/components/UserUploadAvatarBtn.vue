@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileMetaSchema } from "@cat/shared/schema/misc";
+import { FileMetaSchema } from "@cat/shared";
 import {
   Button,
   Dialog,

@@ -1,5 +1,5 @@
-import { RelationSchema } from "@cat/shared/schema/enum";
-import { safeZDotJson } from "@cat/shared/schema/json";
+import { RelationSchema } from "@cat/shared";
+import { safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 // ── Plugin override ──────────────────────────────────────────────────

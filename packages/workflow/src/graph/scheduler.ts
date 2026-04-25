@@ -1,5 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
 import { evaluateCondition } from "@cat/graph";

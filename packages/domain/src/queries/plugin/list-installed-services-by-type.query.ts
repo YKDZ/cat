@@ -1,8 +1,5 @@
 import { and, eq, pluginInstallation, pluginService } from "@cat/db";
-import {
-  PluginServiceTypeSchema,
-  ScopeTypeSchema,
-} from "@cat/shared/schema/enum";
+import { PluginServiceTypeSchema, ScopeTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

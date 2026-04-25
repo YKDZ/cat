@@ -69,7 +69,7 @@ describe("no-shared-subpath-import", () => {
 
     it("flags ImportExpression with @cat/shared subpath", () => {
       const ctx = createMockContext();
-      runVisitor(ctx, makeImportExpr("@cat/shared/utils"));
+      runVisitor(ctx, makeImportExpr("@cat/shared"));
       expect(ctx.report).toHaveBeenCalledOnce();
     });
 

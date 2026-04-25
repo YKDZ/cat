@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { PluginConfig } from "@cat/shared/schema/drizzle/plugin";
-import type { ScopeType } from "@cat/shared/schema/enum";
+import type { PluginConfig } from "@cat/shared";
+import type { ScopeType } from "@cat/shared";
 
 import PluginConfigForm from "./PluginConfigForm.vue";
 

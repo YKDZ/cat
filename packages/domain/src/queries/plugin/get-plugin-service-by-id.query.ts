@@ -1,6 +1,6 @@
 import { and, eq, pluginInstallation, pluginService } from "@cat/db";
-import { PluginServiceTypeSchema } from "@cat/shared/schema/enum";
-import { assertSingleOrNull } from "@cat/shared/utils";
+import { PluginServiceTypeSchema } from "@cat/shared";
+import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

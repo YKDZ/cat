@@ -1,5 +1,5 @@
 import { eq, project } from "@cat/db";
-import { assertFirstOrNull } from "@cat/shared/utils";
+import { assertFirstOrNull } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "@/types";

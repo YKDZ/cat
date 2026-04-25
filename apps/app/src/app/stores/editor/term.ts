@@ -1,4 +1,4 @@
-import type { RecallEvidence } from "@cat/shared/schema/recall";
+import type { RecallEvidence } from "@cat/shared";
 
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref } from "vue";

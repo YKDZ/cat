@@ -1,4 +1,4 @@
-import type { JSONType, SerializableType } from "@cat/shared/schema/json";
+import type { JSONType, SerializableType } from "@cat/shared";
 
 import type { ChangeSetService } from "./changeset-service.ts";
 import type { DiffStrategyRegistry } from "./diff-strategy-registry.ts";

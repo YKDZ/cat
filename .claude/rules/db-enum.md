@@ -35,7 +35,7 @@ export type FooStatus = (typeof FooStatusValues)[number];
 ### Step 2：在 `packages/db/src/drizzle/schema/schema.ts` 中复用
 
 ```ts
-import { FooStatusValues } from "@cat/shared/schema/enum";
+import { FooStatusValues } from "@cat/shared";
 import { pgEnum } from "drizzle-orm/pg-core";
 
 export const fooStatus = pgEnum("FooStatus", FooStatusValues);

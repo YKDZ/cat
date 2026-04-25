@@ -5,8 +5,8 @@ import {
   PluginServiceTypeSchema,
   type PluginServiceType,
   type ScopeType,
-} from "@cat/shared/schema/enum";
-import { logger } from "@cat/shared/utils";
+} from "@cat/shared";
+import { logger } from "@cat/shared";
 import * as z from "zod";
 
 import type { IPluginService } from "@/services/service";

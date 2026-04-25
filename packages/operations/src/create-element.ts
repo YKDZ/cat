@@ -2,7 +2,7 @@ import type { OperationContext } from "@cat/domain";
 
 import { getDbHandle } from "@cat/domain";
 import { createElements, executeCommand } from "@cat/domain";
-import { zip } from "@cat/shared/utils";
+import { zip } from "@cat/shared";
 import * as z from "zod";
 
 import { createVectorizedStringOp } from "./create-vectorized-string";

@@ -1,4 +1,4 @@
-import type { CollectionElement } from "@cat/shared/schema/collection";
+import type { CollectionElement } from "@cat/shared";
 
 import { parse as parseTemplate } from "@vue/compiler-dom";
 import { parse as parseSFC } from "@vue/compiler-sfc";

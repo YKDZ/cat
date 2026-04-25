@@ -1,4 +1,4 @@
-import type { ObjectType, Relation } from "@cat/shared/schema/permission";
+import type { ObjectType, Relation } from "@cat/shared";
 import type { Directive } from "vue";
 
 import { orpc } from "@/app/rpc/orpc";

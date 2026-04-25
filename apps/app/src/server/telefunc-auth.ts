@@ -1,5 +1,5 @@
 import type { AuthContext } from "@cat/permissions";
-import type { ObjectType, Relation } from "@cat/shared/schema/permission";
+import type { ObjectType, Relation } from "@cat/shared";
 
 import { getPermissionEngine } from "@cat/permissions";
 import { getContext, type Telefunc } from "telefunc";

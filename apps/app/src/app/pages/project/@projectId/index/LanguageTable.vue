@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Language } from "@cat/shared/schema/drizzle/misc";
-import type { Project } from "@cat/shared/schema/drizzle/project";
+import type { Language } from "@cat/shared";
+import type { Project } from "@cat/shared";
 
 import { Table, TableBody } from "@cat/ui";
 

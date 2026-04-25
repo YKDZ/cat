@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ProjectSettingPayload } from "@cat/shared/schema/project-setting";
+import type { ProjectSettingPayload } from "@cat/shared";
 
 import { Label, Switch } from "@cat/ui";
 import { nextTick, onMounted, ref, watch } from "vue";

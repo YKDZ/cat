@@ -4,7 +4,7 @@ import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import {
   NlpBatchSegmentResultSchema,
   NlpSegmentResultSchema,
-} from "@cat/shared/schema/nlp";
+} from "@cat/shared";
 import * as z from "zod";
 
 import { intlSegmenterFallback } from "./nlp-intl-fallback";

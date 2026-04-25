@@ -1,4 +1,4 @@
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { agentRun, eq } from "@cat/db";
 import * as z from "zod";

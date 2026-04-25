@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared";
 
 import { FormDescription, FormField, FormItem, FormLabel } from "@cat/ui";
 import { computed, inject } from "vue";

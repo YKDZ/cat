@@ -2,7 +2,7 @@
 subject: infra/shared
 ---
 
-`@cat/shared` 是整个 CAT 系统共用的基础类型与工具库，同时运行于前端（Vite/Vue）和后端（Node.js），不依赖任何 Node.js 专属 API。
+`@cat/shared` 是整个 CAT 系统共用的基础类型与工具库，同时运行于前端（Vite/Vue）和后端（Node.js），不且不能依赖任何 Node.js 专属 API。
 
 ## Zod Schema 集合
 

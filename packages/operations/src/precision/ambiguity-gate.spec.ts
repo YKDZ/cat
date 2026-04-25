@@ -1,4 +1,4 @@
-import type { RecallChannel } from "@cat/shared/schema/recall";
+import type { RecallChannel } from "@cat/shared";
 
 import { describe, expect, it } from "vitest";
 

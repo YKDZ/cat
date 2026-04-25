@@ -1,4 +1,4 @@
-import type { CollectionElement } from "@cat/shared/schema/collection";
+import type { CollectionElement } from "@cat/shared";
 
 import { Node, Project } from "ts-morph";
 

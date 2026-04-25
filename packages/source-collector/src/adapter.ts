@@ -1,5 +1,5 @@
-import type { CollectionPayload } from "@cat/shared/schema/collection";
-import type { ExtractionResult } from "@cat/shared/schema/extraction";
+import type { CollectionPayload } from "@cat/shared";
+import type { ExtractionResult } from "@cat/shared";
 
 import type { PayloadRoutingOptions } from "./types.ts";
 

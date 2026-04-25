@@ -1,5 +1,5 @@
-import type { CollectionElement } from "@cat/shared/schema/collection";
-import type { NavigationStep } from "@cat/shared/schema/extraction";
+import type { CollectionElement } from "@cat/shared";
+import type { NavigationStep } from "@cat/shared";
 
 // Re-export so existing imports from this module still work
 export type { NavigationStep };

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
-import type { MemorySuggestion } from "@cat/shared/schema/misc";
+import type { Memory } from "@cat/shared";
+import type { MemorySuggestion } from "@cat/shared";
 
-import { toShortFixed } from "@cat/shared/utils";
+import { toShortFixed } from "@cat/shared";
 import { Badge } from "@cat/ui";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";

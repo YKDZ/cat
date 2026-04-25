@@ -1,4 +1,4 @@
-import type { JSONType, NonNullJSONType } from "@cat/shared/schema/json";
+import type { JSONType, NonNullJSONType } from "@cat/shared";
 
 import type { createAgentDefinition } from "@/commands/agent/create-agent-definition.cmd";
 import type { createAgentSession } from "@/commands/agent/create-agent-session.cmd";

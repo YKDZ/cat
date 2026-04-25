@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScopeType } from "@cat/shared/schema/enum";
+import type { ScopeType } from "@cat/shared";
 
 import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";

@@ -1,4 +1,4 @@
-import type { ExtractionResult } from "@cat/shared/schema/extraction";
+import type { ExtractionResult } from "@cat/shared";
 
 import { describe, expect, it } from "vitest";
 

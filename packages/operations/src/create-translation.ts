@@ -7,7 +7,7 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
-import { zip } from "@cat/shared/utils";
+import { zip } from "@cat/shared";
 import * as z from "zod";
 
 import { createVectorizedStringOp } from "./create-vectorized-string";

@@ -3,8 +3,8 @@ import {
   PluginManifestSchema,
   type PluginData,
   type PluginManifest,
-} from "@cat/shared/schema/plugin";
-import { logger } from "@cat/shared/utils";
+} from "@cat/shared";
+import { logger } from "@cat/shared";
 import { existsSync } from "node:fs";
 import { access, mkdir, readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";

@@ -1,4 +1,4 @@
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared/utils";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 

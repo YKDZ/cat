@@ -1,6 +1,6 @@
 import { eq, term, termConcept } from "@cat/db";
-import { TermStatusValues, TermTypeValues } from "@cat/shared/schema/enum";
-import { assertSingleNonNullish } from "@cat/shared/utils";
+import { TermStatusValues, TermTypeValues } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "@/types";

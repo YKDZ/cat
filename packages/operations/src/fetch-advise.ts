@@ -1,11 +1,11 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { JSONType } from "@cat/shared";
 
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, getElementMeta } from "@cat/domain";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
-import { TranslationAdviseSchema } from "@cat/shared/schema/plugin";
+import { TranslationAdviseSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { collectMemoryRecallOp } from "./collect-memory-recall";

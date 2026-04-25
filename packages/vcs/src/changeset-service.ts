@@ -1,6 +1,6 @@
 import type { DbHandle } from "@cat/domain";
-import type { ChangesetStatus } from "@cat/shared/schema/enum";
-import type { JSONType } from "@cat/shared/schema/json";
+import type { ChangesetStatus } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 import {
   addChangesetEntry,
@@ -14,7 +14,7 @@ import {
   updateChangesetAsyncStatus,
   updateEntryAsyncStatus,
 } from "@cat/domain";
-import { EntityTypeSchema } from "@cat/shared/schema/enum";
+import { EntityTypeSchema } from "@cat/shared";
 
 import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
 import type { ChangesetEntry } from "./application-method.ts";

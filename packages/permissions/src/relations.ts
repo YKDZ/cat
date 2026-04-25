@@ -1,5 +1,5 @@
 import type { DbHandle } from "@cat/domain";
-import type { ObjectType, Relation } from "@cat/shared/schema/permission";
+import type { ObjectType, Relation } from "@cat/shared";
 
 /**
  * 每种资源类型上的关系继承层级，从高到低。

@@ -9,10 +9,7 @@ import {
   type CheckContext,
   type Token,
 } from "@cat/plugin-core";
-import {
-  QaResultItemSchema,
-  type QaResultItem,
-} from "@cat/shared/schema/drizzle/qa";
+import { QaResultItemSchema, type QaResultItem } from "@cat/shared";
 import z from "zod";
 
 export const QAInputSchema = z.object({

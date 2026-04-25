@@ -1,5 +1,5 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONObject } from "@cat/shared/schema/json";
+import type { JSONObject } from "@cat/shared";
 
 import { z } from "zod";
 

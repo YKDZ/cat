@@ -1,4 +1,4 @@
-import type { Memory } from "@cat/shared/schema/drizzle/memory";
+import type { Memory } from "@cat/shared";
 
 import { listMemoriesByCreator } from "@cat/domain";
 

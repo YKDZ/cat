@@ -1,4 +1,4 @@
-import type { NonNullJSONType } from "@cat/shared/schema/json";
+import type { NonNullJSONType } from "@cat/shared";
 
 import { resolvePath } from "@cat/graph";
 import { PluginManager } from "@cat/plugin-core";

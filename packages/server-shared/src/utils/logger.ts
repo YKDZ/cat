@@ -1,4 +1,4 @@
-import { Logger, type LoggerTransport, type LogEntry } from "@cat/shared/utils";
+import { Logger, type LoggerTransport, type LogEntry } from "@cat/shared";
 import pino from "pino";
 
 export const pinoInstance = pino({

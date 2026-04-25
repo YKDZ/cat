@@ -1,4 +1,4 @@
-import { JSONObjectSchema } from "@cat/shared/schema/json";
+import { JSONObjectSchema } from "@cat/shared";
 import * as z from "zod";
 
 // ====== ID Types ======

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { RecallEvidence } from "@cat/shared/schema/recall";
+import type { RecallEvidence } from "@cat/shared";
 
-import { toShortFixed } from "@cat/shared/utils";
+import { toShortFixed } from "@cat/shared";
 import { Badge, Button } from "@cat/ui";
 import { ArrowRight } from "@lucide/vue";
 import { storeToRefs } from "pinia";
