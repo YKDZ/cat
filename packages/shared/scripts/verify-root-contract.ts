@@ -117,6 +117,24 @@ assert.ok(
   "dist/index.d.ts looks like a stub (too short)",
 );
 
+// ─── Alias-removal readiness check (informational) ───────────────────────────
+
+const legacyReportPath = path.join(DIST, "legacy-import-report.json");
+if (fs.existsSync(legacyReportPath)) {
+  const legacyReport = JSON.parse(
+    fs.readFileSync(legacyReportPath, "utf-8"),
+  ) as { totalMatches: number };
+  if (legacyReport.totalMatches === 0) {
+    console.log(
+      "✓ Alias-removal gate: no legacy @cat/shared/* imports detected workspace-wide",
+    );
+  } else {
+    console.log(
+      `ℹ Alias-removal gate: ${legacyReport.totalMatches} legacy @cat/shared/* imports remain (run shared:report-legacy-imports to update)`,
+    );
+  }
+}
+
 console.log(
   `verify-root-contract PASSED (${rootKeys.size} root exports, ${Object.keys(pkg.exports).length - 1} compat subpaths verified)`,
 );

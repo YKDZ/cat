@@ -18,6 +18,11 @@ tasks:
     options:
       cache: false
 
+  report-legacy-imports:
+    command: "tsx scripts/report-legacy-imports.ts --write"
+    options:
+      cache: false
+
   typecheck:
     script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
 
