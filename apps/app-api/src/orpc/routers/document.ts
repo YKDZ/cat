@@ -312,6 +312,7 @@ export const getFirstElement = authed
       documentId: z.uuidv4(),
       searchQuery: z.string().default(""),
       greaterThan: z.int().optional(),
+      afterElementId: z.int().optional(),
       isApproved: z.boolean().optional(),
       isTranslated: z.boolean().optional(),
       languageId: z.string().optional(),

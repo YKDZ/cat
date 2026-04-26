@@ -45,9 +45,7 @@ export const reload = authed
 
     const registry = PluginManager.get(scopeType, scopeId);
 
-    await drizzle.transaction(async (tx) => {
-      await registry.restore(tx);
-    });
+    await registry.restore(drizzle);
   });
 
 export const reloadPlugin = authed
