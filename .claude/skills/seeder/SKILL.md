@@ -12,10 +12,10 @@ seed 工具通过一条命令清空数据库并填充预定义数据，用于搭
 
 ```bash
 # 从仓库根目录执行
-tsx tools/seeder/main.ts <dataset-dir>
+pnpm tsx tools/seeder/main.ts <dataset-dir>
 
 # 跳过向量化（无外部服务时）
-tsx tools/seeder/main.ts <dataset-dir> --skip-vectorization
+pnpm tsx tools/seeder/main.ts <dataset-dir> --skip-vectorization
 ```
 
 ### 前置条件
