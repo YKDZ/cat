@@ -18,7 +18,9 @@ const main = async (): Promise<void> => {
   );
 
   if (!datasetDir) {
-    console.error("Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--output-bindings <path>]");
+    console.error(
+      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--output-bindings <path>]",
+    );
     console.error("Example: tsx main.ts datasets/default");
     process.exit(1);
   }
