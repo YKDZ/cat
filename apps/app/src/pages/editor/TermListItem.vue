@@ -1,0 +1,158 @@
+<script setup lang="ts">
+import type { RecallEvidence } from "@cat/shared";
+
+import { toShortFixed } from "@cat/shared";
+import { Badge, Button } from "@cat/ui";
+import { ArrowRight } from "@lucide/vue";
+import { storeToRefs } from "pinia";
+import { navigate } from "vike/client/router";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+
+import TokenViewer from "@/components/editor/TokenViewer.vue";
+import TextTooltip from "@/components/tooltip/TextTooltip.vue";
+import { useEditorContextStore } from "@/stores/editor/context.ts";
+import { useEditorTableStore } from "@/stores/editor/table.ts";
+import { useHotKeys } from "@/utils/magic-keys.ts";
+
+const props = defineProps<{
+  term: {
+    term: string;
+    translation: string;
+    definition?: string | null;
+    confidence?: number;
+    subjectId?: number | null;
+    conceptId?: number;
+    glossaryId?: string;
+    evidences?: RecallEvidence[];
+    matchedText?: string;
+    concept?: {
+      subjects: Array<{ name: string; defaultDefinition: string | null }>;
+      definition?: string | null;
+    };
+  };
+  index: number;
+}>();
+
+const { t } = useI18n();
+const { insert } = useEditorTableStore();
+const { document } = storeToRefs(useEditorContextStore());
+
+const handleInsert = () => {
+  insert(props.term.translation);
+};
+
+const handleViewConcept = () => {
+  if (props.term.glossaryId && props.term.conceptId) {
+    navigate(
+      `/glossary/${props.term.glossaryId}/concept/${props.term.conceptId}`,
+    );
+  }
+};
+
+const evidenceBadges = computed(() =>
+  (props.term.evidences ?? []).map((evidence) => ({
+    label: evidence.matchedVariantType
+      ? `${evidence.channel}:${evidence.matchedVariantType}`
+      : evidence.channel,
+    title:
+      evidence.note ??
+      evidence.matchedVariantText ??
+      evidence.matchedText ??
+      undefined,
+  })),
+);
+
+const debugNotes = computed(() => [
+  ...new Set(
+    (props.term.evidences ?? []).flatMap((evidence) =>
+      evidence.note ? [evidence.note] : [],
+    ),
+  ),
+]);
+
+useHotKeys(`T+${props.index + 1}`, handleInsert);
+</script>
+
+<template>
+  <TextTooltip :tooltip="term.definition || t('无显式定义')">
+    <div
+      class="group flex cursor-pointer flex-col gap-1.5 border-b border-border px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/50"
+      @click="handleInsert"
+    >
+      <div class="flex items-center gap-2">
+        <div class="flex min-w-0 flex-1 items-center gap-2">
+          <TokenViewer
+            v-if="document"
+            :text="term.term"
+            class="truncate font-medium text-foreground"
+          />
+          <ArrowRight class="mx-1 size-4 shrink-0 text-muted-foreground" />
+          <TokenViewer
+            v-if="document"
+            :text="term.translation"
+            class="truncate text-foreground"
+          />
+          <span
+            v-if="term.confidence !== undefined && term.confidence < 1"
+            class="shrink-0 text-xs text-muted-foreground"
+          >
+            {{
+              t("{confidence}%", {
+                confidence: toShortFixed(term.confidence * 100, 0),
+              })
+            }}
+          </span>
+        </div>
+        <Button
+          v-if="term.glossaryId && term.conceptId"
+          size="icon"
+          variant="ghost"
+          class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+          @click.stop="handleViewConcept"
+        >
+          <div class="icon-[mdi--information-outline] size-4" />
+        </Button>
+      </div>
+      <div
+        v-if="term.concept && term.concept.subjects.length > 0"
+        class="flex flex-wrap gap-1"
+      >
+        <Badge
+          v-for="subject in term.concept.subjects"
+          :key="subject.name"
+          variant="secondary"
+          class="text-xs"
+          :title="subject.defaultDefinition || undefined"
+        >
+          {{ subject.name }}
+        </Badge>
+      </div>
+      <div
+        v-if="term.matchedText || evidenceBadges.length > 0"
+        class="flex flex-wrap items-center gap-1 text-xs text-muted-foreground"
+      >
+        <span v-if="term.matchedText">
+          {{ t("命中文本：{text}", { text: term.matchedText }) }}
+        </span>
+        <Badge
+          v-for="badge in evidenceBadges"
+          :key="badge.label + badge.title"
+          variant="outline"
+          class="text-[10px]"
+          :title="badge.title"
+        >
+          {{ badge.label }}
+        </Badge>
+      </div>
+      <div
+        v-if="debugNotes.length > 0"
+        class="flex flex-col gap-1 text-xs text-muted-foreground"
+      >
+        <span v-for="note in debugNotes" :key="note">
+          {{ note }}
+        </span>
+      </div>
+    </div>
+  </TextTooltip>
+</template>

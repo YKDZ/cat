@@ -1,0 +1,52 @@
+<script setup lang="ts">
+import type { Project } from "@cat/shared";
+
+import { Separator } from "@cat/ui";
+import { Settings } from "@lucide/vue";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import { useToastStore } from "@/stores/toast.ts";
+import { watchClient } from "@/utils/vue";
+
+import CreateProject from "./CreateProject.vue";
+import Finish from "./Finish.vue";
+import UploadFiles from "./UploadFiles.vue";
+
+const { t } = useI18n();
+
+const { warn } = useToastStore();
+
+const progress = ref<number>(0);
+
+const project = ref<Project>();
+
+watchClient(progress, (to, from) => {
+  if (from === 0 && !project.value) {
+    warn("你需要先创建项目才能继续");
+    return 0;
+  } else if (to === 0 && project.value) {
+    return from;
+  }
+  return to;
+});
+</script>
+
+<template>
+  <h1 class="flex items-center gap-2 text-2xl font-bold">
+    <Settings />
+    {{ t("初始化项目") }}
+  </h1>
+  <Separator />
+  <CreateProject
+    v-if="progress === 0"
+    v-model:project="project"
+    v-model:progress="progress"
+  />
+  <UploadFiles
+    v-if="progress === 1"
+    v-model:project="project"
+    v-model:progress="progress"
+  />
+  <Finish v-if="progress === 2" v-model:project="project" />
+</template>

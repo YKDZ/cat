@@ -1,0 +1,71 @@
+<script setup lang="ts">
+import type { User } from "@cat/shared";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@cat/ui";
+import { useSidebar } from "@cat/ui";
+import { Spinner } from "@cat/ui";
+import { navigate } from "vike/client/router";
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+
+import UserAvatar from "@/components/UserAvatar.vue";
+import { orpc } from "@/rpc/orpc";
+import { useToastStore } from "@/stores/toast";
+
+const props = defineProps<{
+  user: Pick<User, "id" | "name"> | null;
+  sidebarId: string;
+}>();
+
+const { t } = useI18n();
+const { info, rpcWarn } = useToastStore();
+const { state } = useSidebar(props.sidebarId);
+
+const isLoggingOut = ref(false);
+
+const handleLogout = async () => {
+  if (isLoggingOut.value) return;
+
+  isLoggingOut.value = true;
+  info(t("登出中..."));
+
+  await orpc.auth
+    .logout()
+    .then(async () => {
+      info(t("登出成功"));
+      info(t("即将前往主界面..."));
+      await navigate("/");
+    })
+    .catch(rpcWarn)
+    .finally(() => (isLoggingOut.value = false));
+};
+</script>
+
+<template>
+  <DropdownMenu>
+    <DropdownMenuTrigger class="w-full">
+      <UserAvatar
+        :with-name="state === 'expanded'"
+        :user
+        :size="state === 'collapsed' ? 16 : 24"
+        class="h-full w-full cursor-pointer px-2 py-1 hover:bg-background"
+      />
+    </DropdownMenuTrigger>
+    <DropdownMenuContent class="w-56">
+      <DropdownMenuItem @click="navigate(`/admin`)">
+        <div class="icon-[mdi--cog] size-4" />
+        {{ t("管理") }}
+      </DropdownMenuItem>
+      <DropdownMenuItem @click="handleLogout">
+        <Spinner v-if="isLoggingOut" />
+        <div v-else class="icon-[mdi--logout] size-4" />
+        {{ t("登出") }}
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  </DropdownMenu>
+</template>
