@@ -105,13 +105,17 @@ export const initializeApp = async (): Promise<void> => {
         pluginManager,
         resolve(process.cwd(), "default-plugins.json"),
       );
-
-      await ensureRootUser(tx);
     });
 
     // restore() 必须在事务外用 pool client 调用，确保 capabilities 持有的
     // DB 句柄是长期有效的 pool 连接，而非已提交/关闭的事务句柄。
     await pluginManager.restore(drizzleDB.client);
+
+    // ensureRootUser 依赖插件服务已被 restore() 写入 DB（PASSWORD 服务），
+    // 因此必须在 restore() 之后的独立事务中调用。
+    await drizzleDB.client.transaction(async (tx) => {
+      await ensureRootUser(tx);
+    });
 
     await initAllVectorStorage(pluginManager);
     registerDomainEventHandlers(drizzleDB.client, { pluginManager });
