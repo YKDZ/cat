@@ -920,7 +920,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/drizzle/db.ts",
-    "line": 45
+    "line": 46
   },
   {
     "id": "@cat/db:packages/db/src/drizzle/db:DrizzleTransaction",
@@ -929,7 +929,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/drizzle/db.ts",
-    "line": 46
+    "line": 47
   },
   {
     "id": "@cat/db:packages/db/src/drizzle/migrations/backfill-direct-editor:backfillDirectEditor",
@@ -5196,7 +5196,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/document/get-document-first-element.query.ts",
-    "line": 30
+    "line": 32
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/document/get-document-first-element.query:GetDocumentFirstElementQuery",
@@ -5205,7 +5205,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/document/get-document-first-element.query.ts",
-    "line": 26
+    "line": 28
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/document/get-document.query:getDocument",

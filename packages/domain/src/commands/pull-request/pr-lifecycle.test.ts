@@ -131,7 +131,8 @@ const setupTestDB = async (): Promise<TestDB> => {
     migrationsSchema: schemaName,
   });
 
-  const drizzleDB: DrizzleDB = {
+  // oxlint-disable-next-line no-unsafe-type-assertion
+  const drizzleDB = {
     client: db,
     connect: async () => Promise.resolve(),
     disconnect: async () => Promise.resolve(),
@@ -139,11 +140,11 @@ const setupTestDB = async (): Promise<TestDB> => {
     ping: async () => {
       await client.query("SELECT 1");
     },
-  };
+  } as unknown as DrizzleDB;
   globalThis.__DRIZZLE_DB__ = drizzleDB;
 
   const cleanup = async () => {
-    if (globalThis.__DRIZZLE_DB__?.client === db) {
+    if (globalThis.__DRIZZLE_DB__ === drizzleDB) {
       delete globalThis.__DRIZZLE_DB__;
     }
     try {
