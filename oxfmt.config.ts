@@ -22,7 +22,7 @@ export default defineConfig({
     ],
   },
   sortTailwindcss: {
-    stylesheet: "./apps/app/src/app/assets/style.css",
+    stylesheet: "./apps/app/src/assets/style.css",
     functions: ["clsx", "cn"],
     preserveWhitespace: true,
   },

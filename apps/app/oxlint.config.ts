@@ -52,7 +52,7 @@ export default defineConfig({
       files: [
         "**/*.vue",
         "**/*.client.ts",
-        "src/app/stores/**/*.ts",
+        "src/stores/**/*.ts",
         "**/+onHydrationEnd.ts",
         "**/+onPageTransitionStart.ts",
         "**/+onPageTransitionEnd.ts",
