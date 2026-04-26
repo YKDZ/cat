@@ -1941,7 +1941,7 @@ export const getDocumentFileExportContext: Query<
 export const getDocumentFirstElement: Query<
   GetDocumentFirstElementQuery,
   typeof translatableElement.$inferSelect | null
-> = async (ctx: DbContext, query: { documentId: string; searchQuery: string; greaterThan?: number | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+> = async (ctx: DbContext, query: { documentId: string; searchQuery: string; greaterThan?: number | undefined; afterElementId?: number | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
 ```
 
 ### `getDocument`
