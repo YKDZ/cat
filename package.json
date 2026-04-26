@@ -6,7 +6,7 @@
     "autodoc": "node tools/autodoc/dist/cli.js",
     "build-plugins": "moon run '#plugin:build'",
     "load-plugins": "node scripts/load-plugins.js",
-    "precommit": "moon run :lint-fix :fmt :test :typecheck && moon run root:codegen-check"
+    "precommit": "MOON_OUTPUT_STYLE=buffer-only-failure moon run :lint-fix :fmt :test :typecheck && moon run root:codegen-check"
   },
   "devDependencies": {
     "@cat/cli": "workspace:*",
