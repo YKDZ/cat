@@ -227,8 +227,10 @@ export class PluginManager {
 
   /**
    * 重新激活当前 scope 的所有已安装插件
+   * 必须使用长期有效的连接（pool client），而非事务句柄，
+   * 否则激活时构建的 capabilities 会持有已关闭的事务连接。
    */
-  public async restore(drizzle: DrizzleTransaction): Promise<void> {
+  public async restore(drizzle: DbHandle): Promise<void> {
     const installations = await executeQuery(
       { db: drizzle },
       listInstalledPlugins,
@@ -236,7 +238,7 @@ export class PluginManager {
     );
 
     for (const { pluginId } of installations) {
-      // restore() 在事务里运行时需要复用同一个连接，插件激活必须串行。
+      // 插件激活必须串行，避免在同一连接上并发查询。
       // oxlint-disable-next-line no-await-in-loop
       await this.activate(drizzle, pluginId);
     }

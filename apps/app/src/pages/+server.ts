@@ -40,27 +40,43 @@ export default {
 
       wsHelper.injectWebSocket(nodeServer);
 
-      if (process.env.NODE_ENV !== "production") return;
+      let isShuttingDown = false;
 
       const shutdown = () => {
+        if (isShuttingDown) return;
+        isShuttingDown = true;
+
         const handler = async () => {
           logger
             .withSituation("SERVER")
             .info("About to shutdown server gracefully...");
 
           await server.close();
-          (await getRedisHandle()).disconnect();
-          await (await getDbHandle()).disconnect();
+
+          try {
+            (await getRedisHandle()).disconnect();
+          } catch {
+            // already closed
+          }
+
+          try {
+            await (await getDbHandle()).disconnect();
+          } catch {
+            // already closed
+          }
 
           logger
             .withSituation("SERVER")
             .info("Successfully shutdown gracefully. Goodbye");
+
+          process.exit(0);
         };
 
         handler().catch((err: unknown) => {
           logger
             .withSituation("SERVER")
             .error(err, "Error occurred during server shutdown");
+          process.exit(1);
         });
       };
 

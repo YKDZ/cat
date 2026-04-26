@@ -1,7 +1,7 @@
 // oxlint-disable no-console -- intentional diagnostic logging in seed tool
 // oxlint-disable no-await-in-loop -- seeder is intentionally sequential
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
-import type { DrizzleClient, DrizzleTransaction } from "@cat/db";
+import type { DrizzleClient } from "@cat/db";
 import type { ExecutorContext } from "@cat/domain";
 import type { PluginLoader } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared";
@@ -125,7 +125,7 @@ export const runSeedPipeline = async (
     pluginManager,
     opts.defaultPluginsJsonPath,
   );
-  await pluginManager.restore(execCtx.db as unknown as DrizzleTransaction);
+  await pluginManager.restore(execCtx.db);
   console.log(
     "[seed] Plugin bootstrap complete (syncDefinitions + installDefaults + restore).",
   );

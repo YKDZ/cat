@@ -5,6 +5,7 @@ import {
   getColumns,
   gt,
   ilike,
+  or,
   translatableElement,
   vectorizedString,
 } from "@cat/db";
@@ -18,6 +19,7 @@ export const GetDocumentFirstElementQuerySchema = z.object({
   documentId: z.uuidv4(),
   searchQuery: z.string().default(""),
   greaterThan: z.int().optional(),
+  afterElementId: z.int().optional(),
   isApproved: z.boolean().optional(),
   isTranslated: z.boolean().optional(),
   languageId: z.string().optional(),
@@ -41,7 +43,17 @@ export const getDocumentFirstElement: Query<
     );
   }
 
-  if (query.greaterThan !== undefined) {
+  if (query.greaterThan !== undefined && query.afterElementId !== undefined) {
+    whereConditions.push(
+      or(
+        gt(translatableElement.sortIndex, query.greaterThan),
+        and(
+          eq(translatableElement.sortIndex, query.greaterThan),
+          gt(translatableElement.id, query.afterElementId),
+        ),
+      )!,
+    );
+  } else if (query.greaterThan !== undefined) {
     whereConditions.push(gt(translatableElement.sortIndex, query.greaterThan));
   }
 
@@ -66,7 +78,7 @@ export const getDocumentFirstElement: Query<
         ? whereConditions[0]
         : and(...whereConditions),
     )
-    .orderBy(asc(translatableElement.sortIndex))
+    .orderBy(asc(translatableElement.sortIndex), asc(translatableElement.id))
     .limit(1);
 
   return rows[0] ?? null;
