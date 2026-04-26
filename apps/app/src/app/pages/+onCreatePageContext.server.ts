@@ -1,6 +1,6 @@
 import type { PageContextServer } from "vike/types";
 
-import { executeQuery, getSetting } from "@cat/domain";
+import { executeQuery, getSetting, type DbHandle } from "@cat/domain";
 import { loadUserSystemRoles } from "@cat/permissions";
 import {
   createHTTPHelpers,
@@ -11,7 +11,7 @@ import { parsePreferredLanguage } from "@cat/shared";
 import { createPinia } from "pinia";
 
 const getStringSetting = async (
-  drizzle: PageContextServer["globalContext"]["drizzleDB"]["client"],
+  drizzle: DbHandle,
   key: string,
   fallback: string,
 ): Promise<string> => {

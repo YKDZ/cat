@@ -15,6 +15,9 @@ import type {
 
 declare global {
   namespace Vike {
+    interface Server {
+      server: "srvx";
+    }
     interface PageContext {
       user: User | null;
       sessionId: string | null;

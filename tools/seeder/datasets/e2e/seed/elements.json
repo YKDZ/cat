@@ -1,7 +1,11 @@
 {
   "documentName": "e2e-test.json",
   "elements": [
-    { "ref": "el:001", "text": "Hello World", "context": ["A greeting message displayed on the home page"] },
+    {
+      "ref": "el:001",
+      "text": "Hello World",
+      "context": ["A greeting message displayed on the home page"]
+    },
     { "ref": "el:002", "text": "Save Changes" },
     { "ref": "el:003", "text": "Cancel" },
     { "ref": "el:004", "text": "Delete" },

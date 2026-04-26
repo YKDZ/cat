@@ -1,6 +1,5 @@
 import type { Config } from "vike/types";
 
-import vikePhoton from "vike-photon/config";
 import vikeVue from "vike-vue/config";
 
 export default {
@@ -13,11 +12,7 @@ export default {
     "baseURL",
   ],
 
-  extends: [vikeVue, vikePhoton],
+  extends: [vikeVue],
 
   filesystemRoutingRoot: "/",
-
-  photon: {
-    server: "../../server/index.ts",
-  },
 } as Config;
