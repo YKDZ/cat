@@ -166,6 +166,12 @@ export default defineConfig({
   },
   overrides: [
     {
+      files: ["**/*.spec.ts", "**/*.test.ts"],
+      rules: {
+        "no-console": "off",
+      },
+    },
+    {
       files: ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       rules: {
         "no-class-assign": "off",

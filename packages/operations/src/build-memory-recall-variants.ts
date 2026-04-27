@@ -155,11 +155,17 @@ export const buildMemoryRecallVariantsOp = async (
       const { tokens } = await tokenizeOp({ text: sourceTrimmed }, ctx);
       const result = placeholderize(tokens, sourceTrimmed);
       if (result.template && result.template !== sourceTrimmed) {
+        // NOTE: normalizedText stores the original text (not the template) so
+        // that pg_trgm similarity searching in listVariantMemorySuggestions can
+        // find this variant for trgm-similar inputs (e.g. "Update 1.21" finding
+        // the TOKEN_TEMPLATE variant of "Update 1.20"). The template is stored
+        // in meta.template for direct equality matching in the template channel
+        // of collectMemoryRecallOp.
         sourceVariants.push({
           text: sourceTrimmed,
-          normalizedText: result.template,
+          normalizedText: sourceTrimmed.toLowerCase(),
           variantType: "TOKEN_TEMPLATE",
-          meta: null,
+          meta: { template: result.template },
         });
       }
     } catch {

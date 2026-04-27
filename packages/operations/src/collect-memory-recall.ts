@@ -6,6 +6,7 @@ import {
   executeQuery,
   getDbHandle,
   listExactMemorySuggestions,
+  listTemplateMemorySuggestions,
   listTrgmMemorySuggestions,
   listVariantMemorySuggestions,
 } from "@cat/domain";
@@ -19,8 +20,11 @@ import * as z from "zod";
 import type {
   MemorySuggestionWithPrecision,
   RawMemoryResult,
+  RecallCandidate,
 } from "./precision/types";
 
+import { calibrateMemoryBm25 } from "./confidence-calibrator";
+import { applyMemoryHnfPre, applyMemoryHnfPost } from "./hard-negative-filter";
 import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25";
 import {
   fillTemplate,
@@ -31,6 +35,8 @@ import { joinLemmas } from "./nlp-normalization";
 import { runPrecisionPipeline } from "./precision/precision-pipeline";
 import { augmentWithSparseLane } from "./precision/sparse-lane";
 import { searchMemoryOp } from "./search-memory";
+import { applySelfExclusion } from "./self-exclusion-filter";
+import { matchTemplateStructure } from "./template-structure-matcher";
 import { tokenizeOp } from "./tokenize";
 
 export const CollectMemoryRecallInputSchema = z.object({
@@ -59,6 +65,8 @@ export const CollectMemoryRecallInputSchema = z.object({
       }),
     )
     .optional(),
+  /** Memory item UUIDs to exclude from results (self-exclusion). */
+  excludeMemoryItemIds: z.array(z.string()).optional(),
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
   rerankProviderId: z.int().optional(),
   rerankTimeoutMs: z.int().positive().default(3000),
@@ -306,13 +314,96 @@ export const collectMemoryRecallOp = async (
         maxAmount: input.maxAmount,
       },
     );
-    await Promise.all(variantResults.map(async (r) => pushResult(r.id, r)));
+    await Promise.all(
+      variantResults.map(async (r) => {
+        if (r.matchedVariantType === "TOKEN_TEMPLATE" && r.sourceTemplate) {
+          const match = await matchTemplateStructure(
+            text,
+            r.sourceTemplate,
+            currentSourceTemplate
+              ? {
+                  template: currentSourceTemplate,
+                  slots: (await ensureCurrentSourceTemplate()) ?? [],
+                }
+              : undefined,
+          );
+
+          if (match) {
+            // Template equality match — override confidence to 1.0
+            return pushResult(r.id, {
+              ...r,
+              confidence: 1.0,
+              evidences: [
+                {
+                  channel: "template" as const,
+                  matchedText: r.source,
+                  matchedVariantText: r.matchedVariantText,
+                  matchedVariantType: "TOKEN_TEMPLATE",
+                  confidence: 1.0,
+                  note: "template structure equality match",
+                },
+                ...r.evidences.filter((e) => e.channel !== "template"),
+              ],
+            });
+          }
+          // Template not equal — fall through to normal pushResult
+        }
+        return pushResult(r.id, r);
+      }),
+    );
   } catch (err) {
     logger
       .withSituation("OP")
       .error(err, "collectMemoryRecallOp: variant match failed");
   }
 
+  // Channel 4: Template equality match
+  // Bypasses pg_trgm similarity by doing direct sourceTemplate equality.
+  // Catches version-number / placeholder variants that fail trgm similarity.
+  try {
+    const { tokens } = await tokenizeOp({ text }, ctx);
+    const result = placeholderize(tokens, text);
+    if (result.template) {
+      const templateResults = await executeQuery(
+        { db: drizzle },
+        listTemplateMemorySuggestions,
+        {
+          sourceTemplate: result.template,
+          sourceLanguageId: input.sourceLanguageId,
+          translationLanguageId: input.translationLanguageId,
+          memoryIds: input.memoryIds,
+          maxAmount: input.maxAmount,
+        },
+      );
+      if (templateResults.length > 0) {
+        await Promise.all(
+          templateResults.map(async (r) =>
+            pushResult(r.id, {
+              ...r,
+              confidence: 1.0,
+              matchedVariantType: "TOKEN_TEMPLATE",
+              matchedText: r.source,
+              evidences: [
+                {
+                  channel: "template" as const,
+                  matchedText: r.source,
+                  matchedVariantType: "TOKEN_TEMPLATE" as const,
+                  confidence: 1.0,
+                  note: "template structure equality match",
+                },
+              ],
+            }),
+          ),
+        );
+      }
+    }
+  } catch (err) {
+    logger
+      .withSituation("OP")
+      .error(err, "TMPL: template equality channel skipped");
+  }
+
+  // Channel 5: BM25
   try {
     const bm25Results = await collectBm25MemorySuggestionsOp(
       {
@@ -408,6 +499,49 @@ export const collectMemoryRecallOp = async (
     : text.toLowerCase().split(/\s+/).filter(Boolean);
   augmentWithSparseLane(rawMemoryResults, sparseContentWords);
 
+  // ── Confidence Calibrator (BM25 batch normalization) ─────────────────
+  const calSummary = calibrateMemoryBm25(rawMemoryResults);
+  if (calSummary.bm25Count > 0) {
+    logger
+      .withSituation("OP")
+      .info(
+        `CAL(memory): ${calSummary.bm25Count} BM25 evidences calibrated (maxRaw=${calSummary.maxRaw.toFixed(4)}, boost=${calSummary.boostFactor}, multi=${calSummary.multiEvidenceCount})`,
+      );
+  }
+
+  // ── Hard-Negative Filter (pre-pipeline) ──────────────────────────────
+  const hnfPreRemovals: Array<{
+    surface: string;
+    candidateKey: string;
+    reason: string;
+    stage: string;
+    detail?: string;
+  }> = [];
+
+  if (input.sourceNlpTokens && input.sourceNlpTokens.length > 0) {
+    const hnfPreResult = applyMemoryHnfPre(
+      rawMemoryResults,
+      input.sourceNlpTokens,
+      input.text,
+    );
+    hnfPreRemovals.push(...hnfPreResult);
+
+    // Filter out _hnfRemoved results
+    const filtered = rawMemoryResults.filter(
+      (r) => !(r as Record<string, unknown>)["_hnfRemoved"],
+    );
+    rawMemoryResults.length = 0;
+    rawMemoryResults.push(...filtered);
+
+    if (hnfPreResult.length > 0) {
+      logger
+        .withSituation("OP")
+        .info(
+          `HNF_pre(memory): removed ${hnfPreResult.length} hard negatives (reasons: ${[...new Set(hnfPreResult.map((r) => r.reason))].join(", ")})`,
+        );
+    }
+  }
+
   const ranked = await runPrecisionPipeline(rawMemoryResults, {
     queryText: input.text,
     maxResults: input.maxAmount,
@@ -418,8 +552,41 @@ export const collectMemoryRecallOp = async (
     rerankTimeoutMs: input.rerankTimeoutMs,
   });
 
+  // ── Hard-Negative Filter (post-pipeline, tier-3 semantic isolation) ──
+  let hnfPostRemovals: Array<{
+    surface: string;
+    candidateKey: string;
+    reason: string;
+    stage: string;
+    detail?: string;
+  }> = [];
+
+  if (input.sourceNlpTokens && input.sourceNlpTokens.length > 0) {
+    hnfPostRemovals = applyMemoryHnfPost(ranked, input.sourceNlpTokens);
+
+    if (hnfPostRemovals.length > 0) {
+      logger
+        .withSituation("OP")
+        .info(
+          `HNF_post(memory): removed ${hnfPostRemovals.length} tier-3 isolated semantic candidates`,
+        );
+    }
+  }
+
+  // Filter out hardFiltered candidates from ranked
+  const filteredRanked = ranked.filter((c) => !c.hardFiltered);
+
+  // ── Self-Exclusion Filter ──────────────────────────────────────────
+  const memoryCandidates = filteredRanked.filter(
+    (c): c is RecallCandidate & { surface: "memory" } => c.surface === "memory",
+  );
+  const selfExcluded = applySelfExclusion(
+    memoryCandidates,
+    input.excludeMemoryItemIds,
+  );
+
   // Re-attach full MemorySuggestion fields from seen Map (createdAt, updatedAt, etc.)
-  return ranked.flatMap((c): MemorySuggestionWithPrecision[] => {
+  return selfExcluded.flatMap((c): MemorySuggestionWithPrecision[] => {
     if (c.surface !== "memory") return [];
     const raw = seen.get(c.id);
     if (!raw) return [];

@@ -103,6 +103,7 @@ describe("deriveLlmTranslateConfidence", () => {
       deriveLlmTranslateConfidence({
         memories: [],
         terms: [],
+        sessionTranslationsCount: 0,
         neighborTranslationsCount: 0,
         elementContextsCount: 0,
         approvedTranslationsCount: 0,
@@ -117,6 +118,7 @@ describe("deriveLlmTranslateConfidence", () => {
       deriveLlmTranslateConfidence({
         memories: [],
         terms: [{ term: "click", translation: "点击", definition: null }],
+        sessionTranslationsCount: 0,
         neighborTranslationsCount: 0,
         elementContextsCount: 0,
         approvedTranslationsCount: 0,
@@ -131,6 +133,7 @@ describe("deriveLlmTranslateConfidence", () => {
       deriveLlmTranslateConfidence({
         memories: [{ source: "x", translation: "y", confidence: 0.95 }],
         terms: [],
+        sessionTranslationsCount: 0,
         neighborTranslationsCount: 0,
         elementContextsCount: 0,
         approvedTranslationsCount: 0,
@@ -144,6 +147,7 @@ describe("deriveLlmTranslateConfidence", () => {
     const score = deriveLlmTranslateConfidence({
       memories: [],
       terms: [],
+      sessionTranslationsCount: 0,
       neighborTranslationsCount: 1,
       elementContextsCount: 1,
       approvedTranslationsCount: 1,
@@ -159,6 +163,7 @@ describe("deriveLlmTranslateConfidence", () => {
       deriveLlmTranslateConfidence({
         memories: [{ source: "x", translation: "y", confidence: 1.0 }],
         terms: [{ term: "x", translation: "y", definition: null }],
+        sessionTranslationsCount: 0,
         neighborTranslationsCount: 5,
         elementContextsCount: 5,
         approvedTranslationsCount: 5,

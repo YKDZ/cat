@@ -10,9 +10,9 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (335 functions, 435 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (336 functions, 436 types)
 
-* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (91 functions, 111 types)
+* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (104 functions, 120 types)
 
 * [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 203 types)
 

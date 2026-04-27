@@ -128,6 +128,15 @@ const computeAggregates = (cases: CaseEvaluation[]): Record<string, number> => {
 
   const result: Record<string, number> = {};
   for (const [name, values] of Object.entries(agg)) {
+    // Handle percentile suffixes: scorerName.p50, scorerName.p90, etc.
+    const pctMatch = name.match(/^(.+)\.(p\d+)$/);
+    if (pctMatch) {
+      const [, , pctSuffix] = pctMatch;
+      const p = parseInt(pctSuffix.slice(1)) / 100;
+      const sorted = [...values].sort((a, b) => a - b);
+      result[name] = percentile(sorted, p);
+      continue;
+    }
     if (name === "latency_ms" || name === "agent_latency_ms") {
       const sorted = [...values].sort((a, b) => a - b);
       const prefix = name === "agent_latency_ms" ? "agent_" : "";

@@ -1,0 +1,12 @@
+name: bm25-confidence
+cases:
+  - id: "entities-with-passengers-portals"
+    inputText: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:gamerule:gamerule_entitiesWithPassengersCanUsePortals_description"
+        expectedSource: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
+        expectedTranslation: "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。"
+        minimumConfidence: 0.15
+        requiredChannels: ["bm25"]

@@ -48,6 +48,15 @@ export const LlmTranslateConfigSchema = z.object({
 
 export type LlmTranslateConfig = z.infer<typeof LlmTranslateConfigSchema>;
 
+export const SessionTranslationSchema = z.object({
+  elementId: z.int(),
+  source: z.string(),
+  translation: z.string(),
+  preservedAsIs: z.boolean().default(false),
+});
+
+export type SessionTranslation = z.infer<typeof SessionTranslationSchema>;
+
 // ─── Input schema ──────────────────────────────────────────────────────────────
 
 export const LlmTranslateInputSchema = z.object({
@@ -76,6 +85,8 @@ export const LlmTranslateInputSchema = z.object({
       }),
     )
     .default([]),
+
+  sessionTranslations: z.array(SessionTranslationSchema).default([]),
 
   llmProviderId: z.int().optional(),
   temperature: z.number().default(0.3),
@@ -117,6 +128,7 @@ export type LlmTranslateOutput = z.infer<typeof LlmTranslateOutputSchema>;
 type ConfidenceContext = {
   memories: LlmTranslateInput["memories"];
   terms: LlmTranslateInput["terms"];
+  sessionTranslationsCount: number;
   neighborTranslationsCount: number;
   elementContextsCount: number;
   approvedTranslationsCount: number;
@@ -155,6 +167,7 @@ export const deriveLlmTranslateConfidence = (
   }
 
   if ((ctx.terms ?? []).length > 0) base = Math.min(base + 0.03, 0.85);
+  if (ctx.sessionTranslationsCount > 0) base = Math.min(base + 0.02, 0.85);
   if (ctx.neighborTranslationsCount > 0) base = Math.min(base + 0.02, 0.85);
   if (ctx.elementContextsCount > 0) base = Math.min(base + 0.01, 0.85);
   if (ctx.approvedTranslationsCount > 0) base = Math.min(base + 0.01, 0.85);
@@ -180,6 +193,12 @@ type ResolvedContext = {
   config: z.infer<typeof LlmTranslateConfigSchema>;
   memories: z.infer<typeof LlmTranslateInputSchema>["memories"];
   terms: z.infer<typeof LlmTranslateInputSchema>["terms"];
+  sessionTranslations: Array<{
+    elementId: number;
+    source: string;
+    translation: string;
+    preservedAsIs: boolean;
+  }>;
   elementMeta: Record<string, unknown> | null;
   neighborTranslations: Array<{ source: string; translation: string }>;
   elementContexts: Array<{
@@ -278,6 +297,16 @@ const buildUserPrompt = (resolved: ResolvedContext): string => {
     prompt += `\nNeighboring translations (for consistency):\n`;
     for (const n of resolved.neighborTranslations) {
       prompt += `  "${n.source}" → "${n.translation}"\n`;
+    }
+  }
+
+  // Session translations (unsaved in-session translations for consistency)
+  if (resolved.sessionTranslations && resolved.sessionTranslations.length > 0) {
+    prompt += `\nPreviously translated in this editing session:\n`;
+    for (const s of resolved.sessionTranslations) {
+      prompt += `  "${s.source}" → "${s.translation}"`;
+      if (s.preservedAsIs) prompt += ` (preserved as-is)`;
+      prompt += `\n`;
     }
   }
 
@@ -412,6 +441,7 @@ const loadContext = async (
     config: input.config,
     memories: input.memories,
     terms: input.terms,
+    sessionTranslations: input.sessionTranslations ?? [],
     // eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     elementMeta: (elementInfo.meta as Record<string, unknown>) ?? null,
     neighborTranslations: neighbors,
@@ -501,6 +531,7 @@ export const llmTranslateOp = async (
   const confidence = deriveLlmTranslateConfidence({
     memories: effectiveMemories,
     terms: effectiveTerms,
+    sessionTranslationsCount: resolved.sessionTranslations.length,
     neighborTranslationsCount: resolved.neighborTranslations.length,
     elementContextsCount: resolved.elementContexts.length,
     approvedTranslationsCount: resolved.approvedTranslations.length,

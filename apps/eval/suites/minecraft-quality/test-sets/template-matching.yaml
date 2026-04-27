@@ -1,0 +1,33 @@
+name: template-matching
+cases:
+  - id: "deflect-arrow"
+    inputText: "Deflect a projectile with a Shield"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_story_deflect_arrow_description"
+        expectedSource: "Deflect a projectile with a Shield"
+        expectedTranslation: "用盾牌反弹一个弹射物"
+        minimumConfidence: 0.60
+
+  - id: "enchant-item"
+    inputText: "Enchant an item at an Enchanting Table"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_story_enchant_item_description"
+        expectedSource: "Enchant an item at an Enchanting Table"
+        expectedTranslation: "用附魔台附魔一样物品"
+        minimumConfidence: 0.60
+
+  - id: "update-1.21-matches-update-1.20"
+    inputText: "Update 1.21"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:update:update_1.20"
+        expectedSource: "Update 1.20"
+        expectedTranslation: "更新 1.20"
+        minimumConfidence: 0.95
+        requiredChannels: ["template"]
+        requiredVariantTypes: ["TOKEN_TEMPLATE"]

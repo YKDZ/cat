@@ -136,14 +136,6 @@ Memory 侧特有的特征：
 
 ---
 
-## 流式协议（onNew 路由）
-
-`memory.onNew` 是服务端 generator，对 `recallContextRerankOp` 的结果逐一 `yield`，无 LLM 延迟。客户端收到的每条 `MemorySuggestion` 均为原始精排结果，不含 LLM 生成内容，`adaptationPending` 字段不会被设置。
-
-如需 LLM 增强建议，请参阅 `09-smart-suggest.semantic.md`。
-
----
-
 ## 回归测试
 
 `memory-recall-regression.test.ts`（[源码](../src/memory-recall-regression.test.ts)）通过 fixture 回归门验证五条候选通道各自的命中行为不发生静默退化。测试场景包括：exact 精确命中、trgm 近似命中、variant 词形变化命中、BM25 关键词命中、TOKEN_TEMPLATE 模板适配正确性，以及 Precision Pipeline 层的精排行为（Tier 分配、template vs semantic hard-negative 竞争场景）。`sparse` 仍只在 merge 之后作为启发式证据增强，不参与候选召回。

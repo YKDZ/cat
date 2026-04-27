@@ -74,12 +74,9 @@ onMounted(async () => {
           confidence: toShortFixed(memorySuggestion.confidence * 100, 2),
         })
       }}</span>
-      <span
-        v-if="memorySuggestion.adaptationMethod === 'token-replaced'"
-        class="rounded bg-blue-100 px-1.5 py-0.5 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300"
-      >
+      <Badge variant="outline">
         {{ t("占位符替换") }}
-      </span>
+      </Badge>
       <UserAvatar :user-id="memorySuggestion.creatorId" with-name :size="16" />
       <span>{{ memory?.name ?? props.memorySuggestion.memoryId }}</span>
     </div>

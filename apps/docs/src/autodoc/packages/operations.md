@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 76
+* **Modules**: 87
 
-* **Exported functions**: 91
+* **Exported functions**: 104
 
-* **Exported types**: 111
+* **Exported types**: 120
 
 ## Function Index
 
@@ -679,6 +679,40 @@ export const qaTranslationOp = async (payload: QaTranslationInput, ctx?: Operati
 export const qaOp = async (payload: QAInput, _ctx?: OperationContext): Promise<{ result: { meta: any; isPassed: boolean; checkerId: number; }[]; }>
 ```
 
+### `sortByQuality`
+
+```ts
+/**
+ * Sort suggestions by source priority + confidence descending + arrival time ascending.
+ *
+ * Sort keys (in order):
+ * 1. Source priority: LLM translate > advisor
+ * 2. Confidence descending (within same source)
+ * 3. Arrival time ascending (within same priority and confidence, deterministic)
+ *
+ * @param suggestions - List of suggestions to sort
+ *
+ * @returns Sorted suggestions
+ */
+export const sortByQuality = (suggestions: QueuedSuggestion[]): QueuedSuggestion[]
+```
+
+### `createSuggestionCollector`
+
+```ts
+/**
+ * Suggestion collector with cache-delay guard.
+ *
+ * Collects suggestions for minBatchMs, then sorts by quality and yields.
+ * Suggestions arriving after maxWaitMs are appended to the end.
+ *
+ * @param config - Sorting configuration
+ *
+ * @returns Collector API
+ */
+export const createSuggestionCollector = (config: Partial<QualitySortConfig>): { add: (item: QueuedSuggestion) => void; shouldYieldFirstBatch: () => boolean; isTimeout: () => boolean; yieldBatch: () => QueuedSuggestion[]; yieldRemaining: () => QueuedSuggestion[]; }
+```
+
 ### `rebasePRFull`
 
 ```ts
@@ -691,13 +725,13 @@ export const rebasePRFull = async (ctx: DbContext, input: RebasePRFullInput): Pr
 ### `recallContextRerankOp`
 
 ```ts
-export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `rerankTermRecallOp`
 
 ```ts
-export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
+export const rerankTermRecallOp = async (data: TermRecallContextRerankInput, ctx?: OperationContext): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]>
 ```
 
 ### `registerDomainEventHandlers`
@@ -826,7 +860,21 @@ export const searchChunkOp = async (payload: SearchChunkInput, ctx?: OperationCo
  *
  * @returns List of matching memory entries (sorted by confidence descending)
  */
-export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
+export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
+```
+
+### `applySelfExclusion`
+
+```ts
+/**
+ * Remove the current element's own memory items from recall results.
+ *
+ * @param candidates - Ranked candidates or suggestion list
+ * @param excludeMemoryItemIds - Memory item UUIDs to exclude
+ *
+ * @returns Results with self-matches excluded
+ */
+export const applySelfExclusion = (candidates: T[], excludeMemoryItemIds?: string[]): T[]
 ```
 
 ### `semanticSearchTermsOp`
@@ -892,7 +940,7 @@ export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput
 /**
  * Streaming memory search backed by the aggregated recall helper.
  */
-export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
+export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
 ```
 
 ### `streamSearchTermsOp`
@@ -909,7 +957,28 @@ export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: Operat
  *
  * @returns Async iterable that yields deduplicated term match results
  */
-export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
+export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: OperationContext): AsyncIterable<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }>
+```
+
+### `matchTemplateStructure`
+
+```ts
+/**
+ * Perform structural equality template matching for TOKEN_TEMPLATE variants.
+ *
+ * If the current query's template strictly equals the candidate's sourceTemplate,
+ * returns confidence 1.0. Otherwise returns null to fall back to pg_trgm similarity.
+ *
+ * @param queryText - Current query text
+ * @param candidateSourceTemplate - Candidate variant's sourceTemplate
+ * @param cachedTemplate - Pre-computed current query template (optional)
+ *
+ * @returns Match result: confidence 1.0 if matched, null if not
+ */
+export const matchTemplateStructure = async (queryText: string, candidateSourceTemplate: string | null, cachedTemplate?: {
+    template: string;
+    slots: ReturnType<typeof placeholderize>["slots"];
+  }): Promise<{ confidence: number; } | null>
 ```
 
 ### `termRecallOp`
@@ -927,7 +996,7 @@ export const streamSearchTermsOp = (data: StreamSearchTermsInput, ctx?: Operatio
  *
  * @returns Term matches enriched with concept subject information
  */
-export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
+export const termRecallOp = async (data: TermRecallInput, _ctx?: OperationContext): Promise<{ terms: { term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; concept: { subjects: { name: string; defaultDefinition: string | null; }[]; definition: string | null; }; matchedText?: string | undefined; }[]; }>
 ```
 
 ### `tokenizeOp`
@@ -1054,6 +1123,163 @@ export const processVectorizationBatch = async (queue: TaskQueue<VectorizationTa
  * @returns List of ChunkSet IDs, one per input text
  */
 export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerId }: VectorizeInput, ctx?: OperationContext): Promise<{ chunkSetIds: number[]; }>
+```
+
+### packages/operations/src/confidence-calibrator
+
+### `calibrateBm25Confidence`
+
+```ts
+/**
+ * Batch-normalize BM25-channel evidences within a result set.
+ *
+ * Algorithm:
+ * 1. Collect all BM25 channel confidences as rawScores
+ * 2. Compute maxRaw = max(rawScores)
+ * 3. Calibrated confidence = min(rawScore / maxRaw, 1.0) * boostFactor, capped at 0.85
+ * 4. If sparse evidence hit rate >= 0.5, append multi-evidence markup
+ *
+ * @param evidencesByCandidate - List of evidence arrays per candidate
+ * @param boostFactor - Boost factor (default 2.5)
+ *
+ * @returns Calibrated evidence arrays and summary
+ */
+export const calibrateBm25Confidence = (evidencesByCandidate: RecallEvidence[][], boostFactor: number): { calibrated: RecallEvidence[][]; summary: CalibrationSummary; }
+```
+
+### `calibrateMemoryBm25`
+
+```ts
+/**
+ * Apply BM25 confidence calibration to memory recall RawResult[].
+ *
+ * Mutates the evidences array of each result in-place.
+ *
+ * @param results - Raw memory recall results
+ * @param boostFactor - Boost factor (default 2.5)
+ *
+ * @returns Calibration summary
+ */
+export const calibrateMemoryBm25 = (results: RawResult[], boostFactor?: number): CalibrationSummary
+```
+
+### `calibrateTermBm25`
+
+```ts
+/**
+ * Apply confidence calibration to term recall RawResult[] (currently no-op, reserved for architectural consistency).
+ *
+ * @param results - Raw term recall results
+ * @param boostFactor - Boost factor (default 2.5)
+ *
+ * @returns Calibration summary
+ */
+export const calibrateTermBm25 = (results: RawResult[], boostFactor?: number): CalibrationSummary
+```
+
+### packages/operations/src/hard-negative-filter
+
+### `extractContentWordsFromTokens`
+
+```ts
+/**
+ * Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased).
+ */
+export const extractContentWordsFromTokens = (tokens: Array<{
+    lemma: string;
+    isStop: boolean;
+    isPunct: boolean;
+    pos: string;
+  }>): { contentWords: string[]; keyNouns: string[]; }
+```
+
+### `applyHnfPreRules`
+
+```ts
+/**
+ * Apply HNF pre-pipeline rules (1, 2, 3).
+ *
+ * @param candidates - Candidate list
+ * @param queryContentWords - Query content words
+ * @param queryKeyNouns - Query key nouns (NOUN/PROPN pos)
+ * @param queryTextLength - Query text character length
+ *
+ * @returns Kept candidates and removal records
+ */
+export const applyHnfPreRules = (candidates: HnfCandidate[], queryContentWords: string[], queryKeyNouns: string[], queryTextLength: number): { kept: HnfCandidate[]; removals: HardNegativeRemoval[]; }
+```
+
+### `applyHnfPostRules`
+
+```ts
+/**
+ * Apply HNF post-pipeline rules (rule 4: Tier-3 isolated semantic judgment).
+ *
+ * @param candidates - Ranked candidates with tier info
+ * @param queryContentWords - Query content words
+ *
+ * @returns Kept candidates and removal records
+ */
+export const applyHnfPostRules = (candidates: Array<
+    HnfCandidate & {
+      tier?: string;
+      hardFiltered?: boolean;
+      hardFilterReason?: string;
+    }
+  >, queryContentWords: string[]): { kept: Array<HnfCandidate & { tier?: string; hardFiltered?: boolean; hardFilterReason?: string; }>; removals: HardNegativeRemoval[]; }
+```
+
+### `applyMemoryHnfPre`
+
+```ts
+/**
+ * Apply HNF pre-pipeline rules to memory recall results.
+ *
+ * @param results - Raw memory recall results
+ * @param sourceNlpTokens - NLP tokens of the source text
+ * @param queryText - Query text
+ *
+ * @returns Removal records
+ */
+export const applyMemoryHnfPre = (results: RawResult[], sourceNlpTokens: Array<{
+    lemma: string;
+    isStop: boolean;
+    isPunct: boolean;
+    pos: string;
+  }>, queryText: string): HardNegativeRemoval[]
+```
+
+### `applyMemoryHnfPost`
+
+```ts
+/**
+ * Apply HNF post-pipeline rules to ranked memory recall results.
+ *
+ * @param ranked - Ranked candidates with tier info
+ * @param sourceNlpTokens - NLP tokens of the source text
+ *
+ * @returns Removal records
+ */
+export const applyMemoryHnfPost = (ranked: RecallCandidate[], sourceNlpTokens: Array<{
+    lemma: string;
+    isStop: boolean;
+    isPunct: boolean;
+    pos: string;
+  }>): HardNegativeRemoval[]
+```
+
+### `applyTermHnfPre`
+
+```ts
+/**
+ * Apply HNF pre-pipeline rules to term recall results.
+ */
+export const applyTermHnfPre = (results: RawResult[], sourceNlpTokens: Array<{
+    lemma: string;
+    isStop: boolean;
+    isPunct: boolean;
+    pos: string;
+  }>, queryText: string): HardNegativeRemoval[]
 ```
 
 ### packages/operations/src/precision
@@ -1242,7 +1468,7 @@ export function applyGuardsToCandidates(candidates: RecallCandidate[], queryText
  * @param candidateSource - — source text of the candidate
  * @param minScore - — minimum score to emit evidence (default 0.3)
  */
-export function computeSparseEvidence(queryContentWords: string[], candidateSource: string, minScore?: number): { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; } | null
+export function computeSparseEvidence(queryContentWords: string[], candidateSource: string, minScore?: number): { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; } | null
 ```
 
 ### `augmentWithSparseLane`
@@ -1372,6 +1598,10 @@ export const orchestrateRerank = async ({
 
 * `CollectTermRecallInput` (type)
 
+* `CalibratedBm25Evidence` (interface) — Calibrated BM25 evidence with raw score and normalization metadata.
+
+* `CalibrationSummary` (interface) — Summary of batch BM25 calibration.
+
 * `CreateElementInput` (type)
 
 * `CreateElementOutput` (type)
@@ -1414,6 +1644,14 @@ export const orchestrateRerank = async ({
 
 * `FindOrCreateAutoTranslatePRResult` (interface)
 
+* `HardNegativeRemoval` (interface) — Record of a hard-negative removal.
+
+* `HnfCandidate` (interface) — Unified input interface for the HNF core rules engine.
+
+* `HnfRuleResult` (interface) — Result of an HNF rule check.
+
+* `HardNegativeReason` (type) — Hard-negative removal reason categories.
+
 * `LlmRefineTranslationInput` (type)
 
 * `LlmRefineTranslationOutput` (type)
@@ -1427,6 +1665,8 @@ export const orchestrateRerank = async ({
 * `LlmTermEnhanceOutput` (type)
 
 * `LlmTranslateConfig` (type)
+
+* `SessionTranslation` (type)
 
 * `LlmTranslateInput` (type)
 
@@ -1503,6 +1743,10 @@ export const orchestrateRerank = async ({
 * `QAInput` (type)
 
 * `QAOutput` (type)
+
+* `QualitySortConfig` (interface) — Sorting configuration.
+
+* `QueuedSuggestion` (interface) — Translation suggestion wrapper with source metadata.
 
 * `RebasePRFullInput` (interface) — Input parameters for rebasePRFull.
 

@@ -6605,6 +6605,25 @@
     "line": 10
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-item-ids-by-element.query:listMemoryItemIdsByElement",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-item-ids-by-element.query:listMemoryItemIdsByElement",
+    "name": "listMemoryItemIdsByElement",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-memory-item-ids-by-element.query.ts",
+    "line": 22,
+    "description": "List all memory item UUIDs associated with a given element."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-item-ids-by-element.query:ListMemoryItemIdsByElementQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-item-ids-by-element.query:ListMemoryItemIdsByElementQuery",
+    "name": "ListMemoryItemIdsByElementQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-memory-item-ids-by-element.query.ts",
+    "line": 10
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-suggestions-by-chunk-ids.query:listMemorySuggestionsByChunkIds",
     "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-suggestions-by-chunk-ids.query:listMemorySuggestionsByChunkIds",
     "name": "listMemorySuggestionsByChunkIds",
@@ -8075,7 +8094,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 139
+    "line": 146
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:MemoryRecallTestSet",
@@ -8084,7 +8103,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 137
+    "line": 144
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:ReferenceTranslation",
@@ -8093,7 +8112,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 163
+    "line": 170
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:ScenarioConfig",
@@ -8102,7 +8121,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 75
+    "line": 80
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:SuiteConfig",
@@ -8111,7 +8130,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 74
+    "line": 79
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TermRecallTestCase",
@@ -8120,7 +8139,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 138
+    "line": 145
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TermRecallTestSet",
@@ -8129,7 +8148,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 136
+    "line": 143
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TranslationTestCase",
@@ -8138,7 +8157,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 164
+    "line": 171
   },
   {
     "id": "@cat/eval:apps/eval/src/config/schemas:TranslationTestSet",
@@ -8147,7 +8166,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/config/schemas.ts",
-    "line": 165
+    "line": 172
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/engine:evaluate",
@@ -8165,7 +8184,7 @@
     "kind": "function",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/eval/scorers/index.ts",
-    "line": 46
+    "line": 56
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/scorers/index:getScorer",
@@ -8174,7 +8193,7 @@
     "kind": "function",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/eval/scorers/index.ts",
-    "line": 37
+    "line": 47
   },
   {
     "id": "@cat/eval:apps/eval/src/eval/types:CaseEvaluation",
@@ -8775,7 +8794,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 67
+    "line": 74
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -8784,7 +8803,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 83,
+    "line": 90,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -8794,7 +8813,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 37
+    "line": 57
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-term-recall:collectTermRecallOp",
@@ -8803,7 +8822,57 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-term-recall.ts",
-    "line": 76
+    "line": 96
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/confidence-calibrator/core:calibrateBm25Confidence",
+    "stableKey": "@cat/operations:packages/operations/src/confidence-calibrator/core:calibrateBm25Confidence",
+    "name": "calibrateBm25Confidence",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/confidence-calibrator/core.ts",
+    "line": 28,
+    "description": "Batch-normalize BM25-channel evidences within a result set.\n\nAlgorithm:\n1. Collect all BM25 channel confidences as rawScores\n2. Compute maxRaw = max(rawScores)\n3. Calibrated confidence = min(rawScore / maxRaw, 1.0) * boostFactor, capped at 0.85\n4. If sparse evidence hit rate >= 0.5, append multi-evidence markup"
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/confidence-calibrator/memory-adapter:calibrateMemoryBm25",
+    "stableKey": "@cat/operations:packages/operations/src/confidence-calibrator/memory-adapter:calibrateMemoryBm25",
+    "name": "calibrateMemoryBm25",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/confidence-calibrator/memory-adapter.ts",
+    "line": 18,
+    "description": "Apply BM25 confidence calibration to memory recall RawResult[].\n\nMutates the evidences array of each result in-place."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/confidence-calibrator/term-adapter:calibrateTermBm25",
+    "stableKey": "@cat/operations:packages/operations/src/confidence-calibrator/term-adapter:calibrateTermBm25",
+    "name": "calibrateTermBm25",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/confidence-calibrator/term-adapter.ts",
+    "line": 16,
+    "description": "Apply confidence calibration to term recall RawResult[] (currently no-op, reserved for architectural consistency)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/confidence-calibrator/types:CalibratedBm25Evidence",
+    "stableKey": "@cat/operations:packages/operations/src/confidence-calibrator/types:CalibratedBm25Evidence",
+    "name": "CalibratedBm25Evidence",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/confidence-calibrator/types.ts",
+    "line": 7,
+    "description": "Calibrated BM25 evidence with raw score and normalization metadata."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/confidence-calibrator/types:CalibrationSummary",
+    "stableKey": "@cat/operations:packages/operations/src/confidence-calibrator/types:CalibrationSummary",
+    "name": "CalibrationSummary",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/confidence-calibrator/types.ts",
+    "line": 30,
+    "description": "Summary of batch BM25 calibration."
   },
   {
     "id": "@cat/operations:packages/operations/src/create-element:CreateElementInput",
@@ -9095,6 +9164,106 @@
     "line": 17
   },
   {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/core:applyHnfPostRules",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/core:applyHnfPostRules",
+    "name": "applyHnfPostRules",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/core.ts",
+    "line": 163,
+    "description": "Apply HNF post-pipeline rules (rule 4: Tier-3 isolated semantic judgment)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/core:applyHnfPreRules",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/core:applyHnfPreRules",
+    "name": "applyHnfPreRules",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/core.ts",
+    "line": 60,
+    "description": "Apply HNF pre-pipeline rules (1, 2, 3)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/core:extractContentWordsFromTokens",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/core:extractContentWordsFromTokens",
+    "name": "extractContentWordsFromTokens",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/core.ts",
+    "line": 7,
+    "description": "Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/memory-adapter:applyMemoryHnfPost",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/memory-adapter:applyMemoryHnfPost",
+    "name": "applyMemoryHnfPost",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/memory-adapter.ts",
+    "line": 101,
+    "description": "Apply HNF post-pipeline rules to ranked memory recall results."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/memory-adapter:applyMemoryHnfPre",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/memory-adapter:applyMemoryHnfPre",
+    "name": "applyMemoryHnfPre",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/memory-adapter.ts",
+    "line": 38,
+    "description": "Apply HNF pre-pipeline rules to memory recall results."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/term-adapter:applyTermHnfPre",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/term-adapter:applyTermHnfPre",
+    "name": "applyTermHnfPre",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/term-adapter.ts",
+    "line": 21,
+    "description": "Apply HNF pre-pipeline rules to term recall results."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/types:HardNegativeReason",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/types:HardNegativeReason",
+    "name": "HardNegativeReason",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/types.ts",
+    "line": 7,
+    "description": "Hard-negative removal reason categories."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/types:HardNegativeRemoval",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/types:HardNegativeRemoval",
+    "name": "HardNegativeRemoval",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/types.ts",
+    "line": 17,
+    "description": "Record of a hard-negative removal."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/types:HnfCandidate",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/types:HnfCandidate",
+    "name": "HnfCandidate",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/types.ts",
+    "line": 34,
+    "description": "Unified input interface for the HNF core rules engine."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/hard-negative-filter/types:HnfRuleResult",
+    "stableKey": "@cat/operations:packages/operations/src/hard-negative-filter/types:HnfRuleResult",
+    "name": "HnfRuleResult",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/hard-negative-filter/types.ts",
+    "line": 51,
+    "description": "Result of an HNF rule check."
+  },
+  {
     "id": "@cat/operations:packages/operations/src/llm-refine-translation:LlmRefineTranslationInput",
     "stableKey": "@cat/operations:packages/operations/src/llm-refine-translation:LlmRefineTranslationInput",
     "name": "LlmRefineTranslationInput",
@@ -9185,7 +9354,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 140,
+    "line": 152,
     "description": "Derive a confidence score for an LLM translation suggestion.\n\nBase score from memory match confidence, plus fixed bonuses per context signal present.\nHard cap at 0.85, rounded to 4 decimal places."
   },
   {
@@ -9204,7 +9373,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 85
+    "line": 96
   },
   {
     "id": "@cat/operations:packages/operations/src/llm-translate:llmTranslateOp",
@@ -9213,7 +9382,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 453,
+    "line": 483,
     "description": "Built-in LLM Translation Suggestion (first-party suggestion source).\n\nSelf-loads element info, neighbor translations, element contexts, element metadata,\napproved translations, and comments via domain queries. Combines with\ncaller-provided memory recall and term recall results, then calls the LLM\nonce to produce a translation suggestion.\n\nReturns `{ suggestion: null }` when:\n- No LLM_PROVIDER is available\n- The LLM call fails\n- The element is not found\n- Database access fails"
   },
   {
@@ -9223,7 +9392,16 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 113
+    "line": 124
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/llm-translate:SessionTranslation",
+    "stableKey": "@cat/operations:packages/operations/src/llm-translate:SessionTranslation",
+    "name": "SessionTranslation",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/llm-translate.ts",
+    "line": 58
   },
   {
     "id": "@cat/operations:packages/operations/src/load-element-texts:LoadElementTextsInput",
@@ -9938,6 +10116,46 @@
     "line": 41
   },
   {
+    "id": "@cat/operations:packages/operations/src/quality-sorter:createSuggestionCollector",
+    "stableKey": "@cat/operations:packages/operations/src/quality-sorter:createSuggestionCollector",
+    "name": "createSuggestionCollector",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/quality-sorter.ts",
+    "line": 93,
+    "description": "Suggestion collector with cache-delay guard.\n\nCollects suggestions for minBatchMs, then sorts by quality and yields.\nSuggestions arriving after maxWaitMs are appended to the end."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/quality-sorter:QualitySortConfig",
+    "stableKey": "@cat/operations:packages/operations/src/quality-sorter:QualitySortConfig",
+    "name": "QualitySortConfig",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/quality-sorter.ts",
+    "line": 7,
+    "description": "Sorting configuration."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/quality-sorter:QueuedSuggestion",
+    "stableKey": "@cat/operations:packages/operations/src/quality-sorter:QueuedSuggestion",
+    "name": "QueuedSuggestion",
+    "kind": "interface",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/quality-sorter.ts",
+    "line": 23,
+    "description": "Translation suggestion wrapper with source metadata."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/quality-sorter:sortByQuality",
+    "stableKey": "@cat/operations:packages/operations/src/quality-sorter:sortByQuality",
+    "name": "sortByQuality",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/quality-sorter.ts",
+    "line": 61,
+    "description": "Sort suggestions by source priority + confidence descending + arrival time ascending.\n\nSort keys (in order):\n1. Source priority: LLM translate > advisor\n2. Confidence descending (within same source)\n3. Arrival time ascending (within same priority and confidence, deterministic)"
+  },
+  {
     "id": "@cat/operations:packages/operations/src/rebase-pr-full:rebasePRFull",
     "stableKey": "@cat/operations:packages/operations/src/rebase-pr-full:rebasePRFull",
     "name": "rebasePRFull",
@@ -10241,6 +10459,16 @@
     "line": 52
   },
   {
+    "id": "@cat/operations:packages/operations/src/self-exclusion-filter:applySelfExclusion",
+    "stableKey": "@cat/operations:packages/operations/src/self-exclusion-filter:applySelfExclusion",
+    "name": "applySelfExclusion",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/self-exclusion-filter.ts",
+    "line": 11,
+    "description": "Remove the current element's own memory items from recall results."
+  },
+  {
     "id": "@cat/operations:packages/operations/src/semantic-search-terms:SemanticSearchTermsInput",
     "stableKey": "@cat/operations:packages/operations/src/semantic-search-terms:SemanticSearchTermsInput",
     "name": "SemanticSearchTermsInput",
@@ -10361,6 +10589,16 @@
     "filePath": "packages/operations/src/stream-search-terms.ts",
     "line": 56,
     "description": "Combined term search with tri-channel streaming output.\n\nLaunches three search strategies concurrently; results are pushed via\n{"
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/template-structure-matcher:matchTemplateStructure",
+    "stableKey": "@cat/operations:packages/operations/src/template-structure-matcher:matchTemplateStructure",
+    "name": "matchTemplateStructure",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/template-structure-matcher.ts",
+    "line": 21,
+    "description": "Perform structural equality template matching for TOKEN_TEMPLATE variants.\n\nIf the current query's template strictly equals the candidate's sourceTemplate,\nreturns confidence 1.0. Otherwise returns null to fall back to pg_trgm similarity."
   },
   {
     "id": "@cat/operations:packages/operations/src/term-recall:TermContext",
@@ -13813,7 +14051,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 29
+    "line": 30
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallDebugContext",
@@ -13822,7 +14060,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 72
+    "line": 73
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallEvidence",
@@ -13831,7 +14069,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/recall.ts",
-    "line": 53
+    "line": 54
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankBand",

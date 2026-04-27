@@ -9,12 +9,14 @@ import {
   getMemory,
   listAllLanguages,
   listMemoryIdsByProject,
+  listMemoryItemIdsByElement,
   listOwnedMemories,
   listProjectMemories,
 } from "@cat/domain";
 import {
   buildMemoryRecallBm25Capabilities,
   collectMemoryRecallOp,
+  nlpSegmentOp,
   recallContextRerankOp,
 } from "@cat/operations";
 import { MemorySchema } from "@cat/shared";
@@ -177,6 +179,17 @@ export const onNew = authed
 
     if (!element || memoryIds.length === 0) return;
 
+    const [excludeMemoryItemIds, nlpResult] = await Promise.all([
+      executeQuery({ db: drizzle }, listMemoryItemIdsByElement, {
+        elementId,
+      }).catch(() => [] as string[]),
+      nlpSegmentOp(
+        { text: element.value, languageId: element.languageId },
+        { pluginManager: context.pluginManager, traceId: crypto.randomUUID() },
+      ).catch(() => null),
+    ]);
+    const sourceNlpTokens = nlpResult?.tokens;
+
     const reranked = await recallContextRerankOp(
       {
         elementId,
@@ -190,6 +203,8 @@ export const onNew = authed
             chunkIds: element.chunkIds,
             minSimilarity: minConfidence,
             maxAmount,
+            excludeMemoryItemIds,
+            sourceNlpTokens,
           },
           {
             pluginManager: context.pluginManager,

@@ -1,0 +1,88 @@
+name: minecraft-quality
+description: Quality evaluation for memory recall and term recall with Hard-Negative Filter, Confidence Calibrator, Template Matcher, Trigram Guard, Self-Exclusion, and Quality Sorter
+
+seed:
+  project: seed/project.json
+  glossary: seed/glossary.json
+  memory: seed/memory.json
+
+plugins:
+  loader: real
+  overrides:
+    - plugin: spacy-segmenter
+      scope: GLOBAL
+      config:
+        serverUrl: "${SPACY_SERVER_URL:-http://172.17.0.1:8000}"
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: "${VECTORIZER_MODEL_ID:-qwen3-embedding:4b}"
+        baseURL: "${VECTORIZER_BASE_URL:-http://172.17.0.1:11435/v1}"
+        apiKey: "${VECTORIZER_API_KEY:-dummy-key}"
+    - plugin: pgvector-storage
+      scope: GLOBAL
+      config: {}
+    - plugin: basic-tokenizer
+      scope: GLOBAL
+      config: {}
+    - plugin: openai-llm-provider
+      scope: GLOBAL
+      config:
+        model-id: "${LLM_MODEL_ID:-gpt-5-mini}"
+        baseURL: "${LLM_BASE_URL:-http://192.168.2.23:8317/v1}"
+        apiKey: "${LLM_API_KEY:-sk-1256987qazA}"
+
+scenarios:
+  - type: memory-recall
+    name: semantic-noise
+    test-set: test-sets/semantic-noise.yaml
+    scorers:
+      [noise-rate, hit-rate, negative-exclusion, precision, recall, latency]
+    params:
+      maxAmount: 5
+      minSimilarity: 0.72
+      minVariantSimilarity: 0.7
+      timeoutMs: 60000
+
+  - type: memory-recall
+    name: bm25-confidence
+    test-set: test-sets/bm25-confidence.yaml
+    scorers: [bm25-confidence, hit-rate, confidence, latency]
+    params:
+      maxAmount: 5
+      minSimilarity: 0.72
+      timeoutMs: 60000
+
+  - type: memory-recall
+    name: template-matching
+    test-set: test-sets/template-matching.yaml
+    scorers: [template-match-rate, hit-rate, channel-coverage, latency]
+    params:
+      maxAmount: 5
+      minSimilarity: 0.72
+      minVariantSimilarity: 0.7
+      timeoutMs: 60000
+
+  - type: term-recall
+    name: trigram-false-positive
+    test-set: test-sets/trigram-false-positive.yaml
+    scorers: [precision, recall, negative-exclusion, hit-rate, latency]
+    params:
+      maxAmount: 10
+      wordSimilarityThreshold: 0.3
+      timeoutMs: 60000
+
+  - type: memory-recall
+    name: self-exclusion
+    test-set: test-sets/self-exclusion.yaml
+    scorers: [self-exclusion-rate, negative-exclusion, hit-rate, latency]
+    params:
+      maxAmount: 5
+      minSimilarity: 0.72
+      timeoutMs: 60000
+
+thresholds:
+  noise-rate: "<= 0.10"
+  bm25-confidence: ">= 0.20"
+  template-match-rate: ">= 0.0"
+  self-exclusion-rate: ">= 1.0"

@@ -75,6 +75,8 @@ export * from "@/queries/memory/list-memory-suggestions-by-chunk-ids.query";
 export * from "@/queries/memory/list-lexical-memory-suggestions.query";
 export * from "@/queries/memory/list-bm25-memory-suggestions.query";
 export * from "@/queries/memory/list-variant-memory-suggestions.query";
+export * from "@/queries/memory/list-template-memory-suggestions.query";
+export * from "@/queries/memory/list-memory-item-ids-by-element.query";
 export * from "@/queries/memory/fetch-translations-for-memory.query";
 export * from "@/queries/setting/get-setting.query";
 export * from "@/queries/language/get-language.query";

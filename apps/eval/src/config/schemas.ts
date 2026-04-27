@@ -38,6 +38,11 @@ export const ScorerNameSchema = z.enum([
   "chrf",
   "token-cost",
   "agent-latency",
+  "noise-rate",
+  "bm25-confidence",
+  "template-match-rate",
+  "self-exclusion-rate",
+  "preserve-rate",
 ]);
 
 // ── Scenario ─────────────────────────────────────────────────────────
@@ -117,6 +122,8 @@ export const ExpectedMemorySchema = z.object({
 
 export const NegativeMemorySchema = z.object({
   memoryItemRef: z.string(),
+  /** Maximum allowed confidence for this negative candidate (validates hard-negative filtering) */
+  maximumConfidence: z.number().optional(),
 });
 
 export const MemoryRecallTestCaseSchema = z.object({

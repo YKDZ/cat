@@ -1,0 +1,14 @@
+name: neighbor-context
+cases:
+  - id: "c418-series"
+    instruction: "Translate C418 music disk names. The first two are preserved as-is (proper names). Verify the third is also preserved."
+    elementRefs: ["c418_cat", "c418_13", "c418_blocks"]
+    referenceTranslations:
+      - elementRef: "c418_cat"
+        expectedText: "C418 - cat"
+      - elementRef: "c418_13"
+        expectedText: "C418 - 13"
+      - elementRef: "c418_blocks"
+        expectedText: "C418 - blocks"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"

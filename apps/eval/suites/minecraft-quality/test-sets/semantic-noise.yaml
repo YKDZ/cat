@@ -1,0 +1,46 @@
+name: semantic-noise
+cases:
+  - id: "discover-every-biome"
+    inputText: "Discover every biome"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_adventure_adventuring_time_description"
+        expectedSource: "Discover every biome"
+        expectedTranslation: "发现所有的生物群系"
+        minimumConfidence: 0.60
+    negativeMemories:
+      - memoryItemRef: "mem:adv:advancements_nether_explore_nether_description"
+        maximumConfidence: 0.40
+      - memoryItemRef: "mem:death:death_attack_cactus"
+        maximumConfidence: 0.40
+
+  - id: "acquire-diamonds"
+    inputText: "Acquire diamonds"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_story_mine_diamond_description"
+        expectedSource: "Acquire diamonds"
+        expectedTranslation: "获得钻石"
+        minimumConfidence: 0.60
+    negativeMemories:
+      - memoryItemRef: "mem:adv:advancements_story_obtain_armor_description"
+        maximumConfidence: 0.40
+      - memoryItemRef: "mem:adv:advancements_story_shiny_gear_description"
+        maximumConfidence: 0.40
+
+  - id: "summon-wither"
+    inputText: "Summon the Wither"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_nether_summon_wither_description"
+        expectedSource: "Summon the Wither"
+        expectedTranslation: "召唤凋灵"
+        minimumConfidence: 0.60
+    negativeMemories:
+      - memoryItemRef: "mem:adv:advancements_nether_get_wither_skull_description"
+        maximumConfidence: 0.40
+      - memoryItemRef: "mem:adv:advancements_nether_create_full_beacon_description"
+        maximumConfidence: 0.40
