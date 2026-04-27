@@ -9,7 +9,6 @@ This package contains all shadcn-vue components and utilities used across the Ca
 ## Features
 
 - 🎨 **Shadcn-Vue Components**: Full collection of beautifully designed components
-- 🔄 **Automated Sync**: Monthly sync with upstream shadcn-vue registry
 - 📦 **Tree-shakable**: ES modules with proper exports
 - 🎯 **Type-safe**: Full TypeScript support
 - 🚀 **Modern**: Built with Vite, Vue 3, and Reka UI
@@ -24,45 +23,6 @@ pnpm add @cat/ui
 
 ```typescript
 import { Button, Card } from "@cat/ui";
-```
-
-## Component Sync
-
-This library automatically syncs with the upstream shadcn-vue registry while preserving custom enhancements.
-
-### Sync Commands
-
-```bash
-# Sync all components
-pnpm sync
-
-# Check sync status (CI/CD mode)
-pnpm sync:check
-
-# Preview sync (dry run)
-node scripts/sync-shadcn-components.js --dry-run
-```
-
-### Annotation System
-
-Components can be marked to prevent auto-sync:
-
-```typescript
-/**
- * @shadcn-do-not-sync
- * reason: Custom virtual scrolling support
- * lastReviewed: 2026-02-25
- */
-```
-
-Custom component files:
-
-```vue
-<!--
-@shadcn-custom-component
-description: Separate viewport for custom scrolling
-lastReviewed: 2026-02-25
--->
 ```
 
 ## Structure

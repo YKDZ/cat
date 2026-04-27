@@ -15,10 +15,6 @@
       "import": "./dist/index.js"
     }
   },
-  "scripts": {
-    "component:sync": "node scripts/sync-shadcn-components.js",
-    "component:sync:check": "node scripts/sync-shadcn-components.js --check"
-  },
   "dependencies": {
     "@vue-flow/controls": "^1.1.3",
     "@vue-flow/core": "^1.48.2",
