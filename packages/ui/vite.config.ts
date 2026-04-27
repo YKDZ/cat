@@ -1,7 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
-import dts from "unplugin-dts/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
@@ -11,16 +10,7 @@ export default defineConfig({
     },
   },
 
-  plugins: [
-    vue(),
-    tailwindcss(),
-    dts({
-      include: ["src/**/*.ts", "src/**/*.vue"],
-      compilerOptions: {
-        declarationMap: true,
-      },
-    }),
-  ],
+  plugins: [vue(), tailwindcss()],
 
   build: {
     target: "esnext",

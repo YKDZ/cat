@@ -8,7 +8,6 @@ import {
   CardContent,
   Pagination,
   PaginationContent,
-  PaginationItem,
   PaginationNext,
   PaginationPrevious,
   Skeleton,
@@ -144,6 +143,7 @@ const handleMarkAllRead = async () => {
     <Pagination
       v-if="notifications.length === pageSize || pageIndex > 0"
       :page="pageIndex + 1"
+      :items-per-page="pageSize"
       @update:page="
         (p: number) => {
           pageIndex = p - 1;
@@ -151,12 +151,8 @@ const handleMarkAllRead = async () => {
       "
     >
       <PaginationContent>
-        <PaginationItem>
-          <PaginationPrevious :disabled="pageIndex === 0" />
-        </PaginationItem>
-        <PaginationItem>
-          <PaginationNext :disabled="notifications.length < pageSize" />
-        </PaginationItem>
+        <PaginationPrevious :disabled="pageIndex === 0" />
+        <PaginationNext :disabled="notifications.length < pageSize" />
       </PaginationContent>
     </Pagination>
   </div>

@@ -2,12 +2,8 @@ import type { PageContextServer } from "vike/types";
 
 import { executeQuery, getSetting, type DbHandle } from "@cat/domain";
 import { loadUserSystemRoles } from "@cat/permissions";
-import {
-  createHTTPHelpers,
-  detectMobile,
-  userFromSessionId,
-} from "@cat/server-shared";
-import { parsePreferredLanguage } from "@cat/shared";
+import { detectMobileFromRequest, userFromSessionId } from "@cat/server-shared";
+import { createHTTPHelpers, parsePreferredLanguage } from "@cat/shared";
 import { createPinia } from "pinia";
 
 const getStringSetting = async (
@@ -20,15 +16,12 @@ const getStringSetting = async (
 };
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
-  if (!ctx.runtime.req || !ctx.runtime.res) {
-    throw new Error("Request or Response object is missing in vike runtime.");
-  }
-
   ctx.pinia = createPinia();
 
-  const helpers = createHTTPHelpers(ctx.runtime.req, ctx.runtime.res);
+  const req = ctx.runtime.hono.req.raw;
+  const helpers = createHTTPHelpers(req, ctx.headersResponse);
 
-  ctx.isMobile = detectMobile(ctx.runtime.req);
+  ctx.isMobile = detectMobileFromRequest(req);
   ctx.sessionId = helpers.getCookie("sessionId");
   ctx.displayLanguage =
     helpers.getCookie("displayLanguage") ??
