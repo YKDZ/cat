@@ -31,13 +31,3 @@ tasks:
 
   test-unit:
     extends: "test"
-
-  component-sync:
-    command: "node scripts/sync-shadcn-components.js"
-    options:
-      cache: false
-
-  component-sync-check:
-    command: "node scripts/sync-shadcn-components.js --check"
-    options:
-      cache: false
