@@ -152,10 +152,7 @@ const onScroll = (e: Event) => {
           >
             <ComboboxItem
               class="w-full"
-              @select="
-                (e: { detail: { value: PickerOption<T> } }) =>
-                  onSelect(e.detail.value as PickerOption<T>)
-              "
+              @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
               :value="option"
             >
               {{ option.content }}

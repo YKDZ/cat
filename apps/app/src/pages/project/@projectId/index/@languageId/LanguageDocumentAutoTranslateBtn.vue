@@ -144,7 +144,9 @@ const { state: llmState } = useQuery({
                 :max="1"
                 :step="0.01"
                 :default-value="value"
-                @update:model-value="(val: number[]) => handleChange(val)"
+                @update:model-value="
+                  (val: number[] | undefined) => val && handleChange(val)
+                "
               />
             </FormControl>
             <FormDescription class="flex justify-between">
