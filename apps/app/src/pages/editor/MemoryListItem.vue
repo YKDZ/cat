@@ -8,7 +8,6 @@ import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TokenViewer from "@/components/editor/TokenViewer.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
 import { orpc } from "@/rpc/orpc";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
 import { useHotKeys } from "@/utils/magic-keys.ts";
@@ -69,16 +68,17 @@ onMounted(async () => {
       <TokenViewer :text="displayTranslation" />
     </button>
     <div class="flex items-center gap-2 text-sm text-foreground">
-      <span>{{
+      <Badge variant="outline">{{
         t("{confidence}%", {
           confidence: toShortFixed(memorySuggestion.confidence * 100, 2),
         })
-      }}</span>
+      }}</Badge>
       <Badge variant="outline">
         {{ t("占位符替换") }}
       </Badge>
-      <UserAvatar :user-id="memorySuggestion.creatorId" with-name :size="16" />
-      <span>{{ memory?.name ?? props.memorySuggestion.memoryId }}</span>
+      <Badge variant="outline">{{
+        memory?.name ?? props.memorySuggestion.memoryId
+      }}</Badge>
     </div>
     <div
       v-if="memorySuggestion.matchedText || evidenceBadges.length > 0"
