@@ -2,14 +2,15 @@ import type { TaskQueue } from "@cat/core";
 import type { VectorizationTask } from "@cat/server-shared";
 
 import { domainEventBus } from "@cat/domain";
+import { serverLogger } from "@cat/server-shared";
 
 import { processVectorizationBatch } from "./vectorization-consumer";
 
 let registered = false;
 
 /**
- * @zh 注册向量化队列消费者。入队事件驱动 + 启动时恢复。
- * @en Register the vectorization queue consumer. Event-driven + startup recovery.
+ * @zh 注册向量化队列消费者。入队事件驱动 + 启动时后台恢复。
+ * @en Register the vectorization queue consumer. Event-driven + background startup recovery.
  */
 export const registerVectorizationConsumer = async (
   queue: TaskQueue<VectorizationTask>,
@@ -25,12 +26,16 @@ export const registerVectorizationConsumer = async (
     await processVectorizationBatch(queue, batchSize);
   });
 
-  // Crash recovery: drain all pending tasks from previous runs
-  let pending = await queue.pendingCount();
-  while (pending > 0) {
-    // oxlint-disable-next-line no-await-in-loop
-    await processVectorizationBatch(queue, batchSize);
-    // oxlint-disable-next-line no-await-in-loop
-    pending = await queue.pendingCount();
-  }
+  // Crash recovery: drain pending tasks in the background (non-blocking)
+  void (async () => {
+    let pending = await queue.pendingCount();
+    while (pending > 0) {
+      // oxlint-disable-next-line no-await-in-loop
+      await processVectorizationBatch(queue, batchSize);
+      // oxlint-disable-next-line no-await-in-loop
+      pending = await queue.pendingCount();
+    }
+  })().catch((err: unknown) => {
+    serverLogger.error({ err }, "Crash recovery failed");
+  });
 };

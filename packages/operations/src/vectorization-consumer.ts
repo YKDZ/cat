@@ -66,10 +66,10 @@ export const processVectorizationBatch = async (
         }),
       );
     } catch (error) {
-      // 4. Nack + maybe mark as failed
-      // oxlint-disable-next-line no-await-in-loop
-      await queue.nack(task.id);
       if (task.retryCount >= MAX_RETRIES - 1) {
+        // Max retries reached: permanently remove from queue and mark as failed
+        // oxlint-disable-next-line no-await-in-loop
+        await queue.ack(task.id);
         // oxlint-disable-next-line no-await-in-loop
         const { client: drizzle } = await getDbHandle();
         // oxlint-disable-next-line no-await-in-loop
@@ -85,6 +85,9 @@ export const processVectorizationBatch = async (
             error,
           }),
         );
+      } else {
+        // oxlint-disable-next-line no-await-in-loop
+        await queue.nack(task.id);
       }
     }
   }

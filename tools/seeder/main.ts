@@ -1,6 +1,4 @@
-// oxlint-disable no-console
-
-import { DrizzleDB, ensureDB } from "@cat/db";
+import { DrizzleDB, RedisConnection, ensureDB } from "@cat/db";
 import { loadDevSeed, runSeedPipeline, truncateAllTables } from "@cat/seed";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -61,6 +59,17 @@ const main = async (): Promise<void> => {
   console.log("[seed] Truncating all tables...");
   await truncateAllTables(execCtx);
   console.log("[seed] All tables truncated.");
+
+  // Flush vectorization queue to prevent stale tasks from blocking next app start
+  const redisConn = new RedisConnection();
+  try {
+    await redisConn.connect();
+    await redisConn.redis.del("queue:vectorization:pending");
+    await redisConn.redis.del("queue:vectorization:processing");
+    console.log("[seed] Vectorization queue flushed.");
+  } finally {
+    redisConn.disconnect();
+  }
 
   // 4. Run ensureDB (languages, default settings)
   await ensureDB(drizzleDB);
