@@ -2,11 +2,14 @@ import {
   executeQuery,
   getElementWithChunkIds,
   listMemoryIdsByProject,
+  listMemoryItemIdsByElement,
   listProjectGlossaryIds,
 } from "@cat/domain";
 import {
   collectMemoryRecallOp,
+  createSuggestionCollector,
   llmTranslateOp,
+  nlpSegmentOp,
   type MemorySuggestionWithPrecision,
   termRecallOp,
 } from "@cat/operations";
@@ -29,7 +32,22 @@ import * as z from "zod";
 import { authed, checkElementPermission } from "@/orpc/server";
 
 export const onNew = authed
-  .input(z.object({ elementId: z.int(), languageId: z.string() }))
+  .input(
+    z.object({
+      elementId: z.int(),
+      languageId: z.string(),
+      sessionTranslations: z
+        .array(
+          z.object({
+            elementId: z.int(),
+            source: z.string(),
+            translation: z.string(),
+            preservedAsIs: z.boolean().default(false),
+          }),
+        )
+        .default([]),
+    }),
+  )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
   .handler(async function* ({ context, input }) {
     const SuggestionEventPayloadSchema = z.object({
@@ -65,6 +83,36 @@ export const onNew = authed
       }),
     ]);
 
+    // ── Query memory item IDs for self-exclusion ──────────────────────
+    const excludeMemoryItemIds = await executeQuery(
+      { db: drizzle },
+      listMemoryItemIdsByElement,
+      { elementId },
+    ).catch((err: unknown) => {
+      logger
+        .withSituation("RPC")
+        .warn(
+          { err },
+          "suggestion.onNew: listMemoryItemIdsByElement failed, skipping self-exclusion",
+        );
+      return [] as string[];
+    });
+
+    // ── NLP tokenization (once, shared by memory + term recall) ───────
+    const nlpResult = await nlpSegmentOp(
+      {
+        text: element.value,
+        languageId: element.languageId,
+      },
+      { pluginManager, traceId: crypto.randomUUID() },
+    ).catch((err: unknown) => {
+      logger
+        .withSituation("RPC")
+        .warn({ err }, "suggestion.onNew: nlpSegmentOp failed");
+      return null;
+    });
+    const sourceNlpTokens = nlpResult?.tokens;
+
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
     const [recalledMemories, termContext] = await Promise.all([
       memoryIds.length > 0
@@ -75,6 +123,8 @@ export const onNew = authed
               translationLanguageId: languageId,
               memoryIds,
               chunkIds: element.chunkIds,
+              excludeMemoryItemIds,
+              sourceNlpTokens,
             },
             { pluginManager, traceId: crypto.randomUUID() },
           ).catch((err: unknown) => {
@@ -166,6 +216,7 @@ export const onNew = authed
           translation: t.translation,
           definition: t.definition,
         })),
+        sessionTranslations: input.sessionTranslations,
       },
       { pluginManager, traceId: crypto.randomUUID() },
     )
@@ -232,9 +283,47 @@ export const onNew = authed
         suggestionsQueue.close();
       });
 
+    // ── Quality Sorter: collect, sort, yield ──────────────────────────
+    const collector = createSuggestionCollector({
+      maxWaitMs: 5000,
+      minBatchMs: 2000,
+    });
+    const cfg = { maxWaitMs: 5000, minBatchMs: 2000 };
+    const startTime = Date.now();
+    let firstBatchYielded = false;
+    const yielded = new Set<string>(); // dedup by translation+sourceType
+
     try {
       for await (const suggestion of suggestionsQueue.consume()) {
-        yield suggestion;
+        // LLM-translate suggestions have no advisorId; advisor suggestions do.
+        const sourceType: "llm-translate" | "advisor" =
+          suggestion.advisorId === undefined ? "llm-translate" : "advisor";
+
+        const key = `${suggestion.translation}\0${sourceType}`;
+        if (yielded.has(key)) continue;
+        yielded.add(key);
+
+        collector.add({
+          suggestion,
+          sourceType,
+          arrivedAt: Date.now(),
+        });
+
+        // Check if we should yield the first batch
+        const elapsed = Date.now() - startTime;
+        if (!firstBatchYielded && elapsed >= cfg.minBatchMs) {
+          const batch = collector.yieldBatch();
+          for (const item of batch) {
+            yield item.suggestion;
+          }
+          firstBatchYielded = true;
+        }
+      }
+
+      // After queue closes, yield remaining
+      const remaining = collector.yieldRemaining();
+      for (const item of remaining) {
+        yield item.suggestion;
       }
     } finally {
       unsubscribe();

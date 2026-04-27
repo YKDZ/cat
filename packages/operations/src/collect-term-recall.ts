@@ -6,7 +6,11 @@ import {
   listLexicalTermSuggestions,
   listMorphologicalTermSuggestions,
 } from "@cat/domain";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  firstOrGivenService,
+  resolvePluginManager,
+  serverLogger as logger,
+} from "@cat/server-shared";
 import * as z from "zod";
 
 import type {
@@ -14,6 +18,8 @@ import type {
   RawTermResult,
 } from "./precision/types";
 
+import { calibrateTermBm25 } from "./confidence-calibrator";
+import { applyTermHnfPre } from "./hard-negative-filter";
 import { joinLemmas } from "./nlp-normalization";
 import { nlpSegmentOp } from "./nlp-segment";
 import { runPrecisionPipeline } from "./precision/precision-pipeline";
@@ -32,6 +38,20 @@ export const CollectTermRecallInputSchema = z.object({
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
   rerankProviderId: z.int().optional(),
   rerankTimeoutMs: z.int().positive().default(3000),
+  /** Pre-tokenized NLP tokens for the source text. */
+  sourceNlpTokens: z
+    .array(
+      z.object({
+        text: z.string(),
+        lemma: z.string(),
+        pos: z.string(),
+        start: z.int(),
+        end: z.int(),
+        isStop: z.boolean(),
+        isPunct: z.boolean(),
+      }),
+    )
+    .optional(),
 });
 
 export type CollectTermRecallInput = z.input<
@@ -153,6 +173,50 @@ export const collectTermRecallOp = async (
     ctx,
   );
   augmentWithSparseLane(rawTermResults, contentWords);
+
+  // ── Confidence Calibrator ───────────────────────────────────────────
+  const calSummary = calibrateTermBm25(rawTermResults);
+  if (calSummary.bm25Count > 0) {
+    logger
+      .withSituation("OP")
+      .info(
+        `CAL(term): ${calSummary.bm25Count} evidences calibrated (maxRaw=${calSummary.maxRaw.toFixed(4)})`,
+      );
+  }
+
+  // ── Hard-Negative Filter (pre-pipeline) ──────────────────────────────
+  const hnfPreRemovals: Array<{
+    surface: string;
+    candidateKey: string;
+    reason: string;
+    stage: string;
+    detail?: string;
+  }> = [];
+
+  if (
+    contentWords.length > 0 &&
+    input.sourceNlpTokens &&
+    input.sourceNlpTokens.length > 0
+  ) {
+    const hnfPreResult = applyTermHnfPre(
+      rawTermResults,
+      input.sourceNlpTokens,
+      input.text,
+    );
+    hnfPreRemovals.push(...hnfPreResult);
+
+    const filtered = rawTermResults.filter(
+      (r) => !(r as Record<string, unknown>)["_hnfRemoved"],
+    );
+    rawTermResults.length = 0;
+    rawTermResults.push(...filtered);
+
+    if (hnfPreResult.length > 0) {
+      logger
+        .withSituation("OP")
+        .info(`HNF_pre(term): removed ${hnfPreResult.length} hard negatives`);
+    }
+  }
 
   // ── Precision Pipeline ────────────────────────────────────────────
   const ranked = await runPrecisionPipeline(rawTermResults, {

@@ -1,0 +1,3321 @@
+{
+  "glossary": {
+    "name": "Minecraft Terminology Glossary",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:entity:axolotl",
+        "definition": "A Minecraft entity known as Axolotl",
+        "terms": [
+          {
+            "term": "Axolotl",
+            "termLanguageId": "en",
+            "translation": "美西螈",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:blaze",
+        "definition": "A Minecraft entity known as Blaze",
+        "terms": [
+          {
+            "term": "Blaze",
+            "termLanguageId": "en",
+            "translation": "烈焰人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:breeze",
+        "definition": "A Minecraft entity known as Breeze",
+        "terms": [
+          {
+            "term": "Breeze",
+            "termLanguageId": "en",
+            "translation": "旋风人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:camel",
+        "definition": "A Minecraft entity known as Camel",
+        "terms": [
+          {
+            "term": "Camel",
+            "termLanguageId": "en",
+            "translation": "骆驼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:cat",
+        "definition": "A Minecraft entity known as Cat",
+        "terms": [
+          {
+            "term": "Cat",
+            "termLanguageId": "en",
+            "translation": "猫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:creeper",
+        "definition": "A Minecraft entity known as Creeper",
+        "terms": [
+          {
+            "term": "Creeper",
+            "termLanguageId": "en",
+            "translation": "苦力怕",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:dolphin",
+        "definition": "A Minecraft entity known as Dolphin",
+        "terms": [
+          {
+            "term": "Dolphin",
+            "termLanguageId": "en",
+            "translation": "海豚",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:drowned",
+        "definition": "A Minecraft entity known as Drowned",
+        "terms": [
+          {
+            "term": "Drowned",
+            "termLanguageId": "en",
+            "translation": "溺尸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:ender_dragon",
+        "definition": "A Minecraft entity known as Ender Dragon",
+        "terms": [
+          {
+            "term": "Ender Dragon",
+            "termLanguageId": "en",
+            "translation": "末影龙",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:enderman",
+        "definition": "A Minecraft entity known as Enderman",
+        "terms": [
+          {
+            "term": "Enderman",
+            "termLanguageId": "en",
+            "translation": "末影人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:fox",
+        "definition": "A Minecraft entity known as Fox",
+        "terms": [
+          {
+            "term": "Fox",
+            "termLanguageId": "en",
+            "translation": "狐狸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:frog",
+        "definition": "A Minecraft entity known as Frog",
+        "terms": [
+          {
+            "term": "Frog",
+            "termLanguageId": "en",
+            "translation": "青蛙",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:ghast",
+        "definition": "A Minecraft entity known as Ghast",
+        "terms": [
+          {
+            "term": "Ghast",
+            "termLanguageId": "en",
+            "translation": "恶魂",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:glow_squid",
+        "definition": "A Minecraft entity known as Glow Squid",
+        "terms": [
+          {
+            "term": "Glow Squid",
+            "termLanguageId": "en",
+            "translation": "发光鱿鱼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:guardian",
+        "definition": "A Minecraft entity known as Guardian",
+        "terms": [
+          {
+            "term": "Guardian",
+            "termLanguageId": "en",
+            "translation": "守卫者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:hoglin",
+        "definition": "A Minecraft entity known as Hoglin",
+        "terms": [
+          {
+            "term": "Hoglin",
+            "termLanguageId": "en",
+            "translation": "疣猪兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:iron_golem",
+        "definition": "A Minecraft entity known as Iron Golem",
+        "terms": [
+          {
+            "term": "Iron Golem",
+            "termLanguageId": "en",
+            "translation": "铁傀儡",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:ocelot",
+        "definition": "A Minecraft entity known as Ocelot",
+        "terms": [
+          {
+            "term": "Ocelot",
+            "termLanguageId": "en",
+            "translation": "豹猫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:phantom",
+        "definition": "A Minecraft entity known as Phantom",
+        "terms": [
+          {
+            "term": "Phantom",
+            "termLanguageId": "en",
+            "translation": "幻翼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:piglin",
+        "definition": "A Minecraft entity known as Piglin",
+        "terms": [
+          {
+            "term": "Piglin",
+            "termLanguageId": "en",
+            "translation": "猪灵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:pillager",
+        "definition": "A Minecraft entity known as Pillager",
+        "terms": [
+          {
+            "term": "Pillager",
+            "termLanguageId": "en",
+            "translation": "掠夺者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:ravager",
+        "definition": "A Minecraft entity known as Ravager",
+        "terms": [
+          {
+            "term": "Ravager",
+            "termLanguageId": "en",
+            "translation": "劫掠兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:skeleton",
+        "definition": "A Minecraft entity known as Skeleton",
+        "terms": [
+          {
+            "term": "Skeleton",
+            "termLanguageId": "en",
+            "translation": "骷髅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:sniffer",
+        "definition": "A Minecraft entity known as Sniffer",
+        "terms": [
+          {
+            "term": "Sniffer",
+            "termLanguageId": "en",
+            "translation": "嗅探兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:strider",
+        "definition": "A Minecraft entity known as Strider",
+        "terms": [
+          {
+            "term": "Strider",
+            "termLanguageId": "en",
+            "translation": "炽足兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:villager",
+        "definition": "A Minecraft entity known as Villager",
+        "terms": [
+          {
+            "term": "Villager",
+            "termLanguageId": "en",
+            "translation": "村民",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:warden",
+        "definition": "A Minecraft entity known as Warden",
+        "terms": [
+          {
+            "term": "Warden",
+            "termLanguageId": "en",
+            "translation": "监守者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:witch",
+        "definition": "A Minecraft entity known as Witch",
+        "terms": [
+          {
+            "term": "Witch",
+            "termLanguageId": "en",
+            "translation": "女巫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:wither",
+        "definition": "A Minecraft entity known as Wither",
+        "terms": [
+          {
+            "term": "Wither",
+            "termLanguageId": "en",
+            "translation": "凋灵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:wither_skeleton",
+        "definition": "A Minecraft entity known as Wither Skeleton",
+        "terms": [
+          {
+            "term": "Wither Skeleton",
+            "termLanguageId": "en",
+            "translation": "凋灵骷髅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:wolf",
+        "definition": "A Minecraft entity known as Wolf",
+        "terms": [
+          {
+            "term": "Wolf",
+            "termLanguageId": "en",
+            "translation": "狼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:zombie",
+        "definition": "A Minecraft entity known as Zombie",
+        "terms": [
+          {
+            "term": "Zombie",
+            "termLanguageId": "en",
+            "translation": "僵尸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:ancient_debris",
+        "definition": "A Minecraft block known as Ancient Debris",
+        "terms": [
+          {
+            "term": "Ancient Debris",
+            "termLanguageId": "en",
+            "translation": "远古残骸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:barrel",
+        "definition": "A Minecraft block known as Barrel",
+        "terms": [
+          {
+            "term": "Barrel",
+            "termLanguageId": "en",
+            "translation": "木桶",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:beacon",
+        "definition": "A Minecraft block known as Beacon",
+        "terms": [
+          {
+            "term": "Beacon",
+            "termLanguageId": "en",
+            "translation": "信标",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:blast_furnace",
+        "definition": "A Minecraft block known as Blast Furnace",
+        "terms": [
+          {
+            "term": "Blast Furnace",
+            "termLanguageId": "en",
+            "translation": "高炉",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:brewing_stand",
+        "definition": "A Minecraft block known as Brewing Stand",
+        "terms": [
+          {
+            "term": "Brewing Stand",
+            "termLanguageId": "en",
+            "translation": "酿造台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:chest",
+        "definition": "A Minecraft block known as Chest",
+        "terms": [
+          {
+            "term": "Chest",
+            "termLanguageId": "en",
+            "translation": "箱子",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:conduit",
+        "definition": "A Minecraft block known as Conduit",
+        "terms": [
+          {
+            "term": "Conduit",
+            "termLanguageId": "en",
+            "translation": "潮涌核心",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:crafting_table",
+        "definition": "A Minecraft block known as Crafting Table",
+        "terms": [
+          {
+            "term": "Crafting Table",
+            "termLanguageId": "en",
+            "translation": "工作台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:crying_obsidian",
+        "definition": "A Minecraft block known as Crying Obsidian",
+        "terms": [
+          {
+            "term": "Crying Obsidian",
+            "termLanguageId": "en",
+            "translation": "哭泣的黑曜石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:diamond_ore",
+        "definition": "A Minecraft block known as Diamond Ore",
+        "terms": [
+          {
+            "term": "Diamond Ore",
+            "termLanguageId": "en",
+            "translation": "钻石矿石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:enchanting_table",
+        "definition": "A Minecraft block known as Enchanting Table",
+        "terms": [
+          {
+            "term": "Enchanting Table",
+            "termLanguageId": "en",
+            "translation": "附魔台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:end_portal_frame",
+        "definition": "A Minecraft block known as End Portal Frame",
+        "terms": [
+          {
+            "term": "End Portal Frame",
+            "termLanguageId": "en",
+            "translation": "末地传送门框架",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:lodestone",
+        "definition": "A Minecraft block known as Lodestone",
+        "terms": [
+          {
+            "term": "Lodestone",
+            "termLanguageId": "en",
+            "translation": "磁石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:piston",
+        "definition": "A Minecraft block known as Piston",
+        "terms": [
+          {
+            "term": "Piston",
+            "termLanguageId": "en",
+            "translation": "活塞",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:respawn_anchor",
+        "definition": "A Minecraft block known as Respawn Anchor",
+        "terms": [
+          {
+            "term": "Respawn Anchor",
+            "termLanguageId": "en",
+            "translation": "重生锚",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:sculk_sensor",
+        "definition": "A Minecraft block known as Sculk Sensor",
+        "terms": [
+          {
+            "term": "Sculk Sensor",
+            "termLanguageId": "en",
+            "translation": "幽匿感测体",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:bucket",
+        "definition": "A Minecraft item known as Bucket",
+        "terms": [
+          {
+            "term": "Bucket",
+            "termLanguageId": "en",
+            "translation": "铁桶",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:crossbow",
+        "definition": "A Minecraft item known as Crossbow",
+        "terms": [
+          {
+            "term": "Crossbow",
+            "termLanguageId": "en",
+            "translation": "弩",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:diamond_pickaxe",
+        "definition": "A Minecraft item known as Diamond Pickaxe",
+        "terms": [
+          {
+            "term": "Diamond Pickaxe",
+            "termLanguageId": "en",
+            "translation": "钻石镐",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:diamond_sword",
+        "definition": "A Minecraft item known as Diamond Sword",
+        "terms": [
+          {
+            "term": "Diamond Sword",
+            "termLanguageId": "en",
+            "translation": "钻石剑",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:elytra",
+        "definition": "A Minecraft item known as Elytra",
+        "terms": [
+          {
+            "term": "Elytra",
+            "termLanguageId": "en",
+            "translation": "鞘翅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:fishing_rod",
+        "definition": "A Minecraft item known as Fishing Rod",
+        "terms": [
+          {
+            "term": "Fishing Rod",
+            "termLanguageId": "en",
+            "translation": "钓鱼竿",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:flint_and_steel",
+        "definition": "A Minecraft item known as Flint and Steel",
+        "terms": [
+          {
+            "term": "Flint and Steel",
+            "termLanguageId": "en",
+            "translation": "打火石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:golden_apple",
+        "definition": "A Minecraft item known as Golden Apple",
+        "terms": [
+          {
+            "term": "Golden Apple",
+            "termLanguageId": "en",
+            "translation": "金苹果",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:netherite_pickaxe",
+        "definition": "A Minecraft item known as Netherite Pickaxe",
+        "terms": [
+          {
+            "term": "Netherite Pickaxe",
+            "termLanguageId": "en",
+            "translation": "下界合金镐",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:netherite_sword",
+        "definition": "A Minecraft item known as Netherite Sword",
+        "terms": [
+          {
+            "term": "Netherite Sword",
+            "termLanguageId": "en",
+            "translation": "下界合金剑",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:shears",
+        "definition": "A Minecraft item known as Shears",
+        "terms": [
+          {
+            "term": "Shears",
+            "termLanguageId": "en",
+            "translation": "剪刀",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:shield",
+        "definition": "A Minecraft item known as Shield",
+        "terms": [
+          {
+            "term": "Shield",
+            "termLanguageId": "en",
+            "translation": "盾牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:spyglass",
+        "definition": "A Minecraft item known as Spyglass",
+        "terms": [
+          {
+            "term": "Spyglass",
+            "termLanguageId": "en",
+            "translation": "望远镜",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:fire_resistance",
+        "definition": "A Minecraft effect known as Fire Resistance",
+        "terms": [
+          {
+            "term": "Fire Resistance",
+            "termLanguageId": "en",
+            "translation": "抗火",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:haste",
+        "definition": "A Minecraft effect known as Haste",
+        "terms": [
+          {
+            "term": "Haste",
+            "termLanguageId": "en",
+            "translation": "急迫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:invisibility",
+        "definition": "A Minecraft effect known as Invisibility",
+        "terms": [
+          {
+            "term": "Invisibility",
+            "termLanguageId": "en",
+            "translation": "隐身",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:night_vision",
+        "definition": "A Minecraft effect known as Night Vision",
+        "terms": [
+          {
+            "term": "Night Vision",
+            "termLanguageId": "en",
+            "translation": "夜视",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:poison",
+        "definition": "A Minecraft effect known as Poison",
+        "terms": [
+          {
+            "term": "Poison",
+            "termLanguageId": "en",
+            "translation": "中毒",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:slow_falling",
+        "definition": "A Minecraft effect known as Slow Falling",
+        "terms": [
+          {
+            "term": "Slow Falling",
+            "termLanguageId": "en",
+            "translation": "缓降",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:strength",
+        "definition": "A Minecraft effect known as Strength",
+        "terms": [
+          {
+            "term": "Strength",
+            "termLanguageId": "en",
+            "translation": "力量",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:water_breathing",
+        "definition": "A Minecraft effect known as Water Breathing",
+        "terms": [
+          {
+            "term": "Water Breathing",
+            "termLanguageId": "en",
+            "translation": "水下呼吸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:aqua_affinity",
+        "definition": "A Minecraft enchantment known as Aqua Affinity",
+        "terms": [
+          {
+            "term": "Aqua Affinity",
+            "termLanguageId": "en",
+            "translation": "水下速掘",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:depth_strider",
+        "definition": "A Minecraft enchantment known as Depth Strider",
+        "terms": [
+          {
+            "term": "Depth Strider",
+            "termLanguageId": "en",
+            "translation": "深海探索者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:efficiency",
+        "definition": "A Minecraft enchantment known as Efficiency",
+        "terms": [
+          {
+            "term": "Efficiency",
+            "termLanguageId": "en",
+            "translation": "效率",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:feather_falling",
+        "definition": "A Minecraft enchantment known as Feather Falling",
+        "terms": [
+          {
+            "term": "Feather Falling",
+            "termLanguageId": "en",
+            "translation": "摔落缓冲",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:fortune",
+        "definition": "A Minecraft enchantment known as Fortune",
+        "terms": [
+          {
+            "term": "Fortune",
+            "termLanguageId": "en",
+            "translation": "时运",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:frost_walker",
+        "definition": "A Minecraft enchantment known as Frost Walker",
+        "terms": [
+          {
+            "term": "Frost Walker",
+            "termLanguageId": "en",
+            "translation": "冰霜行者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:infinity",
+        "definition": "A Minecraft enchantment known as Infinity",
+        "terms": [
+          {
+            "term": "Infinity",
+            "termLanguageId": "en",
+            "translation": "无限",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:mending",
+        "definition": "A Minecraft enchantment known as Mending",
+        "terms": [
+          {
+            "term": "Mending",
+            "termLanguageId": "en",
+            "translation": "经验修补",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:protection",
+        "definition": "A Minecraft enchantment known as Protection",
+        "terms": [
+          {
+            "term": "Protection",
+            "termLanguageId": "en",
+            "translation": "保护",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:sharpness",
+        "definition": "A Minecraft enchantment known as Sharpness",
+        "terms": [
+          {
+            "term": "Sharpness",
+            "termLanguageId": "en",
+            "translation": "锋利",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:silk_touch",
+        "definition": "A Minecraft enchantment known as Silk Touch",
+        "terms": [
+          {
+            "term": "Silk Touch",
+            "termLanguageId": "en",
+            "translation": "精准采集",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:smite",
+        "definition": "A Minecraft enchantment known as Smite",
+        "terms": [
+          {
+            "term": "Smite",
+            "termLanguageId": "en",
+            "translation": "亡灵杀手",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:unbreaking",
+        "definition": "A Minecraft enchantment known as Unbreaking",
+        "terms": [
+          {
+            "term": "Unbreaking",
+            "termLanguageId": "en",
+            "translation": "耐久",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:basalt_deltas",
+        "definition": "A Minecraft biome known as Basalt Deltas",
+        "terms": [
+          {
+            "term": "Basalt Deltas",
+            "termLanguageId": "en",
+            "translation": "玄武岩三角洲",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:cherry_grove",
+        "definition": "A Minecraft biome known as Cherry Grove",
+        "terms": [
+          {
+            "term": "Cherry Grove",
+            "termLanguageId": "en",
+            "translation": "樱花树林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:crimson_forest",
+        "definition": "A Minecraft biome known as Crimson Forest",
+        "terms": [
+          {
+            "term": "Crimson Forest",
+            "termLanguageId": "en",
+            "translation": "绯红森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:deep_dark",
+        "definition": "A Minecraft biome known as Deep Dark",
+        "terms": [
+          {
+            "term": "Deep Dark",
+            "termLanguageId": "en",
+            "translation": "深暗之域",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:desert",
+        "definition": "A Minecraft biome known as Desert",
+        "terms": [
+          {
+            "term": "Desert",
+            "termLanguageId": "en",
+            "translation": "沙漠",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:flower_forest",
+        "definition": "A Minecraft biome known as Flower Forest",
+        "terms": [
+          {
+            "term": "Flower Forest",
+            "termLanguageId": "en",
+            "translation": "繁花森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:frozen_ocean",
+        "definition": "A Minecraft biome known as Frozen Ocean",
+        "terms": [
+          {
+            "term": "Frozen Ocean",
+            "termLanguageId": "en",
+            "translation": "冻洋",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:jungle",
+        "definition": "A Minecraft biome known as Jungle",
+        "terms": [
+          {
+            "term": "Jungle",
+            "termLanguageId": "en",
+            "translation": "丛林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:mangrove_swamp",
+        "definition": "A Minecraft biome known as Mangrove Swamp",
+        "terms": [
+          {
+            "term": "Mangrove Swamp",
+            "termLanguageId": "en",
+            "translation": "红树林沼泽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:mushroom_fields",
+        "definition": "A Minecraft biome known as Mushroom Fields",
+        "terms": [
+          {
+            "term": "Mushroom Fields",
+            "termLanguageId": "en",
+            "translation": "蘑菇岛",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:savanna",
+        "definition": "A Minecraft biome known as Savanna",
+        "terms": [
+          {
+            "term": "Savanna",
+            "termLanguageId": "en",
+            "translation": "热带草原",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:taiga",
+        "definition": "A Minecraft biome known as Taiga",
+        "terms": [
+          {
+            "term": "Taiga",
+            "termLanguageId": "en",
+            "translation": "针叶林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:warm_ocean",
+        "definition": "A Minecraft biome known as Warm Ocean",
+        "terms": [
+          {
+            "term": "Warm Ocean",
+            "termLanguageId": "en",
+            "translation": "暖水海洋",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:16",
+        "definition": "A Minecraft entity known as Red Snapper",
+        "terms": [
+          {
+            "term": "Red Snapper",
+            "termLanguageId": "en",
+            "translation": "红边笛鲷",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:vindicator",
+        "definition": "A Minecraft entity known as Vindicator",
+        "terms": [
+          {
+            "term": "Vindicator",
+            "termLanguageId": "en",
+            "translation": "卫道士",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:betty",
+        "definition": "A Minecraft entity known as Betty",
+        "terms": [
+          {
+            "term": "Betty",
+            "termLanguageId": "en",
+            "translation": "背蒂类",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:slime",
+        "definition": "A Minecraft entity known as Slime",
+        "terms": [
+          {
+            "term": "Slime",
+            "termLanguageId": "en",
+            "translation": "史莱姆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:player",
+        "definition": "A Minecraft entity known as Player",
+        "terms": [
+          {
+            "term": "Player",
+            "termLanguageId": "en",
+            "translation": "玩家",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:donkey",
+        "definition": "A Minecraft entity known as Donkey",
+        "terms": [
+          {
+            "term": "Donkey",
+            "termLanguageId": "en",
+            "translation": "驴",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:brinely",
+        "definition": "A Minecraft entity known as Brinely",
+        "terms": [
+          {
+            "term": "Brinely",
+            "termLanguageId": "en",
+            "translation": "咸水类",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:glitter",
+        "definition": "A Minecraft entity known as Glitter",
+        "terms": [
+          {
+            "term": "Glitter",
+            "termLanguageId": "en",
+            "translation": "闪鳞类",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:sunstreak",
+        "definition": "A Minecraft entity known as Sunstreak",
+        "terms": [
+          {
+            "term": "Sunstreak",
+            "termLanguageId": "en",
+            "translation": "日纹类",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:10",
+        "definition": "A Minecraft entity known as Moorish Idol",
+        "terms": [
+          {
+            "term": "Moorish Idol",
+            "termLanguageId": "en",
+            "translation": "镰鱼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:magma_cube",
+        "definition": "A Minecraft entity known as Magma Cube",
+        "terms": [
+          {
+            "term": "Magma Cube",
+            "termLanguageId": "en",
+            "translation": "岩浆怪",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:20",
+        "definition": "A Minecraft entity known as Yellowtail Parrotfish",
+        "terms": [
+          {
+            "term": "Yellowtail Parrotfish",
+            "termLanguageId": "en",
+            "translation": "高鳍鹦嘴鱼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:cave_spider",
+        "definition": "A Minecraft entity known as Cave Spider",
+        "terms": [
+          {
+            "term": "Cave Spider",
+            "termLanguageId": "en",
+            "translation": "洞穴蜘蛛",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:stripey",
+        "definition": "A Minecraft entity known as Stripey",
+        "terms": [
+          {
+            "term": "Stripey",
+            "termLanguageId": "en",
+            "translation": "条纹类",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:shulker",
+        "definition": "A Minecraft entity known as Shulker",
+        "terms": [
+          {
+            "term": "Shulker",
+            "termLanguageId": "en",
+            "translation": "潜影贝",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:4",
+        "definition": "A Minecraft entity known as Cichlid",
+        "terms": [
+          {
+            "term": "Cichlid",
+            "termLanguageId": "en",
+            "translation": "丽鱼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:mason",
+        "definition": "A Minecraft entity known as Mason",
+        "terms": [
+          {
+            "term": "Mason",
+            "termLanguageId": "en",
+            "translation": "石匠",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:snooper",
+        "definition": "A Minecraft entity known as Snooper",
+        "terms": [
+          {
+            "term": "Snooper",
+            "termLanguageId": "en",
+            "translation": "窥伺类",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:illusioner",
+        "definition": "A Minecraft entity known as Illusioner",
+        "terms": [
+          {
+            "term": "Illusioner",
+            "termLanguageId": "en",
+            "translation": "幻术师",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:entity:panda",
+        "definition": "A Minecraft entity known as Panda",
+        "terms": [
+          {
+            "term": "Panda",
+            "termLanguageId": "en",
+            "translation": "熊猫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:magenta_carpet",
+        "definition": "A Minecraft block known as Magenta Carpet",
+        "terms": [
+          {
+            "term": "Magenta Carpet",
+            "termLanguageId": "en",
+            "translation": "品红色地毯",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:campfire",
+        "definition": "A Minecraft block known as Campfire",
+        "terms": [
+          {
+            "term": "Campfire",
+            "termLanguageId": "en",
+            "translation": "营火",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:jungle_sapling",
+        "definition": "A Minecraft block known as Jungle Sapling",
+        "terms": [
+          {
+            "term": "Jungle Sapling",
+            "termLanguageId": "en",
+            "translation": "丛林树苗",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:skeleton_skull",
+        "definition": "A Minecraft block known as Skeleton Skull",
+        "terms": [
+          {
+            "term": "Skeleton Skull",
+            "termLanguageId": "en",
+            "translation": "骷髅头颅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:dead_tube_coral_block",
+        "definition": "A Minecraft block known as Dead Tube Coral Block",
+        "terms": [
+          {
+            "term": "Dead Tube Coral Block",
+            "termLanguageId": "en",
+            "translation": "失活的管珊瑚块",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:brown_bed",
+        "definition": "A Minecraft block known as Brown Bed",
+        "terms": [
+          {
+            "term": "Brown Bed",
+            "termLanguageId": "en",
+            "translation": "棕色床",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:bone_block",
+        "definition": "A Minecraft block known as Bone Block",
+        "terms": [
+          {
+            "term": "Bone Block",
+            "termLanguageId": "en",
+            "translation": "骨块",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:jungle_shelf",
+        "definition": "A Minecraft block known as Jungle Shelf",
+        "terms": [
+          {
+            "term": "Jungle Shelf",
+            "termLanguageId": "en",
+            "translation": "丛林木展示架",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:grass_block",
+        "definition": "A Minecraft block known as Grass Block",
+        "terms": [
+          {
+            "term": "Grass Block",
+            "termLanguageId": "en",
+            "translation": "草方块",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:open_eyeblossom",
+        "definition": "A Minecraft block known as Open Eyeblossom",
+        "terms": [
+          {
+            "term": "Open Eyeblossom",
+            "termLanguageId": "en",
+            "translation": "张开的眼眸花",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:lime_shulker_box",
+        "definition": "A Minecraft block known as Lime Shulker Box",
+        "terms": [
+          {
+            "term": "Lime Shulker Box",
+            "termLanguageId": "en",
+            "translation": "黄绿色潜影盒",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:magenta_stained_glass_pane",
+        "definition": "A Minecraft block known as Magenta Stained Glass Pane",
+        "terms": [
+          {
+            "term": "Magenta Stained Glass Pane",
+            "termLanguageId": "en",
+            "translation": "品红色染色玻璃板",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:jungle_wood",
+        "definition": "A Minecraft block known as Jungle Wood",
+        "terms": [
+          {
+            "term": "Jungle Wood",
+            "termLanguageId": "en",
+            "translation": "丛林木",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:cyan_terracotta",
+        "definition": "A Minecraft block known as Cyan Terracotta",
+        "terms": [
+          {
+            "term": "Cyan Terracotta",
+            "termLanguageId": "en",
+            "translation": "青色陶瓦",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:oxidized_copper_chain",
+        "definition": "A Minecraft block known as Oxidized Copper Chain",
+        "terms": [
+          {
+            "term": "Oxidized Copper Chain",
+            "termLanguageId": "en",
+            "translation": "氧化的铜链",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:mangrove_shelf",
+        "definition": "A Minecraft block known as Mangrove Shelf",
+        "terms": [
+          {
+            "term": "Mangrove Shelf",
+            "termLanguageId": "en",
+            "translation": "红树木展示架",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:magenta_concrete",
+        "definition": "A Minecraft block known as Magenta Concrete",
+        "terms": [
+          {
+            "term": "Magenta Concrete",
+            "termLanguageId": "en",
+            "translation": "品红色混凝土",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:torch",
+        "definition": "A Minecraft block known as Torch",
+        "terms": [
+          {
+            "term": "Torch",
+            "termLanguageId": "en",
+            "translation": "火把",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:black_banner",
+        "definition": "A Minecraft block known as Black Banner",
+        "terms": [
+          {
+            "term": "Black Banner",
+            "termLanguageId": "en",
+            "translation": "黑色旗帜",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:gray_shulker_box",
+        "definition": "A Minecraft block known as Gray Shulker Box",
+        "terms": [
+          {
+            "term": "Gray Shulker Box",
+            "termLanguageId": "en",
+            "translation": "灰色潜影盒",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:gold_block",
+        "definition": "A Minecraft block known as Block of Gold",
+        "terms": [
+          {
+            "term": "Block of Gold",
+            "termLanguageId": "en",
+            "translation": "金块",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:fire_coral",
+        "definition": "A Minecraft block known as Fire Coral",
+        "terms": [
+          {
+            "term": "Fire Coral",
+            "termLanguageId": "en",
+            "translation": "火珊瑚",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:candle_cake",
+        "definition": "A Minecraft block known as Cake with Candle",
+        "terms": [
+          {
+            "term": "Cake with Candle",
+            "termLanguageId": "en",
+            "translation": "插上蜡烛的蛋糕",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:gray_glazed_terracotta",
+        "definition": "A Minecraft block known as Gray Glazed Terracotta",
+        "terms": [
+          {
+            "term": "Gray Glazed Terracotta",
+            "termLanguageId": "en",
+            "translation": "灰色带釉陶瓦",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:weathered_copper_bars",
+        "definition": "A Minecraft block known as Weathered Copper Bars",
+        "terms": [
+          {
+            "term": "Weathered Copper Bars",
+            "termLanguageId": "en",
+            "translation": "锈蚀的铜栏杆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:sugar_cane",
+        "definition": "A Minecraft block known as Sugar Cane",
+        "terms": [
+          {
+            "term": "Sugar Cane",
+            "termLanguageId": "en",
+            "translation": "甘蔗",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:crimson_hyphae",
+        "definition": "A Minecraft block known as Crimson Hyphae",
+        "terms": [
+          {
+            "term": "Crimson Hyphae",
+            "termLanguageId": "en",
+            "translation": "绯红菌核",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:raw_iron_block",
+        "definition": "A Minecraft block known as Block of Raw Iron",
+        "terms": [
+          {
+            "term": "Block of Raw Iron",
+            "termLanguageId": "en",
+            "translation": "粗铁块",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:lime_glazed_terracotta",
+        "definition": "A Minecraft block known as Lime Glazed Terracotta",
+        "terms": [
+          {
+            "term": "Lime Glazed Terracotta",
+            "termLanguageId": "en",
+            "translation": "黄绿色带釉陶瓦",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:block:light_blue_stained_glass",
+        "definition": "A Minecraft block known as Light Blue Stained Glass",
+        "terms": [
+          {
+            "term": "Light Blue Stained Glass",
+            "termLanguageId": "en",
+            "translation": "淡蓝色染色玻璃",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:leather_leggings",
+        "definition": "A Minecraft item known as Leather Pants",
+        "terms": [
+          {
+            "term": "Leather Pants",
+            "termLanguageId": "en",
+            "translation": "皮革裤子",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:chest_minecart",
+        "definition": "A Minecraft item known as Minecart with Chest",
+        "terms": [
+          {
+            "term": "Minecart with Chest",
+            "termLanguageId": "en",
+            "translation": "运输矿车",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:lime",
+        "definition": "A Minecraft item known as Lime Shield",
+        "terms": [
+          {
+            "term": "Lime Shield",
+            "termLanguageId": "en",
+            "translation": "黄绿色盾牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:desc",
+        "definition": "A Minecraft item known as C418 - 13",
+        "terms": [
+          {
+            "term": "C418 - 13",
+            "termLanguageId": "en",
+            "translation": "C418 - 13",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:luck",
+        "definition": "A Minecraft item known as Lingering Potion of Luck",
+        "terms": [
+          {
+            "term": "Lingering Potion of Luck",
+            "termLanguageId": "en",
+            "translation": "滞留型幸运药水",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:desc_c418_chirp",
+        "definition": "A Minecraft item known as C418 - chirp",
+        "terms": [
+          {
+            "term": "C418 - chirp",
+            "termLanguageId": "en",
+            "translation": "C418 - chirp",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:milk_bucket",
+        "definition": "A Minecraft item known as Milk Bucket",
+        "terms": [
+          {
+            "term": "Milk Bucket",
+            "termLanguageId": "en",
+            "translation": "奶桶",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:red",
+        "definition": "A Minecraft item known as Red Shield",
+        "terms": [
+          {
+            "term": "Red Shield",
+            "termLanguageId": "en",
+            "translation": "红色盾牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:pumpkin_pie",
+        "definition": "A Minecraft item known as Pumpkin Pie",
+        "terms": [
+          {
+            "term": "Pumpkin Pie",
+            "termLanguageId": "en",
+            "translation": "南瓜派",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:amethyst_shard",
+        "definition": "A Minecraft item known as Amethyst Shard",
+        "terms": [
+          {
+            "term": "Amethyst Shard",
+            "termLanguageId": "en",
+            "translation": "紫水晶碎片",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:empty",
+        "definition": "A Minecraft item known as Lingering Uncraftable Potion",
+        "terms": [
+          {
+            "term": "Lingering Uncraftable Potion",
+            "termLanguageId": "en",
+            "translation": "不可合成的滞留型药水",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:wind_charged",
+        "definition": "A Minecraft item known as Arrow of Wind Charging",
+        "terms": [
+          {
+            "term": "Arrow of Wind Charging",
+            "termLanguageId": "en",
+            "translation": "蓄风之箭",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:desc_c418_mellohi",
+        "definition": "A Minecraft item known as C418 - mellohi",
+        "terms": [
+          {
+            "term": "C418 - mellohi",
+            "termLanguageId": "en",
+            "translation": "C418 - mellohi",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:desc_music_disc_5",
+        "definition": "A Minecraft item known as Music Disc - 5",
+        "terms": [
+          {
+            "term": "Music Disc - 5",
+            "termLanguageId": "en",
+            "translation": "音乐唱片 - 5",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:nether_wart",
+        "definition": "A Minecraft item known as Nether Wart",
+        "terms": [
+          {
+            "term": "Nether Wart",
+            "termLanguageId": "en",
+            "translation": "下界疣",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:light_gray_dye",
+        "definition": "A Minecraft item known as Light Gray Dye",
+        "terms": [
+          {
+            "term": "Light Gray Dye",
+            "termLanguageId": "en",
+            "translation": "淡灰色染料",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:chainmail_helmet",
+        "definition": "A Minecraft item known as Chainmail Helmet",
+        "terms": [
+          {
+            "term": "Chainmail Helmet",
+            "termLanguageId": "en",
+            "translation": "锁链头盔",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:name_tag",
+        "definition": "A Minecraft item known as Name Tag",
+        "terms": [
+          {
+            "term": "Name Tag",
+            "termLanguageId": "en",
+            "translation": "命名牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:stone_hoe",
+        "definition": "A Minecraft item known as Stone Hoe",
+        "terms": [
+          {
+            "term": "Stone Hoe",
+            "termLanguageId": "en",
+            "translation": "石锄",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:item:music_disc_otherside",
+        "definition": "A Minecraft item known as Music Disc",
+        "terms": [
+          {
+            "term": "Music Disc",
+            "termLanguageId": "en",
+            "translation": "音乐唱片",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:absorption",
+        "definition": "A Minecraft effect known as Absorption",
+        "terms": [
+          {
+            "term": "Absorption",
+            "termLanguageId": "en",
+            "translation": "伤害吸收",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:bad_omen",
+        "definition": "A Minecraft effect known as Bad Omen",
+        "terms": [
+          {
+            "term": "Bad Omen",
+            "termLanguageId": "en",
+            "translation": "不祥之兆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:blindness",
+        "definition": "A Minecraft effect known as Blindness",
+        "terms": [
+          {
+            "term": "Blindness",
+            "termLanguageId": "en",
+            "translation": "失明",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:conduit_power",
+        "definition": "A Minecraft effect known as Conduit Power",
+        "terms": [
+          {
+            "term": "Conduit Power",
+            "termLanguageId": "en",
+            "translation": "潮涌能量",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:darkness",
+        "definition": "A Minecraft effect known as Darkness",
+        "terms": [
+          {
+            "term": "Darkness",
+            "termLanguageId": "en",
+            "translation": "黑暗",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:dolphins_grace",
+        "definition": "A Minecraft effect known as Dolphin's Grace",
+        "terms": [
+          {
+            "term": "Dolphin's Grace",
+            "termLanguageId": "en",
+            "translation": "海豚的恩惠",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:glowing",
+        "definition": "A Minecraft effect known as Glowing",
+        "terms": [
+          {
+            "term": "Glowing",
+            "termLanguageId": "en",
+            "translation": "发光",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:health_boost",
+        "definition": "A Minecraft effect known as Health Boost",
+        "terms": [
+          {
+            "term": "Health Boost",
+            "termLanguageId": "en",
+            "translation": "生命提升",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:hero_of_the_village",
+        "definition": "A Minecraft effect known as Hero of the Village",
+        "terms": [
+          {
+            "term": "Hero of the Village",
+            "termLanguageId": "en",
+            "translation": "村庄英雄",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:hunger",
+        "definition": "A Minecraft effect known as Hunger",
+        "terms": [
+          {
+            "term": "Hunger",
+            "termLanguageId": "en",
+            "translation": "饥饿",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:infested",
+        "definition": "A Minecraft effect known as Infested",
+        "terms": [
+          {
+            "term": "Infested",
+            "termLanguageId": "en",
+            "translation": "寄生",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:instant_damage",
+        "definition": "A Minecraft effect known as Instant Damage",
+        "terms": [
+          {
+            "term": "Instant Damage",
+            "termLanguageId": "en",
+            "translation": "瞬间伤害",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:instant_health",
+        "definition": "A Minecraft effect known as Instant Health",
+        "terms": [
+          {
+            "term": "Instant Health",
+            "termLanguageId": "en",
+            "translation": "瞬间治疗",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:jump_boost",
+        "definition": "A Minecraft effect known as Jump Boost",
+        "terms": [
+          {
+            "term": "Jump Boost",
+            "termLanguageId": "en",
+            "translation": "跳跃提升",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:levitation",
+        "definition": "A Minecraft effect known as Levitation",
+        "terms": [
+          {
+            "term": "Levitation",
+            "termLanguageId": "en",
+            "translation": "飘浮",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:luck",
+        "definition": "A Minecraft effect known as Luck",
+        "terms": [
+          {
+            "term": "Luck",
+            "termLanguageId": "en",
+            "translation": "幸运",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:mining_fatigue",
+        "definition": "A Minecraft effect known as Mining Fatigue",
+        "terms": [
+          {
+            "term": "Mining Fatigue",
+            "termLanguageId": "en",
+            "translation": "挖掘疲劳",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:nausea",
+        "definition": "A Minecraft effect known as Nausea",
+        "terms": [
+          {
+            "term": "Nausea",
+            "termLanguageId": "en",
+            "translation": "反胃",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:oozing",
+        "definition": "A Minecraft effect known as Oozing",
+        "terms": [
+          {
+            "term": "Oozing",
+            "termLanguageId": "en",
+            "translation": "渗浆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:raid_omen",
+        "definition": "A Minecraft effect known as Raid Omen",
+        "terms": [
+          {
+            "term": "Raid Omen",
+            "termLanguageId": "en",
+            "translation": "袭击之兆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:regeneration",
+        "definition": "A Minecraft effect known as Regeneration",
+        "terms": [
+          {
+            "term": "Regeneration",
+            "termLanguageId": "en",
+            "translation": "生命恢复",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:resistance",
+        "definition": "A Minecraft effect known as Resistance",
+        "terms": [
+          {
+            "term": "Resistance",
+            "termLanguageId": "en",
+            "translation": "抗性提升",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:saturation",
+        "definition": "A Minecraft effect known as Saturation",
+        "terms": [
+          {
+            "term": "Saturation",
+            "termLanguageId": "en",
+            "translation": "饱和",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:slowness",
+        "definition": "A Minecraft effect known as Slowness",
+        "terms": [
+          {
+            "term": "Slowness",
+            "termLanguageId": "en",
+            "translation": "缓慢",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:speed",
+        "definition": "A Minecraft effect known as Speed",
+        "terms": [
+          {
+            "term": "Speed",
+            "termLanguageId": "en",
+            "translation": "迅捷",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:trial_omen",
+        "definition": "A Minecraft effect known as Trial Omen",
+        "terms": [
+          {
+            "term": "Trial Omen",
+            "termLanguageId": "en",
+            "translation": "试炼之兆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:unluck",
+        "definition": "A Minecraft effect known as Bad Luck",
+        "terms": [
+          {
+            "term": "Bad Luck",
+            "termLanguageId": "en",
+            "translation": "霉运",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:weakness",
+        "definition": "A Minecraft effect known as Weakness",
+        "terms": [
+          {
+            "term": "Weakness",
+            "termLanguageId": "en",
+            "translation": "虚弱",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:weaving",
+        "definition": "A Minecraft effect known as Weaving",
+        "terms": [
+          {
+            "term": "Weaving",
+            "termLanguageId": "en",
+            "translation": "盘丝",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:effect:wind_charged",
+        "definition": "A Minecraft effect known as Wind Charged",
+        "terms": [
+          {
+            "term": "Wind Charged",
+            "termLanguageId": "en",
+            "translation": "蓄风",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:bane_of_arthropods",
+        "definition": "A Minecraft enchantment known as Bane of Arthropods",
+        "terms": [
+          {
+            "term": "Bane of Arthropods",
+            "termLanguageId": "en",
+            "translation": "节肢杀手",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:binding_curse",
+        "definition": "A Minecraft enchantment known as Curse of Binding",
+        "terms": [
+          {
+            "term": "Curse of Binding",
+            "termLanguageId": "en",
+            "translation": "绑定诅咒",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:blast_protection",
+        "definition": "A Minecraft enchantment known as Blast Protection",
+        "terms": [
+          {
+            "term": "Blast Protection",
+            "termLanguageId": "en",
+            "translation": "爆炸保护",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:breach",
+        "definition": "A Minecraft enchantment known as Breach",
+        "terms": [
+          {
+            "term": "Breach",
+            "termLanguageId": "en",
+            "translation": "破甲",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:channeling",
+        "definition": "A Minecraft enchantment known as Channeling",
+        "terms": [
+          {
+            "term": "Channeling",
+            "termLanguageId": "en",
+            "translation": "引雷",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:density",
+        "definition": "A Minecraft enchantment known as Density",
+        "terms": [
+          {
+            "term": "Density",
+            "termLanguageId": "en",
+            "translation": "致密",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:fire_aspect",
+        "definition": "A Minecraft enchantment known as Fire Aspect",
+        "terms": [
+          {
+            "term": "Fire Aspect",
+            "termLanguageId": "en",
+            "translation": "火焰附加",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:fire_protection",
+        "definition": "A Minecraft enchantment known as Fire Protection",
+        "terms": [
+          {
+            "term": "Fire Protection",
+            "termLanguageId": "en",
+            "translation": "火焰保护",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:flame",
+        "definition": "A Minecraft enchantment known as Flame",
+        "terms": [
+          {
+            "term": "Flame",
+            "termLanguageId": "en",
+            "translation": "火矢",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:impaling",
+        "definition": "A Minecraft enchantment known as Impaling",
+        "terms": [
+          {
+            "term": "Impaling",
+            "termLanguageId": "en",
+            "translation": "穿刺",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:knockback",
+        "definition": "A Minecraft enchantment known as Knockback",
+        "terms": [
+          {
+            "term": "Knockback",
+            "termLanguageId": "en",
+            "translation": "击退",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:looting",
+        "definition": "A Minecraft enchantment known as Looting",
+        "terms": [
+          {
+            "term": "Looting",
+            "termLanguageId": "en",
+            "translation": "抢夺",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:loyalty",
+        "definition": "A Minecraft enchantment known as Loyalty",
+        "terms": [
+          {
+            "term": "Loyalty",
+            "termLanguageId": "en",
+            "translation": "忠诚",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:luck_of_the_sea",
+        "definition": "A Minecraft enchantment known as Luck of the Sea",
+        "terms": [
+          {
+            "term": "Luck of the Sea",
+            "termLanguageId": "en",
+            "translation": "海之眷顾",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:lure",
+        "definition": "A Minecraft enchantment known as Lure",
+        "terms": [
+          {
+            "term": "Lure",
+            "termLanguageId": "en",
+            "translation": "饵钓",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:multishot",
+        "definition": "A Minecraft enchantment known as Multishot",
+        "terms": [
+          {
+            "term": "Multishot",
+            "termLanguageId": "en",
+            "translation": "多重射击",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:piercing",
+        "definition": "A Minecraft enchantment known as Piercing",
+        "terms": [
+          {
+            "term": "Piercing",
+            "termLanguageId": "en",
+            "translation": "穿透",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:power",
+        "definition": "A Minecraft enchantment known as Power",
+        "terms": [
+          {
+            "term": "Power",
+            "termLanguageId": "en",
+            "translation": "力量",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:projectile_protection",
+        "definition": "A Minecraft enchantment known as Projectile Protection",
+        "terms": [
+          {
+            "term": "Projectile Protection",
+            "termLanguageId": "en",
+            "translation": "弹射物保护",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:punch",
+        "definition": "A Minecraft enchantment known as Punch",
+        "terms": [
+          {
+            "term": "Punch",
+            "termLanguageId": "en",
+            "translation": "冲击",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:quick_charge",
+        "definition": "A Minecraft enchantment known as Quick Charge",
+        "terms": [
+          {
+            "term": "Quick Charge",
+            "termLanguageId": "en",
+            "translation": "快速装填",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:respiration",
+        "definition": "A Minecraft enchantment known as Respiration",
+        "terms": [
+          {
+            "term": "Respiration",
+            "termLanguageId": "en",
+            "translation": "水下呼吸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:riptide",
+        "definition": "A Minecraft enchantment known as Riptide",
+        "terms": [
+          {
+            "term": "Riptide",
+            "termLanguageId": "en",
+            "translation": "激流",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:soul_speed",
+        "definition": "A Minecraft enchantment known as Soul Speed",
+        "terms": [
+          {
+            "term": "Soul Speed",
+            "termLanguageId": "en",
+            "translation": "灵魂疾行",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:sweeping",
+        "definition": "A Minecraft enchantment known as Sweeping Edge",
+        "terms": [
+          {
+            "term": "Sweeping Edge",
+            "termLanguageId": "en",
+            "translation": "横扫之刃",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:swift_sneak",
+        "definition": "A Minecraft enchantment known as Swift Sneak",
+        "terms": [
+          {
+            "term": "Swift Sneak",
+            "termLanguageId": "en",
+            "translation": "迅捷潜行",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:thorns",
+        "definition": "A Minecraft enchantment known as Thorns",
+        "terms": [
+          {
+            "term": "Thorns",
+            "termLanguageId": "en",
+            "translation": "荆棘",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:vanishing_curse",
+        "definition": "A Minecraft enchantment known as Curse of Vanishing",
+        "terms": [
+          {
+            "term": "Curse of Vanishing",
+            "termLanguageId": "en",
+            "translation": "消失诅咒",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:enchantment:wind_burst",
+        "definition": "A Minecraft enchantment known as Wind Burst",
+        "terms": [
+          {
+            "term": "Wind Burst",
+            "termLanguageId": "en",
+            "translation": "风爆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:badlands",
+        "definition": "A Minecraft biome known as Badlands",
+        "terms": [
+          {
+            "term": "Badlands",
+            "termLanguageId": "en",
+            "translation": "恶地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:bamboo_jungle",
+        "definition": "A Minecraft biome known as Bamboo Jungle",
+        "terms": [
+          {
+            "term": "Bamboo Jungle",
+            "termLanguageId": "en",
+            "translation": "竹林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:beach",
+        "definition": "A Minecraft biome known as Beach",
+        "terms": [
+          {
+            "term": "Beach",
+            "termLanguageId": "en",
+            "translation": "沙滩",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:birch_forest",
+        "definition": "A Minecraft biome known as Birch Forest",
+        "terms": [
+          {
+            "term": "Birch Forest",
+            "termLanguageId": "en",
+            "translation": "桦木森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:cold_ocean",
+        "definition": "A Minecraft biome known as Cold Ocean",
+        "terms": [
+          {
+            "term": "Cold Ocean",
+            "termLanguageId": "en",
+            "translation": "冷水海洋",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:dark_forest",
+        "definition": "A Minecraft biome known as Dark Forest",
+        "terms": [
+          {
+            "term": "Dark Forest",
+            "termLanguageId": "en",
+            "translation": "黑森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:deep_cold_ocean",
+        "definition": "A Minecraft biome known as Deep Cold Ocean",
+        "terms": [
+          {
+            "term": "Deep Cold Ocean",
+            "termLanguageId": "en",
+            "translation": "冷水深海",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:deep_frozen_ocean",
+        "definition": "A Minecraft biome known as Deep Frozen Ocean",
+        "terms": [
+          {
+            "term": "Deep Frozen Ocean",
+            "termLanguageId": "en",
+            "translation": "冰冻深海",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:deep_lukewarm_ocean",
+        "definition": "A Minecraft biome known as Deep Lukewarm Ocean",
+        "terms": [
+          {
+            "term": "Deep Lukewarm Ocean",
+            "termLanguageId": "en",
+            "translation": "温水深海",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:deep_ocean",
+        "definition": "A Minecraft biome known as Deep Ocean",
+        "terms": [
+          {
+            "term": "Deep Ocean",
+            "termLanguageId": "en",
+            "translation": "深海",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:dripstone_caves",
+        "definition": "A Minecraft biome known as Dripstone Caves",
+        "terms": [
+          {
+            "term": "Dripstone Caves",
+            "termLanguageId": "en",
+            "translation": "溶洞",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:end_barrens",
+        "definition": "A Minecraft biome known as End Barrens",
+        "terms": [
+          {
+            "term": "End Barrens",
+            "termLanguageId": "en",
+            "translation": "末地荒地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:end_highlands",
+        "definition": "A Minecraft biome known as End Highlands",
+        "terms": [
+          {
+            "term": "End Highlands",
+            "termLanguageId": "en",
+            "translation": "末地高地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:end_midlands",
+        "definition": "A Minecraft biome known as End Midlands",
+        "terms": [
+          {
+            "term": "End Midlands",
+            "termLanguageId": "en",
+            "translation": "末地内陆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:eroded_badlands",
+        "definition": "A Minecraft biome known as Eroded Badlands",
+        "terms": [
+          {
+            "term": "Eroded Badlands",
+            "termLanguageId": "en",
+            "translation": "风蚀恶地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:forest",
+        "definition": "A Minecraft biome known as Forest",
+        "terms": [
+          {
+            "term": "Forest",
+            "termLanguageId": "en",
+            "translation": "森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:frozen_peaks",
+        "definition": "A Minecraft biome known as Frozen Peaks",
+        "terms": [
+          {
+            "term": "Frozen Peaks",
+            "termLanguageId": "en",
+            "translation": "冰封山峰",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:frozen_river",
+        "definition": "A Minecraft biome known as Frozen River",
+        "terms": [
+          {
+            "term": "Frozen River",
+            "termLanguageId": "en",
+            "translation": "冻河",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:grove",
+        "definition": "A Minecraft biome known as Grove",
+        "terms": [
+          {
+            "term": "Grove",
+            "termLanguageId": "en",
+            "translation": "雪林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:ice_spikes",
+        "definition": "A Minecraft biome known as Ice Spikes",
+        "terms": [
+          {
+            "term": "Ice Spikes",
+            "termLanguageId": "en",
+            "translation": "冰刺之地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:jagged_peaks",
+        "definition": "A Minecraft biome known as Jagged Peaks",
+        "terms": [
+          {
+            "term": "Jagged Peaks",
+            "termLanguageId": "en",
+            "translation": "尖峭山峰",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:lukewarm_ocean",
+        "definition": "A Minecraft biome known as Lukewarm Ocean",
+        "terms": [
+          {
+            "term": "Lukewarm Ocean",
+            "termLanguageId": "en",
+            "translation": "温水海洋",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:lush_caves",
+        "definition": "A Minecraft biome known as Lush Caves",
+        "terms": [
+          {
+            "term": "Lush Caves",
+            "termLanguageId": "en",
+            "translation": "繁茂洞穴",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:meadow",
+        "definition": "A Minecraft biome known as Meadow",
+        "terms": [
+          {
+            "term": "Meadow",
+            "termLanguageId": "en",
+            "translation": "草甸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:nether_wastes",
+        "definition": "A Minecraft biome known as Nether Wastes",
+        "terms": [
+          {
+            "term": "Nether Wastes",
+            "termLanguageId": "en",
+            "translation": "下界荒地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:ocean",
+        "definition": "A Minecraft biome known as Ocean",
+        "terms": [
+          {
+            "term": "Ocean",
+            "termLanguageId": "en",
+            "translation": "海洋",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:old_growth_birch_forest",
+        "definition": "A Minecraft biome known as Old Growth Birch Forest",
+        "terms": [
+          {
+            "term": "Old Growth Birch Forest",
+            "termLanguageId": "en",
+            "translation": "原始桦木森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:old_growth_pine_taiga",
+        "definition": "A Minecraft biome known as Old Growth Pine Taiga",
+        "terms": [
+          {
+            "term": "Old Growth Pine Taiga",
+            "termLanguageId": "en",
+            "translation": "原始松木针叶林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:old_growth_spruce_taiga",
+        "definition": "A Minecraft biome known as Old Growth Spruce Taiga",
+        "terms": [
+          {
+            "term": "Old Growth Spruce Taiga",
+            "termLanguageId": "en",
+            "translation": "原始云杉针叶林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:pale_garden",
+        "definition": "A Minecraft biome known as Pale Garden",
+        "terms": [
+          {
+            "term": "Pale Garden",
+            "termLanguageId": "en",
+            "translation": "苍白之园",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:plains",
+        "definition": "A Minecraft biome known as Plains",
+        "terms": [
+          {
+            "term": "Plains",
+            "termLanguageId": "en",
+            "translation": "平原",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:river",
+        "definition": "A Minecraft biome known as River",
+        "terms": [
+          {
+            "term": "River",
+            "termLanguageId": "en",
+            "translation": "河流",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:savanna_plateau",
+        "definition": "A Minecraft biome known as Savanna Plateau",
+        "terms": [
+          {
+            "term": "Savanna Plateau",
+            "termLanguageId": "en",
+            "translation": "热带高原",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:small_end_islands",
+        "definition": "A Minecraft biome known as Small End Islands",
+        "terms": [
+          {
+            "term": "Small End Islands",
+            "termLanguageId": "en",
+            "translation": "末地小型岛屿",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:snowy_beach",
+        "definition": "A Minecraft biome known as Snowy Beach",
+        "terms": [
+          {
+            "term": "Snowy Beach",
+            "termLanguageId": "en",
+            "translation": "积雪沙滩",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:snowy_plains",
+        "definition": "A Minecraft biome known as Snowy Plains",
+        "terms": [
+          {
+            "term": "Snowy Plains",
+            "termLanguageId": "en",
+            "translation": "雪原",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:snowy_slopes",
+        "definition": "A Minecraft biome known as Snowy Slopes",
+        "terms": [
+          {
+            "term": "Snowy Slopes",
+            "termLanguageId": "en",
+            "translation": "积雪山坡",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:snowy_taiga",
+        "definition": "A Minecraft biome known as Snowy Taiga",
+        "terms": [
+          {
+            "term": "Snowy Taiga",
+            "termLanguageId": "en",
+            "translation": "积雪针叶林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:soul_sand_valley",
+        "definition": "A Minecraft biome known as Soul Sand Valley",
+        "terms": [
+          {
+            "term": "Soul Sand Valley",
+            "termLanguageId": "en",
+            "translation": "灵魂沙峡谷",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:sparse_jungle",
+        "definition": "A Minecraft biome known as Sparse Jungle",
+        "terms": [
+          {
+            "term": "Sparse Jungle",
+            "termLanguageId": "en",
+            "translation": "稀疏丛林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:stony_peaks",
+        "definition": "A Minecraft biome known as Stony Peaks",
+        "terms": [
+          {
+            "term": "Stony Peaks",
+            "termLanguageId": "en",
+            "translation": "裸岩山峰",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:stony_shore",
+        "definition": "A Minecraft biome known as Stony Shore",
+        "terms": [
+          {
+            "term": "Stony Shore",
+            "termLanguageId": "en",
+            "translation": "石岸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:sunflower_plains",
+        "definition": "A Minecraft biome known as Sunflower Plains",
+        "terms": [
+          {
+            "term": "Sunflower Plains",
+            "termLanguageId": "en",
+            "translation": "向日葵平原",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:swamp",
+        "definition": "A Minecraft biome known as Swamp",
+        "terms": [
+          {
+            "term": "Swamp",
+            "termLanguageId": "en",
+            "translation": "沼泽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:the_end",
+        "definition": "A Minecraft biome known as The End",
+        "terms": [
+          {
+            "term": "The End",
+            "termLanguageId": "en",
+            "translation": "末地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:the_void",
+        "definition": "A Minecraft biome known as The Void",
+        "terms": [
+          {
+            "term": "The Void",
+            "termLanguageId": "en",
+            "translation": "虚空",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:warped_forest",
+        "definition": "A Minecraft biome known as Warped Forest",
+        "terms": [
+          {
+            "term": "Warped Forest",
+            "termLanguageId": "en",
+            "translation": "诡异森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:windswept_forest",
+        "definition": "A Minecraft biome known as Windswept Forest",
+        "terms": [
+          {
+            "term": "Windswept Forest",
+            "termLanguageId": "en",
+            "translation": "风袭森林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:windswept_gravelly_hills",
+        "definition": "A Minecraft biome known as Windswept Gravelly Hills",
+        "terms": [
+          {
+            "term": "Windswept Gravelly Hills",
+            "termLanguageId": "en",
+            "translation": "风袭沙砾丘陵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:windswept_hills",
+        "definition": "A Minecraft biome known as Windswept Hills",
+        "terms": [
+          {
+            "term": "Windswept Hills",
+            "termLanguageId": "en",
+            "translation": "风袭丘陵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:windswept_savanna",
+        "definition": "A Minecraft biome known as Windswept Savanna",
+        "terms": [
+          {
+            "term": "Windswept Savanna",
+            "termLanguageId": "en",
+            "translation": "风袭热带草原",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:biome:wooded_badlands",
+        "definition": "A Minecraft biome known as Wooded Badlands",
+        "terms": [
+          {
+            "term": "Wooded Badlands",
+            "termLanguageId": "en",
+            "translation": "疏林恶地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}

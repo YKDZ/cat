@@ -32,6 +32,16 @@ Channels (in order of  |
 | `CollectMemoryRecallInput` | type |  |
 | `collectTermRecallOp` | function |  |
 | `CollectTermRecallInput` | type |  |
+| `calibrateBm25Confidence` | function | Batch-normalize BM25-channel evidences within a result set.
+
+Algorithm:
+1. Colle |
+| `calibrateMemoryBm25` | function | Apply BM25 confidence calibration to memory recall RawResult[].
+
+Mutates the evi |
+| `calibrateTermBm25` | function | Apply confidence calibration to term recall RawResult[] (currently no-op, reserv |
+| `CalibratedBm25Evidence` | interface | Calibrated BM25 evidence with raw score and normalization metadata. |
+| `CalibrationSummary` | interface | Summary of batch BM25 calibration. |
 | `createElementOp` | function | Create translatable elements.
 
 First creates TranslatableStrings (with vectoriza |
@@ -79,16 +89,7 @@ in paral |
 Concurrency safety is |
 | `FindOrCreateAutoTranslatePRInput` | interface |  |
 | `FindOrCreateAutoTranslatePRResult` | interface |  |
-| `llmRefineTranslationOp` | function | Post-edit a translation using an LLM.
-
-Sends the candidate translation and gloss |
-| `LlmRefineTranslationInput` | type |  |
-| `LlmRefineTranslationOutput` | type |  |
-| `llmTermAlignOp` | function | LLM term alignment (fallback strategy).
-
-Uses the LLM to judge candidate pairs t |
-| `LlmTermAlignInput` | type |  |
-| *(152 more)* | | |
+| *(174 more)* | | |
 
 ## Related Topics
 

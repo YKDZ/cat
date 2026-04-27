@@ -1,0 +1,13 @@
+name: self-exclusion
+cases:
+  - id: "self-exclude-elytra"
+    inputText: "Find Elytra"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_end_elytra_description"
+        expectedSource: "Find Elytra"
+        expectedTranslation: "找到鞘翅"
+        minimumConfidence: 0.60
+    negativeMemories:
+      - memoryItemRef: "mem:adv:advancements_end_root_description"

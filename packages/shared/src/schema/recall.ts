@@ -23,6 +23,7 @@ export const RecallChannelValues = [
   "fragment",
   "bm25",
   "semantic",
+  "multi",
 ] as const;
 
 export const RecallChannelSchema = z.enum(RecallChannelValues);

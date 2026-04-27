@@ -395,3 +395,33 @@ export {
   runAutoTranslatePipeline,
   type RunAutoTranslatePipelineInput,
 } from "./run-auto-translate-pipeline";
+
+// === Quality Components ===
+export {
+  calibrateBm25Confidence,
+  calibrateMemoryBm25,
+  calibrateTermBm25,
+} from "./confidence-calibrator";
+export type {
+  CalibratedBm25Evidence,
+  CalibrationSummary,
+} from "./confidence-calibrator";
+
+export {
+  applyHnfPreRules,
+  applyHnfPostRules,
+  applyMemoryHnfPre,
+  applyMemoryHnfPost,
+  applyTermHnfPre,
+} from "./hard-negative-filter";
+export type {
+  HardNegativeRemoval,
+  HardNegativeReason,
+  HnfCandidate,
+  HnfRuleResult,
+} from "./hard-negative-filter";
+
+export { matchTemplateStructure } from "./template-structure-matcher";
+export { applySelfExclusion } from "./self-exclusion-filter";
+export { sortByQuality, createSuggestionCollector } from "./quality-sorter";
+export type { QualitySortConfig, QueuedSuggestion } from "./quality-sorter";

@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 313
+* **Modules**: 314
 
-* **Exported functions**: 335
+* **Exported functions**: 336
 
-* **Exported types**: 435
+* **Exported types**: 436
 
 ## Function Index
 
@@ -2172,7 +2172,7 @@ export const countGlossaryConcepts: Query<
  * the given concept IDs. Pairs with no matching term in either language are
  * omitted.
  */
-export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "template" | "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
+export const fetchTermsByConceptIds = async (drizzle: DbHandle, conceptIds: number[], sourceLanguageId: string, translationLanguageId: string, confidenceMap?: Map<number, number>): Promise<{ term: string; translation: string; definition: string | null; conceptId: number; glossaryId: string; confidence: number; evidences: { channel: "template" | "exact" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; matchedText?: string | undefined; }[]>
 ```
 
 ### `buildConceptVectorizationText`
@@ -2574,6 +2574,23 @@ export const listMemoryIdsByProject: Query<
   ListMemoryIdsByProjectQuery,
   string[]
 > = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listMemoryItemIdsByElement`
+
+```ts
+/**
+ * List all memory item UUIDs associated with a given element.
+ *
+ * @param ctx - Database query context
+ * @param query - Query parameters (elementId)
+ *
+ * @returns Array of memoryItem.memoryId UUID strings
+ */
+export const listMemoryItemIdsByElement: Query<
+  ListMemoryItemIdsByElementQuery,
+  string[]
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
 ```
 
 ### `listMemorySuggestionsByChunkIds`
@@ -3906,6 +3923,8 @@ export const searchChunkCosineSimilarity: Query<
 * `ListMemoriesByCreatorResult` (type)
 
 * `ListMemoryIdsByProjectQuery` (type)
+
+* `ListMemoryItemIdsByElementQuery` (type)
 
 * `ListMemorySuggestionsByChunkIdsQuery` (type)
 

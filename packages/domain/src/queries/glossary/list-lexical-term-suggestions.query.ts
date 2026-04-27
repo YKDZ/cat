@@ -61,6 +61,7 @@ export const listLexicalTermSuggestions: Query<
     ctx.db
       .selectDistinctOn([term.termConceptId], {
         conceptId: term.termConceptId,
+        termText: term.text,
         similarity: sql<number>`word_similarity(${term.text}, ${trimmedText})`,
       })
       .from(term)
@@ -69,7 +70,11 @@ export const listLexicalTermSuggestions: Query<
         and(
           inArray(termConcept.glossaryId, query.glossaryIds),
           eq(term.languageId, query.sourceLanguageId),
-          sql`word_similarity(${term.text}, ${trimmedText}) >= ${query.wordSimilarityThreshold}`,
+          sql`word_similarity(${term.text}, ${trimmedText}) >
+            CASE WHEN length(${term.text}) < 5
+              THEN GREATEST(0.3, 1.0 - length(${term.text}) * 0.15)
+              ELSE ${query.wordSimilarityThreshold}
+            END`,
         ),
       )
       .orderBy(
@@ -89,6 +94,36 @@ export const listLexicalTermSuggestions: Query<
     const existing = confidenceMap.get(row.conceptId);
     if (existing === undefined || row.similarity > existing) {
       confidenceMap.set(row.conceptId, row.similarity);
+    }
+  }
+
+  // ── ILIKE co-occurrence check for short terms (< 5 chars) ──────────
+  // Terms matched only by word_similarity (not ILIKE) that are < 5 chars
+  // must also form a complete word in the query text.
+  const ilikeConceptIds = new Set(ilikeMatches.map((r) => r.conceptId));
+  const shortTermConfidenceOverride = new Map<number, number>();
+
+  for (const row of wordSimilarityMatches) {
+    const termText: string = (row as { termText?: string }).termText ?? "";
+    if (termText.length >= 5) continue;
+    if (ilikeConceptIds.has(row.conceptId)) continue;
+
+    // Check if the term appears as a complete word in the query text
+    const q = ` ${trimmedText} `;
+    const t = ` ${termText} `;
+    const isCompleteWord =
+      q.includes(t) ||
+      trimmedText.startsWith(`${termText} `) ||
+      trimmedText.endsWith(` ${termText}`) ||
+      trimmedText === termText;
+
+    if (!isCompleteWord) {
+      // Downgrade confidence to sparse level (max 0.3)
+      const currentConf = confidenceMap.get(row.conceptId) ?? row.similarity;
+      shortTermConfidenceOverride.set(
+        row.conceptId,
+        Math.min(currentConf, 0.3),
+      );
     }
   }
 
@@ -148,7 +183,9 @@ export const listLexicalTermSuggestions: Query<
   const seen = new Map<string, LexicalTermSuggestion>();
 
   for (const row of termRows) {
-    const confidence = confidenceMap.get(row.conceptId) ?? 1.0;
+    const shortTermOverride = shortTermConfidenceOverride.get(row.conceptId);
+    const confidence =
+      shortTermOverride ?? confidenceMap.get(row.conceptId) ?? 1.0;
     const mapped: LexicalTermSuggestion = {
       term: row.term,
       translation: row.translation,
@@ -165,7 +202,9 @@ export const listLexicalTermSuggestions: Query<
           matchedText: row.term,
           matchedVariantText: row.term,
           confidence,
-          note: "pg_trgm lexical match",
+          note: shortTermConfidenceOverride.has(row.conceptId)
+            ? "lexical-substring-warning: word_similarity match without full word co-occurrence"
+            : "pg_trgm lexical match",
         },
       ],
       matchedText: row.term,

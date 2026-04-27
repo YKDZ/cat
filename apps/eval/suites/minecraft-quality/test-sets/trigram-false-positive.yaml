@@ -1,0 +1,34 @@
+name: trigram-false-positive
+cases:
+  - id: "fox-not-torch"
+    inputText: "A Fox was sleeping under the tree."
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedTerms:
+      - conceptRef: "concept:entity:fox"
+        term: "Fox"
+        translation: "狐狸"
+    negativeTerms:
+      - conceptRef: "concept:block:torch"
+
+  - id: "wolf-not-swamp"
+    inputText: "The Wolf howled at the moon."
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedTerms:
+      - conceptRef: "concept:entity:wolf"
+        term: "Wolf"
+        translation: "狼"
+    negativeTerms:
+      - conceptRef: "concept:biome:swamp"
+
+  - id: "blaze-not-smite"
+    inputText: "The Blaze was shooting fireballs in the fortress."
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedTerms:
+      - conceptRef: "concept:entity:blaze"
+        term: "Blaze"
+        translation: "烈焰人"
+    negativeTerms:
+      - conceptRef: "concept:enchantment:smite"

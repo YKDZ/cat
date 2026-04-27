@@ -9,8 +9,8 @@
 
 ## Package Documentation
 
-- [@cat/domain](./packages/domain.md): 335 exported functions — Domain layer: CQRS Commands and Queries, core business logic
-- [@cat/operations](./packages/operations.md): 91 exported functions — Operations layer: business workflows composing domain operations
+- [@cat/domain](./packages/domain.md): 336 exported functions — Domain layer: CQRS Commands and Queries, core business logic
+- [@cat/operations](./packages/operations.md): 104 exported functions — Operations layer: business workflows composing domain operations
 - [@cat/shared](./packages/shared.md): 25 exported functions — Shared Zod schemas, type definitions, and utility functions
 - [@cat/db](./packages/db.md): 9 exported functions — Database layer: Drizzle ORM schemas and Redis client
 - [@cat/permissions](./packages/permissions.md): 10 exported functions — Permission system: ReBAC-based access control
@@ -35,7 +35,7 @@
 Domain layer using CQRS pattern. Commands mutate state, Queries read data.
 
 - Commands: 133
-- Queries: 189
+- Queries: 190
 
 ## @cat/operations
 
