@@ -250,14 +250,17 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       });
       refs.set(itemSeed.ref, items[0].id);
 
-      await buildMemoryRecallVariantsOp({
-        memoryItemId: items[0].id,
-        memoryId,
-        sourceText: itemSeed.source,
-        translationText: itemSeed.translation,
-        sourceLanguageId: itemSeed.sourceLanguage,
-        translationLanguageId: itemSeed.translationLanguage,
-      });
+      await buildMemoryRecallVariantsOp(
+        {
+          memoryItemId: items[0].id,
+          memoryId,
+          sourceText: itemSeed.source,
+          translationText: itemSeed.translation,
+          sourceLanguageId: itemSeed.sourceLanguage,
+          translationLanguageId: itemSeed.translationLanguage,
+        },
+        { pluginManager, traceId: crypto.randomUUID() },
+      );
     }
   }
 
