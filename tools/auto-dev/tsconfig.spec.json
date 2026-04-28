@@ -3,12 +3,8 @@
   "compilerOptions": {
     "outDir": "./out-tsc/vitest",
     "types": ["node"],
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true
   },
-  "include": ["src/**/*.test.ts", "src/**/*.spec.ts"],
-  "references": [
-    {
-      "path": "./tsconfig.lib.json"
-    }
-  ]
+  "include": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }
