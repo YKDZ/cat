@@ -1,0 +1,22 @@
+{
+  "name": "@tools/auto-dev",
+  "version": "0.0.1",
+  "private": true,
+  "bin": {
+    "auto-dev": "./dist/cli.js"
+  },
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "beta",
+    "unplugin-dts": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

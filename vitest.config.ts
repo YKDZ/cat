@@ -248,6 +248,14 @@ export default defineConfig({
         },
         resolve: { alias: alias(resolve(ROOT, "tools/autodoc")) },
       },
+      {
+        test: {
+          name: "unit-auto-dev",
+          include: ["tools/auto-dev/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "tools/auto-dev")) },
+      },
 
       // ── Agent 包 ──────────────────────────────────────────────────────
       {
