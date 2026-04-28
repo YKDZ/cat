@@ -7,17 +7,16 @@ tasks:
     script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
 
   build:
-    command: "vite build --config vite.config.ts"
+    script: "vite build"
     inputs:
       - "@group(sources)"
       - "@group(configs)"
     outputs:
-      - "dist/"
+      - "dist"
     deps:
       - "^:build"
     options:
       cache: true
-      runFromWorkspaceRoot: false
 
   test:
     command: "vitest run --config ../../vitest.config.ts --project=unit-auto-dev"
