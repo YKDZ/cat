@@ -54,6 +54,7 @@ export class DecisionManager {
       resolutionChannel: null,
       requestedAt: new Date().toISOString(),
       resolvedAt: null,
+      batchId: null,
       socketConnectionId: null,
     };
 
@@ -68,11 +69,61 @@ export class DecisionManager {
     return { accepted: true, remainingDecisions: remaining - 1, alias };
   }
 
+  async receiveBatch(
+    requests: DecisionRequest[],
+    batchId: string,
+  ): Promise<Array<{ accepted: boolean; id: string; alias: string; reason?: string }>> {
+    const run = loadWorkflowRun(this.workspaceRoot, requests[0]?.workflowRunId ?? "");
+    if (!run) {
+      return requests.map((r) => ({ accepted: false, id: r.id, alias: "", reason: "Run not found" }));
+    }
+
+    const results: Array<{ accepted: boolean; id: string; alias: string; reason?: string }> = [];
+
+    for (const request of requests) {
+      if (run.decisionCount >= this.config.maxDecisionPerRun) {
+        results.push({ accepted: false, id: request.id, alias: "", reason: "Decision limit reached" });
+        continue;
+      }
+
+      const alias = `d${run.decisionCount + 1}`;
+      const decision: DecisionBlock = {
+        id: request.id,
+        workflowRunId: request.workflowRunId,
+        title: request.title,
+        options: request.options,
+        recommendation: request.recommendation,
+        context: request.context,
+        alias,
+        status: "pending",
+        resolution: null,
+        resolvedBy: null,
+        resolutionChannel: null,
+        requestedAt: new Date().toISOString(),
+        resolvedAt: null,
+        batchId,
+        socketConnectionId: null,
+      };
+
+      // oxlint-disable-next-line no-await-in-loop
+      await saveDecision(this.workspaceRoot, decision);
+      run.decisionCount += 1;
+      run.pendingDecisionIds = [...run.pendingDecisionIds, request.id];
+      results.push({ accepted: true, id: request.id, alias });
+    }
+
+    run.status = "waiting_decision";
+    run.updatedAt = new Date().toISOString();
+    await saveWorkflowRun(this.workspaceRoot, run);
+
+    return results;
+  }
+
   async resolve(
     decisionId: string,
     choice: string,
     resolvedBy: string,
-    channel: "cli" | "issue_comment" = "cli",
+    channel: "cli" | "issue_comment" | "pr_comment" = "cli",
   ): Promise<DecisionResponse> {
     const decision = loadDecision(this.workspaceRoot, decisionId);
     if (!decision) {

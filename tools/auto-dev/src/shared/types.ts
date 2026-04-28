@@ -44,6 +44,8 @@ export interface WorkflowRun {
   updatedAt: string;
   decisionCount: number;
   pendingDecisionIds: string[];
+  prNumber: number | null;
+  frontmatterConfig: FrontmatterConfig | null;
 }
 
 // ── Decision types ────────────────────────────────────────────────────
@@ -56,7 +58,7 @@ export interface DecisionOption {
 
 export type DecisionStatus = "pending" | "resolved";
 
-export type ResolutionChannel = "cli" | "issue_comment";
+export type ResolutionChannel = "cli" | "issue_comment" | "pr_comment";
 
 export interface DecisionBlock {
   id: string;
@@ -73,6 +75,7 @@ export interface DecisionBlock {
   resolutionChannel: ResolutionChannel | null;
   requestedAt: string;
   resolvedAt: string | null;
+  batchId: string | null;
   socketConnectionId: string | null;
 }
 
@@ -173,4 +176,18 @@ export interface IssueLabelConfig {
   agentEffort: AgentEffort | null;
   workflowAgent: string | null;
   autoMerge: boolean;
+  permissionMode: string | null;
+  maxTurns: number | null;
+  maxDecisions: number | null;
+}
+
+// ── Frontmatter types ─────────────────────────────────────────────────
+
+export interface FrontmatterConfig {
+  model: string | null;
+  effort: AgentEffort | null;
+  agent: string | null;
+  maxDecisions: number | null;
+  maxTurns: number | null;
+  permissionMode: string | null;
 }

@@ -39,7 +39,7 @@ export class WorkflowManager {
       status: "pending",
       branch: deriveBranch(result.issueNumber),
       agentProvider: result.agentProvider as WorkflowRun["agentProvider"],
-      agentModel: result.agentModel as WorkflowRun["agentModel"],
+      agentModel: result.agentModel,
       agentEffort: result.agentEffort as WorkflowRun["agentEffort"],
       agentDefinition: result.agentDefinition,
       runId: null,
@@ -48,6 +48,8 @@ export class WorkflowManager {
       updatedAt: now,
       decisionCount: 0,
       pendingDecisionIds: [],
+      prNumber: null,
+      frontmatterConfig: result.frontmatterConfig ?? null,
     };
 
     await saveWorkflowRun(this.workspaceRoot, run);

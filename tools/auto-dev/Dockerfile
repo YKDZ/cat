@@ -30,9 +30,29 @@ RUN mkdir -p /var/run/sshd \
     && echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
     && echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 
+WORKDIR /build
+
+# Copy workspace files needed for building
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.json tsconfig.node.json ./
+COPY tools/auto-dev/ tools/auto-dev/
+
+# Install dependencies and build the coordinator
+RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
+    && cd tools/auto-dev \
+    && npx vite build 2>&1 \
+    && echo "Build complete"
+
+# Move dist to a stable location outside the workspace mount
+RUN mkdir -p /opt/auto-dev && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist
+
+# Copy bootstrap scripts
+COPY tools/auto-dev/scripts/ /opt/auto-dev/scripts/
+
 WORKDIR /workspace
 
 COPY tools/auto-dev/docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && printf '#!/bin/bash\nexec node /opt/auto-dev/dist/cli.js "$@"\n' > /usr/local/bin/auto-dev \
+    && chmod +x /usr/local/bin/auto-dev
 
 ENTRYPOINT ["docker-entrypoint.sh"]

@@ -9,6 +9,11 @@ export default defineConfig({
     },
   },
 
+  ssr: {
+    // Bundle zod into the output so it's available without node_modules at runtime
+    noExternal: ["zod"],
+  },
+
   build: {
     ssr: true,
     emptyOutDir: true,

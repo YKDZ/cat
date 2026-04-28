@@ -9,9 +9,12 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "catalog:",
     "tsx": "catalog:",
     "typescript": "beta",

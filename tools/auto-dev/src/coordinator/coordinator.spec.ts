@@ -58,4 +58,28 @@ describe("Coordinator", () => {
     const coordinator = new Coordinator(tmpDir, "owner/repo");
     await expect(coordinator.stop()).resolves.toBeUndefined();
   });
+
+  it("stop cleans up prTriggerPollTimer without errors", async () => {
+    const coordinator = new Coordinator(tmpDir, "owner/repo");
+    const startPromise = coordinator.start();
+    await new Promise((r) => setTimeout(r, 50));
+    await expect(coordinator.stop()).resolves.toBeUndefined();
+    await startPromise.catch((_err: unknown) => {
+      // swallow expected setup errors during stop() test
+      void _err;
+    });
+  }, 10000);
+
+  it("collectResolutionTasks filters bot comments", () => {
+    const coordinator = new Coordinator(tmpDir, "owner/repo");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fn = (coordinator as any).collectResolutionTasks.bind(coordinator);
+    const botComment = {
+      id: "bot-1",
+      body: "<!-- auto-dev-bot -->\n@d1 yes",
+      user: { login: "auto-dev[bot]" },
+    };
+    const result = fn([botComment], "some-run-id");
+    expect(result).toHaveLength(0);
+  });
 });

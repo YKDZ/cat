@@ -47,6 +47,8 @@ const makeRun = (overrides: Partial<WorkflowRun> = {}): WorkflowRun => ({
   updatedAt: new Date().toISOString(),
   decisionCount: 0,
   pendingDecisionIds: [],
+  prNumber: null,
+  frontmatterConfig: null,
   ...overrides,
 });
 

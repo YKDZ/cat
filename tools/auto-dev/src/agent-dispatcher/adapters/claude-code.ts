@@ -14,9 +14,15 @@ export class ClaudeCodeAdapter implements AgentInvoker {
     const rawContent = existsSync(defPath)
       ? readFileSync(defPath, "utf-8")
       : "";
-    // Strip YAML frontmatter (--- ... ---) so it is not misinterpreted as
-    // CLI options when passed to `claude -p`.
-    const defContent = rawContent.replace(/^---[\s\S]*?---\n?/, "");
+    const { parseFrontmatter: parseFm, stripFrontmatter } = await import(
+      "../../shared/frontmatter-parser.js"
+    );
+    const agentFm = parseFm(rawContent);
+    const defContent = stripFrontmatter(rawContent);
+
+    // Agent definition frontmatter provides defaults (lowest priority)
+    const model = context.model ?? agentFm?.model ?? null;
+    const effort = context.effort ?? agentFm?.effort ?? null;
 
     const prompt = `${defContent}\n\n## Issue Context\n\n${context.issueContext}`;
 
@@ -32,12 +38,12 @@ export class ClaudeCodeAdapter implements AgentInvoker {
       "200",
     ];
 
-    if (context.model) {
-      args.push("--model", context.model);
+    if (model) {
+      args.push("--model", model);
     }
 
-    if (context.effort) {
-      args.push("--effort", context.effort);
+    if (effort) {
+      args.push("--effort", effort);
     }
 
     const env = {

@@ -8,14 +8,17 @@ import {
   type GhPR,
   type GhComment,
 } from "./schemas.js";
+import { getAuthEnv } from "./github-app-auth.js";
 
 export type { GhIssue, GhPR, GhComment } from "./schemas.js";
 
 const gh = (args: string[], opts?: { cwd?: string }): string => {
   try {
+    const authEnv = getAuthEnv();
     return execFileSync("gh", args, {
       encoding: "utf-8",
       cwd: opts?.cwd,
+      env: { ...process.env, ...authEnv },
       stdio: ["ignore", "pipe", "pipe"],
     }).trim();
   } catch (err) {
@@ -166,14 +169,13 @@ export const listIssueComments = (
   issueNumber: number,
 ): GhComment[] => {
   const output = gh([
-    "issue",
-    "comment",
-    "list",
-    String(issueNumber),
-    "--repo",
-    repo,
-    "--json",
-    "id,body,author",
+    "api",
+    `repos/${repo}/issues/${issueNumber}/comments`,
   ]);
+  return GhCommentSchema.array().parse(JSON.parse(output));
+};
+
+export const listPRComments = (repo: string, prNumber: number): GhComment[] => {
+  const output = gh(["api", `repos/${repo}/issues/${prNumber}/comments`]);
   return GhCommentSchema.array().parse(JSON.parse(output));
 };
