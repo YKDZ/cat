@@ -6687,6 +6687,25 @@
     "line": 10
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-template-memory-suggestions.query:listTemplateMemorySuggestions",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-template-memory-suggestions.query:listTemplateMemorySuggestions",
+    "name": "listTemplateMemorySuggestions",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-template-memory-suggestions.query.ts",
+    "line": 47,
+    "description": "Query `MemoryRecallVariant` by direct equality match on `meta->>'template'`.\n\nThis bypasses pg_trgm similarity entirely, making it suitable for\ntemplate-based recall where semantically-equivalent placeholder forms\n(e.g. \"1.20\" → \"1.21\" → \"{NUM_0}.{NUM_1}\") would score too low under\ntrigram similarity to surface via the variant channel.\n\nThe template string is stored in the variant's `meta` field during variant\nbuilding (`buildMemoryRecallVariantsOp`), keyed as `\"template\"`."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-template-memory-suggestions.query:ListTemplateMemorySuggestionsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-template-memory-suggestions.query:ListTemplateMemorySuggestionsQuery",
+    "name": "ListTemplateMemorySuggestionsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-template-memory-suggestions.query.ts",
+    "line": 27
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-variant-memory-suggestions.query:listVariantMemorySuggestions",
     "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-variant-memory-suggestions.query:listVariantMemorySuggestions",
     "name": "listVariantMemorySuggestions",
@@ -8794,7 +8813,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 74
+    "line": 75
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -8803,7 +8822,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 90,
+    "line": 91,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -10238,8 +10257,8 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/register-vectorization-consumer.ts",
-    "line": 14,
-    "description": "Register the vectorization queue consumer. Event-driven + startup recovery."
+    "line": 15,
+    "description": "Register the vectorization queue consumer. Event-driven + background startup recovery."
   },
   {
     "id": "@cat/operations:packages/operations/src/rerank/apply-band-order:applyBandOrder",
@@ -12267,8 +12286,18 @@
     "kind": "function",
     "packageName": "@cat/server-shared",
     "filePath": "packages/server-shared/src/mobile.ts",
-    "line": 7,
-    "description": "尝试从 HTTP 请求头判断客户端是否为手机。\n可在 SSR 环境中直接使用。"
+    "line": 44,
+    "description": "尝试从 Node.js HTTP 请求头判断客户端是否为手机。"
+  },
+  {
+    "id": "@cat/server-shared:packages/server-shared/src/mobile:detectMobileFromRequest",
+    "stableKey": "@cat/server-shared:packages/server-shared/src/mobile:detectMobileFromRequest",
+    "name": "detectMobileFromRequest",
+    "kind": "function",
+    "packageName": "@cat/server-shared",
+    "filePath": "packages/server-shared/src/mobile.ts",
+    "line": 52,
+    "description": "尝试从 Web API Request 请求头判断客户端是否为手机。\n可在 SSR 环境中直接使用（包括 Vite dev 模式）。"
   },
   {
     "id": "@cat/server-shared:packages/server-shared/src/password:hashPassword",

@@ -19,8 +19,9 @@
 | `collectLLMResponse` | function | Consume an LLM AsyncIterable chunk stream and aggregate all chunks into
 a single |
 | `CollectedLLMResponse` | interface | The complete response collected from an LLM stream. |
-| `detectMobile` | function | 尝试从 HTTP 请求头判断客户端是否为手机。
-可在 SSR 环境中直接使用。 |
+| `detectMobile` | function | 尝试从 Node.js HTTP 请求头判断客户端是否为手机。 |
+| `detectMobileFromRequest` | function | 尝试从 Web API Request 请求头判断客户端是否为手机。
+可在 SSR 环境中直接使用（包括 Vite dev 模式）。 |
 | `hashPassword` | function |  |
 | `verifyPassword` | function |  |
 | `firstOrGivenService` | function |  |
