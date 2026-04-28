@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  auto-dev:
+    build:
+      context: ../..
+      dockerfile: tools/auto-dev/Dockerfile
+    volumes:
+      - ../..:/workspace
+      - auto-dev-state:/workspace/tools/auto-dev/state
+      - auto-dev-logs:/workspace/tools/auto-dev/logs
+    environment:
+      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
+      - SSH_PASSWORD=${SSH_PASSWORD:-}
+    ports:
+      - "2222:22"
+    restart: unless-stopped
+
+volumes:
+  auto-dev-state:
+  auto-dev-logs:
