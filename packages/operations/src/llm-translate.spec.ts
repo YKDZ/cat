@@ -377,11 +377,11 @@ describe("llmTranslateOp", () => {
 
     await llmTranslateOp(BASE_INPUT);
 
-    // eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     const chatArgs = mockLlmService.service.chat.mock
       .calls[0]?.[0] as unknown as {
-      messages: Array<{ role: string; content: string }>;
-    };
+        messages: Array<{ role: string; content: string }>;
+      };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
     expect(userPrompt).toContain("[IMAGE context");
     expect(userPrompt).toContain("not visually processed");
@@ -403,11 +403,11 @@ describe("llmTranslateOp", () => {
       ],
     });
 
-    // eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     const chatArgs = mockLlmService.service.chat.mock
       .calls[0]?.[0] as unknown as {
-      messages: Array<{ role: string; content: string }>;
-    };
+        messages: Array<{ role: string; content: string }>;
+      };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
     expect(userPrompt).toContain("点击确认订单 43");
     expect(userPrompt).not.toContain("点击确认订单 42");
@@ -424,11 +424,11 @@ describe("llmTranslateOp", () => {
       targetLanguageId: "zh-Hans",
     });
 
-    // eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     const chatArgs = mockLlmService.service.chat.mock
       .calls[0]?.[0] as unknown as {
-      messages: Array<{ role: string; content: string }>;
-    };
+        messages: Array<{ role: string; content: string }>;
+      };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
     expect(userPrompt).toContain("to zh-Hans");
   });

@@ -62,7 +62,7 @@ const fetchGlossaries = async () => {
     glossaries.value = result.data;
     total.value = result.total;
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.error("Failed to fetch glossaries:", err);
   } finally {
     isLoading.value = false;

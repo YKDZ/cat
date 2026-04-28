@@ -1,7 +1,6 @@
 import type { AutoDevConfig } from "../config/types.js";
 import type {
   AgentProvider,
-  AgentModel,
   AgentEffort,
   IssueLabelConfig,
 } from "../shared/types.js";
@@ -33,12 +32,18 @@ export const parseIssueLabels = (labelNames: string[]): IssueLabelConfig => {
       }
     } else if (label.startsWith(LABEL_PREFIXES.model)) {
       const model = label.slice(LABEL_PREFIXES.model.length);
-      if (model === "opus" || model === "sonnet" || model === "haiku") {
-        config.agentModel = model as AgentModel;
+      if (model.length > 0) {
+        config.agentModel = model;
       }
     } else if (label.startsWith(LABEL_PREFIXES.effort)) {
       const effort = label.slice(LABEL_PREFIXES.effort.length);
-      if (effort === "high" || effort === "medium" || effort === "low") {
+      if (
+        effort === "xhigh" ||
+        effort === "high" ||
+        effort === "medium" ||
+        effort === "low" ||
+        effort === "max"
+      ) {
         config.agentEffort = effort as AgentEffort;
       }
     } else if (label.startsWith(LABEL_PREFIXES.workflow)) {

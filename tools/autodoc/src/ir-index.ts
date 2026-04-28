@@ -11,8 +11,8 @@ const SymbolIndexEntrySchema = z.object({
   filePath: z.string(),
   line: z.int(),
   endLine: z.int(),
-  column: z.number().int().optional(),
-  endColumn: z.number().int().optional(),
+  column: z.int().optional(),
+  endColumn: z.int().optional(),
   stableKey: z.string().optional(),
   packageName: z.string(),
 });

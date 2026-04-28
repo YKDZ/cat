@@ -11,9 +11,12 @@ export class ClaudeCodeAdapter implements AgentInvoker {
       "tools/auto-dev/agents",
       `${context.agentDefinition}.md`,
     );
-    const defContent = existsSync(defPath)
+    const rawContent = existsSync(defPath)
       ? readFileSync(defPath, "utf-8")
       : "";
+    // Strip YAML frontmatter (--- ... ---) so it is not misinterpreted as
+    // CLI options when passed to `claude -p`.
+    const defContent = rawContent.replace(/^---[\s\S]*?---\n?/, "");
 
     const prompt = `${defContent}\n\n## Issue Context\n\n${context.issueContext}`;
 
@@ -40,26 +43,59 @@ export class ClaudeCodeAdapter implements AgentInvoker {
     const env = {
       ...process.env,
       CLAUDE_CODE_TOOL_TIMEOUT_MS: "86400000",
+      // Ensure auto-dev CLI subcommands always resolve state from the main
+      // workspace root, not from the agent's isolated worktree cwd.
+      MOON_WORKSPACE_ROOT: context.workspaceRoot,
     };
 
+    const cwd = context.agentWorkdir ?? context.workspaceRoot;
+
     const proc = spawn("claude", args, {
-      cwd: context.workspaceRoot,
+      cwd,
       env,
       stdio: ["ignore", "pipe", "pipe"],
     });
 
+    // Event queue for real-time streaming
+    const queue: AgentEvent[] = [];
+    let processExited = false;
+    let wakeup: (() => void) | null = null;
+
+    const push = (event: AgentEvent) => {
+      queue.push(event);
+      wakeup?.();
+      wakeup = null;
+    };
+
     proc.stdout?.on("data", (data: Buffer) => {
-      // stderr is used for structured output
+      push({ type: "stdout", data: data.toString() });
     });
 
     proc.stderr?.on("data", (data: Buffer) => {
-      // stderr for logs
+      push({ type: "stderr", data: data.toString() });
     });
 
-    await new Promise<void>((resolvePromise) => {
-      proc.on("close", (code: number | null) => {
-        resolvePromise();
-      });
+    proc.on("close", (code: number | null) => {
+      push({ type: "exit", exitCode: code ?? 0 });
+      processExited = true;
     });
+
+    while (true) {
+      if (queue.length > 0) {
+        const event = queue.shift()!;
+        yield event;
+        if (event.type === "exit") break;
+      } else if (processExited) {
+        // Process closed but no exit event queued yet — shouldn't happen,
+        // but guard against infinite loop.
+        break;
+      } else {
+        // Pause until next event
+        // oxlint-disable-next-line no-await-in-loop
+        await new Promise<void>((resolve) => {
+          wakeup = resolve;
+        });
+      }
+    }
   }
 }

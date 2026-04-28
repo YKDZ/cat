@@ -1,0 +1,23 @@
+services:
+  auto-dev:
+    build:
+      context: ../..
+      dockerfile: tools/auto-dev/Dockerfile
+    volumes:
+      - ${HOST_WORKSPACE:-../..}:/workspace
+      - auto-dev-state:/workspace/tools/auto-dev/state
+      - auto-dev-logs:/workspace/tools/auto-dev/logs
+    environment:
+      - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
+      - SSH_PASSWORD=${SSH_PASSWORD:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ANTHROPIC_BASE_URL=${ANTHROPIC_BASE_URL:-}
+    ports:
+      - "2222:22"
+    restart: unless-stopped
+
+volumes:
+  auto-dev-state:
+  auto-dev-logs:

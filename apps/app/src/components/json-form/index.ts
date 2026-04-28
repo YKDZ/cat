@@ -21,17 +21,17 @@ export type RendererEmits = {
 
 export type RendererComponent = DefineComponent<
   RendererProps, // Props
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
   {}, // RawBindings
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
   {}, // Data
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
   {}, // Computed
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
   {}, // Methods
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
   {}, // Mixins
-  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  // oxlint-disable-next-line @typescript-eslint/no-empty-object-type
   {}, // Extends
   RendererEmits // Emits
 >;
@@ -52,7 +52,7 @@ class Matcher {
     public readonly name: string | undefined,
     private readonly rule: MatcherRule,
     public readonly renderer: RendererComponent,
-  ) {}
+  ) { }
 
   getSpecificity(schema: JSONSchema): Specificity | null {
     if (!schema || typeof schema !== "object") return null;

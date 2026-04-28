@@ -16,5 +16,7 @@ export const runStart = async (args: string[]): Promise<void> => {
   const coordinator = new Coordinator(workspaceRoot, repoFullName);
   await coordinator.start();
 
-  await new Promise(() => {});
+  await new Promise(() => {
+    // keep running until process exits
+  });
 };

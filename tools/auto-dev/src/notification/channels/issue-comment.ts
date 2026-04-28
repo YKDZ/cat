@@ -41,7 +41,7 @@ export class IssueCommentChannel implements NotificationChannel {
     }
   }
 
-  private extractIssueNumber(event: NotificationEvent): number {
+  private extractIssueNumber(_event: NotificationEvent): number {
     return 0;
   }
 }

@@ -213,10 +213,12 @@ describe("DecisionManager", () => {
 
   describe("listAll", () => {
     it("returns all decisions", async () => {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 3; i += 1) {
         const run = makeRun();
+        // eslint-disable-next-line no-await-in-loop
         await saveWorkflowRun(tmpDir, run);
         const request = makeRequest({ workflowRunId: run.id });
+        // eslint-disable-next-line no-await-in-loop
         await manager.receiveRequest(request);
       }
 

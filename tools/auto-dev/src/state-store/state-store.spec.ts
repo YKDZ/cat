@@ -7,7 +7,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Must mock before importing the module under test
 vi.mock("../shared/file-lock.js", () => ({
-  acquireLock: vi.fn(() => async () => {}),
+  acquireLock: vi.fn(() => async () => {
+    // no-op mock release function
+  }),
 }));
 
 import type {
@@ -71,6 +73,7 @@ const makeDecision = (
   options: [{ key: "a", label: "Option A", description: "First option" }],
   recommendation: "a",
   context: null,
+  alias: "d1",
   status: "pending",
   resolution: null,
   resolvedBy: null,
@@ -159,7 +162,8 @@ describe("DecisionBlock CRUD", () => {
   });
 
   it("listDecisions returns all decisions", async () => {
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 5; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
       await saveDecision(tmpDir, makeDecision());
     }
     const list = listDecisions(tmpDir);

@@ -8,7 +8,7 @@ import type { ApplicationMethodRegistry } from "./application-method-registry.ts
  * @en Inject EntityStateFetcher into each method in the registry.
  * Called once at server startup so rebase before-rewrite can query actual DB tables.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// oxlint-disable-next-line @typescript-eslint/no-unused-vars
 export function wireEntityStateFetchers(
   _registry: ApplicationMethodRegistry,
   _db: DbHandle,

@@ -1,0 +1,18 @@
+{
+  "id": "7fcc0d63-0136-4f3b-906d-0aafb1edfc39",
+  "issueNumber": 897,
+  "repoFullName": "YKDZ/cat",
+  "currentPhase": null,
+  "status": "pending",
+  "branch": "auto-dev/issue-897",
+  "agentProvider": null,
+  "agentModel": null,
+  "agentEffort": null,
+  "agentDefinition": "full-pipeline",
+  "runId": null,
+  "namespace": "auto-dev-897",
+  "startedAt": "2026-04-28T06:13:45.336Z",
+  "updatedAt": "2026-04-28T06:13:45.336Z",
+  "decisionCount": 0,
+  "pendingDecisionIds": []
+}

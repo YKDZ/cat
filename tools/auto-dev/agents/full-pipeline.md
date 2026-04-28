@@ -22,6 +22,18 @@ You are an autonomous development agent working on a GitHub Issue within the CAT
 4. **review**: Self-review implementation for quality and regressions
 5. **fix**: Address any issues found during review
 
+## Git Workflow
+
+After completing all implementation and review stages, you MUST commit and push your changes:
+
+```bash
+git add -A
+git commit -m "feat: <concise description of change>"
+git push origin HEAD
+```
+
+Use a commit message that describes what was changed to address the issue. If there are no changes to commit, the task is already done.
+
 ## Decision Tool Usage
 
 - Use `auto-dev request-decision` when you need human input

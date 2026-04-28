@@ -85,9 +85,9 @@ describe("no-server-import", () => {
   describe("ImportDeclaration", () => {
     it("报告 forbidden 包的值导入", () => {
       const ctx = createMockContext(DEFAULT_OPTIONS);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       const visitors = noServerImport.create(ctx as any);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // oxlint-disable-next-line @typescript-eslint/no-explicit-any
       visitors.ImportDeclaration!(makeImportDecl("@cat/db") as any);
       expect(ctx.report).toHaveBeenCalledOnce();
       expect(ctx.report).toHaveBeenCalledWith(

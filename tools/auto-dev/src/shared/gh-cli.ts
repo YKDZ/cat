@@ -1,8 +1,19 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+
+import {
+  GhIssueSchema,
+  GhPRSchema,
+  GhCommentSchema,
+  type GhIssue,
+  type GhPR,
+  type GhComment,
+} from "./schemas.js";
+
+export type { GhIssue, GhPR, GhComment } from "./schemas.js";
 
 const gh = (args: string[], opts?: { cwd?: string }): string => {
   try {
-    return execSync(`gh ${args.join(" ")}`, {
+    return execFileSync("gh", args, {
       encoding: "utf-8",
       cwd: opts?.cwd,
       stdio: ["ignore", "pipe", "pipe"],
@@ -12,13 +23,6 @@ const gh = (args: string[], opts?: { cwd?: string }): string => {
     throw new Error(`gh CLI error (${args[0]}): ${message}`);
   }
 };
-
-export interface GhIssue {
-  number: number;
-  title: string;
-  labels: Array<{ name: string }>;
-  body: string;
-}
 
 export const listIssues = (
   repo: string,
@@ -39,7 +43,7 @@ export const listIssues = (
     "--json",
     "number,title,labels,body",
   ]);
-  return JSON.parse(output) as GhIssue[];
+  return GhIssueSchema.array().parse(JSON.parse(output));
 };
 
 export const getIssue = (repo: string, issueNumber: number): GhIssue => {
@@ -52,7 +56,7 @@ export const getIssue = (repo: string, issueNumber: number): GhIssue => {
     "--json",
     "number,title,labels,body",
   ]);
-  return JSON.parse(output) as GhIssue;
+  return GhIssueSchema.parse(JSON.parse(output));
 };
 
 export const createComment = (
@@ -79,6 +83,22 @@ export const updateIssueLabels = (
   ]);
 };
 
+export const removeIssueLabels = (
+  repo: string,
+  issueNumber: number,
+  labels: string[],
+): void => {
+  gh([
+    "issue",
+    "edit",
+    String(issueNumber),
+    "--repo",
+    repo,
+    "--remove-label",
+    labels.join(","),
+  ]);
+};
+
 export const createPR = (
   repo: string,
   title: string,
@@ -92,9 +112,9 @@ export const createPR = (
     "--repo",
     repo,
     "--title",
-    `"${title}"`,
+    title,
     "--body",
-    `"${body}"`,
+    body,
     "--head",
     head,
     "--base",
@@ -115,7 +135,7 @@ export const mergePR = (
 export const listPRs = (
   repo: string,
   _state: "open" | "closed" | "merged" = "open",
-): Array<{ number: number; title: string; headRefName: string }> => {
+): GhPR[] => {
   const output = gh([
     "pr",
     "list",
@@ -126,11 +146,7 @@ export const listPRs = (
     "--json",
     "number,title,headRefName",
   ]);
-  return JSON.parse(output) as Array<{
-    number: number;
-    title: string;
-    headRefName: string;
-  }>;
+  return GhPRSchema.array().parse(JSON.parse(output));
 };
 
 export const getPRStatus = (repo: string, prNumber: number): string => {
@@ -148,7 +164,7 @@ export const getPRStatus = (repo: string, prNumber: number): string => {
 export const listIssueComments = (
   repo: string,
   issueNumber: number,
-): Array<{ id: string; body: string; author: { login: string } }> => {
+): GhComment[] => {
   const output = gh([
     "issue",
     "comment",
@@ -159,9 +175,5 @@ export const listIssueComments = (
     "--json",
     "id,body,author",
   ]);
-  return JSON.parse(output) as Array<{
-    id: string;
-    body: string;
-    author: { login: string };
-  }>;
+  return GhCommentSchema.array().parse(JSON.parse(output));
 };

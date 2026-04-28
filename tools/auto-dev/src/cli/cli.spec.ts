@@ -8,14 +8,14 @@ describe("CLI", () => {
         encoding: "utf-8",
         cwd: "/workspaces/cat",
       });
-    } catch (err: any) {
-      expect(err.stderr).toContain("Usage:");
-      expect(err.stderr).toContain("start");
-      expect(err.stderr).toContain("status");
-      expect(err.stderr).toContain("list");
-      expect(err.stderr).toContain("config");
-      expect(err.stderr).toContain("request-decision");
-      expect(err.stderr).toContain("resolve-decision");
+    } catch (err: unknown) {
+      expect((err as { stderr: string }).stderr).toContain("Usage:");
+      expect((err as { stderr: string }).stderr).toContain("start");
+      expect((err as { stderr: string }).stderr).toContain("status");
+      expect((err as { stderr: string }).stderr).toContain("list");
+      expect((err as { stderr: string }).stderr).toContain("config");
+      expect((err as { stderr: string }).stderr).toContain("request-decision");
+      expect((err as { stderr: string }).stderr).toContain("resolve-decision");
     }
   });
 
@@ -25,9 +25,9 @@ describe("CLI", () => {
         encoding: "utf-8",
         cwd: "/workspaces/cat",
       });
-    } catch (err: any) {
-      expect(err.status).toBe(1);
-      expect(err.stderr).toContain("Usage:");
+    } catch (err: unknown) {
+      expect((err as { status: number }).status).toBe(1);
+      expect((err as { stderr: string }).stderr).toContain("Usage:");
     }
   });
 
