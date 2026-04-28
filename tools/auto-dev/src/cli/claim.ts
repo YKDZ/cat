@@ -1,3 +1,3 @@
-export const runClaim = async (args: string[]): Promise<void> => {
-  console.log(JSON.stringify({ message: "Claim not yet implemented" }));
+export const runClaim = async (_args: string[]): Promise<void> => {
+  console.log(JSON.stringify({ message: "claim not yet implemented" }));
 };

@@ -16,7 +16,9 @@ export const runReportPhase = async (args: string[]): Promise<void> => {
   const phase = values.phase ?? "";
 
   if (!runId || !phase) {
-    console.error("Usage: auto-dev report-phase --run-id <id> --phase <phase> [--summary <text>]");
+    console.error(
+      "Usage: auto-dev report-phase --run-id <id> --phase <phase> [--summary <text>]",
+    );
     process.exit(1);
   }
 
@@ -24,12 +26,14 @@ export const runReportPhase = async (args: string[]): Promise<void> => {
   await manager.updatePhase(runId, phase as any);
 
   if (values.summary) {
-    console.log(JSON.stringify({
-      runId,
-      phase,
-      summary: values.summary,
-      message: "Phase reported",
-    }));
+    console.log(
+      JSON.stringify({
+        runId,
+        phase,
+        summary: values.summary,
+        message: "Phase reported",
+      }),
+    );
   } else {
     console.log(JSON.stringify({ runId, phase, message: "Phase reported" }));
   }

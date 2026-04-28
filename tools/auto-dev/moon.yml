@@ -13,8 +13,13 @@ tasks:
       - "@group(configs)"
     outputs:
       - "dist"
-    deps:
-      - "^:build"
+    options:
+      cache: true
+
+  lint:
+    script: "oxlint -c oxlint.config.ts src/"
+    inputs:
+      - "@group(sources)"
     options:
       cache: true
 

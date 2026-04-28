@@ -10,7 +10,8 @@ export const runStart = async (args: string[]): Promise<void> => {
   });
 
   const workspaceRoot = process.env.MOON_WORKSPACE_ROOT ?? process.cwd();
-  const repoFullName = values.repo ?? process.env.GITHUB_REPOSITORY ?? "owner/repo";
+  const repoFullName =
+    values.repo ?? process.env.GITHUB_REPOSITORY ?? "owner/repo";
 
   const coordinator = new Coordinator(workspaceRoot, repoFullName);
   await coordinator.start();

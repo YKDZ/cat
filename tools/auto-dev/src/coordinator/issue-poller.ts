@@ -1,7 +1,8 @@
 import type { AutoDevConfig } from "../config/types.js";
+
 import { listIssues } from "../shared/gh-cli.js";
-import { parseIssueLabels, resolveAgentDefinition } from "./label-parser.js";
 import { listWorkflowRuns } from "../state-store/index.js";
+import { parseIssueLabels, resolveAgentDefinition } from "./label-parser.js";
 
 export interface PollResult {
   issueNumber: number;
