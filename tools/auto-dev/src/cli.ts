@@ -1,21 +1,21 @@
 #!/usr/bin/env node
 
-import { runStart } from "./cli/start.js";
-import { runStop } from "./cli/stop.js";
-import { runStatus } from "./cli/status.js";
-import { runClaim } from "./cli/claim.js";
-import { runHelpRequest } from "./cli/help-request.js";
-import { runRequestDecision } from "./cli/request-decision.js";
-import { runResolveDecision } from "./cli/resolve-decision.js";
-import { runRequestValidation } from "./cli/request-validation.js";
-import { runReportPhase } from "./cli/report-phase.js";
-import { runPublishSummary } from "./cli/publish-summary.js";
-import { runSyncToIssue } from "./cli/sync-to-issue.js";
-import { runSyncFromIssue } from "./cli/sync-from-issue.js";
 import { runAudit } from "./cli/audit.js";
-import { runList } from "./cli/list.js";
-import { runDecisions } from "./cli/decisions.js";
+import { runClaim } from "./cli/claim.js";
 import { runConfig } from "./cli/config.js";
+import { runDecisions } from "./cli/decisions.js";
+import { runHelpRequest } from "./cli/help-request.js";
+import { runList } from "./cli/list.js";
+import { runPublishSummary } from "./cli/publish-summary.js";
+import { runReportPhase } from "./cli/report-phase.js";
+import { runRequestDecision } from "./cli/request-decision.js";
+import { runRequestValidation } from "./cli/request-validation.js";
+import { runResolveDecision } from "./cli/resolve-decision.js";
+import { runStart } from "./cli/start.js";
+import { runStatus } from "./cli/status.js";
+import { runStop } from "./cli/stop.js";
+import { runSyncFromIssue } from "./cli/sync-from-issue.js";
+import { runSyncToIssue } from "./cli/sync-to-issue.js";
 
 const COMMANDS: Record<string, (args: string[]) => Promise<void>> = {
   start: runStart,

@@ -1,5 +1,10 @@
-import type { AgentProvider, AgentModel, AgentEffort, IssueLabelConfig } from "../shared/types.js";
 import type { AutoDevConfig } from "../config/types.js";
+import type {
+  AgentProvider,
+  AgentModel,
+  AgentEffort,
+  IssueLabelConfig,
+} from "../shared/types.js";
 
 const LABEL_PREFIXES = {
   agent: "agent:",

@@ -2,11 +2,17 @@ import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import type {
+  AgentProvider,
+  AgentModel,
+  AgentEffort,
+  IssueLabelConfig,
+} from "../shared/types.js";
 import type { AutoDevConfig, AgentRegistration } from "./types.js";
+
+import { ConfigLoadError } from "../shared/errors.js";
 import { AutoDevConfigSchema } from "./schema.js";
 import { DEFAULT_CONFIG } from "./types.js";
-import { ConfigLoadError } from "../shared/errors.js";
-import type { AgentProvider, AgentModel, AgentEffort, IssueLabelConfig } from "../shared/types.js";
 
 /**
  * Load and validate auto-dev configuration.
@@ -91,7 +97,10 @@ export const loadConfig = async (
 
   // Clamp numeric values
   config.pollIntervalSec = Math.max(10, Math.min(3600, config.pollIntervalSec));
-  config.maxDecisionPerRun = Math.max(1, Math.min(100, config.maxDecisionPerRun));
+  config.maxDecisionPerRun = Math.max(
+    1,
+    Math.min(100, config.maxDecisionPerRun),
+  );
   config.maxImplCycles = Math.max(1, Math.min(50, config.maxImplCycles));
 
   return config;

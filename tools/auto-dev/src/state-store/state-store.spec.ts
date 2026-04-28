@@ -1,14 +1,21 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
+import { resolve } from "node:path";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Must mock before importing the module under test
 vi.mock("../shared/file-lock.js", () => ({
   acquireLock: vi.fn(() => async () => {}),
 }));
+
+import type {
+  WorkflowRun,
+  DecisionBlock,
+  CoordinatorState,
+  IssueSyncMapping,
+} from "../shared/types.js";
 
 import {
   ensureStateDirs,
@@ -23,7 +30,6 @@ import {
   saveSyncMappings,
   loadSyncMappings,
 } from "./state-store.js";
-import type { WorkflowRun, DecisionBlock, CoordinatorState, IssueSyncMapping } from "../shared/types.js";
 
 let tmpDir: string;
 
@@ -56,7 +62,9 @@ const makeRun = (overrides: Partial<WorkflowRun> = {}): WorkflowRun => ({
   ...overrides,
 });
 
-const makeDecision = (overrides: Partial<DecisionBlock> = {}): DecisionBlock => ({
+const makeDecision = (
+  overrides: Partial<DecisionBlock> = {},
+): DecisionBlock => ({
   id: randomUUID(),
   workflowRunId: randomUUID(),
   title: "Test decision",
@@ -77,7 +85,9 @@ describe("ensureStateDirs", () => {
   it("creates all directories", async () => {
     // Already called in beforeEach, verify they exist
     expect(existsSync(resolve(tmpDir, "tools/auto-dev/state/runs"))).toBe(true);
-    expect(existsSync(resolve(tmpDir, "tools/auto-dev/state/decisions"))).toBe(true);
+    expect(existsSync(resolve(tmpDir, "tools/auto-dev/state/decisions"))).toBe(
+      true,
+    );
     expect(existsSync(resolve(tmpDir, "tools/auto-dev/state/sync"))).toBe(true);
   });
 });
@@ -181,9 +191,26 @@ describe("CoordinatorState", () => {
 describe("IssueSyncMapping", () => {
   it("save + load round-trips correctly", async () => {
     const mappings: IssueSyncMapping[] = [
-      { issueNumber: 1, namespace: "auto-dev-1", syncedFiles: [], lastSyncAt: new Date().toISOString() },
-      { issueNumber: 2, namespace: "auto-dev-2", syncedFiles: [{ path: "spec.md", lastSyncAt: new Date().toISOString() }], lastSyncAt: new Date().toISOString() },
-      { issueNumber: 3, namespace: "auto-dev-3", syncedFiles: [], lastSyncAt: new Date().toISOString() },
+      {
+        issueNumber: 1,
+        namespace: "auto-dev-1",
+        syncedFiles: [],
+        lastSyncAt: new Date().toISOString(),
+      },
+      {
+        issueNumber: 2,
+        namespace: "auto-dev-2",
+        syncedFiles: [
+          { path: "spec.md", lastSyncAt: new Date().toISOString() },
+        ],
+        lastSyncAt: new Date().toISOString(),
+      },
+      {
+        issueNumber: 3,
+        namespace: "auto-dev-3",
+        syncedFiles: [],
+        lastSyncAt: new Date().toISOString(),
+      },
     ];
     await saveSyncMappings(tmpDir, mappings);
     const loaded = loadSyncMappings(tmpDir);

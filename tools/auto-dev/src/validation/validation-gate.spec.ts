@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { execSync } from "node:child_process";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { execSync } from "node:child_process";
+import { resolve } from "node:path";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
 import { ValidationGate } from "./validation-gate.js";
 
@@ -12,7 +12,10 @@ let gate: ValidationGate;
 
 const setupGitRepo = () => {
   execSync("git init", { cwd: tmpDir, stdio: "ignore" });
-  execSync("git config user.email test@test.com", { cwd: tmpDir, stdio: "ignore" });
+  execSync("git config user.email test@test.com", {
+    cwd: tmpDir,
+    stdio: "ignore",
+  });
   execSync("git config user.name Test", { cwd: tmpDir, stdio: "ignore" });
   writeFileSync(resolve(tmpDir, "README.md"), "# Test");
   execSync("git add -A", { cwd: tmpDir, stdio: "ignore" });

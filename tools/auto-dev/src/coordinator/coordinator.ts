@@ -1,11 +1,12 @@
 import type { AutoDevConfig } from "../config/types.js";
+import type { PollResult } from "./issue-poller.js";
+
 import { loadConfig } from "../config/loader.js";
-import { ensureStateDirs, saveCoordinatorState } from "../state-store/index.js";
-import { DecisionSocketServer } from "../decision-service/socket-server.js";
 import { DecisionManager } from "../decision-service/decision-manager.js";
+import { DecisionSocketServer } from "../decision-service/socket-server.js";
+import { ensureStateDirs, saveCoordinatorState } from "../state-store/index.js";
 import { pollIssues } from "./issue-poller.js";
 import { WorkflowManager } from "./workflow-manager.js";
-import type { PollResult } from "./issue-poller.js";
 
 const DEFAULT_SOCKET_PATH = "/var/run/auto-dev.sock";
 
@@ -71,15 +72,23 @@ export class Coordinator {
       }
 
       await new Promise((resolve) => {
-        this.pollTimer = setTimeout(resolve, this.config!.pollIntervalSec * 1000);
+        this.pollTimer = setTimeout(
+          resolve,
+          this.config!.pollIntervalSec * 1000,
+        );
       });
     }
   }
 
   private async handleNewIssue(result: PollResult): Promise<void> {
-    const run = await this.workflowManager!.createRun(result, this.repoFullName);
+    const run = await this.workflowManager!.createRun(
+      result,
+      this.repoFullName,
+    );
     // Branches and agent dispatch will be implemented in later phases
-    console.log(`[auto-dev] New run created: ${run.id} for issue #${result.issueNumber}`);
+    console.log(
+      `[auto-dev] New run created: ${run.id} for issue #${result.issueNumber}`,
+    );
   }
 
   async stop(): Promise<void> {

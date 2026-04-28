@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./out-tsc/vitest",
-    "types": ["node"],
+    "types": ["node", "vitest/globals"],
     "forceConsistentCasingInFileNames": true,
     "noEmit": true
   },

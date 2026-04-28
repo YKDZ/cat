@@ -4,9 +4,7 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: [
-      "zod",
-    ],
+    external: ["zod"],
   },
 
   resolve: {

@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { BranchManager } from "../branch-manager/index.js";
 
 export interface ValidationResult {
@@ -25,7 +26,9 @@ export class ValidationGate {
     checks.push({
       name: "git-clean",
       passed: clean,
-      message: clean ? "Working tree is clean" : "Working tree has uncommitted changes",
+      message: clean
+        ? "Working tree is clean"
+        : "Working tree has uncommitted changes",
     });
 
     const conflicts = this.branchManager.hasConflicts();

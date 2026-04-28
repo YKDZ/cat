@@ -1,8 +1,11 @@
-import type { NotificationChannel } from "../types.js";
 import type { NotificationEvent } from "../../shared/types.js";
+import type { NotificationChannel } from "../types.js";
 
 export class IssueCommentChannel implements NotificationChannel {
-  private readonly ghCreateComment: (issueNumber: number, body: string) => Promise<void>;
+  private readonly ghCreateComment: (
+    issueNumber: number,
+    body: string,
+  ) => Promise<void>;
 
   constructor(
     ghCreateComment: (issueNumber: number, body: string) => Promise<void>,

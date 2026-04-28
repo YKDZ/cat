@@ -1,8 +1,9 @@
-import { describe, it, expect } from "vitest";
 import { mkdtempSync, existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { describe, it, expect } from "vitest";
+
 import { acquireLock } from "./file-lock.js";
 
 describe("acquireLock", () => {
@@ -24,7 +25,9 @@ describe("acquireLock", () => {
     const testFile = resolve(tmpDir, "test.json");
     try {
       const release1 = await acquireLock(testFile);
-      await expect(acquireLock(testFile)).rejects.toThrow("Timed out waiting for lock");
+      await expect(acquireLock(testFile)).rejects.toThrow(
+        "Timed out waiting for lock",
+      );
       await release1();
     } finally {
       await rm(tmpDir, { recursive: true, force: true });
