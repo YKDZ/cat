@@ -1,0 +1,33 @@
+language: "typescript"
+layer: "tool"
+stack: "infrastructure"
+
+tasks:
+  typecheck:
+    script: "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.spec.json"
+
+  build:
+    command: "vite build --config vite.config.ts"
+    inputs:
+      - "@group(sources)"
+      - "@group(configs)"
+    outputs:
+      - "dist/"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+      runFromWorkspaceRoot: false
+
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-auto-dev"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  test-unit:
+    extends: "test"
