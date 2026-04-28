@@ -3,8 +3,8 @@ import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import type { AutoDevConfig } from "../config/types.js";
-import type { PollResult } from "./issue-poller.js";
 import type { WorkflowRun } from "../shared/types.js";
+import type { PollResult } from "./issue-poller.js";
 
 import { AgentDispatcher } from "../agent-dispatcher/index.js";
 import { AuditLogger } from "../audit-logger/index.js";
@@ -13,18 +13,20 @@ import { loadConfig } from "../config/loader.js";
 import { DecisionManager } from "../decision-service/decision-manager.js";
 import { DecisionSocketServer } from "../decision-service/socket-server.js";
 import {
-  createComment,
-  listIssueComments,
-  removeIssueLabels,
-  updateIssueLabels,
-} from "../shared/gh-cli.js";
-import {
   renderClaimComment,
   renderWorkspaceComment,
   renderDecisionComment,
   renderCompletionComment,
   renderIssueCompletionComment,
+  renderRetriggerWorkingComment,
+  renderRetriggerCompletionComment,
 } from "../shared/comment-templates.js";
+import {
+  createComment,
+  listIssueComments,
+  removeIssueLabels,
+  updateIssueLabels,
+} from "../shared/gh-cli.js";
 import {
   ensureStateDirs,
   listDecisions,
@@ -83,10 +85,15 @@ export class Coordinator {
       onDecisionRequest: async (request) => {
         const result = await this.decisionManager!.receiveRequest(request);
         if (result.accepted) {
-          const run = loadWorkflowRun(this.workspaceRoot, request.workflowRunId);
+          const run = loadWorkflowRun(
+            this.workspaceRoot,
+            request.workflowRunId,
+          );
           if (run) {
             const pending = listDecisions(this.workspaceRoot).filter(
-              (d) => d.workflowRunId === request.workflowRunId && d.status === "pending",
+              (d) =>
+                d.workflowRunId === request.workflowRunId &&
+                d.status === "pending",
             );
             const comment = renderDecisionComment(
               pending.map((d) => ({
@@ -109,7 +116,10 @@ export class Coordinator {
         return result;
       },
       onBatchDecisionRequest: async (requests, batchId) => {
-        const results = await this.decisionManager!.receiveBatch(requests, batchId);
+        const results = await this.decisionManager!.receiveBatch(
+          requests,
+          batchId,
+        );
         const runId = requests[0]?.workflowRunId;
         if (runId) {
           const run = loadWorkflowRun(this.workspaceRoot, runId);
@@ -244,12 +254,19 @@ export class Coordinator {
 
       const prTitle = result.title;
       const prBody = `Closes #${result.issueNumber}\n\nRun ID: \`${run.id}\``;
-      const pr = this.branchManager!.createPR(run.branch, prTitle, prBody, "main");
+      const pr = this.branchManager!.createPR(
+        run.branch,
+        prTitle,
+        prBody,
+        "main",
+      );
       prNumber = pr.number;
       run.prNumber = prNumber;
       await saveWorkflowRun(this.workspaceRoot, run);
 
-      console.log(`[auto-dev] PR #${prNumber} created for issue #${result.issueNumber}`);
+      console.log(
+        `[auto-dev] PR #${prNumber} created for issue #${result.issueNumber}`,
+      );
 
       try {
         createComment(
@@ -266,7 +283,9 @@ export class Coordinator {
           }),
         );
       } catch (err) {
-        console.error(`[auto-dev] Failed to post PR workspace comment: ${String(err)}`);
+        console.error(
+          `[auto-dev] Failed to post PR workspace comment: ${String(err)}`,
+        );
       }
 
       try {
@@ -276,7 +295,9 @@ export class Coordinator {
           renderClaimComment(run, prNumber),
         );
       } catch (err) {
-        console.error(`[auto-dev] Failed to post kanban claim comment: ${String(err)}`);
+        console.error(
+          `[auto-dev] Failed to post kanban claim comment: ${String(err)}`,
+        );
       }
 
       this.auditLogger!.log({
@@ -287,7 +308,9 @@ export class Coordinator {
         payload: { prNumber, branch: run.branch },
       });
     } catch (err) {
-      console.error(`[auto-dev] PR creation failed for #${result.issueNumber}: ${String(err)}`);
+      console.error(
+        `[auto-dev] PR creation failed for #${result.issueNumber}: ${String(err)}`,
+      );
       try {
         createComment(
           this.repoFullName,
@@ -366,56 +389,58 @@ export class Coordinator {
           } catch {
             /* best-effort */
           }
+          // Build completion comment bodies
+          const startedAt = new Date(run.startedAt).getTime();
+          const durationSec = Math.round((Date.now() - startedAt) / 1000);
+          const duration = `${Math.floor(durationSec / 60)}m ${durationSec % 60}s`;
+          let changedFiles = "";
           try {
-            const startedAt = new Date(run.startedAt).getTime();
-            const durationSec = Math.round((Date.now() - startedAt) / 1000);
-            const duration = `${Math.floor(durationSec / 60)}m ${durationSec % 60}s`;
-
-            if (run.prNumber) {
-              let changedFiles = "";
-              try {
-                const { execSync } = await import("node:child_process");
-                changedFiles = execSync("git diff --stat origin/main...HEAD", {
-                  encoding: "utf-8",
-                  cwd: worktreePath ?? undefined,
-                }).trim();
-              } catch {
-                /* best-effort */
-              }
-
-              createComment(
-                this.repoFullName,
-                run.prNumber,
-                renderCompletionComment(
-                  run,
-                  finalStatus,
-                  code,
-                  changedFiles,
-                  run.decisionCount,
-                  result.agentModel,
-                  result.agentDefinition,
-                  duration,
-                ),
-              );
-              createComment(
-                this.repoFullName,
-                result.issueNumber,
-                renderIssueCompletionComment(
-                  run.prNumber,
-                  finalStatus,
-                ),
-              );
-            } else {
-              const emoji = code === 0 ? "✅" : "❌";
-              const statusLabel = code === 0 ? "completed" : "failed";
-              createComment(
-                this.repoFullName,
-                result.issueNumber,
-                `${emoji} **Auto-Dev** workflow **${statusLabel}** (exit ${code}).\n\nRun ID: \`${run.id}\``,
-              );
-            }
+            const { execSync } = await import("node:child_process");
+            changedFiles = execSync("git diff --stat origin/main...HEAD", {
+              encoding: "utf-8",
+              cwd: worktreePath ?? undefined,
+            }).trim();
           } catch {
             /* best-effort */
+          }
+          // Retry both push and completion comment together until comment is posted
+          const pushFn = worktreePath && run.branch
+            ? () => this.branchManager!.tryPushWorktree(run.branch, worktreePath!)
+            : null;
+          if (run.prNumber) {
+            const prCommentBody = renderCompletionComment(
+              run,
+              finalStatus,
+              code,
+              changedFiles,
+              run.decisionCount,
+              result.agentModel,
+              result.agentDefinition,
+              duration,
+            );
+            const issueCommentBody = renderIssueCompletionComment(run.prNumber, finalStatus);
+            await this.pushAndComment(
+              pushFn,
+              () => {
+                createComment(this.repoFullName, run.prNumber!, prCommentBody);
+                createComment(this.repoFullName, result.issueNumber, issueCommentBody);
+              },
+              `completion-run-${run.id}`,
+            );
+          } else {
+            const emoji = code === 0 ? "✅" : "❌";
+            const statusLabel = code === 0 ? "completed" : "failed";
+            await this.pushAndComment(
+              pushFn,
+              () => {
+                createComment(
+                  this.repoFullName,
+                  result.issueNumber,
+                  `${emoji} **Auto-Dev** workflow **${statusLabel}** (exit ${code}).\n\nRun ID: \`${run.id}\``,
+                );
+              },
+              `completion-run-${run.id}`,
+            );
           }
           if (worktreePath) {
             this.branchManager!.removeWorktree(worktreePath);
@@ -450,6 +475,50 @@ export class Coordinator {
     await this.socketServer?.stop();
   }
 
+  /**
+   * Combined retry loop that retries both a git push and comment creation until
+   * the comment is posted. Each iteration tries the push (once, so "Everything
+   * up-to-date" successes are cheap) and then the comment creation. Retries for
+   * up to maxAttempts × delayMs, surviving transient network outages of up to
+   * ~15 minutes (default: 45 × 20s = 900s).
+   *
+   * When `requirePushFirst` is true (re-trigger flow), the comment is only posted
+   * AFTER the push succeeds in the same iteration, so the test can reliably check
+   * commit count after seeing the completion comment.
+   */
+  private async pushAndComment(
+    pushFn: (() => boolean) | null,
+    commentFn: () => void,
+    label = "comment",
+    maxAttempts = 45,
+    delayMs = 20_000,
+    requirePushFirst = false,
+  ): Promise<void> {
+    let commented = false;
+    for (let i = 0; i < maxAttempts; i++) {
+      let pushOk = pushFn === null;
+      if (pushFn) {
+        pushOk = pushFn();
+      }
+      if (!commented && (!requirePushFirst || pushOk)) {
+        try {
+          commentFn();
+          commented = true;
+        } catch {
+          /* will retry */
+        }
+      }
+      if (commented) return;
+      if (i < maxAttempts - 1) {
+        console.warn(
+          `[auto-dev] ${label} attempt ${i + 1}/${maxAttempts} failed, retrying in ${Math.round(delayMs / 1000)}s...`,
+        );
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
+    console.warn(`[auto-dev] ${label}: all ${maxAttempts} attempts exhausted`);
+  }
+
   private startCommentPoller(): void {
     const poll = async () => {
       if (this.activeRuns.size > 0) {
@@ -475,10 +544,25 @@ export class Coordinator {
   }
 
   private collectResolutionTasks(
-    comments: { id: string; body: string; user?: { login: string }; author?: { login: string } }[],
+    comments: {
+      id: string;
+      body: string;
+      user?: { login: string };
+      author?: { login: string };
+    }[],
     runId: string,
-  ): Array<{ decisionId: string; choice: string; author: string; alias: string }> {
-    const tasks: Array<{ decisionId: string; choice: string; author: string; alias: string }> = [];
+  ): Array<{
+    decisionId: string;
+    choice: string;
+    author: string;
+    alias: string;
+  }> {
+    const tasks: Array<{
+      decisionId: string;
+      choice: string;
+      author: string;
+      alias: string;
+    }> = [];
     for (const comment of comments) {
       if (this.processedCommentIds.has(comment.id)) continue;
       this.processedCommentIds.add(comment.id);
@@ -487,13 +571,16 @@ export class Coordinator {
       for (const [, rawAlias, choice] of matches) {
         const alias = rawAlias.toLowerCase();
         const pending = listDecisions(this.workspaceRoot).find(
-          (d) => d.workflowRunId === runId && d.alias === alias && d.status === "pending",
+          (d) =>
+            d.workflowRunId === runId &&
+            d.alias === alias &&
+            d.status === "pending",
         );
         if (pending) {
           tasks.push({
             decisionId: pending.id,
             choice,
-            author: (comment.user?.login ?? comment.author?.login) ?? "unknown",
+            author: comment.user?.login ?? comment.author?.login ?? "unknown",
             alias,
           });
         }
@@ -512,7 +599,12 @@ export class Coordinator {
       await Promise.all(
         tasks.map(async ({ decisionId, choice, author, alias }) => {
           try {
-            await this.decisionManager!.resolve(decisionId, choice, author, "issue_comment");
+            await this.decisionManager!.resolve(
+              decisionId,
+              choice,
+              author,
+              "issue_comment",
+            );
             console.log(
               `[auto-dev] Resolved ${decisionId} (${alias}) via issue comment by ${author} -> ${choice}`,
             );
@@ -528,7 +620,10 @@ export class Coordinator {
     }
   }
 
-  private async processPRComments(prNumber: number, runId: string): Promise<void> {
+  private async processPRComments(
+    prNumber: number,
+    runId: string,
+  ): Promise<void> {
     try {
       const { listPRComments } = await import("../shared/gh-cli.js");
       const comments = listPRComments(this.repoFullName, prNumber);
@@ -536,7 +631,12 @@ export class Coordinator {
       await Promise.all(
         tasks.map(async ({ decisionId, choice, author, alias }) => {
           try {
-            await this.decisionManager!.resolve(decisionId, choice, author, "pr_comment");
+            await this.decisionManager!.resolve(
+              decisionId,
+              choice,
+              author,
+              "pr_comment",
+            );
             console.log(
               `[auto-dev] Resolved ${decisionId} (${alias}) via PR comment by ${author} -> ${choice}`,
             );
@@ -546,7 +646,9 @@ export class Coordinator {
         }),
       );
     } catch (err) {
-      console.error(`[auto-dev] PR comment poll error for PR #${prNumber}: ${String(err)}`);
+      console.error(
+        `[auto-dev] PR comment poll error for PR #${prNumber}: ${String(err)}`,
+      );
     }
   }
 
@@ -555,7 +657,9 @@ export class Coordinator {
       try {
         const { listPRs, listPRComments } = await import("../shared/gh-cli.js");
         const prs = listPRs(this.repoFullName, "open");
-        const autoDevPRs = prs.filter((pr) => pr.headRefName.startsWith("auto-dev/issue-"));
+        const autoDevPRs = prs.filter((pr) =>
+          pr.headRefName.startsWith("auto-dev/issue-"),
+        );
 
         for (const pr of autoDevPRs) {
           const comments = listPRComments(this.repoFullName, pr.number);
@@ -565,13 +669,15 @@ export class Coordinator {
             this.processedCommentIds.add(comment.id);
 
             if (comment.body.includes("<!-- auto-dev-bot -->")) continue;
-            const author = (comment.user?.login ?? comment.author?.login) ?? "";
+            const author = comment.user?.login ?? comment.author?.login ?? "";
             if (author === "auto-dev[bot]") continue;
 
             const match = comment.body.match(/@autodev\b/i);
             if (!match) continue;
 
-            const instruction = comment.body.slice(match.index! + "@autodev".length).trim();
+            const instruction = comment.body
+              .slice(match.index! + "@autodev".length)
+              .trim();
             if (!instruction) continue;
 
             console.log(
@@ -581,7 +687,9 @@ export class Coordinator {
             const runs = this.workflowManager!.listAll();
             const run = runs.find((r) => r.prNumber === pr.number);
             if (!run) {
-              console.warn(`[auto-dev] No WorkflowRun found for PR #${pr.number}`);
+              console.warn(
+                `[auto-dev] No WorkflowRun found for PR #${pr.number}`,
+              );
               continue;
             }
 
@@ -609,12 +717,11 @@ export class Coordinator {
     commentBody: string,
     prNumber: number,
   ): Promise<void> {
-    const { parseFrontmatter, stripFrontmatter } = await import(
-      "../shared/frontmatter-parser.js"
-    );
+    const { parseFrontmatter, stripFrontmatter } =
+      await import("../shared/frontmatter-parser.js");
     const frontmatterConfig = parseFrontmatter(commentBody);
 
-    const agentDefinition = frontmatterConfig?.agent ?? "one-shot-fix";
+    const agentDefinition = frontmatterConfig?.agent ?? "retrigger";
     const model = frontmatterConfig?.model ?? run.agentModel;
     const effort = frontmatterConfig?.effort ?? run.agentEffort;
 
@@ -623,6 +730,8 @@ export class Coordinator {
       "tools/auto-dev/worktrees",
       `issue-${run.issueNumber}`,
     );
+
+    const instruction = stripFrontmatter(commentBody).trim();
 
     const issueContext = [
       `## Re-Trigger on PR #${prNumber}`,
@@ -633,19 +742,45 @@ export class Coordinator {
       "",
       "## Instruction",
       "",
-      stripFrontmatter(commentBody).trim(),
+      instruction,
     ].join("\n");
 
     console.log(
       `[auto-dev] Dispatching re-trigger agent "${agentDefinition}" for PR #${prNumber}`,
     );
 
+    // Recreate the worktree if it was removed after the first agent run.
+    // Without this, spawn throws ENOENT because cwd doesn't exist.
+    try {
+      this.branchManager!.ensureWorktree(run.branch, worktreePath);
+    } catch (err) {
+      console.error(
+        `[auto-dev] Failed to ensure worktree for re-trigger PR #${prNumber}: ${String(err)}`,
+      );
+      return;
+    }
+
+    // Post a "Working" comment on the PR before dispatching the agent
+    try {
+      createComment(
+        this.repoFullName,
+        prNumber,
+        renderRetriggerWorkingComment(run, agentDefinition, instruction),
+      );
+    } catch {
+      /* best-effort */
+    }
+
     this.auditLogger!.log({
       id: randomUUID(),
       workflowRunId: run.id,
       timestamp: new Date().toISOString(),
       type: "workflow_started",
-      payload: { provider: "claude-code", agentDef: agentDefinition, trigger: "pr_comment" },
+      payload: {
+        provider: "claude-code",
+        agentDef: agentDefinition,
+        trigger: "pr_comment",
+      },
     });
 
     try {
@@ -659,22 +794,47 @@ export class Coordinator {
         agentWorkdir: worktreePath,
       })) {
         if (event.type === "exit") {
+          const code = event.exitCode ?? 0;
           console.log(
-            `[auto-dev] Re-trigger agent for PR #${prNumber} completed (exit ${event.exitCode})`,
+            `[auto-dev] Re-trigger agent for PR #${prNumber} completed (exit ${code})`,
           );
-          try {
-            createComment(
+          // Retry both push and re-trigger completion comment together.
+          // requirePushFirst=true ensures the comment is only posted after the push
+          // succeeds, so the test can reliably check commit count after the comment.
+          await this.pushAndComment(
+            () => this.branchManager!.tryPushWorktree(run.branch, worktreePath),
+            () => createComment(
               this.repoFullName,
               prNumber,
-              `<!-- auto-dev-bot -->\n\nRe-trigger completed (exit ${event.exitCode ?? 0}).\nAgent: \`${agentDefinition}\``,
-            );
-          } catch {
-            /* best-effort */
-          }
+              renderRetriggerCompletionComment(run, agentDefinition, code),
+            ),
+            `retrigger-completion-pr-${prNumber}`,
+            45,
+            20_000,
+            true, // requirePushFirst
+          );
         }
       }
     } catch (err) {
-      console.error(`[auto-dev] Re-trigger agent error for PR #${prNumber}: ${String(err)}`);
+      console.error(
+        `[auto-dev] Re-trigger agent error for PR #${prNumber}: ${String(err)}`,
+      );
+      try {
+        createComment(
+          this.repoFullName,
+          prNumber,
+          renderRetriggerCompletionComment(run, agentDefinition, 1),
+        );
+      } catch {
+        /* best-effort */
+      }
+    } finally {
+      // Clean up worktree after re-trigger agent finishes
+      try {
+        this.branchManager!.removeWorktree(worktreePath);
+      } catch {
+        /* best-effort */
+      }
     }
   }
 }

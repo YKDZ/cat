@@ -1,5 +1,8 @@
 import { execFileSync, execSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
+
+import { getAuthEnv } from "../shared/github-app-auth.js";
 
 const git = (args: string[], cwd: string): string => {
   try {
@@ -65,6 +68,12 @@ export class BranchManager {
     } catch {
       /* branch didn't exist, that's fine */
     }
+    // Also delete the remote branch so the initial push is never rejected
+    try {
+      git(["push", "origin", "--delete", branch], this.workspaceRoot);
+    } catch {
+      /* remote branch didn't exist, that's fine */
+    }
     git(["branch", branch, "origin/main"], this.workspaceRoot);
 
     // Remove stale worktree path if it already exists
@@ -85,6 +94,51 @@ export class BranchManager {
     } catch {
       // best-effort cleanup
     }
+  }
+
+  /**
+   * Ensure a worktree exists at `worktreePath` for the given `branch`.
+   * If the worktree was previously removed (e.g. after a first agent run),
+   * it is recreated from the remote branch so the re-trigger agent has a valid
+   * cwd to work in.
+   */
+  ensureWorktree(branch: string, worktreePath: string): void {
+    if (existsSync(worktreePath)) return;
+
+    // Fetch the latest state of the branch from origin
+    try {
+      git(["fetch", "origin", branch], this.workspaceRoot);
+    } catch {
+      // Branch may be local-only; continue anyway
+    }
+
+    // Remove any stale worktree registration without a physical directory
+    try {
+      git(["worktree", "prune"], this.workspaceRoot);
+    } catch {
+      /* best-effort */
+    }
+
+    git(["worktree", "add", worktreePath, branch], this.workspaceRoot);
+  }
+
+  /**
+   * Attempt a single push of locally-committed work to origin.
+   * Returns true on success, false on failure.
+   * The caller is responsible for retry logic.
+   */
+  tryPushWorktree(branch: string, worktreePath: string): boolean {
+    try {
+      git(["push", "--force-with-lease", "origin", `${branch}:${branch}`], worktreePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /** @deprecated Use tryPushWorktree with coordinator-level retry loop instead */
+  pushWorktree(branch: string, worktreePath: string): void {
+    this.tryPushWorktree(branch, worktreePath);
   }
 
   commitAndPush(branch: string, message: string, cwd?: string): void {
@@ -116,7 +170,11 @@ export class BranchManager {
         "--body",
         body,
       ],
-      { encoding: "utf-8", cwd: this.workspaceRoot },
+      {
+        encoding: "utf-8",
+        cwd: this.workspaceRoot,
+        env: { ...process.env, ...getAuthEnv() },
+      },
     ).trim();
     const match = output.match(/\/pull\/(\d+)/);
     return { number: match ? parseInt(match[1], 10) : 0, url: output };
@@ -162,14 +220,20 @@ export class BranchManager {
     }
   }
 
-  verifyBranchSource(issueNumber: number): { branch: string; mergeBase: string } {
+  verifyBranchSource(issueNumber: number): {
+    branch: string;
+    mergeBase: string;
+  } {
     const branch = `auto-dev/issue-${issueNumber}`;
-    const mergeBase = git(["merge-base", branch, "origin/main"], this.workspaceRoot);
+    const mergeBase = git(
+      ["merge-base", branch, "origin/main"],
+      this.workspaceRoot,
+    );
     const mainHead = git(["rev-parse", "origin/main"], this.workspaceRoot);
     if (mergeBase !== mainHead) {
       throw new Error(
         `Branch ${branch} was NOT created from current origin/main.\n` +
-        `  merge-base: ${mergeBase.slice(0, 8)}\n  origin/main: ${mainHead.slice(0, 8)}`,
+          `  merge-base: ${mergeBase.slice(0, 8)}\n  origin/main: ${mainHead.slice(0, 8)}`,
       );
     }
     return { branch, mergeBase };
