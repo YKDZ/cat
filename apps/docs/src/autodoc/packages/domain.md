@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 314
+* **Modules**: 315
 
-* **Exported functions**: 336
+* **Exported functions**: 337
 
-* **Exported types**: 436
+* **Exported types**: 437
 
 ## Function Index
 
@@ -2620,6 +2620,26 @@ export const listProjectMemories: Query<
 > = async (ctx: DbContext, query: { projectId: string; }) => {...}
 ```
 
+### `listTemplateMemorySuggestions`
+
+```ts
+/**
+ * Query `MemoryRecallVariant` by direct equality match on `meta->>'template'`.
+ *
+ * This bypasses pg_trgm similarity entirely, making it suitable for
+ * template-based recall where semantically-equivalent placeholder forms
+ * (e.g. "1.20" → "1.21" → "{NUM_0}.{NUM_1}") would score too low under
+ * trigram similarity to surface via the variant channel.
+ *
+ * The template string is stored in the variant's `meta` field during variant
+ * building (`buildMemoryRecallVariantsOp`), keyed as `"template"`.
+ */
+export const listTemplateMemorySuggestions: Query<
+  ListTemplateMemorySuggestionsQuery,
+  RawMemorySuggestion[]
+> = async (ctx: DbContext, query: { sourceTemplate: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }) => {...}
+```
+
 ### `listVariantMemorySuggestions`
 
 ```ts
@@ -3933,6 +3953,8 @@ export const searchChunkCosineSimilarity: Query<
 * `ListOwnedMemoriesQuery` (type)
 
 * `ListProjectMemoriesQuery` (type)
+
+* `ListTemplateMemorySuggestionsQuery` (type)
 
 * `ListVariantMemorySuggestionsQuery` (type)
 

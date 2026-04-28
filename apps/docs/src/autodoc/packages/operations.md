@@ -757,7 +757,7 @@ export const registerDomainEventHandlers = (db: DrizzleClient, options?: { plugi
 
 ```ts
 /**
- * Register the vectorization queue consumer. Event-driven + startup recovery.
+ * Register the vectorization queue consumer. Event-driven + background startup recovery.
  */
 export const registerVectorizationConsumer = async (queue: TaskQueue<VectorizationTask>, options?: { batchSize?: number }): Promise<void>
 ```

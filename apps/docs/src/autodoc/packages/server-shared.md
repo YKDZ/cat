@@ -6,7 +6,7 @@ Shared server utilities
 
 * **Modules**: 10
 
-* **Exported functions**: 21
+* **Exported functions**: 22
 
 * **Exported types**: 4
 
@@ -64,10 +64,19 @@ export const collectLLMResponse = async (stream: AsyncIterable<LLMChunk>): Promi
 
 ```ts
 /**
- * 尝试从 HTTP 请求头判断客户端是否为手机。
- * 可在 SSR 环境中直接使用。
+ * 尝试从 Node.js HTTP 请求头判断客户端是否为手机。
  */
 export function detectMobile(req: IncomingMessage): boolean
+```
+
+### `detectMobileFromRequest`
+
+```ts
+/**
+ * 尝试从 Web API Request 请求头判断客户端是否为手机。
+ * 可在 SSR 环境中直接使用（包括 Vite dev 模式）。
+ */
+export function detectMobileFromRequest(req: Request): boolean
 ```
 
 ### `hashPassword`
