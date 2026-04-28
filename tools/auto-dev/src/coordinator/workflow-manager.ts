@@ -1,4 +1,13 @@
-import type { WorkflowPhase } from "../shared/types.js";
+import { randomUUID } from "node:crypto";
+import type { WorkflowRun, WorkflowStatus, WorkflowPhase } from "../shared/types.js";
+import { saveWorkflowRun, loadWorkflowRun, listWorkflowRuns } from "../state-store/index.js";
+import type { PollResult } from "./issue-poller.js";
+
+const deriveNamespace = (issueNumber: number): string =>
+  `auto-dev-${issueNumber}`;
+
+const deriveBranch = (issueNumber: number): string =>
+  `auto-dev/issue-${issueNumber}`;
 
 export class WorkflowManager {
   private readonly workspaceRoot: string;
@@ -7,30 +16,59 @@ export class WorkflowManager {
     this.workspaceRoot = workspaceRoot;
   }
 
-  async createRun(result: any, repoFullName: string): Promise<any> {
-    void this.workspaceRoot;
-    return null;
+  async createRun(
+    result: PollResult,
+    repoFullName: string,
+  ): Promise<WorkflowRun> {
+    const now = new Date().toISOString();
+    const run: WorkflowRun = {
+      id: randomUUID(),
+      issueNumber: result.issueNumber,
+      repoFullName,
+      currentPhase: null,
+      status: "pending",
+      branch: deriveBranch(result.issueNumber),
+      agentProvider: result.agentProvider as WorkflowRun["agentProvider"],
+      agentModel: result.agentModel as WorkflowRun["agentModel"],
+      agentEffort: result.agentEffort as WorkflowRun["agentEffort"],
+      agentDefinition: result.agentDefinition,
+      runId: null,
+      namespace: deriveNamespace(result.issueNumber),
+      startedAt: now,
+      updatedAt: now,
+      decisionCount: 0,
+      pendingDecisionIds: [],
+    };
+
+    await saveWorkflowRun(this.workspaceRoot, run);
+    return run;
   }
 
-  async updateStatus(runId: string, status: any): Promise<void> {
-    void this.workspaceRoot;
-    void runId;
-    void status;
+  async updateStatus(runId: string, status: WorkflowStatus): Promise<void> {
+    const run = loadWorkflowRun(this.workspaceRoot, runId);
+    if (!run) return;
+
+    run.status = status;
+    run.updatedAt = new Date().toISOString();
+    await saveWorkflowRun(this.workspaceRoot, run);
   }
 
   async updatePhase(runId: string, phase: WorkflowPhase): Promise<void> {
-    void this.workspaceRoot;
-    void runId;
-    void phase;
+    const run = loadWorkflowRun(this.workspaceRoot, runId);
+    if (!run) return;
+
+    run.currentPhase = phase;
+    run.updatedAt = new Date().toISOString();
+    await saveWorkflowRun(this.workspaceRoot, run);
   }
 
-  listActive(): any[] {
-    void this.workspaceRoot;
-    return [];
+  listActive(): WorkflowRun[] {
+    return listWorkflowRuns(this.workspaceRoot).filter(
+      (r) => !["completed", "failed", "desynced"].includes(r.status),
+    );
   }
 
-  listAll(): any[] {
-    void this.workspaceRoot;
-    return [];
+  listAll(): WorkflowRun[] {
+    return listWorkflowRuns(this.workspaceRoot);
   }
 }
