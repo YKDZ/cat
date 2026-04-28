@@ -8,12 +8,12 @@ export const getDefaultFromSchema = (
   if (typeof schema === "boolean") return undefined;
 
   if (schema.default !== undefined && schema.default !== null) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     return schema.default as JSONType;
   }
 
   if (schema.type === "object" || schema.properties) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // oxlint-disable-next-line @typescript-eslint/no-explicit-any
     const obj: Record<string, any> = {};
     const properties = schema.properties || {};
 

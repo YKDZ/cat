@@ -26,17 +26,19 @@ export class DecisionManager {
   async receiveRequest(request: DecisionRequest): Promise<{
     accepted: boolean;
     remainingDecisions: number;
+    alias: string;
   }> {
     const run = loadWorkflowRun(this.workspaceRoot, request.workflowRunId);
     if (!run) {
-      return { accepted: false, remainingDecisions: 0 };
+      return { accepted: false, remainingDecisions: 0, alias: "" };
     }
 
     if (run.decisionCount >= this.config.maxDecisionPerRun) {
-      return { accepted: false, remainingDecisions: 0 };
+      return { accepted: false, remainingDecisions: 0, alias: "" };
     }
 
     const remaining = this.config.maxDecisionPerRun - run.decisionCount;
+    const alias = `d${run.decisionCount + 1}`;
 
     const decision: DecisionBlock = {
       id: request.id,
@@ -45,6 +47,7 @@ export class DecisionManager {
       options: request.options,
       recommendation: request.recommendation,
       context: request.context,
+      alias,
       status: "pending",
       resolution: null,
       resolvedBy: null,
@@ -62,7 +65,7 @@ export class DecisionManager {
     run.updatedAt = new Date().toISOString();
     await saveWorkflowRun(this.workspaceRoot, run);
 
-    return { accepted: true, remainingDecisions: remaining - 1 };
+    return { accepted: true, remainingDecisions: remaining - 1, alias };
   }
 
   async resolve(

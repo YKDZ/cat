@@ -3,26 +3,30 @@ set -euo pipefail
 
 echo "[auto-dev] Starting container..."
 
-if [ -f /workspace/pnpm-lock.yaml ]; then
-  echo "[auto-dev] Installing dependencies..."
-  cd /workspace && pnpm install --frozen-lockfile
+# Configure SSH password if provided
+if [ -n "${SSH_PASSWORD:-}" ]; then
+  echo "root:${SSH_PASSWORD}" | chpasswd
+  echo "[auto-dev] SSH password set."
 fi
 
-echo "[auto-dev] Building auto-dev..."
-cd /workspace && pnpm moon run auto-dev:build
-
-echo "[auto-dev] Configuring SSH..."
-node -e "
-  const { generateSSHConfig } = require('/workspace/tools/auto-dev/dist/ssh/ssh-config.js');
-  generateSSHConfig();
-" 2>/dev/null || echo "[auto-dev] SSH config generation skipped (dist not found)"
+# Configure SSH public key if provided
+if [ -n "${SSH_PUBLIC_KEY:-}" ]; then
+  mkdir -p /root/.ssh
+  echo "${SSH_PUBLIC_KEY}" >> /root/.ssh/authorized_keys
+  chmod 700 /root/.ssh
+  chmod 600 /root/.ssh/authorized_keys
+  echo "[auto-dev] SSH public key installed."
+fi
 
 echo "[auto-dev] Starting SSH daemon..."
 mkdir -p /var/run/sshd
 /usr/sbin/sshd -D -e &
-SSHD_PID=$!
 
 REPO_FULL_NAME="${GITHUB_REPOSITORY:-owner/repo}"
+DIST="/workspace/tools/auto-dev/dist/cli.js"
+
+echo "[auto-dev] Waiting for dist to be available at ${DIST}..."
+until [ -f "${DIST}" ]; do sleep 1; done
 
 echo "[auto-dev] Starting coordinator for $REPO_FULL_NAME..."
-exec node /workspace/tools/auto-dev/dist/cli.js start --repo "$REPO_FULL_NAME"
+exec node "${DIST}" start --repo "$REPO_FULL_NAME"

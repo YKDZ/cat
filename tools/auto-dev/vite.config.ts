@@ -3,10 +3,6 @@ import dts from "unplugin-dts/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  ssr: {
-    external: ["zod"],
-  },
-
   resolve: {
     alias: {
       "@": resolve(import.meta.dirname, "src"),

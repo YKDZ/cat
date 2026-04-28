@@ -2,9 +2,9 @@
 
 export type AgentProvider = "claude-code" | "copilot";
 
-export type AgentModel = "opus" | "sonnet" | "haiku";
+export type AgentModel = string;
 
-export type AgentEffort = "high" | "medium" | "low";
+export type AgentEffort = "xhigh" | "high" | "medium" | "low" | "max";
 
 // ── Workflow types ────────────────────────────────────────────────────
 
@@ -65,6 +65,8 @@ export interface DecisionBlock {
   options: DecisionOption[];
   recommendation: string;
   context: string | null;
+  /** Short human-readable alias, e.g. "d1", "d2". Used for issue-comment resolution. */
+  alias: string;
   status: DecisionStatus;
   resolution: string | null;
   resolvedBy: string | null;

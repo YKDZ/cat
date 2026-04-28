@@ -235,7 +235,7 @@ const formatContextForPrompt = (ctx: {
   if (ctx.type === "IMAGE" || ctx.type === "FILE") {
     let filename = "";
     if (typeof ctx.jsonData === "object" && ctx.jsonData !== null) {
-      // eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+      // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
       const data = ctx.jsonData as Record<string, unknown>;
       const raw = data["filename"];
       if (typeof raw === "string") filename = raw;
@@ -390,30 +390,30 @@ const loadContext = async (
     await Promise.all([
       input.config.neighborTranslations
         ? safeQuery("listNeighborElements", async () =>
-            executeQuery(dbCtx, listNeighborElements, {
-              elementId: input.elementId,
-              windowSize: WINDOW_SIZE,
-            }),
-          )
+          executeQuery(dbCtx, listNeighborElements, {
+            elementId: input.elementId,
+            windowSize: WINDOW_SIZE,
+          }),
+        )
         : Promise.resolve(null),
 
       input.config.approvedTranslations.enabled
         ? safeQuery("listDocumentApprovedTranslations", async () =>
-            executeQuery(dbCtx, listDocumentApprovedTranslations, {
-              elementId: input.elementId,
-              languageId: input.targetLanguageId,
-              maxCount: input.config.approvedTranslations.maxCount,
-            }),
-          )
+          executeQuery(dbCtx, listDocumentApprovedTranslations, {
+            elementId: input.elementId,
+            languageId: input.targetLanguageId,
+            maxCount: input.config.approvedTranslations.maxCount,
+          }),
+        )
         : Promise.resolve(null),
 
       input.config.comments.enabled
         ? safeQuery("listElementComments", async () =>
-            executeQuery(dbCtx, listElementComments, {
-              elementId: input.elementId,
-              maxCount: input.config.comments.maxCount,
-            }),
-          )
+          executeQuery(dbCtx, listElementComments, {
+            elementId: input.elementId,
+            maxCount: input.config.comments.maxCount,
+          }),
+        )
         : Promise.resolve(null),
     ]);
 
@@ -421,8 +421,8 @@ const loadContext = async (
   const includeTypes = input.config.elementContexts.includeTypes;
   const filteredContexts = input.config.elementContexts.enabled
     ? (elementInfo.contexts ?? []).filter(
-        (c) => !includeTypes || includeTypes.includes(c.type),
-      )
+      (c) => !includeTypes || includeTypes.includes(c.type),
+    )
     : [];
 
   // --- Map neighbors to the { source, translation } shape ---
@@ -442,7 +442,7 @@ const loadContext = async (
     memories: input.memories,
     terms: input.terms,
     sessionTranslations: input.sessionTranslations ?? [],
-    // eslint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+    // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     elementMeta: (elementInfo.meta as Record<string, unknown>) ?? null,
     neighborTranslations: neighbors,
     elementContexts: filteredContexts,

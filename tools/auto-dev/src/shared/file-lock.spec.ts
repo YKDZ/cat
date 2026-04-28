@@ -47,6 +47,7 @@ describe("acquireLock", () => {
       expect(fulfilled.length).toBeGreaterThanOrEqual(1);
       for (const result of fulfilled) {
         if (result.status === "fulfilled") {
+          // eslint-disable-next-line no-await-in-loop
           await result.value();
         }
       }

@@ -7,10 +7,10 @@ ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        git \
-        openssh-server \
-        curl \
-        gnupg \
+    git \
+    openssh-server \
+    curl \
+    gnupg \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
@@ -20,20 +20,19 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable \
-    && pnpm setup \
-    && pnpm install -g @anthropic-ai/claude-code
+    && pnpm setup
 
-RUN pnpm install -g playwright \
-    && npx playwright install --with-deps chromium
+RUN npm install -g @anthropic-ai/claude-code \
+    && node "$(npm root -g)/@anthropic-ai/claude-code/install.cjs"
 
 RUN mkdir -p /var/run/sshd \
-    && echo "PermitRootLogin prohibit-password" >> /etc/ssh/sshd_config \
+    && echo "PermitRootLogin yes" >> /etc/ssh/sshd_config \
     && echo "PubkeyAuthentication yes" >> /etc/ssh/sshd_config \
     && echo "PasswordAuthentication yes" >> /etc/ssh/sshd_config
 
 WORKDIR /workspace
 
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY tools/auto-dev/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["docker-entrypoint.sh"]

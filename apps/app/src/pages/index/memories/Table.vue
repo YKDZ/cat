@@ -62,7 +62,7 @@ const fetchMemories = async () => {
     memories.value = result.data;
     total.value = result.total;
   } catch (err) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.error("Failed to fetch memories:", err);
   } finally {
     isLoading.value = false;

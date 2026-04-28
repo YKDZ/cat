@@ -1,6 +1,6 @@
 import { listWorkflowRuns } from "../state-store/index.js";
 
-export const runList = async (args: string[]): Promise<void> => {
+export const runList = async (_args: string[]): Promise<void> => {
   const workspaceRoot = process.env.MOON_WORKSPACE_ROOT ?? process.cwd();
   const runs = listWorkflowRuns(workspaceRoot);
   for (const run of runs) {

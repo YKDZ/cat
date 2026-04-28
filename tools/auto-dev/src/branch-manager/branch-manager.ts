@@ -1,8 +1,9 @@
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
+import { resolve } from "node:path";
 
 const git = (args: string[], cwd: string): string => {
   try {
-    return execSync(`git ${args.join(" ")}`, {
+    return execFileSync("git", args, {
       encoding: "utf-8",
       cwd,
       stdio: ["ignore", "pipe", "pipe"],
@@ -22,12 +23,44 @@ export class BranchManager {
     this.repoFullName = repoFullName;
   }
 
-  createBranch(issueNumber: number): string {
+  createBranch(issueNumber: number): { branch: string; worktreePath: string } {
     const branch = `auto-dev/issue-${issueNumber}`;
-    git(["checkout", "main"], this.workspaceRoot);
-    git(["pull", "origin", "main"], this.workspaceRoot);
-    git(["checkout", "-b", branch], this.workspaceRoot);
-    return branch;
+    const worktreePath = resolve(
+      this.workspaceRoot,
+      "tools/auto-dev/worktrees",
+      `issue-${issueNumber}`,
+    );
+
+    // Fetch without touching the main working tree
+    git(["fetch", "origin", "main"], this.workspaceRoot);
+
+    // Create branch pointing at origin/main — delete first if it already exists
+    // (e.g. from a previously failed run)
+    try {
+      git(["branch", "-D", branch], this.workspaceRoot);
+    } catch {
+      /* branch didn't exist, that's fine */
+    }
+    git(["branch", branch, "origin/main"], this.workspaceRoot);
+
+    // Remove stale worktree path if it already exists
+    try {
+      git(["worktree", "remove", "--force", worktreePath], this.workspaceRoot);
+    } catch {
+      /* no stale worktree, that's fine */
+    }
+    // Isolated worktree — completely separate from the main working tree
+    git(["worktree", "add", worktreePath, branch], this.workspaceRoot);
+
+    return { branch, worktreePath };
+  }
+
+  removeWorktree(worktreePath: string): void {
+    try {
+      git(["worktree", "remove", "--force", worktreePath], this.workspaceRoot);
+    } catch {
+      // best-effort cleanup
+    }
   }
 
   commitAndPush(branch: string, message: string): void {
@@ -42,8 +75,22 @@ export class BranchManager {
     body: string,
     base = "main",
   ): { number: number; url: string } {
-    const output = execSync(
-      `gh pr create --repo ${this.repoFullName} --base ${base} --head ${branch} --title "${title}" --body "${body}"`,
+    const output = execFileSync(
+      "gh",
+      [
+        "pr",
+        "create",
+        "--repo",
+        this.repoFullName,
+        "--base",
+        base,
+        "--head",
+        branch,
+        "--title",
+        title,
+        "--body",
+        body,
+      ],
       { encoding: "utf-8", cwd: this.workspaceRoot },
     ).trim();
     const match = output.match(/\/pull\/(\d+)/);
@@ -54,13 +101,21 @@ export class BranchManager {
     prNumber: number,
     method: "merge" | "squash" | "rebase" = "merge",
   ): void {
-    execSync(
-      `gh pr merge ${prNumber} --${method} --repo ${this.repoFullName}`,
+    execFileSync(
+      "gh",
+      [
+        "pr",
+        "merge",
+        String(prNumber),
+        `--${method}`,
+        "--repo",
+        this.repoFullName,
+      ],
       { encoding: "utf-8", cwd: this.workspaceRoot },
     );
   }
 
-  rebaseOntoMain(branch: string): void {
+  rebaseOntoMain(_branch: string): void {
     git(["fetch", "origin", "main"], this.workspaceRoot);
     git(["rebase", "origin/main"], this.workspaceRoot);
   }

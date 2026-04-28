@@ -8,7 +8,7 @@ export const SectionConfigSchema = z.object({
   /** @zh 双语标题 @en Bilingual title */
   title: z.object({ zh: z.string(), en: z.string() }),
   /** @zh 渲染排序（升序） @en Render order (ascending) */
-  order: z.number().int().positive(),
+  order: z.int().positive(),
   /** @zh 是否在站点导航中可见 @en Whether this section is visible in site navigation */
   public: z.boolean(),
 });

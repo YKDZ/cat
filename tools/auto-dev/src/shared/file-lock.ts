@@ -14,7 +14,9 @@ export const acquireLock = async (
 
   while (true) {
     try {
+      // oxlint-disable-next-line no-await-in-loop
       const handle = await open(lockPath, "wx");
+      // oxlint-disable-next-line no-await-in-loop
       await handle.close();
 
       return async () => {
@@ -30,6 +32,7 @@ export const acquireLock = async (
           `Timed out waiting for lock on ${filePath} after ${LOCK_TIMEOUT_MS}ms`,
         );
       }
+      // oxlint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, LOCK_RETRY_MS));
     }
   }

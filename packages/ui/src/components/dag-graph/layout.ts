@@ -1,5 +1,5 @@
 // elkjs/lib/elk.bundled.js is a self-contained UMD bundle with no external WASM deps
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+// oxlint-disable-next-line @typescript-eslint/consistent-type-imports
 import ELK from "elkjs/lib/elk.bundled.js";
 
 import type {

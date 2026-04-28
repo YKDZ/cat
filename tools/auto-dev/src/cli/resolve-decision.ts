@@ -1,12 +1,25 @@
+import { parseArgs } from "node:util";
+
 import { loadConfig } from "../config/loader.js";
 import { DecisionManager } from "../decision-service/decision-manager.js";
 import { ensureStateDirs } from "../state-store/index.js";
 
 export const runResolveDecision = async (args: string[]): Promise<void> => {
-  const decisionId = args[0];
-  const choice = args[1];
+  const { values, positionals } = parseArgs({
+    args,
+    options: {
+      choice: { type: "string" },
+    },
+    allowPositionals: true,
+  });
+
+  const decisionId = positionals[0];
+  const choice = values.choice;
+
   if (!decisionId || !choice) {
-    console.error("Usage: auto-dev resolve-decision <decision-id> <choice>");
+    console.error(
+      "Usage: auto-dev resolve-decision <decision-id> --choice <key>",
+    );
     process.exit(1);
   }
 
