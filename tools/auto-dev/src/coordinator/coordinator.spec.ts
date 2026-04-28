@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("../shared/gh-cli.js", () => ({
   listIssues: vi.fn().mockReturnValue([]),
@@ -18,8 +18,8 @@ vi.mock("../config/loader.js", () => ({
   }),
 }));
 
-import { Coordinator } from "./coordinator.js";
 import { ensureStateDirs } from "../state-store/index.js";
+import { Coordinator } from "./coordinator.js";
 
 let tmpDir: string;
 let oldSocketPath: string | undefined;

@@ -1,5 +1,6 @@
 import { appendFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import type { AuditEvent } from "../shared/types.js";
 
 export class AuditLogger {
@@ -20,7 +21,10 @@ export class AuditLogger {
   log(event: AuditEvent): void {
     const dir = this.getLogDir(event.workflowRunId);
     mkdirSync(dir, { recursive: true });
-    appendFileSync(this.getLogPath(event.workflowRunId), JSON.stringify(event) + "\n");
+    appendFileSync(
+      this.getLogPath(event.workflowRunId),
+      JSON.stringify(event) + "\n",
+    );
   }
 
   read(runId: string): AuditEvent[] {

@@ -1,9 +1,10 @@
-import { createServer } from "node:net";
-import { unlinkSync, existsSync } from "node:fs";
 import type { Socket, Server } from "node:net";
 
-import type { DecisionRequest, DecisionResponse } from "../shared/types.js";
+import { unlinkSync, existsSync } from "node:fs";
+import { createServer } from "node:net";
+
 import type { AutoDevConfig } from "../config/types.js";
+import type { DecisionRequest, DecisionResponse } from "../shared/types.js";
 
 interface PendingConnection {
   socket: Socket;
@@ -46,12 +47,16 @@ export class DecisionSocketServer {
       });
 
       this.server.on("error", (err: NodeJS.ErrnoException) => {
-        console.error(`[auto-dev] Decision socket server error: ${err.message}`);
+        console.error(
+          `[auto-dev] Decision socket server error: ${err.message}`,
+        );
         reject(err);
       });
 
       this.server.listen(this.options.socketPath, () => {
-        console.log(`[auto-dev] Decision socket listening on ${this.options.socketPath}`);
+        console.log(
+          `[auto-dev] Decision socket listening on ${this.options.socketPath}`,
+        );
         resolve();
       });
     });
@@ -67,7 +72,11 @@ export class DecisionSocketServer {
       if (this.server) {
         this.server.close(() => {
           if (existsSync(this.options.socketPath)) {
-            try { unlinkSync(this.options.socketPath); } catch { /* ignore */ }
+            try {
+              unlinkSync(this.options.socketPath);
+            } catch {
+              /* ignore */
+            }
           }
           resolve();
         });
@@ -80,7 +89,9 @@ export class DecisionSocketServer {
   resolveDecision(decisionId: string, response: DecisionResponse): void {
     const pending = this.pending.get(decisionId);
     if (!pending) {
-      console.warn(`[auto-dev] No pending connection for decision ${decisionId}`);
+      console.warn(
+        `[auto-dev] No pending connection for decision ${decisionId}`,
+      );
       return;
     }
 
@@ -112,9 +123,10 @@ export class DecisionSocketServer {
       try {
         request = JSON.parse(message) as DecisionRequest;
       } catch {
-        const errorResp = JSON.stringify({
-          error: "Invalid JSON in decision request",
-        }) + "\n";
+        const errorResp =
+          JSON.stringify({
+            error: "Invalid JSON in decision request",
+          }) + "\n";
         socket.write(errorResp);
         socket.end();
         return;
@@ -125,10 +137,11 @@ export class DecisionSocketServer {
       const result = await this.options.onDecisionRequest(request);
 
       if (!result.accepted) {
-        const errorResp = JSON.stringify({
-          error: "Decision limit reached",
-          remainingDecisions: 0,
-        }) + "\n";
+        const errorResp =
+          JSON.stringify({
+            error: "Decision limit reached",
+            remainingDecisions: 0,
+          }) + "\n";
         socket.write(errorResp);
         socket.end();
         return;

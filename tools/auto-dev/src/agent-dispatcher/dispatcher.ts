@@ -1,4 +1,5 @@
 import type { AgentInvoker, AgentContext, AgentEvent } from "./protocol.js";
+
 import { ClaudeCodeAdapter } from "./adapters/claude-code.js";
 
 export class AgentDispatcher {

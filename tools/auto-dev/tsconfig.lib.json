@@ -5,10 +5,10 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "incremental": true,
-    "composite": true,
+    "composite": false,
     "tsBuildInfoFile": "dist/tsconfig.lib.tsbuildinfo",
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src"],
   "exclude": ["src/**/*.test.ts", "src/**/*.spec.ts"]
 }

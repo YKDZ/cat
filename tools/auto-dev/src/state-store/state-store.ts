@@ -1,8 +1,14 @@
-import { mkdir, writeFile } from "node:fs/promises";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-import type { WorkflowRun, DecisionBlock, IssueSyncMapping, CoordinatorState } from "../shared/types.js";
+import type {
+  WorkflowRun,
+  DecisionBlock,
+  IssueSyncMapping,
+  CoordinatorState,
+} from "../shared/types.js";
+
 import { acquireLock } from "../shared/file-lock.js";
 
 const getStateDir = (workspaceRoot: string): string =>

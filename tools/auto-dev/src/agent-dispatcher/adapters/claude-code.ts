@@ -18,11 +18,15 @@ export class ClaudeCodeAdapter implements AgentInvoker {
     const prompt = `${defContent}\n\n## Issue Context\n\n${context.issueContext}`;
 
     const args: string[] = [
-      "-p", prompt,
-      "--output-format", "stream-json",
+      "-p",
+      prompt,
+      "--output-format",
+      "stream-json",
       "--verbose",
-      "--allowedTools", "Bash(gh:*),Bash(git:*),Bash(auto-dev:*),Bash(pnpm:*),Read,Write,Edit,Glob,Grep",
-      "--max-turns", "200",
+      "--allowedTools",
+      "Bash(gh:*),Bash(git:*),Bash(auto-dev:*),Bash(pnpm:*),Read,Write,Edit,Glob,Grep",
+      "--max-turns",
+      "200",
     ];
 
     if (context.model) {

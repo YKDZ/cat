@@ -50,7 +50,10 @@ export class BranchManager {
     return { number: match ? parseInt(match[1], 10) : 0, url: output };
   }
 
-  mergePR(prNumber: number, method: "merge" | "squash" | "rebase" = "merge"): void {
+  mergePR(
+    prNumber: number,
+    method: "merge" | "squash" | "rebase" = "merge",
+  ): void {
     execSync(
       `gh pr merge ${prNumber} --${method} --repo ${this.repoFullName}`,
       { encoding: "utf-8", cwd: this.workspaceRoot },

@@ -1,20 +1,23 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync, existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
-import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
 import { createConnection } from "node:net";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { DecisionSocketServer } from "./socket-server.js";
 import type { DecisionRequest, DecisionResponse } from "../shared/types.js";
+
 import { DEFAULT_CONFIG } from "../config/types.js";
+import { DecisionSocketServer } from "./socket-server.js";
 
 let tmpDir: string;
 let socketPath: string;
 let server: DecisionSocketServer;
 
-const noopAccept = vi.fn().mockResolvedValue({ accepted: true, remainingDecisions: 19 });
+const noopAccept = vi
+  .fn()
+  .mockResolvedValue({ accepted: true, remainingDecisions: 19 });
 const noopGetResolution = vi.fn().mockResolvedValue(null);
 
 beforeEach(async () => {
@@ -134,7 +137,9 @@ describe("DecisionSocketServer", () => {
       socketPath: resolve(tmpDir, "reject.sock"),
       config: DEFAULT_CONFIG,
       workspaceRoot: tmpDir,
-      onDecisionRequest: vi.fn().mockResolvedValue({ accepted: false, remainingDecisions: 0 }),
+      onDecisionRequest: vi
+        .fn()
+        .mockResolvedValue({ accepted: false, remainingDecisions: 0 }),
       onGetResolution: noopGetResolution,
     });
 

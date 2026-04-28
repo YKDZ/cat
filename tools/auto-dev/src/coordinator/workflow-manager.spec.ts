@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
-import { WorkflowManager } from "./workflow-manager.js";
-import { ensureStateDirs, listWorkflowRuns } from "../state-store/index.js";
 import type { PollResult } from "./issue-poller.js";
+
+import { ensureStateDirs, listWorkflowRuns } from "../state-store/index.js";
+import { WorkflowManager } from "./workflow-manager.js";
 
 let tmpDir: string;
 let manager: WorkflowManager;

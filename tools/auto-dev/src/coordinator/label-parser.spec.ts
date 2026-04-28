@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { parseIssueLabels, parseAtMentionAgent, resolveAgentDefinition } from "./label-parser.js";
+
 import { DEFAULT_CONFIG } from "../config/types.js";
+import {
+  parseIssueLabels,
+  parseAtMentionAgent,
+  resolveAgentDefinition,
+} from "./label-parser.js";
 
 describe("parseIssueLabels", () => {
   it("returns all-null config for empty labels", () => {
@@ -13,7 +18,9 @@ describe("parseIssueLabels", () => {
   });
 
   it("parses agent:claude-code label", () => {
-    expect(parseIssueLabels(["agent:claude-code"]).agentProvider).toBe("claude-code");
+    expect(parseIssueLabels(["agent:claude-code"]).agentProvider).toBe(
+      "claude-code",
+    );
   });
 
   it("parses agent:copilot label", () => {
@@ -33,7 +40,9 @@ describe("parseIssueLabels", () => {
   });
 
   it("parses workflow label", () => {
-    expect(parseIssueLabels(["workflow:one-shot-fix"]).workflowAgent).toBe("one-shot-fix");
+    expect(parseIssueLabels(["workflow:one-shot-fix"]).workflowAgent).toBe(
+      "one-shot-fix",
+    );
   });
 
   it("parses pr:auto-merge label", () => {
@@ -53,8 +62,11 @@ describe("parseIssueLabels", () => {
 
   it("handles all labels together", () => {
     const result = parseIssueLabels([
-      "agent:claude-code", "model:opus", "effort:high",
-      "workflow:one-shot-fix", "pr:auto-merge",
+      "agent:claude-code",
+      "model:opus",
+      "effort:high",
+      "workflow:one-shot-fix",
+      "pr:auto-merge",
     ]);
     expect(result.agentProvider).toBe("claude-code");
     expect(result.agentModel).toBe("opus");
@@ -66,7 +78,9 @@ describe("parseIssueLabels", () => {
 
 describe("parseAtMentionAgent", () => {
   it("extracts agent name from @auto-dev mention", () => {
-    expect(parseAtMentionAgent("Do work @auto-dev one-shot-fix please")).toBe("one-shot-fix");
+    expect(parseAtMentionAgent("Do work @auto-dev one-shot-fix please")).toBe(
+      "one-shot-fix",
+    );
   });
 
   it("returns null when no @-mention", () => {

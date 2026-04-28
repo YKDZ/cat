@@ -1,5 +1,5 @@
-import { writeFileSync, mkdirSync } from "node:fs";
 import { execSync } from "node:child_process";
+import { writeFileSync, mkdirSync } from "node:fs";
 
 export const generateSSHConfig = (): void => {
   const publicKey = process.env.SSH_PUBLIC_KEY;

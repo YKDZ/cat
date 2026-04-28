@@ -1,7 +1,17 @@
 import { randomUUID } from "node:crypto";
-import type { WorkflowRun, WorkflowStatus, WorkflowPhase } from "../shared/types.js";
-import { saveWorkflowRun, loadWorkflowRun, listWorkflowRuns } from "../state-store/index.js";
+
+import type {
+  WorkflowRun,
+  WorkflowStatus,
+  WorkflowPhase,
+} from "../shared/types.js";
 import type { PollResult } from "./issue-poller.js";
+
+import {
+  saveWorkflowRun,
+  loadWorkflowRun,
+  listWorkflowRuns,
+} from "../state-store/index.js";
 
 const deriveNamespace = (issueNumber: number): string =>
   `auto-dev-${issueNumber}`;

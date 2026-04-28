@@ -1,10 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { AuditLogger } from "./audit-logger.js";
+import { resolve } from "node:path";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+
 import type { AuditEvent } from "../shared/types.js";
+
+import { AuditLogger } from "./audit-logger.js";
 
 let tmpDir: string;
 let logger: AuditLogger;
@@ -21,7 +23,8 @@ afterEach(async () => {
 describe("AuditLogger", () => {
   it("logs and reads events", () => {
     const event: AuditEvent = {
-      id: "evt-1", workflowRunId: "run-1",
+      id: "evt-1",
+      workflowRunId: "run-1",
       timestamp: new Date().toISOString(),
       type: "decision_requested",
       payload: { decisionId: "dec-1" },

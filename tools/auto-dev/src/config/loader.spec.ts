@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { loadConfig, parseIssueLabels } from "./loader.js";
 
 vi.mock("node:fs", () => ({
@@ -32,7 +33,8 @@ describe("loadConfig", () => {
   it("returns defaults when config file fails to import", async () => {
     vi.mocked(existsSync).mockImplementation((path: unknown) => {
       const p = path as string;
-      if (typeof p === "string" && p.endsWith("auto-dev.config.ts")) return true;
+      if (typeof p === "string" && p.endsWith("auto-dev.config.ts"))
+        return true;
       return false;
     });
     const config = await loadConfig("/tmp/test-workspace");
@@ -43,7 +45,8 @@ describe("loadConfig", () => {
   it("returns defaults when config fails Zod validation", async () => {
     vi.mocked(existsSync).mockImplementation((path: unknown) => {
       const p = path as string;
-      if (typeof p === "string" && p.endsWith("auto-dev.config.ts")) return true;
+      if (typeof p === "string" && p.endsWith("auto-dev.config.ts"))
+        return true;
       return false;
     });
     const config = await loadConfig("/tmp/test-workspace");

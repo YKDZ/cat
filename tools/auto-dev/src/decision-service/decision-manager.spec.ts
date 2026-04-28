@@ -1,15 +1,21 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
-import { randomUUID } from "node:crypto";
+import { resolve } from "node:path";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
-import { DecisionManager } from "./decision-manager.js";
-import { ensureStateDirs, saveWorkflowRun, loadWorkflowRun, loadDecision } from "../state-store/index.js";
 import type { WorkflowRun, DecisionRequest } from "../shared/types.js";
+
 import { DEFAULT_CONFIG } from "../config/types.js";
 import { DecisionNotFoundError } from "../shared/errors.js";
+import {
+  ensureStateDirs,
+  saveWorkflowRun,
+  loadWorkflowRun,
+  loadDecision,
+} from "../state-store/index.js";
+import { DecisionManager } from "./decision-manager.js";
 
 let tmpDir: string;
 let manager: DecisionManager;
@@ -44,7 +50,9 @@ const makeRun = (overrides: Partial<WorkflowRun> = {}): WorkflowRun => ({
   ...overrides,
 });
 
-const makeRequest = (overrides: Partial<DecisionRequest> = {}): DecisionRequest => ({
+const makeRequest = (
+  overrides: Partial<DecisionRequest> = {},
+): DecisionRequest => ({
   id: randomUUID(),
   workflowRunId: "test-run-id",
   title: "Test decision",
