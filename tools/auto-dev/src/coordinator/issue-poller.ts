@@ -1,4 +1,8 @@
 import type { AutoDevConfig } from "../config/types.js";
+import type {
+  AgentProvider,
+  AgentEffort,
+} from "../shared/types.js";
 
 import { listIssues } from "../shared/gh-cli.js";
 import { parseFrontmatter } from "../shared/frontmatter-parser.js";
@@ -11,9 +15,9 @@ export interface PollResult {
   body: string;
   labels: string[];
   agentDefinition: string;
-  agentProvider: string | null;
+  agentProvider: AgentProvider | null;
   agentModel: string | null;
-  agentEffort: string | null;
+  agentEffort: AgentEffort | null;
   autoMerge: boolean;
   permissionMode: string | null;
   maxTurns: number | null;

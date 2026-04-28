@@ -2,6 +2,17 @@ import { randomUUID } from "node:crypto";
 import { createConnection } from "node:net";
 import { parseArgs } from "node:util";
 
+import { z } from "zod/v4";
+
+const DecisionInputItemSchema = z.object({
+  id: z.string().optional(),
+  workflowRunId: z.string().optional(),
+  title: z.string().default(""),
+  options: z.array(z.unknown()).default([]),
+  recommendation: z.string().default(""),
+  context: z.string().nullable().default(null),
+});
+
 export const runRequestDecisions = async (args: string[]): Promise<void> => {
   const { values } = parseArgs({
     args,
@@ -17,14 +28,17 @@ export const runRequestDecisions = async (args: string[]): Promise<void> => {
   const rawDecisions = JSON.parse(values.decisions ?? "[]");
 
   const decisions = (Array.isArray(rawDecisions) ? rawDecisions : []).map(
-    (d: Record<string, unknown>) => ({
-      id: (d.id as string | undefined) ?? randomUUID(),
-      workflowRunId: (d.workflowRunId as string | undefined) ?? workflowRunId,
-      title: (d.title as string | undefined) ?? "",
-      options: (d.options as unknown[] | undefined) ?? [],
-      recommendation: (d.recommendation as string | undefined) ?? "",
-      context: (d.context as string | null | undefined) ?? null,
-    }),
+    (d: unknown) => {
+      const item = DecisionInputItemSchema.parse(d);
+      return {
+        id: item.id ?? randomUUID(),
+        workflowRunId: item.workflowRunId ?? workflowRunId,
+        title: item.title,
+        options: item.options,
+        recommendation: item.recommendation,
+        context: item.context,
+      };
+    },
   );
 
   if (decisions.length === 0) {
@@ -42,8 +56,8 @@ export const runRequestDecisions = async (args: string[]): Promise<void> => {
     socket.on("data", (data: Buffer) => {
       const response = data.toString("utf-8").trim();
       try {
-        const parsed = JSON.parse(response) as Record<string, unknown>;
-        if (parsed.error) {
+        const parsed: unknown = JSON.parse(response);
+        if (typeof parsed === "object" && parsed !== null && "error" in parsed) {
           console.error(JSON.stringify(parsed));
           socket.end();
           resolve();

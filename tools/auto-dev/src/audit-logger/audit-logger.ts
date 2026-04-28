@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 
 import type { AuditEvent } from "../shared/types.js";
 
+import { AuditEventSchema } from "../shared/schemas.js";
+
 export class AuditLogger {
   private readonly workspaceRoot: string;
 
@@ -35,6 +37,6 @@ export class AuditLogger {
       .trim()
       .split("\n")
       .filter((line) => line.length > 0)
-      .map((line) => JSON.parse(line) as AuditEvent);
+      .map((line) => AuditEventSchema.parse(JSON.parse(line)));
   }
 }

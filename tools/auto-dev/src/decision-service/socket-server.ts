@@ -208,12 +208,13 @@ export class DecisionSocketServer {
       parsed !== null &&
       typeof parsed === "object" &&
       "batch" in parsed &&
-      Array.isArray((parsed as { batch: unknown }).batch) &&
+      Array.isArray((parsed as Record<string, unknown>)["batch"]) &&
       this.options.onBatchDecisionRequest
     ) {
+      const batch = (parsed as Record<string, unknown>)["batch"] as unknown[];
       try {
         const batchId = randomUUID();
-        const batchRequests = ((parsed as { batch: unknown[] }).batch).map((d: unknown) =>
+        const batchRequests = batch.map((d: unknown) =>
           DecisionRequestSchema.parse(d),
         );
         const results = await this.options.onBatchDecisionRequest(batchRequests, batchId);

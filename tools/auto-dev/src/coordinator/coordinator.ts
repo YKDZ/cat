@@ -388,7 +388,7 @@ export class Coordinator {
                 run.prNumber,
                 renderCompletionComment(
                   run,
-                  finalStatus as "completed" | "failed",
+                  finalStatus,
                   code,
                   changedFiles,
                   run.decisionCount,
@@ -402,7 +402,7 @@ export class Coordinator {
                 result.issueNumber,
                 renderIssueCompletionComment(
                   run.prNumber,
-                  finalStatus as "completed" | "failed",
+                  finalStatus,
                 ),
               );
             } else {

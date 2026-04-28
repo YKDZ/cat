@@ -1,9 +1,5 @@
 import type { AutoDevConfig } from "../config/types.js";
-import type {
-  AgentProvider,
-  AgentEffort,
-  IssueLabelConfig,
-} from "../shared/types.js";
+import type { IssueLabelConfig } from "../shared/types.js";
 
 const LABEL_PREFIXES = {
   agent: "agent:",
@@ -34,7 +30,7 @@ export const parseIssueLabels = (labelNames: string[]): IssueLabelConfig => {
     } else if (label.startsWith(LABEL_PREFIXES.agent)) {
       const provider = label.slice(LABEL_PREFIXES.agent.length);
       if (provider === "claude-code" || provider === "copilot") {
-        config.agentProvider = provider as AgentProvider;
+        config.agentProvider = provider;
       }
     } else if (label.startsWith(LABEL_PREFIXES.model)) {
       const model = label.slice(LABEL_PREFIXES.model.length);
@@ -50,7 +46,7 @@ export const parseIssueLabels = (labelNames: string[]): IssueLabelConfig => {
         effort === "low" ||
         effort === "max"
       ) {
-        config.agentEffort = effort as AgentEffort;
+        config.agentEffort = effort;
       }
     } else if (label.startsWith(LABEL_PREFIXES.workflow)) {
       config.workflowAgent = label.slice(LABEL_PREFIXES.workflow.length);
