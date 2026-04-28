@@ -38,3 +38,24 @@ export class ValidationError extends Error {
     this.details = details;
   }
 }
+
+export class BranchSourceError extends Error {
+  constructor(branch: string, detail: string) {
+    super(`Branch source verification failed for ${branch}: ${detail}`);
+    this.name = "BranchSourceError";
+  }
+}
+
+export class GitHubAppAuthError extends Error {
+  constructor(message: string) {
+    super(`GitHub App auth error: ${message}`);
+    this.name = "GitHubAppAuthError";
+  }
+}
+
+export class TriggerCommentError extends Error {
+  constructor(message: string) {
+    super(`Trigger comment error: ${message}`);
+    this.name = "TriggerCommentError";
+  }
+}

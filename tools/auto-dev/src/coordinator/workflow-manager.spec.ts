@@ -32,6 +32,10 @@ const makePollResult = (issueNumber: number): PollResult => ({
   agentModel: null,
   agentEffort: null,
   autoMerge: false,
+  permissionMode: null,
+  maxTurns: null,
+  maxDecisions: null,
+  frontmatterConfig: null,
 });
 
 describe("WorkflowManager", () => {

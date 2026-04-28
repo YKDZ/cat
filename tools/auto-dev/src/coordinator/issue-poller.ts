@@ -1,6 +1,7 @@
 import type { AutoDevConfig } from "../config/types.js";
 
 import { listIssues } from "../shared/gh-cli.js";
+import { parseFrontmatter } from "../shared/frontmatter-parser.js";
 import { listWorkflowRuns } from "../state-store/index.js";
 import { parseIssueLabels, resolveAgentDefinition } from "./label-parser.js";
 
@@ -14,6 +15,10 @@ export interface PollResult {
   agentModel: string | null;
   agentEffort: string | null;
   autoMerge: boolean;
+  permissionMode: string | null;
+  maxTurns: number | null;
+  maxDecisions: number | null;
+  frontmatterConfig: import("../shared/types.js").FrontmatterConfig | null;
 }
 
 export const pollIssues = async (
@@ -45,11 +50,17 @@ export const pollIssues = async (
     if (claimedIssueNumbers.has(issue.number)) continue;
 
     const labelConfig = parseIssueLabels(labelNames);
-    const agentDefinition = resolveAgentDefinition(
-      labelConfig,
-      issue.body,
-      config,
-    );
+    const bodyFm = parseFrontmatter(issue.body);
+
+    // Resolve agent: frontmatter > labels > config default
+    let agentDefinition = resolveAgentDefinition(labelConfig, issue.body, config);
+    if (bodyFm?.agent && config.agents[bodyFm.agent]) {
+      agentDefinition = bodyFm.agent;
+    } else if (bodyFm?.agent) {
+      console.warn(
+        `[auto-dev] Frontmatter specifies agent "${bodyFm.agent}" but it is not available.`,
+      );
+    }
 
     results.push({
       issueNumber: issue.number,
@@ -58,9 +69,13 @@ export const pollIssues = async (
       labels: labelNames,
       agentDefinition,
       agentProvider: labelConfig.agentProvider,
-      agentModel: labelConfig.agentModel,
-      agentEffort: labelConfig.agentEffort,
+      agentModel: bodyFm?.model ?? labelConfig.agentModel,
+      agentEffort: bodyFm?.effort ?? labelConfig.agentEffort,
       autoMerge: labelConfig.autoMerge,
+      permissionMode: bodyFm?.permissionMode ?? labelConfig.permissionMode,
+      maxTurns: bodyFm?.maxTurns ?? labelConfig.maxTurns,
+      maxDecisions: bodyFm?.maxDecisions ?? labelConfig.maxDecisions,
+      frontmatterConfig: bodyFm,
     });
   }
 

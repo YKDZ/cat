@@ -24,9 +24,11 @@ export const GhPRSchema = z.object({
 export type GhPR = z.infer<typeof GhPRSchema>;
 
 export const GhCommentSchema = z.object({
-  id: z.string(),
+  id: z.coerce.string(),
   body: z.string(),
-  author: z.object({ login: z.string() }),
+  // REST API returns `user`, gh issue comment list --json returns `author`
+  user: z.object({ login: z.string() }).optional(),
+  author: z.object({ login: z.string() }).optional(),
 });
 
 export type GhComment = z.infer<typeof GhCommentSchema>;

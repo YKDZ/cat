@@ -112,6 +112,9 @@ const LABEL_PREFIXES = {
   effort: "effort:",
   workflow: "workflow:",
   autoMerge: "pr:auto-merge",
+  permission: "permission:",
+  maxTurns: "max-turns:",
+  maxDecisions: "max-decisions:",
 } as const;
 
 /**
@@ -124,6 +127,9 @@ export const parseIssueLabels = (labelNames: string[]): IssueLabelConfig => {
     agentEffort: null,
     workflowAgent: null,
     autoMerge: false,
+    permissionMode: null,
+    maxTurns: null,
+    maxDecisions: null,
   };
 
   for (const label of labelNames) {
@@ -146,6 +152,17 @@ export const parseIssueLabels = (labelNames: string[]): IssueLabelConfig => {
       }
     } else if (label.startsWith(LABEL_PREFIXES.workflow)) {
       config.workflowAgent = label.slice(LABEL_PREFIXES.workflow.length);
+    } else if (label.startsWith(LABEL_PREFIXES.permission)) {
+      const mode = label.slice(LABEL_PREFIXES.permission.length);
+      if (mode === "plan" || mode === "auto" || mode === "default") {
+        config.permissionMode = mode;
+      }
+    } else if (label.startsWith(LABEL_PREFIXES.maxTurns)) {
+      const val = parseInt(label.slice(LABEL_PREFIXES.maxTurns.length), 10);
+      if (!isNaN(val) && val > 0) config.maxTurns = val;
+    } else if (label.startsWith(LABEL_PREFIXES.maxDecisions)) {
+      const val = parseInt(label.slice(LABEL_PREFIXES.maxDecisions.length), 10);
+      if (!isNaN(val) && val > 0) config.maxDecisions = val;
     }
   }
 

@@ -9,6 +9,7 @@ import { runList } from "./cli/list.js";
 import { runPublishSummary } from "./cli/publish-summary.js";
 import { runReportPhase } from "./cli/report-phase.js";
 import { runRequestDecision } from "./cli/request-decision.js";
+import { runRequestDecisions } from "./cli/request-decisions.js";
 import { runRequestValidation } from "./cli/request-validation.js";
 import { runResolveDecision } from "./cli/resolve-decision.js";
 import { runStart } from "./cli/start.js";
@@ -16,6 +17,7 @@ import { runStatus } from "./cli/status.js";
 import { runStop } from "./cli/stop.js";
 import { runSyncFromIssue } from "./cli/sync-from-issue.js";
 import { runSyncToIssue } from "./cli/sync-to-issue.js";
+import { runVerifyBranchSource } from "./cli/verify-branch-source.js";
 
 const COMMANDS: Record<string, (args: string[]) => Promise<void>> = {
   start: runStart,
@@ -24,6 +26,7 @@ const COMMANDS: Record<string, (args: string[]) => Promise<void>> = {
   claim: runClaim,
   "help-request": runHelpRequest,
   "request-decision": runRequestDecision,
+  "request-decisions": runRequestDecisions,
   "resolve-decision": runResolveDecision,
   "request-validation": runRequestValidation,
   "report-phase": runReportPhase,
@@ -34,6 +37,7 @@ const COMMANDS: Record<string, (args: string[]) => Promise<void>> = {
   list: runList,
   decisions: runDecisions,
   config: runConfig,
+  "verify-branch-source": runVerifyBranchSource,
 };
 
 const main = async () => {

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { resolve } from "node:path";
 
 const git = (args: string[], cwd: string): string => {
@@ -23,6 +23,30 @@ export class BranchManager {
     this.repoFullName = repoFullName;
   }
 
+  private fetchWithRetry(): void {
+    const delaysSec = [1, 2, 4];
+    let lastError: Error | null = null;
+
+    for (let i = 0; i <= delaysSec.length; i += 1) {
+      try {
+        git(["fetch", "origin", "main"], this.workspaceRoot);
+        git(["rev-parse", "--verify", "origin/main"], this.workspaceRoot);
+        return;
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+        if (i < delaysSec.length) {
+          console.warn(
+            `[auto-dev] git fetch origin main failed (attempt ${i + 1}/3): ${lastError.message}. Retrying in ${delaysSec[i]}s...`,
+          );
+          execSync(`sleep ${delaysSec[i]}`);
+        }
+      }
+    }
+    throw new Error(
+      `Failed to fetch origin/main after 3 retries: ${lastError?.message ?? "unknown error"}`,
+    );
+  }
+
   createBranch(issueNumber: number): { branch: string; worktreePath: string } {
     const branch = `auto-dev/issue-${issueNumber}`;
     const worktreePath = resolve(
@@ -32,7 +56,7 @@ export class BranchManager {
     );
 
     // Fetch without touching the main working tree
-    git(["fetch", "origin", "main"], this.workspaceRoot);
+    this.fetchWithRetry();
 
     // Create branch pointing at origin/main — delete first if it already exists
     // (e.g. from a previously failed run)
@@ -63,10 +87,11 @@ export class BranchManager {
     }
   }
 
-  commitAndPush(branch: string, message: string): void {
-    git(["add", "-A"], this.workspaceRoot);
-    git(["commit", "-m", message], this.workspaceRoot);
-    git(["push", "-u", "origin", branch], this.workspaceRoot);
+  commitAndPush(branch: string, message: string, cwd?: string): void {
+    const dir = cwd ?? this.workspaceRoot;
+    git(["add", "-A"], dir);
+    git(["commit", "-m", message], dir);
+    git(["push", "-u", "origin", branch], dir);
   }
 
   createPR(
@@ -135,5 +160,26 @@ export class BranchManager {
     } catch {
       return false;
     }
+  }
+
+  verifyBranchSource(issueNumber: number): { branch: string; mergeBase: string } {
+    const branch = `auto-dev/issue-${issueNumber}`;
+    const mergeBase = git(["merge-base", branch, "origin/main"], this.workspaceRoot);
+    const mainHead = git(["rev-parse", "origin/main"], this.workspaceRoot);
+    if (mergeBase !== mainHead) {
+      throw new Error(
+        `Branch ${branch} was NOT created from current origin/main.\n` +
+        `  merge-base: ${mergeBase.slice(0, 8)}\n  origin/main: ${mainHead.slice(0, 8)}`,
+      );
+    }
+    return { branch, mergeBase };
+  }
+
+  updateRemoteAuth(token: string): void {
+    const repo = process.env.GITHUB_REPOSITORY ?? this.repoFullName;
+    execSync(
+      `git remote set-url origin https://x-access-token:${token}@github.com/${repo}.git`,
+      { cwd: this.workspaceRoot },
+    );
   }
 }
