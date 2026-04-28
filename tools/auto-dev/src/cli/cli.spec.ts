@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import { execSync } from "node:child_process";
+import { describe, it, expect } from "vitest";
 
 describe("CLI", () => {
   it("no subcommand prints usage", () => {

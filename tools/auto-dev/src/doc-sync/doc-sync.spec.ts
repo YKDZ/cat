@@ -1,8 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { mkdtempSync, existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
-import { resolve } from "node:path";
 import { tmpdir } from "node:os";
+import { resolve } from "node:path";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+
 import { DocSync } from "./doc-sync.js";
 
 let tmpDir: string;
@@ -27,6 +28,8 @@ describe("DocSync", () => {
   it("syncFromIssue creates issue file", async () => {
     const ns = await sync.syncFromIssue(1, "Issue body content");
     expect(ns).toBe("auto-dev-1");
-    expect(existsSync(resolve(tmpDir, "todo", "auto-dev-1", "issue.md"))).toBe(true);
+    expect(existsSync(resolve(tmpDir, "todo", "auto-dev-1", "issue.md"))).toBe(
+      true,
+    );
   });
 });

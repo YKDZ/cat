@@ -26,25 +26,31 @@ export const listIssues = (
   limit = 25,
 ): GhIssue[] => {
   const output = gh([
-    "issue", "list",
-    "--repo", repo,
-    "--label", label,
-    "--state", "open",
-    "--limit", String(limit),
-    "--json", "number,title,labels,body",
+    "issue",
+    "list",
+    "--repo",
+    repo,
+    "--label",
+    label,
+    "--state",
+    "open",
+    "--limit",
+    String(limit),
+    "--json",
+    "number,title,labels,body",
   ]);
   return JSON.parse(output) as GhIssue[];
 };
 
-export const getIssue = (
-  repo: string,
-  issueNumber: number,
-): GhIssue => {
+export const getIssue = (repo: string, issueNumber: number): GhIssue => {
   const output = gh([
-    "issue", "view",
+    "issue",
+    "view",
     String(issueNumber),
-    "--repo", repo,
-    "--json", "number,title,labels,body",
+    "--repo",
+    repo,
+    "--json",
+    "number,title,labels,body",
   ]);
   return JSON.parse(output) as GhIssue;
 };
@@ -54,12 +60,7 @@ export const createComment = (
   issueNumber: number,
   body: string,
 ): void => {
-  gh([
-    "issue", "comment",
-    String(issueNumber),
-    "--repo", repo,
-    "--body", body,
-  ]);
+  gh(["issue", "comment", String(issueNumber), "--repo", repo, "--body", body]);
 };
 
 export const updateIssueLabels = (
@@ -68,10 +69,13 @@ export const updateIssueLabels = (
   labels: string[],
 ): void => {
   gh([
-    "issue", "edit",
+    "issue",
+    "edit",
     String(issueNumber),
-    "--repo", repo,
-    "--add-label", labels.join(","),
+    "--repo",
+    repo,
+    "--add-label",
+    labels.join(","),
   ]);
 };
 
@@ -83,12 +87,18 @@ export const createPR = (
   base = "main",
 ): { number: number; url: string } => {
   const output = gh([
-    "pr", "create",
-    "--repo", repo,
-    "--title", `"${title}"`,
-    "--body", `"${body}"`,
-    "--head", head,
-    "--base", base,
+    "pr",
+    "create",
+    "--repo",
+    repo,
+    "--title",
+    `"${title}"`,
+    "--body",
+    `"${body}"`,
+    "--head",
+    head,
+    "--base",
+    base,
   ]);
   const match = output.match(/\/pull\/(\d+)/);
   return { number: match ? parseInt(match[1], 10) : 0, url: output };
@@ -99,34 +109,39 @@ export const mergePR = (
   prNumber: number,
   method: "merge" | "squash" | "rebase" = "merge",
 ): void => {
-  gh([
-    "pr", "merge", String(prNumber),
-    `--${method}`,
-    "--repo", repo,
-  ]);
+  gh(["pr", "merge", String(prNumber), `--${method}`, "--repo", repo]);
 };
 
 export const listPRs = (
   repo: string,
-  state: "open" | "closed" | "merged" = "open",
+  _state: "open" | "closed" | "merged" = "open",
 ): Array<{ number: number; title: string; headRefName: string }> => {
   const output = gh([
-    "pr", "list",
-    "--repo", repo,
-    "--state", state,
-    "--json", "number,title,headRefName",
+    "pr",
+    "list",
+    "--repo",
+    repo,
+    "--state",
+    _state,
+    "--json",
+    "number,title,headRefName",
   ]);
-  return JSON.parse(output) as Array<{ number: number; title: string; headRefName: string }>;
+  return JSON.parse(output) as Array<{
+    number: number;
+    title: string;
+    headRefName: string;
+  }>;
 };
 
-export const getPRStatus = (
-  repo: string,
-  prNumber: number,
-): string => {
+export const getPRStatus = (repo: string, prNumber: number): string => {
   return gh([
-    "pr", "view", String(prNumber),
-    "--repo", repo,
-    "--json", "state,mergeable,reviews",
+    "pr",
+    "view",
+    String(prNumber),
+    "--repo",
+    repo,
+    "--json",
+    "state,mergeable,reviews",
   ]);
 };
 
@@ -135,10 +150,18 @@ export const listIssueComments = (
   issueNumber: number,
 ): Array<{ id: string; body: string; author: { login: string } }> => {
   const output = gh([
-    "issue", "comment", "list",
+    "issue",
+    "comment",
+    "list",
     String(issueNumber),
-    "--repo", repo,
-    "--json", "id,body,author",
+    "--repo",
+    repo,
+    "--json",
+    "id,body,author",
   ]);
-  return JSON.parse(output) as Array<{ id: string; body: string; author: { login: string } }>;
+  return JSON.parse(output) as Array<{
+    id: string;
+    body: string;
+    author: { login: string };
+  }>;
 };

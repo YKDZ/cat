@@ -1,3 +1,3 @@
-export const runSyncToIssue = async (args: string[]): Promise<void> => {
-  console.log(JSON.stringify({ message: "Sync to issue not yet implemented" }));
+export const runSyncToIssue = async (_args: string[]): Promise<void> => {
+  console.log(JSON.stringify({ message: "sync-to-issue not yet implemented" }));
 };

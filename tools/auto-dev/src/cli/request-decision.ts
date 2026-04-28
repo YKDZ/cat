@@ -1,6 +1,7 @@
+import { randomUUID } from "node:crypto";
 import { createConnection } from "node:net";
 import { parseArgs } from "node:util";
-import { randomUUID } from "node:crypto";
+
 import type { DecisionRequest } from "../shared/types.js";
 
 export const runRequestDecision = async (args: string[]): Promise<void> => {

@@ -1,3 +1,5 @@
-export const runRequestValidation = async (args: string[]): Promise<void> => {
-  console.log(JSON.stringify({ message: "Validation not yet implemented" }));
+export const runRequestValidation = async (_args: string[]): Promise<void> => {
+  console.log(
+    JSON.stringify({ message: "request-validation not yet implemented" }),
+  );
 };

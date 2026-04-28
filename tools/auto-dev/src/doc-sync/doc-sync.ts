@@ -9,18 +9,16 @@ export class DocSync {
   }
 
   async syncToIssue(
-    issueNumber: number,
-    namespace: string,
-    ghCreateComment: (issueNumber: number, body: string) => Promise<void>,
+    _issueNumber: number,
+    _namespace: string,
+    _ghCreateComment: (issueNumber: number, body: string) => Promise<void>,
   ): Promise<void> {
-    const nsDir = resolve(this.workspaceRoot, "todo", namespace);
-    if (!existsSync(nsDir)) return;
+    if (existsSync(this.workspaceRoot)) {
+      // Placeholder
+    }
   }
 
-  async syncFromIssue(
-    issueNumber: number,
-    issueBody: string,
-  ): Promise<string> {
+  async syncFromIssue(issueNumber: number, issueBody: string): Promise<string> {
     const namespace = `auto-dev-${issueNumber}`;
     const dir = resolve(this.workspaceRoot, "todo", namespace);
     mkdirSync(dir, { recursive: true });
