@@ -11,11 +11,11 @@
  * Guard: skipped unless AUTO_DEV_E2E_ENABLED=1 is set.
  * Run with:
  *   AUTO_DEV_E2E_ENABLED=1 \
- *   GITHUB_APP_ID=3532408 \
- *   GITHUB_APP_PRIVATE_KEY="$(cat todo/ykdz-s-autodevbot.2026-04-28.private-key.pem)" \
- *   GITHUB_APP_INSTALLATION_ID=127819771 \
- *   ANTHROPIC_BASE_URL=https://api.deepseek.com/anthropic \
- *   ANTHROPIC_API_KEY=sk-527f57034ceb4c84bf500d3137e9c4e7 \
+ *   GITHUB_APP_ID=<app-id> \
+ *   GITHUB_APP_PRIVATE_KEY="$(cat /path/to/private-key.pem)" \
+ *   GITHUB_APP_INSTALLATION_ID=<installation-id> \
+ *   ANTHROPIC_BASE_URL=<base-url> \
+ *   ANTHROPIC_API_KEY=<api-key> \
  *   pnpm vitest run --project unit-auto-dev --reporter verbose tools/auto-dev/src/e2e/lifecycle.test.ts
  */
 
@@ -167,12 +167,12 @@ describe.skipIf(!E2E_ENABLED)("Auto-Dev full lifecycle E2E", () => {
       );
       process.env.GITHUB_APP_PRIVATE_KEY = readFileSync(keyPath, "utf-8");
     }
-    process.env.GITHUB_APP_ID ??= "3532408";
-    process.env.GITHUB_APP_INSTALLATION_ID ??= "127819771";
-
-    // deepseek model for the agent
-    process.env.ANTHROPIC_BASE_URL ??= "https://api.deepseek.com/anthropic";
-    process.env.ANTHROPIC_API_KEY ??= "sk-527f57034ceb4c84bf500d3137e9c4e7";
+    if (!process.env.GITHUB_APP_ID)
+      throw new Error("GITHUB_APP_ID env var is required for E2E tests");
+    if (!process.env.GITHUB_APP_INSTALLATION_ID)
+      throw new Error("GITHUB_APP_INSTALLATION_ID env var is required for E2E tests");
+    if (!process.env.ANTHROPIC_API_KEY)
+      throw new Error("ANTHROPIC_API_KEY env var is required for E2E tests");
 
     // Use a unique socket path to avoid conflicts with other running instances
     process.env.AUTO_DEV_SOCKET = `/tmp/auto-dev-e2e-${process.pid}.sock`;
