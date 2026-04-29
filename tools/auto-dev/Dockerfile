@@ -42,11 +42,11 @@ RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
     && npx vite build 2>&1 \
     && echo "Build complete"
 
-# Install prod deps with plain npm (avoids pnpm workspace complexity)
+# Install prod deps with plain npm using resolved versions (no catalog: protocol)
 RUN mkdir -p /opt/auto-dev \
     && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist \
-    && cp /build/tools/auto-dev/package.json /opt/auto-dev/package.json \
-    && cd /opt/auto-dev && npm install --omit=dev --no-package-lock 2>&1 | tail -5
+    && printf '{"type":"module","dependencies":{"jsonwebtoken":"^9.0.3","yaml":"2.8.3","zod":"4.3.6"}}' > /opt/auto-dev/package.json \
+    && cd /opt/auto-dev && npm install --no-package-lock 2>&1 | tail -5
 
 WORKDIR /workspace
 
