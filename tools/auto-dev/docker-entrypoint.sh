@@ -42,13 +42,13 @@ if ! git -C "${GIT_WORKSPACE_ROOT}" rev-parse --git-dir > /dev/null 2>&1; then
   git -C "${GIT_WORKSPACE_ROOT}" init
   git -C "${GIT_WORKSPACE_ROOT}" remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_FULL_NAME}.git"
   git -C "${GIT_WORKSPACE_ROOT}" fetch origin main --depth=1
-  git -C "${GIT_WORKSPACE_ROOT}" checkout -B main origin/main
+  git -C "${GIT_WORKSPACE_ROOT}" checkout -f -B main origin/main
 else
   echo "[auto-dev] Updating existing clone at ${GIT_WORKSPACE_ROOT}..."
   git -C "${GIT_WORKSPACE_ROOT}" remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO_FULL_NAME}.git"
   git -C "${GIT_WORKSPACE_ROOT}" fetch origin main --depth=1
   echo "[auto-dev] Force-resetting local main to origin/main..."
-  git -C "${GIT_WORKSPACE_ROOT}" checkout -B main origin/main
+  git -C "${GIT_WORKSPACE_ROOT}" checkout -f -B main origin/main
 fi
 git -C "${GIT_WORKSPACE_ROOT}" config user.email "auto-dev[bot]@users.noreply.github.com"
 git -C "${GIT_WORKSPACE_ROOT}" config user.name "Auto-Dev Bot"
