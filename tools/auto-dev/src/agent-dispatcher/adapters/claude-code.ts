@@ -11,7 +11,8 @@ export class ClaudeCodeAdapter implements AgentInvoker {
     const agentsDir = process.env["AUTO_DEV_AGENTS_DIR"]
       ? resolve(context.workspaceRoot, process.env["AUTO_DEV_AGENTS_DIR"])
       : resolve(context.workspaceRoot, ".claude/agents");
-    const defFile = context.agentDefinitionFile ?? `${context.agentDefinition}.md`;
+    const defFile =
+      context.agentDefinitionFile ?? `${context.agentDefinition}.md`;
     const defPath = resolve(agentsDir, defFile);
     const rawContent = existsSync(defPath)
       ? readFileSync(defPath, "utf-8")

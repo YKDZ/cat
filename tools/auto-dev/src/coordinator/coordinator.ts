@@ -406,9 +406,11 @@ export class Coordinator {
             /* best-effort */
           }
           // Retry both push and completion comment together until comment is posted
-          const pushFn = worktreePath && run.branch
-            ? () => this.branchManager!.tryPushWorktree(run.branch, worktreePath!)
-            : null;
+          const pushFn =
+            worktreePath && run.branch
+              ? () =>
+                  this.branchManager!.tryPushWorktree(run.branch, worktreePath)
+              : null;
           if (run.prNumber) {
             const prCommentBody = renderCompletionComment(
               run,
@@ -420,12 +422,19 @@ export class Coordinator {
               result.agentDefinition,
               duration,
             );
-            const issueCommentBody = renderIssueCompletionComment(run.prNumber, finalStatus);
+            const issueCommentBody = renderIssueCompletionComment(
+              run.prNumber,
+              finalStatus,
+            );
             await this.pushAndComment(
               pushFn,
               () => {
                 createComment(this.repoFullName, run.prNumber!, prCommentBody);
-                createComment(this.repoFullName, result.issueNumber, issueCommentBody);
+                createComment(
+                  this.repoFullName,
+                  result.issueNumber,
+                  issueCommentBody,
+                );
               },
               `completion-run-${run.id}`,
             );
@@ -727,7 +736,8 @@ export class Coordinator {
     const agentDefinition = frontmatterConfig?.agent ?? "retrigger";
     const model = frontmatterConfig?.model ?? run.agentModel;
     const effort = frontmatterConfig?.effort ?? run.agentEffort;
-    const retriggerDefinitionFile = this.config!.agents[agentDefinition]?.definition;
+    const retriggerDefinitionFile =
+      this.config!.agents[agentDefinition]?.definition;
 
     const worktreePath = resolve(
       this.workspaceRoot,
@@ -808,11 +818,13 @@ export class Coordinator {
           // succeeds, so the test can reliably check commit count after the comment.
           await this.pushAndComment(
             () => this.branchManager!.tryPushWorktree(run.branch, worktreePath),
-            () => createComment(
-              this.repoFullName,
-              prNumber,
-              renderRetriggerCompletionComment(run, agentDefinition, code),
-            ),
+            () => {
+              createComment(
+                this.repoFullName,
+                prNumber,
+                renderRetriggerCompletionComment(run, agentDefinition, code),
+              );
+            },
             `retrigger-completion-pr-${prNumber}`,
             45,
             20_000,
