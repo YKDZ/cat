@@ -21,7 +21,7 @@
     "@cat/test-utils": "workspace:*",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.215.0",
-    "@opentelemetry/exporter-trace-otlp-http": "^0.215.0",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.216.0",
     "@opentelemetry/sdk-metrics": "^2.7.0",
     "@opentelemetry/sdk-node": "^0.215.0",
     "@opentelemetry/sdk-trace-node": "^2.7.0",
