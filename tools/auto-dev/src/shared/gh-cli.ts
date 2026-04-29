@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 
+import { getAuthEnv } from "./github-app-auth.js";
 import {
   GhIssueSchema,
   GhPRSchema,
@@ -8,7 +9,6 @@ import {
   type GhPR,
   type GhComment,
 } from "./schemas.js";
-import { getAuthEnv } from "./github-app-auth.js";
 
 export type { GhIssue, GhPR, GhComment } from "./schemas.js";
 
@@ -168,10 +168,7 @@ export const listIssueComments = (
   repo: string,
   issueNumber: number,
 ): GhComment[] => {
-  const output = gh([
-    "api",
-    `repos/${repo}/issues/${issueNumber}/comments`,
-  ]);
+  const output = gh(["api", `repos/${repo}/issues/${issueNumber}/comments`]);
   return GhCommentSchema.array().parse(JSON.parse(output));
 };
 

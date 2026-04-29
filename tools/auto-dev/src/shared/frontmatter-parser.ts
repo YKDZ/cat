@@ -1,9 +1,17 @@
 import { parse as parseYaml } from "yaml";
+
 import type { FrontmatterConfig, AgentEffort } from "./types.js";
+import z from "zod";
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 
-const VALID_EFFORTS = new Set<string>(["xhigh", "high", "medium", "low", "max"]);
+const VALID_EFFORTS = new Set<string>([
+  "xhigh",
+  "high",
+  "medium",
+  "low",
+  "max",
+]);
 const VALID_PERMISSION_MODES = new Set(["plan", "auto", "default"]);
 
 const isValidEffort = (val: string): val is AgentEffort =>
@@ -27,8 +35,9 @@ export const parseFrontmatter = (content: string): FrontmatterConfig | null => {
     return null;
   }
 
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return null;
-  const obj: Record<string, unknown> = parsed as Record<string, unknown>;
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))
+    return null;
+  const obj: Record<string, unknown> = z.record(z.string(), z.unknown()).parse(parsed);
 
   return {
     model: typeof obj.model === "string" ? obj.model : null,

@@ -16,7 +16,15 @@ export const WorkflowRunSchema = z.object({
   issueNumber: z.number(),
   repoFullName: z.string(),
   currentPhase: z
-    .enum(["brainstorm", "iplan", "impl", "review", "fix", "doc-sync", "status"])
+    .enum([
+      "brainstorm",
+      "iplan",
+      "impl",
+      "review",
+      "fix",
+      "doc-sync",
+      "status",
+    ])
     .nullable(),
   status: z.enum([
     "pending",
@@ -40,7 +48,11 @@ export const WorkflowRunSchema = z.object({
   decisionCount: z.number(),
   pendingDecisionIds: z.array(z.string()),
   // Fields added in R7 may be absent in older state files
-  prNumber: z.number().nullable().optional().transform((v) => v ?? null),
+  prNumber: z
+    .number()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
   frontmatterConfig: FrontmatterConfigSchema.nullable()
     .optional()
     .transform((v) => v ?? null),
@@ -67,7 +79,11 @@ export const DecisionBlockSchema = z.object({
   requestedAt: z.string(),
   resolvedAt: z.string().nullable(),
   // Added in R7 — may be absent in older files
-  batchId: z.string().nullable().optional().transform((v) => v ?? null),
+  batchId: z
+    .string()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
   socketConnectionId: z.string().nullable(),
 });
 
@@ -80,9 +96,7 @@ export const CoordinatorStateSchema = z.object({
 export const IssueSyncMappingSchema = z.object({
   issueNumber: z.number(),
   namespace: z.string(),
-  syncedFiles: z.array(
-    z.object({ path: z.string(), lastSyncAt: z.string() }),
-  ),
+  syncedFiles: z.array(z.object({ path: z.string(), lastSyncAt: z.string() })),
   lastSyncAt: z.string(),
 });
 

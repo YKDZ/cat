@@ -149,18 +149,32 @@ describe("comment-templates", () => {
     expect(renderClaimComment(run, 1)).toContain(BOT_MARKER);
     expect(
       renderWorkspaceComment(run, {
-        model: null, effort: null, maxDecisions: 5,
-        agentDefinition: null, autoMerge: false,
-        issueTitle: "T", issueBody: "B",
+        model: null,
+        effort: null,
+        maxDecisions: 5,
+        agentDefinition: null,
+        autoMerge: false,
+        issueTitle: "T",
+        issueBody: "B",
       }),
     ).toContain(BOT_MARKER);
     expect(
       renderDecisionComment(
-        [{ alias: "d1", title: "T", options: [], recommendation: "a", context: null }],
+        [
+          {
+            alias: "d1",
+            title: "T",
+            options: [],
+            recommendation: "a",
+            context: null,
+          },
+        ],
         0,
       ),
     ).toContain(BOT_MARKER);
-    expect(renderCompletionComment(run, "completed", 0, "", 0, null, null, "0m")).toContain(BOT_MARKER);
+    expect(
+      renderCompletionComment(run, "completed", 0, "", 0, null, null, "0m"),
+    ).toContain(BOT_MARKER);
     expect(renderIssueCompletionComment(1, "failed")).toContain(BOT_MARKER);
   });
 });

@@ -4,19 +4,20 @@ import { resolve } from "node:path";
 
 import type { AgentInvoker, AgentContext, AgentEvent } from "../protocol.js";
 
+import { getAuthEnv } from "../../shared/github-app-auth.js";
+
 export class ClaudeCodeAdapter implements AgentInvoker {
   async *invoke(context: AgentContext): AsyncIterable<AgentEvent> {
-    const defPath = resolve(
-      context.workspaceRoot,
-      "tools/auto-dev/agents",
-      `${context.agentDefinition}.md`,
-    );
+    const agentsDir = process.env["AUTO_DEV_AGENTS_DIR"]
+      ? resolve(context.workspaceRoot, process.env["AUTO_DEV_AGENTS_DIR"])
+      : resolve(context.workspaceRoot, ".claude/agents");
+    const defFile = context.agentDefinitionFile ?? `${context.agentDefinition}.md`;
+    const defPath = resolve(agentsDir, defFile);
     const rawContent = existsSync(defPath)
       ? readFileSync(defPath, "utf-8")
       : "";
-    const { parseFrontmatter: parseFm, stripFrontmatter } = await import(
-      "../../shared/frontmatter-parser.js"
-    );
+    const { parseFrontmatter: parseFm, stripFrontmatter } =
+      await import("../../shared/frontmatter-parser.js");
     const agentFm = parseFm(rawContent);
     const defContent = stripFrontmatter(rawContent);
 
@@ -33,21 +34,27 @@ export class ClaudeCodeAdapter implements AgentInvoker {
       "stream-json",
       "--verbose",
       "--allowedTools",
-      "Bash(gh:*),Bash(git:*),Bash(auto-dev:*),Bash(pnpm:*),Read,Write,Edit,Glob,Grep",
+      "Bash,Read,Write,Edit,Glob,Grep",
       "--max-turns",
       "200",
     ];
 
-    if (model) {
-      args.push("--model", model);
-    }
+    if (model) args.push("--model", model);
 
-    if (effort) {
-      args.push("--effort", effort);
-    }
+    if (effort) args.push("--effort", effort);
 
     const env = {
       ...process.env,
+      // Inject GitHub App token so agent's `gh` calls post as the bot identity,
+      // overriding any personal credentials in ~/.config/gh/hosts.yml.
+      // Falls back gracefully when App credentials are not configured.
+      ...(() => {
+        try {
+          return getAuthEnv();
+        } catch {
+          return {};
+        }
+      })(),
       CLAUDE_CODE_TOOL_TIMEOUT_MS: "86400000",
       // Ensure auto-dev CLI subcommands always resolve state from the main
       // workspace root, not from the agent's isolated worktree cwd.

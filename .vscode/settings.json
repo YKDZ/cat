@@ -19,5 +19,8 @@
   },
   "oxc.enable.oxfmt": true,
   "oxc.enable.oxlint": true,
-  "oxc.requireConfig": false
+  "oxc.requireConfig": false,
+  "[typescript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  }
 }

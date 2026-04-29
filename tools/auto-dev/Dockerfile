@@ -45,9 +45,6 @@ RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
 # Move dist to a stable location outside the workspace mount
 RUN mkdir -p /opt/auto-dev && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist
 
-# Copy bootstrap scripts
-COPY tools/auto-dev/scripts/ /opt/auto-dev/scripts/
-
 WORKDIR /workspace
 
 COPY tools/auto-dev/docker-entrypoint.sh /usr/local/bin/

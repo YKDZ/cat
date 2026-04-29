@@ -3,7 +3,10 @@ import type { WorkflowRun } from "./types.js";
 const BOT_MARKER = "<!-- auto-dev-bot -->";
 
 /** Issue kanban-style claim comment -- minimal. */
-export const renderClaimComment = (run: WorkflowRun, prNumber: number): string =>
+export const renderClaimComment = (
+  run: WorkflowRun,
+  prNumber: number,
+): string =>
   [
     BOT_MARKER,
     "",
@@ -26,7 +29,9 @@ export const renderWorkspaceComment = (
   },
 ): string => {
   const bodySnippet =
-    config.issueBody.length > 500 ? config.issueBody.slice(0, 500) + "..." : config.issueBody;
+    config.issueBody.length > 500
+      ? config.issueBody.slice(0, 500) + "..."
+      : config.issueBody;
   return [
     BOT_MARKER,
     "",
@@ -72,7 +77,8 @@ export const renderDecisionComment = (
   const header = `**Auto-Dev** needs decisions to continue (${count} pending).`;
   const blocks = decisions.map((d) => {
     const optionLines = d.options.map(
-      (o) => `- \`${o.key}\`: ${o.label}${o.description ? ` -- ${o.description}` : ""}`,
+      (o) =>
+        `- \`${o.key}\`: ${o.label}${o.description ? ` -- ${o.description}` : ""}`,
     );
     const ctx = d.context
       ? `\n**Context**:\n> ${d.context.replace(/\n/g, "\n> ")}\n`
@@ -159,3 +165,43 @@ export const renderIssueCompletionComment = (
     `Auto-Dev ${status === "completed" ? "completed" : "failed"}. See PR #${prNumber} for details.`,
     `**Status**: ${status}`,
   ].join("\n");
+
+/** PR re-trigger "Working" comment -- posted before dispatching the re-trigger agent. */
+export const renderRetriggerWorkingComment = (
+  run: WorkflowRun,
+  agentDefinition: string,
+  instruction: string,
+): string =>
+  [
+    BOT_MARKER,
+    "",
+    "## Auto-Dev Re-Trigger Working",
+    "",
+    `**Run ID**: \`${run.id}\``,
+    `**Agent**: \`${agentDefinition}\``,
+    "",
+    "<details>",
+    "<summary>Instruction</summary>",
+    "",
+    instruction.length > 500 ? instruction.slice(0, 500) + "..." : instruction,
+    "",
+    "</details>",
+  ].join("\n");
+
+/** PR re-trigger completion comment -- posted after the re-trigger agent exits. */
+export const renderRetriggerCompletionComment = (
+  run: WorkflowRun,
+  agentDefinition: string,
+  exitCode: number,
+): string => {
+  const status = exitCode === 0 ? "completed" : "failed";
+  return [
+    BOT_MARKER,
+    "",
+    `## Auto-Dev Re-Trigger ${status === "completed" ? "Complete" : "Failed"}`,
+    "",
+    `**Status**: ${status} (exit ${exitCode})`,
+    `**Run ID**: \`${run.id}\``,
+    `**Agent**: \`${agentDefinition}\``,
+  ].join("\n");
+};

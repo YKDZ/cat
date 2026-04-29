@@ -20,14 +20,14 @@ beforeEach(() => {
 });
 
 describe("loadConfig", () => {
-  it("returns DEFAULT_CONFIG (with 4 agents) when config file is missing", async () => {
+  it("returns DEFAULT_CONFIG (with 5 agents) when config file is missing", async () => {
     vi.mocked(existsSync).mockReturnValue(false);
     const config = await loadConfig("/tmp/test-workspace");
     expect(config.defaultAgent).toBe("full-pipeline");
     expect(config.pollIntervalSec).toBe(30);
     expect(config.maxDecisionPerRun).toBe(20);
     expect(config.maxImplCycles).toBe(5);
-    expect(Object.keys(config.agents)).toHaveLength(4);
+    expect(Object.keys(config.agents)).toHaveLength(5);
   });
 
   it("returns defaults when config file fails to import", async () => {
@@ -39,7 +39,7 @@ describe("loadConfig", () => {
     });
     const config = await loadConfig("/tmp/test-workspace");
     expect(config.defaultAgent).toBe("full-pipeline");
-    expect(Object.keys(config.agents)).toHaveLength(4);
+    expect(Object.keys(config.agents)).toHaveLength(5);
   });
 
   it("returns defaults when config fails Zod validation", async () => {
@@ -68,7 +68,7 @@ describe("loadConfig", () => {
     // only happens if the config is loaded but agents are all removed
     vi.mocked(existsSync).mockReturnValue(false);
     const config = await loadConfig("/tmp/test-workspace");
-    expect(Object.keys(config.agents)).toHaveLength(4);
+    expect(Object.keys(config.agents)).toHaveLength(5);
   });
 });
 

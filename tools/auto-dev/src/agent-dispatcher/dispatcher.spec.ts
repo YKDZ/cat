@@ -20,9 +20,11 @@ describe("AgentDispatcher", () => {
     for await (const event of dispatcher.dispatch("unknown", dummyContext)) {
       events.push(event);
     }
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     const first = events[0] as Record<string, unknown>;
     expect(first.type).toBe("error");
     expect(first.data).toContain("Unknown");
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     const second = events[1] as Record<string, unknown>;
     expect(second.type).toBe("exit");
     expect(second.exitCode).toBe(1);

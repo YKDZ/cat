@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { parseFrontmatter, stripFrontmatter } from "./frontmatter-parser.js";
 
 describe("parseFrontmatter", () => {

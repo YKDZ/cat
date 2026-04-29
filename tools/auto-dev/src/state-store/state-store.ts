@@ -1,7 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-
 import { z } from "zod/v4";
 
 import type {
@@ -11,13 +10,13 @@ import type {
   CoordinatorState,
 } from "../shared/types.js";
 
+import { acquireLock } from "../shared/file-lock.js";
 import {
   WorkflowRunSchema,
   DecisionBlockSchema,
   CoordinatorStateSchema,
   IssueSyncMappingSchema,
 } from "../shared/schemas.js";
-import { acquireLock } from "../shared/file-lock.js";
 
 const getStateDir = (workspaceRoot: string): string =>
   resolve(workspaceRoot, "tools/auto-dev/state");
@@ -42,7 +41,7 @@ export const ensureStateDirs = async (workspaceRoot: string): Promise<void> => {
     getDecisionsDir(workspaceRoot),
     getSyncDir(workspaceRoot),
   ];
-  await Promise.all(dirs.map((d) => mkdir(d, { recursive: true })));
+  await Promise.all(dirs.map(async (d) => mkdir(d, { recursive: true })));
 };
 
 // ── WorkflowRun CRUD ──────────────────────────────────────────────────
@@ -69,17 +68,26 @@ export const loadWorkflowRun = (
 ): WorkflowRun | null => {
   const filePath = getRunPath(workspaceRoot, runId);
   if (!existsSync(filePath)) return null;
-  const raw = readFileSync(filePath, "utf-8");
-  return WorkflowRunSchema.parse(JSON.parse(raw)) as WorkflowRun;
+  try {
+    const raw = readFileSync(filePath, "utf-8");
+    return WorkflowRunSchema.parse(JSON.parse(raw)) as WorkflowRun;
+  } catch {
+    // File may have been partially written; treat as missing
+    return null;
+  }
 };
 
 export const listWorkflowRuns = (workspaceRoot: string): WorkflowRun[] => {
   const dir = getRunsDir(workspaceRoot);
   if (!existsSync(dir)) return [];
   const files = readdirSync(dir).filter((f: string) => f.endsWith(".json"));
-  return files.map((f: string) => {
-    const raw = readFileSync(resolve(dir, f), "utf-8");
-    return WorkflowRunSchema.parse(JSON.parse(raw)) as WorkflowRun;
+  return files.flatMap((f: string) => {
+    try {
+      const raw = readFileSync(resolve(dir, f), "utf-8");
+      return [WorkflowRunSchema.parse(JSON.parse(raw)) as WorkflowRun];
+    } catch {
+      return [];
+    }
   });
 };
 
