@@ -43,9 +43,10 @@ RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
     && echo "Build complete"
 
 # Move dist and node_modules to a stable location outside the workspace mount
+# Use -rL to dereference pnpm symlinks so packages are findable at runtime
 RUN mkdir -p /opt/auto-dev \
     && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist \
-    && cp -r /build/node_modules /opt/auto-dev/node_modules \
+    && cp -rL /build/node_modules /opt/auto-dev/node_modules \
     && echo '{"type":"module"}' > /opt/auto-dev/package.json
 
 WORKDIR /workspace
