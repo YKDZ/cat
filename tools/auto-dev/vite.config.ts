@@ -10,8 +10,8 @@ export default defineConfig({
   },
 
   ssr: {
-    // Bundle these deps into the output so they're available without node_modules at runtime
-    noExternal: ["zod", "jsonwebtoken"],
+    // Bundle all deps into the output so they're available without node_modules at runtime
+    noExternal: true,
   },
 
   build: {
