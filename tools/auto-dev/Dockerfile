@@ -43,7 +43,7 @@ RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
     && echo "Build complete"
 
 # Deploy self-contained production bundle (resolves pnpm symlinks)
-RUN pnpm deploy --filter @tools/auto-dev --prod --legacy /opt/auto-dev \
+RUN cd tools/auto-dev && pnpm deploy --prod --legacy /opt/auto-dev \
     && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist \
     && echo '{"type":"module"}' > /opt/auto-dev/package.json
 
