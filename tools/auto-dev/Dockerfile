@@ -42,10 +42,11 @@ RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
     && npx vite build 2>&1 \
     && echo "Build complete"
 
-# Deploy self-contained production bundle (resolves pnpm symlinks)
-RUN cd tools/auto-dev && pnpm deploy --prod --legacy /opt/auto-dev \
+# Install prod deps with plain npm (avoids pnpm workspace complexity)
+RUN mkdir -p /opt/auto-dev \
     && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist \
-    && echo '{"type":"module"}' > /opt/auto-dev/package.json
+    && cp /build/tools/auto-dev/package.json /opt/auto-dev/package.json \
+    && cd /opt/auto-dev && npm install --omit=dev --no-package-lock 2>&1 | tail -5
 
 WORKDIR /workspace
 
