@@ -1,5 +1,6 @@
 import { createSign } from "node:crypto";
 import * as https from "node:https";
+import z from "zod";
 
 /**
  * Bootstrap script that exchanges GitHub App credentials for an installation
@@ -47,14 +48,17 @@ function signJwt(payload: object, privateKeyPem: string): string {
 }
 
 const now = Math.floor(Date.now() / 1000);
-const appJwt = signJwt({ iat: now - 60, exp: now + 600, iss: appId }, privateKey);
+const appJwt = signJwt(
+  { iat: now - 60, exp: now + 600, iss: appId },
+  privateKey,
+);
 
 interface RequestResult {
   status: number | undefined;
   body: string;
 }
 
-function request(
+async function request(
   options: https.RequestOptions,
   body: string,
 ): Promise<RequestResult> {
@@ -64,7 +68,9 @@ function request(
       res.on("data", (chunk: string) => {
         data += chunk;
       });
-      res.on("end", () => resolve({ status: res.statusCode, body: data }));
+      res.on("end", () => {
+        resolve({ status: res.statusCode, body: data });
+      });
     });
     req.on("error", reject);
     if (body) req.write(body);
@@ -72,7 +78,7 @@ function request(
   });
 }
 
-(async () => {
+void (async () => {
   try {
     const { status, body } = await request(
       {
@@ -96,7 +102,7 @@ function request(
       process.exit(1);
     }
 
-    const json = JSON.parse(body) as { token?: string };
+    const json = z.object({ token: z.string() }).parse(JSON.parse(body));
     if (!json.token) {
       process.stderr.write(
         "[auto-dev] ERROR: No token in GitHub API response.\n",
