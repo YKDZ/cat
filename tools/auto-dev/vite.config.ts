@@ -10,8 +10,8 @@ export default defineConfig({
   },
 
   ssr: {
-    // Bundle all deps into the output so they're available without node_modules at runtime
-    noExternal: true,
+    // Bundle zod into the output so it's available without node_modules at runtime
+    noExternal: ["zod"],
   },
 
   build: {
