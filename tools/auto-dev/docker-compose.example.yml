@@ -9,7 +9,9 @@ services:
       - auto-dev-logs:/workspace/tools/auto-dev/logs
     environment:
       - GITHUB_REPOSITORY=${GITHUB_REPOSITORY}
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_APP_ID=${GITHUB_APP_ID}
+      - GITHUB_APP_PRIVATE_KEY=${GITHUB_APP_PRIVATE_KEY}
+      - GITHUB_APP_INSTALLATION_ID=${GITHUB_APP_INSTALLATION_ID}
       - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
       - SSH_PASSWORD=${SSH_PASSWORD:-}
     ports:

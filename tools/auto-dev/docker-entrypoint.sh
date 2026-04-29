@@ -26,12 +26,13 @@ REPO_FULL_NAME="${GITHUB_REPOSITORY:-owner/repo}"
 DIST="/opt/auto-dev/dist/cli.js"
 GIT_WORKSPACE_ROOT="/opt/repo"
 
-# Obtain initial installation token via bootstrap script
+# Obtain GitHub token via GitHub App (required: GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_INSTALLATION_ID)
 GITHUB_TOKEN="$(node /opt/auto-dev/dist/scripts/get-installation-token.js)"
 if [ -z "${GITHUB_TOKEN}" ]; then
-  echo "[auto-dev] ERROR: Failed to obtain GitHub App installation token."
+  echo "[auto-dev] ERROR: Failed to obtain GitHub App installation token. Ensure GITHUB_APP_ID, GITHUB_APP_PRIVATE_KEY, and GITHUB_APP_INSTALLATION_ID are set."
   exit 1
 fi
+echo "[auto-dev] GitHub App token obtained."
 export GITHUB_TOKEN
 export GH_TOKEN="${GITHUB_TOKEN}"
 
