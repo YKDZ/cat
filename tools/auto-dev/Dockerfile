@@ -42,8 +42,11 @@ RUN pnpm install --frozen-lockfile --filter @tools/auto-dev 2>&1 | tail -10 \
     && npx vite build 2>&1 \
     && echo "Build complete"
 
-# Move dist to a stable location outside the workspace mount
-RUN mkdir -p /opt/auto-dev && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist
+# Move dist and node_modules to a stable location outside the workspace mount
+RUN mkdir -p /opt/auto-dev \
+    && cp -r /build/tools/auto-dev/dist /opt/auto-dev/dist \
+    && cp -r /build/node_modules /opt/auto-dev/node_modules \
+    && echo '{"type":"module"}' > /opt/auto-dev/package.json
 
 WORKDIR /workspace
 
