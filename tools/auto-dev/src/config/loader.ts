@@ -15,11 +15,16 @@ import { DEFAULT_CONFIG } from "./types.js";
 export const loadConfig = async (
   workspaceRoot: string,
 ): Promise<AutoDevConfig> => {
-  const configPath = resolve(workspaceRoot, "auto-dev.config.ts");
+  const candidates = [
+    resolve(workspaceRoot, "auto-dev.config.ts"),
+    resolve(workspaceRoot, "auto-dev.config.mjs"),
+    resolve(workspaceRoot, "auto-dev.config.js"),
+  ];
+  const configPath = candidates.find(existsSync);
 
-  if (!existsSync(configPath)) {
+  if (!configPath) {
     console.warn(
-      `[auto-dev] No auto-dev.config.ts found at ${configPath}, using built-in defaults.`,
+      `[auto-dev] No auto-dev.config.{ts,mjs,js} found in ${workspaceRoot}, using built-in defaults.`,
     );
     return { ...DEFAULT_CONFIG };
   }
@@ -50,7 +55,12 @@ export const loadConfig = async (
   }
 
   const config: AutoDevConfig = {
-    agents: result.data.agents,
+    // When no agents are configured, inherit all defaults so the coordinator
+    // always has at least one registered agent.
+    agents:
+      Object.keys(result.data.agents).length > 0
+        ? result.data.agents
+        : DEFAULT_CONFIG.agents,
     defaultAgent: result.data.defaultAgent,
     pollIntervalSec: result.data.pollIntervalSec,
     maxDecisionPerRun: result.data.maxDecisionPerRun,
@@ -58,7 +68,9 @@ export const loadConfig = async (
   };
 
   // Validate agent definition files exist
-  const agentsDir = resolve(import.meta.dirname, "../../agents");
+  const agentsDir = process.env["AUTO_DEV_AGENTS_DIR"]
+    ? resolve(workspaceRoot, process.env["AUTO_DEV_AGENTS_DIR"])
+    : resolve(workspaceRoot, ".claude/agents");
   const validatedAgents: Record<string, AgentRegistration> = {};
 
   for (const [name, reg] of Object.entries(config.agents)) {

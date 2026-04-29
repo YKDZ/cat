@@ -22,4 +22,3 @@ export { DecisionManager } from "./decision-service/index.js";
 export { BranchManager } from "./branch-manager/index.js";
 export { ValidationGate } from "./validation/index.js";
 export { AuditLogger } from "./audit-logger/index.js";
-export { PlaywrightService } from "./headless-browser/index.js";

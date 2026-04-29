@@ -72,17 +72,37 @@ export class DecisionManager {
   async receiveBatch(
     requests: DecisionRequest[],
     batchId: string,
-  ): Promise<Array<{ accepted: boolean; id: string; alias: string; reason?: string }>> {
-    const run = loadWorkflowRun(this.workspaceRoot, requests[0]?.workflowRunId ?? "");
+  ): Promise<
+    Array<{ accepted: boolean; id: string; alias: string; reason?: string }>
+  > {
+    const run = loadWorkflowRun(
+      this.workspaceRoot,
+      requests[0]?.workflowRunId ?? "",
+    );
     if (!run) {
-      return requests.map((r) => ({ accepted: false, id: r.id, alias: "", reason: "Run not found" }));
+      return requests.map((r) => ({
+        accepted: false,
+        id: r.id,
+        alias: "",
+        reason: "Run not found",
+      }));
     }
 
-    const results: Array<{ accepted: boolean; id: string; alias: string; reason?: string }> = [];
+    const results: Array<{
+      accepted: boolean;
+      id: string;
+      alias: string;
+      reason?: string;
+    }> = [];
 
     for (const request of requests) {
       if (run.decisionCount >= this.config.maxDecisionPerRun) {
-        results.push({ accepted: false, id: request.id, alias: "", reason: "Decision limit reached" });
+        results.push({
+          accepted: false,
+          id: request.id,
+          alias: "",
+          reason: "Decision limit reached",
+        });
         continue;
       }
 

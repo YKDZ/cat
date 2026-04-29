@@ -27,7 +27,7 @@ DIST="/opt/auto-dev/dist/cli.js"
 GIT_WORKSPACE_ROOT="/opt/repo"
 
 # Obtain initial installation token via bootstrap script
-GITHUB_TOKEN="$(node /opt/auto-dev/scripts/get-installation-token.cjs)"
+GITHUB_TOKEN="$(node /opt/auto-dev/dist/scripts/get-installation-token.js)"
 if [ -z "${GITHUB_TOKEN}" ]; then
   echo "[auto-dev] ERROR: Failed to obtain GitHub App installation token."
   exit 1

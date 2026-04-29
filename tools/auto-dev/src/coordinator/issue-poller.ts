@@ -1,11 +1,8 @@
 import type { AutoDevConfig } from "../config/types.js";
-import type {
-  AgentProvider,
-  AgentEffort,
-} from "../shared/types.js";
+import type { AgentProvider, AgentEffort } from "../shared/types.js";
 
-import { listIssues } from "../shared/gh-cli.js";
 import { parseFrontmatter } from "../shared/frontmatter-parser.js";
+import { listIssues } from "../shared/gh-cli.js";
 import { listWorkflowRuns } from "../state-store/index.js";
 import { parseIssueLabels, resolveAgentDefinition } from "./label-parser.js";
 
@@ -56,15 +53,13 @@ export const pollIssues = async (
     const labelConfig = parseIssueLabels(labelNames);
     const bodyFm = parseFrontmatter(issue.body);
 
-    // Resolve agent: frontmatter > labels > config default
-    let agentDefinition = resolveAgentDefinition(labelConfig, issue.body, config);
-    if (bodyFm?.agent && config.agents[bodyFm.agent]) {
-      agentDefinition = bodyFm.agent;
-    } else if (bodyFm?.agent) {
-      console.warn(
-        `[auto-dev] Frontmatter specifies agent "${bodyFm.agent}" but it is not available.`,
-      );
-    }
+    // Resolve agent: frontmatter > workflow label > @-mention > config default
+    const agentDefinition = resolveAgentDefinition(
+      labelConfig,
+      issue.body,
+      config,
+      bodyFm,
+    );
 
     results.push({
       issueNumber: issue.number,

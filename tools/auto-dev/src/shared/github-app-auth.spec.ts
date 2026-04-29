@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
+
 import { clearTokenCache, getAuthEnv } from "./github-app-auth.js";
 
 describe("GitHub App Auth", () => {

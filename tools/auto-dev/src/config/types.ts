@@ -17,24 +17,29 @@ export interface AutoDevConfig {
 export const DEFAULT_CONFIG: AutoDevConfig = {
   agents: {
     "full-pipeline": {
-      definition: "full-pipeline.md",
+      definition: "auto-dev-full-pipeline.md",
       description: "Full brainstorm -> iplan -> impl -> review -> fix workflow",
       defaultModel: "sonnet",
     },
     "one-shot-fix": {
-      definition: "one-shot-fix.md",
+      definition: "auto-dev-one-shot-fix.md",
       description: "Directly investigate and fix from Issue error description",
       defaultModel: "haiku",
     },
     "spec-only": {
-      definition: "spec-only.md",
+      definition: "auto-dev-spec-only.md",
       description: "Brainstorm only, publish spec to Issue",
       defaultModel: "sonnet",
     },
     "impl-only": {
-      definition: "impl-only.md",
+      definition: "auto-dev-impl-only.md",
       description: "Skip design, directly implement from Issue description",
       defaultModel: "sonnet",
+    },
+    retrigger: {
+      definition: "auto-dev-retrigger.md",
+      description: "Apply a follow-up instruction to an existing PR branch",
+      defaultModel: "haiku",
     },
   },
   defaultAgent: "full-pipeline",

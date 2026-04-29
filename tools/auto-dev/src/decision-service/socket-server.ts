@@ -1,8 +1,8 @@
 import type { Socket, Server } from "node:net";
 
+import { randomUUID } from "node:crypto";
 import { unlinkSync, existsSync } from "node:fs";
 import { createServer } from "node:net";
-import { randomUUID } from "node:crypto";
 
 import type { AutoDevConfig } from "../config/types.js";
 import type { DecisionRequest, DecisionResponse } from "../shared/types.js";
@@ -27,7 +27,9 @@ export interface SocketServerOptions {
   onBatchDecisionRequest?: (
     requests: DecisionRequest[],
     batchId: string,
-  ) => Promise<Array<{ accepted: boolean; id: string; alias: string; reason?: string }>>;
+  ) => Promise<
+    Array<{ accepted: boolean; id: string; alias: string; reason?: string }>
+  >;
 }
 
 export class DecisionSocketServer {
@@ -198,7 +200,8 @@ export class DecisionSocketServer {
     try {
       parsed = JSON.parse(message);
     } catch {
-      const errorResp = JSON.stringify({ error: "Invalid JSON in decision request" }) + "\n";
+      const errorResp =
+        JSON.stringify({ error: "Invalid JSON in decision request" }) + "\n";
       socket.write(errorResp);
       socket.end();
       return { buffer, decisionId };
@@ -217,7 +220,10 @@ export class DecisionSocketServer {
         const batchRequests = batch.map((d: unknown) =>
           DecisionRequestSchema.parse(d),
         );
-        const results = await this.options.onBatchDecisionRequest(batchRequests, batchId);
+        const results = await this.options.onBatchDecisionRequest(
+          batchRequests,
+          batchId,
+        );
         socket.write(JSON.stringify({ results }) + "\n");
         socket.end();
         for (const req of batchRequests) {

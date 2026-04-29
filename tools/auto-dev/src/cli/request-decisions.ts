@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { createConnection } from "node:net";
 import { parseArgs } from "node:util";
-
 import { z } from "zod/v4";
 
 const DecisionInputItemSchema = z.object({
@@ -57,7 +56,11 @@ export const runRequestDecisions = async (args: string[]): Promise<void> => {
       const response = data.toString("utf-8").trim();
       try {
         const parsed: unknown = JSON.parse(response);
-        if (typeof parsed === "object" && parsed !== null && "error" in parsed) {
+        if (
+          typeof parsed === "object" &&
+          parsed !== null &&
+          "error" in parsed
+        ) {
           console.error(JSON.stringify(parsed));
           socket.end();
           resolve();

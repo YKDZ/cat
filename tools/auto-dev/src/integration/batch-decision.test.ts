@@ -73,7 +73,11 @@ describe("Batch Decision Flow", () => {
     await saveWorkflowRun(tmpDir, run);
     const batchId = randomUUID();
 
-    const requests = [makeRequest(run.id), makeRequest(run.id), makeRequest(run.id)];
+    const requests = [
+      makeRequest(run.id),
+      makeRequest(run.id),
+      makeRequest(run.id),
+    ];
     const results = await manager.receiveBatch(requests, batchId);
     expect(results.every((r) => r.accepted)).toBe(true);
 
@@ -89,7 +93,11 @@ describe("Batch Decision Flow", () => {
     await saveWorkflowRun(tmpDir, run);
     const batchId = randomUUID();
 
-    const requests = [makeRequest(run.id), makeRequest(run.id), makeRequest(run.id)];
+    const requests = [
+      makeRequest(run.id),
+      makeRequest(run.id),
+      makeRequest(run.id),
+    ];
     const results = await manager.receiveBatch(requests, batchId);
 
     expect(results[0]?.alias).toBe("d1");
@@ -138,7 +146,10 @@ describe("Batch Decision Flow", () => {
 
     // Batch next → d2, d3
     const batchRequests = [makeRequest(run.id), makeRequest(run.id)];
-    const batchResults = await manager.receiveBatch(batchRequests, randomUUID());
+    const batchResults = await manager.receiveBatch(
+      batchRequests,
+      randomUUID(),
+    );
     expect(batchResults[0]?.alias).toBe("d2");
     expect(batchResults[1]?.alias).toBe("d3");
   });

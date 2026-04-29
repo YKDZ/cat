@@ -324,6 +324,7 @@ export class Coordinator {
     await this.workflowManager!.updateStatus(run.id, "running");
     const provider = result.agentProvider ?? "claude-code";
     const agentDef = result.agentDefinition ?? this.config!.defaultAgent;
+    const agentDefinitionFile = this.config!.agents[agentDef]?.definition;
 
     const issueContext = [
       `## Issue #${result.issueNumber}: ${result.title}`,
@@ -349,6 +350,7 @@ export class Coordinator {
         systemPrompt: "",
         issueContext,
         agentDefinition: agentDef,
+        agentDefinitionFile,
         model: result.agentModel,
         effort: result.agentEffort,
         workspaceRoot: this.workspaceRoot,
@@ -495,7 +497,7 @@ export class Coordinator {
     requirePushFirst = false,
   ): Promise<void> {
     let commented = false;
-    for (let i = 0; i < maxAttempts; i++) {
+    for (let i = 0; i < maxAttempts; i += 1) {
       let pushOk = pushFn === null;
       if (pushFn) {
         pushOk = pushFn();
@@ -513,6 +515,7 @@ export class Coordinator {
         console.warn(
           `[auto-dev] ${label} attempt ${i + 1}/${maxAttempts} failed, retrying in ${Math.round(delayMs / 1000)}s...`,
         );
+        // oxlint-disable-next-line no-await-in-loop
         await new Promise((r) => setTimeout(r, delayMs));
       }
     }
@@ -724,6 +727,7 @@ export class Coordinator {
     const agentDefinition = frontmatterConfig?.agent ?? "retrigger";
     const model = frontmatterConfig?.model ?? run.agentModel;
     const effort = frontmatterConfig?.effort ?? run.agentEffort;
+    const retriggerDefinitionFile = this.config!.agents[agentDefinition]?.definition;
 
     const worktreePath = resolve(
       this.workspaceRoot,
@@ -788,6 +792,7 @@ export class Coordinator {
         systemPrompt: "",
         issueContext,
         agentDefinition,
+        agentDefinitionFile: retriggerDefinitionFile,
         model,
         effort,
         workspaceRoot: this.workspaceRoot,

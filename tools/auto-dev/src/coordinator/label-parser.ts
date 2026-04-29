@@ -1,5 +1,5 @@
 import type { AutoDevConfig } from "../config/types.js";
-import type { IssueLabelConfig } from "../shared/types.js";
+import type { FrontmatterConfig, IssueLabelConfig } from "../shared/types.js";
 
 const LABEL_PREFIXES = {
   agent: "agent:",
@@ -72,11 +72,29 @@ export const parseAtMentionAgent = (body: string): string | null => {
   return match?.[1] ?? null;
 };
 
+/**
+ * Resolve the agent definition name from multiple sources, in priority order:
+ *   1. Issue body YAML frontmatter (`agent:` field) — user's explicit choice
+ *   2. `workflow:*` label — legacy label-based configuration
+ *   3. `@auto-dev <agentName>` mention in body — legacy inline mention
+ *   4. Config default
+ */
 export const resolveAgentDefinition = (
   labels: IssueLabelConfig,
   body: string,
   config: AutoDevConfig,
+  frontmatter: FrontmatterConfig | null = null,
 ): string => {
+  // Frontmatter is highest priority — user-specified in issue body YAML
+  if (frontmatter?.agent) {
+    if (config.agents[frontmatter.agent]) {
+      return frontmatter.agent;
+    }
+    console.warn(
+      `[auto-dev] Frontmatter specifies agent "${frontmatter.agent}" but it is not available.`,
+    );
+  }
+
   if (labels.workflowAgent) {
     if (config.agents[labels.workflowAgent]) {
       return labels.workflowAgent;
