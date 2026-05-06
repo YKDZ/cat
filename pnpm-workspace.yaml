@@ -28,8 +28,8 @@ catalog:
   vue: ^3.5.33
   yaml: ^2.8.3
   zod: ^4.3.6
-  drizzle-orm: 1.0.0-beta.23
-  drizzle-kit: 1.0.0-beta.23
+  drizzle-orm: 1.0.0-rc.2
+  drizzle-kit: 1.0.0-rc.2
   drizzle-seed: ^0.3.1
 
 linkWorkspacePackages: true
