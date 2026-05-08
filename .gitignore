@@ -108,10 +108,7 @@ vitest.config.*.timestamp*
 
 .pnpm-store
 
-todo/
-TODO*
-TEMP*
-PLAN*
+docs/
 
 .github/prompts
 
