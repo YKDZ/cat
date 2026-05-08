@@ -51,7 +51,7 @@ import {
 import { sql } from "drizzle-orm";
 import {
   pgEnum,
-  pgTable,
+  snakeCase,
   uuid,
   serial,
   text,
@@ -161,7 +161,7 @@ const timestamps = {
   updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
 };
 
-export const account = pgTable(
+export const account = snakeCase.table(
   "Account",
   {
     id: serial().primaryKey(),
@@ -184,7 +184,7 @@ export const account = pgTable(
   (table) => [unique().on(table.providerIssuer, table.providedAccountId)],
 );
 
-export const mfaProvider = pgTable("MFAProvider", {
+export const mfaProvider = snakeCase.table("MFAProvider", {
   id: serial().primaryKey(),
   failureCount: integer().notNull().default(0),
   lastUsedAt: timestamp({ withTimezone: true }),
@@ -202,7 +202,7 @@ export const mfaProvider = pgTable("MFAProvider", {
   ...timestamps,
 });
 
-export const blob = pgTable(
+export const blob = snakeCase.table(
   "Blob",
   {
     id: serial().primaryKey(),
@@ -225,7 +225,7 @@ export const blob = pgTable(
   ],
 );
 
-export const chunk = pgTable(
+export const chunk = snakeCase.table(
   "Chunk",
   {
     id: serial().primaryKey(),
@@ -248,13 +248,13 @@ export const chunk = pgTable(
   (table) => [index().using("btree", table.chunkSetId.asc().nullsLast())],
 );
 
-export const chunkSet = pgTable("ChunkSet", {
+export const chunkSet = snakeCase.table("ChunkSet", {
   id: serial().primaryKey(),
   meta: jsonb().$type<JSONType>(),
   ...timestamps,
 });
 
-export const document = pgTable(
+export const document = snakeCase.table(
   "Document",
   {
     id: uuid().defaultRandom().primaryKey(),
@@ -282,7 +282,7 @@ export const document = pgTable(
   (table) => [index().using("btree", table.projectId.asc().nullsLast())],
 );
 
-export const documentClosure = pgTable(
+export const documentClosure = snakeCase.table(
   "DocumentClosure",
   {
     ancestor: uuid()
@@ -314,7 +314,7 @@ export const documentClosure = pgTable(
   ],
 );
 
-export const documentToTask = pgTable(
+export const documentToTask = snakeCase.table(
   "DocumentToTask",
   {
     documentId: uuid()
@@ -335,7 +335,7 @@ export const documentToTask = pgTable(
   ],
 );
 
-export const file = pgTable("File", {
+export const file = snakeCase.table("File", {
   id: serial().primaryKey(),
   name: text().notNull(),
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -345,7 +345,7 @@ export const file = pgTable("File", {
   isActive: boolean().default(true).notNull(),
 });
 
-export const glossary = pgTable("Glossary", {
+export const glossary = snakeCase.table("Glossary", {
   id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
@@ -355,7 +355,7 @@ export const glossary = pgTable("Glossary", {
   ...timestamps,
 });
 
-export const glossaryToProject = pgTable(
+export const glossaryToProject = snakeCase.table(
   "GlossaryToProject",
   {
     glossaryId: uuid()
@@ -379,11 +379,11 @@ export const glossaryToProject = pgTable(
   ],
 );
 
-export const language = pgTable("Language", {
+export const language = snakeCase.table("Language", {
   id: text().primaryKey(),
 });
 
-export const memory = pgTable("Memory", {
+export const memory = snakeCase.table("Memory", {
   id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
@@ -393,7 +393,7 @@ export const memory = pgTable("Memory", {
   ...timestamps,
 });
 
-export const memoryItem = pgTable("MemoryItem", {
+export const memoryItem = snakeCase.table("MemoryItem", {
   id: serial().primaryKey(),
   creatorId: uuid().references(() => user.id, {
     onDelete: "set null",
@@ -431,7 +431,7 @@ export const memoryItem = pgTable("MemoryItem", {
   ...timestamps,
 });
 
-export const memoryToProject = pgTable(
+export const memoryToProject = snakeCase.table(
   "MemoryToProject",
   {
     memoryId: uuid()
@@ -455,7 +455,7 @@ export const memoryToProject = pgTable(
   ],
 );
 
-export const plugin = pgTable("Plugin", {
+export const plugin = snakeCase.table("Plugin", {
   id: text().primaryKey(),
   name: text().notNull(),
   overview: text(),
@@ -466,7 +466,7 @@ export const plugin = pgTable("Plugin", {
   ...timestamps,
 });
 
-export const pluginConfig = pgTable(
+export const pluginConfig = snakeCase.table(
   "PluginConfig",
   {
     id: serial().primaryKey(),
@@ -482,7 +482,7 @@ export const pluginConfig = pgTable(
   (table) => [uniqueIndex().using("btree", table.pluginId.asc().nullsLast())],
 );
 
-export const pluginConfigInstance = pgTable(
+export const pluginConfigInstance = snakeCase.table(
   "PluginConfigInstance",
   {
     id: serial().primaryKey(),
@@ -514,7 +514,7 @@ export const pluginConfigInstance = pgTable(
   ],
 );
 
-export const pluginInstallation = pgTable(
+export const pluginInstallation = snakeCase.table(
   "PluginInstallation",
   {
     id: serial().primaryKey(),
@@ -539,7 +539,7 @@ export const pluginInstallation = pgTable(
   ],
 );
 
-export const pluginService = pgTable(
+export const pluginService = snakeCase.table(
   "PluginService",
   {
     id: serial().primaryKey(),
@@ -563,7 +563,7 @@ export const pluginService = pgTable(
   ],
 );
 
-export const pluginComponent = pgTable("PluginComponent", {
+export const pluginComponent = snakeCase.table("PluginComponent", {
   id: serial().primaryKey(),
   componentId: text().notNull(),
   slot: text().notNull(),
@@ -577,7 +577,7 @@ export const pluginComponent = pgTable("PluginComponent", {
   ...timestamps,
 });
 
-export const project = pgTable(
+export const project = snakeCase.table(
   "Project",
   {
     id: uuid().defaultRandom().primaryKey(),
@@ -596,7 +596,7 @@ export const project = pgTable(
   (table) => [index().using("btree", table.creatorId.asc().nullsLast())],
 );
 
-export const projectSetting = pgTable(
+export const projectSetting = snakeCase.table(
   "ProjectSetting",
   {
     id: serial().primaryKey(),
@@ -613,7 +613,7 @@ export const projectSetting = pgTable(
   (table) => [index().on(table.projectId)],
 );
 
-export const projectSequence = pgTable(
+export const projectSequence = snakeCase.table(
   "ProjectSequence",
   {
     id: serial().primaryKey(),
@@ -628,7 +628,7 @@ export const projectSequence = pgTable(
 
 // ─── Issue System ───
 
-export const issue = pgTable(
+export const issue = snakeCase.table(
   "Issue",
   {
     id: serial().primaryKey(),
@@ -671,7 +671,7 @@ export const issue = pgTable(
   ],
 );
 
-export const issueLabel = pgTable(
+export const issueLabel = snakeCase.table(
   "IssueLabel",
   {
     issueId: integer()
@@ -687,7 +687,7 @@ export const issueLabel = pgTable(
 
 // ─── Pull Request System ───
 
-export const pullRequest = pgTable(
+export const pullRequest = snakeCase.table(
   "PullRequest",
   {
     id: serial().primaryKey(),
@@ -735,7 +735,7 @@ export const pullRequest = pgTable(
 
 // ─── Issue/PR Comment System (独立于翻译评论) ───
 
-export const issueCommentThread = pgTable(
+export const issueCommentThread = snakeCase.table(
   "IssueCommentThread",
   {
     id: serial().primaryKey(),
@@ -758,7 +758,7 @@ export const issueCommentThread = pgTable(
   ],
 );
 
-export const issueComment = pgTable(
+export const issueComment = snakeCase.table(
   "IssueComment",
   {
     id: serial().primaryKey(),
@@ -779,7 +779,7 @@ export const issueComment = pgTable(
 
 // ─── Cross Reference ───
 
-export const crossReference = pgTable(
+export const crossReference = snakeCase.table(
   "CrossReference",
   {
     id: serial().primaryKey(),
@@ -804,7 +804,7 @@ export const crossReference = pgTable(
   ],
 );
 
-export const projectTargetLanguage = pgTable(
+export const projectTargetLanguage = snakeCase.table(
   "ProjectTargetLanguage",
   {
     languageId: text()
@@ -828,7 +828,7 @@ export const projectTargetLanguage = pgTable(
   ],
 );
 
-export const setting = pgTable(
+export const setting = snakeCase.table(
   "Setting",
   {
     id: serial().primaryKey(),
@@ -839,7 +839,7 @@ export const setting = pgTable(
   (table) => [uniqueIndex().using("btree", table.key.asc().nullsLast())],
 );
 
-export const task = pgTable(
+export const task = snakeCase.table(
   "Task",
   {
     id: uuid().defaultRandom().primaryKey(),
@@ -851,7 +851,7 @@ export const task = pgTable(
   (table) => [index().using("btree", table.meta.asc().nullsLast())],
 );
 
-export const term = pgTable(
+export const term = snakeCase.table(
   "Term",
   {
     id: serial().primaryKey(),
@@ -883,7 +883,7 @@ export const term = pgTable(
   ],
 );
 
-export const termConcept = pgTable("TermConcept", {
+export const termConcept = snakeCase.table("TermConcept", {
   id: serial().primaryKey(),
   definition: text(),
   stringId: integer().references(() => vectorizedString.id, {
@@ -903,7 +903,7 @@ export const termConcept = pgTable("TermConcept", {
   ...timestamps,
 });
 
-export const termConceptToSubject = pgTable(
+export const termConceptToSubject = snakeCase.table(
   "TermConceptToSubject",
   {
     termConceptId: integer()
@@ -927,7 +927,7 @@ export const termConceptToSubject = pgTable(
   ],
 );
 
-export const termConceptSubject = pgTable("TermConceptSubject", {
+export const termConceptSubject = snakeCase.table("TermConceptSubject", {
   id: serial().primaryKey(),
   subject: text().notNull(),
   defaultDefinition: text(),
@@ -942,7 +942,7 @@ export const termConceptSubject = pgTable("TermConceptSubject", {
   ...timestamps,
 });
 
-export const translatableElement = pgTable(
+export const translatableElement = snakeCase.table(
   "TranslatableElement",
   {
     id: serial().primaryKey(),
@@ -1003,7 +1003,7 @@ export const translatableElement = pgTable(
   ],
 );
 
-export const comment = pgTable(
+export const comment = snakeCase.table(
   "Comment",
   {
     id: serial().primaryKey(),
@@ -1043,7 +1043,7 @@ export const comment = pgTable(
   ],
 );
 
-export const commentReaction = pgTable(
+export const commentReaction = snakeCase.table(
   "CommentReaction",
   {
     id: serial().primaryKey(),
@@ -1067,7 +1067,7 @@ export const commentReaction = pgTable(
   ],
 );
 
-export const translatableElementContext = pgTable(
+export const translatableElementContext = snakeCase.table(
   "TranslatableElementContext",
   {
     id: serial().primaryKey(),
@@ -1095,7 +1095,7 @@ export const translatableElementContext = pgTable(
   ],
 );
 
-export const vectorizedString = pgTable(
+export const vectorizedString = snakeCase.table(
   "VectorizedString",
   {
     id: serial().primaryKey(),
@@ -1138,7 +1138,7 @@ export const vectorizedString = pgTable(
   ],
 );
 
-export const translation = pgTable(
+export const translation = snakeCase.table(
   "Translation",
   {
     id: serial().primaryKey(),
@@ -1173,7 +1173,7 @@ export const translation = pgTable(
   ],
 );
 
-export const translationSnapshot = pgTable("TranslationSnapshot", {
+export const translationSnapshot = snakeCase.table("TranslationSnapshot", {
   id: serial().primaryKey(),
   projectId: uuid()
     .notNull()
@@ -1188,24 +1188,27 @@ export const translationSnapshot = pgTable("TranslationSnapshot", {
   ...timestamps,
 });
 
-export const translationSnapshotItem = pgTable("TranslationSnapshotItem", {
-  id: serial().primaryKey(),
-  snapshotId: integer()
-    .notNull()
-    .references(() => translationSnapshot.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
-  translationId: integer()
-    .notNull()
-    .references(() => translation.id, {
-      onDelete: "restrict",
-      onUpdate: "cascade",
-    }),
-  ...timestamps,
-});
+export const translationSnapshotItem = snakeCase.table(
+  "TranslationSnapshotItem",
+  {
+    id: serial().primaryKey(),
+    snapshotId: integer()
+      .notNull()
+      .references(() => translationSnapshot.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    translationId: integer()
+      .notNull()
+      .references(() => translation.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    ...timestamps,
+  },
+);
 
-export const translationVote = pgTable(
+export const translationVote = snakeCase.table(
   "TranslationVote",
   {
     id: serial().primaryKey(),
@@ -1232,7 +1235,7 @@ export const translationVote = pgTable(
   ],
 );
 
-export const qaResult = pgTable("QaResult", {
+export const qaResult = snakeCase.table("QaResult", {
   id: serial().primaryKey(),
   translationId: integer()
     .notNull()
@@ -1243,7 +1246,7 @@ export const qaResult = pgTable("QaResult", {
   ...timestamps,
 });
 
-export const qaResultItem = pgTable("QaResultItem", {
+export const qaResultItem = snakeCase.table("QaResultItem", {
   id: serial().primaryKey(),
   meta: jsonb().$type<NonNullJSONType>(),
   isPassed: boolean().notNull(),
@@ -1262,7 +1265,7 @@ export const qaResultItem = pgTable("QaResultItem", {
   ...timestamps,
 });
 
-export const user = pgTable(
+export const user = snakeCase.table(
   "User",
   {
     id: uuid().defaultRandom().primaryKey(),
@@ -1302,7 +1305,7 @@ export const agentSessionTrustPolicy = pgEnum(
   AgentSessionTrustPolicyValues,
 );
 
-export const agentDefinition = pgTable("AgentDefinition", {
+export const agentDefinition = snakeCase.table("AgentDefinition", {
   id: serial().primaryKey(),
   externalId: uuid().defaultRandom().notNull().unique(),
   scopeType: scopeType().notNull().default("GLOBAL"),
@@ -1340,7 +1343,7 @@ export const agentDefinition = pgTable("AgentDefinition", {
   ...timestamps,
 });
 
-export const agentSession = pgTable(
+export const agentSession = snakeCase.table(
   "AgentSession",
   {
     id: serial().primaryKey(),
@@ -1386,7 +1389,7 @@ export const agentSession = pgTable(
   ],
 );
 
-export const agentRun = pgTable(
+export const agentRun = snakeCase.table(
   "AgentRun",
   {
     id: serial().primaryKey(),
@@ -1414,7 +1417,7 @@ export const agentRun = pgTable(
   ],
 );
 
-export const agentEvent = pgTable(
+export const agentEvent = snakeCase.table(
   "AgentEvent",
   {
     id: serial().primaryKey(),
@@ -1438,7 +1441,7 @@ export const agentEvent = pgTable(
   ],
 );
 
-export const agentExternalOutput = pgTable(
+export const agentExternalOutput = snakeCase.table(
   "AgentExternalOutput",
   {
     id: serial().primaryKey(),
@@ -1465,7 +1468,7 @@ export const agentExternalOutput = pgTable(
 
 // ─── ChangeSet / EntityVCS Tables ───────────────────────────
 
-export const entityBranch = pgTable(
+export const entityBranch = snakeCase.table(
   "EntityBranch",
   {
     id: serial().primaryKey(),
@@ -1491,7 +1494,7 @@ export const entityBranch = pgTable(
   ],
 );
 
-export const changeset = pgTable("Changeset", {
+export const changeset = snakeCase.table("Changeset", {
   id: serial().primaryKey(),
   externalId: uuid().notNull().unique().defaultRandom(),
   projectId: uuid()
@@ -1516,7 +1519,7 @@ export const changeset = pgTable("Changeset", {
   ...timestamps,
 });
 
-export const changesetEntry = pgTable(
+export const changesetEntry = snakeCase.table(
   "ChangesetEntry",
   {
     id: serial().primaryKey(),
@@ -1541,7 +1544,7 @@ export const changesetEntry = pgTable(
   ],
 );
 
-export const entitySnapshot = pgTable("EntitySnapshot", {
+export const entitySnapshot = snakeCase.table("EntitySnapshot", {
   id: serial().primaryKey(),
   externalId: uuid().notNull().unique().defaultRandom(),
   projectId: uuid()
@@ -1556,7 +1559,7 @@ export const entitySnapshot = pgTable("EntitySnapshot", {
   ...timestamps,
 });
 
-export const toolCallLog = pgTable(
+export const toolCallLog = snakeCase.table(
   "ToolCallLog",
   {
     id: serial().primaryKey(),
@@ -1590,7 +1593,7 @@ export const toolCallLog = pgTable(
 
 // ============ Permission System Tables ============
 
-export const role = pgTable("Role", {
+export const role = snakeCase.table("Role", {
   id: serial().primaryKey(),
   name: text().notNull().unique(),
   description: text(),
@@ -1598,7 +1601,7 @@ export const role = pgTable("Role", {
   ...timestamps,
 });
 
-export const userRole = pgTable(
+export const userRole = snakeCase.table(
   "UserRole",
   {
     id: serial().primaryKey(),
@@ -1613,7 +1616,7 @@ export const userRole = pgTable(
   (table) => [unique().on(table.userId, table.roleId)],
 );
 
-export const permissionTuple = pgTable(
+export const permissionTuple = snakeCase.table(
   "PermissionTuple",
   {
     id: serial().primaryKey(),
@@ -1638,7 +1641,7 @@ export const permissionTuple = pgTable(
   ],
 );
 
-export const authAuditLog = pgTable("AuthAuditLog", {
+export const authAuditLog = snakeCase.table("AuthAuditLog", {
   id: serial().primaryKey(),
   timestamp: timestamp({ withTimezone: true }).defaultNow().notNull(),
   subjectType: subjectType().notNull(),
@@ -1654,7 +1657,7 @@ export const authAuditLog = pgTable("AuthAuditLog", {
 });
 
 // ====== API Key ======
-export const apiKey = pgTable(
+export const apiKey = snakeCase.table(
   "ApiKey",
   {
     id: serial().primaryKey(),
@@ -1678,7 +1681,7 @@ export const apiKey = pgTable(
 );
 
 // ====== Persistent Session Record ======
-export const sessionRecord = pgTable(
+export const sessionRecord = snakeCase.table(
   "SessionRecord",
   {
     id: text().primaryKey(),
@@ -1696,7 +1699,7 @@ export const sessionRecord = pgTable(
 );
 
 // ====== Login Attempt (Rate Limiting & Audit) ======
-export const loginAttempt = pgTable(
+export const loginAttempt = snakeCase.table(
   "LoginAttempt",
   {
     id: serial().primaryKey(),
@@ -1715,7 +1718,7 @@ export const loginAttempt = pgTable(
 );
 
 // ====== Auth Flow Audit Log ======
-export const authFlowLog = pgTable(
+export const authFlowLog = snakeCase.table(
   "AuthFlowLog",
   {
     id: serial().primaryKey(),
@@ -1747,7 +1750,7 @@ export const authFlowLog = pgTable(
 
 // ====== Message System ======
 
-export const notification = pgTable(
+export const notification = snakeCase.table(
   "Notification",
   {
     id: serial().primaryKey(),
@@ -1772,7 +1775,7 @@ export const notification = pgTable(
   ],
 );
 
-export const userMessagePreference = pgTable(
+export const userMessagePreference = snakeCase.table(
   "UserMessagePreference",
   {
     id: serial().primaryKey(),
@@ -1801,7 +1804,7 @@ export const recallQuerySide = pgEnum("RecallQuerySide", RecallQuerySideValues);
 
 // ─── Term Recall Variant Table ────────────────────────────────────────────
 
-export const termRecallVariant = pgTable(
+export const termRecallVariant = snakeCase.table(
   "TermRecallVariant",
   {
     id: serial().primaryKey(),
@@ -1835,7 +1838,7 @@ export const termRecallVariant = pgTable(
 
 // ─── Memory Recall Variant Table ──────────────────────────────────────────
 
-export const memoryRecallVariant = pgTable(
+export const memoryRecallVariant = snakeCase.table(
   "MemoryRecallVariant",
   {
     id: serial().primaryKey(),

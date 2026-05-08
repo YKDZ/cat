@@ -390,30 +390,30 @@ const loadContext = async (
     await Promise.all([
       input.config.neighborTranslations
         ? safeQuery("listNeighborElements", async () =>
-          executeQuery(dbCtx, listNeighborElements, {
-            elementId: input.elementId,
-            windowSize: WINDOW_SIZE,
-          }),
-        )
+            executeQuery(dbCtx, listNeighborElements, {
+              elementId: input.elementId,
+              windowSize: WINDOW_SIZE,
+            }),
+          )
         : Promise.resolve(null),
 
       input.config.approvedTranslations.enabled
         ? safeQuery("listDocumentApprovedTranslations", async () =>
-          executeQuery(dbCtx, listDocumentApprovedTranslations, {
-            elementId: input.elementId,
-            languageId: input.targetLanguageId,
-            maxCount: input.config.approvedTranslations.maxCount,
-          }),
-        )
+            executeQuery(dbCtx, listDocumentApprovedTranslations, {
+              elementId: input.elementId,
+              languageId: input.targetLanguageId,
+              maxCount: input.config.approvedTranslations.maxCount,
+            }),
+          )
         : Promise.resolve(null),
 
       input.config.comments.enabled
         ? safeQuery("listElementComments", async () =>
-          executeQuery(dbCtx, listElementComments, {
-            elementId: input.elementId,
-            maxCount: input.config.comments.maxCount,
-          }),
-        )
+            executeQuery(dbCtx, listElementComments, {
+              elementId: input.elementId,
+              maxCount: input.config.comments.maxCount,
+            }),
+          )
         : Promise.resolve(null),
     ]);
 
@@ -421,8 +421,8 @@ const loadContext = async (
   const includeTypes = input.config.elementContexts.includeTypes;
   const filteredContexts = input.config.elementContexts.enabled
     ? (elementInfo.contexts ?? []).filter(
-      (c) => !includeTypes || includeTypes.includes(c.type),
-    )
+        (c) => !includeTypes || includeTypes.includes(c.type),
+      )
     : [];
 
   // --- Map neighbors to the { source, translation } shape ---

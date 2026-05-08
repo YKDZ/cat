@@ -1,0 +1,16 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS rum;
+CREATE EXTENSION IF NOT EXISTS zhparser;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_ts_config WHERE cfgname = 'cat_zh_hans'
+  ) THEN
+    CREATE TEXT SEARCH CONFIGURATION cat_zh_hans (PARSER = zhparser);
+    ALTER TEXT SEARCH CONFIGURATION cat_zh_hans
+      ADD MAPPING FOR n, v, a, i, e, l WITH simple;
+  END IF;
+END
+$$;

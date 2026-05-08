@@ -14,8 +14,11 @@ allowBuilds:
 catalog:
   "@types/mdast": "^4.0.4"
   "@types/node": ^24.12.2
-  "@vue/compiler-dom": ^3.5.33
-  "@vue/compiler-sfc": ^3.5.33
+  "@vue/compiler-dom": ^3.5.34
+  "@vue/compiler-sfc": ^3.5.34
+  drizzle-kit: 1.0.0-rc.2
+  drizzle-orm: 1.0.0-rc.2
+  drizzle-seed: ^0.3.1
   remark-frontmatter: ^5.0.0
   remark-gfm: ^4.0.1
   remark-parse: ^11.0.0
@@ -23,14 +26,12 @@ catalog:
   tsx: ^4.21.0
   unified: ^11.0.5
   unplugin-dts: 1.0.0-beta.6
-  vite: ^8.0.10
+  vite: ^8.0.11
   vitest: ^4.1.5
-  vue: ^3.5.33
-  yaml: ^2.8.3
-  zod: ^4.3.6
-  drizzle-orm: 1.0.0-beta.23
-  drizzle-kit: 1.0.0-beta.23
-  drizzle-seed: ^0.3.1
+  vue: ^3.5.34
+  yaml: ^2.8.4
+  zod: ^4.4.3
+  vue-tsc: ^3.2.8
 
 linkWorkspacePackages: true
 

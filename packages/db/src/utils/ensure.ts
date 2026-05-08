@@ -106,7 +106,7 @@ export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
       })
       .onConflictDoNothing();
 
-    // oxlint-disable-next-line no-console db can not access server-shared package
+    // oxlint-disable-next-line no-console -- db can not access server-shared package
     console.info(`Default admin account password is: ${password}`);
   }
 };

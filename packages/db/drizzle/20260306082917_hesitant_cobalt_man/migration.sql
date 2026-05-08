@@ -1,2 +1,0 @@
-CREATE TYPE "AgentDefinitionType" AS ENUM('GENERAL', 'GHOST_TEXT');--> statement-breakpoint
-ALTER TABLE "AgentDefinition" ADD COLUMN "type" "AgentDefinitionType" DEFAULT 'GENERAL'::"AgentDefinitionType" NOT NULL;

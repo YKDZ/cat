@@ -36,6 +36,11 @@ tasks:
     options:
       cache: false
 
+  push:
+    command: "drizzle-kit push --force"
+    options:
+      cache: false
+
   studio:
     command: "drizzle-kit studio --host 0.0.0.0 --port 4983"
     preset: "server"

@@ -94,8 +94,12 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     }
 
     // 如果没有畸变，执行默认行为
-    // oxlint-disable-next-line no-unsafe-function-type no-unsafe-type-assertion
-    const result = Reflect.apply(target as Function, blueThis, blueArgs);
+    const result = Reflect.apply(
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      target as unknown as (...args: unknown[]) => unknown,
+      blueThis,
+      blueArgs,
+    );
     return this.membrane.convertBlueToRed(result);
   }
 
@@ -105,11 +109,11 @@ export class BlueToRedHandler implements ProxyHandler<object> {
 
     // 构造函数必须返回对象。
     const result = Reflect.construct(
-      // oxlint-disable-next-line no-unsafe-function-type no-unsafe-type-assertion
-      target as Function,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      target as unknown as new (...args: unknown[]) => unknown,
       blueArgs,
-      // oxlint-disable-next-line no-unsafe-function-type no-unsafe-type-assertion
-      blueNewTarget as Function,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      blueNewTarget as new (...args: unknown[]) => unknown,
     );
 
     // oxlint-disable-next-line no-unsafe-type-assertion
@@ -141,8 +145,12 @@ export class RedToBlueHandler implements ProxyHandler<object> {
   apply(target: object, thisArg: unknown, argArray: unknown[]): unknown {
     const redThis = this.membrane.convertBlueToRed(thisArg);
     const redArgs = argArray.map((arg) => this.membrane.convertBlueToRed(arg));
-    // oxlint-disable-next-line no-unsafe-function-type no-unsafe-type-assertion
-    const result = Reflect.apply(target as Function, redThis, redArgs);
+    const result = Reflect.apply(
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      target as unknown as (...args: unknown[]) => unknown,
+      redThis,
+      redArgs,
+    );
     return this.membrane.convertRedToBlue(result);
   }
 
@@ -150,11 +158,11 @@ export class RedToBlueHandler implements ProxyHandler<object> {
     const redArgs = argArray.map((arg) => this.membrane.convertBlueToRed(arg));
     const redNewTarget = unwrap(newTarget);
     const result = Reflect.construct(
-      // oxlint-disable-next-line no-unsafe-function-type no-unsafe-type-assertion
-      target as Function,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      target as unknown as new (...args: unknown[]) => unknown,
       redArgs,
-      // oxlint-disable-next-line no-unsafe-function-type no-unsafe-type-assertion
-      redNewTarget as Function,
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      redNewTarget as new (...args: unknown[]) => unknown,
     );
 
     // oxlint-disable-next-line no-unsafe-type-assertion

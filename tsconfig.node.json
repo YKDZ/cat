@@ -15,6 +15,7 @@
     "apps/*/oxlint.config.ts",
     "packages/*/oxlint.config.ts",
     "@cat-plugin/*/oxlint.config.ts",
-    "tools/*/oxlint.config.ts"
+    "tools/*/oxlint.config.ts",
+    "packages/*/drizzle.config.ts"
   ]
 }

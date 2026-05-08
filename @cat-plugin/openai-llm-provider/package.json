@@ -16,7 +16,7 @@
     }
   },
   "dependencies": {
-    "openai": "^6.34.0"
+    "openai": "^6.36.0"
   },
   "devDependencies": {
     "vite": "catalog:"
