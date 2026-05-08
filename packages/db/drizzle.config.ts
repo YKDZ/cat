@@ -17,6 +17,8 @@ export default defineConfig({
   },
 
   schemaFilter: ["public"],
+  // "Vector" table is managed at runtime by ensureVectorStorageSchema (dimension is dynamic per plugin config)
+  tablesFilter: ["!Vector"],
 
   verbose: true,
   strict: true,
