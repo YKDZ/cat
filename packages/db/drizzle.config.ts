@@ -9,13 +9,14 @@ if (!process.env.DATABASE_URL) {
 export default defineConfig({
   dialect: "postgresql",
   schema: "./src/drizzle/schema/",
-  casing: "snake_case",
 
   dbCredentials: {
     // oxlint-disable-next-line no-unsafe-member-access
     url: process.env.DATABASE_URL,
     ssl: false,
   },
+
+  schemaFilter: ["public"],
 
   verbose: true,
   strict: true,

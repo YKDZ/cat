@@ -5,10 +5,10 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
-import { combinedSchema, type DrizzleSchema } from "@/drizzle/schema.ts";
+import { relations } from "@/drizzle/schema.ts";
 
 export class DrizzleDB {
-  public client: NodePgDatabase<DrizzleSchema> & { $client: Pool };
+  public client: NodePgDatabase<typeof relations> & { $client: Pool };
 
   constructor() {
     const pool = new Pool({
@@ -16,8 +16,7 @@ export class DrizzleDB {
     });
     this.client = drizzle({
       client: pool,
-      schema: combinedSchema,
-      casing: "snake_case",
+      relations,
     });
   }
 

@@ -1,1 +1,0 @@
-ALTER TYPE "PluginServiceType" ADD VALUE 'NLP_WORD_SEGMENTER';

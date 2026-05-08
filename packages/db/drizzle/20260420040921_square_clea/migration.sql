@@ -1,2 +1,0 @@
-ALTER TYPE "TranslatableElementContextType" ADD VALUE 'IMAGE';--> statement-breakpoint
-ALTER TABLE "ProjectSetting" ALTER COLUMN "settings" SET DEFAULT '{"enableAutoTranslation":false,"autoTranslationLanguages":[]}';

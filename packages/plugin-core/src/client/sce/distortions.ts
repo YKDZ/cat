@@ -121,7 +121,11 @@ export const createFetchDistortion = (
     // oxlint-disable-next-line no-console -- client-side browser logging
     console.info({ msg: `Plugin ${pluginId} fetching ${urlStr}` });
 
-    // oxlint-disable-next-line no-unsafe-type-assertion no-unsafe-function-type no-unsafe-function-type no-unsafe-return
-    return Reflect.apply(target as Function, win, argArray);
+    return Reflect.apply(
+      // oxlint-disable-next-line no-unsafe-type-assertion
+      target as unknown as (...args: unknown[]) => unknown,
+      win,
+      argArray,
+    );
   },
 });

@@ -1,4 +1,4 @@
-import { combinedSchema, type DrizzleDB, user } from "@cat/db";
+import { relations, type DrizzleDB, user } from "@cat/db";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { randomUUID } from "node:crypto";
@@ -123,8 +123,7 @@ const setupTestDB = async (): Promise<TestDB> => {
 
   const db = drizzle({
     client,
-    schema: combinedSchema,
-    casing: "snake_case",
+    relations,
   });
   await migrate(db, {
     migrationsFolder: path.resolve(__dirname, "../../../../db/drizzle"),

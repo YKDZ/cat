@@ -1,8 +1,8 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "94f742e2-7c6d-46f3-ab39-023754c38e58",
-  "prevIds": ["067598a4-149b-4db9-9594-96184d1a401f"],
+  "id": "f5345960-a3b2-4280-8b0c-3fe7adfba32c",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "values": ["GENERAL", "GHOST_TEXT", "WORKFLOW"],
@@ -107,6 +107,7 @@
     {
       "values": [
         "translation",
+        "auto_translation",
         "element",
         "document",
         "document_tree",
@@ -195,6 +196,7 @@
         "QA_CHECKER",
         "TOKENIZER",
         "LLM_PROVIDER",
+        "RERANK_PROVIDER",
         "AGENT_TOOL_PROVIDER",
         "AGENT_CONTEXT_PROVIDER",
         "NLP_WORD_SEGMENTER",
@@ -214,6 +216,12 @@
         "CLOSED"
       ],
       "name": "PullRequestStatus",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["MANUAL", "AUTO_TRANSLATE"],
+      "name": "PullRequestType",
       "entityType": "enums",
       "schema": "public"
     },
@@ -326,7 +334,7 @@
       "schema": "public"
     },
     {
-      "values": ["TEXT", "JSON", "FILE", "MARKDOWN", "URL"],
+      "values": ["TEXT", "JSON", "FILE", "MARKDOWN", "URL", "IMAGE"],
       "name": "TranslatableElementContextType",
       "entityType": "enums",
       "schema": "public"
@@ -604,6 +612,12 @@
     {
       "isRlsEnabled": false,
       "name": "ProjectSequence",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ProjectSetting",
       "entityType": "tables",
       "schema": "public"
     },
@@ -5614,6 +5628,71 @@
       "table": "ProjectSequence"
     },
     {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'{\"enableAutoTranslation\":false,\"autoTranslationLanguages\":[]}'",
+      "generated": null,
+      "identity": null,
+      "name": "settings",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -5830,6 +5909,32 @@
       "generated": null,
       "identity": null,
       "name": "metadata",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "type": "PullRequestType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'MANUAL'",
+      "generated": null,
+      "identity": null,
+      "name": "type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "target_language_id",
       "entityType": "columns",
       "schema": "public",
       "table": "PullRequest"
@@ -8245,7 +8350,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "TranslatableElementComment_parent_comment_id_index",
+      "name": "Comment_parent_comment_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "Comment"
@@ -8266,7 +8371,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "TranslatableElementComment_root_comment_id_index",
+      "name": "Comment_root_comment_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "Comment"
@@ -8287,7 +8392,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "TranslatableElementComment_user_id_index",
+      "name": "Comment_user_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "Comment"
@@ -8357,7 +8462,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "TranslatableElementCommentReaction_user_id_index",
+      "name": "CommentReaction_user_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "CommentReaction"
@@ -9302,6 +9407,27 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
+      "name": "ProjectSetting_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
       "name": "ProjectTargetLanguage_project_id_index",
       "entityType": "indexes",
       "schema": "public",
@@ -9422,6 +9548,69 @@
       "method": "btree",
       "concurrently": false,
       "name": "PullRequest_project_id_status_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "target_language_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PullRequest_project_id_type_target_language_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "PullRequest"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "target_language_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"type\" = 'AUTO_TRANSLATE' AND \"status\" NOT IN ('MERGED', 'CLOSED')",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "PullRequest_project_id_target_language_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "PullRequest"
@@ -9833,6 +10022,48 @@
       "table": "VectorizedString"
     },
     {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "to_tsvector('english', \"value\") rum_tsvector_ops",
+          "isExpression": true,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": "\"language_id\" = 'en'",
+      "with": "",
+      "method": "rum",
+      "concurrently": false,
+      "name": "idx_vectorized_string_value_en_bm25_rum",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "VectorizedString"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "to_tsvector('cat_zh_hans', \"value\") rum_tsvector_ops",
+          "isExpression": true,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": "\"language_id\" = 'zh-Hans'",
+      "with": "",
+      "method": "rum",
+      "concurrently": false,
+      "name": "idx_vectorized_string_value_zh_hans_bm25_rum",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "VectorizedString"
+    },
+    {
       "nameExplicit": false,
       "columns": [
         {
@@ -10168,7 +10399,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "TranslatableElementComment_user_id_User_id_fkey",
+      "name": "Comment_user_id_User_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Comment"
@@ -10181,7 +10412,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "TranslatableElementComment_language_id_Language_id_fkey",
+      "name": "Comment_language_id_Language_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Comment"
@@ -10194,7 +10425,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
-      "name": "TranslatableElementComment_rVcH2vk2wZwM_fkey",
+      "name": "Comment_parent_comment_id_Comment_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Comment"
@@ -10207,7 +10438,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
-      "name": "TranslatableElementComment_csrAMZXJDU4O_fkey",
+      "name": "Comment_root_comment_id_Comment_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Comment"
@@ -10220,7 +10451,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "TranslatableElementCommentReaction_KPjwkNbfQ9zz_fkey",
+      "name": "CommentReaction_comment_id_Comment_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "CommentReaction"
@@ -10233,7 +10464,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "TranslatableElementCommentReaction_user_id_User_id_fkey",
+      "name": "CommentReaction_user_id_User_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "CommentReaction"
@@ -10662,7 +10893,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "MemoryItem_source_string_id_TranslatableString_id_fkey",
+      "name": "MemoryItem_source_string_id_VectorizedString_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "MemoryItem"
@@ -10675,7 +10906,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "MemoryItem_translation_string_id_TranslatableString_id_fkey",
+      "name": "MemoryItem_translation_string_id_VectorizedString_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "MemoryItem"
@@ -10903,6 +11134,19 @@
     },
     {
       "nameExplicit": false,
+      "columns": ["project_id"],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "ProjectSetting_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ProjectSetting"
+    },
+    {
+      "nameExplicit": false,
       "columns": ["language_id"],
       "schemaTo": "public",
       "tableTo": "Language",
@@ -11078,7 +11322,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "Term_term_entry_id_TermEntry_id_fkey",
+      "name": "Term_term_concept_id_TermConcept_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Term"
@@ -11091,7 +11335,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
-      "name": "TermConcept_string_id_TranslatableString_id_fkey",
+      "name": "TermConcept_string_id_VectorizedString_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "TermConcept"
@@ -11117,7 +11361,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "TermEntry_glossary_id_Glossary_id_fkey",
+      "name": "TermConcept_glossary_id_Glossary_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "TermConcept"
@@ -11260,7 +11504,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "TranslatableElement_mKNyfTsRaxW6_fkey",
+      "name": "TranslatableElement_Lh1AAXOO5tiq_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "TranslatableElement"
@@ -11351,7 +11595,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "Translation_string_id_TranslatableString_id_fkey",
+      "name": "Translation_string_id_VectorizedString_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "Translation"
@@ -11494,7 +11738,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "TranslatableString_language_id_Language_id_fkey",
+      "name": "VectorizedString_language_id_Language_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "VectorizedString"
@@ -11507,7 +11751,7 @@
       "columnsTo": ["id"],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
-      "name": "TranslatableString_chunk_set_id_ChunkSet_id_fkey",
+      "name": "VectorizedString_chunk_set_id_ChunkSet_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "VectorizedString"
@@ -11683,7 +11927,7 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "TranslatableElementComment_pkey",
+      "name": "Comment_pkey",
       "schema": "public",
       "table": "Comment",
       "entityType": "pks"
@@ -11691,7 +11935,7 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "TranslatableElementCommentReaction_pkey",
+      "name": "CommentReaction_pkey",
       "schema": "public",
       "table": "CommentReaction",
       "entityType": "pks"
@@ -11899,6 +12143,14 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
+      "name": "ProjectSetting_pkey",
+      "schema": "public",
+      "table": "ProjectSetting",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
       "name": "PullRequest_pkey",
       "schema": "public",
       "table": "PullRequest",
@@ -11963,7 +12215,7 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "TermEntry_pkey",
+      "name": "TermConcept_pkey",
       "schema": "public",
       "table": "TermConcept",
       "entityType": "pks"
@@ -12067,7 +12319,7 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "TranslatableString_pkey",
+      "name": "VectorizedString_pkey",
       "schema": "public",
       "table": "VectorizedString",
       "entityType": "pks"
@@ -12121,7 +12373,7 @@
       "nameExplicit": false,
       "columns": ["comment_id", "user_id"],
       "nullsNotDistinct": false,
-      "name": "TranslatableElementCommentReaction_translatable_element_comment_id_user_id_unique",
+      "name": "CommentReaction_comment_id_user_id_unique",
       "entityType": "uniques",
       "schema": "public",
       "table": "CommentReaction"
@@ -12190,7 +12442,7 @@
       "nameExplicit": false,
       "columns": ["language_id", "value"],
       "nullsNotDistinct": false,
-      "name": "TranslatableString_language_id_value_unique",
+      "name": "VectorizedString_language_id_value_unique",
       "entityType": "uniques",
       "schema": "public",
       "table": "VectorizedString"
@@ -12283,6 +12535,15 @@
       "name": "ProjectSequence_project_id_key",
       "schema": "public",
       "table": "ProjectSequence",
+      "entityType": "uniques"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["project_id"],
+      "nullsNotDistinct": false,
+      "name": "ProjectSetting_project_id_key",
+      "schema": "public",
+      "table": "ProjectSetting",
       "entityType": "uniques"
     },
     {

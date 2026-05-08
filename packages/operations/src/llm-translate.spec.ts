@@ -380,8 +380,8 @@ describe("llmTranslateOp", () => {
     // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     const chatArgs = mockLlmService.service.chat.mock
       .calls[0]?.[0] as unknown as {
-        messages: Array<{ role: string; content: string }>;
-      };
+      messages: Array<{ role: string; content: string }>;
+    };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
     expect(userPrompt).toContain("[IMAGE context");
     expect(userPrompt).toContain("not visually processed");
@@ -406,8 +406,8 @@ describe("llmTranslateOp", () => {
     // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     const chatArgs = mockLlmService.service.chat.mock
       .calls[0]?.[0] as unknown as {
-        messages: Array<{ role: string; content: string }>;
-      };
+      messages: Array<{ role: string; content: string }>;
+    };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
     expect(userPrompt).toContain("点击确认订单 43");
     expect(userPrompt).not.toContain("点击确认订单 42");
@@ -427,8 +427,8 @@ describe("llmTranslateOp", () => {
     // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
     const chatArgs = mockLlmService.service.chat.mock
       .calls[0]?.[0] as unknown as {
-        messages: Array<{ role: string; content: string }>;
-      };
+      messages: Array<{ role: string; content: string }>;
+    };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
     expect(userPrompt).toContain("to zh-Hans");
   });

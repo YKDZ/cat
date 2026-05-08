@@ -52,7 +52,7 @@ class Matcher {
     public readonly name: string | undefined,
     private readonly rule: MatcherRule,
     public readonly renderer: RendererComponent,
-  ) { }
+  ) {}
 
   getSpecificity(schema: JSONSchema): Specificity | null {
     if (!schema || typeof schema !== "object") return null;
