@@ -43,7 +43,7 @@ Determine the output path **solely from the input file path** — no other conte
 
 ### Path Rules
 
-The input always lives inside `todo/<namespace>/`. Detect the current revision number from the filename:
+The input always lives inside `docs/<namespace>/`. Detect the current revision number from the filename:
 
 | Input filename | Output filename  |
 | -------------- | ---------------- |
@@ -51,9 +51,9 @@ The input always lives inside `todo/<namespace>/`. Detect the current revision n
 | `spec.r1.md`   | `spec.r2.md`     |
 | `spec.rN.md`   | `spec.r<N+1>.md` |
 
-Write the refined spec to **`todo/<namespace>/spec.r<N+1>.md`** — same directory as the input.
+Write the refined spec to **`docs/<namespace>/spec.r<N+1>.md`** — same directory as the input.
 
-Do NOT overwrite the input file. Do NOT use any other naming pattern (no `TODO_` prefix, no `-v2` suffix, no flat `todo/` placement).
+Do NOT overwrite the input file. Do NOT use any other naming pattern (no `TODO_` prefix, no `-v2` suffix, no flat `docs/` placement).
 
 ## Full Rewrite Requirement
 
@@ -224,11 +224,11 @@ After writing and reviewing, present results:
 
 **If pending decisions remain:**
 
-> "Refined spec written to `todo/<namespace>/spec.r<N>.md` (revision N). M decision(s) resolved, K new decision(s) added, J pending. Review the remaining decisions, fill in your choices, then invoke **rebrainstorm** again."
+> "Refined spec written to `docs/<namespace>/spec.r<N>.md` (revision N). M decision(s) resolved, K new decision(s) added, J pending. Review the remaining decisions, fill in your choices, then invoke **rebrainstorm** again."
 
 **If all decisions are resolved:**
 
-> "Refined spec written to `todo/<namespace>/spec.r<N>.md` (revision N). All decisions resolved — spec is ready for **iplan**."
+> "Refined spec written to `docs/<namespace>/spec.r<N>.md` (revision N). All decisions resolved — spec is ready for **iplan**."
 
 ## What This Agent Does NOT Do
 

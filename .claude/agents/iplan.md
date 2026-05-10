@@ -21,14 +21,14 @@ If the file path is ambiguous, infer from context. If truly unclear, state what 
 
 Determine the output path **solely from the input file path** — no other context is needed.
 
-The input always lives inside `todo/<namespace>/` (either `spec.md` or `spec.rN.md`). The plan always goes to the **same directory**:
+The input always lives inside `docs/<namespace>/` (either `spec.md` or `spec.rN.md`). The plan always goes to the **same directory**:
 
 ```
-todo/<namespace>/spec.md       →  todo/<namespace>/plan.md
-todo/<namespace>/spec.r3.md   →  todo/<namespace>/plan.md
+docs/<namespace>/spec.md       →  docs/<namespace>/plan.md
+docs/<namespace>/spec.r3.md   →  docs/<namespace>/plan.md
 ```
 
-Write the plan to **`todo/<namespace>/plan.md`** regardless of the spec revision number.
+Write the plan to **`docs/<namespace>/plan.md`** regardless of the spec revision number.
 
 Do NOT use `PLAN-` prefix, do NOT place the file in the spec's parent directory if the spec is nested, do NOT overwrite the spec file.
 

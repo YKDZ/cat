@@ -35,7 +35,7 @@ When the user provides supplementary context:
 
 Determine the output path **solely from the input file path** — no other context is needed.
 
-The input always lives inside `todo/<namespace>/`. Detect the current revision number from the filename:
+The input always lives inside `docs/<namespace>/`. Detect the current revision number from the filename:
 
 | Input filename | Output filename  |
 | -------------- | ---------------- |
@@ -43,7 +43,7 @@ The input always lives inside `todo/<namespace>/`. Detect the current revision n
 | `plan.r1.md`   | `plan.r2.md`     |
 | `plan.rN.md`   | `plan.r<N+1>.md` |
 
-Write the refined plan to **`todo/<namespace>/plan.r<N+1>.md`** — same directory as the input.
+Write the refined plan to **`docs/<namespace>/plan.r<N+1>.md`** — same directory as the input.
 
 Do NOT overwrite the input file. Do NOT use `PLAN-` prefix or any other naming pattern.
 
