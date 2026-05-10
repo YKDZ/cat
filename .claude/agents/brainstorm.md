@@ -40,9 +40,9 @@ Rules:
 
 ### Output Path
 
-Write the spec to **`todo/<namespace>/spec.md`**.
+Write the spec to **`docs/<namespace>/spec.md`**.
 
-Create the `todo/<namespace>/` directory if it does not exist. Do NOT use any other location or naming pattern.
+Create the `docs/<namespace>/` directory if it does not exist. Do NOT use any other location or naming pattern.
 
 ## Process (MUST follow this order)
 
@@ -192,7 +192,7 @@ Fix issues inline.
 
 After writing and self-reviewing the spec, present it to the user:
 
-> "Design spec written to `todo/<namespace>/spec.md` with N decision blocks. Review the decisions, fill in your choices (`Final decision: [X]`), then invoke **rebrainstorm** on the file to produce a refined version."
+> "Design spec written to `docs/<namespace>/spec.md` with N decision blocks. Review the decisions, fill in your choices (`Final decision: [X]`), then invoke **rebrainstorm** on the file to produce a refined version."
 >
 > "If there are no decisions to resolve (or after all iterations), the spec is ready for **iplan**."
 
