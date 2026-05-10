@@ -281,7 +281,7 @@ export const updateBranchBaseChangeset: Command<
 export const updateBranchStatus: Command<
   UpdateBranchStatusCommand,
   typeof entityBranch.$inferSelect
-> = async (ctx: DbContext, command: { branchId: number; status: "ACTIVE" | "MERGED" | "ABANDONED"; mergedAt?: Date | undefined; }) => {...}
+> = async (ctx: DbContext, command: { branchId: number; status: "MERGED" | "ACTIVE" | "ABANDONED"; mergedAt?: Date | undefined; }) => {...}
 ```
 
 ### packages/domain/src/commands/changeset
@@ -292,7 +292,7 @@ export const updateBranchStatus: Command<
 export const addChangesetEntry: Command<
   AddChangesetEntryCommand,
   typeof changesetEntry.$inferSelect
-> = async (ctx: DbContext, command: { changesetId: number; entityType: "comment" | "term" | "project" | "document" | "element" | "translation" | "issue" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context"; entityId: string; action: "CREATE" | "UPDATE" | "DELETE"; riskLevel: "LOW" | "MEDIUM" | "HIGH"; before?: any; after?: any; fieldPath?: string | undefined; asyncStatus?: "FAILED" | "PENDING" | "READY" | null | undefined; asyncTaskIds?: string[] | undefined; }) => {...}
+> = async (ctx: DbContext, command: { changesetId: number; entityType: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue"; entityId: string; action: "CREATE" | "UPDATE" | "DELETE"; riskLevel: "LOW" | "MEDIUM" | "HIGH"; before?: any; after?: any; fieldPath?: string | undefined; asyncStatus?: "FAILED" | "PENDING" | "READY" | null | undefined; asyncTaskIds?: string[] | undefined; }) => {...}
 ```
 
 ### `batchUpdateEntryBefore`
@@ -371,7 +371,7 @@ export const upsertAutoTranslationEntry: Command<
 export const createComment: Command<
   CreateCommentCommand,
   typeof comment.$inferSelect
-> = async (ctx: DbContext, command: { targetType: "TRANSLATION" | "ELEMENT"; targetId: number; userId: string; content: string; languageId: string; parentCommentId?: number | undefined; }) => {...}
+> = async (ctx: DbContext, command: { targetType: "ELEMENT" | "TRANSLATION"; targetId: number; userId: string; content: string; languageId: string; parentCommentId?: number | undefined; }) => {...}
 ```
 
 ### `deleteCommentReaction`
@@ -684,7 +684,7 @@ export const closeIssue: Command<
 export const createIssue: Command<
   CreateIssueCommand,
   typeof issue.$inferSelect
-> = async (ctx: DbContext, command: { projectId: string; title: string; body: string; assignees: { type: "user" | "agent"; id: string; }[]; labels: string[]; authorId?: string | undefined; authorAgentId?: number | undefined; claimPolicy?: { rules: { type: "user" | "agent" | "role"; id: string; }[]; } | null | undefined; parentIssueId?: number | undefined; metadata?: any; }) => {...}
+> = async (ctx: DbContext, command: { projectId: string; title: string; body: string; assignees: { type: "user" | "agent"; id: string; }[]; labels: string[]; authorId?: string | undefined; authorAgentId?: number | undefined; claimPolicy?: { rules: { type: "user" | "role" | "agent"; id: string; }[]; } | null | undefined; parentIssueId?: number | undefined; metadata?: any; }) => {...}
 ```
 
 ### `reopenIssue`
@@ -871,7 +871,7 @@ export const grantFirstUserSuperadmin: Command<
  */
 export const grantPermissionTuple: Command<
   GrantPermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "agent" | "role"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "comment" | "term" | "project" | "document" | "element" | "translation" | "user" | "system" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
 ```
 
 ### `insertAuditLogs`
@@ -880,7 +880,7 @@ export const grantPermissionTuple: Command<
 /**
  * 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
  */
-export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "agent" | "role"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "comment" | "term" | "project" | "document" | "element" | "translation" | "user" | "system" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
+export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
 ```
 
 ### `revokePermissionTuple`
@@ -894,7 +894,7 @@ export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbCo
  */
 export const revokePermissionTuple: Command<
   RevokePermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "agent" | "role"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "comment" | "term" | "project" | "document" | "element" | "translation" | "user" | "system" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
 ```
 
 ### `seedSystemRoles`
@@ -1117,7 +1117,7 @@ export const submitReview: Command<
 export const updatePRStatus: Command<
   UpdatePRStatusCommand,
   typeof pullRequest.$inferSelect
-> = async (ctx: DbContext, command: { prId: number; status: "MERGED" | "OPEN" | "CLOSED" | "DRAFT" | "REVIEW" | "CHANGES_REQUESTED"; }) => {...}
+> = async (ctx: DbContext, command: { prId: number; status: "OPEN" | "CLOSED" | "DRAFT" | "REVIEW" | "CHANGES_REQUESTED" | "MERGED"; }) => {...}
 ```
 
 ### `updatePR`
@@ -1664,7 +1664,7 @@ export const getBranch: Query<
 export const listBranches: Query<
   ListBranchesQuery,
   (typeof entityBranch.$inferSelect)[]
-> = async (ctx: DbContext, query: { projectId: string; status?: "ACTIVE" | "MERGED" | "ABANDONED" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; status?: "MERGED" | "ACTIVE" | "ABANDONED" | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/changeset
@@ -1738,7 +1738,7 @@ export const listChangesets: Query<
 export const getChangesetEntries: Query<
   GetChangesetEntriesQuery,
   (typeof changesetEntry.$inferSelect)[]
-> = async (ctx: DbContext, query: { changesetId: number; entityType?: "comment" | "term" | "project" | "document" | "element" | "translation" | "issue" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { changesetId: number; entityType?: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue" | undefined; }) => {...}
 ```
 
 ### `listBranchChangesetEntries`
@@ -1747,7 +1747,7 @@ export const getChangesetEntries: Query<
 export const listBranchChangesetEntries: Query<
   ListBranchChangesetEntriesQuery,
   (typeof changesetEntry.$inferSelect)[]
-> = async (ctx: DbContext, query: { branchId: number; entityType?: "comment" | "term" | "project" | "document" | "element" | "translation" | "issue" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { branchId: number; entityType?: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/chunk
@@ -1799,7 +1799,7 @@ export const listCommentReactions: Query<
 export const listRootComments: Query<
   ListRootCommentsQuery,
   Array<typeof comment.$inferSelect>
-> = async (ctx: DbContext, query: { targetType: "TRANSLATION" | "ELEMENT"; targetId: number; pageIndex: number; pageSize: number; }) => {...}
+> = async (ctx: DbContext, query: { targetType: "ELEMENT" | "TRANSLATION"; targetId: number; pageIndex: number; pageSize: number; }) => {...}
 ```
 
 ### packages/domain/src/queries/cross-reference
@@ -2728,7 +2728,7 @@ export const listPreferences: Query<
 export const getSubjectPermissionTuples: Query<
   GetSubjectPermissionTuplesQuery,
   SubjectPermissionTupleRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "agent" | "role"; subjectId: string; objectType: "comment" | "term" | "project" | "document" | "element" | "translation" | "user" | "system" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
 ```
 
 ### `listPermissionObjects`
@@ -2737,7 +2737,7 @@ export const getSubjectPermissionTuples: Query<
 export const listPermissionObjects: Query<
   ListPermissionObjectsQuery,
   PermissionObjectRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "agent" | "role"; subjectId: string; objectType: "comment" | "term" | "project" | "document" | "element" | "translation" | "user" | "system" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced")[] | undefined; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced")[] | undefined; }) => {...}
 ```
 
 ### `listPermissionSubjects`
@@ -2746,7 +2746,7 @@ export const listPermissionObjects: Query<
 export const listPermissionSubjects: Query<
   ListPermissionSubjectsQuery,
   PermissionSubjectRow[]
-> = async (ctx: DbContext, query: { objectType: "comment" | "term" | "project" | "document" | "element" | "translation" | "user" | "system" | "glossary" | "memory" | "plugin" | "setting" | "task" | "agent_definition"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced" | undefined; }) => {...}
 ```
 
 ### `loadUserSystemRoles`
@@ -2998,7 +2998,7 @@ export const getPRByNumber: Query<
 export const getPRDiff: Query<
   GetPRDiffQuery,
   (typeof changesetEntry.$inferSelect)[]
-> = async (ctx: DbContext, query: { prId: number; entityType?: "comment" | "term" | "project" | "document" | "element" | "translation" | "issue" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { prId: number; entityType?: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
 ```
 
 ### `getPR`
@@ -3022,7 +3022,7 @@ export const getPR: Query<
 export const listPRs: Query<
   ListPRsQuery,
   (typeof pullRequest.$inferSelect)[]
-> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "MERGED" | "OPEN" | "CLOSED" | "DRAFT" | "REVIEW" | "CHANGES_REQUESTED" | undefined; type?: "MANUAL" | "AUTO_TRANSLATE" | undefined; excludeTypes?: ("MANUAL" | "AUTO_TRANSLATE")[] | undefined; search?: string | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; limit: number; offset: number; status?: "OPEN" | "CLOSED" | "DRAFT" | "REVIEW" | "CHANGES_REQUESTED" | "MERGED" | undefined; type?: "MANUAL" | "AUTO_TRANSLATE" | undefined; excludeTypes?: ("MANUAL" | "AUTO_TRANSLATE")[] | undefined; search?: string | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/qa

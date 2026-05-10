@@ -56,7 +56,7 @@ export async function rebaseBranch(db: DbHandle, branchId: number, appMethodRegi
  * then falls back to main data.
  * Returns null if deleted in branch, or if no branch changes exist (caller reads from main).
  */
-export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "auto_translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "project" | "issue", entityId: string): Promise<{ data: T; action: "CREATE" | "UPDATE"; } | { data: null; action: "DELETE"; } | null>
+export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue", entityId: string): Promise<{ data: T; action: "CREATE" | "UPDATE"; } | { data: null; action: "DELETE"; } | null>
 ```
 
 ### `listWithOverlay`
@@ -66,7 +66,7 @@ export async function readWithOverlay(db: DbHandle, branchId: number, entityType
  * List query overlay: merges main data with branch changes
  * (CREATE appended, DELETE removed, UPDATE overwritten).
  */
-export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "translation" | "auto_translation" | "element" | "document" | "document_tree" | "comment" | "comment_reaction" | "term" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "project" | "issue", mainItems: T[], getItemId: (item: T) => string): Promise<T[]>
+export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue", mainItems: T[], getItemId: (item: T) => string): Promise<T[]>
 ```
 
 ### `getBranchChangesetId`
