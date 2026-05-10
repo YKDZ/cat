@@ -427,7 +427,7 @@ export function buildMemoryRecallBm25Capabilities(fullCatalog: string[], filterL
 ### `collectBm25MemorySuggestionsOp`
 
 ```ts
-export async function collectBm25MemorySuggestionsOp(input: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }, drizzle: import("drizzle-orm/node-postgres").NodePgDatabase<import("@cat/db").DrizzleSchema, import("drizzle-orm").EmptyRelations> & { $client: import("pg").Pool; }): Promise<RawMemorySuggestion[]>
+export async function collectBm25MemorySuggestionsOp(input: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }, drizzle: import("drizzle-orm/node-postgres").NodePgDatabase<import("drizzle-orm").ExtractTablesWithRelations<{}, import("drizzle-orm").ExtractTablesFromSchema<typeof import("../../domain/node_modules/@cat/db/dist/drizzle/schema/schema")>>> & { $client: import("pg").Pool; }): Promise<RawMemorySuggestion[]>
 ```
 
 ### `placeholderize`
