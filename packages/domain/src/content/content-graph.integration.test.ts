@@ -18,7 +18,6 @@ import {
 } from "@/commands";
 import { executeCommand, executeQuery } from "@/executor";
 import { getContentNodeElements, listNeighborElements } from "@/queries";
-
 import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
 
 const CREATOR_ID = randomUUID();

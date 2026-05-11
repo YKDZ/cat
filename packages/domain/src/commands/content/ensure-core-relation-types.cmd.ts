@@ -54,8 +54,7 @@ export const ensureCoreRelationTypes: Command<
         supportsOrdering: definition.supportsOrdering,
         weightingEligible: definition.weightingEligible,
         defaultTrustLevel: definition.defaultTrustLevel,
-        metadata:
-          (definition as RegisteredRelationTypeInput).metadata ?? null,
+        metadata: (definition as RegisteredRelationTypeInput).metadata ?? null,
       })
       .returning({ id: contentRelationType.id });
 

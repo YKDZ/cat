@@ -14,7 +14,6 @@ import {
 } from "@/commands";
 import { executeCommand, executeQuery } from "@/executor";
 import { getIssue } from "@/queries";
-
 import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
 
 let testDb: TestDB;

@@ -112,7 +112,10 @@ export const setupTestDB = async (): Promise<TestDB> => {
     relations,
   });
   await migrate(db, {
-    migrationsFolder: path.resolve(__dirname, "../../../../packages/db/drizzle"),
+    migrationsFolder: path.resolve(
+      __dirname,
+      "../../../../packages/db/drizzle",
+    ),
     migrationsSchema: schemaName,
   });
 

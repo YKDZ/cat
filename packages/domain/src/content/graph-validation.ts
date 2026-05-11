@@ -39,7 +39,9 @@ export const assertStructuredPayloadGraphValid = (
   for (const relation of payload.relations) {
     const type = relationTypes.get(relationTypeKey(relation.type));
     if (!type) {
-      throw new Error(`Unknown relation type ${relationTypeKey(relation.type)}`);
+      throw new Error(
+        `Unknown relation type ${relationTypeKey(relation.type)}`,
+      );
     }
 
     const pairAllowed = type.allowedEndpointPairs.some(
