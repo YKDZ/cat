@@ -1,5 +1,4 @@
 export type {
-  DocumentCapabilities,
   PluginCapabilities,
   ProjectCapabilities,
   TranslationCapabilities,

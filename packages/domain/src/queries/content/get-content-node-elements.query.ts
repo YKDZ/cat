@@ -1,6 +1,7 @@
 import {
   and,
   asc,
+  contentRelation,
   eq,
   exists,
   getColumns,
@@ -8,8 +9,8 @@ import {
   isNotNull,
   sql,
   translatableElement,
-  vectorizedString,
   translation,
+  vectorizedString,
   type SQL,
 } from "@cat/db";
 import * as z from "zod";
@@ -23,13 +24,12 @@ export const ElementTranslationStatusSchema = z.enum([
   "TRANSLATED",
   "APPROVED",
 ]);
-
 export type ElementTranslationStatus = z.infer<
   typeof ElementTranslationStatusSchema
 >;
 
-export const GetDocumentElementsQuerySchema = z.object({
-  documentId: z.uuidv4(),
+export const GetContentNodeElementsQuerySchema = z.object({
+  contentNodeId: z.uuidv4(),
   page: z.int().min(0).default(0),
   pageSize: z.int().min(1).default(16),
   searchQuery: z.string().default("").optional(),
@@ -37,24 +37,23 @@ export const GetDocumentElementsQuerySchema = z.object({
   isTranslated: z.boolean().optional(),
   languageId: z.string().optional(),
 });
-
-export type GetDocumentElementsQuery = z.infer<
-  typeof GetDocumentElementsQuerySchema
+export type GetContentNodeElementsQuery = z.infer<
+  typeof GetContentNodeElementsQuerySchema
 >;
 
-export type DocumentElementRow = typeof translatableElement.$inferSelect & {
+export type ContentNodeElementRow = typeof translatableElement.$inferSelect & {
   value: string;
   languageId: string;
   status: ElementTranslationStatus;
+  primaryContentNodeId: string | null;
+  localOrder: number | null;
 };
 
 const buildStatusSql = (
   db: DbHandle,
   languageId?: string,
 ): SQL<ElementTranslationStatus> => {
-  if (!languageId) {
-    return sql<ElementTranslationStatus>`'NO'`;
-  }
+  if (!languageId) return sql<ElementTranslationStatus>`'NO'`;
 
   return sql<ElementTranslationStatus>`CASE
     WHEN ${and(
@@ -94,12 +93,14 @@ const buildStatusSql = (
   END`;
 };
 
-export const getDocumentElements: Query<
-  GetDocumentElementsQuery,
-  DocumentElementRow[]
+export const getContentNodeElements: Query<
+  GetContentNodeElementsQuery,
+  ContentNodeElementRow[]
 > = async (ctx, query) => {
-  const whereConditions = [
-    eq(translatableElement.documentId, query.documentId),
+  const whereConditions: SQL[] = [
+    eq(contentRelation.sourceNodeId, query.contentNodeId),
+    eq(contentRelation.targetEndpointKind, "ELEMENT"),
+    eq(contentRelation.isPrimary, true),
   ];
 
   if (query.searchQuery && query.searchQuery.trim().length > 0) {
@@ -123,18 +124,20 @@ export const getDocumentElements: Query<
       value: vectorizedString.value,
       languageId: vectorizedString.languageId,
       status: buildStatusSql(ctx.db, query.languageId).as("status"),
+      primaryContentNodeId: contentRelation.sourceNodeId,
+      localOrder: contentRelation.localOrder,
     })
-    .from(translatableElement)
+    .from(contentRelation)
+    .innerJoin(
+      translatableElement,
+      eq(contentRelation.targetElementId, translatableElement.id),
+    )
     .innerJoin(
       vectorizedString,
       eq(translatableElement.vectorizedStringId, vectorizedString.id),
     )
-    .where(
-      whereConditions.length === 1
-        ? whereConditions[0]
-        : and(...whereConditions),
-    )
-    .orderBy(asc(translatableElement.sortIndex), asc(translatableElement.id))
+    .where(and(...whereConditions))
+    .orderBy(asc(contentRelation.localOrder), asc(translatableElement.id))
     .limit(query.pageSize)
     .offset(query.page * query.pageSize);
 };

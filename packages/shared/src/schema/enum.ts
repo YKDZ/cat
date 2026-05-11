@@ -43,7 +43,10 @@ export const ScopeTypeSchema = z.enum(ScopeTypeValues);
 
 export const ResourceTypeValues = [
   "PROJECT",
-  "DOCUMENT",
+  "CONTENT_NODE",
+  "CONTENT_RELATION",
+  "CONTEXT_EVIDENCE",
+  "CONTEXT_PROFILE",
   "ELEMENT",
   "COMMENT",
   "TERM",
@@ -68,6 +71,198 @@ export const TranslatableElementContextTypeValues = [
 export const TranslatableElementContextTypeSchema = z.enum(
   TranslatableElementContextTypeValues,
 );
+
+export const ContentNodeKindValues = [
+  "PROJECT_ROOT",
+  "DIRECTORY",
+  "FILE",
+  "MARKDOWN_SECTION",
+  "SOURCE_COMPONENT",
+  "UI_ROUTE",
+  "MODULE",
+  "MOD",
+  "VERSION",
+  "NAMESPACE",
+  "CHAPTER",
+  "PACKAGE",
+  "SCREENSHOT_TARGET",
+  "CUSTOM",
+] as const;
+export const ContentNodeKindSchema = z.enum(ContentNodeKindValues);
+export type ContentNodeKind = (typeof ContentNodeKindValues)[number];
+
+export const ContentNodeLifecycleStatusValues = [
+  "ACTIVE",
+  "DRAFT",
+  "DELETED",
+  "QUARANTINED",
+] as const;
+export const ContentNodeLifecycleStatusSchema = z.enum(
+  ContentNodeLifecycleStatusValues,
+);
+export type ContentNodeLifecycleStatus =
+  (typeof ContentNodeLifecycleStatusValues)[number];
+
+export const ContentNodeExportRoleValues = [
+  "NONE",
+  "PROJECT_ROOT",
+  "DIRECTORY",
+  "FILE",
+  "SECTION",
+] as const;
+export const ContentNodeExportRoleSchema = z.enum(ContentNodeExportRoleValues);
+export type ContentNodeExportRole =
+  (typeof ContentNodeExportRoleValues)[number];
+
+export const ContentBoundaryTypeValues = [
+  "PROJECT",
+  "SOURCE_ROOT",
+  "DIRECTORY",
+  "FILE",
+  "MODULE",
+  "MOD",
+  "NAMESPACE",
+  "NONE",
+] as const;
+export const ContentBoundaryTypeSchema = z.enum(ContentBoundaryTypeValues);
+export type ContentBoundaryType = (typeof ContentBoundaryTypeValues)[number];
+
+export const RelationEndpointKindValues = ["NODE", "ELEMENT"] as const;
+export const RelationEndpointKindSchema = z.enum(RelationEndpointKindValues);
+export type RelationEndpointKind = (typeof RelationEndpointKindValues)[number];
+
+export const ContentRelationSemanticFamilyValues = [
+  "CONTAINMENT",
+  "ORDERING",
+  "SOURCE_REFERENCE",
+  "SCOPE",
+  "DEPENDENCY",
+  "VERSIONING",
+  "EVIDENCE",
+  "DISCUSSION",
+  "DUPLICATE",
+  "SEMANTIC",
+  "CUSTOM",
+] as const;
+export const ContentRelationSemanticFamilySchema = z.enum(
+  ContentRelationSemanticFamilyValues,
+);
+export type ContentRelationSemanticFamily =
+  (typeof ContentRelationSemanticFamilyValues)[number];
+
+export const ContentRelationDirectionalityValues = [
+  "DIRECTED",
+  "UNDIRECTED",
+] as const;
+export const ContentRelationDirectionalitySchema = z.enum(
+  ContentRelationDirectionalityValues,
+);
+export type ContentRelationDirectionality =
+  (typeof ContentRelationDirectionalityValues)[number];
+
+export const ContentRelationLifecycleStatusValues = [
+  "ACTIVE",
+  "DRAFT",
+  "DEPRECATED",
+  "DELETED",
+] as const;
+export const ContentRelationLifecycleStatusSchema = z.enum(
+  ContentRelationLifecycleStatusValues,
+);
+export type ContentRelationLifecycleStatus =
+  (typeof ContentRelationLifecycleStatusValues)[number];
+
+export const EvidenceTrustLevelValues = [
+  "UNTRUSTED",
+  "COLLECTED",
+  "VERIFIED",
+  "REVIEW_APPROVED",
+] as const;
+export const EvidenceTrustLevelSchema = z.enum(EvidenceTrustLevelValues);
+export type EvidenceTrustLevel = (typeof EvidenceTrustLevelValues)[number];
+
+export const ContentEvidenceKindValues = [
+  "TEXT",
+  "JSON",
+  "FILE",
+  "MARKDOWN",
+  "URL",
+  "IMAGE",
+  "SOURCE_LOCATION",
+  "COMMENT",
+  "SCREENSHOT",
+  "GENERATED_ANALYSIS",
+  "EXTERNAL_REFERENCE",
+] as const;
+export const ContentEvidenceKindSchema = z.enum(ContentEvidenceKindValues);
+export type ContentEvidenceKind = (typeof ContentEvidenceKindValues)[number];
+
+export const ContextConsumerPurposeValues = [
+  "EDITOR",
+  "RECALL",
+  "QA",
+  "AI",
+  "AGENT",
+] as const;
+export const ContextConsumerPurposeSchema = z.enum(
+  ContextConsumerPurposeValues,
+);
+export type ContextConsumerPurpose =
+  (typeof ContextConsumerPurposeValues)[number];
+
+export const ScopeBindingAssetKindValues = [
+  "GLOSSARY",
+  "TERM_CONCEPT",
+  "TERM",
+  "MEMORY",
+  "MEMORY_ITEM",
+  "QA_PROFILE",
+  "CONTEXT_PROFILE",
+] as const;
+export const ScopeBindingAssetKindSchema = z.enum(ScopeBindingAssetKindValues);
+export type ScopeBindingAssetKind =
+  (typeof ScopeBindingAssetKindValues)[number];
+
+export const ScopeBindingModeValues = ["ELIGIBLE_ONLY", "BOOST"] as const;
+export const ScopeBindingModeSchema = z.enum(ScopeBindingModeValues);
+export type ScopeBindingMode = (typeof ScopeBindingModeValues)[number];
+
+export const SemanticDiffKindValues = [
+  "CREATE",
+  "DELETE",
+  "SOURCE_TEXT_UPDATE",
+  "MOVE",
+  "REPARENT",
+  "RELATION_ADD",
+  "RELATION_REMOVE",
+  "EVIDENCE_UPDATE",
+  "METADATA_ONLY",
+  "IDENTITY_CONFLICT",
+] as const;
+export const SemanticDiffKindSchema = z.enum(SemanticDiffKindValues);
+export type SemanticDiffKind = (typeof SemanticDiffKindValues)[number];
+
+export const VectorInvalidationReasonValues = [
+  "NEW_SOURCE_TEXT",
+  "SOURCE_TEXT_CHANGED",
+  "NOT_REQUIRED",
+  "IDENTITY_CONFLICT",
+] as const;
+export const VectorInvalidationReasonSchema = z.enum(
+  VectorInvalidationReasonValues,
+);
+export type VectorInvalidationReason =
+  (typeof VectorInvalidationReasonValues)[number];
+
+export const ContentIdentityStatusValues = [
+  "ACTIVE",
+  "DELETED",
+  "QUARANTINED",
+  "CONFLICT",
+] as const;
+export const ContentIdentityStatusSchema = z.enum(ContentIdentityStatusValues);
+export type ContentIdentityStatus =
+  (typeof ContentIdentityStatusValues)[number];
 
 export const CommentReactionTypeValues = [
   "+1",
@@ -157,7 +352,10 @@ export const AgentDefinitionTypeSchema = z.enum(AgentDefinitionTypeValues);
 export const ObjectTypeValues = [
   "system",
   "project",
-  "document",
+  "content_node",
+  "content_relation",
+  "context_evidence",
+  "context_profile",
   "element",
   "glossary",
   "memory",
@@ -294,8 +492,13 @@ export const EntityTypeValues = [
   "translation",
   "auto_translation",
   "element",
-  "document",
-  "document_tree",
+  "content_node",
+  "content_relation",
+  "content_relation_type",
+  "context_evidence",
+  "context_profile",
+  "scope_binding",
+  "semantic_diff",
   "comment",
   "comment_reaction",
   "term",
@@ -304,7 +507,6 @@ export const EntityTypeValues = [
   "project_settings",
   "project_member",
   "project_attributes",
-  "context",
   "project",
   "issue",
 ] as const;

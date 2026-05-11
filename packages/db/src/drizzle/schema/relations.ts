@@ -26,7 +26,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
     },
     user: {
       accounts: r.many.account(),
-      documents: r.many.document(),
       glossaries: r.many.glossary(),
       memories: r.many.memory(),
       memoryItems: r.many.memoryItem({
@@ -78,8 +77,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
       blobs: r.many.blob(),
       chunkSets: r.many.chunkSet(),
-      documents: r.many.document(),
-      translatableElementContexts: r.many.translatableElementContext(),
+      contextEvidences: r.many.contextEvidence(),
       mfaProviders: r.many.mfaProvider(),
     },
     pluginComponent: {
@@ -98,49 +96,19 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.language.id.through(r.vectorizedString.languageId),
       }),
     },
-    document: {
-      user: r.one.user({
-        from: r.document.creatorId,
-        to: r.user.id,
-      }),
-      pluginService: r.one.pluginService({
-        from: r.document.fileHandlerId,
-        to: r.pluginService.id,
-      }),
-      file: r.one.file({
-        from: r.document.fileId,
-        to: r.file.id,
-      }),
-      project: r.one.project({
-        from: r.document.projectId,
-        to: r.project.id,
-      }),
-      documentClosuresAncestor: r.many.documentClosure({
-        from: r.document.id,
-        to: r.documentClosure.ancestor,
-      }),
-      documentClosuresDescendant: r.many.documentClosure({
-        from: r.document.id,
-        to: r.documentClosure.descendant,
-      }),
-      tasks: r.many.task({
-        from: r.document.id.through(r.documentToTask.documentId),
-        to: r.task.id.through(r.documentToTask.taskId),
-      }),
-      translatableElements: r.many.translatableElement(),
-    },
     file: {
-      documents: r.many.document(),
       blob: r.one.blob({
         from: r.file.blobId,
         to: r.blob.id,
       }),
-      translatableElementContexts: r.many.translatableElementContext(),
+      contextEvidences: r.many.contextEvidence(),
       users: r.many.user(),
     },
     project: {
-      documents: r.many.document(),
-      documentClosures: r.many.documentClosure(),
+      contentNodes: r.many.contentNode(),
+      contentRelations: r.many.contentRelation(),
+      contextProfiles: r.many.contextProfile(),
+      scopeBindings: r.many.scopeBinding(),
       glossaries: r.many.glossary(),
       memories: r.many.memory(),
       user: r.one.user({
@@ -157,22 +125,11 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       pullRequests: r.many.pullRequest(),
       entityBranches: r.many.entityBranch(),
     },
-    documentClosure: {
-      documentAncestor: r.one.document({
-        from: r.documentClosure.ancestor,
-        to: r.document.id,
-      }),
-      documentDescendant: r.one.document({
-        from: r.documentClosure.descendant,
-        to: r.document.id,
-      }),
-      project: r.one.project({
-        from: r.documentClosure.projectId,
-        to: r.project.id,
-      }),
-    },
     task: {
-      documents: r.many.document(),
+      contentNodes: r.many.contentNode({
+        from: r.task.id.through(r.contentNodeToTask.taskId),
+        to: r.contentNode.id.through(r.contentNodeToTask.contentNodeId),
+      }),
     },
     glossary: {
       user: r.one.user({
@@ -230,9 +187,9 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translatableElement.creatorId,
         to: r.user.id,
       }),
-      document: r.one.document({
-        from: r.translatableElement.documentId,
-        to: r.document.id,
+      project: r.one.project({
+        from: r.translatableElement.projectId,
+        to: r.project.id,
       }),
       vectorizedString: r.one.vectorizedString({
         from: r.translatableElement.vectorizedStringId,
@@ -242,7 +199,7 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.translatableElement.approvedTranslationId,
         to: r.translation.id,
       }),
-      translatableElementContexts: r.many.translatableElementContext(),
+      contextEvidences: r.many.contextEvidence(),
       memoryItems: r.many.memoryItem({
         from: r.translatableElement.id,
         to: r.memoryItem.sourceElementId,
@@ -446,18 +403,146 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         to: r.user.id.through(r.commentReaction.userId),
       }),
     },
-    translatableElementContext: {
-      file: r.one.file({
-        from: r.translatableElementContext.fileId,
-        to: r.file.id,
+
+    // ─── Content Graph Relations ───
+
+    contentNode: {
+      project: r.one.project({
+        from: r.contentNode.projectId,
+        to: r.project.id,
       }),
-      pluginService: r.one.pluginService({
-        from: r.translatableElementContext.storageProviderId,
+      creator: r.one.user({
+        from: r.contentNode.creatorId,
+        to: r.user.id,
+      }),
+      language: r.one.language({
+        from: r.contentNode.languageId,
+        to: r.language.id,
+      }),
+      fileHandler: r.one.pluginService({
+        from: r.contentNode.fileHandlerId,
         to: r.pluginService.id,
       }),
-      translatableElement: r.one.translatableElement({
-        from: r.translatableElementContext.translatableElementId,
+      file: r.one.file({
+        from: r.contentNode.fileId,
+        to: r.file.id,
+      }),
+      tasks: r.many.task({
+        from: r.contentNode.id.through(r.contentNodeToTask.contentNodeId),
+        to: r.task.id.through(r.contentNodeToTask.taskId),
+      }),
+      sourceRelations: r.many.contentRelation({
+        from: r.contentNode.id,
+        to: r.contentRelation.sourceNodeId,
+      }),
+      targetRelations: r.many.contentRelation({
+        from: r.contentNode.id,
+        to: r.contentRelation.targetNodeId,
+      }),
+      contextEvidences: r.many.contextEvidence(),
+      scopeBindings: r.many.scopeBinding(),
+    },
+    contentRelationType: {
+      ownerPlugin: r.one.plugin({
+        from: r.contentRelationType.ownerPluginId,
+        to: r.plugin.id,
+      }),
+      contentRelations: r.many.contentRelation(),
+    },
+    contentRelation: {
+      project: r.one.project({
+        from: r.contentRelation.projectId,
+        to: r.project.id,
+      }),
+      relationType: r.one.contentRelationType({
+        from: r.contentRelation.relationTypeId,
+        to: r.contentRelationType.id,
+      }),
+      sourceNode: r.one.contentNode({
+        from: r.contentRelation.sourceNodeId,
+        to: r.contentNode.id,
+      }),
+      sourceElement: r.one.translatableElement({
+        from: r.contentRelation.sourceElementId,
         to: r.translatableElement.id,
+      }),
+      targetNode: r.one.contentNode({
+        from: r.contentRelation.targetNodeId,
+        to: r.contentNode.id,
+      }),
+      targetElement: r.one.translatableElement({
+        from: r.contentRelation.targetElementId,
+        to: r.translatableElement.id,
+      }),
+      contextEvidences: r.many.contextEvidence(),
+      scopeBindings: r.many.scopeBinding(),
+    },
+    contextEvidence: {
+      project: r.one.project({
+        from: r.contextEvidence.projectId,
+        to: r.project.id,
+      }),
+      contentNode: r.one.contentNode({
+        from: r.contextEvidence.contentNodeId,
+        to: r.contentNode.id,
+      }),
+      contentRelation: r.one.contentRelation({
+        from: r.contextEvidence.contentRelationId,
+        to: r.contentRelation.id,
+      }),
+      translatableElement: r.one.translatableElement({
+        from: r.contextEvidence.translatableElementId,
+        to: r.translatableElement.id,
+      }),
+      file: r.one.file({
+        from: r.contextEvidence.fileId,
+        to: r.file.id,
+      }),
+      storageProvider: r.one.pluginService({
+        from: r.contextEvidence.storageProviderId,
+        to: r.pluginService.id,
+      }),
+    },
+    contextProfile: {
+      project: r.one.project({
+        from: r.contextProfile.projectId,
+        to: r.project.id,
+      }),
+    },
+    scopeBinding: {
+      project: r.one.project({
+        from: r.scopeBinding.projectId,
+        to: r.project.id,
+      }),
+      contentNode: r.one.contentNode({
+        from: r.scopeBinding.contentNodeId,
+        to: r.contentNode.id,
+      }),
+      contentRelation: r.one.contentRelation({
+        from: r.scopeBinding.contentRelationId,
+        to: r.contentRelation.id,
+      }),
+    },
+    semanticDiffEntry: {
+      project: r.one.project({
+        from: r.semanticDiffEntry.projectId,
+        to: r.project.id,
+      }),
+      changeset: r.one.changeset({
+        from: r.semanticDiffEntry.changesetId,
+        to: r.changeset.id,
+      }),
+      element: r.one.translatableElement({
+        from: r.semanticDiffEntry.elementId,
+        to: r.translatableElement.id,
+      }),
+      contentNode: r.one.contentNode({
+        from: r.semanticDiffEntry.contentNodeId,
+        to: r.contentNode.id,
+      }),
+      contentRelation: r.one.contentRelation({
+        from: r.semanticDiffEntry.contentRelationId,
+        to: r.contentRelation.id,
       }),
     },
 

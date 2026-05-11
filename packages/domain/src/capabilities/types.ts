@@ -8,8 +8,6 @@ import type { createComment } from "@/commands/comment/create-comment.cmd";
 import type { deleteCommentReaction } from "@/commands/comment/delete-comment-reaction.cmd";
 import type { deleteComment } from "@/commands/comment/delete-comment.cmd";
 import type { upsertCommentReaction } from "@/commands/comment/upsert-comment-reaction.cmd";
-import type { createRootDocument } from "@/commands/document/create-root-document.cmd";
-import type { deleteDocument } from "@/commands/document/delete-document.cmd";
 import type { addGlossaryTermToConcept } from "@/commands/glossary/add-glossary-term-to-concept.cmd";
 import type { createGlossaryConceptSubject } from "@/commands/glossary/create-glossary-concept-subject.cmd";
 import type { createGlossaryConcept } from "@/commands/glossary/create-glossary-concept.cmd";
@@ -27,7 +25,6 @@ import type { unlinkProjectMemories } from "@/commands/project/unlink-project-me
 import type { updateProject } from "@/commands/project/update-project.cmd";
 import type { setSetting } from "@/commands/setting/set-setting.cmd";
 import type { approveTranslation } from "@/commands/translation/approve-translation.cmd";
-import type { autoApproveDocumentTranslations } from "@/commands/translation/auto-approve-document-translations.cmd";
 import type { createTranslations } from "@/commands/translation/create-translations.cmd";
 import type { deleteTranslation } from "@/commands/translation/delete-translation.cmd";
 import type { unapproveTranslation } from "@/commands/translation/unapprove-translation.cmd";
@@ -40,15 +37,6 @@ import type { listAgentSessions } from "@/queries/agent/list-agent-sessions.quer
 import type { listChildComments } from "@/queries/comment/list-child-comments.query";
 import type { listCommentReactions } from "@/queries/comment/list-comment-reactions.query";
 import type { listRootComments } from "@/queries/comment/list-root-comments.query";
-import type { countDocumentElements } from "@/queries/document/count-document-elements.query";
-import type { countDocumentTranslations } from "@/queries/document/count-document-translations.query";
-import type { getDocumentElementPageIndex } from "@/queries/document/get-document-element-page-index.query";
-import type { getDocumentElementTranslationStatus } from "@/queries/document/get-document-element-translation-status.query";
-import type { getDocumentElements } from "@/queries/document/get-document-elements.query";
-import type { getDocumentFirstElement } from "@/queries/document/get-document-first-element.query";
-import type { getDocument } from "@/queries/document/get-document.query";
-import type { getElementContexts } from "@/queries/element/get-element-contexts.query";
-import type { getElementSourceLocation } from "@/queries/element/get-element-source-location.query";
 import type { countGlossaryConcepts } from "@/queries/glossary/count-glossary-concepts.query";
 import type { getGlossary } from "@/queries/glossary/get-glossary.query";
 import type { listGlossariesByCreator } from "@/queries/glossary/list-glossaries-by-creator.query";
@@ -64,13 +52,10 @@ import type { getMemory } from "@/queries/memory/get-memory.query";
 import type { listMemoriesByCreator } from "@/queries/memory/list-memories-by-creator.query";
 import type { listOwnedMemories } from "@/queries/memory/list-owned-memories.query";
 import type { listProjectMemories } from "@/queries/memory/list-project-memories.query";
-import type { countProjectElements } from "@/queries/project/count-project-elements.query";
 import type { getProjectTargetLanguages } from "@/queries/project/get-project-target-languages.query";
 import type { getProject } from "@/queries/project/get-project.query";
 import type { listOwnedProjects } from "@/queries/project/list-owned-projects.query";
-import type { listProjectDocuments } from "@/queries/project/list-project-documents.query";
 import type { listProjectsByCreator } from "@/queries/project/list-projects-by-creator.query";
-import type { listDocumentGlossaryIds } from "@/queries/qa/list-document-glossary-ids.query";
 import type { getSetting } from "@/queries/setting/get-setting.query";
 import type { getSelfTranslationVote } from "@/queries/translation/get-self-translation-vote.query";
 import type { getTranslationVoteTotal } from "@/queries/translation/get-translation-vote-total.query";
@@ -106,12 +91,6 @@ export type ProjectCapabilities = {
   getTargetLanguages: (
     input: CapabilityInput<typeof getProjectTargetLanguages>,
   ) => Promise<CapabilityOutput<typeof getProjectTargetLanguages>>;
-  listDocuments: (
-    input: CapabilityInput<typeof listProjectDocuments>,
-  ) => Promise<CapabilityOutput<typeof listProjectDocuments>>;
-  countElements: (
-    input: CapabilityInput<typeof countProjectElements>,
-  ) => Promise<CapabilityOutput<typeof countProjectElements>>;
   create: (
     input: CapabilityInput<typeof createProject>,
   ) => Promise<CapabilityOutput<typeof createProject>>;
@@ -136,34 +115,6 @@ export type ProjectCapabilities = {
   ) => Promise<void>;
 };
 
-export type DocumentCapabilities = {
-  get: (
-    input: CapabilityInput<typeof getDocument>,
-  ) => Promise<CapabilityOutput<typeof getDocument>>;
-  getElements: (
-    input: CapabilityInput<typeof getDocumentElements>,
-  ) => Promise<CapabilityOutput<typeof getDocumentElements>>;
-  getFirstElement: (
-    input: CapabilityInput<typeof getDocumentFirstElement>,
-  ) => Promise<CapabilityOutput<typeof getDocumentFirstElement>>;
-  getElementTranslationStatus: (
-    input: CapabilityInput<typeof getDocumentElementTranslationStatus>,
-  ) => Promise<CapabilityOutput<typeof getDocumentElementTranslationStatus>>;
-  getElementPageIndex: (
-    input: CapabilityInput<typeof getDocumentElementPageIndex>,
-  ) => Promise<CapabilityOutput<typeof getDocumentElementPageIndex>>;
-  countElements: (
-    input: CapabilityInput<typeof countDocumentElements>,
-  ) => Promise<CapabilityOutput<typeof countDocumentElements>>;
-  countTranslations: (
-    input: CapabilityInput<typeof countDocumentTranslations>,
-  ) => Promise<CapabilityOutput<typeof countDocumentTranslations>>;
-  createRoot: (
-    input: CapabilityInput<typeof createRootDocument>,
-  ) => Promise<CapabilityOutput<typeof createRootDocument>>;
-  delete: (input: CapabilityInput<typeof deleteDocument>) => Promise<void>;
-};
-
 export type TranslationCapabilities = {
   listByElement: (
     input: CapabilityInput<typeof listTranslationsByElement>,
@@ -180,9 +131,6 @@ export type TranslationCapabilities = {
   getSelfVote: (
     input: CapabilityInput<typeof getSelfTranslationVote>,
   ) => Promise<CapabilityOutput<typeof getSelfTranslationVote>>;
-  autoApproveDocument: (
-    input: CapabilityInput<typeof autoApproveDocumentTranslations>,
-  ) => Promise<CapabilityOutput<typeof autoApproveDocumentTranslations>>;
   delete: (input: CapabilityInput<typeof deleteTranslation>) => Promise<void>;
   approve: (
     input: CapabilityInput<typeof approveTranslation>,
@@ -303,21 +251,6 @@ export type AgentCapabilities = {
   ) => Promise<CapabilityOutput<typeof createAgentSession>>;
 };
 
-export type ElementCapabilities = {
-  getContexts: (
-    input: CapabilityInput<typeof getElementContexts>,
-  ) => Promise<CapabilityOutput<typeof getElementContexts>>;
-  getSourceLocation: (
-    input: CapabilityInput<typeof getElementSourceLocation>,
-  ) => Promise<CapabilityOutput<typeof getElementSourceLocation>>;
-};
-
-export type QaCapabilities = {
-  listDocumentGlossaryIds: (
-    input: CapabilityInput<typeof listDocumentGlossaryIds>,
-  ) => Promise<CapabilityOutput<typeof listDocumentGlossaryIds>>;
-};
-
 export type GlossaryCapabilities = {
   get: (
     input: CapabilityInput<typeof getGlossary>,
@@ -386,7 +319,6 @@ export type MemoryCapabilities = {
 
 export type PluginCapabilities = {
   project: ProjectCapabilities;
-  document: DocumentCapabilities;
   translation: TranslationCapabilities;
   setting: SettingCapabilities;
   auth: AuthCapabilities;
@@ -395,8 +327,6 @@ export type PluginCapabilities = {
   user: UserCapabilities;
   comment: CommentCapabilities;
   agent: AgentCapabilities;
-  element: ElementCapabilities;
-  qa: QaCapabilities;
   glossary: GlossaryCapabilities;
   memory: MemoryCapabilities;
 };

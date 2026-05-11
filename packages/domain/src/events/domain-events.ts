@@ -15,12 +15,27 @@ export type DomainEventMap = {
   "term:deleted": { glossaryId: string; termIds: number[] };
   "concept:updated": { conceptId: number };
   "concept:revectorized": { conceptId: number };
-  "document:created": { projectId: string; documentId: string };
-  "document:updated": { documentId: string };
-  "document:deleted": { documentId: string };
+  "content-node:created": {
+    projectId: string;
+    contentNodeId: string;
+  };
+  "content-node:deleted": {
+    projectId: string;
+    contentNodeId: string;
+  };
+  "content-relation:created": {
+    projectId: string;
+    sourceContentNodeId?: string;
+    targetContentNodeId?: string;
+    targetElementId?: number;
+  };
+  "content-relation:deleted": {
+    projectId: string;
+    contentRelationId: string;
+  };
   "element:created": {
     projectId: string;
-    documentId: string;
+    primaryContentNodeId: string;
     elementIds: number[];
   };
   "project:created": { projectId: string; creatorId: string };
