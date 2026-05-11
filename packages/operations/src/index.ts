@@ -247,12 +247,33 @@ export {
 } from "./create-translation";
 
 export {
-  diffElementsOp,
-  DiffElementsInputSchema,
-  DiffElementsOutputSchema,
-  type DiffElementsInput,
-  type DiffElementsOutput,
-} from "./diff-elements";
+  applyStructuredContentGraphEnvelope,
+  persistStructuredContentGraphAttachments,
+  ApplyStructuredContentGraphInputSchema,
+  type ApplyStructuredContentGraphInput,
+  type AppliedGraphEnvelope,
+  type PersistGraphAttachmentsInput,
+  type PersistGraphAttachmentsOutput,
+} from "./apply-structured-content-graph";
+
+export {
+  diffStructuredContentOp,
+  DiffStructuredContentInputSchema,
+  DiffStructuredContentOutputSchema,
+  classifySemanticElementDiffForTest,
+  type DiffStructuredContentInput,
+  type DiffStructuredContentOutput,
+  type ClassifySemanticElementDiffInput,
+  type ClassifySemanticElementDiffResult,
+} from "./diff-structured-content";
+
+export {
+  upsertContentNodeFromFileOp,
+  UpsertContentNodeFromFileInputSchema,
+  UpsertContentNodeFromFileOutputSchema,
+  type UpsertContentNodeFromFileInput,
+  type UpsertContentNodeFromFileOutput,
+} from "./upsert-content-node-from-file";
 
 export {
   autoTranslateOp,
@@ -261,14 +282,6 @@ export {
   type AutoTranslateInput,
   type AutoTranslateOutput,
 } from "./auto-translate";
-
-export {
-  upsertDocumentFromFileOp,
-  UpsertDocumentInputSchema,
-  UpsertDocumentOutputSchema,
-  type UpsertDocumentInput,
-  type UpsertDocumentOutput,
-} from "./upsert-document-from-file";
 
 // === NLP Operations ===
 export {

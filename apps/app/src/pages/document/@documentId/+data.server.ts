@@ -3,8 +3,8 @@ import type { PageContextServer } from "vike/types";
 
 import {
   executeQuery,
-  getDocument,
-  getDocumentBlobInfo,
+  getContentNode,
+  getContentNodeBlobInfo,
   getSessionStore,
 } from "@cat/domain";
 import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
@@ -17,15 +17,15 @@ export const data = async (ctx: PageContextServer) => {
 
   if (!documentId) throw render("/", `Document id not provided`);
 
-  const document = await executeQuery({ db: drizzle }, getDocument, {
-    documentId,
+  const document = await executeQuery({ db: drizzle }, getContentNode, {
+    id: documentId,
   });
 
   if (!document) throw render("/", `Document ${documentId} not found`);
 
   // 获取文件信息
-  const fileInfo = await executeQuery({ db: drizzle }, getDocumentBlobInfo, {
-    documentId,
+  const fileInfo = await executeQuery({ db: drizzle }, getContentNodeBlobInfo, {
+    contentNodeId: documentId,
   });
 
   let fileUrl: string | null = null;

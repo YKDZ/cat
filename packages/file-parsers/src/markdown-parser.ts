@@ -8,6 +8,8 @@ import * as z from "zod";
 
 import type { ElementData, FileParser, SerializeElement } from "./types.ts";
 
+import { toJsonPointerRef } from "./stable-ref.ts";
+
 interface ElementMeta {
   index: number;
   type: string;
@@ -16,6 +18,7 @@ interface ElementMeta {
   rowIndex?: number;
   cellIndex?: number;
   identifier?: string;
+  astPath?: readonly (string | number)[];
 }
 
 export const markdownParser: FileParser = {
@@ -82,17 +85,32 @@ export const markdownParser: FileParser = {
           }
         : {};
 
-    const processNode = (node: RootContent): void => {
+    const stableMarkdownRef = (
+      node: RootContent,
+      path: readonly (string | number)[],
+      fallbackIndex: number,
+    ): string => {
+      return toJsonPointerRef("markdown", [node.type, ...path, fallbackIndex]);
+    };
+
+    const processNode = (
+      node: RootContent,
+      path: readonly (string | number)[] = [],
+    ): void => {
       if (node.type === "heading" && "children" in node) {
         const text = extractTextFromPhrasingContent(node.children).trim();
         if (text) {
+          const ref = stableMarkdownRef(node, path, elementIndex);
           elements.push({
+            ref,
+            stableSourceRef: ref,
             text,
-            sortIndex: elementIndex,
+            localOrder: elementIndex,
             meta: {
               index: elementIndex,
               type: "heading",
               depth: node.depth,
+              astPath: path,
             } satisfies ElementMeta,
             ...locationFromNode(node),
           });
@@ -101,12 +119,16 @@ export const markdownParser: FileParser = {
       } else if (node.type === "paragraph" && "children" in node) {
         const text = extractTextFromPhrasingContent(node.children).trim();
         if (text) {
+          const ref = stableMarkdownRef(node, path, elementIndex);
           elements.push({
+            ref,
+            stableSourceRef: ref,
             text,
-            sortIndex: elementIndex,
+            localOrder: elementIndex,
             meta: {
               index: elementIndex,
               type: "paragraph",
+              astPath: path,
             } satisfies ElementMeta,
             ...locationFromNode(node),
           });
@@ -117,12 +139,16 @@ export const markdownParser: FileParser = {
           if (child.type === "paragraph" && "children" in child) {
             const text = extractTextFromPhrasingContent(child.children).trim();
             if (text) {
+              const ref = stableMarkdownRef(node, path, elementIndex);
               elements.push({
+                ref,
+                stableSourceRef: ref,
                 text,
-                sortIndex: elementIndex,
+                localOrder: elementIndex,
                 meta: {
                   index: elementIndex,
                   type: "listItem",
+                  astPath: path,
                 } satisfies ElementMeta,
                 ...locationFromNode(child),
               });
@@ -130,35 +156,39 @@ export const markdownParser: FileParser = {
             }
           } else if (child.type === "list") {
             if ("children" in child) {
-              for (const nestedItem of child.children) {
-                processNode(nestedItem);
-              }
+              child.children.forEach((nestedItem, nestedIndex) => {
+                processNode(nestedItem, [...path, "children", nestedIndex]);
+              });
             }
           }
         }
       } else if (node.type === "code") {
         const text = node.value.trim();
         if (text) {
+          const ref = stableMarkdownRef(node, path, elementIndex);
           elements.push({
+            ref,
+            stableSourceRef: ref,
             text,
-            sortIndex: elementIndex,
+            localOrder: elementIndex,
             meta: {
               index: elementIndex,
               type: "code",
               lang: node.lang ?? null,
+              astPath: path,
             } satisfies ElementMeta,
             ...locationFromNode(node),
           });
           elementIndex += 1;
         }
       } else if (node.type === "blockquote" && "children" in node) {
-        for (const child of node.children) {
-          processNode(child);
-        }
+        node.children.forEach((child, childIndex) => {
+          processNode(child, [...path, "children", childIndex]);
+        });
       } else if (node.type === "list" && "children" in node) {
-        for (const child of node.children) {
-          processNode(child);
-        }
+        node.children.forEach((child, childIndex) => {
+          processNode(child, [...path, "children", childIndex]);
+        });
       } else if (node.type === "table" && "children" in node) {
         node.children.forEach((row, rowIndex) => {
           if (row.type === "tableRow" && "children" in row) {
@@ -168,14 +198,28 @@ export const markdownParser: FileParser = {
                   cell.children,
                 ).trim();
                 if (text) {
+                  const ref = stableMarkdownRef(
+                    node,
+                    [...path, "children", rowIndex, "children", cellIndex],
+                    elementIndex,
+                  );
                   elements.push({
+                    ref,
+                    stableSourceRef: ref,
                     text,
-                    sortIndex: elementIndex,
+                    localOrder: elementIndex,
                     meta: {
                       index: elementIndex,
                       type: "tableCell",
                       rowIndex,
                       cellIndex,
+                      astPath: [
+                        ...path,
+                        "children",
+                        rowIndex,
+                        "children",
+                        cellIndex,
+                      ],
                     } satisfies ElementMeta,
                     ...locationFromNode(cell),
                   });
@@ -188,12 +232,16 @@ export const markdownParser: FileParser = {
       } else if (node.type === "linkReference" && "children" in node) {
         const text = extractTextFromPhrasingContent(node.children).trim();
         if (text) {
+          const ref = stableMarkdownRef(node, path, elementIndex);
           elements.push({
+            ref,
+            stableSourceRef: ref,
             text,
-            sortIndex: elementIndex,
+            localOrder: elementIndex,
             meta: {
               index: elementIndex,
               type: "linkReference",
+              astPath: path,
             } satisfies ElementMeta,
             ...locationFromNode(node),
           });
@@ -202,12 +250,16 @@ export const markdownParser: FileParser = {
       } else if (node.type === "imageReference") {
         const text = node.alt?.trim();
         if (text) {
+          const ref = stableMarkdownRef(node, path, elementIndex);
           elements.push({
+            ref,
+            stableSourceRef: ref,
             text,
-            sortIndex: elementIndex,
+            localOrder: elementIndex,
             meta: {
               index: elementIndex,
               type: "imageReference",
+              astPath: path,
             } satisfies ElementMeta,
             ...locationFromNode(node),
           });
@@ -218,29 +270,33 @@ export const markdownParser: FileParser = {
           if (child.type === "paragraph" && "children" in child) {
             const text = extractTextFromPhrasingContent(child.children).trim();
             if (text) {
+              const ref = stableMarkdownRef(node, path, elementIndex);
               elements.push({
+                ref,
+                stableSourceRef: ref,
                 text,
-                sortIndex: elementIndex,
+                localOrder: elementIndex,
                 meta: {
                   index: elementIndex,
                   type: "footnoteDefinition",
                   identifier: node.identifier,
+                  astPath: path,
                 } satisfies ElementMeta,
                 ...locationFromNode(child),
               });
               elementIndex += 1;
             }
           } else {
-            processNode(child);
+            processNode(child, [...path, "children"]);
           }
         }
       }
     };
 
     if ("children" in tree) {
-      for (const child of tree.children) {
-        processNode(child);
-      }
+      tree.children.forEach((child, childIndex) => {
+        processNode(child, [childIndex]);
+      });
     }
 
     return elements;

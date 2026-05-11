@@ -1,23 +1,23 @@
 import {
-  diffElementsOp,
-  DiffElementsInputSchema,
-  DiffElementsOutputSchema,
+  diffStructuredContentOp,
+  DiffStructuredContentInputSchema,
+  DiffStructuredContentOutputSchema,
 } from "@cat/operations";
 
 import { defineNode, defineGraph } from "@/graph/dsl";
 
-export { DiffElementsInputSchema, DiffElementsOutputSchema };
+export { DiffStructuredContentInputSchema, DiffStructuredContentOutputSchema };
 
 export const diffElementsGraph = defineGraph({
   id: "element-diff",
-  input: DiffElementsInputSchema,
-  output: DiffElementsOutputSchema,
+  input: DiffStructuredContentInputSchema,
+  output: DiffStructuredContentOutputSchema,
   nodes: {
     main: defineNode({
-      input: DiffElementsInputSchema,
-      output: DiffElementsOutputSchema,
+      input: DiffStructuredContentInputSchema,
+      output: DiffStructuredContentOutputSchema,
       handler: async (input, ctx) =>
-        diffElementsOp(input, {
+        diffStructuredContentOp(input, {
           traceId: ctx.traceId,
           signal: ctx.signal,
           pluginManager: ctx.pluginManager,

@@ -1,6 +1,9 @@
 import type { PluginServiceType } from "@cat/shared";
-
-import { JSONType } from "@cat/shared";
+import type {
+  RegisteredRelationTypeInput,
+  StructuredEvidenceInput,
+  StructuredRelationInput,
+} from "@cat/shared";
 
 import type { IPluginService } from "@/services/service";
 
@@ -8,33 +11,59 @@ export type CanImportContext = {
   name: string;
 };
 
-export type ImportContext = {
-  fileContent: Buffer;
-};
-
 export type CanExportContext = {
   name: string;
 };
 
+export type ElementData = {
+  ref: string;
+  stableSourceRef: string;
+  sourceNodeRef?: string;
+  text: string;
+  meta?: unknown;
+  localOrder?: number;
+  location?: {
+    startLine?: number;
+    endLine?: number;
+    custom?: unknown;
+  };
+};
+
+export type FileImportResult = {
+  importerId: string;
+  sourceRootRef: string;
+  sourceNode: {
+    ref: string;
+    stableSourceNodeRef: string;
+    displayLabel: string;
+    sourcePath?: string;
+    sourceType?: string;
+  };
+  relationTypes?: RegisteredRelationTypeInput[];
+  elements: ElementData[];
+  relations?: StructuredRelationInput[];
+  evidence?: StructuredEvidenceInput[];
+};
+
+export type ImportContext = {
+  fileContent: Buffer;
+  name: string;
+  fileId: number;
+  contentNodeId?: string;
+  sourceRootRef: string;
+  sourceNodeRef: string;
+  stableSourceNodeRef: string;
+};
+
 export type ExportContext = {
   fileContent: Buffer;
-  elements: { meta: JSONType; text: string; sortIndex?: number }[];
-};
-
-export type ElementLocation = {
-  /** 元素在源文件中的起始行（1-based），适用于纯文本文件 */
-  startLine?: number;
-  /** 元素在源文件中的结束行（1-based），适用于纯文本文件 */
-  endLine?: number;
-  /** 插件自定义定位信息（如 PDF 页码、markdown AST 路径等） */
-  custom?: Record<string, unknown>;
-};
-
-export type ElementData = {
-  meta: JSONType;
-  text: string;
-  sortIndex?: number;
-  location?: ElementLocation;
+  elements: Array<{
+    ref: string;
+    stableSourceRef: string;
+    meta: unknown;
+    text: string;
+    localOrder: number;
+  }>;
 };
 
 export abstract class FileImporter implements IPluginService {
@@ -43,7 +72,7 @@ export abstract class FileImporter implements IPluginService {
     return "FILE_IMPORTER";
   }
   abstract canImport(ctx: CanImportContext): boolean;
-  abstract import(ctx: ImportContext): Promise<ElementData[]>;
+  abstract import(ctx: ImportContext): Promise<FileImportResult>;
 }
 
 export abstract class FileExporter implements IPluginService {

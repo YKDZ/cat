@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 
 import { computed, shallowRef } from "vue";
 
 import DocumentTreeNode from "./DocumentTreeNode.vue";
 
 const props = defineProps<{
-  documents: (Document & {
+  contentNodes: (ContentNode & {
     parentId: string | null;
+    localOrder: number | null;
   })[];
 }>();
 
 const emits = defineEmits<{
-  (e: "click", document: Document): void;
+  (e: "click", node: ContentNode): void;
 }>();
 
-export type TreeNode = Document & {
+export type TreeNode = ContentNode & {
   parentId: string | null;
+  localOrder: number | null;
   children: TreeNode[];
 };
 
@@ -24,22 +26,22 @@ const tree = computed(() => {
   const map = new Map<string, TreeNode>();
   const roots: TreeNode[] = [];
 
-  props.documents.forEach((doc) => {
-    map.set(doc.id, { ...doc, children: [] });
+  props.contentNodes.forEach((node) => {
+    map.set(node.id, { ...node, children: [] });
   });
 
-  props.documents.forEach((doc) => {
-    const node = map.get(doc.id);
-    if (!node) return;
+  props.contentNodes.forEach((node) => {
+    const treeNode = map.get(node.id);
+    if (!treeNode) return;
 
-    if (doc.parentId && map.has(doc.parentId)) {
-      map.get(doc.parentId)!.children.push(node);
+    if (node.parentId && map.has(node.parentId)) {
+      map.get(node.parentId)!.children.push(treeNode);
     } else {
-      roots.push(node);
+      roots.push(treeNode);
     }
   });
 
-  if (roots.length === 1 && roots[0] && roots[0].isDirectory) {
+  if (roots.length === 1 && roots[0] && roots[0].kind === "PROJECT_ROOT") {
     return roots[0].children;
   }
 
@@ -56,8 +58,8 @@ const toggleNode = (nodeId: string) => {
   }
 };
 
-const handleClick = (document: Document) => {
-  emits("click", document);
+const handleClick = (node: ContentNode) => {
+  emits("click", node);
 };
 </script>
 
@@ -71,8 +73,8 @@ const handleClick = (document: Document) => {
         @toggle="toggleNode"
         @click="handleClick"
       >
-        <template #actions="{ document }">
-          <slot name="actions" :document />
+        <template #actions="{ node: actionNode }">
+          <slot name="actions" :node="actionNode" />
         </template>
       </DocumentTreeNode>
     </template>

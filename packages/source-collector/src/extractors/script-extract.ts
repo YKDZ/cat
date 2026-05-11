@@ -1,4 +1,4 @@
-import type { CollectionElement } from "@cat/shared";
+import type { StructuredTranslatableElementInput } from "@cat/shared";
 
 import { Node, Project } from "ts-morph";
 
@@ -39,14 +39,14 @@ export function extractFromScript(
   filePath: string,
   section: "script" | "scriptSetup" | "file",
   lineOffset: number,
-): CollectionElement[] {
+): StructuredTranslatableElementInput[] {
   if (!content.includes("t(")) return [];
 
   const project = getProject();
   const tempName = `__extract_${Date.now()}_${Math.random().toString(36).slice(2)}.ts`;
   const sf = project.createSourceFile(tempName, content, { overwrite: true });
 
-  const elements: CollectionElement[] = [];
+  const elements: StructuredTranslatableElementInput[] = [];
   const lines = content.split("\n");
 
   try {
@@ -100,7 +100,11 @@ export function extractFromScript(
 
       elements.push({
         ref: `vue-i18n:${filePath}:${section}:L${callLine}`,
+        stableSourceRef: `source:${filePath}:${section}:L${callLine}`,
+        sourceNodeRef: `source-file:${filePath}`,
+        localOrder: elements.length,
         text,
+        languageId: "en",
         meta: {
           framework: "vue-i18n",
           file: filePath,

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const domainMocks = vi.hoisted(() => ({
-  getElementInfo: vi.fn(),
-  listNeighborElements: vi.fn(),
-  listDocumentApprovedTranslations: vi.fn(),
+  listElementSourceTexts: vi.fn(),
+  getElementMeta: vi.fn(),
+  assembleContextEvidence: vi.fn(),
   listElementComments: vi.fn(),
   getDbHandle: vi.fn(),
 }));
@@ -19,10 +19,9 @@ vi.mock("@cat/domain", async () => {
     await vi.importActual<typeof import("@cat/domain")>("@cat/domain");
   return {
     ...actual,
-    getElementInfo: domainMocks.getElementInfo,
-    listNeighborElements: domainMocks.listNeighborElements,
-    listDocumentApprovedTranslations:
-      domainMocks.listDocumentApprovedTranslations,
+    listElementSourceTexts: domainMocks.listElementSourceTexts,
+    getElementMeta: domainMocks.getElementMeta,
+    assembleContextEvidence: domainMocks.assembleContextEvidence,
     listElementComments: domainMocks.listElementComments,
     getDbHandle: domainMocks.getDbHandle,
   };
@@ -54,30 +53,24 @@ const mockLlmService = {
   },
 };
 
-const MOCK_ELEMENT_INFO = {
-  elementId: 10,
-  documentId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-  sourceText: "Click to confirm",
-  sourceLanguageId: "en",
-  sortIndex: 1,
-  contexts: [],
-  meta: {},
-  translations: [],
-};
-
-const MOCK_NEIGHBORS = [
-  {
-    id: 9,
-    value: "Previous step",
-    languageId: "en",
-    approvedTranslation: "上一步",
-    approvedTranslationLanguageId: "zh-Hans",
-    offset: -1,
-  },
+const MOCK_SOURCE_TEXTS = [
+  { id: 10, text: "Click to confirm", sourceLanguageId: "en" },
 ];
 
-const MOCK_APPROVED_TRANSLATIONS = [
-  { source: "Save changes", translation: "保存更改", elementId: 11 },
+const MOCK_EVIDENCE = [
+  {
+    purpose: "AI" as const,
+    priority: 0,
+    label: "source text",
+    score: 100,
+    sourceEndpoint: "element:10",
+    relatedEndpoint: null,
+    trustLevel: "VERIFIED" as const,
+    freshness: null,
+    clipped: false,
+    payload: { text: "Click to confirm", languageId: "en" },
+    expansion: null,
+  },
 ];
 
 const MOCK_COMMENTS = [
@@ -179,11 +172,9 @@ describe("llmTranslateOp", () => {
     vi.clearAllMocks();
     serverMocks.resolvePluginManager.mockReturnValue({});
     domainMocks.getDbHandle.mockResolvedValue({ client: {} });
-    domainMocks.getElementInfo.mockResolvedValue(MOCK_ELEMENT_INFO);
-    domainMocks.listNeighborElements.mockResolvedValue(MOCK_NEIGHBORS);
-    domainMocks.listDocumentApprovedTranslations.mockResolvedValue(
-      MOCK_APPROVED_TRANSLATIONS,
-    );
+    domainMocks.listElementSourceTexts.mockResolvedValue(MOCK_SOURCE_TEXTS);
+    domainMocks.getElementMeta.mockResolvedValue({});
+    domainMocks.assembleContextEvidence.mockResolvedValue(MOCK_EVIDENCE);
     domainMocks.listElementComments.mockResolvedValue(MOCK_COMMENTS);
   });
 
@@ -217,11 +208,9 @@ describe("llmTranslateOp", () => {
     expect(result.suggestion).toBeNull();
   });
 
-  it("returns null when element not found (getElementInfo throws)", async () => {
+  it("returns null when element not found (listElementSourceTexts returns empty)", async () => {
     serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
-    domainMocks.getElementInfo.mockRejectedValue(
-      new Error("Element not found"),
-    );
+    domainMocks.listElementSourceTexts.mockResolvedValue([]);
     const result = await llmTranslateOp(BASE_INPUT);
     expect(result.suggestion).toBeNull();
   });
@@ -231,13 +220,11 @@ describe("llmTranslateOp", () => {
   it("returns a suggestion with source-only signal class when no other context", async () => {
     serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "点击以确认" });
-    // Disable all optional context
-    domainMocks.listNeighborElements.mockResolvedValue([]);
+    domainMocks.assembleContextEvidence.mockResolvedValue([]);
 
     const result = await llmTranslateOp({
       ...BASE_INPUT,
       config: {
-        neighborTranslations: false,
         elementContexts: { enabled: false },
         approvedTranslations: { enabled: false },
         comments: { enabled: false },
@@ -255,19 +242,22 @@ describe("llmTranslateOp", () => {
     serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "点击以确认" });
 
-    domainMocks.getElementInfo.mockResolvedValue({
-      ...MOCK_ELEMENT_INFO,
-      meta: { key: "confirm_button" },
-      contexts: [
-        {
-          type: "TEXT" as const,
-          jsonData: null,
-          textData: "Button label",
-          fileId: null,
-          storageProviderId: null,
-        },
-      ],
-    });
+    domainMocks.getElementMeta.mockResolvedValue({ key: "confirm_button" });
+    domainMocks.assembleContextEvidence.mockResolvedValue([
+      {
+        purpose: "AI" as const,
+        priority: 0,
+        label: "source text",
+        score: 100,
+        sourceEndpoint: "element:10",
+        relatedEndpoint: null,
+        trustLevel: "VERIFIED" as const,
+        freshness: null,
+        clipped: false,
+        payload: { text: "Click to confirm", languageId: "en" },
+        expansion: null,
+      },
+    ]);
 
     const result = await llmTranslateOp({
       ...BASE_INPUT,
@@ -287,14 +277,8 @@ describe("llmTranslateOp", () => {
 
     expect(result.suggestion?.meta?.signalClasses).toContain("memory");
     expect(result.suggestion?.meta?.signalClasses).toContain("term");
-    expect(result.suggestion?.meta?.signalClasses).toContain(
-      "neighborTranslations",
-    );
     expect(result.suggestion?.meta?.signalClasses).toContain("elementMeta");
     expect(result.suggestion?.meta?.signalClasses).toContain("elementContexts");
-    expect(result.suggestion?.meta?.signalClasses).toContain(
-      "approvedTranslations",
-    );
     expect(result.suggestion?.meta?.signalClasses).toContain("comments");
     expect(result.suggestion?.meta?.signalClasses).toContain("source");
     expect(result.suggestion?.meta?.signalClasses).not.toContain("context");
@@ -302,28 +286,16 @@ describe("llmTranslateOp", () => {
 
   // --- Config gating ---
 
-  it("skips neighbor query when config.neighborTranslations is false", async () => {
+  it("skips evidence query when elementContexts is disabled", async () => {
     serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     await llmTranslateOp({
       ...BASE_INPUT,
-      config: { neighborTranslations: false },
+      config: { elementContexts: { enabled: false } },
     });
 
-    expect(domainMocks.listNeighborElements).not.toHaveBeenCalled();
-  });
-
-  it("skips approved translations query when config disables it", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
-    serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
-
-    await llmTranslateOp({
-      ...BASE_INPUT,
-      config: { approvedTranslations: { enabled: false } },
-    });
-
-    expect(domainMocks.listDocumentApprovedTranslations).not.toHaveBeenCalled();
+    expect(domainMocks.assembleContextEvidence).not.toHaveBeenCalled();
   });
 
   it("skips comments query when config disables it", async () => {
@@ -340,40 +312,43 @@ describe("llmTranslateOp", () => {
 
   // --- Error resilience ---
 
-  it("proceeds when an individual context query fails", async () => {
+  it("proceeds when assembleContextEvidence fails", async () => {
     serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
-    domainMocks.listDocumentApprovedTranslations.mockRejectedValue(
+    domainMocks.assembleContextEvidence.mockRejectedValue(
       new Error("DB timeout"),
     );
 
     const result = await llmTranslateOp(BASE_INPUT);
     expect(result.suggestion).not.toBeNull();
-    // approvedTranslations should be omitted from signalClasses
+    // evidence empty → elementContexts omitted from signalClasses
     expect(result.suggestion?.meta?.signalClasses).not.toContain(
-      "approvedTranslations",
+      "elementContexts",
     );
   });
 
   // --- Prompt content ---
 
-  it("includes IMAGE/FILE context markers in prompt", async () => {
+  it("includes evidence items in prompt", async () => {
     serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
-    domainMocks.getElementInfo.mockResolvedValue({
-      ...MOCK_ELEMENT_INFO,
-      contexts: [
-        {
-          type: "IMAGE" as const,
-          jsonData: { filename: "screenshot.png", width: 800, height: 600 },
-          textData: null,
-          fileId: 5,
-          storageProviderId: 1,
-        },
-      ],
-    });
+    domainMocks.assembleContextEvidence.mockResolvedValue([
+      {
+        purpose: "AI" as const,
+        priority: 10,
+        label: "screenshot note",
+        score: 80,
+        sourceEndpoint: "element:10",
+        relatedEndpoint: null,
+        trustLevel: "COLLECTED" as const,
+        freshness: null,
+        clipped: false,
+        payload: { text: "Button shown on the home page" },
+        expansion: null,
+      },
+    ]);
 
     await llmTranslateOp(BASE_INPUT);
 
@@ -383,8 +358,9 @@ describe("llmTranslateOp", () => {
       messages: Array<{ role: string; content: string }>;
     };
     const userPrompt = chatArgs?.messages[1]?.content ?? "";
-    expect(userPrompt).toContain("[IMAGE context");
-    expect(userPrompt).toContain("not visually processed");
+    expect(userPrompt).toContain("Context evidence");
+    expect(userPrompt).toContain("screenshot note");
+    expect(userPrompt).toContain("Button shown on the home page");
   });
 
   it("uses adaptedTranslation from memory when available", async () => {

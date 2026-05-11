@@ -1,8 +1,8 @@
 import type { ObjectType, Relation } from "@cat/shared";
 
 import {
-  getDocument,
-  getElementWithChunkIds,
+  getContentNode,
+  getElementProject,
   listTranslationsByIds,
 } from "@cat/domain";
 import { getPermissionEngine } from "@cat/permissions";
@@ -89,17 +89,17 @@ export const checkPermission = (objectType: ObjectType, relation: Relation) => {
 };
 
 /**
- * 检查 Document 权限（通过 projectId 传递）。
- * 输入：documentId (string)
+ * 检查 ContentNode 权限（通过 projectId 传递）。
+ * 输入：contentNodeId (string)
  *
  * 用法：
  * authed
- *   .input(z.object({ documentId: z.uuidv4() }))
- *   .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+ *   .input(z.object({ contentNodeId: z.uuidv4() }))
+ *   .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
  *   .handler(...)
  */
 // oxlint-disable-next-line typescript/explicit-module-boundary-types
-export const checkDocumentPermission = (relation: Relation) => {
+export const checkContentNodePermission = (relation: Relation) => {
   type AuthedContext = {
     user: NonNullable<Context["user"]>;
     sessionId: Context["sessionId"];
@@ -109,19 +109,21 @@ export const checkDocumentPermission = (relation: Relation) => {
 
   return os
     .$context<AuthedContext>()
-    .middleware(async ({ context, next }, documentId: string) => {
+    .middleware(async ({ context, next }, contentNodeId: string) => {
       const {
         drizzleDB: { client: drizzle },
       } = context;
 
-      const doc = await getDocument({ db: drizzle }, { documentId });
-      if (!doc)
-        throw new ORPCError("NOT_FOUND", { message: "Document not found" });
+      const node = await getContentNode({ db: drizzle }, { id: contentNodeId });
+      if (!node)
+        throw new ORPCError("NOT_FOUND", {
+          message: "Content node not found",
+        });
 
       const engine = getPermissionEngine();
       const allowed = await engine.check(
         context.auth,
-        { type: "project", id: doc.projectId },
+        { type: "project", id: node.projectId },
         relation,
       );
       if (!allowed) throw new ORPCError("FORBIDDEN");
@@ -136,7 +138,13 @@ export const checkDocumentPermission = (relation: Relation) => {
 };
 
 /**
- * 检查 Element 权限（通过 document → projectId 传递）。
+ * 路由词汇别名：checkDocumentPermission → checkContentNodePermission
+ * 仅在路由命名仍使用 "document" 词汇时使用。不调用任何 Document 查询。
+ */
+export const checkDocumentPermission = checkContentNodePermission;
+
+/**
+ * 检查 Element 权限（通过 translatableElement.projectId 直接传递）。
  * 输入：elementId (number)
  *
  * 用法：
@@ -161,10 +169,7 @@ export const checkElementPermission = (relation: Relation) => {
         drizzleDB: { client: drizzle },
       } = context;
 
-      const element = await getElementWithChunkIds(
-        { db: drizzle },
-        { elementId },
-      );
+      const element = await getElementProject({ db: drizzle }, { elementId });
       if (!element)
         throw new ORPCError("NOT_FOUND", { message: "Element not found" });
 
@@ -231,16 +236,16 @@ export const requireDocumentPermission = (
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const documentId = getDocumentId(input);
+    const contentNodeId = getDocumentId(input);
 
-    const doc = await getDocument({ db: drizzle }, { documentId });
-    if (!doc)
-      throw new ORPCError("NOT_FOUND", { message: "Document not found" });
+    const node = await getContentNode({ db: drizzle }, { id: contentNodeId });
+    if (!node)
+      throw new ORPCError("NOT_FOUND", { message: "Content node not found" });
 
     const engine = getPermissionEngine();
     const allowed = await engine.check(
       context.auth,
-      { type: "project", id: doc.projectId },
+      { type: "project", id: node.projectId },
       relation,
     );
     if (!allowed) throw new ORPCError("FORBIDDEN");
@@ -268,10 +273,7 @@ export const requireElementPermission = (
     } = context;
     const elementId = getElementId(input);
 
-    const element = await getElementWithChunkIds(
-      { db: drizzle },
-      { elementId },
-    );
+    const element = await getElementProject({ db: drizzle }, { elementId });
     if (!element)
       throw new ORPCError("NOT_FOUND", { message: "Element not found" });
 
@@ -325,7 +327,7 @@ export const checkTranslationPermission = (relation: Relation) => {
       if (!translation)
         throw new ORPCError("NOT_FOUND", { message: "Translation not found" });
 
-      const element = await getElementWithChunkIds(
+      const element = await getElementProject(
         { db: drizzle },
         { elementId: translation.translatableElementId },
       );

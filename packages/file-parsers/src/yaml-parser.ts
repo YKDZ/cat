@@ -12,6 +12,8 @@ import * as z from "zod";
 
 import type { ElementData, FileParser, SerializeElement } from "./types.ts";
 
+import { toJsonPointerRef } from "./stable-ref.ts";
+
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
 
 interface YamlObject {
@@ -81,9 +83,13 @@ export const yamlParser: FileParser = {
                 endLine: offsetToLine(range[1] - 1),
               }
             : undefined;
+        const ref = toJsonPointerRef("yaml", path);
         elements.push({
+          ref,
+          stableSourceRef: ref,
           // oxlint-disable-next-line no-unsafe-type-assertion
           text: scalarNode.value as string,
+          localOrder: elements.length,
           meta: {
             path: path.join("."),
             ...(comment ? { comment } : {}),

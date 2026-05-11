@@ -1,11 +1,18 @@
 import type { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
 
 import {
+  contentNodeDiffStrategy,
+  contentRelationDiffStrategy,
+  contentRelationTypeDiffStrategy,
+  contextEvidenceDiffStrategy,
+  contextProfileDiffStrategy,
+  scopeBindingDiffStrategy,
+  semanticDiffEntryDiffStrategy,
+} from "./strategies/content-graph.diff.ts";
+import {
   commentDiffStrategy,
   commentReactionDiffStrategy,
-  documentTreeDiffStrategy,
 } from "./strategies/document-tree.diff.ts";
-import { documentDiffStrategy } from "./strategies/document.diff.ts";
 import { elementDiffStrategy } from "./strategies/element.diff.ts";
 import { memoryItemDiffStrategy } from "./strategies/memory-item.diff.ts";
 import {
@@ -21,16 +28,21 @@ import {
 import { translationDiffStrategy } from "./strategies/translation.diff.ts";
 
 /**
- * @zh 向注册表注册全部 13 种 entityType 的 diff 策略
- * @en Register all 13 entityType diff strategies into the registry
+ * @zh 向注册表注册全部 entityType 的 diff 策略（包含内容图谱实体）
+ * @en Register all entityType diff strategies into the registry (including content graph entities)
  */
 export const registerAllDiffStrategies = (
   registry: DiffStrategyRegistry,
 ): void => {
   registry.register("translation", translationDiffStrategy);
   registry.register("element", elementDiffStrategy);
-  registry.register("document", documentDiffStrategy);
-  registry.register("document_tree", documentTreeDiffStrategy);
+  registry.register("content_node", contentNodeDiffStrategy);
+  registry.register("content_relation", contentRelationDiffStrategy);
+  registry.register("content_relation_type", contentRelationTypeDiffStrategy);
+  registry.register("context_evidence", contextEvidenceDiffStrategy);
+  registry.register("context_profile", contextProfileDiffStrategy);
+  registry.register("scope_binding", scopeBindingDiffStrategy);
+  registry.register("semantic_diff", semanticDiffEntryDiffStrategy);
   registry.register("comment", commentDiffStrategy);
   registry.register("comment_reaction", commentReactionDiffStrategy);
   registry.register("term", termDiffStrategy);

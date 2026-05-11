@@ -1,27 +1,32 @@
-import type { CollectionPayload } from "@cat/shared";
-import type { ExtractionResult } from "@cat/shared";
+import {
+  StructuredContentPayloadSchema,
+  type StructuredContentPayload,
+} from "@cat/shared";
 
-import type { PayloadRoutingOptions } from "./types.ts";
+import type {
+  PayloadRoutingOptions,
+  SourceExtractionGraphResult,
+} from "./types.ts";
 
 /**
- * @zh 将 ExtractionResult 与平台路由参数组装为 CollectionPayload。
- * @en Assemble ExtractionResult + platform routing into CollectionPayload.
+ * @zh 将 SourceExtractionGraphResult 与平台路由参数组装为 StructuredContentPayload。
+ * @en Assemble SourceExtractionGraphResult + platform routing into StructuredContentPayload.
  */
 export function toCollectionPayload(
-  result: ExtractionResult,
+  result: SourceExtractionGraphResult,
   routing: PayloadRoutingOptions,
-): CollectionPayload {
-  return {
+): StructuredContentPayload {
+  return StructuredContentPayloadSchema.parse({
+    payloadVersion: "content-graph/v1",
     projectId: routing.projectId,
     sourceLanguageId: routing.sourceLanguageId,
-    document: {
-      name: routing.documentName,
-      ...(routing.fileHandlerId
-        ? { fileHandlerId: routing.fileHandlerId }
-        : {}),
-    },
+    importerId: result.importerId,
+    sourceRootRef: routing.sourceRootRef,
+    relationTypes: result.relationTypes,
+    nodes: result.nodes,
     elements: result.elements,
-    contexts: result.contexts,
-    ...(routing.options ? { options: routing.options } : {}),
-  };
+    relations: result.relations,
+    evidence: result.evidence,
+    options: routing.options,
+  });
 }

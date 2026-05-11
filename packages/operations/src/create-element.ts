@@ -10,12 +10,17 @@ import { createVectorizedStringOp } from "./create-vectorized-string";
 export const CreateElementInputSchema = z.object({
   data: z.array(
     z.object({
+      projectId: z.uuidv4(),
+      primaryContentNodeId: z.uuidv4(),
+      importerId: z.string().min(1),
+      sourceRootRef: z.string().min(1),
+      sourceNodeRef: z.string().min(1),
+      stableSourceRef: z.string().min(1),
       meta: z.json().optional(),
       creatorId: z.uuidv4().optional(),
-      documentId: z.uuidv4(),
       text: z.string(),
       languageId: z.string(),
-      sortIndex: z.int().optional(),
+      localOrder: z.int().optional(),
       sourceStartLine: z.int().nullable().optional(),
       sourceEndLine: z.int().nullable().optional(),
       sourceLocationMeta: z.json().nullable().optional(),
@@ -67,11 +72,16 @@ export const createElementOp = async (
   const elementIds = await executeCommand({ db: drizzle }, createElements, {
     data: Array.from(zip(data.data, stringResult.stringIds)).map(
       ([element, stringId]) => ({
+        projectId: element.projectId,
+        primaryContentNodeId: element.primaryContentNodeId,
+        importerId: element.importerId,
+        sourceRootRef: element.sourceRootRef,
+        sourceNodeRef: element.sourceNodeRef,
+        stableSourceRef: element.stableSourceRef,
         meta: element.meta,
         creatorId: element.creatorId,
-        documentId: element.documentId,
         stringId,
-        sortIndex: element.sortIndex,
+        localOrder: element.localOrder,
         sourceStartLine: element.sourceStartLine,
         sourceEndLine: element.sourceEndLine,
         sourceLocationMeta: element.sourceLocationMeta,

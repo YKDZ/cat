@@ -155,7 +155,13 @@ const msg = t("登录");
 `;
     const els = extractFromScript(content, "test.ts", "file", 0);
     expect(els).toHaveLength(1);
-    expect(els[0].location?.custom?.["i18nContext"]).toBe("这是登录按钮的文本");
+    function getI18nCtx(v: unknown): unknown {
+      if (v !== null && typeof v === "object" && "i18nContext" in v) {
+        return (v as { i18nContext: unknown }).i18nContext;
+      }
+      return undefined;
+    }
+    expect(getI18nCtx(els[0].location?.custom)).toBe("这是登录按钮的文本");
   });
 
   it("applies line offset for SFC script blocks", () => {

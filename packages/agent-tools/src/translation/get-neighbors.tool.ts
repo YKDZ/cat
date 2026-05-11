@@ -1,6 +1,10 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import { executeQuery, getDbHandle, listNeighborElements } from "@cat/domain";
+import {
+  assembleContextEvidence,
+  executeQuery,
+  getDbHandle,
+} from "@cat/domain";
 import * as z from "zod";
 
 import { assertElementInSession } from "./assert-session-scope.ts";
@@ -10,18 +14,18 @@ const getNeighborsArgs = z.object({
     .int()
     .positive()
     .describe("Translatable element ID to get neighbors for"),
-  windowSize: z
+  maxItems: z
     .int()
     .min(1)
-    .max(10)
-    .default(3)
-    .describe("Number of neighbor elements before and after"),
+    .max(20)
+    .default(10)
+    .describe("Maximum number of evidence items to return"),
 });
 
 export const getNeighborsTool: AgentToolDefinition = {
   name: "get_neighbors",
   description:
-    "Get neighboring elements around a specific translatable element, sorted by document order. Returns source text and approved translation (if any) for each neighbor. Use this to understand the context before translating an element.",
+    "Get context evidence (neighboring elements, annotations, screenshots) around a specific translatable element. Returns bounded flattened evidence sorted by relevance. Use this to understand the context before translating an element.",
   parameters: getNeighborsArgs,
   sideEffectType: "none",
   toolSecurityLevel: "standard",
@@ -29,20 +33,12 @@ export const getNeighborsTool: AgentToolDefinition = {
     const parsed = getNeighborsArgs.parse(args);
     await assertElementInSession(parsed.elementId, ctx);
     const { client: db } = await getDbHandle();
-    const neighbors = await executeQuery({ db }, listNeighborElements, {
+    const evidence = await executeQuery({ db }, assembleContextEvidence, {
       elementId: parsed.elementId,
-      windowSize: parsed.windowSize,
+      purpose: "AGENT",
+      maxItems: parsed.maxItems,
     });
 
-    return {
-      neighbors: neighbors.map((neighbor) => ({
-        id: neighbor.id,
-        sourceText: neighbor.value,
-        languageId: neighbor.languageId,
-        approvedTranslation: neighbor.approvedTranslation,
-        approvedTranslationLanguageId: neighbor.approvedTranslationLanguageId,
-        offset: neighbor.offset,
-      })),
-    };
+    return { evidence };
   },
 };

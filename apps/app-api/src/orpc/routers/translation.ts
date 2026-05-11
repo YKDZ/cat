@@ -2,7 +2,7 @@ import type { VCSContext } from "@cat/vcs";
 
 import {
   approveTranslation,
-  autoApproveDocumentTranslations,
+  autoApproveContentNodeTranslations,
   createAgentDefinition,
   createAgentSession,
   deleteTranslation,
@@ -10,7 +10,7 @@ import {
   executeQuery,
   findAgentDefinitionByNameAndScope,
   getAgentSessionByExternalId,
-  getDocument,
+  getContentNode,
   getElementWithChunkIds,
   getProjectTargetLanguages,
   getSelfTranslationVote,
@@ -167,7 +167,7 @@ export const create = authed
           },
         ],
         memoryIds: createMemory ? memoryIds : [],
-        documentId: element.documentId,
+        documentId: undefined,
         vectorStorageId: storage.id,
         vectorizerId: vectorizer.id,
         translatorId: user.id,
@@ -350,8 +350,8 @@ export const autoApprove = authed
 
     return await executeCommand(
       { db: drizzle },
-      autoApproveDocumentTranslations,
-      input,
+      autoApproveContentNodeTranslations,
+      { contentNodeId: input.documentId, languageId: input.languageId },
     );
   });
 
@@ -426,13 +426,13 @@ export const autoTranslate = authed
         message: `No TEXT_VECTORIZER service available`,
       });
 
-    const document = await executeQuery({ db: drizzle }, getDocument, {
-      documentId,
+    const document = await executeQuery({ db: drizzle }, getContentNode, {
+      id: documentId,
     });
 
     if (!document) {
       throw new ORPCError("NOT_FOUND", {
-        message: `Document ${documentId} not found`,
+        message: `Content node ${documentId} not found`,
       });
     }
 

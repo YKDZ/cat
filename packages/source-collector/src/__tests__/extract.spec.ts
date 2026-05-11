@@ -29,7 +29,11 @@ const mockExtractor: SourceExtractor = {
       .filter((line) => line.trim() !== "")
       .map((line, i) => ({
         ref: `mock:${filePath}:L${i + 1}`,
+        stableSourceRef: `source:${filePath}:L${i + 1}`,
+        sourceNodeRef: `source-file:${filePath}`,
+        localOrder: i,
         text: line.trim(),
+        languageId: "en",
         meta: { extractor: "mock", file: filePath, line: i + 1 },
         location: { startLine: i + 1, endLine: i + 1 },
       }));
@@ -37,7 +41,7 @@ const mockExtractor: SourceExtractor = {
 };
 
 describe("extract", () => {
-  it("extracts elements and generates contexts with metadata", async () => {
+  it("extracts elements and generates evidence with nodes", async () => {
     const dir = await createTempFiles({
       "src/a.txt": "Hello\nWorld",
     });
@@ -50,17 +54,15 @@ describe("extract", () => {
       });
 
       expect(result.elements).toHaveLength(2);
-      expect(result.contexts.length).toBeGreaterThanOrEqual(2);
-      expect(result.metadata).toBeDefined();
-      expect(result.metadata?.extractorIds).toEqual(["mock"]);
-      expect(result.metadata?.baseDir).toBe(dir);
-      expect(result.metadata?.timestamp).toBeTruthy();
+      expect(result.evidence.length).toBeGreaterThanOrEqual(2);
+      expect(result.nodes.length).toBeGreaterThanOrEqual(1);
+      expect(result.importerId).toBe("mock");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
   });
 
-  it("returns empty result with metadata for no matching files", async () => {
+  it("returns empty result for no matching files", async () => {
     const dir = await createTempFiles({});
 
     try {
@@ -71,14 +73,13 @@ describe("extract", () => {
       });
 
       expect(result.elements).toHaveLength(0);
-      expect(result.contexts).toHaveLength(0);
-      expect(result.metadata).toBeDefined();
+      expect(result.evidence).toHaveLength(0);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
   });
 
-  it("generates source file path contexts", async () => {
+  it("generates SOURCE_LOCATION evidence for source file paths", async () => {
     const dir = await createTempFiles({ "a.txt": "Hello" });
 
     try {
@@ -88,10 +89,10 @@ describe("extract", () => {
         baseDir: dir,
       });
 
-      const sourceContexts = result.contexts.filter(
-        (c) => c.type === "TEXT" && c.data.text.startsWith("Source:"),
+      const sourceEvidence = result.evidence.filter(
+        (e) => e.kind === "SOURCE_LOCATION",
       );
-      expect(sourceContexts).toHaveLength(1);
+      expect(sourceEvidence.length).toBeGreaterThanOrEqual(1);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

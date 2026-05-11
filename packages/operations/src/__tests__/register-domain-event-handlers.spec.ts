@@ -40,7 +40,7 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
 
     const payload = {
       projectId: "project-uuid-1",
-      documentId: "document-uuid-1",
+      primaryContentNodeId: "content-node-uuid-1",
       elementIds: [1, 2, 3],
     };
 
@@ -56,7 +56,7 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
       { db: fakeDb },
       {
         projectId: payload.projectId,
-        documentId: payload.documentId,
+        documentId: "",
         elementIds: payload.elementIds,
       },
     );
@@ -67,7 +67,7 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
 
     const payload = {
       projectId: "project-uuid-2",
-      documentId: "document-uuid-2",
+      primaryContentNodeId: "content-node-uuid-2",
       elementIds: [42],
     };
 
@@ -79,7 +79,12 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
 
     const [ctxArg, inputArg] = mockPipeline.mock.calls[0];
     expect(ctxArg).toEqual({ db: fakeDb });
-    expect(inputArg).toEqual(payload);
+    // documentId is always empty string in Phase 3 (no longer in element:created event)
+    expect(inputArg).toEqual({
+      projectId: payload.projectId,
+      documentId: "",
+      elementIds: payload.elementIds,
+    });
   });
 
   test("registerDomainEventHandlers is idempotent — second call does not double-register", async () => {
@@ -90,7 +95,7 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
 
     const payload = {
       projectId: "project-uuid-3",
-      documentId: "document-uuid-3",
+      primaryContentNodeId: "content-node-uuid-3",
       elementIds: [7],
     };
 

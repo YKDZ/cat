@@ -1,4 +1,9 @@
-import type { CollectionElement } from "@cat/shared";
+import type {
+  StructuredContentNodeInput,
+  StructuredEvidenceInput,
+  StructuredRelationInput,
+  StructuredTranslatableElementInput,
+} from "@cat/shared";
 
 /**
  * @zh 源码提取器的提取选项。
@@ -24,7 +29,7 @@ export interface SourceExtractor {
    * @zh 从单个文件中提取可翻译元素。
    * @en Extract translatable elements from a single file.
    */
-  extract(options: ExtractOptions): CollectionElement[];
+  extract(options: ExtractOptions): StructuredTranslatableElementInput[];
 }
 
 /**
@@ -42,8 +47,10 @@ export interface CollectOptions {
   projectId: string;
   /** @zh 源语言 ID。 @en Source language ID. */
   sourceLanguageId: string;
-  /** @zh 文档名称。 @en Document name for the payload. */
-  documentName: string;
+  /** @zh 源根引用（作为 sourceRootRef）。 @en Source root reference (used as sourceRootRef). */
+  sourceRootRef: string;
+  /** @zh 根节点展示标签。 @en Display label for the root node. */
+  rootDisplayLabel?: string;
 }
 
 /**
@@ -68,12 +75,25 @@ export interface PayloadRoutingOptions {
   projectId: string;
   /** @zh 源语言 ID。 @en Source language ID. */
   sourceLanguageId: string;
-  /** @zh 文档名称。 @en Document name. */
-  documentName: string;
-  /** @zh 文件处理器 ID。 @en File handler ID. */
-  fileHandlerId?: string;
+  /** @zh 源根引用（importer scoped path, e.g. baseDir）。 @en Source root reference (importer-scoped path). */
+  sourceRootRef: string;
+  /** @zh 根节点展示标签。 @en Display label for the root node. */
+  rootDisplayLabel?: string;
   /** @zh 可选参数。 @en Optional parameters. */
   options?: {
     branchId?: number;
   };
+}
+
+/**
+ * @zh 源码提取的图结构结果（带节点、关系、证据）。
+ * @en Graph-structured result from source extraction (with nodes, relations, evidence).
+ */
+export interface SourceExtractionGraphResult {
+  importerId: string;
+  relationTypes: Array<{ namespace: string; name: string; version: string }>;
+  nodes: StructuredContentNodeInput[];
+  elements: StructuredTranslatableElementInput[];
+  relations: StructuredRelationInput[];
+  evidence: StructuredEvidenceInput[];
 }

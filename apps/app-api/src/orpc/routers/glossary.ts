@@ -17,7 +17,7 @@ import {
   getGlossary,
   listGlossaryConceptSubjects,
   listOwnedGlossaries,
-  listProjectDocuments,
+  listProjectContentNodes,
   listProjectGlossaryIds,
   listProjectGlossaries,
   loadAgentRunMetadata,
@@ -634,7 +634,7 @@ export const startTermDiscovery = authed
 
     const projectDocuments =
       !input.documentIds?.length && !input.elementIds?.length
-        ? await executeQuery({ db: drizzle }, listProjectDocuments, {
+        ? await executeQuery({ db: drizzle }, listProjectContentNodes, {
             projectId: input.projectId,
           })
         : [];
@@ -644,7 +644,7 @@ export const startTermDiscovery = authed
       (graphInput.documentIds?.length ?? 0) > 0 || hasElementIds
         ? graphInput.documentIds
         : projectDocuments
-            .filter((document) => !document.isDirectory)
+            .filter((document) => document.kind !== "DIRECTORY")
             .map((document) => document.id);
 
     const resolvedGraphInput = {

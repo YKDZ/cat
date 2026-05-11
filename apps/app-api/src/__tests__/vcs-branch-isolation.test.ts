@@ -421,7 +421,7 @@ describe("Rebase before-rewrite", () => {
     );
     await executeCommand({ db: testDb2.client }, addChangesetEntry, {
       changesetId: mainCs.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "rewrite-entity-1",
       action: "CREATE",
       after: { id: "rewrite-entity-1", text: "hello_v1" },
@@ -446,7 +446,7 @@ describe("Rebase before-rewrite", () => {
     );
     await executeCommand({ db: testDb2.client }, addChangesetEntry, {
       changesetId: branchCs.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "rewrite-entity-1",
       action: "UPDATE",
       before: { id: "rewrite-entity-1", text: "hello_v1" },
@@ -462,7 +462,7 @@ describe("Rebase before-rewrite", () => {
     );
     await executeCommand({ db: testDb2.client }, addChangesetEntry, {
       changesetId: mainCs2.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "rewrite-entity-1",
       action: "UPDATE",
       before: { id: "rewrite-entity-1", text: "hello_v1" },
@@ -537,7 +537,7 @@ describe("Rebase before-rewrite", () => {
     );
     await executeCommand({ db: testDb2.client }, addChangesetEntry, {
       changesetId: branchCs.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "new-entity-branch",
       action: "CREATE",
       after: { id: "new-entity-branch", text: "brand new" },
@@ -552,7 +552,7 @@ describe("Rebase before-rewrite", () => {
     );
     await executeCommand({ db: testDb2.client }, addChangesetEntry, {
       changesetId: mainCs2.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "other-entity",
       action: "CREATE",
       after: { id: "other-entity", text: "main item" },

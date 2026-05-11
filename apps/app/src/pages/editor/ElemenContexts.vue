@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TranslatableElementContextType } from "@cat/shared";
+import type { FlattenedContextEvidence } from "@cat/shared";
 
 import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/ui";
 import { ScrollArea } from "@cat/ui";
@@ -26,16 +26,20 @@ const { state } = useQuery({
   enabled: () => !import.meta.env.SSR && !!elementId.value,
 });
 
-const componentFromType = (type: TranslatableElementContextType) => {
-  switch (type) {
-    case "JSON":
+const componentFromContext = (context: FlattenedContextEvidence) => {
+  const payload = context.payload;
+  if (!payload || typeof payload !== "object") return null;
+  if ("kind" in payload) {
+    const kind = payload.kind as string;
+    if (kind === "JSON" || kind === "GENERATED_ANALYSIS")
       return ElemenContextJson;
-    case "TEXT":
-    case "MARKDOWN":
-      return ElemenContextMarkdown;
-    default:
-      return null;
+    if (kind === "TEXT" || kind === "MARKDOWN") return ElemenContextMarkdown;
   }
+  // Source text evidence (has text + languageId)
+  if ("text" in payload && "languageId" in payload)
+    return ElemenContextMarkdown;
+  if ("json" in payload) return ElemenContextJson;
+  return null;
 };
 </script>
 
@@ -45,9 +49,9 @@ const componentFromType = (type: TranslatableElementContextType) => {
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
           <component
-            v-for="context in state.data"
-            :key="context.id"
-            :is="componentFromType(context.type)"
+            v-for="(context, idx) in state.data"
+            :key="idx"
+            :is="componentFromContext(context)"
             :context
           />
         </SidebarGroupContent>

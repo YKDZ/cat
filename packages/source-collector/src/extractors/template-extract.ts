@@ -1,4 +1,4 @@
-import type { CollectionElement } from "@cat/shared";
+import type { StructuredTranslatableElementInput } from "@cat/shared";
 import type {
   DirectiveNode,
   ElementNode,
@@ -35,8 +35,8 @@ export function extractFromTemplate(
   ast: RootNode,
   filePath: string,
   templateStartLine: number,
-): CollectionElement[] {
-  const elements: CollectionElement[] = [];
+): StructuredTranslatableElementInput[] {
+  const elements: StructuredTranslatableElementInput[] = [];
   for (const child of ast.children) {
     walkNode(child, elements, filePath, templateStartLine);
   }
@@ -45,7 +45,7 @@ export function extractFromTemplate(
 
 function walkNode(
   node: TemplateChildNode,
-  elements: CollectionElement[],
+  elements: StructuredTranslatableElementInput[],
   filePath: string,
   templateStartLine: number,
 ): void {
@@ -79,7 +79,7 @@ function walkNode(
 
 function walkElement(
   node: ElementNode,
-  elements: CollectionElement[],
+  elements: StructuredTranslatableElementInput[],
   filePath: string,
   templateStartLine: number,
 ): void {
@@ -110,7 +110,7 @@ function walkElement(
 
 function walkInterpolation(
   node: InterpolationNode,
-  elements: CollectionElement[],
+  elements: StructuredTranslatableElementInput[],
   filePath: string,
   templateStartLine: number,
 ): void {
@@ -126,7 +126,7 @@ function walkInterpolation(
 
 function extractFromExpressionString(
   expr: SimpleExpressionNode,
-  elements: CollectionElement[],
+  elements: StructuredTranslatableElementInput[],
   filePath: string,
   templateStartLine: number,
 ): void {
@@ -145,7 +145,11 @@ function extractFromExpressionString(
 
     elements.push({
       ref: `vue-i18n:${filePath}:template:L${line}:C${column}`,
+      stableSourceRef: `source:${filePath}:template:L${line}:C${column}`,
+      sourceNodeRef: `source-file:${filePath}`,
+      localOrder: elements.length,
       text: unescaped,
+      languageId: "en",
       meta: {
         framework: "vue-i18n",
         file: filePath,
@@ -161,7 +165,7 @@ function extractFromExpressionString(
 
 function extractVTDirective(
   dir: DirectiveNode,
-  elements: CollectionElement[],
+  elements: StructuredTranslatableElementInput[],
   filePath: string,
   templateStartLine: number,
 ): void {
@@ -184,7 +188,11 @@ function extractVTDirective(
 
   elements.push({
     ref: `vue-i18n:${filePath}:template:L${line}:C${column}`,
+    stableSourceRef: `source:${filePath}:template:L${line}:C${column}`,
+    sourceNodeRef: `source-file:${filePath}`,
+    localOrder: elements.length,
     text,
+    languageId: "en",
     meta: {
       framework: "vue-i18n",
       file: filePath,

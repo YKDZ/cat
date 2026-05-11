@@ -1,12 +1,13 @@
 import type { OperationContext } from "@cat/domain";
+import type { FlattenedContextEvidence } from "@cat/shared";
 
 import {
+  assembleContextEvidence,
   executeQuery,
   getDbHandle,
-  getElementInfo,
-  listDocumentApprovedTranslations,
+  getElementMeta,
   listElementComments,
-  listNeighborElements,
+  listElementSourceTexts,
 } from "@cat/domain";
 import {
   collectLLMResponse,
@@ -201,13 +202,7 @@ type ResolvedContext = {
   }>;
   elementMeta: Record<string, unknown> | null;
   neighborTranslations: Array<{ source: string; translation: string }>;
-  elementContexts: Array<{
-    type: string;
-    jsonData: unknown;
-    textData: string | null;
-    fileId: number | null;
-    storageProviderId: number | null;
-  }>;
+  evidence: FlattenedContextEvidence[];
   approvedTranslations: Array<{
     source: string;
     translation: string;
@@ -227,28 +222,14 @@ type ResolvedContext = {
   }>;
 };
 
-const formatContextForPrompt = (ctx: {
-  type: string;
-  jsonData: unknown;
-  textData: string | null;
-}): string => {
-  if (ctx.type === "IMAGE" || ctx.type === "FILE") {
-    let filename = "";
-    if (typeof ctx.jsonData === "object" && ctx.jsonData !== null) {
-      // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
-      const data = ctx.jsonData as Record<string, unknown>;
-      const raw = data["filename"];
-      if (typeof raw === "string") filename = raw;
-    }
-    const desc = filename ? ` (${filename})` : "";
-    return `[${ctx.type} context${desc} available but not visually processed]`;
-  }
-  // TEXT, JSON, MARKDOWN, URL -- include raw text
-  if (ctx.textData) return ctx.textData;
-  if (ctx.jsonData !== null && ctx.jsonData !== undefined) {
-    return JSON.stringify(ctx.jsonData);
-  }
-  return "";
+const formatEvidenceForPrompt = (item: FlattenedContextEvidence): string => {
+  const payload = item.payload;
+  const text =
+    typeof payload === "object" && payload !== null && "text" in payload
+      ? Reflect.get(payload, "text")
+      : null;
+  const body = typeof text === "string" ? text : JSON.stringify(payload);
+  return `[${item.label}; trust=${item.trustLevel}; score=${item.score}] ${body}`;
 };
 
 const buildUserPrompt = (resolved: ResolvedContext): string => {
@@ -310,26 +291,11 @@ const buildUserPrompt = (resolved: ResolvedContext): string => {
     }
   }
 
-  // Element contexts
-  if (
-    resolved.config.elementContexts.enabled &&
-    resolved.elementContexts.length > 0
-  ) {
-    prompt += `\nContexts:\n`;
-    for (const c of resolved.elementContexts) {
-      const formatted = formatContextForPrompt(c);
-      if (formatted) prompt += `  - ${formatted}\n`;
-    }
-  }
-
-  // Approved translations
-  if (
-    resolved.config.approvedTranslations.enabled &&
-    resolved.approvedTranslations.length > 0
-  ) {
-    prompt += `\nApproved translations from this document (for reference):\n`;
-    for (const t of resolved.approvedTranslations) {
-      prompt += `  "${t.source}" → "${t.translation}"\n`;
+  // Context evidence
+  if (resolved.config.elementContexts.enabled && resolved.evidence.length > 0) {
+    prompt += `\nContext evidence:\n`;
+    for (const item of resolved.evidence) {
+      prompt += `  - ${formatEvidenceForPrompt(item)}\n`;
     }
   }
 
@@ -348,6 +314,9 @@ const buildUserPrompt = (resolved: ResolvedContext): string => {
   return prompt;
 };
 
+/** @internal test-only export */
+export const buildUserPromptForTest = buildUserPrompt;
+
 // ─── Data Loader ───────────────────────────────────────────────────────────────
 
 const WINDOW_SIZE = 3;
@@ -357,17 +326,6 @@ const loadContext = async (
 ): Promise<ResolvedContext> => {
   const db = await getDbHandle();
   const dbCtx = { db: db.client };
-
-  // Always load element info (needed for source text and language)
-  const elementInfo = await executeQuery(dbCtx, getElementInfo, {
-    elementId: input.elementId,
-    languageId: input.targetLanguageId,
-  });
-
-  const sourceText = elementInfo.sourceText;
-  const sourceLanguageId = elementInfo.sourceLanguageId;
-
-  // --- Parallel optional context loads (gated by config, individually resilient) ---
 
   const safeQuery = async <T>(
     label: string,
@@ -386,23 +344,16 @@ const loadContext = async (
     }
   };
 
-  const [neighborResults, approvedTranslationsResults, commentsResults] =
+  const [sourceTexts, metaResult, commentsResults, evidenceResults] =
     await Promise.all([
-      input.config.neighborTranslations
-        ? safeQuery("listNeighborElements", async () =>
-            executeQuery(dbCtx, listNeighborElements, {
-              elementId: input.elementId,
-              windowSize: WINDOW_SIZE,
-            }),
-          )
-        : Promise.resolve(null),
+      executeQuery(dbCtx, listElementSourceTexts, {
+        elementIds: [input.elementId],
+      }),
 
-      input.config.approvedTranslations.enabled
-        ? safeQuery("listDocumentApprovedTranslations", async () =>
-            executeQuery(dbCtx, listDocumentApprovedTranslations, {
+      input.config.elementMeta
+        ? safeQuery("getElementMeta", async () =>
+            executeQuery(dbCtx, getElementMeta, {
               elementId: input.elementId,
-              languageId: input.targetLanguageId,
-              maxCount: input.config.approvedTranslations.maxCount,
             }),
           )
         : Promise.resolve(null),
@@ -415,38 +366,37 @@ const loadContext = async (
             }),
           )
         : Promise.resolve(null),
+
+      input.config.elementContexts.enabled
+        ? safeQuery("assembleContextEvidence", async () =>
+            executeQuery(dbCtx, assembleContextEvidence, {
+              elementId: input.elementId,
+              purpose: "AI",
+              maxItems:
+                input.config.approvedTranslations.maxCount + WINDOW_SIZE + 4,
+            }),
+          )
+        : Promise.resolve(null),
     ]);
 
-  // --- Filter element contexts by includeTypes ---
-  const includeTypes = input.config.elementContexts.includeTypes;
-  const filteredContexts = input.config.elementContexts.enabled
-    ? (elementInfo.contexts ?? []).filter(
-        (c) => !includeTypes || includeTypes.includes(c.type),
-      )
-    : [];
-
-  // --- Map neighbors to the { source, translation } shape ---
-  const neighbors = (neighborResults ?? [])
-    .map((n) =>
-      n.approvedTranslation
-        ? { source: n.value, translation: n.approvedTranslation }
-        : null,
-    )
-    .filter((n): n is { source: string; translation: string } => n !== null);
+  const sourceRow = sourceTexts[0];
+  if (!sourceRow) {
+    throw new Error(`Element ${input.elementId} not found`);
+  }
 
   return {
-    sourceText,
-    sourceLanguageId,
+    sourceText: sourceRow.text,
+    sourceLanguageId: sourceRow.sourceLanguageId,
     targetLanguageId: input.targetLanguageId,
     config: input.config,
     memories: input.memories,
     terms: input.terms,
     sessionTranslations: input.sessionTranslations ?? [],
     // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
-    elementMeta: (elementInfo.meta as Record<string, unknown>) ?? null,
-    neighborTranslations: neighbors,
-    elementContexts: filteredContexts,
-    approvedTranslations: approvedTranslationsResults ?? [],
+    elementMeta: (metaResult as Record<string, unknown>) ?? null,
+    neighborTranslations: [],
+    evidence: evidenceResults ?? [],
+    approvedTranslations: [],
     comments: commentsResults ?? [],
   };
 };
@@ -522,8 +472,7 @@ export const llmTranslateOp = async (
     signalClasses.push("neighborTranslations");
   if (resolved.elementMeta && Object.keys(resolved.elementMeta).length > 0)
     signalClasses.push("elementMeta");
-  if (resolved.elementContexts.length > 0)
-    signalClasses.push("elementContexts");
+  if (resolved.evidence.length > 0) signalClasses.push("elementContexts");
   if (resolved.approvedTranslations.length > 0)
     signalClasses.push("approvedTranslations");
   if (resolved.comments.length > 0) signalClasses.push("comments");
@@ -533,7 +482,7 @@ export const llmTranslateOp = async (
     terms: effectiveTerms,
     sessionTranslationsCount: resolved.sessionTranslations.length,
     neighborTranslationsCount: resolved.neighborTranslations.length,
-    elementContextsCount: resolved.elementContexts.length,
+    elementContextsCount: resolved.evidence.length,
     approvedTranslationsCount: resolved.approvedTranslations.length,
     elementMeta:
       resolved.elementMeta !== null &&

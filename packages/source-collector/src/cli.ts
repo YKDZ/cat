@@ -135,14 +135,7 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     process.exit(1);
   }
 
-  const rawDocumentName = values["document-name"];
-  if (typeof rawDocumentName !== "string" || !rawDocumentName) {
-    console.error(
-      "[ERROR] MISSING_OPTION: --document-name is required.\n" +
-        "  hint: Specify the document name for the collection payload.",
-    );
-    process.exit(1);
-  }
+  const rawSourceRootRef = values["document-name"] ?? baseDir;
 
   const result = await extract({
     globs,
@@ -153,7 +146,8 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
   const payload = toCollectionPayload(result, {
     projectId: rawProjectId,
     sourceLanguageId: rawSourceLang,
-    documentName: rawDocumentName,
+    sourceRootRef:
+      typeof rawSourceRootRef === "string" ? rawSourceRootRef : baseDir,
   });
 
   const json = JSON.stringify(payload, null, 2);

@@ -1,6 +1,6 @@
 import {
   createProject,
-  createRootDocument,
+  createRootContentNode,
   createUser,
   ensureLanguages,
   executeCommand,
@@ -23,7 +23,8 @@ import { runGraph } from "@/graph/dsl";
 import { createElementGraph } from "../create-element";
 
 let cleanup: () => Promise<void>;
-let documentId: string;
+let contentNodeId: string;
+let projectId: string;
 
 afterAll(async () => {
   await cleanup?.();
@@ -60,13 +61,17 @@ beforeAll(async () => {
     description: null,
     creatorId: user.id,
   });
+  projectId = project.id;
 
-  const document = await executeCommand({ db: drizzle }, createRootDocument, {
-    name: "Test Document",
-    projectId: project.id,
-    creatorId: user.id,
-  });
-  documentId = document.id;
+  const contentNode = await executeCommand(
+    { db: drizzle },
+    createRootContentNode,
+    {
+      projectId: project.id,
+      creatorId: user.id,
+    },
+  );
+  contentNodeId = contentNode.id;
 
   installTestVectorizationQueue();
   createDefaultGraphRuntime(drizzle, pluginManager);
@@ -84,9 +89,39 @@ test("create-element should insert elements to db", async () => {
   );
 
   const elementData = [
-    { text: "Element text 1", languageId: "en", documentId, sortIndex: 1 },
-    { text: "Element text 2", languageId: "en", documentId, sortIndex: 2 },
-    { text: "Element text 3", languageId: "en", documentId, sortIndex: 3 },
+    {
+      text: "Element text 1",
+      languageId: "en",
+      projectId,
+      primaryContentNodeId: contentNodeId,
+      importerId: "test",
+      sourceRootRef: "root:test",
+      sourceNodeRef: "src:test",
+      stableSourceRef: "stable:test:1",
+      localOrder: 1,
+    },
+    {
+      text: "Element text 2",
+      languageId: "en",
+      projectId,
+      primaryContentNodeId: contentNodeId,
+      importerId: "test",
+      sourceRootRef: "root:test",
+      sourceNodeRef: "src:test",
+      stableSourceRef: "stable:test:2",
+      localOrder: 2,
+    },
+    {
+      text: "Element text 3",
+      languageId: "en",
+      projectId,
+      primaryContentNodeId: contentNodeId,
+      importerId: "test",
+      sourceRootRef: "root:test",
+      sourceNodeRef: "src:test",
+      stableSourceRef: "stable:test:3",
+      localOrder: 3,
+    },
   ];
 
   const { elementIds } = await runGraph(createElementGraph, {

@@ -42,7 +42,6 @@ import {
   searchChunkGraph,
   searchMemoryGraph,
   tokenizeGraph,
-  upsertDocumentGraph,
   vectorizeGraph,
 } from "@/workflow/tasks";
 
@@ -120,7 +119,6 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(searchChunkGraph.graphDefinition);
   graphRegistry.register(searchMemoryGraph.graphDefinition);
   graphRegistry.register(tokenizeGraph.graphDefinition);
-  graphRegistry.register(upsertDocumentGraph.graphDefinition);
   graphRegistry.register(vectorizeGraph.graphDefinition);
 
   const scheduler = new Scheduler({

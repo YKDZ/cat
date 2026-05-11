@@ -1,19 +1,32 @@
 <script setup lang="ts">
-import type { TranslatableElementContext } from "@cat/shared";
+import type { FlattenedContextEvidence } from "@cat/shared";
 
 import { Card, CardContent } from "@cat/ui";
 
 import Markdown from "@/components/Markdown.vue";
 
-defineProps<{
-  context: Pick<TranslatableElementContext, "id" | "textData">;
+const props = defineProps<{
+  context: FlattenedContextEvidence;
 }>();
+
+const textData = () => {
+  const payload = props.context.payload;
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "text" in payload &&
+    typeof payload.text === "string"
+  ) {
+    return payload.text;
+  }
+  return "";
+};
 </script>
 
 <template>
   <Card>
     <CardContent>
-      <Markdown :content="context.textData ?? ''" size="sm" />
+      <Markdown :content="textData()" size="sm" />
     </CardContent>
   </Card>
 </template>

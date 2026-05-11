@@ -1,21 +1,28 @@
 <script setup lang="ts">
-import type { TranslatableElementContext } from "@cat/shared";
+import type { FlattenedContextEvidence } from "@cat/shared";
 
 import { Card, CardContent } from "@cat/ui";
 import { computed } from "vue";
 import * as z from "zod";
 
-type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
 const props = defineProps<{
-  context: MakeOptional<
-    Pick<TranslatableElementContext, "id" | "jsonData">,
-    "jsonData"
-  >;
+  context: FlattenedContextEvidence;
 }>();
 
 const meta = computed(() => {
-  return z.record(z.string(), z.unknown()).parse(props.context.jsonData);
+  const payload = props.context.payload;
+  if (
+    payload &&
+    typeof payload === "object" &&
+    "json" in payload &&
+    payload.json
+  ) {
+    return z.record(z.string(), z.unknown()).safeParse(payload.json).data ?? {};
+  }
+  if (payload && typeof payload === "object") {
+    return z.record(z.string(), z.unknown()).safeParse(payload).data ?? {};
+  }
+  return {};
 });
 
 const keys = computed(() => {

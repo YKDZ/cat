@@ -4,8 +4,8 @@ import {
   FileImporter,
   type CanExportContext,
   type CanImportContext,
-  type ElementData,
   type ExportContext,
+  type FileImportResult,
   type ImportContext,
 } from "@cat/plugin-core";
 
@@ -18,8 +18,38 @@ export class Importer extends FileImporter {
     return yamlParser.canParse(name);
   }
 
-  async import({ fileContent }: ImportContext): Promise<ElementData[]> {
-    return yamlParser.parse(fileContent.toString("utf-8"));
+  async import({
+    fileContent,
+    name,
+    sourceRootRef,
+    sourceNodeRef,
+    stableSourceNodeRef,
+  }: ImportContext): Promise<FileImportResult> {
+    const elements = yamlParser.parse(fileContent.toString("utf-8"));
+    const nodeRef = sourceNodeRef;
+    return {
+      importerId: this.getId(),
+      sourceRootRef,
+      sourceNode: {
+        ref: nodeRef,
+        stableSourceNodeRef,
+        displayLabel: name,
+        sourcePath: name,
+        sourceType: "application/yaml",
+      },
+      elements: elements.map((element) => ({
+        ...element,
+        sourceNodeRef: nodeRef,
+      })),
+      relations: elements.map((element, index) => ({
+        type: { namespace: "core", name: "contains", version: "1.0.0" },
+        source: { kind: "NODE" as const, nodeRef },
+        target: { kind: "ELEMENT" as const, elementRef: element.ref },
+        isPrimary: true,
+        localOrder: element.localOrder ?? index,
+        confidenceBasisPoints: 10000,
+      })),
+    };
   }
 }
 

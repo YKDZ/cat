@@ -1,36 +1,37 @@
-import type { JSONType } from "@cat/shared";
-
-export type { JSONType };
-
 /**
  * @zh 可选的源位置信息。
  * @en Optional source location information.
  */
-export type ElementLocation = {
+export interface ElementLocation {
   startLine?: number;
   endLine?: number;
   custom?: Record<string, unknown>;
-};
+}
 
 /**
- * @zh 解析出的可翻译元素。
- * @en A parsed translatable element.
+ * @zh 解析出的可翻译元素，包含稳定标识引用和本地顺序。
+ * @en A parsed translatable element with stable identity references and local order.
  */
-export type ElementData = {
-  meta: JSONType;
+export interface ElementData {
+  ref: string;
+  stableSourceRef: string;
   text: string;
-  sortIndex?: number;
+  meta?: unknown;
+  localOrder?: number;
   location?: ElementLocation;
-};
+}
 
 /**
  * @zh 序列化所需的最小元素描述。
  * @en Minimal element descriptor needed for serialization.
  */
-export type SerializeElement = {
-  meta: JSONType;
+export interface SerializeElement {
+  ref?: string;
+  stableSourceRef?: string;
+  meta: unknown;
   text: string;
-};
+  localOrder?: number;
+}
 
 /**
  * @zh 文件解析器接口：负责将文件内容解析为可翻译元素，以及将翻译结果序列化回文件。

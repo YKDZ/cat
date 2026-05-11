@@ -1,36 +1,40 @@
 import type { VCSContext } from "@cat/vcs";
 
-import { createDocumentUnderParent } from "@cat/domain";
 import {
-  countDocumentElements,
-  countDocumentTranslations,
-  deleteDocument,
+  countContentNodeElements,
+  countContentNodeTranslations,
+  createContentNodeUnderParent,
+  deleteContentNode,
   executeCommand,
   executeQuery,
-  findProjectDocumentByName,
+  findProjectContentNodeByLabel,
   getActiveFileName,
-  getDocumentBlobInfo,
-  getDocument,
-  getDocumentElementPageIndex,
-  getDocumentElementTranslationStatus,
-  getDocumentElements,
-  getDocumentFileExportContext,
-  getDocumentFirstElement,
+  getContentNode,
+  getContentNodeBlobInfo,
+  getContentNodeElementPageIndex,
+  getContentNodeElements,
+  getContentNodeFirstElement,
+  getElementTranslationStatus as getElementTranslationStatusQuery,
   getProject,
+  getProjectRootContentNode,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import {
   finishPresignedPutFile,
+  firstOrGivenService,
+  getDownloadUrl,
   getServiceFromDBId,
   preparePresignedPutFile,
-  getDownloadUrl,
-  firstOrGivenService,
 } from "@cat/server-shared";
-import { DocumentSchema, TranslatableElementSchema } from "@cat/shared";
-import { ElementTranslationStatusSchema, FileMetaSchema } from "@cat/shared";
+import {
+  ContentNodeSchema,
+  ElementTranslationStatusSchema,
+  FileMetaSchema,
+  TranslatableElementSchema,
+} from "@cat/shared";
 import { sanitizeFileName } from "@cat/shared";
 import { listWithOverlay, readWithOverlay } from "@cat/vcs";
-import { runGraph, upsertDocumentGraph } from "@cat/workflow/tasks";
+import { runGraph, upsertContentNodeGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
@@ -171,103 +175,106 @@ export const finishCreateFromFile = authed
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },
-        "document",
+        "content_node",
         entityId,
         "CREATE",
         null,
-        { projectId, name: fileName, languageId },
+        { projectId, displayLabel: fileName, languageId },
         async () => undefined,
       );
       return;
     }
 
-    // 名称相同则视为重复文档
-    const existingDocument = await executeQuery(
+    // 名称相同则视为重复节点
+    const existingNode = await executeQuery(
       { db: drizzle },
-      findProjectDocumentByName,
+      findProjectContentNodeByLabel,
       {
         projectId,
-        name: fileName,
-        isDirectory: false,
+        displayLabel: fileName,
+        kind: "FILE",
       },
     );
 
-    if (!existingDocument) {
-      const service = pluginManager
-        .getServices("FILE_IMPORTER")
-        .find(({ service }) => service.canImport({ name: fileName }));
+    const service = pluginManager
+      .getServices("FILE_IMPORTER")
+      .find(({ service }) => service.canImport({ name: fileName }));
 
-      if (!service)
-        throw new ORPCError("NOT_FOUND", {
-          message: "No suitable file handler found for this file",
-        });
-
-      const { document } = await drizzle.transaction(async (tx) => {
-        // 创建文档
-        const document = await createDocumentUnderParent(tx, {
-          creatorId: user.id,
-          projectId,
-          fileHandlerId: service.dbId,
-          fileId,
-          name: fileName,
-        });
-
-        return { document };
+    if (!service)
+      throw new ORPCError("NOT_FOUND", {
+        message: "No suitable file handler found for this file",
       });
 
-      const vcsContext: VCSContext = {
-        mode: "direct",
-        projectId,
-        createdBy: user.id,
-      };
-      const { middleware: vcsMiddleware } = createVCSRouteHelper(drizzle);
+    let targetContentNodeId: string;
 
-      await runGraph(
-        upsertDocumentGraph,
+    if (!existingNode) {
+      const rootNode = await executeQuery(
+        { db: drizzle },
+        getProjectRootContentNode,
+        { projectId },
+      );
+
+      if (!rootNode) {
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: `Project ${projectId} has no root content node`,
+        });
+      }
+
+      const newNode = await executeCommand(
+        { db: drizzle },
+        createContentNodeUnderParent,
         {
-          documentId: document.id,
+          projectId,
+          creatorId: user.id,
+          parentContentNodeId: rootNode.id,
+          kind: "FILE",
+          displayLabel: fileName,
+          importerId: service.id,
+          sourceRootRef: projectId,
+          stableSourceNodeRef: fileName,
+          exportRole: "FILE",
+          boundaryType: "FILE",
+          fileHandlerId: service.dbId,
           fileId,
-          languageId,
-          vectorizerId: vectorizer.id,
-          vectorStorageId: storage.id,
-        },
-        {
-          pluginManager,
-          vcsContext,
-          vcsMiddleware,
+          localOrder: 0,
         },
       );
+
+      targetContentNodeId = newNode.id;
     } else {
-      const vcsContext: VCSContext = {
-        mode: "direct",
-        projectId,
-        createdBy: user.id,
-      };
-      const { middleware: vcsMiddleware } = createVCSRouteHelper(drizzle);
-
-      await runGraph(
-        upsertDocumentGraph,
-        {
-          fileId,
-          languageId,
-          documentId: existingDocument.id,
-          vectorizerId: vectorizer.id,
-          vectorStorageId: storage.id,
-        },
-        {
-          pluginManager,
-          vcsContext,
-          vcsMiddleware,
-        },
-      );
+      targetContentNodeId = existingNode.id;
     }
+
+    const vcsContext: VCSContext = {
+      mode: "direct",
+      projectId,
+      createdBy: user.id,
+    };
+    const { middleware: vcsMiddleware } = createVCSRouteHelper(drizzle);
+
+    await runGraph(
+      upsertContentNodeGraph,
+      {
+        projectId,
+        contentNodeId: targetContentNodeId,
+        fileId,
+        languageId,
+        vectorizerId: vectorizer.id,
+        vectorStorageId: storage.id,
+      },
+      {
+        pluginManager,
+        vcsContext,
+        vcsMiddleware,
+      },
+    );
   });
 
 export const get = authed
   .input(z.object({ documentId: z.uuidv4(), branchId: z.int().optional() }))
   .use(checkDocumentPermission("viewer"), (i) => i.documentId)
   .use(withBranchContext, (i) => ({ branchId: i.branchId }))
-  .output(DocumentSchema.nullable())
+  .output(ContentNodeSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -276,15 +283,17 @@ export const get = authed
 
     if (context.branchId !== undefined) {
       const overlayEntry = await readWithOverlay<
-        z.infer<typeof DocumentSchema>
-      >(drizzle, context.branchId, "document", documentId);
+        z.infer<typeof ContentNodeSchema>
+      >(drizzle, context.branchId, "content_node", documentId);
       if (overlayEntry !== null) {
         if (overlayEntry.action === "DELETE") return null;
         return overlayEntry.data;
       }
     }
 
-    return await executeQuery({ db: drizzle }, getDocument, { documentId });
+    return await executeQuery({ db: drizzle }, getContentNode, {
+      id: documentId,
+    });
   });
 
 export const countElement = authed
@@ -303,7 +312,13 @@ export const countElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    return await executeQuery({ db: drizzle }, countDocumentElements, input);
+    return await executeQuery({ db: drizzle }, countContentNodeElements, {
+      contentNodeId: input.documentId,
+      searchQuery: input.searchQuery,
+      isApproved: input.isApproved,
+      isTranslated: input.isTranslated,
+      languageId: input.languageId,
+    });
   });
 
 export const getFirstElement = authed
@@ -324,7 +339,15 @@ export const getFirstElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    return await executeQuery({ db: drizzle }, getDocumentFirstElement, input);
+    return await executeQuery({ db: drizzle }, getContentNodeFirstElement, {
+      contentNodeId: input.documentId,
+      searchQuery: input.searchQuery,
+      greaterThan: input.greaterThan,
+      afterElementId: input.afterElementId,
+      isApproved: input.isApproved,
+      isTranslated: input.isTranslated,
+      languageId: input.languageId,
+    });
   });
 
 export const exportTranslatedFile = authed
@@ -342,19 +365,17 @@ export const exportTranslatedFile = authed
     } = context;
     const { documentId } = input;
 
-    const document = await executeQuery(
-      { db: drizzle },
-      getDocumentFileExportContext,
-      { documentId },
-    );
+    const node = await executeQuery({ db: drizzle }, getContentNode, {
+      id: documentId,
+    });
 
-    if (!document) {
+    if (!node) {
       throw new ORPCError("NOT_FOUND", {
         message: `Document ${documentId} not found`,
       });
     }
 
-    if (!document.fileId || !document.fileHandlerId)
+    if (!node.fileId || !node.fileHandlerId)
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "指定文档不是基于文件的",
       });
@@ -377,11 +398,10 @@ export const getElementTranslationStatus = authed
     } = context;
     return await executeQuery(
       { db: drizzle },
-      getDocumentElementTranslationStatus,
+      getElementTranslationStatusQuery,
       input,
     );
   });
-
 export const getElements = authed
   .input(
     z.object({
@@ -420,8 +440,16 @@ export const getElements = authed
 
     const mainItems = await executeQuery(
       { db: drizzle },
-      getDocumentElements,
-      input,
+      getContentNodeElements,
+      {
+        contentNodeId: input.documentId,
+        page: input.page,
+        pageSize: input.pageSize,
+        searchQuery: input.searchQuery,
+        isApproved: input.isApproved,
+        isTranslated: input.isTranslated,
+        languageId: input.languageId,
+      },
     );
 
     if (context.branchId !== undefined) {
@@ -465,7 +493,7 @@ export const getPageIndexOfElement = authed
 
     return await executeQuery(
       { db: drizzle },
-      getDocumentElementPageIndex,
+      getContentNodeElementPageIndex,
       input,
     );
   });
@@ -495,8 +523,8 @@ export const del = authed
         );
       }
       const { middleware } = createVCSRouteHelper(drizzle);
-      const currentDoc = await executeQuery({ db: drizzle }, getDocument, {
-        documentId: input.id,
+      const currentNode = await executeQuery({ db: drizzle }, getContentNode, {
+        id: input.id,
       });
       await middleware.interceptWrite(
         {
@@ -505,18 +533,18 @@ export const del = authed
           branchId: context.branchId,
           branchChangesetId: context.branchChangesetId,
         },
-        "document",
+        "content_node",
         input.id,
         "DELETE",
-        currentDoc,
+        currentNode,
         null,
         async () => undefined,
       );
       return;
     }
 
-    await executeCommand({ db: drizzle }, deleteDocument, {
-      documentId: input.id,
+    await executeCommand({ db: drizzle }, deleteContentNode, {
+      contentNodeId: input.id,
     });
   });
 
@@ -536,8 +564,8 @@ export const getDocumentFileUrl = authed
     } = context;
     const { documentId } = input;
 
-    const result = await executeQuery({ db: drizzle }, getDocumentBlobInfo, {
-      documentId,
+    const result = await executeQuery({ db: drizzle }, getContentNodeBlobInfo, {
+      contentNodeId: documentId,
     });
 
     if (!result) {
@@ -584,8 +612,8 @@ export const getDocumentFileInfo = authed
     } = context;
     const { documentId } = input;
 
-    const result = await executeQuery({ db: drizzle }, getDocumentBlobInfo, {
-      documentId,
+    const result = await executeQuery({ db: drizzle }, getContentNodeBlobInfo, {
+      contentNodeId: documentId,
     });
 
     if (!result || !result.key || !result.storageProviderId) {
@@ -613,9 +641,9 @@ export const countTranslation = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    return await executeQuery(
-      { db: drizzle },
-      countDocumentTranslations,
-      input,
-    );
+    return await executeQuery({ db: drizzle }, countContentNodeTranslations, {
+      contentNodeId: input.documentId,
+      languageId: input.languageId,
+      isApproved: input.isApproved,
+    });
   });

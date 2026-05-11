@@ -96,8 +96,13 @@ export const getDefaultRegistries = (): {
 
   // Entities with simple CRUD (no async deps)
   for (const entityType of [
-    "document",
-    "document_tree",
+    "content_node",
+    "content_relation",
+    "content_relation_type",
+    "context_evidence",
+    "context_profile",
+    "scope_binding",
+    "semantic_diff",
     "comment",
     "comment_reaction",
     "term",

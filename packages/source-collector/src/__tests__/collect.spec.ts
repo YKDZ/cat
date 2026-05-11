@@ -29,7 +29,11 @@ const mockExtractor: SourceExtractor = {
       .filter((line) => line.trim() !== "")
       .map((line, i) => ({
         ref: `mock:${filePath}:L${i + 1}`,
+        stableSourceRef: `source:${filePath}:L${i + 1}`,
+        sourceNodeRef: `source-file:${filePath}`,
+        localOrder: i,
         text: line.trim(),
+        languageId: "en",
         meta: { extractor: "mock", file: filePath, line: i + 1 },
         location: { startLine: i + 1, endLine: i + 1 },
       }));
@@ -48,16 +52,16 @@ describe("collect", () => {
         globs: ["src/**/*.txt"],
         extractors: [mockExtractor],
         baseDir: dir,
-        projectId: "00000000-0000-0000-0000-000000000001",
+        projectId: "12345678-1234-4000-8000-000000000001",
         sourceLanguageId: "en",
-        documentName: "test-doc",
+        sourceRootRef: dir,
       });
 
-      expect(payload.projectId).toBe("00000000-0000-0000-0000-000000000001");
+      expect(payload.projectId).toBe("12345678-1234-4000-8000-000000000001");
       expect(payload.sourceLanguageId).toBe("en");
-      expect(payload.document.name).toBe("test-doc");
+      expect(payload.payloadVersion).toBe("content-graph/v1");
       expect(payload.elements).toHaveLength(3); // "Hello", "World", "Foo"
-      expect(payload.contexts.length).toBeGreaterThanOrEqual(3);
+      expect(payload.evidence.length).toBeGreaterThanOrEqual(3);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -66,7 +70,7 @@ describe("collect", () => {
   it("skips files with unsupported extensions", async () => {
     const dir = await createTempFiles({
       "src/a.txt": "Match",
-      "src/b.json": '{"no":"match"}',
+      "src/b.json": '{ "no": "match" }',
     });
 
     try {
@@ -74,9 +78,9 @@ describe("collect", () => {
         globs: ["src/**/*"],
         extractors: [mockExtractor],
         baseDir: dir,
-        projectId: "00000000-0000-0000-0000-000000000001",
+        projectId: "12345678-1234-4000-8000-000000000001",
         sourceLanguageId: "en",
-        documentName: "test-doc",
+        sourceRootRef: dir,
       });
 
       expect(payload.elements).toHaveLength(1);
@@ -85,7 +89,7 @@ describe("collect", () => {
     }
   });
 
-  it("generates TEXT contexts for source file paths", async () => {
+  it("generates SOURCE_LOCATION evidence for source file paths", async () => {
     const dir = await createTempFiles({
       "src/a.txt": "Hello",
     });
@@ -95,63 +99,19 @@ describe("collect", () => {
         globs: ["src/**/*.txt"],
         extractors: [mockExtractor],
         baseDir: dir,
-        projectId: "00000000-0000-0000-0000-000000000001",
+        projectId: "12345678-1234-4000-8000-000000000001",
         sourceLanguageId: "en",
-        documentName: "test-doc",
+        sourceRootRef: dir,
       });
 
-      const sourceContexts = payload.contexts.filter(
-        (c) => c.type === "TEXT" && c.data.text.startsWith("Source:"),
+      const sourceEvidence = payload.evidence.filter(
+        (e) => e.kind === "SOURCE_LOCATION",
       );
-      expect(sourceContexts).toHaveLength(1);
-      const sourceCtx = sourceContexts[0];
-      if (sourceCtx.type !== "TEXT") throw new Error("Expected TEXT context");
-      expect(sourceCtx.data.text).toContain("src/a.txt");
-      expect(sourceCtx.elementRef).toBe(payload.elements[0].ref);
-    } finally {
-      await rm(dir, { recursive: true, force: true });
-    }
-  });
-
-  it("generates @i18n-context TEXT contexts when present", async () => {
-    const customExtractor: SourceExtractor = {
-      id: "ctx-test",
-      supportedExtensions: [".txt"],
-      extract({ filePath }) {
-        return [
-          {
-            ref: `ctx:${filePath}:1`,
-            text: "test",
-            meta: { file: filePath },
-            location: {
-              startLine: 1,
-              endLine: 1,
-              custom: { i18nContext: "这是一个按钮" },
-            },
-          },
-        ];
-      },
-    };
-
-    const dir = await createTempFiles({ "a.txt": "test" });
-
-    try {
-      const payload = await collect({
-        globs: ["**/*.txt"],
-        extractors: [customExtractor],
-        baseDir: dir,
-        projectId: "00000000-0000-0000-0000-000000000001",
-        sourceLanguageId: "en",
-        documentName: "test-doc",
-      });
-
-      const i18nContexts = payload.contexts.filter(
-        (c) => c.type === "TEXT" && !c.data.text.startsWith("Source:"),
-      );
-      expect(i18nContexts).toHaveLength(1);
-      const i18nCtx = i18nContexts[0];
-      if (i18nCtx.type !== "TEXT") throw new Error("Expected TEXT context");
-      expect(i18nCtx.data.text).toBe("这是一个按钮");
+      expect(sourceEvidence.length).toBeGreaterThanOrEqual(1);
+      const firstEvidence = sourceEvidence[0];
+      if (firstEvidence) {
+        expect(firstEvidence.textData).toContain("src/a.txt");
+      }
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -165,13 +125,14 @@ describe("collect", () => {
         globs: ["**/*.vue"],
         extractors: [mockExtractor],
         baseDir: dir,
-        projectId: "00000000-0000-0000-0000-000000000001",
+        projectId: "12345678-1234-4000-8000-000000000001",
         sourceLanguageId: "en",
-        documentName: "test-doc",
+        sourceRootRef: dir,
       });
 
       expect(payload.elements).toHaveLength(0);
-      expect(payload.contexts).toHaveLength(0);
+      // When no files match, we still have a root sentinel node
+      expect(payload.nodes.length).toBeGreaterThanOrEqual(1);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

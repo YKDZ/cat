@@ -1,20 +1,27 @@
 // oxlint-disable no-console
-import type { CollectionContext } from "@cat/shared";
-import type { ExtractionResult } from "@cat/shared";
+import type {
+  StructuredContentNodeInput,
+  StructuredEvidenceInput,
+  StructuredRelationInput,
+  StructuredTranslatableElementInput,
+} from "@cat/shared";
 
 import { glob } from "glob";
 import { readFile } from "node:fs/promises";
 import { extname, relative } from "node:path";
 
-import type { SourceExtractOptions } from "./types.ts";
+import type {
+  SourceExtractionGraphResult,
+  SourceExtractOptions,
+} from "./types.ts";
 
 /**
- * @zh 从源文件中纯粹提取可翻译元素，返回 ExtractionResult（不含平台参数）。
- * @en Extract translatable elements from source files, returning ExtractionResult (no platform params).
+ * @zh 从源文件中纯粹提取可翻译元素，返回图结构结果（不含平台参数）。
+ * @en Extract translatable elements from source files, returning graph-structured result (no platform params).
  */
 export async function extract(
   options: SourceExtractOptions,
-): Promise<ExtractionResult> {
+): Promise<SourceExtractionGraphResult> {
   const { globs, extractors, baseDir } = options;
 
   const files = (await glob(globs, { cwd: baseDir, absolute: true })).sort();
@@ -28,8 +35,10 @@ export async function extract(
     }
   }
 
-  const allElements: ExtractionResult["elements"] = [];
-  const allContexts: CollectionContext[] = [];
+  const allNodes: StructuredContentNodeInput[] = [];
+  const allElements: StructuredTranslatableElementInput[] = [];
+  const allRelations: StructuredRelationInput[] = [];
+  const allEvidence: StructuredEvidenceInput[] = [];
 
   const results = await Promise.all(
     files.map(async (absPath) => {
@@ -49,7 +58,7 @@ export async function extract(
         return null;
       }
 
-      let elements: ExtractionResult["elements"];
+      let elements: StructuredTranslatableElementInput[];
       try {
         elements = extractor.extract({ content, filePath: relPath });
       } catch (err) {
@@ -59,45 +68,103 @@ export async function extract(
         return null;
       }
 
-      const fileElements: ExtractionResult["elements"] = [];
-      const fileContexts: CollectionContext[] = [];
+      const sourceNodeRef = `source-file:${relPath}`;
+      const fileNode: StructuredContentNodeInput = {
+        ref: sourceNodeRef,
+        kind: "SOURCE_COMPONENT",
+        displayLabel: relPath,
+        importerId: extractor.id,
+        sourceRootRef: baseDir,
+        stableSourceNodeRef: sourceNodeRef,
+        sourcePath: relPath,
+        sourceType: ext.replace(".", ""),
+        exportRole: "NONE",
+        boundaryType: "FILE",
+      };
+
+      const fileRelations: StructuredRelationInput[] = [];
+      const fileEvidence: StructuredEvidenceInput[] = [];
 
       for (const el of elements) {
-        fileElements.push(el);
-
-        fileContexts.push({
-          elementRef: el.ref,
-          type: "TEXT",
-          data: { text: `Source: ${relPath}` },
+        fileRelations.push({
+          type: { namespace: "core", name: "contains", version: "1" },
+          source: { kind: "NODE" as const, nodeRef: sourceNodeRef },
+          target: { kind: "ELEMENT" as const, elementRef: el.ref },
+          localOrder: el.localOrder ?? 0,
+          isPrimary: true,
+          confidenceBasisPoints: 10000,
         });
 
-        const i18nCtx = el.location?.custom?.["i18nContext"];
+        fileEvidence.push({
+          attachedTo: { kind: "ELEMENT", elementRef: el.ref },
+          kind: "SOURCE_LOCATION",
+          textData: `Source: ${relPath}`,
+          displayLabel: "source file",
+          trustLevel: "COLLECTED",
+          provenance: { extractorId: extractor.id, filePath: relPath },
+        });
+
+        function getI18nContext(v: unknown): string | undefined {
+          if (v !== null && typeof v === "object" && "i18nContext" in v) {
+            const ctx = (v as { i18nContext: unknown }).i18nContext;
+            return typeof ctx === "string" ? ctx : undefined;
+          }
+          return undefined;
+        }
+        const i18nCtx = getI18nContext(el.location?.custom);
         if (typeof i18nCtx === "string") {
-          fileContexts.push({
-            elementRef: el.ref,
-            type: "TEXT",
-            data: { text: i18nCtx },
+          fileEvidence.push({
+            attachedTo: { kind: "ELEMENT", elementRef: el.ref },
+            kind: "TEXT",
+            textData: i18nCtx,
+            displayLabel: "i18n context comment",
+            trustLevel: "COLLECTED",
+            provenance: { extractorId: extractor.id, filePath: relPath },
           });
         }
       }
 
-      return { elements: fileElements, contexts: fileContexts };
+      return {
+        fileNode,
+        elements,
+        relations: fileRelations,
+        evidence: fileEvidence,
+      };
     }),
   );
 
   for (const result of results) {
     if (!result) continue;
+    allNodes.push(result.fileNode);
     allElements.push(...result.elements);
-    allContexts.push(...result.contexts);
+    allRelations.push(...result.relations);
+    allEvidence.push(...result.evidence);
+  }
+
+  const importerId = extractors.map((e) => e.id).join(",");
+
+  // Always add a root node representing the base directory so the payload
+  // always satisfies the nodes.min(1) constraint.
+  const rootNodeRef = `source-root:${baseDir}`;
+  if (!allNodes.some((n) => n.ref === rootNodeRef)) {
+    allNodes.unshift({
+      ref: rootNodeRef,
+      kind: "SOURCE_COMPONENT",
+      displayLabel: baseDir,
+      importerId,
+      sourceRootRef: baseDir,
+      stableSourceNodeRef: rootNodeRef,
+      exportRole: "NONE",
+      boundaryType: "FILE",
+    });
   }
 
   return {
+    importerId,
+    relationTypes: [],
+    nodes: allNodes,
     elements: allElements,
-    contexts: allContexts,
-    metadata: {
-      extractorIds: extractors.map((e) => e.id),
-      baseDir,
-      timestamp: new Date().toISOString(),
-    },
+    relations: allRelations,
+    evidence: allEvidence,
   };
 }

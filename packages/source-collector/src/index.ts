@@ -4,6 +4,7 @@ export type {
   CollectOptions,
   SourceExtractOptions,
   PayloadRoutingOptions,
+  SourceExtractionGraphResult,
 } from "./types.ts";
 export { vueI18nExtractor } from "./extractors/vue-i18n.ts";
 export { collect } from "./collect.ts";

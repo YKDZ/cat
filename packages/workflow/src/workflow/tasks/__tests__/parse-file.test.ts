@@ -95,13 +95,14 @@ test("worker should parse elements from file", async () => {
   const files = await executeQuery({ db: drizzle }, listAllFiles, {});
   const fileId = files[0].id;
 
-  const { elements } = await runGraph(parseFileGraph, {
+  const { payload } = await runGraph(parseFileGraph, {
+    projectId: "00000000-0000-0000-0000-000000000001",
     fileId,
     languageId: "en",
   });
-  expect(elements.length).toEqual(2);
-  expect(elements[0]?.text).toEqual("Hello World!");
-  expect(elements[1]?.text).toEqual("YKDZ");
-  expect(elements[0]?.sortIndex).toEqual(0);
-  expect(elements[1]?.sortIndex).toEqual(1);
+  expect(payload.elements.length).toEqual(2);
+  expect(payload.elements[0]?.text).toEqual("Hello World!");
+  expect(payload.elements[1]?.text).toEqual("YKDZ");
+  expect(payload.elements[0]?.localOrder).toEqual(0);
+  expect(payload.elements[1]?.localOrder).toEqual(1);
 });

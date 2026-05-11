@@ -2,15 +2,17 @@ import type { OperationContext } from "@cat/domain";
 import type { MemorySuggestion } from "@cat/shared";
 import type { EnrichedTermMatch } from "@cat/shared";
 
-import { executeQuery, getDbHandle, listNeighborElements } from "@cat/domain";
+import {
+  assembleContextEvidence,
+  executeQuery,
+  getDbHandle,
+} from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
 import { applyBandOrder } from "./rerank/apply-band-order";
 import { selectContextBand } from "./rerank/context-band-selector";
 import { orchestrateRerank } from "./rerank/orchestrator";
-
-const MAX_CONTEXT_WINDOW = 3;
 
 const tokenize = (text: string): string[] =>
   text
@@ -35,18 +37,38 @@ const overlapRatio = (left: string, rightTexts: string[]): number => {
   return best;
 };
 
-const loadNeighborContext = async (elementId: number) => {
+const loadFlattenedEvidenceContext = async (elementId: number) => {
   const { client: drizzle } = await getDbHandle();
-  const neighbors = await executeQuery({ db: drizzle }, listNeighborElements, {
-    elementId,
-    windowSize: MAX_CONTEXT_WINDOW,
-  });
+  const evidence = await executeQuery(
+    { db: drizzle },
+    assembleContextEvidence,
+    {
+      elementId,
+      purpose: "RECALL",
+    },
+  );
 
   return {
-    neighborSources: neighbors.map((neighbor) => neighbor.value),
-    neighborTranslations: neighbors
-      .map((neighbor) => neighbor.approvedTranslation)
-      .filter((text): text is string => text !== null),
+    evidence,
+    sourceContexts: evidence
+      .map((item) => item.payload)
+      .flatMap((payload) => {
+        if (
+          typeof payload === "object" &&
+          payload !== null &&
+          "text" in payload
+        ) {
+          const text = Reflect.get(payload, "text");
+          return typeof text === "string" ? [text] : [];
+        }
+        return [];
+      }),
+    approvedNeighborTranslations: evidence
+      .filter((item) => item.label.includes("approved"))
+      .flatMap((item) => {
+        const text = Reflect.get(item.payload, "translation");
+        return typeof text === "string" ? [text] : [];
+      }),
   };
 };
 
@@ -88,18 +110,20 @@ export const recallContextRerankOp = async (
 ): Promise<MemorySuggestion[]> => {
   if (data.memories.length <= 1) return data.memories;
 
-  let neighborSources: string[] = [];
-  let neighborTranslations: string[] = [];
+  let evidence: Awaited<
+    ReturnType<typeof loadFlattenedEvidenceContext>
+  >["evidence"] = [];
+  let sourceContexts: string[] = [];
+  let approvedNeighborTranslations: string[] = [];
   try {
-    const context = await loadNeighborContext(data.elementId);
-    neighborSources = context.neighborSources;
-    neighborTranslations = context.neighborTranslations;
+    const context = await loadFlattenedEvidenceContext(data.elementId);
+    evidence = context.evidence;
+    sourceContexts = [data.queryText, ...context.sourceContexts];
+    approvedNeighborTranslations = context.approvedNeighborTranslations;
   } catch {
     // Fail closed — deterministic order
     return data.memories;
   }
-
-  const sourceContexts = [data.queryText, ...neighborSources];
 
   const band = selectContextBand({
     queryText: data.queryText,
@@ -108,7 +132,7 @@ export const recallContextRerankOp = async (
     getConfidence: (m) => m.confidence,
     getPositiveSignals: (m) => ({
       sourceOverlap: overlapRatio(m.source, sourceContexts),
-      targetOverlap: overlapRatio(m.translation, neighborTranslations),
+      targetOverlap: overlapRatio(m.translation, approvedNeighborTranslations),
     }),
   });
 
@@ -133,10 +157,7 @@ export const recallContextRerankOp = async (
       queryText: data.queryText,
       band,
       candidates: normalized,
-      contextHints: {
-        neighborSources,
-        approvedNeighborTranslations: neighborTranslations,
-      },
+      contextHints: { evidence },
       rerankProviderId: data.rerankProviderId,
       timeoutMs: data.rerankTimeoutMs,
     },
@@ -162,18 +183,20 @@ export const rerankTermRecallOp = async (
 ): Promise<EnrichedTermMatch[]> => {
   if (data.terms.length <= 1) return data.terms;
 
-  let neighborSources: string[] = [];
-  let neighborTranslations: string[] = [];
+  let evidence: Awaited<
+    ReturnType<typeof loadFlattenedEvidenceContext>
+  >["evidence"] = [];
+  let sourceContexts: string[] = [];
+  let approvedNeighborTranslations: string[] = [];
   try {
-    const context = await loadNeighborContext(data.elementId);
-    neighborSources = context.neighborSources;
-    neighborTranslations = context.neighborTranslations;
+    const context = await loadFlattenedEvidenceContext(data.elementId);
+    evidence = context.evidence;
+    sourceContexts = [data.queryText, ...context.sourceContexts];
+    approvedNeighborTranslations = context.approvedNeighborTranslations;
   } catch {
     // Fail closed — deterministic order
     return data.terms;
   }
-
-  const sourceContexts = [data.queryText, ...neighborSources];
 
   const band = selectContextBand({
     queryText: data.queryText,
@@ -182,7 +205,7 @@ export const rerankTermRecallOp = async (
     getConfidence: (t) => t.confidence,
     getPositiveSignals: (t) => ({
       sourceOverlap: overlapRatio(t.matchedText ?? t.term, sourceContexts),
-      targetOverlap: overlapRatio(t.translation, neighborTranslations),
+      targetOverlap: overlapRatio(t.translation, approvedNeighborTranslations),
       conceptOverlap: overlapRatio(
         [
           t.definition ?? "",
@@ -230,10 +253,7 @@ export const rerankTermRecallOp = async (
       queryText: data.queryText,
       band,
       candidates: normalized,
-      contextHints: {
-        neighborSources,
-        approvedNeighborTranslations: neighborTranslations,
-      },
+      contextHints: { evidence },
       rerankProviderId: data.rerankProviderId,
       timeoutMs: data.rerankTimeoutMs,
     },

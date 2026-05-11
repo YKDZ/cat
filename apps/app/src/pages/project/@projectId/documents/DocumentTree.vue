@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 import type { Project } from "@cat/shared";
 
 import { Button } from "@cat/ui";
@@ -12,32 +12,37 @@ import { useToastStore } from "@/stores/toast";
 
 defineProps<{
   project: Pick<Project, "id">;
-  documents: (Document & {
+  documents: (ContentNode & {
     parentId: string | null;
+    localOrder: number | null;
   })[];
 }>();
 
 const { info } = useToastStore();
 const { t } = useI18n();
 
-const handleClick = async (document: Pick<Document, "id" | "isDirectory">) => {
-  if (!document.isDirectory) await navigate(`/document/${document.id}`);
+const handleClick = async (
+  node: Pick<ContentNode, "id" | "exportRole" | "kind">,
+) => {
+  if (node.exportRole === "FILE" || node.kind === "FILE") {
+    await navigate(`/document/${node.id}`);
+  }
 };
 
-const handleDelete = async (document: Pick<Document, "id" | "name">) => {
-  await orpc.document.del({ id: document.id });
-  info(t("成功删除文档 {name}", { name: document.name }));
+const handleDelete = async (node: Pick<ContentNode, "id" | "displayLabel">) => {
+  await orpc.document.del({ id: node.id });
+  info(t("成功删除文档 {name}", { name: node.displayLabel }));
 };
 </script>
 
 <template>
-  <DocumentTree :documents @click="handleClick">
-    <template #actions="{ document }">
+  <DocumentTree :content-nodes="documents" @click="handleClick">
+    <template #actions="{ node }">
       <Button
-        v-if="!document.isDirectory"
+        v-if="node.exportRole === 'FILE' || node.kind === 'FILE'"
         variant="outline"
         size="icon"
-        @click="handleDelete(document)"
+        @click="handleDelete(node)"
       >
         <div class="icon-[mdi--delete] size-4 text-destructive" />
       </Button>

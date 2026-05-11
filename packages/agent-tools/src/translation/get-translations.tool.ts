@@ -1,9 +1,9 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
 import {
+  assembleContextEvidence,
   executeQuery,
   getDbHandle,
-  getElementContexts,
   listTranslationsByElement,
 } from "@cat/domain";
 import * as z from "zod";
@@ -65,10 +65,11 @@ export const getTranslationsTool: AgentToolDefinition = {
     };
 
     if (parsed.includeContext) {
-      const contextResult = await executeQuery({ db }, getElementContexts, {
+      const evidence = await executeQuery({ db }, assembleContextEvidence, {
         elementId: parsed.elementId,
+        purpose: "AGENT",
       });
-      result.contexts = contextResult.contexts;
+      result.contexts = evidence;
     }
 
     return result;

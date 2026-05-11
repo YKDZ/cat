@@ -11,12 +11,12 @@ import {
   sql,
   eq,
   and,
-  translatableElementContext,
+  contextEvidence,
 } from "@cat/db";
 import {
   addProjectTargetLanguages,
   attachChunkSetToString,
-  createDocumentUnderParent,
+  createContentNodeUnderParent,
   createElements,
   createGlossary,
   createGlossaryConcept,
@@ -24,10 +24,11 @@ import {
   createMemory,
   createMemoryItems,
   createProject,
-  createRootDocument,
+  createRootContentNode,
   createUser,
   createVectorizedChunks,
   createVectorizedStrings,
+  ensureCoreRelationTypes,
   ensureLanguages,
   ensureVectorStorageSchema,
   executeCommand,
@@ -56,7 +57,9 @@ export type DevSeedResult = {
   projectId: string;
   glossaryId: string | undefined;
   memoryId: string | undefined;
+  /** @deprecated Use contentNodeId instead */
   documentId: string | undefined;
+  contentNodeId: string | undefined;
   userIds: string[];
   summary: SeedSummary;
 };
@@ -257,7 +260,7 @@ export const runSeedPipeline = async (
     }
   }
 
-  // ── 7. Project + root document ─────────────────────────────────────
+  // ── 7. Project + root content node ────────────────────────────────
   const creatorId = userIds[0] ?? bootstrapUserId;
   const project = await executeCommand(execCtx, createProject, {
     name: projectSeed.name,
@@ -267,12 +270,15 @@ export const runSeedPipeline = async (
   refs.set("project", project.id);
   summary.projects += 1;
 
-  const rootDoc = await executeCommand(execCtx, createRootDocument, {
+  // Ensure core relation types exist before creating content nodes or elements
+  await executeCommand(execCtx, ensureCoreRelationTypes, {});
+
+  const rootNode = await executeCommand(execCtx, createRootContentNode, {
     projectId: project.id,
     creatorId,
-    name: "<root>",
   });
-  refs.set("document:root", rootDoc.id);
+  refs.set("document:root", rootNode.id);
+  refs.set("content-node:root", rootNode.id);
 
   await executeCommand(execCtx, addProjectTargetLanguages, {
     projectId: project.id,
@@ -280,17 +286,24 @@ export const runSeedPipeline = async (
   });
 
   const elementsDocName = elementsSeed?.documentName ?? "document";
-  const enUsDoc = await createDocumentUnderParent(
-    execCtx.db,
+  const elementsNode = await executeCommand(
+    execCtx,
+    createContentNodeUnderParent,
     {
-      name: elementsDocName,
       projectId: project.id,
       creatorId,
-      isDirectory: false,
-    },
-    rootDoc.id,
+      parentContentNodeId: rootNode.id,
+      kind: "FILE",
+      displayLabel: elementsDocName,
+      importerId: "seed",
+      sourceRootRef: `project:${project.id}`,
+      stableSourceNodeRef: elementsDocName,
+      exportRole: "FILE",
+      boundaryType: "FILE",
+      localOrder: 0,
   );
-  refs.set("document:elements", enUsDoc.id);
+  refs.set("document:elements", elementsNode.id);
+  refs.set("content-node:elements", elementsNode.id);
 
   // ── 8. Scoped plugin overrides ──────────────────────────────────────
   for (const override of scopedOverrides) {
@@ -436,12 +449,19 @@ export const runSeedPipeline = async (
         data: [{ text: elSeed.text, languageId: projectSeed.sourceLanguage }],
       });
 
+      const elIndex = elementsSeed.elements.indexOf(elSeed);
       const elementIds = await executeCommand(execCtx, createElements, {
         data: [
           {
-            documentId: enUsDoc.id,
+            projectId: project.id,
+            primaryContentNodeId: elementsNode.id,
+            importerId: "seed",
+            sourceRootRef: `project:${project.id}`,
+            sourceNodeRef: elSeed.ref,
+            stableSourceRef: elSeed.ref,
             stringId: stringIds[0],
             creatorId,
+            localOrder: elIndex,
             meta: elSeed.meta as JSONType | undefined,
           },
         ],
@@ -451,19 +471,25 @@ export const runSeedPipeline = async (
         const contextPayloads = elSeed.context.map((contextItem) =>
           typeof contextItem === "string"
             ? {
-                type: "TEXT" as const,
-                textData: contextItem,
+                projectId: project.id,
+                attachedEndpointKind: "ELEMENT" as const,
                 translatableElementId: elementIds[0],
+                kind: "TEXT" as const,
+                trustLevel: "COLLECTED" as const,
+                textData: contextItem,
               }
             : {
-                type: "JSON" as const,
-                jsonData: contextItem as JSONType,
+                projectId: project.id,
+                attachedEndpointKind: "ELEMENT" as const,
                 translatableElementId: elementIds[0],
+                kind: "JSON" as const,
+                trustLevel: "COLLECTED" as const,
+                jsonData: contextItem as JSONType,
               },
         );
 
         await execCtx.db
-          .insert(translatableElementContext)
+          .insert(contextEvidence)
           .values(contextPayloads);
       }
 
@@ -498,7 +524,8 @@ export const runSeedPipeline = async (
     projectId: project.id,
     glossaryId,
     memoryId,
-    documentId: rootDoc.id,
+    documentId: rootNode.id,
+    contentNodeId: elementsNode.id,
     userIds,
     summary,
   };

@@ -5,10 +5,7 @@ import {
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
-import {
-  TranslatableElementContextSchema,
-  type TranslatableElementContext,
-} from "@cat/shared";
+import { FlattenedContextEvidenceSchema } from "@cat/shared";
 import { safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
@@ -21,32 +18,20 @@ export const getContexts = authed
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
-  .output(z.array(TranslatableElementContextSchema))
+  .output(z.array(FlattenedContextEvidenceSchema))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
     const { elementId } = input;
 
-    const { element, contexts } = await executeQuery(
+    const { contexts } = await executeQuery(
       { db: drizzle },
       getElementContexts,
-      { elementId },
+      { elementId, purpose: "EDITOR" },
     );
 
-    const metaContext = {
-      id: -1,
-      jsonData: element.meta,
-      createdAt: element.createdAt,
-      updatedAt: element.updatedAt,
-      translatableElementId: elementId,
-      type: "JSON",
-      fileId: null,
-      storageProviderId: null,
-      textData: null,
-    } satisfies TranslatableElementContext;
-
-    return [metaContext, ...contexts];
+    return contexts;
   });
 
 export const getSourceLocation = authed

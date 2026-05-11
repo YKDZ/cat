@@ -1,6 +1,10 @@
 import type { QaResultItem } from "@cat/shared";
 
-import { executeQuery, listDocumentGlossaryIds } from "@cat/domain";
+import {
+  executeQuery,
+  getContentNode,
+  listProjectGlossaryIds,
+} from "@cat/domain";
 import { TokenSchema } from "@cat/plugin-core";
 import { AsyncMessageQueue } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
@@ -37,11 +41,15 @@ export const check = authed
     } = context;
     const { documentId, source, translation } = input;
 
-    const glossaryIds = await executeQuery(
-      { db: drizzle },
-      listDocumentGlossaryIds,
-      { documentId },
-    );
+    const contentNode = await executeQuery({ db: drizzle }, getContentNode, {
+      id: documentId,
+    });
+
+    const glossaryIds = contentNode
+      ? await executeQuery({ db: drizzle }, listProjectGlossaryIds, {
+          projectId: contentNode.projectId,
+        })
+      : [];
 
     const issuesQueue = new AsyncMessageQueue<
       Omit<QaResultItem, "id" | "createdAt" | "updatedAt" | "resultId">

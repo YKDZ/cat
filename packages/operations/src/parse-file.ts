@@ -8,44 +8,39 @@ import {
   type StorageProvider,
 } from "@cat/plugin-core";
 import { getServiceFromDBId, readableToBuffer } from "@cat/server-shared";
-import { safeZDotJson } from "@cat/shared";
-import { assertFirstNonNullish } from "@cat/shared";
+import {
+  assertFirstNonNullish,
+  StructuredContentPayloadSchema,
+  type StructuredContentPayload,
+} from "@cat/shared";
 import * as z from "zod";
 
 export const ParseFileInputSchema = z.object({
+  projectId: z.uuidv4(),
   fileId: z.int(),
   languageId: z.string(),
+  contentNodeId: z.uuidv4().optional(),
 });
 
 export const ParseFileOutputSchema = z.object({
-  elements: z.array(
-    z.object({
-      text: z.string(),
-      sortIndex: z.int(),
-      languageId: z.string(),
-      meta: safeZDotJson,
-      sourceStartLine: z.int().nullable().optional(),
-      sourceEndLine: z.int().nullable().optional(),
-      sourceLocationMeta: safeZDotJson.nullable().optional(),
-    }),
-  ),
+  payload: StructuredContentPayloadSchema,
 });
 
 export type ParseFileInput = z.infer<typeof ParseFileInputSchema>;
 export type ParseFileOutput = z.infer<typeof ParseFileOutputSchema>;
 
 /**
- * @zh 解析文件内容为可翻译元素列表。
+ * @zh 解析文件内容为结构化内容图载荷。
  *
- * 通过 FILE_IMPORTER 插件解析文件，并为每个元素补全 sortIndex。
- * @en Parse file content into a list of translatable elements.
+ * 通过 FILE_IMPORTER 插件解析文件，并组装 StructuredContentPayload。
+ * @en Parse file content into a structured content graph payload.
  *
- * Parses the file via the FILE_IMPORTER plugin, then fills in the
- * sortIndex for each element.
+ * Parses the file via the FILE_IMPORTER plugin and assembles a
+ * StructuredContentPayload.
  *
- * @param data - {@zh 解析输入参数（文件 ID 和语言 ID）} {@en Parse input parameters (file ID and language ID)}
+ * @param data - {@zh 解析输入参数} {@en Parse input parameters}
  * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
- * @returns - {@zh 解析得到的可翻译元素列表} {@en Parsed list of translatable elements}
+ * @returns - {@zh 结构化内容图载荷} {@en Structured content graph payload}
  */
 export const parseFileOp = async (
   data: ParseFileInput,
@@ -81,31 +76,56 @@ export const parseFileOp = async (
   ) as FileImporter;
 
   const fileContent = await readableToBuffer(await provider.getStream({ key }));
-  const extracted = await handler.import({ fileContent });
 
-  // 补全 sortIndex
-  let maxSortIndex = -1;
-  extracted.forEach((item) => {
-    if (typeof item.sortIndex === "number") {
-      maxSortIndex = Math.max(maxSortIndex, item.sortIndex);
-    }
+  const sourceRootRef = data.contentNodeId
+    ? `content-node:${data.contentNodeId}`
+    : `uploaded-file-name:${name}`;
+  const sourceNodeRef = `file:${data.fileId}`;
+  const stableSourceNodeRef = `file-name:${name}`;
+
+  const imported = await handler.import({
+    fileContent,
+    name,
+    fileId: data.fileId,
+    contentNodeId: data.contentNodeId,
+    sourceRootRef,
+    sourceNodeRef,
+    stableSourceNodeRef,
   });
 
-  let currentIndex = maxSortIndex;
-  const elements = extracted.map((item) => {
-    const sortIndex =
-      typeof item.sortIndex === "number" ? item.sortIndex : (currentIndex += 1);
-    return {
-      ...item,
-      sortIndex,
-      languageId: data.languageId,
-      sourceStartLine: item.location?.startLine ?? null,
-      sourceEndLine: item.location?.endLine ?? null,
-      sourceLocationMeta: item.location?.custom ?? null,
-    };
-  });
+  const payload: StructuredContentPayload =
+    StructuredContentPayloadSchema.parse({
+      payloadVersion: "content-graph/v1",
+      projectId: data.projectId,
+      sourceLanguageId: data.languageId,
+      importerId: imported.importerId,
+      sourceRootRef: imported.sourceRootRef,
+      relationTypes: imported.relationTypes ?? [],
+      nodes: [
+        {
+          ref: imported.sourceNode.ref,
+          kind: "FILE",
+          displayLabel: imported.sourceNode.displayLabel,
+          importerId: imported.importerId,
+          sourceRootRef: imported.sourceRootRef,
+          stableSourceNodeRef: imported.sourceNode.stableSourceNodeRef,
+          sourcePath: imported.sourceNode.sourcePath ?? null,
+          sourceType: imported.sourceNode.sourceType ?? null,
+        },
+      ],
+      elements: imported.elements.map((element) => ({
+        ref: element.ref,
+        stableSourceRef: element.stableSourceRef,
+        sourceNodeRef: element.sourceNodeRef ?? imported.sourceNode.ref,
+        text: element.text,
+        languageId: data.languageId,
+        localOrder: element.localOrder,
+        meta: element.meta ?? null,
+        location: element.location,
+      })),
+      relations: imported.relations ?? [],
+      evidence: imported.evidence ?? [],
+    });
 
-  elements.sort((a, b) => a.sortIndex - b.sortIndex);
-
-  return { elements };
+  return { payload };
 };

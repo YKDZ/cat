@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+import { FlattenedContextEvidenceSchema } from "@/schema/content.ts";
+
 export const RerankTriggerSchema = z.enum([
   "precision-ambiguity",
   "context-route",
@@ -16,8 +18,7 @@ export const RerankBandSchema = z.object({
 });
 
 export const RerankContextHintsSchema = z.object({
-  neighborSources: z.array(z.string()).default([]),
-  approvedNeighborTranslations: z.array(z.string()).default([]),
+  evidence: z.array(FlattenedContextEvidenceSchema).default([]),
   conceptContextSummary: z.string().optional(),
 });
 

@@ -2,6 +2,8 @@ import * as z from "zod";
 
 import type { ElementData, FileParser, SerializeElement } from "./types.ts";
 
+import { toJsonPointerRef } from "./stable-ref.ts";
+
 type JSONValue =
   | string
   | number
@@ -72,7 +74,10 @@ export const jsonParser: FileParser = {
         }
 
         result.push({
+          ref: toJsonPointerRef("json", currentPath),
+          stableSourceRef: toJsonPointerRef("json", currentPath),
           text: obj,
+          localOrder: result.length,
           meta: { key: currentPath },
           ...(startLine !== undefined && endLine !== undefined
             ? { location: { startLine, endLine } }

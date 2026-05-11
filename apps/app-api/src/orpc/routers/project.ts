@@ -7,13 +7,15 @@ import {
   createMemory as createMemoryCommand,
   createProject,
   createProjectTranslationSnapshot,
-  createRootDocument,
+  createRootContentNode,
   deleteProject,
+  ensureCoreRelationTypes,
+  ensureDefaultContextProfile,
   executeCommand,
   executeQuery,
   getProject,
   getProjectTargetLanguages,
-  listProjectDocuments,
+  listProjectContentNodes,
   listOwnedProjects,
   linkProjectGlossaries,
   linkProjectMemories,
@@ -21,7 +23,7 @@ import {
   unlinkProjectMemories,
   updateProject,
 } from "@cat/domain";
-import { DocumentSchema } from "@cat/shared";
+import { ContentNodeSchema } from "@cat/shared";
 import { LanguageSchema } from "@cat/shared";
 import { ProjectSchema } from "@cat/shared";
 import * as z from "zod";
@@ -130,10 +132,13 @@ export const create = authed
         creatorId: user.id,
       });
 
-      await executeCommand({ db: tx }, createRootDocument, {
+      await executeCommand({ db: tx }, ensureCoreRelationTypes, {});
+      await executeCommand({ db: tx }, createRootContentNode, {
         projectId: project.id,
         creatorId: user.id,
-        name: "<root>",
+      });
+      await executeCommand({ db: tx }, ensureDefaultContextProfile, {
+        projectId: project.id,
       });
 
       if (targetLanguageIds.length > 0) {
@@ -335,8 +340,9 @@ export const getDocuments = authed
   .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(
     z.array(
-      DocumentSchema.extend({
+      ContentNodeSchema.extend({
         parentId: z.string().nullable(),
+        localOrder: z.int().nullable(),
       }),
     ),
   )
@@ -345,7 +351,7 @@ export const getDocuments = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    return await executeQuery({ db: drizzle }, listProjectDocuments, input);
+    return await executeQuery({ db: drizzle }, listProjectContentNodes, input);
   });
 
 export const getTargetLanguages = authed

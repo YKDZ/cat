@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 
 import { computed } from "vue";
 
@@ -13,15 +13,22 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   (e: "toggle", nodeId: string): void;
-  (e: "click", document: Document): void;
+  (e: "click", node: ContentNode): void;
 }>();
 
 defineSlots<{
-  actions(props: { document: Document }): unknown;
+  actions(props: { node: ContentNode }): unknown;
 }>();
 
 const hasChildren = computed(() => props.node.children.length > 0);
 const isExpanded = computed(() => props.expandedNodes.has(props.node.id));
+
+const isDirectoryLike = computed(
+  () =>
+    props.node.exportRole === "DIRECTORY" ||
+    props.node.kind === "DIRECTORY" ||
+    props.node.kind === "PROJECT_ROOT",
+);
 
 const toggleNode = () => {
   if (hasChildren.value) {
@@ -62,7 +69,7 @@ const handleClick = () => {
       <!-- 文件/文件夹图标 -->
       <div
         :class="
-          node.isDirectory
+          isDirectoryLike
             ? 'icon-[mdi--folder]'
             : 'icon-[mdi--file-document-outline]'
         "
@@ -72,14 +79,14 @@ const handleClick = () => {
       <!-- 文档名称 -->
       <span
         class="flex-1 truncate text-sm text-foreground"
-        :title="node.name || '未命名'"
+        :title="node.displayLabel || '未命名'"
       >
-        {{ node.name || "未命名" }}
+        {{ node.displayLabel || "未命名" }}
       </span>
 
       <!-- 右侧按钮栏(具名插槽) -->
       <div class="flex shrink-0 items-center gap-1" @click.stop>
-        <slot name="actions" :document="node" />
+        <slot name="actions" :node="node" />
       </div>
     </div>
 
@@ -96,7 +103,7 @@ const handleClick = () => {
       >
         <!-- 将插槽继续传递给子节点 -->
         <template #actions="slotProps">
-          <slot name="actions" :document="slotProps.document" />
+          <slot name="actions" :node="slotProps.node" />
         </template>
       </DocumentTreeNode>
     </template>
