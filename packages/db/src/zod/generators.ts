@@ -13,9 +13,12 @@ import {
   chunkSet,
   comment,
   commentReaction,
-  document,
-  documentClosure,
-  documentToTask,
+  contentNode,
+  contentNodeToTask,
+  contentRelation,
+  contentRelationType,
+  contextEvidence,
+  contextProfile,
   file,
   glossary,
   glossaryToProject,
@@ -35,6 +38,8 @@ import {
   projectTargetLanguage,
   qaResult,
   qaResultItem,
+  scopeBinding,
+  semanticDiffEntry,
   setting,
   task,
   term,
@@ -43,7 +48,6 @@ import {
   termConceptToSubject,
   termRecallVariant,
   translatableElement,
-  translatableElementContext,
   vectorizedString,
   translation,
   translationSnapshot,
@@ -78,9 +82,12 @@ type SelectSchemaTable =
   | typeof chunkSet
   | typeof comment
   | typeof commentReaction
-  | typeof document
-  | typeof documentClosure
-  | typeof documentToTask
+  | typeof contentNode
+  | typeof contentNodeToTask
+  | typeof contentRelation
+  | typeof contentRelationType
+  | typeof contextEvidence
+  | typeof contextProfile
   | typeof file
   | typeof glossary
   | typeof glossaryToProject
@@ -100,6 +107,8 @@ type SelectSchemaTable =
   | typeof projectTargetLanguage
   | typeof qaResult
   | typeof qaResultItem
+  | typeof scopeBinding
+  | typeof semanticDiffEntry
   | typeof setting
   | typeof task
   | typeof term
@@ -108,7 +117,6 @@ type SelectSchemaTable =
   | typeof termConceptToSubject
   | typeof termRecallVariant
   | typeof translatableElement
-  | typeof translatableElementContext
   | typeof vectorizedString
   | typeof translation
   | typeof translationSnapshot
@@ -216,25 +224,47 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
     ],
   },
   {
-    outputFile: "document.ts",
+    outputFile: "content.ts",
     declarations: [
       {
         kind: "table",
-        schemaExportName: "DocumentSchema",
-        typeExportName: "Document",
-        buildShape: buildSelectShape(document),
+        schemaExportName: "ContentNodeSchema",
+        typeExportName: "ContentNode",
+        buildShape: buildSelectShape(contentNode),
+        overrides: {
+          provenance: "safeZDotJson.nullable()",
+          metadata: "safeZDotJson.nullable()",
+        },
       },
       {
         kind: "table",
-        schemaExportName: "DocumentClosureSchema",
-        typeExportName: "DocumentClosure",
-        buildShape: buildSelectShape(documentClosure),
+        schemaExportName: "ContentRelationTypeSchema",
+        typeExportName: "ContentRelationType",
+        buildShape: buildSelectShape(contentRelationType),
+        overrides: {
+          allowedEndpointPairs:
+            "z.array(ContentRelationAllowedEndpointPairSchema)",
+          deprecation: "safeZDotJson.nullable()",
+          migration: "safeZDotJson.nullable()",
+          metadata: "safeZDotJson.nullable()",
+        },
       },
       {
         kind: "table",
-        schemaExportName: "DocumentToTaskSchema",
-        typeExportName: "DocumentToTask",
-        buildShape: buildSelectShape(documentToTask),
+        schemaExportName: "ContentRelationSchema",
+        typeExportName: "ContentRelation",
+        buildShape: buildSelectShape(contentRelation),
+        overrides: {
+          weightHint: "safeZDotJson.nullable()",
+          provenance: "safeZDotJson.nullable()",
+          validationMetadata: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "ContentNodeToTaskSchema",
+        typeExportName: "ContentNodeToTask",
+        buildShape: buildSelectShape(contentNodeToTask),
       },
       {
         kind: "table",
@@ -254,13 +284,45 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       },
       {
         kind: "table",
-        schemaExportName: "TranslatableElementContextSchema",
-        typeExportName: "TranslatableElementContext",
-        buildShape: buildSelectShape(translatableElementContext),
+        schemaExportName: "ContextEvidenceSchema",
+        typeExportName: "ContextEvidence",
+        buildShape: buildSelectShape(contextEvidence),
         overrides: {
           jsonData: "safeZDotJson.nullable()",
+          provenance: "safeZDotJson.nullable()",
+          graphExplanation: "safeZDotJson.nullable()",
         },
       },
+      {
+        kind: "table",
+        schemaExportName: "ContextProfileSchema",
+        typeExportName: "ContextProfile",
+        buildShape: buildSelectShape(contextProfile),
+        overrides: {
+          payload: "ContextProfilePayloadSchema",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "ScopeBindingSchema",
+        typeExportName: "ScopeBinding",
+        buildShape: buildSelectShape(scopeBinding),
+        overrides: {
+          metadata: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "SemanticDiffEntrySchema",
+        typeExportName: "SemanticDiffEntry",
+        buildShape: buildSelectShape(semanticDiffEntry),
+        overrides: {
+          payload: "SemanticDiffEntryPayloadSchema",
+        },
+      },
+    ],
+    imports: [
+      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "../content.ts";',
     ],
   },
   {

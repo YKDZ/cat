@@ -13,15 +13,18 @@ describe("ExtractionResultSchema", () => {
       elements: [
         {
           ref: "vue-i18n:app.vue:1:1",
+          stableSourceRef: "vue-i18n:app.vue:1:1",
+          sourceNodeRef: "file:app.vue",
           text: "你好",
+          languageId: "zh-Hans",
           meta: { framework: "vue-i18n" },
         },
       ],
-      contexts: [
+      evidence: [
         {
-          elementRef: "vue-i18n:app.vue:1:1",
-          type: "JSON",
-          data: { json: { source: "app.vue" } },
+          attachedTo: { kind: "ELEMENT", elementRef: "vue-i18n:app.vue:1:1" },
+          kind: "JSON",
+          jsonData: { source: "app.vue" },
         },
       ],
       metadata: {
@@ -32,25 +35,28 @@ describe("ExtractionResultSchema", () => {
     };
     const result = ExtractionResultSchema.parse(input);
     expect(result.elements).toHaveLength(1);
-    expect(result.contexts).toHaveLength(1);
+    expect(result.evidence).toHaveLength(1);
     expect(result.metadata?.extractorIds).toEqual(["vue-i18n"]);
   });
 
   it("parses without metadata (optional)", () => {
-    const input = { elements: [], contexts: [] };
+    const input = { elements: [], evidence: [] };
     const result = ExtractionResultSchema.parse(input);
     expect(result.elements).toHaveLength(0);
     expect(result.metadata).toBeUndefined();
   });
 
-  it("defaults contexts to empty array", () => {
+  it("defaults evidence to empty array", () => {
     const input = { elements: [] };
     const result = ExtractionResultSchema.parse(input);
-    expect(result.contexts).toEqual([]);
+    expect(result.evidence).toEqual([]);
   });
 
-  it("rejects invalid element (missing ref)", () => {
-    const input = { elements: [{ text: "hi", meta: {} }], contexts: [] };
+  it("rejects invalid element (missing stableSourceRef)", () => {
+    const input = {
+      elements: [{ ref: "x", text: "hi", languageId: "en" }],
+      evidence: [],
+    };
     expect(() => ExtractionResultSchema.parse(input)).toThrow();
   });
 });

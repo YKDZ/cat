@@ -11,20 +11,14 @@ import {
   createMemory,
   addProjectTargetLanguages,
   approveTranslation,
-  autoApproveDocumentTranslations,
-  countDocumentElements,
-  countDocumentTranslations,
   countGlossaryConcepts,
   countMemoryItems,
-  countProjectElements,
   createProject,
-  createRootDocument,
   createTranslations,
   deleteAgentDefinition,
   deleteGlossaryTerm,
   deleteComment,
   deleteCommentReaction,
-  deleteDocument,
   deleteProject,
   deleteTranslation,
   executeCommand,
@@ -36,22 +30,14 @@ import {
   getSetting as getSettingQuery,
   getUser,
   getUserAvatarFile,
-  getDocument,
-  getDocumentElementPageIndex,
-  getDocumentElementTranslationStatus,
-  getDocumentElements,
-  getDocumentFirstElement,
   getProject,
   getProjectTargetLanguages,
-  getElementContexts,
-  getElementSourceLocation,
   getSelfTranslationVote,
   getTranslationVoteTotal,
   linkProjectGlossaries,
   linkProjectMemories,
   listAgentDefinitions,
   listAgentSessions,
-  listDocumentGlossaryIds,
   listGlossaryConcepts,
   listGlossariesByCreator,
   listGlossaryConceptSubjects,
@@ -62,7 +48,6 @@ import {
   listMemoriesByCreator,
   listOwnedGlossaries,
   listOwnedMemories,
-  listProjectDocuments,
   listProjectGlossaries,
   listProjectMemories,
   listRootComments,
@@ -123,10 +108,6 @@ export const createPluginCapabilities = (
     listOwned: async (input) => executeQuery(execCtx, listOwnedProjects, input),
     getTargetLanguages: async (input) =>
       executeQuery(execCtx, getProjectTargetLanguages, input),
-    listDocuments: async (input) =>
-      executeQuery(execCtx, listProjectDocuments, input),
-    countElements: async (input) =>
-      executeQuery(execCtx, countProjectElements, input),
     create: async (input) => executeCommand(execCtx, createProject, input),
     update: async (input) => {
       await assertPermission(
@@ -192,33 +173,6 @@ export const createPluginCapabilities = (
       await executeCommand(execCtx, addProjectTargetLanguages, input);
     },
   },
-  document: {
-    get: async (input) => executeQuery(execCtx, getDocument, input),
-    getElements: async (input) =>
-      executeQuery(execCtx, getDocumentElements, input),
-    getFirstElement: async (input) =>
-      executeQuery(execCtx, getDocumentFirstElement, input),
-    getElementTranslationStatus: async (input) =>
-      executeQuery(execCtx, getDocumentElementTranslationStatus, input),
-    getElementPageIndex: async (input) =>
-      executeQuery(execCtx, getDocumentElementPageIndex, input),
-    countElements: async (input) =>
-      executeQuery(execCtx, countDocumentElements, input),
-    countTranslations: async (input) =>
-      executeQuery(execCtx, countDocumentTranslations, input),
-    createRoot: async (input) => {
-      await assertPermission(
-        checkPermission,
-        "project",
-        "editor",
-        input.projectId,
-      );
-      return executeCommand(execCtx, createRootDocument, input);
-    },
-    delete: async (input) => {
-      await executeCommand(execCtx, deleteDocument, input);
-    },
-  },
   translation: {
     listByElement: async (input) =>
       executeQuery(execCtx, listTranslationsByElement, input),
@@ -230,8 +184,6 @@ export const createPluginCapabilities = (
       executeQuery(execCtx, getTranslationVoteTotal, input),
     getSelfVote: async (input) =>
       executeQuery(execCtx, getSelfTranslationVote, input),
-    autoApproveDocument: async (input) =>
-      executeCommand(execCtx, autoApproveDocumentTranslations, input),
     delete: async (input) => {
       await executeCommand(execCtx, deleteTranslation, input);
     },
@@ -344,16 +296,6 @@ export const createPluginCapabilities = (
       executeCommand(execCtx, deleteAgentDefinition, input),
     createSession: async (input) =>
       executeCommand(execCtx, createAgentSession, input),
-  },
-  element: {
-    getContexts: async (input) =>
-      executeQuery(execCtx, getElementContexts, input),
-    getSourceLocation: async (input) =>
-      executeQuery(execCtx, getElementSourceLocation, input),
-  },
-  qa: {
-    listDocumentGlossaryIds: async (input) =>
-      executeQuery(execCtx, listDocumentGlossaryIds, input),
   },
   glossary: {
     get: async (input) => executeQuery(execCtx, getGlossary, input),

@@ -47,6 +47,25 @@ import {
   IssueCommentTargetTypeValues,
   CrossReferenceSourceTypeValues,
   CrossReferenceTargetTypeValues,
+  ContentNodeKindValues,
+  ContentNodeLifecycleStatusValues,
+  ContentNodeExportRoleValues,
+  ContentBoundaryTypeValues,
+  RelationEndpointKindValues,
+  ContentRelationSemanticFamilyValues,
+  ContentRelationDirectionalityValues,
+  ContentRelationLifecycleStatusValues,
+  EvidenceTrustLevelValues,
+  ContentEvidenceKindValues,
+  ContextConsumerPurposeValues,
+  ScopeBindingAssetKindValues,
+  ScopeBindingModeValues,
+  SemanticDiffKindValues,
+  VectorInvalidationReasonValues,
+  ContentIdentityStatusValues,
+  type ContentRelationAllowedEndpointPair,
+  type ContextProfilePayload,
+  type SemanticDiffEntryPayload,
 } from "@cat/shared";
 import { sql } from "drizzle-orm";
 import {
@@ -156,6 +175,70 @@ export const crossReferenceTargetType = pgEnum(
   CrossReferenceTargetTypeValues,
 );
 
+// ─── Content Graph Enums ───
+
+export const contentNodeKind = pgEnum("ContentNodeKind", ContentNodeKindValues);
+export const contentNodeLifecycleStatus = pgEnum(
+  "ContentNodeLifecycleStatus",
+  ContentNodeLifecycleStatusValues,
+);
+export const contentNodeExportRole = pgEnum(
+  "ContentNodeExportRole",
+  ContentNodeExportRoleValues,
+);
+export const contentBoundaryType = pgEnum(
+  "ContentBoundaryType",
+  ContentBoundaryTypeValues,
+);
+export const relationEndpointKind = pgEnum(
+  "RelationEndpointKind",
+  RelationEndpointKindValues,
+);
+export const contentRelationSemanticFamily = pgEnum(
+  "ContentRelationSemanticFamily",
+  ContentRelationSemanticFamilyValues,
+);
+export const contentRelationDirectionality = pgEnum(
+  "ContentRelationDirectionality",
+  ContentRelationDirectionalityValues,
+);
+export const contentRelationLifecycleStatus = pgEnum(
+  "ContentRelationLifecycleStatus",
+  ContentRelationLifecycleStatusValues,
+);
+export const evidenceTrustLevel = pgEnum(
+  "EvidenceTrustLevel",
+  EvidenceTrustLevelValues,
+);
+export const contentEvidenceKind = pgEnum(
+  "ContentEvidenceKind",
+  ContentEvidenceKindValues,
+);
+export const contextConsumerPurpose = pgEnum(
+  "ContextConsumerPurpose",
+  ContextConsumerPurposeValues,
+);
+export const scopeBindingAssetKind = pgEnum(
+  "ScopeBindingAssetKind",
+  ScopeBindingAssetKindValues,
+);
+export const scopeBindingMode = pgEnum(
+  "ScopeBindingMode",
+  ScopeBindingModeValues,
+);
+export const semanticDiffKind = pgEnum(
+  "SemanticDiffKind",
+  SemanticDiffKindValues,
+);
+export const vectorInvalidationReason = pgEnum(
+  "VectorInvalidationReason",
+  VectorInvalidationReasonValues,
+);
+export const contentIdentityStatus = pgEnum(
+  "ContentIdentityStatus",
+  ContentIdentityStatusValues,
+);
+
 const timestamps = {
   createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
@@ -254,20 +337,34 @@ export const chunkSet = snakeCase.table("ChunkSet", {
   ...timestamps,
 });
 
-export const document = snakeCase.table(
-  "Document",
+export const contentNode = snakeCase.table(
+  "ContentNode",
   {
     id: uuid().defaultRandom().primaryKey(),
-    name: text(),
     projectId: uuid()
       .notNull()
       .references(() => project.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    creatorId: uuid()
-      .notNull()
-      .references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
+    creatorId: uuid().references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    kind: contentNodeKind().notNull(),
+    displayLabel: text().notNull(),
+    importerId: text(),
+    sourceRootRef: text(),
+    stableSourceNodeRef: text(),
+    sourceUri: text(),
+    sourcePath: text(),
+    sourceType: text(),
+    languageId: text().references(() => language.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    exportRole: contentNodeExportRole().notNull().default("NONE"),
+    boundaryType: contentBoundaryType().notNull().default("NONE"),
     fileHandlerId: integer().references(() => pluginService.id, {
       onDelete: "set null",
       onUpdate: "cascade",
@@ -276,50 +373,145 @@ export const document = snakeCase.table(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
-    isDirectory: boolean().default(false).notNull(),
+    lifecycleStatus: contentNodeLifecycleStatus().notNull().default("ACTIVE"),
+    provenance: jsonb().$type<JSONType>(),
+    metadata: jsonb().$type<JSONType>(),
     ...timestamps,
   },
-  (table) => [index().using("btree", table.projectId.asc().nullsLast())],
+  (table) => [
+    index().using("btree", table.projectId.asc().nullsLast()),
+    index().using("btree", table.sourcePath.asc().nullsLast()),
+    uniqueIndex()
+      .on(
+        table.projectId,
+        table.importerId,
+        table.sourceRootRef,
+        table.stableSourceNodeRef,
+      )
+      .where(sql`${table.stableSourceNodeRef} IS NOT NULL`),
+  ],
 );
 
-export const documentClosure = snakeCase.table(
-  "DocumentClosure",
+export const contentRelationType = snakeCase.table(
+  "ContentRelationType",
   {
-    ancestor: uuid()
+    id: serial().primaryKey(),
+    namespace: text().notNull(),
+    name: text().notNull(),
+    version: text().notNull().default("1.0.0"),
+    ownerPluginId: text().references(() => plugin.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    semanticFamily: contentRelationSemanticFamily().notNull(),
+    allowedEndpointPairs: jsonb()
+      .$type<ContentRelationAllowedEndpointPair[]>()
+      .notNull(),
+    directionality: contentRelationDirectionality()
       .notNull()
-      .references(() => document.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    descendant: uuid()
-      .notNull()
-      .references(() => document.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
-    depth: integer().notNull(),
+      .default("DIRECTED"),
+    participatesInContainment: boolean().notNull().default(false),
+    participatesInExport: boolean().notNull().default(false),
+    supportsOrdering: boolean().notNull().default(false),
+    weightingEligible: boolean().notNull().default(false),
+    defaultTrustLevel: evidenceTrustLevel().notNull().default("COLLECTED"),
+    deprecation: jsonb().$type<JSONType>(),
+    migration: jsonb().$type<JSONType>(),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [unique().on(table.namespace, table.name, table.version)],
+);
+
+export const contentRelation = snakeCase.table(
+  "ContentRelation",
+  {
+    id: uuid().defaultRandom().primaryKey(),
     projectId: uuid()
       .notNull()
       .references(() => project.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
+    relationTypeId: integer()
+      .notNull()
+      .references(() => contentRelationType.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    sourceEndpointKind: relationEndpointKind().notNull(),
+    sourceNodeId: uuid().references(() => contentNode.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    sourceElementId: integer().references(() => translatableElement.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    targetEndpointKind: relationEndpointKind().notNull(),
+    targetNodeId: uuid().references(() => contentNode.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    targetElementId: integer().references(() => translatableElement.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    isPrimary: boolean().notNull().default(false),
+    localOrder: integer(),
+    confidenceBasisPoints: integer().notNull().default(10000),
+    lifecycleStatus: contentRelationLifecycleStatus()
+      .notNull()
+      .default("ACTIVE"),
+    weightHint: jsonb().$type<JSONType>(),
+    provenance: jsonb().$type<JSONType>(),
+    validationMetadata: jsonb().$type<JSONType>(),
+    ...timestamps,
   },
   (table) => [
-    primaryKey({
-      columns: [table.ancestor, table.descendant],
-    }),
-    index().using("btree", table.ancestor.asc().nullsLast()),
-    index().using("btree", table.descendant.asc().nullsLast()),
+    index().using("btree", table.projectId.asc().nullsLast()),
+    index().using("btree", table.relationTypeId.asc().nullsLast()),
+    index().using("btree", table.sourceNodeId.asc().nullsLast()),
+    index().using("btree", table.targetNodeId.asc().nullsLast()),
+    index().using("btree", table.sourceElementId.asc().nullsLast()),
+    index().using("btree", table.targetElementId.asc().nullsLast()),
+    uniqueIndex()
+      .on(table.projectId, table.targetNodeId)
+      .where(
+        sql`${table.isPrimary} = true AND ${table.targetEndpointKind} = 'NODE' AND ${table.lifecycleStatus} = 'ACTIVE'`,
+      ),
+    uniqueIndex()
+      .on(table.projectId, table.targetElementId)
+      .where(
+        sql`${table.isPrimary} = true AND ${table.targetEndpointKind} = 'ELEMENT' AND ${table.lifecycleStatus} = 'ACTIVE'`,
+      ),
+    check(
+      "contentRelation_source_endpoint_check",
+      sql`(
+        (${table.sourceEndpointKind} = 'NODE' AND ${table.sourceNodeId} IS NOT NULL AND ${table.sourceElementId} IS NULL)
+        OR (${table.sourceEndpointKind} = 'ELEMENT' AND ${table.sourceElementId} IS NOT NULL AND ${table.sourceNodeId} IS NULL)
+      )`,
+    ),
+    check(
+      "contentRelation_target_endpoint_check",
+      sql`(
+        (${table.targetEndpointKind} = 'NODE' AND ${table.targetNodeId} IS NOT NULL AND ${table.targetElementId} IS NULL)
+        OR (${table.targetEndpointKind} = 'ELEMENT' AND ${table.targetElementId} IS NOT NULL AND ${table.targetNodeId} IS NULL)
+      )`,
+    ),
+    check(
+      "contentRelation_confidence_check",
+      sql`${table.confidenceBasisPoints} BETWEEN 0 AND 10000`,
+    ),
   ],
 );
 
-export const documentToTask = snakeCase.table(
-  "DocumentToTask",
+export const contentNodeToTask = snakeCase.table(
+  "ContentNodeToTask",
   {
-    documentId: uuid()
+    contentNodeId: uuid()
       .notNull()
-      .references(() => document.id, {
+      .references(() => contentNode.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
@@ -328,9 +520,7 @@ export const documentToTask = snakeCase.table(
       .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
   },
   (table) => [
-    primaryKey({
-      columns: [table.documentId, table.taskId],
-    }),
+    primaryKey({ columns: [table.contentNodeId, table.taskId] }),
     index().using("btree", table.taskId.asc().nullsLast()),
   ],
 );
@@ -611,6 +801,60 @@ export const projectSetting = snakeCase.table(
     ...timestamps,
   },
   (table) => [index().on(table.projectId)],
+);
+
+export const contextProfile = snakeCase.table(
+  "ContextProfile",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    payload: jsonb().$type<ContextProfilePayload>().notNull(),
+    isDefault: boolean().notNull().default(false),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(table.projectId, table.name),
+    uniqueIndex()
+      .on(table.projectId)
+      .where(sql`${table.isDefault} = true`),
+  ],
+);
+
+export const scopeBinding = snakeCase.table(
+  "ScopeBinding",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    assetKind: scopeBindingAssetKind().notNull(),
+    assetId: text().notNull(),
+    mode: scopeBindingMode().notNull(),
+    contentNodeId: uuid().references(() => contentNode.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    contentRelationId: uuid().references(() => contentRelation.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    weightBoost: integer().notNull().default(0),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId, table.assetKind, table.assetId),
+    check(
+      "scopeBinding_scope_check",
+      sql`(
+        (${table.contentNodeId} IS NOT NULL AND ${table.contentRelationId} IS NULL)
+        OR (${table.contentNodeId} IS NULL AND ${table.contentRelationId} IS NOT NULL)
+      )`,
+    ),
+  ],
 );
 
 export const projectSequence = snakeCase.table(
@@ -951,24 +1195,24 @@ export const translatableElement = snakeCase.table(
      * 元素的元数据，被 file-importer 和 exporter 用于从元素还原源文件\
      * 本身也是一种重要的上下文，例如对于 json 文件，一般都有一个近似语义化的 key
      */
-    meta: jsonb().$type<JSONType>(),
-
-    documentId: uuid()
+    projectId: uuid()
       .notNull()
-      .references(() => document.id, {
+      .references(() => project.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
+    importerId: text().notNull(),
+    sourceRootRef: text().notNull(),
+    sourceNodeRef: text().notNull(),
+    stableSourceRef: text().notNull(),
+    identityStatus: contentIdentityStatus().notNull().default("ACTIVE"),
+    identityConfidence: integer().notNull().default(10000),
+    meta: jsonb().$type<JSONType>(),
 
     /**
      * 元素的排序方式，用于确定元素在编辑器中的展示顺序以及提供 “邻居上下文”\
      * 即在翻译过程中可以表示后相邻的元素内容，帮助译者理解上下文进行更准确的翻译\
      * 应该重视而不是随便指定，要确保它可以将互为参考的文本聚合在一起
-     */
-    sortIndex: integer(),
-
-    /**
-     * 以文件提取方式上传的元素在源文件中的位置信息
      */
     sourceStartLine: integer(),
     sourceEndLine: integer(),
@@ -994,11 +1238,18 @@ export const translatableElement = snakeCase.table(
     ...timestamps,
   },
   (table) => [
-    // Composite index for faster element listing by document and sort order
-    index().using(
-      "btree",
-      table.documentId.asc().nullsLast(),
-      table.sortIndex.asc().nullsLast(),
+    unique().on(
+      table.projectId,
+      table.importerId,
+      table.sourceRootRef,
+      table.sourceNodeRef,
+      table.stableSourceRef,
+    ),
+    index().using("btree", table.projectId.asc().nullsLast()),
+    index().using("btree", table.vectorizedStringId.asc().nullsLast()),
+    check(
+      "translatableElement_identityConfidence_check",
+      sql`${table.identityConfidence} BETWEEN 0 AND 10000`,
     ),
   ],
 );
@@ -1067,11 +1318,32 @@ export const commentReaction = snakeCase.table(
   ],
 );
 
-export const translatableElementContext = snakeCase.table(
-  "TranslatableElementContext",
+export const contextEvidence = snakeCase.table(
+  "ContextEvidence",
   {
     id: serial().primaryKey(),
-    type: translatableElementContextType().notNull(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    attachedEndpointKind: text().notNull(),
+    contentNodeId: uuid().references(() => contentNode.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    contentRelationId: uuid().references(() => contentRelation.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    translatableElementId: integer().references(() => translatableElement.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    kind: contentEvidenceKind().notNull(),
+    trustLevel: evidenceTrustLevel().notNull().default("COLLECTED"),
+    freshnessAt: timestamp({ withTimezone: true }),
     jsonData: jsonb().$type<JSONType>(),
     fileId: integer().references(() => file.id, {
       onDelete: "cascade",
@@ -1082,16 +1354,24 @@ export const translatableElementContext = snakeCase.table(
       onUpdate: "cascade",
     }),
     textData: text(),
-    translatableElementId: integer()
-      .notNull()
-      .references(() => translatableElement.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
+    displayLabel: text(),
+    provenance: jsonb().$type<JSONType>(),
+    graphExplanation: jsonb().$type<JSONType>(),
     ...timestamps,
   },
   (table) => [
+    index().using("btree", table.projectId.asc().nullsLast()),
+    index().using("btree", table.contentNodeId.asc().nullsLast()),
+    index().using("btree", table.contentRelationId.asc().nullsLast()),
     index().using("btree", table.translatableElementId.asc().nullsLast()),
+    check(
+      "contextEvidence_endpoint_check",
+      sql`(
+        (${table.attachedEndpointKind} = 'NODE' AND ${table.contentNodeId} IS NOT NULL AND ${table.contentRelationId} IS NULL AND ${table.translatableElementId} IS NULL)
+        OR (${table.attachedEndpointKind} = 'RELATION' AND ${table.contentRelationId} IS NOT NULL AND ${table.contentNodeId} IS NULL AND ${table.translatableElementId} IS NULL)
+        OR (${table.attachedEndpointKind} = 'ELEMENT' AND ${table.translatableElementId} IS NOT NULL AND ${table.contentNodeId} IS NULL AND ${table.contentRelationId} IS NULL)
+      )`,
+    ),
   ],
 );
 
@@ -1541,6 +1821,41 @@ export const changesetEntry = snakeCase.table(
   (table) => [
     index().using("btree", table.changesetId),
     index().using("btree", table.entityType, table.entityId),
+  ],
+);
+
+export const semanticDiffEntry = snakeCase.table(
+  "SemanticDiffEntry",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    changesetId: integer().references(() => changeset.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    diffKind: semanticDiffKind().notNull(),
+    elementId: integer().references(() => translatableElement.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    contentNodeId: uuid().references(() => contentNode.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    contentRelationId: uuid().references(() => contentRelation.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    vectorInvalidationReason: vectorInvalidationReason().notNull(),
+    payload: jsonb().$type<SemanticDiffEntryPayload>().notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId, table.diffKind),
+    index().on(table.changesetId),
+    index().on(table.elementId),
   ],
 );
 

@@ -14,14 +14,6 @@ export const BulkUpdateElementsForDiffCommandSchema = z.object({
       }),
     )
     .default([]),
-  sortIndexUpdates: z
-    .array(
-      z.object({
-        id: z.int(),
-        sortIndex: z.int(),
-      }),
-    )
-    .default([]),
   locationUpdates: z
     .array(
       z.object({
@@ -46,7 +38,6 @@ export const bulkUpdateElementsForDiff: Command<
   BulkUpdateElementsForDiffCommandInput
 > = async (ctx, command) => {
   const stringIdUpdates = command.stringIdUpdates ?? [];
-  const sortIndexUpdates = command.sortIndexUpdates ?? [];
   const locationUpdates = command.locationUpdates ?? [];
 
   if (stringIdUpdates.length > 0) {
@@ -68,27 +59,6 @@ export const bulkUpdateElementsForDiff: Command<
       .update(translatableElement)
       .set({
         vectorizedStringId: sql.join(stringIdChunks, sql` `),
-      })
-      .where(inArray(translatableElement.id, ids));
-  }
-
-  if (sortIndexUpdates.length > 0) {
-    const sortIndexChunks = [sql`(CASE`];
-    const ids: number[] = [];
-
-    for (const update of sortIndexUpdates) {
-      sortIndexChunks.push(
-        sql`WHEN ${translatableElement.id} = ${update.id} THEN ${update.sortIndex}`,
-      );
-      ids.push(update.id);
-    }
-
-    sortIndexChunks.push(sql`ELSE ${translatableElement.sortIndex} END)`);
-
-    await ctx.db
-      .update(translatableElement)
-      .set({
-        sortIndex: sql.join(sortIndexChunks, sql` `),
       })
       .where(inArray(translatableElement.id, ids));
   }

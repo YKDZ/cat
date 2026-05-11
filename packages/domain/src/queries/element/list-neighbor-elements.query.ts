@@ -1,14 +1,13 @@
 import {
-  aliasedTable,
   and,
   asc,
+  contentRelation,
   desc,
   eq,
   gt,
-  isNotNull,
   lt,
+  or,
   translatableElement,
-  translation,
   vectorizedString,
 } from "@cat/db";
 import * as z from "zod";
@@ -16,130 +15,98 @@ import * as z from "zod";
 import type { Query } from "@/types";
 
 export const ListNeighborElementsQuerySchema = z.object({
-  /** The reference element whose neighbors we want. */
   elementId: z.int(),
-  /** Number of elements to fetch on each side (before and after). */
-  windowSize: z.int().min(1).default(3),
+  before: z.int().min(0).default(2),
+  after: z.int().min(0).default(2),
 });
-
 export type ListNeighborElementsQuery = z.infer<
   typeof ListNeighborElementsQuerySchema
 >;
 
-export type NeighborElement = {
+export type NeighborElementRow = {
   id: number;
   value: string;
   languageId: string;
-  approvedTranslation: string | null;
-  approvedTranslationLanguageId: string | null;
-  /** Position relative to the reference element (negative = before, positive = after). */
-  offset: number;
+  localOrder: number | null;
+  primaryContentNodeId: string | null;
 };
 
-type NeighborRow = Omit<NeighborElement, "offset">;
-
-/**
- * Fetch the nearest sibling elements within the same document.
- *
- * Prefer `sortIndex` ordering when available; fall back to `id` ordering when
- * the reference element has no sort index.
- */
 export const listNeighborElements: Query<
   ListNeighborElementsQuery,
-  NeighborElement[]
+  { before: NeighborElementRow[]; after: NeighborElementRow[] }
 > = async (ctx, query) => {
   const refRows = await ctx.db
     .select({
-      documentId: translatableElement.documentId,
-      sortIndex: translatableElement.sortIndex,
+      primaryContentNodeId: contentRelation.sourceNodeId,
+      localOrder: contentRelation.localOrder,
     })
-    .from(translatableElement)
-    .where(eq(translatableElement.id, query.elementId))
+    .from(contentRelation)
+    .where(
+      and(
+        eq(contentRelation.targetElementId, query.elementId),
+        eq(contentRelation.targetEndpointKind, "ELEMENT"),
+        eq(contentRelation.isPrimary, true),
+      ),
+    )
     .limit(1);
 
-  if (refRows.length === 0 || !refRows[0]) return [];
-
-  const approvedTranslationString = aliasedTable(
-    vectorizedString,
-    "approvedTranslationString",
-  );
   const ref = refRows[0];
+  if (!ref || ref.localOrder === null || ref.primaryContentNodeId === null)
+    return { before: [], after: [] };
 
-  const buildNeighborQuery = async (
-    direction: "before" | "after",
-  ): Promise<NeighborRow[]> => {
-    const positionCondition =
-      ref.sortIndex !== null
-        ? and(
-            isNotNull(translatableElement.sortIndex),
-            direction === "before"
-              ? lt(translatableElement.sortIndex, ref.sortIndex)
-              : gt(translatableElement.sortIndex, ref.sortIndex),
-          )
-        : direction === "before"
-          ? lt(translatableElement.id, query.elementId)
-          : gt(translatableElement.id, query.elementId);
-    const orderBy =
-      ref.sortIndex !== null
-        ? direction === "before"
-          ? desc(translatableElement.sortIndex)
-          : asc(translatableElement.sortIndex)
-        : direction === "before"
-          ? desc(translatableElement.id)
-          : asc(translatableElement.id);
-
-    return await ctx.db
+  const selectRows = () =>
+    ctx.db
       .select({
         id: translatableElement.id,
         value: vectorizedString.value,
         languageId: vectorizedString.languageId,
-        approvedTranslation: approvedTranslationString.value,
-        approvedTranslationLanguageId: approvedTranslationString.languageId,
+        localOrder: contentRelation.localOrder,
+        primaryContentNodeId: contentRelation.sourceNodeId,
       })
-      .from(translatableElement)
+      .from(contentRelation)
+      .innerJoin(
+        translatableElement,
+        eq(contentRelation.targetElementId, translatableElement.id),
+      )
       .innerJoin(
         vectorizedString,
-        eq(vectorizedString.id, translatableElement.vectorizedStringId),
-      )
-      .leftJoin(
-        translation,
-        eq(translation.id, translatableElement.approvedTranslationId),
-      )
-      .leftJoin(
-        approvedTranslationString,
-        eq(approvedTranslationString.id, translation.stringId),
-      )
-      .where(
-        and(
-          eq(translatableElement.documentId, ref.documentId),
-          positionCondition,
+        eq(translatableElement.vectorizedStringId, vectorizedString.id),
+      );
+
+  const beforeRowsDesc = await selectRows()
+    .where(
+      and(
+        eq(contentRelation.sourceNodeId, ref.primaryContentNodeId),
+        eq(contentRelation.isPrimary, true),
+        or(
+          lt(contentRelation.localOrder, ref.localOrder),
+          and(
+            eq(contentRelation.localOrder, ref.localOrder),
+            lt(translatableElement.id, query.elementId),
+          ),
         ),
-      )
-      .orderBy(orderBy)
-      .limit(query.windowSize);
-  };
+      ),
+    )
+    .orderBy(desc(contentRelation.localOrder), desc(translatableElement.id))
+    .limit(query.before);
+  const beforeRows = beforeRowsDesc.reverse();
 
-  const [before, after] = await Promise.all([
-    buildNeighborQuery("before"),
-    buildNeighborQuery("after"),
-  ]);
+  const afterRows = await selectRows()
+    .where(
+      and(
+        eq(contentRelation.sourceNodeId, ref.primaryContentNodeId),
+        eq(contentRelation.isPrimary, true),
+        or(
+          gt(contentRelation.localOrder, ref.localOrder),
+          and(
+            eq(contentRelation.localOrder, ref.localOrder),
+            gt(translatableElement.id, query.elementId),
+          ),
+        ),
+      ),
+    )
+    .orderBy(asc(contentRelation.localOrder), asc(translatableElement.id))
+    .limit(query.after);
 
-  return [
-    ...before.reverse().map((element, index) => ({
-      id: element.id,
-      value: element.value,
-      languageId: element.languageId,
-      approvedTranslation: element.approvedTranslation,
-      approvedTranslationLanguageId: element.approvedTranslationLanguageId,
-      offset: -(before.length - index),
-    })),
-    ...after.map((element, index) => ({
-      id: element.id,
-      value: element.value,
-      languageId: element.languageId,
-      approvedTranslation: element.approvedTranslation,
-      approvedTranslationLanguageId: element.approvedTranslationLanguageId,
-      offset: index + 1,
-    })),
-  ];
+  return { before: beforeRows, after: afterRows };
 };

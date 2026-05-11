@@ -1,9 +1,9 @@
 import * as z from "zod";
 
 import {
-  CollectionContextSchema,
-  CollectionElementSchema,
-} from "@/schema/collection";
+  StructuredEvidenceInputSchema,
+  StructuredTranslatableElementInputSchema,
+} from "@/schema/content.ts";
 import { safeZDotJson } from "@/schema/json";
 
 // --- Extraction Result ---
@@ -15,8 +15,8 @@ export const ExtractionMetadataSchema = z.object({
 });
 
 export const ExtractionResultSchema = z.object({
-  elements: z.array(CollectionElementSchema),
-  contexts: z.array(CollectionContextSchema).default([]),
+  elements: z.array(StructuredTranslatableElementInputSchema),
+  evidence: z.array(StructuredEvidenceInputSchema).default([]),
   metadata: ExtractionMetadataSchema.optional(),
 });
 
