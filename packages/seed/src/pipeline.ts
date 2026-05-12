@@ -6,13 +6,7 @@ import type { ExecutorContext } from "@cat/domain";
 import type { PluginLoader } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared";
 
-import {
-  pluginInstallation,
-  sql,
-  eq,
-  and,
-  contextEvidence,
-} from "@cat/db";
+import { pluginInstallation, sql, eq, and, contextEvidence } from "@cat/db";
 import {
   addProjectTargetLanguages,
   attachChunkSetToString,
@@ -301,6 +295,7 @@ export const runSeedPipeline = async (
       exportRole: "FILE",
       boundaryType: "FILE",
       localOrder: 0,
+    },
   );
   refs.set("document:elements", elementsNode.id);
   refs.set("content-node:elements", elementsNode.id);
@@ -488,9 +483,7 @@ export const runSeedPipeline = async (
               },
         );
 
-        await execCtx.db
-          .insert(contextEvidence)
-          .values(contextPayloads);
+        await execCtx.db.insert(contextEvidence).values(contextPayloads);
       }
 
       refs.set(elSeed.ref, elementIds[0]);

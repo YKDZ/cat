@@ -90,7 +90,7 @@ describe("mergePRFull — integration", () => {
 
     await executeCommand({ db: testDb.client }, addChangesetEntry, {
       changesetId: branchCs.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "merge-apply-doc-entity-1",
       action: "CREATE",
       after: { id: "merge-apply-doc-entity-1", name: "Test Document" },
@@ -148,7 +148,7 @@ describe("mergePRFull — integration", () => {
 
     await executeCommand({ db: testDb.client }, addChangesetEntry, {
       changesetId: mainCs1.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "conflict-entity-1",
       action: "CREATE",
       after: { id: "conflict-entity-1", name: "Original" },
@@ -176,7 +176,7 @@ describe("mergePRFull — integration", () => {
 
     await executeCommand({ db: testDb.client }, addChangesetEntry, {
       changesetId: mainCs2.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "conflict-entity-1",
       action: "UPDATE",
       before: { id: "conflict-entity-1", name: "Original" },
@@ -197,7 +197,7 @@ describe("mergePRFull — integration", () => {
 
     await executeCommand({ db: testDb.client }, addChangesetEntry, {
       changesetId: branchCs.id,
-      entityType: "document",
+      entityType: "content_node",
       entityId: "conflict-entity-1",
       action: "UPDATE",
       before: { id: "conflict-entity-1", name: "Original" },

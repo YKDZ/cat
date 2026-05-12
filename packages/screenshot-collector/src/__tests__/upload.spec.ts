@@ -34,7 +34,10 @@ describe("screenshot deduplication by filePath", () => {
         filePath: "/tmp/shot1.png",
         element: {
           ref: "el-1",
+          stableSourceRef: "el-1",
+          sourceNodeRef: "",
           text: "Hello",
+          languageId: "",
           meta: {
             framework: "vue-i18n",
             file: "a.vue",
@@ -47,7 +50,10 @@ describe("screenshot deduplication by filePath", () => {
         filePath: "/tmp/shot1.png",
         element: {
           ref: "el-2",
+          stableSourceRef: "el-2",
+          sourceNodeRef: "",
           text: "Hello",
+          languageId: "",
           meta: {
             framework: "vue-i18n",
             file: "b.vue",

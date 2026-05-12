@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 
 import { computed } from "vue";
 
 defineProps<{
-  document: Pick<Document, "name">;
+  document: Pick<ContentNode, "displayLabel">;
 }>();
 
 // TODO 文件名 -> 图标
@@ -15,7 +15,7 @@ const icon = computed(() => "icon-[mdi--file]");
   <div class="flex items-center">
     <div class="flex items-center gap-2 text-lg font-bold">
       <span :class="icon" class="inline-block h-6 w-6" /><span>{{
-        document.name
+        document.displayLabel
       }}</span>
     </div>
   </div>

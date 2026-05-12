@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 
 import { ref } from "vue";
 
@@ -9,7 +9,7 @@ import { clientLogger as logger } from "@/utils/logger";
 import { watchClient } from "@/utils/vue.ts";
 
 const props = defineProps<{
-  readme: Pick<Document, "id">;
+  readme: Pick<ContentNode, "id">;
 }>();
 
 const markdownContent = ref<string>("");

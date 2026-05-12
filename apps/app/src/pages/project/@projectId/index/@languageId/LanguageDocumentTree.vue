@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 import type { Language } from "@cat/shared";
 import type { Project } from "@cat/shared";
 
@@ -29,14 +29,14 @@ const { t } = useI18n();
 
 const documents = inject(useInjectionKey<Data>()("documents"))!;
 
-const handleEdit = async (document: Pick<Document, "id">) => {
-  await navigate(`/editor/${document.id}/${props.language.id}/auto`);
+const handleEdit = async (node: Pick<ContentNode, "id">) => {
+  await navigate(`/editor/${node.id}/${props.language.id}/auto`);
 };
 
-const handleExportTranslated = async (document: Pick<Document, "id">) => {
+const handleExportTranslated = async (node: Pick<ContentNode, "id">) => {
   await orpc.document
     .exportTranslatedFile({
-      documentId: document.id,
+      documentId: node.id,
       languageId: props.language.id,
     })
     .then(() => {
@@ -47,13 +47,13 @@ const handleExportTranslated = async (document: Pick<Document, "id">) => {
 </script>
 
 <template>
-  <DocumentTree :documents @click="handleEdit">
-    <template #actions="{ document }">
-      <DocumentTranslationProgress :document :language />
-      <LanguageDocumentAutoApproveBtn :document :language />
-      <LanguageDocumentAutoTranslateBtn :document :language />
+  <DocumentTree :content-nodes="documents" @click="handleEdit">
+    <template #actions="{ node }">
+      <DocumentTranslationProgress :document="node" :language />
+      <LanguageDocumentAutoApproveBtn :document="node" :language />
+      <LanguageDocumentAutoTranslateBtn :document="node" :language />
       <Button
-        @click="handleExportTranslated(document)"
+        @click="handleExportTranslated(node)"
         variant="outline"
         size="icon"
       >

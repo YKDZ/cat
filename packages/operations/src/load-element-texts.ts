@@ -3,8 +3,8 @@ import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
-  listElementIdsByDocument,
-  listElements,
+  listContentNodeElementIds,
+  listElementSourceTexts,
 } from "@cat/domain";
 import * as z from "zod";
 
@@ -56,7 +56,9 @@ export const loadElementTextsOp = async (
   if (data.documentIds && data.documentIds.length > 0) {
     const docElementIdLists = await Promise.all(
       data.documentIds.map(async (documentId) =>
-        executeQuery({ db: drizzle }, listElementIdsByDocument, { documentId }),
+        executeQuery({ db: drizzle }, listContentNodeElementIds, {
+          contentNodeId: documentId,
+        }),
       ),
     );
     for (const ids of docElementIdLists) {
@@ -70,16 +72,16 @@ export const loadElementTextsOp = async (
     return { elements: [] };
   }
 
-  const rows = await executeQuery({ db: drizzle }, listElements, {
+  const rows = await executeQuery({ db: drizzle }, listElementSourceTexts, {
     elementIds: [...allElementIds],
   });
 
   const elements = rows
-    .filter((row) => row.string.languageId === data.sourceLanguageId)
+    .filter((row) => row.sourceLanguageId === data.sourceLanguageId)
     .map((row) => ({
-      elementId: row.element.id,
-      text: row.string.value,
-      languageId: row.string.languageId,
+      elementId: row.id,
+      text: row.text,
+      languageId: row.sourceLanguageId,
     }));
 
   return { elements };

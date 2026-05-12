@@ -149,7 +149,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
     const firstUntranslatedElement = await orpc.document.getFirstElement({
       documentId: context.documentId.value,
-      greaterThan: element.value.sortIndex ?? 0,
       afterElementId: element.value.id,
       isTranslated: false,
       languageId: context.languageToId.value,

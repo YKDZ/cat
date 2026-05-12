@@ -100,7 +100,7 @@ export const submitTranslationTool: AgentToolDefinition = {
       memoryIds,
       vectorizerId: vectorizer?.id,
       vectorStorageId: vectorStorage?.id,
-      documentId: element.documentId,
+      documentId: ctx.session.documentId ?? undefined,
     });
 
     return {

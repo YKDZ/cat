@@ -47,6 +47,8 @@ export const assembleContextEvidence: Query<
       languageId: vectorizedString.languageId,
       primaryContentNodeId: contentRelation.sourceNodeId,
       localOrder: contentRelation.localOrder,
+      stableSourceRef: translatableElement.stableSourceRef,
+      meta: translatableElement.meta,
     })
     .from(translatableElement)
     .innerJoin(
@@ -116,10 +118,30 @@ export const assembleContextEvidence: Query<
         .limit(maxItems + 1)
     : [];
 
+  const elementKeyPayload: Record<string, unknown> = {
+    "stable ref": ref.stableSourceRef,
+  };
+  if (ref.meta && typeof ref.meta === "object" && !Array.isArray(ref.meta)) {
+    Object.assign(elementKeyPayload, ref.meta);
+  }
+
   const candidates: FlattenedContextEvidence[] = [
     {
       purpose: query.purpose,
       priority: 0,
+      label: "element key",
+      score: 100,
+      sourceEndpoint: `element:${query.elementId}`,
+      relatedEndpoint: null,
+      trustLevel: "VERIFIED",
+      freshness: null,
+      clipped: false,
+      payload: { kind: "JSON", json: elementKeyPayload },
+      expansion: null,
+    },
+    {
+      purpose: query.purpose,
+      priority: 1,
       label: "source text",
       score: 100,
       sourceEndpoint: `element:${query.elementId}`,

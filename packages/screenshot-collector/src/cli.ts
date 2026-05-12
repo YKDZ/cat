@@ -2,8 +2,6 @@
 
 // oxlint-disable no-console
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- CLI JSON parsing requires casting
-import type { CollectionPayload } from "@cat/shared";
-
 import { CollectionPayloadSchema } from "@cat/shared";
 import { CaptureResultSchema, ExtractionResultSchema } from "@cat/shared";
 import { readFile, writeFile } from "node:fs/promises";
@@ -197,7 +195,10 @@ async function runUpload(values: Record<string, unknown>): Promise<void> {
     filePath: s.filePath,
     element: {
       ref: s.elementRef,
+      stableSourceRef: s.elementRef,
+      sourceNodeRef: "",
       text: "", // not needed for upload, meta is used for matching
+      languageId: "",
       meta: s.elementMeta,
     },
     highlightRegion: s.highlightRegion,
@@ -268,8 +269,17 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     `[INFO] Captured ${captured.length} screenshots to ${outputDir}`,
   );
 
+  type LegacyImageContext = {
+    elementRef: string;
+    type: "IMAGE";
+    data: {
+      fileId: number;
+      highlightRegion?: { x: number; y: number; width: number; height: number };
+    };
+  };
+
   // Build IMAGE contexts for output payload
-  let imageContexts: CollectionPayload["contexts"] = captured.map((c) => ({
+  let imageContexts: LegacyImageContext[] = captured.map((c) => ({
     elementRef: c.element.ref,
     type: "IMAGE" as const,
     data: {
@@ -340,11 +350,10 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     }));
   }
 
-  // Output CollectionPayload JSON to stdout
-  const outputPayload: CollectionPayload = {
+  // Output CollectionPayload JSON to stdout (legacy format)
+  const outputPayload = {
     projectId: sourcePayload.projectId,
     sourceLanguageId: sourcePayload.sourceLanguageId,
-    document: sourcePayload.document,
     elements: [], // screenshots don't add new elements
     contexts: imageContexts,
   };

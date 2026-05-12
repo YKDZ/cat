@@ -4,7 +4,7 @@ import type { PluginManifest } from "@cat/shared";
 import {
   createElements,
   createMemory,
-  createRootDocument,
+  createRootContentNode,
   createTranslations,
   createUser,
   ensureLanguages,
@@ -68,14 +68,16 @@ describe("memory recall integration", () => {
 
   const createTranslationRecord = async ({
     creatorId,
-    documentId,
+    projectId,
+    contentNodeId,
     sourceText,
     sourceLanguageId,
     translationText,
     translationLanguageId,
   }: {
     creatorId: string;
-    documentId: string;
+    projectId: string;
+    contentNodeId: string;
     sourceText: string;
     sourceLanguageId: string;
     translationText: string;
@@ -108,7 +110,12 @@ describe("memory recall integration", () => {
         data: [
           {
             creatorId,
-            documentId,
+            projectId,
+            primaryContentNodeId: contentNodeId,
+            importerId: "test",
+            sourceRootRef: `project:${projectId}`,
+            sourceNodeRef: `test#0`,
+            stableSourceRef: `test#0`,
             stringId: source.id,
           },
         ],
@@ -170,17 +177,17 @@ describe("memory recall integration", () => {
 
     const rootDocument = await executeCommand(
       { db: db.client },
-      createRootDocument,
+      createRootContentNode,
       {
         projectId: insertedProject.id,
         creatorId: user.id,
-        name: "<root>",
       },
     );
 
     forwardTranslationId = await createTranslationRecord({
       creatorId: user.id,
-      documentId: rootDocument.id,
+      projectId: insertedProject.id,
+      contentNodeId: rootDocument.id,
       sourceText: "Order 42 is completed",
       sourceLanguageId: "en",
       translationText: "订单 42 已完成",
@@ -189,7 +196,8 @@ describe("memory recall integration", () => {
 
     reversedTranslationId = await createTranslationRecord({
       creatorId: user.id,
-      documentId: rootDocument.id,
+      projectId: insertedProject.id,
+      contentNodeId: rootDocument.id,
       sourceText: "发票 42 已完成",
       sourceLanguageId: "zh-Hans",
       translationText: "Invoice 42 Completed",

@@ -1,6 +1,10 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import { executeQuery, getDbHandle, listProjectDocuments } from "@cat/domain";
+import {
+  executeQuery,
+  getDbHandle,
+  listProjectContentNodes,
+} from "@cat/domain";
 import * as z from "zod";
 
 import { assertProjectInSession } from "./assert-session-scope.ts";
@@ -41,29 +45,30 @@ export const getDocumentsTool: AgentToolDefinition = {
     assertProjectInSession(projectId, ctx);
 
     const { client: db } = await getDbHandle();
-    const rows = await executeQuery({ db }, listProjectDocuments, {
+    const allRows = await executeQuery({ db }, listProjectContentNodes, {
       projectId,
-      page: parsed.page,
-      pageSize: parsed.pageSize + 1,
     });
-    const documents = rows.slice(0, parsed.pageSize);
+
+    const start = parsed.page * parsed.pageSize;
+    const end = start + parsed.pageSize;
+    const documents = allRows.slice(start, end);
 
     return {
       documents: documents.map((row) => ({
         id: row.id,
-        name: row.name,
+        name: row.displayLabel,
         projectId: row.projectId,
         creatorId: row.creatorId,
         fileHandlerId: row.fileHandlerId,
         fileId: row.fileId,
-        isDirectory: row.isDirectory,
+        isDirectory: row.kind === "DIRECTORY",
         createdAt: row.createdAt,
         updatedAt: row.updatedAt,
         parentId: row.parentId,
       })),
       page: parsed.page,
       pageSize: parsed.pageSize,
-      hasMore: rows.length > parsed.pageSize,
+      hasMore: end < allRows.length,
     };
   },
 };

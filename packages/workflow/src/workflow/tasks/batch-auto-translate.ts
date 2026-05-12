@@ -1,7 +1,7 @@
 import {
   executeQuery,
   getDbHandle,
-  listDocumentElementsWithChunkIds,
+  listContentNodeElementsWithChunkIds,
 } from "@cat/domain";
 import * as z from "zod";
 
@@ -99,9 +99,9 @@ export const batchAutoTranslateGraph = defineGraph({
         const { client: db } = await getDbHandle();
         const elements = await executeQuery(
           { db },
-          listDocumentElementsWithChunkIds,
+          listContentNodeElementsWithChunkIds,
           {
-            documentId: input.documentId,
+            contentNodeId: input.documentId,
           },
         );
         return { elements };

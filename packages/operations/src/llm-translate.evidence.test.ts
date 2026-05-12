@@ -26,7 +26,7 @@ const BASE_CONTEXT = {
   neighborTranslations: [],
   approvedTranslations: [],
   comments: [],
-} as const;
+};
 
 describe("buildUserPromptForTest with FlattenedContextEvidence", () => {
   it("includes evidence section with label and text", () => {

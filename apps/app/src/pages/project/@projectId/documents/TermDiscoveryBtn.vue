@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 import type { Project } from "@cat/shared";
 
 import { Button } from "@cat/ui";
@@ -24,7 +24,7 @@ import { useToastStore } from "@/stores/toast.ts";
 
 const props = defineProps<{
   project: Project;
-  documents: Pick<Document, "id" | "isDirectory">[];
+  documents: Pick<ContentNode, "id" | "kind">[];
 }>();
 
 const { t } = useI18n();
@@ -38,7 +38,7 @@ const sourceLanguageId = ref<string | undefined>(undefined);
 const glossaryId = computed(() => glossaryIds.value[0]);
 const documentIds = computed(() =>
   props.documents
-    .filter((document) => !document.isDirectory)
+    .filter((document) => document.kind !== "DIRECTORY")
     .map((document) => document.id),
 );
 const canSubmit = computed(

@@ -2,8 +2,8 @@ import type { ToolExecutionContext } from "@cat/agent";
 
 import {
   executeQuery,
+  getContentNode,
   getDbHandle,
-  getDocument,
   getElementWithChunkIds,
   type ElementWithChunkIds,
 } from "@cat/domain";
@@ -30,10 +30,6 @@ export const assertElementInSession = async (
 
   if (element.projectId !== ctx.session.projectId) {
     throw new Error(`Element ${elementId} belongs to a different project`);
-  }
-
-  if (ctx.session.documentId && element.documentId !== ctx.session.documentId) {
-    throw new Error(`Element ${elementId} belongs to a different document`);
   }
 
   return element;
@@ -71,7 +67,7 @@ export const assertDocumentInSession = async (
   }
 
   const { client: db } = await getDbHandle();
-  const doc = await executeQuery({ db }, getDocument, { documentId });
+  const doc = await executeQuery({ db }, getContentNode, { id: documentId });
 
   if (!doc) {
     throw new Error(`Document ${documentId} not found`);

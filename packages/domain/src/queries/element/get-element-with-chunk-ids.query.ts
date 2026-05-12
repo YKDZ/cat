@@ -45,7 +45,7 @@ export const getElementWithChunkIds: Query<
 
   if (elementRows.length === 0) return null;
 
-  const elementRow = elementRows[0]!;
+  const elementRow = elementRows[0];
 
   let chunkIds: number[] = [];
   if (elementRow.chunkSetId !== null) {

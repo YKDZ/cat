@@ -179,7 +179,7 @@ describe("entity_branch Isolation", () => {
     const result = await readWithOverlay(
       testDb.client,
       branchId,
-      "document",
+      "content_node",
       "entity-not-in-branch",
     );
 
@@ -195,7 +195,7 @@ describe("entity_branch Isolation", () => {
     // Simulate a branch-only write
     await seedBranchChangeset(testDb, projectId, branchId, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId,
         action: "CREATE",
         after: { id: entityId, name: "Branch-only doc" },
@@ -206,7 +206,7 @@ describe("entity_branch Isolation", () => {
     const branchResult = await readWithOverlay(
       testDb.client,
       branchId,
-      "document",
+      "content_node",
       entityId,
     );
     expect(branchResult).not.toBeNull();
@@ -222,7 +222,7 @@ describe("entity_branch Isolation", () => {
     const otherResult = await readWithOverlay(
       testDb.client,
       otherBranchId,
-      "document",
+      "content_node",
       entityId,
     );
     expect(otherResult).toBeNull();
@@ -237,7 +237,7 @@ describe("entity_branch Isolation", () => {
     // Branch deletes the entity
     await seedBranchChangeset(testDb, projectId, branchId, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId,
         action: "DELETE",
         before: { id: entityId, name: "Original" },
@@ -247,7 +247,7 @@ describe("entity_branch Isolation", () => {
     const result = await readWithOverlay(
       testDb.client,
       branchId,
-      "document",
+      "content_node",
       entityId,
     );
 
@@ -274,20 +274,20 @@ describe("entity_branch Isolation", () => {
     // Branch: update item-1, delete item-2, create item-4
     await seedBranchChangeset(testDb, projectId, branchId, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId: "item-1",
         action: "UPDATE",
         before: { id: "item-1", name: "Alpha" },
         after: { id: "item-1", name: "Alpha Updated" },
       },
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId: "item-2",
         action: "DELETE",
         before: { id: "item-2", name: "Beta" },
       },
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId: "item-4",
         action: "CREATE",
         after: { id: "item-4", name: "Delta" },
@@ -297,7 +297,7 @@ describe("entity_branch Isolation", () => {
     const result = await listWithOverlay(
       testDb.client,
       branchId,
-      "document",
+      "content_node",
       mainItems,
       // oxlint-disable-next-line typescript/no-unsafe-type-assertion
       (item) => (item as { id: string }).id,
@@ -340,7 +340,7 @@ describe("entity_branch Isolation", () => {
     const mainCsId = await seedMainChangeset(
       testDb,
       projectId,
-      "document",
+      "content_node",
       "merge-entity-1",
       "CREATE",
       { id: "merge-entity-1", name: "Main doc" },
@@ -351,7 +351,7 @@ describe("entity_branch Isolation", () => {
     // Branch modifies a different entity (no conflict)
     await seedBranchChangeset(testDb, projectId, branchId, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId: "merge-entity-2",
         action: "CREATE",
         after: { id: "merge-entity-2", name: "Branch doc" },
@@ -379,7 +379,7 @@ describe("entity_branch Isolation", () => {
     const mainCsId = await seedMainChangeset(
       testDb,
       projectId,
-      "document",
+      "content_node",
       "conflict-entity-1",
       "CREATE",
       { id: "conflict-entity-1", name: "Original" },
@@ -394,7 +394,7 @@ describe("entity_branch Isolation", () => {
     );
     await seedBranchChangeset(testDb, projectId, branchIdA, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId: "conflict-entity-1",
         action: "UPDATE",
         before: { id: "conflict-entity-1", name: "Original" },
@@ -415,7 +415,7 @@ describe("entity_branch Isolation", () => {
     );
     await seedBranchChangeset(testDb, projectId, branchIdB, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId: "conflict-entity-1",
         action: "UPDATE",
         before: { id: "conflict-entity-1", name: "Original" },
@@ -440,7 +440,7 @@ describe("entity_branch Isolation", () => {
     const initialCsId = await seedMainChangeset(
       testDb,
       projectId,
-      "document",
+      "content_node",
       "rebase-entity-1",
       "CREATE",
       { id: "rebase-entity-1", name: "Initial" },
@@ -457,7 +457,7 @@ describe("entity_branch Isolation", () => {
     const newerCsId = await seedMainChangeset(
       testDb,
       projectId,
-      "document",
+      "content_node",
       "rebase-entity-2",
       "CREATE",
       { id: "rebase-entity-2", name: "Newer" },
@@ -488,7 +488,7 @@ describe("entity_branch Isolation", () => {
 
     await seedBranchChangeset(testDb, projectId, branchId, [
       {
-        entityType: "document",
+        entityType: "content_node",
         entityId,
         action: "CREATE",
         after: { id: entityId, name: "Abandoned" },
@@ -520,7 +520,7 @@ describe("entity_branch Isolation", () => {
     const result = await readWithOverlay(
       testDb.client,
       otherBranchId,
-      "document",
+      "content_node",
       entityId,
     );
     expect(result).toBeNull();

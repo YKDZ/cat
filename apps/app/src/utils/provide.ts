@@ -1,11 +1,11 @@
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 import type { Glossary } from "@cat/shared";
 import type { Memory } from "@cat/shared";
 import type { Language } from "@cat/shared";
 import type { Plugin } from "@cat/shared";
 import type { InjectionKey, Ref } from "vue";
 
-export const documentKey = Symbol() as InjectionKey<Document>;
+export const documentKey = Symbol() as InjectionKey<ContentNode>;
 export const glossaryKey = Symbol() as InjectionKey<Glossary>;
 export const memoryKey = Symbol() as InjectionKey<Memory>;
 export const languageKey = Symbol() as InjectionKey<Ref<Language | null>>;

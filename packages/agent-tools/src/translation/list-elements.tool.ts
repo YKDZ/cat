@@ -1,6 +1,6 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import { executeQuery, getDbHandle, getDocumentElements } from "@cat/domain";
+import { executeQuery, getContentNodeElements, getDbHandle } from "@cat/domain";
 import * as z from "zod";
 
 import { assertDocumentInSession } from "./assert-session-scope.ts";
@@ -56,8 +56,8 @@ export const listElementsTool: AgentToolDefinition = {
 
     const languageId = parsed.languageId ?? ctx.session.languageId;
     const { client: db } = await getDbHandle();
-    const rows = await executeQuery({ db }, getDocumentElements, {
-      documentId,
+    const rows = await executeQuery({ db }, getContentNodeElements, {
+      contentNodeId: documentId,
       page: parsed.page,
       pageSize: parsed.pageSize,
       searchQuery: parsed.searchQuery,
@@ -72,7 +72,7 @@ export const listElementsTool: AgentToolDefinition = {
         sourceText: row.value,
         languageId: row.languageId,
         status: row.status,
-        sortIndex: row.sortIndex,
+        sortIndex: row.localOrder,
       })),
       page: parsed.page,
       pageSize: parsed.pageSize,

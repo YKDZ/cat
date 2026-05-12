@@ -16,7 +16,7 @@ import {
   createMemory,
   createMemoryItems,
   createProject,
-  createRootDocument,
+  createRootContentNode,
   createUser,
   createVectorizedChunks,
   createVectorizedStrings,
@@ -152,10 +152,9 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   });
   refs.set("project", project.id);
 
-  const rootDoc = await executeCommand(execCtx, createRootDocument, {
+  const rootDoc = await executeCommand(execCtx, createRootContentNode, {
     projectId: project.id,
     creatorId: userId,
-    name: "<root>",
   });
   refs.set("document:root", rootDoc.id);
 
@@ -275,7 +274,12 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       const elementIds = await executeCommand(execCtx, createElements, {
         data: [
           {
-            documentId: rootDoc.id,
+            projectId: project.id,
+            primaryContentNodeId: rootDoc.id,
+            importerId: "eval",
+            sourceRootRef: `project:${project.id}`,
+            sourceNodeRef: `eval#${elSeed.ref}`,
+            stableSourceRef: `eval#${elSeed.ref}`,
             stringId: stringIds[0],
             creatorId: userId,
             meta: elSeed.meta as JSONType | undefined,

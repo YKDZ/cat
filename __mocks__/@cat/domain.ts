@@ -19,6 +19,9 @@ import { vi } from "vitest";
 export const executeCommand = vi.fn();
 export const executeQuery = vi.fn();
 
+// Query/command references used as arguments to executeCommand/executeQuery
+export const assembleContextEvidence = vi.fn();
+
 // Runtime helpers called directly by plugin-core internals
 export const createPluginCapabilities = vi.fn(() => ({}));
 export const getCacheStore = vi.fn(() => ({}));

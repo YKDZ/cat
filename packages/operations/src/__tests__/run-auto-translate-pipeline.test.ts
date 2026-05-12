@@ -12,7 +12,7 @@ import {
   addProjectTargetLanguages,
   createElements,
   createProject,
-  createRootDocument,
+  createRootContentNode,
   createUser,
   createVectorizedStrings,
   ensureLanguages,
@@ -114,11 +114,14 @@ async function seedProjectWithElements(opts?: {
     },
   });
 
-  const doc = await executeCommand({ db: testDb.client }, createRootDocument, {
-    name: "Test Document",
-    projectId: project.id,
-    creatorId: user.id,
-  });
+  const doc = await executeCommand(
+    { db: testDb.client },
+    createRootContentNode,
+    {
+      projectId: project.id,
+      creatorId: user.id,
+    },
+  );
 
   const [stringId] = await executeCommand(
     { db: testDb.client },
@@ -130,7 +133,18 @@ async function seedProjectWithElements(opts?: {
     { db: testDb.client },
     createElements,
     {
-      data: [{ documentId: doc.id, stringId: stringId, creatorId: user.id }],
+      data: [
+        {
+          projectId: project.id,
+          primaryContentNodeId: doc.id,
+          importerId: "test",
+          sourceRootRef: `project:${project.id}`,
+          sourceNodeRef: `test#0`,
+          stableSourceRef: `test#0`,
+          stringId: stringId,
+          creatorId: user.id,
+        },
+      ],
     },
   );
 

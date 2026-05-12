@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Document } from "@cat/shared";
+import type { ContentNode } from "@cat/shared";
 import type { Language } from "@cat/shared";
 
 import {
@@ -33,7 +33,7 @@ import Picker from "@/components/picker/Picker.vue";
 import { orpc } from "@/rpc/orpc";
 
 const props = defineProps<{
-  document: Pick<Document, "id">;
+  document: Pick<ContentNode, "id">;
   language: Pick<Language, "id">;
 }>();
 

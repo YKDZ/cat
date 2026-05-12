@@ -51,7 +51,7 @@ const loadFlattenedEvidenceContext = async (elementId: number) => {
   return {
     evidence,
     sourceContexts: evidence
-      .map((item) => item.payload)
+      .map((item) => item.payload as unknown)
       .flatMap((payload) => {
         if (
           typeof payload === "object" &&

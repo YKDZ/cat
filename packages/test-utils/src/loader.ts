@@ -31,6 +31,7 @@ import {
   FileExporter,
   type ImportContext,
   type ElementData,
+  type FileImportResult,
   type CanImportContext,
   type UpdateDimensionContext,
   type InitContext,
@@ -304,13 +305,28 @@ export class TestFileImporter extends FileImporter {
 
   public override import = async ({
     fileContent,
-  }: ImportContext): Promise<ElementData[]> => {
+    name,
+    sourceRootRef,
+    sourceNodeRef,
+    stableSourceNodeRef,
+  }: ImportContext): Promise<FileImportResult> => {
     const text = fileContent.toString("utf-8");
-
-    return text.split(/\r?\n/).map((line) => ({
+    const elements: ElementData[] = text.split(/\r?\n/).map((line, i) => ({
+      ref: `${sourceNodeRef}#${i}`,
+      stableSourceRef: `${stableSourceNodeRef}#${i}`,
       text: line,
       meta: {},
     }));
+    return {
+      importerId: this.getId(),
+      sourceRootRef,
+      sourceNode: {
+        ref: sourceNodeRef,
+        stableSourceNodeRef,
+        displayLabel: name,
+      },
+      elements,
+    };
   };
 }
 

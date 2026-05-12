@@ -33,7 +33,7 @@ export const createProjectTranslationSnapshot: Command<
     })
     .returning({ id: translationSnapshot.id });
 
-  const snapshotId = snapshotRows[0]!.id;
+  const snapshotId = snapshotRows[0].id;
 
   // Get all approved translation IDs for the project
   const elements = await ctx.db

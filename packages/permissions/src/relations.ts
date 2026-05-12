@@ -8,7 +8,7 @@ import type { ObjectType, Relation } from "@cat/shared";
 export const relationHierarchy: Partial<Record<ObjectType, Relation[]>> = {
   system: ["superadmin", "admin", "member", "viewer"],
   project: ["owner", "admin", "editor", "viewer"],
-  document: ["editor", "viewer"],
+  content_node: ["editor", "viewer"],
   glossary: ["owner", "editor", "viewer"],
   memory: ["owner", "editor", "viewer"],
   agent_definition: ["owner", "editor", "viewer"],

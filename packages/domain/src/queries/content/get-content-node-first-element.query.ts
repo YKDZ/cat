@@ -13,12 +13,12 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
+import type {
+  ContentNodeElementRow,
+  ElementTranslationStatus,
+} from "@/queries/content/get-content-node-elements.query";
 import type { Query } from "@/types";
 
-import {
-  type ContentNodeElementRow,
-  type ElementTranslationStatus,
-} from "@/queries/content/get-content-node-elements.query";
 import { buildTranslationStatusConditions } from "@/queries/document/build-translation-status-conditions";
 
 export const GetContentNodeFirstElementQuerySchema = z.object({

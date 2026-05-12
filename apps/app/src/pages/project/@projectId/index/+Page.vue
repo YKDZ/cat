@@ -14,7 +14,7 @@ const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
 const documents = inject(useInjectionKey<Data>()("documents"))!;
 
 const readme = computed(() => {
-  return documents.find((doc) => doc.name === "README.md") ?? null;
+  return documents.find((doc) => doc.displayLabel === "README.md") ?? null;
 });
 </script>
 

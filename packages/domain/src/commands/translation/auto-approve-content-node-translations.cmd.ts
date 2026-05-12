@@ -75,17 +75,19 @@ export const autoApproveContentNodeTranslations: Command<
 
   // 4. Update approvedTranslationId for each element
   const approvedTranslationIds: number[] = [];
-  for (const [elementId, translationId] of byElement) {
-    await ctx.db
-      .update(translatableElement)
-      .set({ approvedTranslationId: translationId })
-      .where(
-        sql`${translatableElement.id} = ${elementId}
-          AND (${translatableElement.approvedTranslationId} IS NULL
-            OR ${translatableElement.approvedTranslationId} <> ${translationId})`,
-      );
-    approvedTranslationIds.push(translationId);
-  }
+  await Promise.all(
+    Array.from(byElement).map(async ([elementId, translationId]) => {
+      await ctx.db
+        .update(translatableElement)
+        .set({ approvedTranslationId: translationId })
+        .where(
+          sql`${translatableElement.id} = ${elementId}
+            AND (${translatableElement.approvedTranslationId} IS NULL
+              OR ${translatableElement.approvedTranslationId} <> ${translationId})`,
+        );
+      approvedTranslationIds.push(translationId);
+    }),
+  );
 
   return {
     result: approvedTranslationIds.length,
