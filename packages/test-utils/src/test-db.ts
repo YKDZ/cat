@@ -1,13 +1,12 @@
+import * as dbExports from "@cat/db";
 import { relations, type DrizzleDB } from "@cat/db";
+import {
+  generateDrizzleJson,
+  generateMigration,
+} from "drizzle-kit/api-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { randomUUID } from "node:crypto";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { Client } from "pg";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
 
@@ -122,15 +121,12 @@ export const setupTestDB = async (): Promise<TestDB> => {
     relations,
   });
 
-  const migrationsFolder = path.resolve(__dirname, "../../db/drizzle");
-
-  try {
-    await migrate(db, { migrationsFolder, migrationsSchema: schemaName });
-  } catch (e) {
-    // oxlint-disable-next-line no-console
-    console.error("Migration failed:", e);
-    throw e;
-  }
+  const emptySnapshot = await generateDrizzleJson({});
+  const curSnapshot = await generateDrizzleJson(
+    dbExports as Record<string, unknown>,
+  );
+  const sqlStatements = await generateMigration(emptySnapshot, curSnapshot);
+  await client.query(sqlStatements.join("\n"));
 
   // Manually create Vector table for testing since it was removed from production schema
   // but TestVectorStorage still relies on it.
