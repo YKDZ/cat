@@ -3,6 +3,7 @@ import {
   contentRelationType,
   eq,
   language,
+  sql,
   user,
   vectorizedString,
 } from "@cat/db";
@@ -99,6 +100,10 @@ describe("content graph domain commands", () => {
         { value: "Hello", languageId: "en" },
         { value: "Bye", languageId: "en" },
       ])
+      .onConflictDoUpdate({
+        target: [vectorizedString.languageId, vectorizedString.value],
+        set: { value: sql`excluded.value` },
+      })
       .returning({ id: vectorizedString.id });
 
     const ids = await executeCommand({ db: testDb.client }, createElements, {

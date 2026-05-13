@@ -89,6 +89,7 @@ export const assembleContextEvidence: Query<
     ? await ctx.db
         .select({
           elementId: translatableElement.id,
+          stableSourceRef: translatableElement.stableSourceRef,
           value: vectorizedString.value,
           languageId: vectorizedString.languageId,
           localOrder: contentRelation.localOrder,
@@ -139,19 +140,25 @@ export const assembleContextEvidence: Query<
       payload: { kind: "JSON", json: elementKeyPayload },
       expansion: null,
     },
-    {
-      purpose: query.purpose,
-      priority: 1,
-      label: "source text",
-      score: 100,
-      sourceEndpoint: `element:${query.elementId}`,
-      relatedEndpoint: null,
-      trustLevel: "VERIFIED",
-      freshness: null,
-      clipped: false,
-      payload: { text: ref.sourceText, languageId: ref.languageId },
-      expansion: null,
-    },
+    // Source text is omitted for EDITOR purpose: the editor already displays
+    // the element's own source text, so including it here would be redundant.
+    ...(query.purpose !== "EDITOR"
+      ? [
+          {
+            purpose: query.purpose,
+            priority: 1,
+            label: "source text",
+            score: 100,
+            sourceEndpoint: `element:${query.elementId}`,
+            relatedEndpoint: null,
+            trustLevel: "VERIFIED" as const,
+            freshness: null,
+            clipped: false,
+            payload: { text: ref.sourceText, languageId: ref.languageId },
+            expansion: null,
+          },
+        ]
+      : []),
     ...directEvidence.map((evidence, index) => ({
       purpose: query.purpose,
       priority: 10 + index,
@@ -199,6 +206,8 @@ export const assembleContextEvidence: Query<
           text: row.value,
           languageId: row.languageId,
           localOrder: row.localOrder,
+          stableSourceRef: row.stableSourceRef,
+          elementId: row.elementId,
         },
         expansion:
           (query.includeExpansion ?? false)

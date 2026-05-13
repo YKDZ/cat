@@ -15,6 +15,7 @@ import {
   createRootContentNode,
   createUser,
   createVectorizedStrings,
+  ensureCoreRelationTypes,
   ensureLanguages,
   executeCommand,
   executeQuery,
@@ -80,6 +81,7 @@ async function seedProjectWithElements(opts?: {
   const targetLanguageIds = opts?.targetLanguageIds ?? ["zh-CN"];
   const allLanguageIds = [sourceLanguageId, ...targetLanguageIds];
 
+  await executeCommand({ db: testDb.client }, ensureCoreRelationTypes, {});
   await executeCommand({ db: testDb.client }, ensureLanguages, {
     languageIds: allLanguageIds,
   });

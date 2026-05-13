@@ -12,11 +12,14 @@ tasks:
   dev:
     script: "vike dev | pino-pretty"
     preset: "server"
+    deps:
+      - "db:push"
 
   preview:
     script: "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs"
     deps:
       - "~:build"
+      - "db:push"
     options:
       persistent: true
 

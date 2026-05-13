@@ -32,6 +32,14 @@ export const assertElementInSession = async (
     throw new Error(`Element ${elementId} belongs to a different project`);
   }
 
+  if (
+    ctx.session.documentId &&
+    element.documentId &&
+    element.documentId !== ctx.session.documentId
+  ) {
+    throw new Error(`Element ${elementId} belongs to a different document`);
+  }
+
   return element;
 };
 

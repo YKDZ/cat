@@ -1,53 +1,86 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "f5345960-a3b2-4280-8b0c-3fe7adfba32c",
-  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "id": "14b928c8-1a83-4a0e-a302-77221016cfec",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
-      "values": ["GENERAL", "GHOST_TEXT", "WORKFLOW"],
+      "values": [
+        "GENERAL",
+        "GHOST_TEXT",
+        "WORKFLOW"
+      ],
       "name": "AgentDefinitionType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["ACTIVE", "COMPLETED", "FAILED", "CANCELLED"],
+      "values": [
+        "ACTIVE",
+        "COMPLETED",
+        "FAILED",
+        "CANCELLED"
+      ],
       "name": "AgentSessionStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["CONFIRM_ALL", "TRUST_SESSION"],
+      "values": [
+        "CONFIRM_ALL",
+        "TRUST_SESSION"
+      ],
       "name": "AgentSessionTrustPolicy",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["AUTO_ALLOWED", "USER_APPROVED", "USER_DENIED"],
+      "values": [
+        "AUTO_ALLOWED",
+        "USER_APPROVED",
+        "USER_DENIED"
+      ],
       "name": "AgentToolConfirmationStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["SERVER", "CLIENT"],
+      "values": [
+        "SERVER",
+        "CLIENT"
+      ],
       "name": "AgentToolTarget",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["READY", "PENDING", "FAILED"],
+      "values": [
+        "READY",
+        "PENDING",
+        "FAILED"
+      ],
       "name": "AsyncStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["CREATE", "UPDATE", "DELETE"],
+      "values": [
+        "CREATE",
+        "UPDATE",
+        "DELETE"
+      ],
       "name": "ChangeAction",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["ALL_READY", "HAS_PENDING", "HAS_FAILED"],
+      "values": [
+        "ALL_READY",
+        "HAS_PENDING",
+        "HAS_FAILED"
+      ],
       "name": "ChangesetEntryAsyncStatus",
       "entityType": "enums",
       "schema": "public"
@@ -81,25 +114,177 @@
       "schema": "public"
     },
     {
-      "values": ["TRANSLATION", "ELEMENT"],
+      "values": [
+        "TRANSLATION",
+        "ELEMENT"
+      ],
       "name": "CommentTargetType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["issue", "pr", "issue_comment"],
+      "values": [
+        "PROJECT",
+        "SOURCE_ROOT",
+        "DIRECTORY",
+        "FILE",
+        "MODULE",
+        "MOD",
+        "NAMESPACE",
+        "NONE"
+      ],
+      "name": "ContentBoundaryType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "TEXT",
+        "JSON",
+        "FILE",
+        "MARKDOWN",
+        "URL",
+        "IMAGE",
+        "SOURCE_LOCATION",
+        "COMMENT",
+        "SCREENSHOT",
+        "GENERATED_ANALYSIS",
+        "EXTERNAL_REFERENCE"
+      ],
+      "name": "ContentEvidenceKind",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "ACTIVE",
+        "DELETED",
+        "QUARANTINED",
+        "CONFLICT"
+      ],
+      "name": "ContentIdentityStatus",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "NONE",
+        "PROJECT_ROOT",
+        "DIRECTORY",
+        "FILE",
+        "SECTION"
+      ],
+      "name": "ContentNodeExportRole",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "PROJECT_ROOT",
+        "DIRECTORY",
+        "FILE",
+        "MARKDOWN_SECTION",
+        "SOURCE_COMPONENT",
+        "UI_ROUTE",
+        "MODULE",
+        "MOD",
+        "VERSION",
+        "NAMESPACE",
+        "CHAPTER",
+        "PACKAGE",
+        "SCREENSHOT_TARGET",
+        "CUSTOM"
+      ],
+      "name": "ContentNodeKind",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "ACTIVE",
+        "DRAFT",
+        "DELETED",
+        "QUARANTINED"
+      ],
+      "name": "ContentNodeLifecycleStatus",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "DIRECTED",
+        "UNDIRECTED"
+      ],
+      "name": "ContentRelationDirectionality",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "ACTIVE",
+        "DRAFT",
+        "DEPRECATED",
+        "DELETED"
+      ],
+      "name": "ContentRelationLifecycleStatus",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "CONTAINMENT",
+        "ORDERING",
+        "SOURCE_REFERENCE",
+        "SCOPE",
+        "DEPENDENCY",
+        "VERSIONING",
+        "EVIDENCE",
+        "DISCUSSION",
+        "DUPLICATE",
+        "SEMANTIC",
+        "CUSTOM"
+      ],
+      "name": "ContentRelationSemanticFamily",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "EDITOR",
+        "RECALL",
+        "QA",
+        "AI",
+        "AGENT"
+      ],
+      "name": "ContextConsumerPurpose",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "issue",
+        "pr",
+        "issue_comment"
+      ],
       "name": "CrossReferenceSourceType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["issue", "pr"],
+      "values": [
+        "issue",
+        "pr"
+      ],
       "name": "CrossReferenceTargetType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["ACTIVE", "MERGED", "ABANDONED"],
+      "values": [
+        "ACTIVE",
+        "MERGED",
+        "ABANDONED"
+      ],
       "name": "EntityBranchStatus",
       "entityType": "enums",
       "schema": "public"
@@ -109,8 +294,13 @@
         "translation",
         "auto_translation",
         "element",
-        "document",
-        "document_tree",
+        "content_node",
+        "content_relation",
+        "content_relation_type",
+        "context_evidence",
+        "context_profile",
+        "scope_binding",
+        "semantic_diff",
         "comment",
         "comment_reaction",
         "term",
@@ -119,7 +309,6 @@
         "project_settings",
         "project_member",
         "project_attributes",
-        "context",
         "project",
         "issue"
       ],
@@ -128,31 +317,61 @@
       "schema": "public"
     },
     {
-      "values": ["issue", "pr"],
+      "values": [
+        "UNTRUSTED",
+        "COLLECTED",
+        "VERIFIED",
+        "REVIEW_APPROVED"
+      ],
+      "name": "EvidenceTrustLevel",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "issue",
+        "pr"
+      ],
       "name": "IssueCommentTargetType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["OPEN", "CLOSED"],
+      "values": [
+        "OPEN",
+        "CLOSED"
+      ],
       "name": "IssueStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["SYSTEM", "COMMENT_REPLY", "TRANSLATION", "PROJECT", "QA"],
+      "values": [
+        "SYSTEM",
+        "COMMENT_REPLY",
+        "TRANSLATION",
+        "PROJECT",
+        "QA"
+      ],
       "name": "MessageCategory",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["IN_APP", "EMAIL"],
+      "values": [
+        "IN_APP",
+        "EMAIL"
+      ],
       "name": "MessageChannel",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["UNREAD", "READ", "ARCHIVED"],
+      "values": [
+        "UNREAD",
+        "READ",
+        "ARCHIVED"
+      ],
       "name": "NotificationStatus",
       "entityType": "enums",
       "schema": "public"
@@ -161,7 +380,10 @@
       "values": [
         "system",
         "project",
-        "document",
+        "content_node",
+        "content_relation",
+        "context_evidence",
+        "context_profile",
         "element",
         "glossary",
         "memory",
@@ -179,7 +401,11 @@
       "schema": "public"
     },
     {
-      "values": ["check", "grant", "revoke"],
+      "values": [
+        "check",
+        "grant",
+        "revoke"
+      ],
       "name": "PermissionAction",
       "entityType": "enums",
       "schema": "public"
@@ -220,13 +446,19 @@
       "schema": "public"
     },
     {
-      "values": ["MANUAL", "AUTO_TRANSLATE"],
+      "values": [
+        "MANUAL",
+        "AUTO_TRANSLATE"
+      ],
       "name": "PullRequestType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["SOURCE", "TRANSLATION"],
+      "values": [
+        "SOURCE",
+        "TRANSLATION"
+      ],
       "name": "RecallQuerySide",
       "entityType": "enums",
       "schema": "public"
@@ -260,8 +492,20 @@
     },
     {
       "values": [
+        "NODE",
+        "ELEMENT"
+      ],
+      "name": "RelationEndpointKind",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
         "PROJECT",
-        "DOCUMENT",
+        "CONTENT_NODE",
+        "CONTENT_RELATION",
+        "CONTEXT_EVIDENCE",
+        "CONTEXT_PROFILE",
         "ELEMENT",
         "COMMENT",
         "TERM",
@@ -278,31 +522,92 @@
       "schema": "public"
     },
     {
-      "values": ["PENDING", "APPROVED", "REJECTED", "CONFLICT"],
+      "values": [
+        "PENDING",
+        "APPROVED",
+        "REJECTED",
+        "CONFLICT"
+      ],
       "name": "ReviewStatus",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["LOW", "MEDIUM", "HIGH"],
+      "values": [
+        "LOW",
+        "MEDIUM",
+        "HIGH"
+      ],
       "name": "RiskLevel",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["GLOBAL", "PROJECT", "USER"],
+      "values": [
+        "GLOSSARY",
+        "TERM_CONCEPT",
+        "TERM",
+        "MEMORY",
+        "MEMORY_ITEM",
+        "QA_PROFILE",
+        "CONTEXT_PROFILE"
+      ],
+      "name": "ScopeBindingAssetKind",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "ELIGIBLE_ONLY",
+        "BOOST"
+      ],
+      "name": "ScopeBindingMode",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "GLOBAL",
+        "PROJECT",
+        "USER"
+      ],
       "name": "ScopeType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["user", "role", "agent"],
+      "values": [
+        "CREATE",
+        "DELETE",
+        "SOURCE_TEXT_UPDATE",
+        "MOVE",
+        "REPARENT",
+        "RELATION_ADD",
+        "RELATION_REMOVE",
+        "EVIDENCE_UPDATE",
+        "METADATA_ONLY",
+        "IDENTITY_CONFLICT"
+      ],
+      "name": "SemanticDiffKind",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "user",
+        "role",
+        "agent"
+      ],
       "name": "SubjectType",
       "entityType": "enums",
       "schema": "public"
     },
     {
-      "values": ["COMPLETED", "PENDING", "FAILED"],
+      "values": [
+        "COMPLETED",
+        "PENDING",
+        "FAILED"
+      ],
       "name": "TaskStatus",
       "entityType": "enums",
       "schema": "public"
@@ -334,8 +639,26 @@
       "schema": "public"
     },
     {
-      "values": ["TEXT", "JSON", "FILE", "MARKDOWN", "URL", "IMAGE"],
+      "values": [
+        "TEXT",
+        "JSON",
+        "FILE",
+        "MARKDOWN",
+        "URL",
+        "IMAGE"
+      ],
       "name": "TranslatableElementContextType",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "NEW_SOURCE_TEXT",
+        "SOURCE_TEXT_CHANGED",
+        "NOT_REQUIRED",
+        "IDENTITY_CONFLICT"
+      ],
+      "name": "VectorInvalidationReason",
       "entityType": "enums",
       "schema": "public"
     },
@@ -437,25 +760,43 @@
     },
     {
       "isRlsEnabled": false,
+      "name": "ContentNode",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ContentNodeToTask",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ContentRelation",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ContentRelationType",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ContextEvidence",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "ContextProfile",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
       "name": "CrossReference",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "Document",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "DocumentClosure",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "DocumentToTask",
       "entityType": "tables",
       "schema": "public"
     },
@@ -653,6 +994,18 @@
     },
     {
       "isRlsEnabled": false,
+      "name": "ScopeBinding",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "SemanticDiffEntry",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
       "name": "SessionRecord",
       "entityType": "tables",
       "schema": "public"
@@ -708,12 +1061,6 @@
     {
       "isRlsEnabled": false,
       "name": "TranslatableElement",
-      "entityType": "tables",
-      "schema": "public"
-    },
-    {
-      "isRlsEnabled": false,
-      "name": "TranslatableElementContext",
       "entityType": "tables",
       "schema": "public"
     },
@@ -2937,6 +3284,1098 @@
       "table": "CommentReaction"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "creator_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "ContentNodeKind",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "display_label",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "importer_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_root_ref",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "stable_source_node_ref",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_uri",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_path",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "language_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "ContentNodeExportRole",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'NONE'",
+      "generated": null,
+      "identity": null,
+      "name": "export_role",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "ContentBoundaryType",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'NONE'",
+      "generated": null,
+      "identity": null,
+      "name": "boundary_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "file_handler_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "file_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "ContentNodeLifecycleStatus",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ACTIVE'",
+      "generated": null,
+      "identity": null,
+      "name": "lifecycle_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provenance",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "metadata",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_node_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNodeToTask"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "task_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentNodeToTask"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "relation_type_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "RelationEndpointKind",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_endpoint_kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_node_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "RelationEndpointKind",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "target_endpoint_kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "target_node_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "target_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_primary",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "local_order",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "10000",
+      "generated": null,
+      "identity": null,
+      "name": "confidence_basis_points",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "ContentRelationLifecycleStatus",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ACTIVE'",
+      "generated": null,
+      "identity": null,
+      "name": "lifecycle_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "weight_hint",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provenance",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "validation_metadata",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "namespace",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'1.0.0'",
+      "generated": null,
+      "identity": null,
+      "name": "version",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "owner_plugin_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "ContentRelationSemanticFamily",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "semantic_family",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "allowed_endpoint_pairs",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "ContentRelationDirectionality",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'DIRECTED'",
+      "generated": null,
+      "identity": null,
+      "name": "directionality",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "participates_in_containment",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "participates_in_export",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "supports_ordering",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "weighting_eligible",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "EvidenceTrustLevel",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'COLLECTED'",
+      "generated": null,
+      "identity": null,
+      "name": "default_trust_level",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "deprecation",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "migration",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "metadata",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "attached_endpoint_kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_node_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_relation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "translatable_element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "ContentEvidenceKind",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "EvidenceTrustLevel",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'COLLECTED'",
+      "generated": null,
+      "identity": null,
+      "name": "trust_level",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "freshness_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "json_data",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "file_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "storage_provider_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "text_data",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "display_label",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "provenance",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "graph_explanation",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_default",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
       "type": "serial",
       "typeSchema": null,
       "notNull": true,
@@ -3026,201 +4465,6 @@
       "entityType": "columns",
       "schema": "public",
       "table": "CrossReference"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "gen_random_uuid()",
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "name",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "project_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "creator_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "file_handler_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "file_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "boolean",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "false",
-      "generated": null,
-      "identity": null,
-      "name": "is_directory",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "ancestor",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "descendant",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "depth",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "project_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "document_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentToTask"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "task_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "DocumentToTask"
     },
     {
       "type": "serial",
@@ -6187,6 +7431,292 @@
       "table": "Role"
     },
     {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "ScopeBindingAssetKind",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "asset_kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "asset_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "ScopeBindingMode",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "mode",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_node_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_relation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "weight_boost",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "metadata",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "type": "serial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "changeset_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "SemanticDiffKind",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "diff_kind",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "element_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_node_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "content_relation_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "VectorInvalidationReason",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "vector_invalidation_reason",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "payload",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
       "type": "text",
       "typeSchema": null,
       "notNull": true,
@@ -7058,6 +8588,97 @@
       "table": "TranslatableElement"
     },
     {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "project_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "importer_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_root_ref",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "source_node_ref",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "stable_source_ref",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "ContentIdentityStatus",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ACTIVE'",
+      "generated": null,
+      "identity": null,
+      "name": "identity_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "10000",
+      "generated": null,
+      "identity": null,
+      "name": "identity_confidence",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
       "type": "jsonb",
       "typeSchema": null,
       "notNull": false,
@@ -7066,32 +8687,6 @@
       "generated": null,
       "identity": null,
       "name": "meta",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElement"
-    },
-    {
-      "type": "uuid",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "document_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElement"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "sort_index",
       "entityType": "columns",
       "schema": "public",
       "table": "TranslatableElement"
@@ -7199,123 +8794,6 @@
       "entityType": "columns",
       "schema": "public",
       "table": "TranslatableElement"
-    },
-    {
-      "type": "serial",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "TranslatableElementContextType",
-      "typeSchema": "public",
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "type",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "jsonb",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "json_data",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "file_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "storage_provider_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "text",
-      "typeSchema": null,
-      "notNull": false,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "text_data",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "integer",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": null,
-      "generated": null,
-      "identity": null,
-      "name": "translatable_element_id",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "created_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "type": "timestamp with time zone",
-      "typeSchema": null,
-      "notNull": true,
-      "dimensions": 0,
-      "default": "now()",
-      "generated": null,
-      "identity": null,
-      "name": "updated_at",
-      "entityType": "columns",
-      "schema": "public",
-      "table": "TranslatableElementContext"
     },
     {
       "type": "serial",
@@ -8471,6 +9949,398 @@
       "nameExplicit": false,
       "columns": [
         {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentNode_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "source_path",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentNode_source_path_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "importer_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "source_root_ref",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "stable_source_node_ref",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"stable_source_node_ref\" IS NOT NULL",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentNode_project_id_importer_id_source_root_ref_stable_sourc",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "task_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentNodeToTask_task_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentNodeToTask"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "relation_type_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_relation_type_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "source_node_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_source_node_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "target_node_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_target_node_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "source_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_source_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "target_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_target_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "target_node_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"is_primary\" = true AND \"target_endpoint_kind\" = 'NODE' AND \"lifecycle_status\" = 'ACTIVE'",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_project_id_target_node_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "target_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"is_primary\" = true AND \"target_endpoint_kind\" = 'ELEMENT' AND \"lifecycle_status\" = 'ACTIVE'",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContentRelation_project_id_target_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContextEvidence_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "content_node_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContextEvidence_content_node_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "content_relation_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContextEvidence_content_relation_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "translatable_element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContextEvidence_translatable_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": "\"is_default\" = true",
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ContextProfile_project_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
           "value": "target_type",
           "isExpression": false,
           "asc": true,
@@ -8522,90 +10392,6 @@
       "entityType": "indexes",
       "schema": "public",
       "table": "CrossReference"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        {
-          "value": "project_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "Document_project_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        {
-          "value": "ancestor",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "DocumentClosure_ancestor_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        {
-          "value": "descendant",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "DocumentClosure_descendant_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "nameExplicit": false,
-      "columns": [
-        {
-          "value": "task_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "with": "",
-      "method": "btree",
-      "concurrently": false,
-      "name": "DocumentToTask_task_id_index",
-      "entityType": "indexes",
-      "schema": "public",
-      "table": "DocumentToTask"
     },
     {
       "nameExplicit": false,
@@ -9619,6 +11405,111 @@
       "nameExplicit": false,
       "columns": [
         {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "asset_kind",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "asset_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "ScopeBinding_project_id_asset_kind_asset_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "project_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "diff_kind",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "SemanticDiffEntry_project_id_diff_kind_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "changeset_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "SemanticDiffEntry_changeset_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
+          "value": "element_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "SemanticDiffEntry_element_id_index",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        {
           "value": "user_id",
           "isExpression": false,
           "asc": true,
@@ -9808,14 +11699,7 @@
       "nameExplicit": false,
       "columns": [
         {
-          "value": "document_id",
-          "isExpression": false,
-          "asc": true,
-          "nullsFirst": false,
-          "opclass": null
-        },
-        {
-          "value": "sort_index",
+          "value": "project_id",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -9827,7 +11711,7 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "TranslatableElement_document_id_sort_index_index",
+      "name": "TranslatableElement_project_id_index",
       "entityType": "indexes",
       "schema": "public",
       "table": "TranslatableElement"
@@ -9836,7 +11720,7 @@
       "nameExplicit": false,
       "columns": [
         {
-          "value": "translatable_element_id",
+          "value": "vectorized_string_id",
           "isExpression": false,
           "asc": true,
           "nullsFirst": false,
@@ -9848,10 +11732,10 @@
       "with": "",
       "method": "btree",
       "concurrently": false,
-      "name": "TranslatableElementContext_translatable_element_id_index",
+      "name": "TranslatableElement_vectorized_string_id_index",
       "entityType": "indexes",
       "schema": "public",
-      "table": "TranslatableElementContext"
+      "table": "TranslatableElement"
     },
     {
       "nameExplicit": false,
@@ -10107,10 +11991,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Account_user_id_User_id_fkey",
@@ -10120,10 +12008,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["auth_provider_id"],
+      "columns": [
+        "auth_provider_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Account_auth_provider_id_PluginService_id_fkey",
@@ -10133,10 +12025,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["run_id"],
+      "columns": [
+        "run_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentRun",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentEvent_run_id_AgentRun_id_fkey",
@@ -10146,10 +12042,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["run_id"],
+      "columns": [
+        "run_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentRun",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentExternalOutput_run_id_AgentRun_id_fkey",
@@ -10159,10 +12059,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["session_id"],
+      "columns": [
+        "session_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentSession",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentRun_session_id_AgentSession_id_fkey",
@@ -10172,10 +12076,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["agent_definition_id"],
+      "columns": [
+        "agent_definition_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentDefinition",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "AgentSession_agent_definition_id_AgentDefinition_id_fkey",
@@ -10185,10 +12093,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "AgentSession_user_id_User_id_fkey",
@@ -10198,10 +12110,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "AgentSession_project_id_Project_id_fkey",
@@ -10211,10 +12127,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["issue_id"],
+      "columns": [
+        "issue_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Issue",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "AgentSession_issue_id_Issue_id_fkey",
@@ -10224,10 +12144,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["pull_request_id"],
+      "columns": [
+        "pull_request_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PullRequest",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "AgentSession_pull_request_id_PullRequest_id_fkey",
@@ -10237,10 +12161,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "ApiKey_user_id_User_id_fkey",
@@ -10250,10 +12178,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "AuthFlowLog_user_id_User_id_fkey",
@@ -10263,10 +12195,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["storage_provider_id"],
+      "columns": [
+        "storage_provider_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Blob_storage_provider_id_PluginService_id_fkey",
@@ -10276,10 +12212,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "Changeset_project_id_Project_id_fkey",
@@ -10289,10 +12229,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["agent_run_id"],
+      "columns": [
+        "agent_run_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentRun",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Changeset_agent_run_id_AgentRun_id_fkey",
@@ -10302,10 +12246,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["pull_request_id"],
+      "columns": [
+        "pull_request_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PullRequest",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Changeset_pull_request_id_PullRequest_id_fkey",
@@ -10315,10 +12263,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["branch_id"],
+      "columns": [
+        "branch_id"
+      ],
       "schemaTo": "public",
       "tableTo": "EntityBranch",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Changeset_branch_id_EntityBranch_id_fkey",
@@ -10328,10 +12280,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["created_by"],
+      "columns": [
+        "created_by"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Changeset_created_by_User_id_fkey",
@@ -10341,10 +12297,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["reviewed_by"],
+      "columns": [
+        "reviewed_by"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Changeset_reviewed_by_User_id_fkey",
@@ -10354,10 +12314,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["changeset_id"],
+      "columns": [
+        "changeset_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Changeset",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "ChangesetEntry_changeset_id_Changeset_id_fkey",
@@ -10367,10 +12331,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["chunk_set_id"],
+      "columns": [
+        "chunk_set_id"
+      ],
       "schemaTo": "public",
       "tableTo": "ChunkSet",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Chunk_chunk_set_id_ChunkSet_id_fkey",
@@ -10380,10 +12348,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["vectorizer_id"],
+      "columns": [
+        "vectorizer_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Chunk_vectorizer_id_PluginService_id_fkey",
@@ -10393,10 +12365,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Comment_user_id_User_id_fkey",
@@ -10406,10 +12382,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id"],
+      "columns": [
+        "language_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Comment_language_id_Language_id_fkey",
@@ -10419,10 +12399,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["parent_comment_id"],
+      "columns": [
+        "parent_comment_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Comment",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Comment_parent_comment_id_Comment_id_fkey",
@@ -10432,10 +12416,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["root_comment_id"],
+      "columns": [
+        "root_comment_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Comment",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Comment_root_comment_id_Comment_id_fkey",
@@ -10445,10 +12433,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["comment_id"],
+      "columns": [
+        "comment_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Comment",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "CommentReaction_comment_id_Comment_id_fkey",
@@ -10458,10 +12450,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "CommentReaction_user_id_User_id_fkey",
@@ -10471,10 +12467,371 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentNode_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "creator_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "User",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "ContentNode_creator_id_User_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "language_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Language",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "ContentNode_language_id_Language_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "file_handler_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "ContentNode_file_handler_id_PluginService_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "file_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "File",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "ContentNode_file_id_File_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNode"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_node_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentNode",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentNodeToTask_content_node_id_ContentNode_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNodeToTask"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "task_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Task",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentNodeToTask_task_id_Task_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentNodeToTask"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentRelation_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "relation_type_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentRelationType",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "RESTRICT",
+      "name": "ContentRelation_relation_type_id_ContentRelationType_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "source_node_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentNode",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentRelation_source_node_id_ContentNode_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "source_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentRelation_source_element_id_TranslatableElement_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "target_node_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentNode",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentRelation_target_node_id_ContentNode_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "target_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContentRelation_target_element_id_TranslatableElement_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "owner_plugin_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Plugin",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "ContentRelationType_owner_plugin_id_Plugin_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContextEvidence_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_node_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentNode",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContextEvidence_content_node_id_ContentNode_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_relation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentRelation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContextEvidence_content_relation_id_ContentRelation_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "translatable_element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContextEvidence_XoIdOJz9nkr7_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "file_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "File",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContextEvidence_file_id_File_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "storage_provider_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "PluginService",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ContextEvidence_storage_provider_id_PluginService_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "ContextProfile_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "CrossReference_project_id_Project_id_fkey",
@@ -10484,127 +12841,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "Document_project_id_Project_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["creator_id"],
-      "schemaTo": "public",
-      "tableTo": "User",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "RESTRICT",
-      "name": "Document_creator_id_User_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["file_handler_id"],
-      "schemaTo": "public",
-      "tableTo": "PluginService",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "SET NULL",
-      "name": "Document_file_handler_id_PluginService_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["file_id"],
-      "schemaTo": "public",
-      "tableTo": "File",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "SET NULL",
-      "name": "Document_file_id_File_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "Document"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["ancestor"],
-      "schemaTo": "public",
-      "tableTo": "Document",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "DocumentClosure_ancestor_Document_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["descendant"],
-      "schemaTo": "public",
-      "tableTo": "Document",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "DocumentClosure_descendant_Document_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["project_id"],
-      "schemaTo": "public",
-      "tableTo": "Project",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "DocumentClosure_project_id_Project_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "DocumentClosure"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["document_id"],
-      "schemaTo": "public",
-      "tableTo": "Document",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "DocumentToTask_document_id_Document_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "DocumentToTask"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["task_id"],
-      "schemaTo": "public",
-      "tableTo": "Task",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "DocumentToTask_task_id_Task_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "DocumentToTask"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["project_id"],
-      "schemaTo": "public",
-      "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "EntityBranch_project_id_Project_id_fkey",
@@ -10614,10 +12858,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["created_by"],
+      "columns": [
+        "created_by"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "EntityBranch_created_by_User_id_fkey",
@@ -10627,10 +12875,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["created_by_agent_id"],
+      "columns": [
+        "created_by_agent_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentDefinition",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "EntityBranch_created_by_agent_id_AgentDefinition_id_fkey",
@@ -10640,10 +12892,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "EntitySnapshot_project_id_Project_id_fkey",
@@ -10653,10 +12909,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["created_by"],
+      "columns": [
+        "created_by"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "EntitySnapshot_created_by_User_id_fkey",
@@ -10666,10 +12926,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["blob_id"],
+      "columns": [
+        "blob_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Blob",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "File_blob_id_Blob_id_fkey",
@@ -10679,10 +12943,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Glossary_creator_id_User_id_fkey",
@@ -10692,10 +12960,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["glossary_id"],
+      "columns": [
+        "glossary_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Glossary",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "GlossaryToProject_glossary_id_Glossary_id_fkey",
@@ -10705,10 +12977,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "GlossaryToProject_project_id_Project_id_fkey",
@@ -10718,10 +12994,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "Issue_project_id_Project_id_fkey",
@@ -10731,10 +13011,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["author_id"],
+      "columns": [
+        "author_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Issue_author_id_User_id_fkey",
@@ -10744,10 +13028,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["author_agent_id"],
+      "columns": [
+        "author_agent_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentDefinition",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "Issue_author_agent_id_AgentDefinition_id_fkey",
@@ -10757,10 +13045,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["parent_issue_id"],
+      "columns": [
+        "parent_issue_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Issue",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Issue_parent_issue_id_Issue_id_fkey",
@@ -10770,10 +13062,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["thread_id"],
+      "columns": [
+        "thread_id"
+      ],
       "schemaTo": "public",
       "tableTo": "IssueCommentThread",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "IssueComment_thread_id_IssueCommentThread_id_fkey",
@@ -10783,10 +13079,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["author_id"],
+      "columns": [
+        "author_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "IssueComment_author_id_User_id_fkey",
@@ -10796,10 +13096,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["author_agent_id"],
+      "columns": [
+        "author_agent_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentDefinition",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "IssueComment_author_agent_id_AgentDefinition_id_fkey",
@@ -10809,10 +13113,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["issue_id"],
+      "columns": [
+        "issue_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Issue",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "IssueLabel_issue_id_Issue_id_fkey",
@@ -10822,10 +13130,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Memory_creator_id_User_id_fkey",
@@ -10835,10 +13147,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "MemoryItem_creator_id_User_id_fkey",
@@ -10848,10 +13164,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["memory_id"],
+      "columns": [
+        "memory_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Memory",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryItem_memory_id_Memory_id_fkey",
@@ -10861,10 +13181,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["source_element_id"],
+      "columns": [
+        "source_element_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TranslatableElement",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "MemoryItem_source_element_id_TranslatableElement_id_fkey",
@@ -10874,10 +13198,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["translation_id"],
+      "columns": [
+        "translation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "MemoryItem_translation_id_Translation_id_fkey",
@@ -10887,10 +13215,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["source_string_id"],
+      "columns": [
+        "source_string_id"
+      ],
       "schemaTo": "public",
       "tableTo": "VectorizedString",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MemoryItem_source_string_id_VectorizedString_id_fkey",
@@ -10900,10 +13232,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["translation_string_id"],
+      "columns": [
+        "translation_string_id"
+      ],
       "schemaTo": "public",
       "tableTo": "VectorizedString",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MemoryItem_translation_string_id_VectorizedString_id_fkey",
@@ -10913,10 +13249,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["memory_item_id"],
+      "columns": [
+        "memory_item_id"
+      ],
       "schemaTo": "public",
       "tableTo": "MemoryItem",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryRecallVariant_memory_item_id_MemoryItem_id_fkey",
@@ -10926,10 +13266,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["memory_id"],
+      "columns": [
+        "memory_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Memory",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryRecallVariant_memory_id_Memory_id_fkey",
@@ -10939,10 +13283,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id"],
+      "columns": [
+        "language_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MemoryRecallVariant_language_id_Language_id_fkey",
@@ -10952,10 +13300,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["memory_id"],
+      "columns": [
+        "memory_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Memory",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryToProject_memory_id_Memory_id_fkey",
@@ -10965,10 +13317,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MemoryToProject_project_id_Project_id_fkey",
@@ -10978,10 +13334,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "MFAProvider_user_id_User_id_fkey",
@@ -10991,10 +13351,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["mfa_service_id"],
+      "columns": [
+        "mfa_service_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "MFAProvider_mfa_service_id_PluginService_id_fkey",
@@ -11004,10 +13368,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["recipient_id"],
+      "columns": [
+        "recipient_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Notification_recipient_id_User_id_fkey",
@@ -11017,10 +13385,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["plugin_installation_id"],
+      "columns": [
+        "plugin_installation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginInstallation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginComponent_eAfVTu1efahR_fkey",
@@ -11030,10 +13402,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["plugin_id"],
+      "columns": [
+        "plugin_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Plugin",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfig_plugin_id_Plugin_id_fkey",
@@ -11043,10 +13419,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfigInstance_creator_id_User_id_fkey",
@@ -11056,10 +13436,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["config_id"],
+      "columns": [
+        "config_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginConfig",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfigInstance_config_id_PluginConfig_id_fkey",
@@ -11069,10 +13453,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["plugin_installation_id"],
+      "columns": [
+        "plugin_installation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginInstallation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginConfigInstance_tUFft8obCY8T_fkey",
@@ -11082,10 +13470,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["plugin_id"],
+      "columns": [
+        "plugin_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Plugin",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginInstallation_plugin_id_Plugin_id_fkey",
@@ -11095,10 +13487,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["plugin_installation_id"],
+      "columns": [
+        "plugin_installation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginInstallation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "PluginService_plugin_installation_id_PluginInstallation_id_fkey",
@@ -11108,10 +13504,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Project_creator_id_User_id_fkey",
@@ -11121,10 +13521,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "ProjectSequence_project_id_Project_id_fkey",
@@ -11134,10 +13538,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "ProjectSetting_project_id_Project_id_fkey",
@@ -11147,10 +13555,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id"],
+      "columns": [
+        "language_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "ProjectTargetLanguage_language_id_Language_id_fkey",
@@ -11160,10 +13572,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "ProjectTargetLanguage_project_id_Project_id_fkey",
@@ -11173,10 +13589,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "PullRequest_project_id_Project_id_fkey",
@@ -11186,10 +13606,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["author_id"],
+      "columns": [
+        "author_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "PullRequest_author_id_User_id_fkey",
@@ -11199,10 +13623,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["author_agent_id"],
+      "columns": [
+        "author_agent_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentDefinition",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "PullRequest_author_agent_id_AgentDefinition_id_fkey",
@@ -11212,10 +13640,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["branch_id"],
+      "columns": [
+        "branch_id"
+      ],
       "schemaTo": "public",
       "tableTo": "EntityBranch",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "name": "PullRequest_branch_id_EntityBranch_id_fkey",
@@ -11225,10 +13657,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["issue_id"],
+      "columns": [
+        "issue_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Issue",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "name": "PullRequest_issue_id_Issue_id_fkey",
@@ -11238,10 +13674,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["translation_id"],
+      "columns": [
+        "translation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "QaResult_translation_id_Translation_id_fkey",
@@ -11251,10 +13691,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["result_id"],
+      "columns": [
+        "result_id"
+      ],
       "schemaTo": "public",
       "tableTo": "QaResult",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "QaResultItem_result_id_QaResult_id_fkey",
@@ -11264,10 +13708,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["checker_id"],
+      "columns": [
+        "checker_id"
+      ],
       "schemaTo": "public",
       "tableTo": "PluginService",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "QaResultItem_checker_id_PluginService_id_fkey",
@@ -11277,10 +13725,150 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "ScopeBinding_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_node_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentNode",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ScopeBinding_content_node_id_ContentNode_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_relation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentRelation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "CASCADE",
+      "name": "ScopeBinding_content_relation_id_ContentRelation_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "project_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "SemanticDiffEntry_project_id_Project_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "changeset_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "Changeset",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "SemanticDiffEntry_changeset_id_Changeset_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "element_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "TranslatableElement",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "SemanticDiffEntry_element_id_TranslatableElement_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_node_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentNode",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "SemanticDiffEntry_content_node_id_ContentNode_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "content_relation_id"
+      ],
+      "schemaTo": "public",
+      "tableTo": "ContentRelation",
+      "columnsTo": [
+        "id"
+      ],
+      "onUpdate": "CASCADE",
+      "onDelete": "SET NULL",
+      "name": "SemanticDiffEntry_content_relation_id_ContentRelation_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "SemanticDiffEntry"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "SessionRecord_user_id_User_id_fkey",
@@ -11290,10 +13878,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Term_creator_id_User_id_fkey",
@@ -11303,10 +13895,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id"],
+      "columns": [
+        "language_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Term_language_id_Language_id_fkey",
@@ -11316,10 +13912,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["term_concept_id"],
+      "columns": [
+        "term_concept_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TermConcept",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Term_term_concept_id_TermConcept_id_fkey",
@@ -11329,10 +13929,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["string_id"],
+      "columns": [
+        "string_id"
+      ],
       "schemaTo": "public",
       "tableTo": "VectorizedString",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TermConcept_string_id_VectorizedString_id_fkey",
@@ -11342,10 +13946,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TermConcept_creator_id_User_id_fkey",
@@ -11355,10 +13963,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["glossary_id"],
+      "columns": [
+        "glossary_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Glossary",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConcept_glossary_id_Glossary_id_fkey",
@@ -11368,10 +13980,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TermConceptSubject_creator_id_User_id_fkey",
@@ -11381,10 +13997,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["glossary_id"],
+      "columns": [
+        "glossary_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Glossary",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConceptSubject_glossary_id_Glossary_id_fkey",
@@ -11394,10 +14014,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["term_concept_id"],
+      "columns": [
+        "term_concept_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TermConcept",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConceptToSubject_term_concept_id_TermConcept_id_fkey",
@@ -11407,10 +14031,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["subject_id"],
+      "columns": [
+        "subject_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TermConceptSubject",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermConceptToSubject_subject_id_TermConceptSubject_id_fkey",
@@ -11420,10 +14048,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["concept_id"],
+      "columns": [
+        "concept_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TermConcept",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TermRecallVariant_concept_id_TermConcept_id_fkey",
@@ -11433,10 +14065,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id"],
+      "columns": [
+        "language_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TermRecallVariant_language_id_Language_id_fkey",
@@ -11446,10 +14082,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["session_id"],
+      "columns": [
+        "session_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentSession",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "ToolCallLog_session_id_AgentSession_id_fkey",
@@ -11459,10 +14099,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["run_id"],
+      "columns": [
+        "run_id"
+      ],
       "schemaTo": "public",
       "tableTo": "AgentRun",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "ToolCallLog_run_id_AgentRun_id_fkey",
@@ -11472,23 +14116,31 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["document_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
-      "tableTo": "Document",
-      "columnsTo": ["id"],
+      "tableTo": "Project",
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
-      "name": "TranslatableElement_document_id_Document_id_fkey",
+      "name": "TranslatableElement_project_id_Project_id_fkey",
       "entityType": "fks",
       "schema": "public",
       "table": "TranslatableElement"
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslatableElement_creator_id_User_id_fkey",
@@ -11498,10 +14150,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["vectorized_string_id"],
+      "columns": [
+        "vectorized_string_id"
+      ],
       "schemaTo": "public",
       "tableTo": "VectorizedString",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslatableElement_Lh1AAXOO5tiq_fkey",
@@ -11511,10 +14167,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["approved_translation_id"],
+      "columns": [
+        "approved_translation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TranslatableElement_approved_translation_id_Translation_id_fkey",
@@ -11524,49 +14184,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["file_id"],
-      "schemaTo": "public",
-      "tableTo": "File",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "TranslatableElementContext_file_id_File_id_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["storage_provider_id"],
-      "schemaTo": "public",
-      "tableTo": "PluginService",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "TranslatableElementContext_ocSqg69uUW3x_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["translatable_element_id"],
-      "schemaTo": "public",
-      "tableTo": "TranslatableElement",
-      "columnsTo": ["id"],
-      "onUpdate": "CASCADE",
-      "onDelete": "CASCADE",
-      "name": "TranslatableElementContext_1bh40XM18KpL_fkey",
-      "entityType": "fks",
-      "schema": "public",
-      "table": "TranslatableElementContext"
-    },
-    {
-      "nameExplicit": false,
-      "columns": ["translator_id"],
+      "columns": [
+        "translator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "Translation_translator_id_User_id_fkey",
@@ -11576,10 +14201,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["translatable_element_id"],
+      "columns": [
+        "translatable_element_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TranslatableElement",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "Translation_translatable_element_id_TranslatableElement_id_fkey",
@@ -11589,10 +14218,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["string_id"],
+      "columns": [
+        "string_id"
+      ],
       "schemaTo": "public",
       "tableTo": "VectorizedString",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "Translation_string_id_VectorizedString_id_fkey",
@@ -11602,10 +14235,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Project",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationSnapshot_project_id_Project_id_fkey",
@@ -11615,10 +14252,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["creator_id"],
+      "columns": [
+        "creator_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "TranslationSnapshot_creator_id_User_id_fkey",
@@ -11628,10 +14269,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["snapshot_id"],
+      "columns": [
+        "snapshot_id"
+      ],
       "schemaTo": "public",
       "tableTo": "TranslationSnapshot",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationSnapshotItem_snapshot_id_TranslationSnapshot_id_fkey",
@@ -11641,10 +14286,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["translation_id"],
+      "columns": [
+        "translation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "TranslationSnapshotItem_translation_id_Translation_id_fkey",
@@ -11654,10 +14303,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["voter_id"],
+      "columns": [
+        "voter_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationVote_voter_id_User_id_fkey",
@@ -11667,10 +14320,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["translation_id"],
+      "columns": [
+        "translation_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Translation",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "TranslationVote_translation_id_Translation_id_fkey",
@@ -11680,10 +14337,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["avatar_file_id"],
+      "columns": [
+        "avatar_file_id"
+      ],
       "schemaTo": "public",
       "tableTo": "File",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "SET NULL",
       "name": "User_avatar_file_id_File_id_fkey",
@@ -11693,10 +14354,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "CASCADE",
       "name": "UserMessagePreference_user_id_User_id_fkey",
@@ -11706,10 +14371,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id"],
+      "columns": [
+        "user_id"
+      ],
       "schemaTo": "public",
       "tableTo": "User",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "UserRole_user_id_User_id_fkey",
@@ -11719,10 +14388,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["role_id"],
+      "columns": [
+        "role_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Role",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "name": "UserRole_role_id_Role_id_fkey",
@@ -11732,10 +14405,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id"],
+      "columns": [
+        "language_id"
+      ],
       "schemaTo": "public",
       "tableTo": "Language",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "VectorizedString_language_id_Language_id_fkey",
@@ -11745,10 +14422,14 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["chunk_set_id"],
+      "columns": [
+        "chunk_set_id"
+      ],
       "schemaTo": "public",
       "tableTo": "ChunkSet",
-      "columnsTo": ["id"],
+      "columnsTo": [
+        "id"
+      ],
       "onUpdate": "CASCADE",
       "onDelete": "RESTRICT",
       "name": "VectorizedString_chunk_set_id_ChunkSet_id_fkey",
@@ -11757,23 +14438,21 @@
       "table": "VectorizedString"
     },
     {
-      "columns": ["ancestor", "descendant"],
+      "columns": [
+        "content_node_id",
+        "task_id"
+      ],
       "nameExplicit": false,
-      "name": "DocumentClosure_pkey",
+      "name": "ContentNodeToTask_pkey",
       "entityType": "pks",
       "schema": "public",
-      "table": "DocumentClosure"
+      "table": "ContentNodeToTask"
     },
     {
-      "columns": ["document_id", "task_id"],
-      "nameExplicit": false,
-      "name": "DocumentToTask_pkey",
-      "entityType": "pks",
-      "schema": "public",
-      "table": "DocumentToTask"
-    },
-    {
-      "columns": ["glossary_id", "project_id"],
+      "columns": [
+        "glossary_id",
+        "project_id"
+      ],
       "nameExplicit": false,
       "name": "GlossaryToProject_pkey",
       "entityType": "pks",
@@ -11781,7 +14460,10 @@
       "table": "GlossaryToProject"
     },
     {
-      "columns": ["issue_id", "label"],
+      "columns": [
+        "issue_id",
+        "label"
+      ],
       "nameExplicit": false,
       "name": "IssueLabel_pkey",
       "entityType": "pks",
@@ -11789,7 +14471,10 @@
       "table": "IssueLabel"
     },
     {
-      "columns": ["memory_id", "project_id"],
+      "columns": [
+        "memory_id",
+        "project_id"
+      ],
       "nameExplicit": false,
       "name": "MemoryToProject_pkey",
       "entityType": "pks",
@@ -11797,7 +14482,10 @@
       "table": "MemoryToProject"
     },
     {
-      "columns": ["language_id", "project_id"],
+      "columns": [
+        "language_id",
+        "project_id"
+      ],
       "nameExplicit": false,
       "name": "ProjectTargetLanguage_pkey",
       "entityType": "pks",
@@ -11805,7 +14493,10 @@
       "table": "ProjectTargetLanguage"
     },
     {
-      "columns": ["term_concept_id", "subject_id"],
+      "columns": [
+        "term_concept_id",
+        "subject_id"
+      ],
       "nameExplicit": false,
       "name": "TermConceptToSubject_pkey",
       "entityType": "pks",
@@ -11813,7 +14504,9 @@
       "table": "TermConceptToSubject"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Account_pkey",
       "schema": "public",
@@ -11821,7 +14514,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AgentDefinition_pkey",
       "schema": "public",
@@ -11829,7 +14524,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AgentEvent_pkey",
       "schema": "public",
@@ -11837,7 +14534,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AgentExternalOutput_pkey",
       "schema": "public",
@@ -11845,7 +14544,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AgentRun_pkey",
       "schema": "public",
@@ -11853,7 +14554,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AgentSession_pkey",
       "schema": "public",
@@ -11861,7 +14564,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "ApiKey_pkey",
       "schema": "public",
@@ -11869,7 +14574,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AuthAuditLog_pkey",
       "schema": "public",
@@ -11877,7 +14584,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "AuthFlowLog_pkey",
       "schema": "public",
@@ -11885,7 +14594,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Blob_pkey",
       "schema": "public",
@@ -11893,7 +14604,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Changeset_pkey",
       "schema": "public",
@@ -11901,7 +14614,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "ChangesetEntry_pkey",
       "schema": "public",
@@ -11909,7 +14624,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Chunk_pkey",
       "schema": "public",
@@ -11917,7 +14634,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "ChunkSet_pkey",
       "schema": "public",
@@ -11925,7 +14644,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Comment_pkey",
       "schema": "public",
@@ -11933,7 +14654,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "CommentReaction_pkey",
       "schema": "public",
@@ -11941,7 +14664,59 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ContentNode_pkey",
+      "schema": "public",
+      "table": "ContentNode",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ContentRelation_pkey",
+      "schema": "public",
+      "table": "ContentRelation",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ContentRelationType_pkey",
+      "schema": "public",
+      "table": "ContentRelationType",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ContextEvidence_pkey",
+      "schema": "public",
+      "table": "ContextEvidence",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ContextProfile_pkey",
+      "schema": "public",
+      "table": "ContextProfile",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "CrossReference_pkey",
       "schema": "public",
@@ -11949,15 +14724,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "Document_pkey",
-      "schema": "public",
-      "table": "Document",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "EntityBranch_pkey",
       "schema": "public",
@@ -11965,7 +14734,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "EntitySnapshot_pkey",
       "schema": "public",
@@ -11973,7 +14744,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "File_pkey",
       "schema": "public",
@@ -11981,7 +14754,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Glossary_pkey",
       "schema": "public",
@@ -11989,7 +14764,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Issue_pkey",
       "schema": "public",
@@ -11997,7 +14774,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "IssueComment_pkey",
       "schema": "public",
@@ -12005,7 +14784,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "IssueCommentThread_pkey",
       "schema": "public",
@@ -12013,7 +14794,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Language_pkey",
       "schema": "public",
@@ -12021,7 +14804,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "LoginAttempt_pkey",
       "schema": "public",
@@ -12029,7 +14814,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Memory_pkey",
       "schema": "public",
@@ -12037,7 +14824,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "MemoryItem_pkey",
       "schema": "public",
@@ -12045,7 +14834,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "MemoryRecallVariant_pkey",
       "schema": "public",
@@ -12053,7 +14844,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "MFAProvider_pkey",
       "schema": "public",
@@ -12061,7 +14854,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Notification_pkey",
       "schema": "public",
@@ -12069,7 +14864,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PermissionTuple_pkey",
       "schema": "public",
@@ -12077,7 +14874,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Plugin_pkey",
       "schema": "public",
@@ -12085,7 +14884,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PluginComponent_pkey",
       "schema": "public",
@@ -12093,7 +14894,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PluginConfig_pkey",
       "schema": "public",
@@ -12101,7 +14904,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PluginConfigInstance_pkey",
       "schema": "public",
@@ -12109,7 +14914,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PluginInstallation_pkey",
       "schema": "public",
@@ -12117,7 +14924,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PluginService_pkey",
       "schema": "public",
@@ -12125,7 +14934,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Project_pkey",
       "schema": "public",
@@ -12133,7 +14944,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "ProjectSequence_pkey",
       "schema": "public",
@@ -12141,7 +14954,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "ProjectSetting_pkey",
       "schema": "public",
@@ -12149,7 +14964,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "PullRequest_pkey",
       "schema": "public",
@@ -12157,7 +14974,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "QaResult_pkey",
       "schema": "public",
@@ -12165,7 +14984,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "QaResultItem_pkey",
       "schema": "public",
@@ -12173,7 +14994,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Role_pkey",
       "schema": "public",
@@ -12181,7 +15004,29 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "ScopeBinding_pkey",
+      "schema": "public",
+      "table": "ScopeBinding",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
+      "nameExplicit": false,
+      "name": "SemanticDiffEntry_pkey",
+      "schema": "public",
+      "table": "SemanticDiffEntry",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "SessionRecord_pkey",
       "schema": "public",
@@ -12189,7 +15034,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Setting_pkey",
       "schema": "public",
@@ -12197,7 +15044,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Task_pkey",
       "schema": "public",
@@ -12205,7 +15054,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Term_pkey",
       "schema": "public",
@@ -12213,7 +15064,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TermConcept_pkey",
       "schema": "public",
@@ -12221,7 +15074,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TermConceptSubject_pkey",
       "schema": "public",
@@ -12229,7 +15084,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TermRecallVariant_pkey",
       "schema": "public",
@@ -12237,7 +15094,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "ToolCallLog_pkey",
       "schema": "public",
@@ -12245,7 +15104,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TranslatableElement_pkey",
       "schema": "public",
@@ -12253,15 +15114,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "TranslatableElementContext_pkey",
-      "schema": "public",
-      "table": "TranslatableElementContext",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "Translation_pkey",
       "schema": "public",
@@ -12269,7 +15124,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TranslationSnapshot_pkey",
       "schema": "public",
@@ -12277,7 +15134,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TranslationSnapshotItem_pkey",
       "schema": "public",
@@ -12285,7 +15144,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "TranslationVote_pkey",
       "schema": "public",
@@ -12293,7 +15154,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "User_pkey",
       "schema": "public",
@@ -12301,7 +15164,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "UserMessagePreference_pkey",
       "schema": "public",
@@ -12309,7 +15174,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "UserRole_pkey",
       "schema": "public",
@@ -12317,7 +15184,9 @@
       "entityType": "pks"
     },
     {
-      "columns": ["id"],
+      "columns": [
+        "id"
+      ],
       "nameExplicit": false,
       "name": "VectorizedString_pkey",
       "schema": "public",
@@ -12326,7 +15195,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["provider_issuer", "provided_account_id"],
+      "columns": [
+        "provider_issuer",
+        "provided_account_id"
+      ],
       "nullsNotDistinct": false,
       "name": "Account_provider_issuer_provided_account_id_unique",
       "entityType": "uniques",
@@ -12335,7 +15207,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["run_id", "event_id"],
+      "columns": [
+        "run_id",
+        "event_id"
+      ],
       "nullsNotDistinct": false,
       "name": "AgentEvent_run_id_event_id_unique",
       "entityType": "uniques",
@@ -12344,7 +15219,11 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["run_id", "output_key", "idempotency_key"],
+      "columns": [
+        "run_id",
+        "output_key",
+        "idempotency_key"
+      ],
       "nullsNotDistinct": false,
       "name": "AgentExternalOutput_run_id_output_key_idempotency_key_unique",
       "entityType": "uniques",
@@ -12353,7 +15232,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["hash"],
+      "columns": [
+        "hash"
+      ],
       "nullsNotDistinct": false,
       "name": "Blob_hash_unique",
       "entityType": "uniques",
@@ -12362,7 +15243,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["storage_provider_id", "key"],
+      "columns": [
+        "storage_provider_id",
+        "key"
+      ],
       "nullsNotDistinct": false,
       "name": "Blob_storage_provider_id_key_unique",
       "entityType": "uniques",
@@ -12371,7 +15255,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["comment_id", "user_id"],
+      "columns": [
+        "comment_id",
+        "user_id"
+      ],
       "nullsNotDistinct": false,
       "name": "CommentReaction_comment_id_user_id_unique",
       "entityType": "uniques",
@@ -12380,7 +15267,37 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["source_type", "source_id", "target_type", "target_id"],
+      "columns": [
+        "namespace",
+        "name",
+        "version"
+      ],
+      "nullsNotDistinct": false,
+      "name": "ContentRelationType_namespace_name_version_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "ContentRelationType"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "project_id",
+        "name"
+      ],
+      "nullsNotDistinct": false,
+      "name": "ContextProfile_project_id_name_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "ContextProfile"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "source_type",
+        "source_id",
+        "target_type",
+        "target_id"
+      ],
       "nullsNotDistinct": false,
       "name": "CrossReference_source_type_source_id_target_type_target_id_unique",
       "entityType": "uniques",
@@ -12404,7 +15321,11 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id", "text", "term_concept_id"],
+      "columns": [
+        "language_id",
+        "text",
+        "term_concept_id"
+      ],
       "nullsNotDistinct": false,
       "name": "Term_language_id_text_term_concept_id_unique",
       "entityType": "uniques",
@@ -12413,7 +15334,25 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["email", "name"],
+      "columns": [
+        "project_id",
+        "importer_id",
+        "source_root_ref",
+        "source_node_ref",
+        "stable_source_ref"
+      ],
+      "nullsNotDistinct": false,
+      "name": "TranslatableElement_project_id_importer_id_source_root_ref_source_node_ref_stable_source_ref_unique",
+      "entityType": "uniques",
+      "schema": "public",
+      "table": "TranslatableElement"
+    },
+    {
+      "nameExplicit": false,
+      "columns": [
+        "email",
+        "name"
+      ],
       "nullsNotDistinct": false,
       "name": "User_email_name_unique",
       "entityType": "uniques",
@@ -12422,7 +15361,11 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id", "category", "channel"],
+      "columns": [
+        "user_id",
+        "category",
+        "channel"
+      ],
       "nullsNotDistinct": false,
       "name": "UserMessagePreference_user_id_category_channel_unique",
       "entityType": "uniques",
@@ -12431,7 +15374,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["user_id", "role_id"],
+      "columns": [
+        "user_id",
+        "role_id"
+      ],
       "nullsNotDistinct": false,
       "name": "UserRole_user_id_role_id_unique",
       "entityType": "uniques",
@@ -12440,7 +15386,10 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["language_id", "value"],
+      "columns": [
+        "language_id",
+        "value"
+      ],
       "nullsNotDistinct": false,
       "name": "VectorizedString_language_id_value_unique",
       "entityType": "uniques",
@@ -12449,7 +15398,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "AgentDefinition_external_id_key",
       "schema": "public",
@@ -12458,7 +15409,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "AgentRun_external_id_key",
       "schema": "public",
@@ -12467,7 +15420,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "AgentSession_external_id_key",
       "schema": "public",
@@ -12476,7 +15431,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "Changeset_external_id_key",
       "schema": "public",
@@ -12485,7 +15442,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "EntityBranch_external_id_key",
       "schema": "public",
@@ -12494,7 +15453,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "EntitySnapshot_external_id_key",
       "schema": "public",
@@ -12503,7 +15464,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "Issue_external_id_key",
       "schema": "public",
@@ -12512,7 +15475,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "IssueComment_external_id_key",
       "schema": "public",
@@ -12521,7 +15486,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "IssueCommentThread_external_id_key",
       "schema": "public",
@@ -12530,7 +15497,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "nullsNotDistinct": false,
       "name": "ProjectSequence_project_id_key",
       "schema": "public",
@@ -12539,7 +15508,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["project_id"],
+      "columns": [
+        "project_id"
+      ],
       "nullsNotDistinct": false,
       "name": "ProjectSetting_project_id_key",
       "schema": "public",
@@ -12548,7 +15519,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["external_id"],
+      "columns": [
+        "external_id"
+      ],
       "nullsNotDistinct": false,
       "name": "PullRequest_external_id_key",
       "schema": "public",
@@ -12557,7 +15530,9 @@
     },
     {
       "nameExplicit": false,
-      "columns": ["name"],
+      "columns": [
+        "name"
+      ],
       "nullsNotDistinct": false,
       "name": "Role_name_key",
       "schema": "public",
@@ -12577,6 +15552,48 @@
       "entityType": "checks",
       "schema": "public",
       "table": "Blob"
+    },
+    {
+      "value": "(\n        (\"source_endpoint_kind\" = 'NODE' AND \"source_node_id\" IS NOT NULL AND \"source_element_id\" IS NULL)\n        OR (\"source_endpoint_kind\" = 'ELEMENT' AND \"source_element_id\" IS NOT NULL AND \"source_node_id\" IS NULL)\n      )",
+      "name": "contentRelation_source_endpoint_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "value": "(\n        (\"target_endpoint_kind\" = 'NODE' AND \"target_node_id\" IS NOT NULL AND \"target_element_id\" IS NULL)\n        OR (\"target_endpoint_kind\" = 'ELEMENT' AND \"target_element_id\" IS NOT NULL AND \"target_node_id\" IS NULL)\n      )",
+      "name": "contentRelation_target_endpoint_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "value": "\"confidence_basis_points\" BETWEEN 0 AND 10000",
+      "name": "contentRelation_confidence_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "ContentRelation"
+    },
+    {
+      "value": "(\n        (\"attached_endpoint_kind\" = 'NODE' AND \"content_node_id\" IS NOT NULL AND \"content_relation_id\" IS NULL AND \"translatable_element_id\" IS NULL)\n        OR (\"attached_endpoint_kind\" = 'RELATION' AND \"content_relation_id\" IS NOT NULL AND \"content_node_id\" IS NULL AND \"translatable_element_id\" IS NULL)\n        OR (\"attached_endpoint_kind\" = 'ELEMENT' AND \"translatable_element_id\" IS NOT NULL AND \"content_node_id\" IS NULL AND \"content_relation_id\" IS NULL)\n      )",
+      "name": "contextEvidence_endpoint_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "ContextEvidence"
+    },
+    {
+      "value": "(\n        (\"content_node_id\" IS NOT NULL AND \"content_relation_id\" IS NULL)\n        OR (\"content_node_id\" IS NULL AND \"content_relation_id\" IS NOT NULL)\n      )",
+      "name": "scopeBinding_scope_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "ScopeBinding"
+    },
+    {
+      "value": "\"identity_confidence\" BETWEEN 0 AND 10000",
+      "name": "translatableElement_identityConfidence_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "TranslatableElement"
     }
   ],
   "renames": []

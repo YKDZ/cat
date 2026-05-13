@@ -11,6 +11,7 @@ import { useEditorTableStore } from "@/stores/editor/table";
 
 import ElemenContextJson from "./ElemenContextJson.vue";
 import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";
+import ElemenContextNeighbor from "./ElemenContextNeighbor.vue";
 
 const { elementId } = storeToRefs(useEditorTableStore());
 
@@ -27,6 +28,7 @@ const { state } = useQuery({
 });
 
 const componentFromContext = (context: FlattenedContextEvidence) => {
+  if (context.label === "local sequence neighbor") return ElemenContextNeighbor;
   const payload = context.payload;
   if (!payload || typeof payload !== "object") return null;
   if ("kind" in payload) {
@@ -48,12 +50,13 @@ const componentFromContext = (context: FlattenedContextEvidence) => {
     <ScrollArea class="h-full w-full">
       <SidebarGroup>
         <SidebarGroupContent class="flex flex-col gap-3">
-          <component
-            v-for="(context, idx) in state.data"
-            :key="idx"
-            :is="componentFromContext(context)"
-            :context
-          />
+          <template v-for="(context, idx) in state.data" :key="idx">
+            <component
+              v-if="componentFromContext(context)"
+              :is="componentFromContext(context)"
+              :context
+            />
+          </template>
         </SidebarGroupContent>
       </SidebarGroup>
     </ScrollArea>

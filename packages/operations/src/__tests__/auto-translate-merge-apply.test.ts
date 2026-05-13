@@ -18,6 +18,7 @@ import {
   createTranslations,
   createUser,
   createVectorizedStrings,
+  ensureCoreRelationTypes,
   ensureLanguages,
   executeCommand,
   executeQuery,
@@ -53,6 +54,7 @@ interface SeedResult {
 }
 
 async function seedProject(): Promise<SeedResult> {
+  await executeCommand({ db: testDb.client }, ensureCoreRelationTypes, {});
   await executeCommand({ db: testDb.client }, ensureLanguages, {
     languageIds: ["en", "zh-CN"],
   });

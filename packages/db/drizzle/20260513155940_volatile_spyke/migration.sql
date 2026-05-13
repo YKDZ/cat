@@ -9,16 +9,27 @@ CREATE TYPE "ChangesetEntryAsyncStatus" AS ENUM('ALL_READY', 'HAS_PENDING', 'HAS
 CREATE TYPE "ChangeSetStatus" AS ENUM('PENDING', 'APPROVED', 'PARTIALLY_APPROVED', 'REJECTED', 'APPLIED', 'CONFLICT');--> statement-breakpoint
 CREATE TYPE "CommentReactionType" AS ENUM('+1', '-1', 'LAUGH', 'HOORAY', 'CONFUSED', 'HEART', 'ROCKET', 'EYES');--> statement-breakpoint
 CREATE TYPE "CommentTargetType" AS ENUM('TRANSLATION', 'ELEMENT');--> statement-breakpoint
+CREATE TYPE "ContentBoundaryType" AS ENUM('PROJECT', 'SOURCE_ROOT', 'DIRECTORY', 'FILE', 'MODULE', 'MOD', 'NAMESPACE', 'NONE');--> statement-breakpoint
+CREATE TYPE "ContentEvidenceKind" AS ENUM('TEXT', 'JSON', 'FILE', 'MARKDOWN', 'URL', 'IMAGE', 'SOURCE_LOCATION', 'COMMENT', 'SCREENSHOT', 'GENERATED_ANALYSIS', 'EXTERNAL_REFERENCE');--> statement-breakpoint
+CREATE TYPE "ContentIdentityStatus" AS ENUM('ACTIVE', 'DELETED', 'QUARANTINED', 'CONFLICT');--> statement-breakpoint
+CREATE TYPE "ContentNodeExportRole" AS ENUM('NONE', 'PROJECT_ROOT', 'DIRECTORY', 'FILE', 'SECTION');--> statement-breakpoint
+CREATE TYPE "ContentNodeKind" AS ENUM('PROJECT_ROOT', 'DIRECTORY', 'FILE', 'MARKDOWN_SECTION', 'SOURCE_COMPONENT', 'UI_ROUTE', 'MODULE', 'MOD', 'VERSION', 'NAMESPACE', 'CHAPTER', 'PACKAGE', 'SCREENSHOT_TARGET', 'CUSTOM');--> statement-breakpoint
+CREATE TYPE "ContentNodeLifecycleStatus" AS ENUM('ACTIVE', 'DRAFT', 'DELETED', 'QUARANTINED');--> statement-breakpoint
+CREATE TYPE "ContentRelationDirectionality" AS ENUM('DIRECTED', 'UNDIRECTED');--> statement-breakpoint
+CREATE TYPE "ContentRelationLifecycleStatus" AS ENUM('ACTIVE', 'DRAFT', 'DEPRECATED', 'DELETED');--> statement-breakpoint
+CREATE TYPE "ContentRelationSemanticFamily" AS ENUM('CONTAINMENT', 'ORDERING', 'SOURCE_REFERENCE', 'SCOPE', 'DEPENDENCY', 'VERSIONING', 'EVIDENCE', 'DISCUSSION', 'DUPLICATE', 'SEMANTIC', 'CUSTOM');--> statement-breakpoint
+CREATE TYPE "ContextConsumerPurpose" AS ENUM('EDITOR', 'RECALL', 'QA', 'AI', 'AGENT');--> statement-breakpoint
 CREATE TYPE "CrossReferenceSourceType" AS ENUM('issue', 'pr', 'issue_comment');--> statement-breakpoint
 CREATE TYPE "CrossReferenceTargetType" AS ENUM('issue', 'pr');--> statement-breakpoint
 CREATE TYPE "EntityBranchStatus" AS ENUM('ACTIVE', 'MERGED', 'ABANDONED');--> statement-breakpoint
-CREATE TYPE "EntityType" AS ENUM('translation', 'auto_translation', 'element', 'document', 'document_tree', 'comment', 'comment_reaction', 'term', 'term_concept', 'memory_item', 'project_settings', 'project_member', 'project_attributes', 'context', 'project', 'issue');--> statement-breakpoint
+CREATE TYPE "EntityType" AS ENUM('translation', 'auto_translation', 'element', 'content_node', 'content_relation', 'content_relation_type', 'context_evidence', 'context_profile', 'scope_binding', 'semantic_diff', 'comment', 'comment_reaction', 'term', 'term_concept', 'memory_item', 'project_settings', 'project_member', 'project_attributes', 'project', 'issue');--> statement-breakpoint
+CREATE TYPE "EvidenceTrustLevel" AS ENUM('UNTRUSTED', 'COLLECTED', 'VERIFIED', 'REVIEW_APPROVED');--> statement-breakpoint
 CREATE TYPE "IssueCommentTargetType" AS ENUM('issue', 'pr');--> statement-breakpoint
 CREATE TYPE "IssueStatus" AS ENUM('OPEN', 'CLOSED');--> statement-breakpoint
 CREATE TYPE "MessageCategory" AS ENUM('SYSTEM', 'COMMENT_REPLY', 'TRANSLATION', 'PROJECT', 'QA');--> statement-breakpoint
 CREATE TYPE "MessageChannel" AS ENUM('IN_APP', 'EMAIL');--> statement-breakpoint
 CREATE TYPE "NotificationStatus" AS ENUM('UNREAD', 'READ', 'ARCHIVED');--> statement-breakpoint
-CREATE TYPE "ObjectType" AS ENUM('system', 'project', 'document', 'element', 'glossary', 'memory', 'term', 'translation', 'comment', 'plugin', 'setting', 'task', 'agent_definition', 'user');--> statement-breakpoint
+CREATE TYPE "ObjectType" AS ENUM('system', 'project', 'content_node', 'content_relation', 'context_evidence', 'context_profile', 'element', 'glossary', 'memory', 'term', 'translation', 'comment', 'plugin', 'setting', 'task', 'agent_definition', 'user');--> statement-breakpoint
 CREATE TYPE "PermissionAction" AS ENUM('check', 'grant', 'revoke');--> statement-breakpoint
 CREATE TYPE "PluginServiceType" AS ENUM('AUTH_FACTOR', 'STORAGE_PROVIDER', 'FILE_IMPORTER', 'FILE_EXPORTER', 'TRANSLATION_ADVISOR', 'TEXT_VECTORIZER', 'VECTOR_STORAGE', 'QA_CHECKER', 'TOKENIZER', 'LLM_PROVIDER', 'RERANK_PROVIDER', 'AGENT_TOOL_PROVIDER', 'AGENT_CONTEXT_PROVIDER', 'NLP_WORD_SEGMENTER', 'EMAIL_PROVIDER');--> statement-breakpoint
 CREATE TYPE "PullRequestStatus" AS ENUM('DRAFT', 'OPEN', 'REVIEW', 'CHANGES_REQUESTED', 'MERGED', 'CLOSED');--> statement-breakpoint
@@ -26,15 +37,20 @@ CREATE TYPE "PullRequestType" AS ENUM('MANUAL', 'AUTO_TRANSLATE');--> statement-
 CREATE TYPE "RecallQuerySide" AS ENUM('SOURCE', 'TRANSLATION');--> statement-breakpoint
 CREATE TYPE "RecallVariantType" AS ENUM('SURFACE', 'CASE_FOLDED', 'LEMMA', 'TOKEN_TEMPLATE', 'FRAGMENT');--> statement-breakpoint
 CREATE TYPE "Relation" AS ENUM('superadmin', 'admin', 'owner', 'editor', 'viewer', 'member', 'direct_editor', 'isolation_forced');--> statement-breakpoint
-CREATE TYPE "ResourceType" AS ENUM('PROJECT', 'DOCUMENT', 'ELEMENT', 'COMMENT', 'TERM', 'PLUGIN', 'GLOSSARY', 'MEMORY', 'SETTING', 'TASK', 'TRANSLATION', 'USER');--> statement-breakpoint
+CREATE TYPE "RelationEndpointKind" AS ENUM('NODE', 'ELEMENT');--> statement-breakpoint
+CREATE TYPE "ResourceType" AS ENUM('PROJECT', 'CONTENT_NODE', 'CONTENT_RELATION', 'CONTEXT_EVIDENCE', 'CONTEXT_PROFILE', 'ELEMENT', 'COMMENT', 'TERM', 'PLUGIN', 'GLOSSARY', 'MEMORY', 'SETTING', 'TASK', 'TRANSLATION', 'USER');--> statement-breakpoint
 CREATE TYPE "ReviewStatus" AS ENUM('PENDING', 'APPROVED', 'REJECTED', 'CONFLICT');--> statement-breakpoint
 CREATE TYPE "RiskLevel" AS ENUM('LOW', 'MEDIUM', 'HIGH');--> statement-breakpoint
+CREATE TYPE "ScopeBindingAssetKind" AS ENUM('GLOSSARY', 'TERM_CONCEPT', 'TERM', 'MEMORY', 'MEMORY_ITEM', 'QA_PROFILE', 'CONTEXT_PROFILE');--> statement-breakpoint
+CREATE TYPE "ScopeBindingMode" AS ENUM('ELIGIBLE_ONLY', 'BOOST');--> statement-breakpoint
 CREATE TYPE "ScopeType" AS ENUM('GLOBAL', 'PROJECT', 'USER');--> statement-breakpoint
+CREATE TYPE "SemanticDiffKind" AS ENUM('CREATE', 'DELETE', 'SOURCE_TEXT_UPDATE', 'MOVE', 'REPARENT', 'RELATION_ADD', 'RELATION_REMOVE', 'EVIDENCE_UPDATE', 'METADATA_ONLY', 'IDENTITY_CONFLICT');--> statement-breakpoint
 CREATE TYPE "SubjectType" AS ENUM('user', 'role', 'agent');--> statement-breakpoint
 CREATE TYPE "TaskStatus" AS ENUM('COMPLETED', 'PENDING', 'FAILED');--> statement-breakpoint
 CREATE TYPE "TermStatus" AS ENUM('NOT_SPECIFIED', 'PREFERRED', 'ADMITTED', 'NOT_RECOMMENDED', 'OBSOLETE');--> statement-breakpoint
 CREATE TYPE "TermType" AS ENUM('NOT_SPECIFIED', 'FULL_FORM', 'ACRONYM', 'ABBREVIATION', 'SHORT_FORM', 'VARIANT', 'PHRASE');--> statement-breakpoint
 CREATE TYPE "TranslatableElementContextType" AS ENUM('TEXT', 'JSON', 'FILE', 'MARKDOWN', 'URL', 'IMAGE');--> statement-breakpoint
+CREATE TYPE "VectorInvalidationReason" AS ENUM('NEW_SOURCE_TEXT', 'SOURCE_TEXT_CHANGED', 'NOT_REQUIRED', 'IDENTITY_CONFLICT');--> statement-breakpoint
 CREATE TABLE "Account" (
 	"id" serial PRIMARY KEY,
 	"provider_issuer" text NOT NULL,
@@ -257,6 +273,125 @@ CREATE TABLE "CommentReaction" (
 	CONSTRAINT "CommentReaction_comment_id_user_id_unique" UNIQUE("comment_id","user_id")
 );
 --> statement-breakpoint
+CREATE TABLE "ContentNode" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"project_id" uuid NOT NULL,
+	"creator_id" uuid,
+	"kind" "ContentNodeKind" NOT NULL,
+	"display_label" text NOT NULL,
+	"importer_id" text,
+	"source_root_ref" text,
+	"stable_source_node_ref" text,
+	"source_uri" text,
+	"source_path" text,
+	"source_type" text,
+	"language_id" text,
+	"export_role" "ContentNodeExportRole" DEFAULT 'NONE'::"ContentNodeExportRole" NOT NULL,
+	"boundary_type" "ContentBoundaryType" DEFAULT 'NONE'::"ContentBoundaryType" NOT NULL,
+	"file_handler_id" integer,
+	"file_id" integer,
+	"lifecycle_status" "ContentNodeLifecycleStatus" DEFAULT 'ACTIVE'::"ContentNodeLifecycleStatus" NOT NULL,
+	"provenance" jsonb,
+	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "ContentNodeToTask" (
+	"content_node_id" uuid,
+	"task_id" uuid,
+	CONSTRAINT "ContentNodeToTask_pkey" PRIMARY KEY("content_node_id","task_id")
+);
+--> statement-breakpoint
+CREATE TABLE "ContentRelation" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"project_id" uuid NOT NULL,
+	"relation_type_id" integer NOT NULL,
+	"source_endpoint_kind" "RelationEndpointKind" NOT NULL,
+	"source_node_id" uuid,
+	"source_element_id" integer,
+	"target_endpoint_kind" "RelationEndpointKind" NOT NULL,
+	"target_node_id" uuid,
+	"target_element_id" integer,
+	"is_primary" boolean DEFAULT false NOT NULL,
+	"local_order" integer,
+	"confidence_basis_points" integer DEFAULT 10000 NOT NULL,
+	"lifecycle_status" "ContentRelationLifecycleStatus" DEFAULT 'ACTIVE'::"ContentRelationLifecycleStatus" NOT NULL,
+	"weight_hint" jsonb,
+	"provenance" jsonb,
+	"validation_metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "contentRelation_source_endpoint_check" CHECK ((
+        ("source_endpoint_kind" = 'NODE' AND "source_node_id" IS NOT NULL AND "source_element_id" IS NULL)
+        OR ("source_endpoint_kind" = 'ELEMENT' AND "source_element_id" IS NOT NULL AND "source_node_id" IS NULL)
+      )),
+	CONSTRAINT "contentRelation_target_endpoint_check" CHECK ((
+        ("target_endpoint_kind" = 'NODE' AND "target_node_id" IS NOT NULL AND "target_element_id" IS NULL)
+        OR ("target_endpoint_kind" = 'ELEMENT' AND "target_element_id" IS NOT NULL AND "target_node_id" IS NULL)
+      )),
+	CONSTRAINT "contentRelation_confidence_check" CHECK ("confidence_basis_points" BETWEEN 0 AND 10000)
+);
+--> statement-breakpoint
+CREATE TABLE "ContentRelationType" (
+	"id" serial PRIMARY KEY,
+	"namespace" text NOT NULL,
+	"name" text NOT NULL,
+	"version" text DEFAULT '1.0.0' NOT NULL,
+	"owner_plugin_id" text,
+	"semantic_family" "ContentRelationSemanticFamily" NOT NULL,
+	"allowed_endpoint_pairs" jsonb NOT NULL,
+	"directionality" "ContentRelationDirectionality" DEFAULT 'DIRECTED'::"ContentRelationDirectionality" NOT NULL,
+	"participates_in_containment" boolean DEFAULT false NOT NULL,
+	"participates_in_export" boolean DEFAULT false NOT NULL,
+	"supports_ordering" boolean DEFAULT false NOT NULL,
+	"weighting_eligible" boolean DEFAULT false NOT NULL,
+	"default_trust_level" "EvidenceTrustLevel" DEFAULT 'COLLECTED'::"EvidenceTrustLevel" NOT NULL,
+	"deprecation" jsonb,
+	"migration" jsonb,
+	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "ContentRelationType_namespace_name_version_unique" UNIQUE("namespace","name","version")
+);
+--> statement-breakpoint
+CREATE TABLE "ContextEvidence" (
+	"id" serial PRIMARY KEY,
+	"project_id" uuid NOT NULL,
+	"attached_endpoint_kind" text NOT NULL,
+	"content_node_id" uuid,
+	"content_relation_id" uuid,
+	"translatable_element_id" integer,
+	"kind" "ContentEvidenceKind" NOT NULL,
+	"trust_level" "EvidenceTrustLevel" DEFAULT 'COLLECTED'::"EvidenceTrustLevel" NOT NULL,
+	"freshness_at" timestamp with time zone,
+	"json_data" jsonb,
+	"file_id" integer,
+	"storage_provider_id" integer,
+	"text_data" text,
+	"display_label" text,
+	"provenance" jsonb,
+	"graph_explanation" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "contextEvidence_endpoint_check" CHECK ((
+        ("attached_endpoint_kind" = 'NODE' AND "content_node_id" IS NOT NULL AND "content_relation_id" IS NULL AND "translatable_element_id" IS NULL)
+        OR ("attached_endpoint_kind" = 'RELATION' AND "content_relation_id" IS NOT NULL AND "content_node_id" IS NULL AND "translatable_element_id" IS NULL)
+        OR ("attached_endpoint_kind" = 'ELEMENT' AND "translatable_element_id" IS NOT NULL AND "content_node_id" IS NULL AND "content_relation_id" IS NULL)
+      ))
+);
+--> statement-breakpoint
+CREATE TABLE "ContextProfile" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+	"project_id" uuid NOT NULL,
+	"name" text NOT NULL,
+	"payload" jsonb NOT NULL,
+	"is_default" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "ContextProfile_project_id_name_unique" UNIQUE("project_id","name")
+);
+--> statement-breakpoint
 CREATE TABLE "CrossReference" (
 	"id" serial PRIMARY KEY,
 	"source_type" "CrossReferenceSourceType" NOT NULL,
@@ -266,32 +401,6 @@ CREATE TABLE "CrossReference" (
 	"project_id" uuid NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "CrossReference_source_type_source_id_target_type_target_id_unique" UNIQUE("source_type","source_id","target_type","target_id")
-);
---> statement-breakpoint
-CREATE TABLE "Document" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"name" text,
-	"project_id" uuid NOT NULL,
-	"creator_id" uuid NOT NULL,
-	"file_handler_id" integer,
-	"file_id" integer,
-	"is_directory" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "DocumentClosure" (
-	"ancestor" uuid,
-	"descendant" uuid,
-	"depth" integer NOT NULL,
-	"project_id" uuid NOT NULL,
-	CONSTRAINT "DocumentClosure_pkey" PRIMARY KEY("ancestor","descendant")
-);
---> statement-breakpoint
-CREATE TABLE "DocumentToTask" (
-	"document_id" uuid,
-	"task_id" uuid,
-	CONSTRAINT "DocumentToTask_pkey" PRIMARY KEY("document_id","task_id")
 );
 --> statement-breakpoint
 CREATE TABLE "EntityBranch" (
@@ -623,6 +732,38 @@ CREATE TABLE "Role" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "ScopeBinding" (
+	"id" serial PRIMARY KEY,
+	"project_id" uuid NOT NULL,
+	"asset_kind" "ScopeBindingAssetKind" NOT NULL,
+	"asset_id" text NOT NULL,
+	"mode" "ScopeBindingMode" NOT NULL,
+	"content_node_id" uuid,
+	"content_relation_id" uuid,
+	"weight_boost" integer DEFAULT 0 NOT NULL,
+	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "scopeBinding_scope_check" CHECK ((
+        ("content_node_id" IS NOT NULL AND "content_relation_id" IS NULL)
+        OR ("content_node_id" IS NULL AND "content_relation_id" IS NOT NULL)
+      ))
+);
+--> statement-breakpoint
+CREATE TABLE "SemanticDiffEntry" (
+	"id" serial PRIMARY KEY,
+	"project_id" uuid NOT NULL,
+	"changeset_id" integer,
+	"diff_kind" "SemanticDiffKind" NOT NULL,
+	"element_id" integer,
+	"content_node_id" uuid,
+	"content_relation_id" uuid,
+	"vector_invalidation_reason" "VectorInvalidationReason" NOT NULL,
+	"payload" jsonb NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "SessionRecord" (
 	"id" text PRIMARY KEY,
 	"user_id" uuid NOT NULL,
@@ -720,9 +861,14 @@ CREATE TABLE "ToolCallLog" (
 --> statement-breakpoint
 CREATE TABLE "TranslatableElement" (
 	"id" serial PRIMARY KEY,
+	"project_id" uuid NOT NULL,
+	"importer_id" text NOT NULL,
+	"source_root_ref" text NOT NULL,
+	"source_node_ref" text NOT NULL,
+	"stable_source_ref" text NOT NULL,
+	"identity_status" "ContentIdentityStatus" DEFAULT 'ACTIVE'::"ContentIdentityStatus" NOT NULL,
+	"identity_confidence" integer DEFAULT 10000 NOT NULL,
 	"meta" jsonb,
-	"document_id" uuid NOT NULL,
-	"sort_index" integer,
 	"source_start_line" integer,
 	"source_end_line" integer,
 	"source_location_meta" jsonb,
@@ -730,19 +876,9 @@ CREATE TABLE "TranslatableElement" (
 	"vectorized_string_id" integer NOT NULL,
 	"approved_translation_id" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "TranslatableElementContext" (
-	"id" serial PRIMARY KEY,
-	"type" "TranslatableElementContextType" NOT NULL,
-	"json_data" jsonb,
-	"file_id" integer,
-	"storage_provider_id" integer,
-	"text_data" text,
-	"translatable_element_id" integer NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "TranslatableElement_project_id_importer_id_source_root_ref_source_node_ref_stable_source_ref_unique" UNIQUE("project_id","importer_id","source_root_ref","source_node_ref","stable_source_ref"),
+	CONSTRAINT "translatableElement_identityConfidence_check" CHECK ("identity_confidence" BETWEEN 0 AND 10000)
 );
 --> statement-breakpoint
 CREATE TABLE "Translation" (
@@ -845,12 +981,25 @@ CREATE INDEX "Comment_user_id_index" ON "Comment" ("user_id");--> statement-brea
 CREATE INDEX "Comment_target_type_target_id_index" ON "Comment" ("target_type","target_id");--> statement-breakpoint
 CREATE INDEX "CommentReaction_comment_id_index" ON "CommentReaction" ("comment_id");--> statement-breakpoint
 CREATE INDEX "CommentReaction_user_id_index" ON "CommentReaction" ("user_id");--> statement-breakpoint
+CREATE INDEX "ContentNode_project_id_index" ON "ContentNode" ("project_id");--> statement-breakpoint
+CREATE INDEX "ContentNode_source_path_index" ON "ContentNode" ("source_path");--> statement-breakpoint
+CREATE UNIQUE INDEX "ContentNode_project_id_importer_id_source_root_ref_stable_sourc" ON "ContentNode" ("project_id","importer_id","source_root_ref","stable_source_node_ref") WHERE "stable_source_node_ref" IS NOT NULL;--> statement-breakpoint
+CREATE INDEX "ContentNodeToTask_task_id_index" ON "ContentNodeToTask" ("task_id");--> statement-breakpoint
+CREATE INDEX "ContentRelation_project_id_index" ON "ContentRelation" ("project_id");--> statement-breakpoint
+CREATE INDEX "ContentRelation_relation_type_id_index" ON "ContentRelation" ("relation_type_id");--> statement-breakpoint
+CREATE INDEX "ContentRelation_source_node_id_index" ON "ContentRelation" ("source_node_id");--> statement-breakpoint
+CREATE INDEX "ContentRelation_target_node_id_index" ON "ContentRelation" ("target_node_id");--> statement-breakpoint
+CREATE INDEX "ContentRelation_source_element_id_index" ON "ContentRelation" ("source_element_id");--> statement-breakpoint
+CREATE INDEX "ContentRelation_target_element_id_index" ON "ContentRelation" ("target_element_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "ContentRelation_project_id_target_node_id_index" ON "ContentRelation" ("project_id","target_node_id") WHERE "is_primary" = true AND "target_endpoint_kind" = 'NODE' AND "lifecycle_status" = 'ACTIVE';--> statement-breakpoint
+CREATE UNIQUE INDEX "ContentRelation_project_id_target_element_id_index" ON "ContentRelation" ("project_id","target_element_id") WHERE "is_primary" = true AND "target_endpoint_kind" = 'ELEMENT' AND "lifecycle_status" = 'ACTIVE';--> statement-breakpoint
+CREATE INDEX "ContextEvidence_project_id_index" ON "ContextEvidence" ("project_id");--> statement-breakpoint
+CREATE INDEX "ContextEvidence_content_node_id_index" ON "ContextEvidence" ("content_node_id");--> statement-breakpoint
+CREATE INDEX "ContextEvidence_content_relation_id_index" ON "ContextEvidence" ("content_relation_id");--> statement-breakpoint
+CREATE INDEX "ContextEvidence_translatable_element_id_index" ON "ContextEvidence" ("translatable_element_id");--> statement-breakpoint
+CREATE UNIQUE INDEX "ContextProfile_project_id_index" ON "ContextProfile" ("project_id") WHERE "is_default" = true;--> statement-breakpoint
 CREATE INDEX "CrossReference_target_type_target_id_index" ON "CrossReference" ("target_type","target_id");--> statement-breakpoint
 CREATE INDEX "CrossReference_source_type_source_id_index" ON "CrossReference" ("source_type","source_id");--> statement-breakpoint
-CREATE INDEX "Document_project_id_index" ON "Document" ("project_id");--> statement-breakpoint
-CREATE INDEX "DocumentClosure_ancestor_index" ON "DocumentClosure" ("ancestor");--> statement-breakpoint
-CREATE INDEX "DocumentClosure_descendant_index" ON "DocumentClosure" ("descendant");--> statement-breakpoint
-CREATE INDEX "DocumentToTask_task_id_index" ON "DocumentToTask" ("task_id");--> statement-breakpoint
 CREATE INDEX "EntityBranch_project_id_index" ON "EntityBranch" ("project_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "EntityBranch_project_id_name_index" ON "EntityBranch" ("project_id","name");--> statement-breakpoint
 CREATE INDEX "EntityBranch_status_index" ON "EntityBranch" ("status");--> statement-breakpoint
@@ -892,6 +1041,10 @@ CREATE INDEX "PullRequest_issue_id_index" ON "PullRequest" ("issue_id");--> stat
 CREATE INDEX "PullRequest_project_id_status_index" ON "PullRequest" ("project_id","status");--> statement-breakpoint
 CREATE INDEX "PullRequest_project_id_type_target_language_id_index" ON "PullRequest" ("project_id","type","target_language_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "PullRequest_project_id_target_language_id_index" ON "PullRequest" ("project_id","target_language_id") WHERE "type" = 'AUTO_TRANSLATE' AND "status" NOT IN ('MERGED', 'CLOSED');--> statement-breakpoint
+CREATE INDEX "ScopeBinding_project_id_asset_kind_asset_id_index" ON "ScopeBinding" ("project_id","asset_kind","asset_id");--> statement-breakpoint
+CREATE INDEX "SemanticDiffEntry_project_id_diff_kind_index" ON "SemanticDiffEntry" ("project_id","diff_kind");--> statement-breakpoint
+CREATE INDEX "SemanticDiffEntry_changeset_id_index" ON "SemanticDiffEntry" ("changeset_id");--> statement-breakpoint
+CREATE INDEX "SemanticDiffEntry_element_id_index" ON "SemanticDiffEntry" ("element_id");--> statement-breakpoint
 CREATE INDEX "SessionRecord_user_id_index" ON "SessionRecord" ("user_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "Setting_key_index" ON "Setting" ("key");--> statement-breakpoint
 CREATE INDEX "Task_meta_index" ON "Task" ("meta");--> statement-breakpoint
@@ -901,8 +1054,8 @@ CREATE INDEX "TermRecallVariant_language_id_index" ON "TermRecallVariant" ("lang
 CREATE INDEX "idx_term_recall_variant_text_trgm" ON "TermRecallVariant" USING gin ("normalized_text" gin_trgm_ops);--> statement-breakpoint
 CREATE INDEX "ToolCallLog_session_id_index" ON "ToolCallLog" ("session_id");--> statement-breakpoint
 CREATE INDEX "ToolCallLog_run_id_index" ON "ToolCallLog" ("run_id");--> statement-breakpoint
-CREATE INDEX "TranslatableElement_document_id_sort_index_index" ON "TranslatableElement" ("document_id","sort_index");--> statement-breakpoint
-CREATE INDEX "TranslatableElementContext_translatable_element_id_index" ON "TranslatableElementContext" ("translatable_element_id");--> statement-breakpoint
+CREATE INDEX "TranslatableElement_project_id_index" ON "TranslatableElement" ("project_id");--> statement-breakpoint
+CREATE INDEX "TranslatableElement_vectorized_string_id_index" ON "TranslatableElement" ("vectorized_string_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "Translation_translator_id_translatable_element_id_string_id_index" ON "Translation" ("translator_id","translatable_element_id","string_id");--> statement-breakpoint
 CREATE INDEX "Translation_translatable_element_id_index" ON "Translation" ("translatable_element_id");--> statement-breakpoint
 CREATE INDEX "TranslationVote_translation_id_index" ON "TranslationVote" ("translation_id");--> statement-breakpoint
@@ -942,16 +1095,28 @@ ALTER TABLE "Comment" ADD CONSTRAINT "Comment_parent_comment_id_Comment_id_fkey"
 ALTER TABLE "Comment" ADD CONSTRAINT "Comment_root_comment_id_Comment_id_fkey" FOREIGN KEY ("root_comment_id") REFERENCES "Comment"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "CommentReaction" ADD CONSTRAINT "CommentReaction_comment_id_Comment_id_fkey" FOREIGN KEY ("comment_id") REFERENCES "Comment"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "CommentReaction" ADD CONSTRAINT "CommentReaction_user_id_User_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNode" ADD CONSTRAINT "ContentNode_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNode" ADD CONSTRAINT "ContentNode_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNode" ADD CONSTRAINT "ContentNode_language_id_Language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "Language"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNode" ADD CONSTRAINT "ContentNode_file_handler_id_PluginService_id_fkey" FOREIGN KEY ("file_handler_id") REFERENCES "PluginService"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNode" ADD CONSTRAINT "ContentNode_file_id_File_id_fkey" FOREIGN KEY ("file_id") REFERENCES "File"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNodeToTask" ADD CONSTRAINT "ContentNodeToTask_content_node_id_ContentNode_id_fkey" FOREIGN KEY ("content_node_id") REFERENCES "ContentNode"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentNodeToTask" ADD CONSTRAINT "ContentNodeToTask_task_id_Task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelation" ADD CONSTRAINT "ContentRelation_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelation" ADD CONSTRAINT "ContentRelation_relation_type_id_ContentRelationType_id_fkey" FOREIGN KEY ("relation_type_id") REFERENCES "ContentRelationType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelation" ADD CONSTRAINT "ContentRelation_source_node_id_ContentNode_id_fkey" FOREIGN KEY ("source_node_id") REFERENCES "ContentNode"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelation" ADD CONSTRAINT "ContentRelation_source_element_id_TranslatableElement_id_fkey" FOREIGN KEY ("source_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelation" ADD CONSTRAINT "ContentRelation_target_node_id_ContentNode_id_fkey" FOREIGN KEY ("target_node_id") REFERENCES "ContentNode"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelation" ADD CONSTRAINT "ContentRelation_target_element_id_TranslatableElement_id_fkey" FOREIGN KEY ("target_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContentRelationType" ADD CONSTRAINT "ContentRelationType_owner_plugin_id_Plugin_id_fkey" FOREIGN KEY ("owner_plugin_id") REFERENCES "Plugin"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextEvidence" ADD CONSTRAINT "ContextEvidence_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextEvidence" ADD CONSTRAINT "ContextEvidence_content_node_id_ContentNode_id_fkey" FOREIGN KEY ("content_node_id") REFERENCES "ContentNode"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextEvidence" ADD CONSTRAINT "ContextEvidence_content_relation_id_ContentRelation_id_fkey" FOREIGN KEY ("content_relation_id") REFERENCES "ContentRelation"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextEvidence" ADD CONSTRAINT "ContextEvidence_XoIdOJz9nkr7_fkey" FOREIGN KEY ("translatable_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextEvidence" ADD CONSTRAINT "ContextEvidence_file_id_File_id_fkey" FOREIGN KEY ("file_id") REFERENCES "File"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextEvidence" ADD CONSTRAINT "ContextEvidence_storage_provider_id_PluginService_id_fkey" FOREIGN KEY ("storage_provider_id") REFERENCES "PluginService"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ContextProfile" ADD CONSTRAINT "ContextProfile_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "CrossReference" ADD CONSTRAINT "CrossReference_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "Document" ADD CONSTRAINT "Document_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "Document" ADD CONSTRAINT "Document_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "Document" ADD CONSTRAINT "Document_file_handler_id_PluginService_id_fkey" FOREIGN KEY ("file_handler_id") REFERENCES "PluginService"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "Document" ADD CONSTRAINT "Document_file_id_File_id_fkey" FOREIGN KEY ("file_id") REFERENCES "File"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "DocumentClosure" ADD CONSTRAINT "DocumentClosure_ancestor_Document_id_fkey" FOREIGN KEY ("ancestor") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "DocumentClosure" ADD CONSTRAINT "DocumentClosure_descendant_Document_id_fkey" FOREIGN KEY ("descendant") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "DocumentClosure" ADD CONSTRAINT "DocumentClosure_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "DocumentToTask" ADD CONSTRAINT "DocumentToTask_document_id_Document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "DocumentToTask" ADD CONSTRAINT "DocumentToTask_task_id_Task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "Task"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "EntityBranch" ADD CONSTRAINT "EntityBranch_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "EntityBranch" ADD CONSTRAINT "EntityBranch_created_by_User_id_fkey" FOREIGN KEY ("created_by") REFERENCES "User"("id") ON DELETE SET NULL;--> statement-breakpoint
 ALTER TABLE "EntityBranch" ADD CONSTRAINT "EntityBranch_created_by_agent_id_AgentDefinition_id_fkey" FOREIGN KEY ("created_by_agent_id") REFERENCES "AgentDefinition"("id") ON DELETE SET NULL;--> statement-breakpoint
@@ -1004,6 +1169,14 @@ ALTER TABLE "PullRequest" ADD CONSTRAINT "PullRequest_issue_id_Issue_id_fkey" FO
 ALTER TABLE "QaResult" ADD CONSTRAINT "QaResult_translation_id_Translation_id_fkey" FOREIGN KEY ("translation_id") REFERENCES "Translation"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "QaResultItem" ADD CONSTRAINT "QaResultItem_result_id_QaResult_id_fkey" FOREIGN KEY ("result_id") REFERENCES "QaResult"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "QaResultItem" ADD CONSTRAINT "QaResultItem_checker_id_PluginService_id_fkey" FOREIGN KEY ("checker_id") REFERENCES "PluginService"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ScopeBinding" ADD CONSTRAINT "ScopeBinding_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "ScopeBinding" ADD CONSTRAINT "ScopeBinding_content_node_id_ContentNode_id_fkey" FOREIGN KEY ("content_node_id") REFERENCES "ContentNode"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "ScopeBinding" ADD CONSTRAINT "ScopeBinding_content_relation_id_ContentRelation_id_fkey" FOREIGN KEY ("content_relation_id") REFERENCES "ContentRelation"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "SemanticDiffEntry" ADD CONSTRAINT "SemanticDiffEntry_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE;--> statement-breakpoint
+ALTER TABLE "SemanticDiffEntry" ADD CONSTRAINT "SemanticDiffEntry_changeset_id_Changeset_id_fkey" FOREIGN KEY ("changeset_id") REFERENCES "Changeset"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "SemanticDiffEntry" ADD CONSTRAINT "SemanticDiffEntry_element_id_TranslatableElement_id_fkey" FOREIGN KEY ("element_id") REFERENCES "TranslatableElement"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "SemanticDiffEntry" ADD CONSTRAINT "SemanticDiffEntry_content_node_id_ContentNode_id_fkey" FOREIGN KEY ("content_node_id") REFERENCES "ContentNode"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "SemanticDiffEntry" ADD CONSTRAINT "SemanticDiffEntry_content_relation_id_ContentRelation_id_fkey" FOREIGN KEY ("content_relation_id") REFERENCES "ContentRelation"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "SessionRecord" ADD CONSTRAINT "SessionRecord_user_id_User_id_fkey" FOREIGN KEY ("user_id") REFERENCES "User"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "Term" ADD CONSTRAINT "Term_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Term" ADD CONSTRAINT "Term_language_id_Language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "Language"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
@@ -1019,13 +1192,10 @@ ALTER TABLE "TermRecallVariant" ADD CONSTRAINT "TermRecallVariant_concept_id_Ter
 ALTER TABLE "TermRecallVariant" ADD CONSTRAINT "TermRecallVariant_language_id_Language_id_fkey" FOREIGN KEY ("language_id") REFERENCES "Language"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "ToolCallLog" ADD CONSTRAINT "ToolCallLog_session_id_AgentSession_id_fkey" FOREIGN KEY ("session_id") REFERENCES "AgentSession"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "ToolCallLog" ADD CONSTRAINT "ToolCallLog_run_id_AgentRun_id_fkey" FOREIGN KEY ("run_id") REFERENCES "AgentRun"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_document_id_Document_id_fkey" FOREIGN KEY ("document_id") REFERENCES "Document"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
+ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_project_id_Project_id_fkey" FOREIGN KEY ("project_id") REFERENCES "Project"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_creator_id_User_id_fkey" FOREIGN KEY ("creator_id") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_Lh1AAXOO5tiq_fkey" FOREIGN KEY ("vectorized_string_id") REFERENCES "VectorizedString"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "TranslatableElement" ADD CONSTRAINT "TranslatableElement_approved_translation_id_Translation_id_fkey" FOREIGN KEY ("approved_translation_id") REFERENCES "Translation"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslatableElementContext" ADD CONSTRAINT "TranslatableElementContext_file_id_File_id_fkey" FOREIGN KEY ("file_id") REFERENCES "File"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslatableElementContext" ADD CONSTRAINT "TranslatableElementContext_ocSqg69uUW3x_fkey" FOREIGN KEY ("storage_provider_id") REFERENCES "PluginService"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
-ALTER TABLE "TranslatableElementContext" ADD CONSTRAINT "TranslatableElementContext_1bh40XM18KpL_fkey" FOREIGN KEY ("translatable_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Translation" ADD CONSTRAINT "Translation_translator_id_User_id_fkey" FOREIGN KEY ("translator_id") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Translation" ADD CONSTRAINT "Translation_translatable_element_id_TranslatableElement_id_fkey" FOREIGN KEY ("translatable_element_id") REFERENCES "TranslatableElement"("id") ON DELETE CASCADE ON UPDATE CASCADE;--> statement-breakpoint
 ALTER TABLE "Translation" ADD CONSTRAINT "Translation_string_id_VectorizedString_id_fkey" FOREIGN KEY ("string_id") REFERENCES "VectorizedString"("id") ON DELETE RESTRICT ON UPDATE CASCADE;--> statement-breakpoint

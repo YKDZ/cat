@@ -1,4 +1,11 @@
-import { chunk, eq, translatableElement, vectorizedString } from "@cat/db";
+import {
+  and,
+  chunk,
+  contentRelation,
+  eq,
+  translatableElement,
+  vectorizedString,
+} from "@cat/db";
 import * as z from "zod";
 
 import type { Query } from "@/types";
@@ -13,6 +20,7 @@ export type GetElementWithChunkIdsQuery = z.infer<
 export type ElementWithChunkIds = {
   id: number;
   projectId: string;
+  documentId: string | null;
   value: string;
   languageId: string;
   chunkIds: number[];
@@ -56,9 +64,23 @@ export const getElementWithChunkIds: Query<
     chunkIds = chunkRows.map((r) => r.id);
   }
 
+  const docRows = await ctx.db
+    .select({ sourceNodeId: contentRelation.sourceNodeId })
+    .from(contentRelation)
+    .where(
+      and(
+        eq(contentRelation.targetElementId, query.elementId),
+        eq(contentRelation.targetEndpointKind, "ELEMENT"),
+        eq(contentRelation.isPrimary, true),
+      ),
+    )
+    .limit(1);
+  const documentId = docRows[0]?.sourceNodeId ?? null;
+
   return {
     id: elementRow.id,
     projectId: elementRow.projectId,
+    documentId,
     value: elementRow.value,
     languageId: elementRow.languageId,
     chunkIds,

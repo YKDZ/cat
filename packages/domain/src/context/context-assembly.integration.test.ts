@@ -1,4 +1,10 @@
-import { contextEvidence, language, user, vectorizedString } from "@cat/db";
+import {
+  contextEvidence,
+  language,
+  sql,
+  user,
+  vectorizedString,
+} from "@cat/db";
 import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, test } from "vitest";
 
@@ -75,6 +81,10 @@ describe("assembleContextEvidence", () => {
         { value: "Hello", languageId: "en" },
         { value: "Goodbye", languageId: "en" },
       ])
+      .onConflictDoUpdate({
+        target: [vectorizedString.languageId, vectorizedString.value],
+        set: { value: sql`excluded.value` },
+      })
       .returning({ id: vectorizedString.id });
     const ids = await executeCommand({ db: testDb.client }, createElements, {
       data: [
@@ -122,7 +132,7 @@ describe("assembleContextEvidence", () => {
     );
 
     expect(evidence).toHaveLength(3);
-    expect(evidence[0]?.label).toBe("source text");
+    expect(evidence[0]?.label).toBe("element key");
     expect(evidence.some((item) => item.label === "screenshot note")).toBe(
       true,
     );

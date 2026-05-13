@@ -53,6 +53,24 @@ watch(
   { immediate: false },
 );
 
+// Trigger initial page load when element count first becomes available.
+// On first client-side navigation (e.g. elementId="auto"), toElement is not
+// called, so toPage never fires for page 0. This watcher ensures the
+// current page is loaded once the element count is known.
+watch(
+  pageTotalAmount,
+  (newTotal) => {
+    if (
+      newTotal > 0 &&
+      currentPage.value >= 1 &&
+      currentPage.value <= newTotal
+    ) {
+      toPage(currentPage.value - 1);
+    }
+  },
+  { immediate: true },
+);
+
 const displayRange = computed(() => {
   const from = (currentPage.value - 1) * 16 + 1;
   const to = Math.min(currentPage.value * 16, elementTotalAmount.value);

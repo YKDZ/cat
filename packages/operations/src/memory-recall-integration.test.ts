@@ -7,6 +7,7 @@ import {
   createRootContentNode,
   createTranslations,
   createUser,
+  ensureCoreRelationTypes,
   ensureLanguages,
   executeCommand,
 } from "@cat/domain";
@@ -114,8 +115,8 @@ describe("memory recall integration", () => {
             primaryContentNodeId: contentNodeId,
             importerId: "test",
             sourceRootRef: `project:${projectId}`,
-            sourceNodeRef: `test#0`,
-            stableSourceRef: `test#0`,
+            sourceNodeRef: `test:${encodeURIComponent(sourceText)}`,
+            stableSourceRef: `test:${encodeURIComponent(sourceText)}`,
             stringId: source.id,
           },
         ],
@@ -156,6 +157,7 @@ describe("memory recall integration", () => {
       await pluginManager.restore(tx);
     });
 
+    await executeCommand({ db: db.client }, ensureCoreRelationTypes, {});
     await executeCommand({ db: db.client }, ensureLanguages, {
       languageIds: ["en", "zh-Hans"],
     });

@@ -381,7 +381,9 @@ export const contentNode = snakeCase.table(
   (table) => [
     index().using("btree", table.projectId.asc().nullsLast()),
     index().using("btree", table.sourcePath.asc().nullsLast()),
-    uniqueIndex()
+    uniqueIndex(
+      "ContentNode_project_id_importer_id_source_root_ref_stable_sourc",
+    )
       .on(
         table.projectId,
         table.importerId,

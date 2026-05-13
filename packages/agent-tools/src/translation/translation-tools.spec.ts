@@ -8,15 +8,14 @@ const mocked = vi.hoisted(() => ({
   tokenizeOp: vi.fn(),
   collectMemoryRecallOp: vi.fn(),
   createTranslationOp: vi.fn(),
-  getDocument: Symbol("getDocument"),
+  getContentNode: Symbol("getContentNode"),
   getLanguage: Symbol("getLanguage"),
-  getDocumentElements: Symbol("getDocumentElements"),
-  getElementContexts: Symbol("getElementContexts"),
+  getContentNodeElements: Symbol("getContentNodeElements"),
+  assembleContextEvidence: Symbol("assembleContextEvidence"),
   getElementWithChunkIds: Symbol("getElementWithChunkIds"),
   getProjectTargetLanguages: Symbol("getProjectTargetLanguages"),
-  listProjectDocuments: Symbol("listProjectDocuments"),
+  listProjectContentNodes: Symbol("listProjectContentNodes"),
   listMemoryIdsByProject: Symbol("listMemoryIdsByProject"),
-  listNeighborElements: Symbol("listNeighborElements"),
   listTranslationsByElement: Symbol("listTranslationsByElement"),
   executeQuery: vi.fn(),
   getDbHandle: vi.fn().mockResolvedValue({ client: { tag: "db" } }),
@@ -27,15 +26,14 @@ const mocked = vi.hoisted(() => ({
 vi.mock("@cat/domain", () => ({
   executeQuery: mocked.executeQuery,
   getDbHandle: mocked.getDbHandle,
-  getDocument: mocked.getDocument,
+  getContentNode: mocked.getContentNode,
   getLanguage: mocked.getLanguage,
-  getDocumentElements: mocked.getDocumentElements,
-  getElementContexts: mocked.getElementContexts,
+  getContentNodeElements: mocked.getContentNodeElements,
+  assembleContextEvidence: mocked.assembleContextEvidence,
   getElementWithChunkIds: mocked.getElementWithChunkIds,
   getProjectTargetLanguages: mocked.getProjectTargetLanguages,
-  listProjectDocuments: mocked.listProjectDocuments,
+  listProjectContentNodes: mocked.listProjectContentNodes,
   listMemoryIdsByProject: mocked.listMemoryIdsByProject,
-  listNeighborElements: mocked.listNeighborElements,
   listTranslationsByElement: mocked.listTranslationsByElement,
 }));
 
@@ -192,36 +190,36 @@ describe("translation tools", () => {
     mocked.executeQuery.mockResolvedValueOnce([
       {
         id: "44444444-4444-4444-8444-444444444444",
-        name: "docs",
+        displayLabel: "docs",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
         fileHandlerId: null,
         fileId: null,
-        isDirectory: true,
+        kind: "DIRECTORY",
         createdAt,
         updatedAt,
         parentId: null,
       },
       {
         id: "66666666-6666-4666-8666-666666666666",
-        name: "README.md",
+        displayLabel: "README.md",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
         fileHandlerId: 9,
         fileId: 10,
-        isDirectory: false,
+        kind: "FILE",
         createdAt,
         updatedAt,
         parentId: "44444444-4444-4444-8444-444444444444",
       },
       {
         id: "77777777-7777-4777-8777-777777777777",
-        name: "guide.md",
+        displayLabel: "guide.md",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
         fileHandlerId: 9,
         fileId: 11,
-        isDirectory: false,
+        kind: "FILE",
         createdAt,
         updatedAt,
         parentId: "44444444-4444-4444-8444-444444444444",
@@ -232,11 +230,9 @@ describe("translation tools", () => {
 
     expect(mocked.executeQuery).toHaveBeenCalledWith(
       { db: { tag: "db" } },
-      mocked.listProjectDocuments,
+      mocked.listProjectContentNodes,
       {
         projectId: "project-1",
-        page: 0,
-        pageSize: 3,
       },
     );
     expect(result).toEqual({
@@ -273,26 +269,26 @@ describe("translation tools", () => {
   });
 
   it("uses session document and language fallback when listing elements", async () => {
-    // First call: assertDocumentInSession → getDocument
+    // First call: assertDocumentInSession → getContentNode
     mocked.executeQuery.mockResolvedValueOnce({
       id: "33333333-3333-4333-8333-333333333333",
       projectId: "project-1",
     });
-    // Second call: getDocumentElements
+    // Second call: getContentNodeElements
     mocked.executeQuery.mockResolvedValueOnce([
       {
         id: 1,
         value: "Hello",
         languageId: "en-US",
         status: "NO",
-        sortIndex: 10,
+        localOrder: 10,
       },
       {
         id: 2,
         value: "World",
         languageId: "en-US",
         status: "TRANSLATED",
-        sortIndex: 20,
+        localOrder: 20,
       },
     ]);
 
@@ -301,15 +297,15 @@ describe("translation tools", () => {
     expect(mocked.executeQuery).toHaveBeenNthCalledWith(
       1,
       { db: { tag: "db" } },
-      mocked.getDocument,
-      { documentId: "33333333-3333-4333-8333-333333333333" },
+      mocked.getContentNode,
+      { id: "33333333-3333-4333-8333-333333333333" },
     );
     expect(mocked.executeQuery).toHaveBeenNthCalledWith(
       2,
       { db: { tag: "db" } },
-      mocked.getDocumentElements,
+      mocked.getContentNodeElements,
       {
-        documentId: "33333333-3333-4333-8333-333333333333",
+        contentNodeId: "33333333-3333-4333-8333-333333333333",
         page: 0,
         pageSize: 2,
         searchQuery: undefined,
@@ -350,20 +346,26 @@ describe("translation tools", () => {
       documentId: "33333333-3333-4333-8333-333333333333",
       chunkIds: [],
     });
-    // Second call: listNeighborElements
-    mocked.executeQuery.mockResolvedValueOnce([
+    // Second call: assembleContextEvidence
+    const evidenceItems = [
       {
-        id: 8,
-        value: "Previous sentence",
-        languageId: "en-US",
-        approvedTranslation: "上一句",
-        approvedTranslationLanguageId: "zh-CN",
-        offset: -1,
+        purpose: "AGENT",
+        priority: 1,
+        label: "Previous sentence",
+        score: 0.9,
+        sourceEndpoint: "element:8",
+        relatedEndpoint: null,
+        trustLevel: "DIRECT",
+        freshness: null,
+        clipped: false,
+        payload: { text: "Previous sentence" },
+        expansion: null,
       },
-    ]);
+    ];
+    mocked.executeQuery.mockResolvedValueOnce(evidenceItems);
 
     const result = await getNeighborsTool.execute(
-      { elementId: 9, windowSize: 1 },
+      { elementId: 9 },
       createCtx(),
     );
 
@@ -376,20 +378,11 @@ describe("translation tools", () => {
     expect(mocked.executeQuery).toHaveBeenNthCalledWith(
       2,
       { db: { tag: "db" } },
-      mocked.listNeighborElements,
-      { elementId: 9, windowSize: 1 },
+      mocked.assembleContextEvidence,
+      { elementId: 9, purpose: "AGENT", maxItems: 10 },
     );
     expect(result).toEqual({
-      neighbors: [
-        {
-          id: 8,
-          sourceText: "Previous sentence",
-          languageId: "en-US",
-          approvedTranslation: "上一句",
-          approvedTranslationLanguageId: "zh-CN",
-          offset: -1,
-        },
-      ],
+      evidence: evidenceItems,
     });
   });
 
@@ -414,11 +407,8 @@ describe("translation tools", () => {
           createdAt,
         },
       ])
-      // Third call: getElementContexts
-      .mockResolvedValueOnce({
-        element: { meta: null, createdAt, updatedAt: createdAt },
-        contexts: [{ kind: "comment", value: "UI label" }],
-      });
+      // Third call: assembleContextEvidence
+      .mockResolvedValueOnce([{ kind: "context-evidence", value: "UI label" }]);
 
     const result = await getTranslationsTool.execute(
       { elementId: 5, includeContext: true },
@@ -440,8 +430,8 @@ describe("translation tools", () => {
     expect(mocked.executeQuery).toHaveBeenNthCalledWith(
       3,
       { db: { tag: "db" } },
-      mocked.getElementContexts,
-      { elementId: 5 },
+      mocked.assembleContextEvidence,
+      { elementId: 5, purpose: "AGENT" },
     );
     expect(result).toEqual({
       translations: [
@@ -453,7 +443,7 @@ describe("translation tools", () => {
           createdAt,
         },
       ],
-      contexts: [{ kind: "comment", value: "UI label" }],
+      contexts: [{ kind: "context-evidence", value: "UI label" }],
     });
   });
 

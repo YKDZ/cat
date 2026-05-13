@@ -39,7 +39,8 @@ RUN moon docker prune
 
 #### RUNNER — minimal production image
 FROM node:24-alpine AS runner
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    DRIZZLE_MIGRATE=true
 
 WORKDIR /app
 

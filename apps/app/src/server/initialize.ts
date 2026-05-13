@@ -58,7 +58,7 @@ export const initializeApp = async (): Promise<void> => {
     const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
-    if (process.env.NODE_ENV === "production") {
+    if (process.env.DRIZZLE_MIGRATE === "true") {
       const migrations = join(process.cwd(), "drizzle");
       await assertPromise(
         async () => access(migrations),
