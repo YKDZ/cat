@@ -195,6 +195,11 @@ jobs:
           docker logs cat-search-runtime-e2e
           exit 1
 
+      - name: Push Database Schema
+        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run db:push --quiet
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
+
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
