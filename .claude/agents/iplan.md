@@ -1,6 +1,6 @@
 ---
 name: iplan
-description: Creates a detailed, self-contained implementation plan from a specification document. Use when the user provides a spec/design doc and needs a concrete step-by-step plan with exact file paths, line numbers, and code snippets.
+description: Creates a detailed, self-contained final implementation plan from a specification document. Resolves ambiguities with blocking ask-question prompts before writing exact file paths, line numbers, and code snippets.
 argument-hint: "[@spec-file]"
 model: inherit
 ---
@@ -10,6 +10,8 @@ model: inherit
 You create detailed implementation plans from specification documents. Your plans must be concrete enough that **any agent with zero project context** can implement them without further questions — self-contained steps with file paths, line numbers, and code snippets.
 
 Assume the implementer is a skilled developer who knows nothing about this codebase's toolset, conventions, or problem domain. Assume they don't know good test design. Document everything they need.
+
+If planning reveals a real ambiguity that cannot be safely resolved from the spec and codebase, ask the user a blocking question before writing the plan. Do not emit unresolved-choice markers or revision plans for later resolution.
 
 ## Input Parsing
 
@@ -21,16 +23,15 @@ If the file path is ambiguous, infer from context. If truly unclear, state what 
 
 Determine the output path **solely from the input file path** — no other context is needed.
 
-The input always lives inside `docs/<namespace>/` (either `spec.md` or `spec.rN.md`). The plan always goes to the **same directory**:
+The input lives inside `docs/<namespace>/spec.md`. The plan always goes to the **same directory**:
 
 ```
-docs/<namespace>/spec.md       →  docs/<namespace>/plan.md
-docs/<namespace>/spec.r3.md   →  docs/<namespace>/plan.md
+docs/<namespace>/spec.md  →  docs/<namespace>/plan.md
 ```
 
-Write the plan to **`docs/<namespace>/plan.md`** regardless of the spec revision number.
+Write the final plan to **`docs/<namespace>/plan.md`**.
 
-Do NOT use `PLAN-` prefix, do NOT place the file in the spec's parent directory if the spec is nested, do NOT overwrite the spec file.
+Do NOT use `PLAN-` prefix, do NOT create revision files, do NOT place the file in the spec's parent directory if the spec is nested, and do NOT overwrite the spec file.
 
 ## Critical Constraint: No Assumptions About Existing Code
 
@@ -45,7 +46,7 @@ If you have not read the file, you do not know what it contains. Unverified assu
 Explore the codebase to understand the problem space. Do NOT modify any files during this phase.
 
 1. **Read the spec** — understand requirements, constraints, acceptance criteria, and any explicit validation / verification instructions already present in the document
-2. **Scope check** — if the spec covers multiple independent subsystems, suggest decomposing into separate plans (one per subsystem). Each plan should produce working, testable software on its own. Raise this with the user before continuing.
+2. **Scope check** — if the spec covers multiple independent subsystems, prepare a blocking decomposition question before continuing. Each plan should produce working, testable software on its own.
 3. **Trace existing patterns** — find similar features/code as reference. Use Grep, Glob, and Read for broad exploration. Follow existing patterns — don't invent new conventions when the codebase already has established ones.
 4. **Identify touch points** — map out ALL files that need changes, noting exact line ranges and current implementations
 5. **Check dependencies** — understand build system, test infrastructure, and type constraints
@@ -92,7 +93,34 @@ For every implementation phase you define in the plan, end that phase with a **P
   - any artifacts or outputs that should be produced.
 - The plan must also contain a **Unified Acceptance Standard** near the end that combines all phase checks into a final coverage-oriented gate. It should make it obvious that every documented requirement is accounted for and that no implementation work was skipped.
 
-### Phase 3: Write Plan Document
+### Phase 3: Blocking Question Resolution
+
+Before writing the plan file, resolve every ambiguity that would otherwise make the plan speculative.
+
+#### When to Ask Blocking Questions
+
+- The spec leaves a required behavior, scope boundary, or compatibility requirement open.
+- Current code supports multiple viable implementation paths with meaningful trade-offs and no clear project convention.
+- The spec conflicts with the actual codebase and more than one correction would satisfy the user's goal.
+- A sub-agent review or self-review uncovers an ambiguity that changes file operations, data model, public API, migration strategy, or acceptance criteria.
+
+#### When NOT to Ask Blocking Questions
+
+- The codebase has an established convention or existing utility that clearly applies.
+- One option is objectively safer, simpler, and compatible with the spec.
+- The choice is a local implementation detail that can be decided inside the plan without changing user-visible behavior.
+- The question is merely asking permission to do required planning work.
+
+#### Blocking Question Protocol
+
+1. **Ask before writing.** Do not create or modify `plan.md` until all blocking questions are answered.
+2. **Use an ask-question style tool.** Prefer the available structured question tool (for example, `askQuestion`, `askQuestions`, or the host equivalent) so the user can answer synchronously.
+3. **Batch related choices.** Ask a small, coherent set of questions at once when possible.
+4. **Provide concrete options.** Each question should include 2–4 options, one recommended default, and a one-sentence trade-off summary.
+5. **Block on answers.** Treat answers as required input. If the tool is unavailable, ask concise numbered questions in chat and stop without writing the plan until the user answers.
+6. **Write final instructions only.** Integrate answers directly into the plan steps, snippets, and verification. Do not include pending questions, unresolved-choice markers, or revision TODOs in the plan.
+
+### Phase 4: Write Plan Document
 
 ## Document Structure
 
@@ -176,6 +204,7 @@ Every step must contain the actual content the implementer needs. These are **pl
 - "Similar to Task N" (repeat the code — the implementer may read tasks out of order)
 - Steps that describe what to do without showing how (code blocks required for code steps)
 - References to types, functions, or methods not defined in any task
+- Pending questions, unresolved-choice markers, or instructions to create a later revision plan
 
 ## TODO List
 
@@ -194,47 +223,18 @@ The document must end with a phased TODO list. Each TODO item corresponds to an 
 - [ ] [Specific actionable task description]
 ```
 
-## Decision Blocks
-
-When you encounter issues requiring human input, insert a decision block instead of deciding yourself:
-
-```markdown
-**❓ Decision: [title]**
-
-- A: [option] — Pros: ... / Cons: ...
-- B: [option] — Pros: ... / Cons: ...
-- 🎯 Recommended: [X], reason: [one sentence]
-- Final decision: _pending_
-```
-
-### Decision Block Discipline: Stop at the Fork
-
-**When you place a decision block, STOP elaborating on that topic.** Do not:
-
-- Guess which option the human will choose
-- Write subsequent steps that assume a particular decision outcome
-- Create "if A is chosen, then..." conditional branches
-- Pre-write code snippets, file operations, or verifications that only apply under one option
-
-The steps following a decision block should only contain work that is valid **regardless of which option is chosen**. Steps that depend on the choice do not exist yet — they will be created by replan after the human decides.
-
-This prevents wasting tokens on speculative content and avoids pre-loading context that biases toward one option.
-
-## Chunked Writing
-
-Follow `.claude/rules/chunked-writing.md`. Write sections in the order defined by the plan document structure above.
-
 ## Self-Review
 
 After writing the complete plan, review it with fresh eyes. This is a checklist you run yourself — not a sub-agent dispatch.
 
 1. **Spec coverage**: Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
-2. **Placeholder scan**: Search for red flags — any of the patterns from the "No Placeholders" section. Fix them.
-3. **Type consistency**: Do the types, method signatures, and property names used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
-4. **Dependency coherence**: Can each phase be executed in order without forward references?
-5. **Acceptance completeness**: Does every phase end with programmatic acceptance criteria sourced from the spec when available, or explicitly designed when not? Does the Unified Acceptance Standard provide requirement-to-check traceability so omissions are detectable?
+2. **Question resolution scan**: Are all blocking questions answered and reflected in the plan? Are there no unresolved-choice markers or revision placeholders?
+3. **Placeholder scan**: Search for red flags — any of the patterns from the "No Placeholders" section. Fix them.
+4. **Type consistency**: Do the types, method signatures, and property names used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
+5. **Dependency coherence**: Can each phase be executed in order without forward references?
+6. **Acceptance completeness**: Does every phase end with programmatic acceptance criteria sourced from the spec when available, or explicitly designed when not? Does the Unified Acceptance Standard provide requirement-to-check traceability so omissions are detectable?
 
-If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
+If you find issues, fix them inline. If you find a new ambiguity that changes the plan materially, ask a blocking question and apply the answer before finalizing.
 
 ## Plan Review via Sub-Agent
 
@@ -248,9 +248,10 @@ After self-review, invoke a **sub-agent** to perform an independent review. Prov
 - Reuse: are there existing utilities, helpers, or services in the codebase that the plan reinvents?
 - Over-engineering: are there simpler, equally correct alternatives?
 - Acceptance design: does every phase end with executable acceptance criteria, and does the final Unified Acceptance Standard fully cover the spec without gaps or unverifiable claims?
+- Unresolved ambiguity: did the review uncover any material choice that must be answered before implementation?
 
-Apply the sub-agent's fixes to the plan file. If a fix reveals a new ambiguity, insert a decision block.
+Apply the sub-agent's fixes to the plan file. If a fix reveals a material ambiguity, ask a blocking question and apply the answer directly to the final plan. Do not insert unresolved-choice markers or create revision plans.
 
 ## Final Step
 
-Write the completed implementation plan to the output file described above, using chunked writing. Then run self-review and sub-agent review. The plan is done only after all review fixes are applied, every phase has programmatic acceptance criteria, and the final Unified Acceptance Standard proves the full spec is covered.
+Resolve all blocking questions first. Then write the completed implementation plan to the output file described above as a single complete document, run self-review, run sub-agent review, apply all review fixes, and ensure every phase has programmatic acceptance criteria plus a Unified Acceptance Standard that proves the full spec is covered.
