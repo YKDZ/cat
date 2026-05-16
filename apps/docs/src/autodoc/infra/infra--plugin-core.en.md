@@ -63,11 +63,11 @@ must approve exec |
 | `AuthFactorResult` | type | Result of executing an auth factor. |
 | `AuthFactorExecutionContext` | type | Context passed to an AUTH_FACTOR when it executes. |
 | `CanImportContext` | type |  |
-| `ImportContext` | type |  |
 | `CanExportContext` | type |  |
-| `ExportContext` | type |  |
-| `ElementLocation` | type |  |
 | `ElementData` | type |  |
+| `FileImportResult` | type |  |
+| `ImportContext` | type |  |
+| `ExportContext` | type |  |
 | `ChatMessageRole` | type | Chat message role. |
 | `ChatMessage` | type | A chat message in a conversation. |
 | `ToolDefinition` | type | Tool definition with JSON Schema parameters. |

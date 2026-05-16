@@ -71,11 +71,13 @@ Directly stores term text (text + languageId), then builds |
 After deletion, the domain event handler automatically tri |
 | `DeleteTermInput` | type |  |
 | `DeleteTermOutput` | type |  |
-| `diffElementsOp` | function | Compare old and new elements and apply additions, deletions, and updates.
-
-1. Fe |
-| `DiffElementsInput` | type |  |
-| `DiffElementsOutput` | type |  |
+| `classifySemanticElementDiffForTest` | function | Classify a single matched element pair semantically (pure function, testable). |
+| `diffStructuredContentOp` | function | Diff elements by stable identity from a structured content payload
+and record se |
+| `DiffStructuredContentInput` | type |  |
+| `DiffStructuredContentOutput` | type |  |
+| `ClassifySemanticElementDiffInput` | type |  |
+| `ClassifySemanticElementDiffResult` | type |  |
 | `fetchAdviseOp` | function | Fetch machine-translation suggestions.
 
 Queries the TRANSLATION_ADVISOR plugin s |
@@ -85,11 +87,7 @@ Queries the TRANSLATION_ADVISOR plugin s |
 in paral |
 | `FetchBestTranslationCandidateInput` | type |  |
 | `FetchBestTranslationCandidateOutput` | type |  |
-| `findOrCreateAutoTranslatePR` | function | Find or create an AutoTranslate PR for the given language.
-Concurrency safety is |
-| `FindOrCreateAutoTranslatePRInput` | interface |  |
-| `FindOrCreateAutoTranslatePRResult` | interface |  |
-| *(174 more)* | | |
+| *(177 more)* | | |
 
 ## Related Topics
 

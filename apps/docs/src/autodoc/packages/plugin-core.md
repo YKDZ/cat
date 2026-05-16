@@ -201,15 +201,15 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 
 * `CanImportContext` (type)
 
-* `ImportContext` (type)
-
 * `CanExportContext` (type)
 
-* `ExportContext` (type)
-
-* `ElementLocation` (type)
-
 * `ElementData` (type)
+
+* `FileImportResult` (type)
+
+* `ImportContext` (type)
+
+* `ExportContext` (type)
 
 * `ChatMessageRole` (type) — Chat message role.
 

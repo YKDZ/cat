@@ -31,7 +31,7 @@
 | `CreateChangeSetParams` | interface |  |
 | `AddEntryParams` | interface |  |
 | `ChangeSetFilters` | interface |  |
-| `registerAllDiffStrategies` | function | Register all 13 entityType diff strategies into the registry |
+| `registerAllDiffStrategies` | function | Register all entityType diff strategies into the registry (including content gra |
 | `FieldChange` | interface | Field-level change description |
 | `DiffResult` | interface | Diff computation result |
 | `DiffStrategy` | interface | Entity diff strategy interface |

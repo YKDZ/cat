@@ -6,9 +6,9 @@ Operations layer: business workflows composing domain operations
 
 * **Modules**: 87
 
-* **Exported functions**: 104
+* **Exported functions**: 105
 
-* **Exported types**: 120
+* **Exported types**: 122
 
 ## Function Index
 
@@ -218,24 +218,23 @@ export const deduplicateAndMatchOp = async (data: DeduplicateAndMatchInput, _ctx
 export const deleteTermOp = async (data: DeleteTermInput, ctx?: OperationContext): Promise<{ deleted: boolean; conceptId: number | null; }>
 ```
 
-### `diffElementsOp`
+### `classifySemanticElementDiffForTest`
 
 ```ts
 /**
- * Compare old and new elements and apply additions, deletions, and updates.
- *
- * 1. Fetch old elements
- * 2. Match old and new elements by meta
- * 3. Process text updates, sort-index updates, and position updates
- * 4. Create newly added elements
- * 5. Delete removed elements
- *
- * @param data - Diff input parameters
- * @param ctx - Operation context
- *
- * @returns IDs of added elements, removed elements, and the document
+ * Classify a single matched element pair semantically (pure function, testable).
  */
-export const diffElementsOp = async (data: DiffElementsInput, ctx?: OperationContext): Promise<{ addedElementIds: number[]; removedElementIds: number[]; documentId: string; }>
+export const classifySemanticElementDiffForTest = (input: ClassifySemanticElementDiffInput): ClassifySemanticElementDiffResult
+```
+
+### `diffStructuredContentOp`
+
+```ts
+/**
+ * Diff elements by stable identity from a structured content payload
+ * and record semantic diff entries.
+ */
+export const diffStructuredContentOp = async (data: DiffStructuredContentInput, ctx?: OperationContext): Promise<{ contentNodeIds: string[]; relationIds: string[]; contextEvidenceIds: number[]; addedElementIds: number[]; removedElementIds: number[]; updatedElementIds: number[]; movedElementIds: number[]; semanticDiffIds: number[]; }>
 ```
 
 ### `fetchAdviseOp`
@@ -629,17 +628,17 @@ export const nlpSegmentOp = async (data: NlpSegmentInput, ctx?: OperationContext
 
 ```ts
 /**
- * Parse file content into a list of translatable elements.
+ * Parse file content into a structured content graph payload.
  *
- * Parses the file via the FILE_IMPORTER plugin, then fills in the
- * sortIndex for each element.
+ * Parses the file via the FILE_IMPORTER plugin and assembles a
+ * StructuredContentPayload.
  *
- * @param data - Parse input parameters (file ID and language ID)
+ * @param data - Parse input parameters
  * @param _ctx - Operation context (unused)
  *
- * @returns Parsed list of translatable elements
+ * @returns Structured content graph payload
  */
-export const parseFileOp = async (data: ParseFileInput, _ctx?: OperationContext): Promise<{ elements: { text: string; sortIndex: number; languageId: string; meta: any; sourceStartLine?: number | null | undefined; sourceEndLine?: number | null | undefined; sourceLocationMeta?: any; }[]; }>
+export const parseFileOp = async (data: ParseFileInput, _ctx?: OperationContext): Promise<{ payload: { payloadVersion: "content-graph/v1"; projectId: string; sourceLanguageId: string; importerId: string; sourceRootRef: string; relationTypes: { namespace: string; name: string; version: string; semanticFamily: "CUSTOM" | "CONTAINMENT" | "ORDERING" | "SOURCE_REFERENCE" | "SCOPE" | "DEPENDENCY" | "VERSIONING" | "EVIDENCE" | "DISCUSSION" | "DUPLICATE" | "SEMANTIC"; allowedEndpointPairs: { source: "ELEMENT" | "NODE"; target: "ELEMENT" | "NODE"; }[]; directionality: "DIRECTED" | "UNDIRECTED"; participatesInContainment: boolean; participatesInExport: boolean; supportsOrdering: boolean; weightingEligible: boolean; defaultTrustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ownerPluginId?: string | null | undefined; deprecation?: any; migration?: any; metadata?: any; }[]; nodes: { ref: string; kind: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "MARKDOWN_SECTION" | "SOURCE_COMPONENT" | "UI_ROUTE" | "MODULE" | "MOD" | "VERSION" | "NAMESPACE" | "CHAPTER" | "PACKAGE" | "SCREENSHOT_TARGET" | "CUSTOM"; displayLabel: string; importerId: string; sourceRootRef: string; stableSourceNodeRef: string; exportRole: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "NONE" | "SECTION"; boundaryType: "PROJECT" | "FILE" | "DIRECTORY" | "MODULE" | "MOD" | "NAMESPACE" | "NONE" | "SOURCE_ROOT"; parentRef?: string | null | undefined; sourceUri?: string | null | undefined; sourcePath?: string | null | undefined; sourceType?: string | null | undefined; languageId?: string | null | undefined; file?: { fileId: number; fileHandlerId?: number | null | undefined; } | null | undefined; metadata?: any; provenance?: any; }[]; elements: { ref: string; stableSourceRef: string; sourceNodeRef: string; text: string; languageId: string; localOrder?: number | undefined; meta?: any; location?: { startLine?: number | undefined; endLine?: number | undefined; custom?: any; } | undefined; }[]; relations: { type: { namespace: string; name: string; version: string; }; source: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; target: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; isPrimary: boolean; confidenceBasisPoints: number; localOrder?: number | null | undefined; provenance?: any; metadata?: any; }[]; evidence: { attachedTo: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; } | { kind: "RELATION"; relationRef: string; }; kind: "TEXT" | "JSON" | "FILE" | "MARKDOWN" | "URL" | "IMAGE" | "COMMENT" | "SOURCE_LOCATION" | "SCREENSHOT" | "GENERATED_ANALYSIS" | "EXTERNAL_REFERENCE"; trustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ref?: string | undefined; textData?: string | null | undefined; jsonData?: any; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; displayLabel?: string | null | undefined; freshness?: string | null | undefined; provenance?: any; }[]; options?: { branchId?: number | undefined; } | undefined; }; }>
 ```
 
 ### `qaTranslationOp`
@@ -1062,22 +1061,19 @@ export const triggerTermRecallReindex = (conceptId: number, ctx?: OperationConte
 export const updateConceptOp = async (data: UpdateConceptInput, ctx?: OperationContext): Promise<{ updated: boolean; }>
 ```
 
-### `upsertDocumentFromFileOp`
+### `upsertContentNodeFromFileOp`
 
 ```ts
 /**
- * Update document elements from a file.
+ * Synchronize file content to translatable elements under a content node
+ * via file parsing and stable-identity diff.
  *
- * 1. Parse the file to obtain an element list
- * 2. Fetch the current (old) element IDs for the document
- * 3. Diff the new and old elements and apply additions, deletions, and updates
- *
- * @param data - File-from-document update input parameters
+ * @param data - Synchronization input parameters
  * @param ctx - Operation context
  *
- * @returns Result containing the count of added and removed elements
+ * @returns Sync result statistics
  */
-export const upsertDocumentFromFileOp = async (data: UpsertDocumentInput, ctx?: OperationContext): Promise<{ success: boolean; addedCount: number; removedCount: number; }>
+export const upsertContentNodeFromFileOp = async (data: UpsertContentNodeFromFileInput, ctx?: OperationContext): Promise<{ success: boolean; contentNodeIds: string[]; addedCount: number; removedCount: number; updatedCount: number; movedCount: number; semanticDiffIds: number[]; }>
 ```
 
 ### `vectorTermAlignOp`
@@ -1628,9 +1624,13 @@ export const orchestrateRerank = async ({
 
 * `DeleteTermOutput` (type)
 
-* `DiffElementsInput` (type)
+* `DiffStructuredContentInput` (type)
 
-* `DiffElementsOutput` (type)
+* `DiffStructuredContentOutput` (type)
+
+* `ClassifySemanticElementDiffInput` (type)
+
+* `ClassifySemanticElementDiffResult` (type)
 
 * `FetchAdviseInput` (type)
 
@@ -1810,9 +1810,9 @@ export const orchestrateRerank = async ({
 
 * `UpdateConceptOutput` (type)
 
-* `UpsertDocumentInput` (type)
+* `UpsertContentNodeFromFileInput` (type)
 
-* `UpsertDocumentOutput` (type)
+* `UpsertContentNodeFromFileOutput` (type)
 
 * `VectorTermAlignInput` (type)
 

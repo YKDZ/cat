@@ -6,7 +6,7 @@
     "kind": "function",
     "packageName": "@cat/agent-tools",
     "filePath": "packages/agent-tools/src/translation/assert-session-scope.ts",
-    "line": 63,
+    "line": 67,
     "description": "Verify the given documentId matches the session scope and belongs to the session's project."
   },
   {
@@ -26,7 +26,7 @@
     "kind": "function",
     "packageName": "@cat/agent-tools",
     "filePath": "packages/agent-tools/src/translation/assert-session-scope.ts",
-    "line": 48,
+    "line": 52,
     "description": "Verify the given project belongs to the current session's project scope."
   },
   {
@@ -1040,7 +1040,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 144
+    "line": 152
   },
   {
     "id": "@cat/db:packages/db/src/zod/generators:GeneratedFileSpec",
@@ -1049,7 +1049,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 146
+    "line": 154
   },
   {
     "id": "@cat/domain:packages/domain/src/cache/cache-decorator:generateCacheKey",
@@ -1148,7 +1148,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/capability-factory.ts",
-    "line": 115
+    "line": 100
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:AgentCapabilities",
@@ -1157,7 +1157,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 282
+    "line": 230
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:AuthCapabilities",
@@ -1166,7 +1166,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 203
+    "line": 151
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:CommentCapabilities",
@@ -1175,25 +1175,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 260
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/capabilities/types:DocumentCapabilities",
-    "stableKey": "@cat/domain:packages/domain/src/capabilities/types:DocumentCapabilities",
-    "name": "DocumentCapabilities",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 139
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/capabilities/types:ElementCapabilities",
-    "stableKey": "@cat/domain:packages/domain/src/capabilities/types:ElementCapabilities",
-    "name": "ElementCapabilities",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 306
+    "line": 208
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:GlossaryCapabilities",
@@ -1202,7 +1184,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 321
+    "line": 254
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:LanguageCapabilities",
@@ -1211,7 +1193,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 236
+    "line": 184
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:MemoryCapabilities",
@@ -1220,7 +1202,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 366
+    "line": 299
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:PluginCapabilities",
@@ -1229,7 +1211,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 387
+    "line": 320
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:ProjectCapabilities",
@@ -1238,16 +1220,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 96
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/capabilities/types:QaCapabilities",
-    "stableKey": "@cat/domain:packages/domain/src/capabilities/types:QaCapabilities",
-    "name": "QaCapabilities",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 315
+    "line": 81
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:SettingCapabilities",
@@ -1256,7 +1229,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 195
+    "line": 143
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:TranslationCapabilities",
@@ -1265,7 +1238,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 167
+    "line": 118
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:UserCapabilities",
@@ -1274,7 +1247,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 245
+    "line": 193
   },
   {
     "id": "@cat/domain:packages/domain/src/capabilities/types:VectorCapabilities",
@@ -1283,7 +1256,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/capabilities/types.ts",
-    "line": 219
+    "line": 167
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/agent/complete-agent-session.cmd:completeAgentSession",
@@ -1931,6 +1904,199 @@
     "line": 15
   },
   {
+    "id": "@cat/domain:packages/domain/src/commands/content/apply-content-graph-envelope.cmd:AppliedGraphEnvelope",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/apply-content-graph-envelope.cmd:AppliedGraphEnvelope",
+    "name": "AppliedGraphEnvelope",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/apply-content-graph-envelope.cmd.ts",
+    "line": 14
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/apply-content-graph-envelope.cmd:applyContentGraphEnvelope",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/apply-content-graph-envelope.cmd:applyContentGraphEnvelope",
+    "name": "applyContentGraphEnvelope",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/apply-content-graph-envelope.cmd.ts",
+    "line": 36,
+    "description": "Persist relation types and nodes for a structured content graph payload.\n\nMerges CoreRelationTypeDefinitions with payload.relationTypes and upserts\nall relation types by (namespace, name, version). Upserts nodes by\n(projectId, importerId, sourceRootRef, stableSourceNodeRef). Returns\nnode ref maps for subsequent diffing."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/apply-content-graph-envelope.cmd:ApplyContentGraphEnvelopeInput",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/apply-content-graph-envelope.cmd:ApplyContentGraphEnvelopeInput",
+    "name": "ApplyContentGraphEnvelopeInput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/apply-content-graph-envelope.cmd.ts",
+    "line": 10
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/bulk-update-primary-relation-order.cmd:bulkUpdatePrimaryRelationOrder",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/bulk-update-primary-relation-order.cmd:bulkUpdatePrimaryRelationOrder",
+    "name": "bulkUpdatePrimaryRelationOrder",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/bulk-update-primary-relation-order.cmd.ts",
+    "line": 14
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/bulk-update-primary-relation-order.cmd:BulkUpdatePrimaryRelationOrderCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/bulk-update-primary-relation-order.cmd:BulkUpdatePrimaryRelationOrderCommand",
+    "name": "BulkUpdatePrimaryRelationOrderCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/bulk-update-primary-relation-order.cmd.ts",
+    "line": 10
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/create-content-node-under-parent.cmd:createContentNodeUnderParent",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/create-content-node-under-parent.cmd:createContentNodeUnderParent",
+    "name": "createContentNodeUnderParent",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/create-content-node-under-parent.cmd.ts",
+    "line": 46
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/create-content-node-under-parent.cmd:CreateContentNodeUnderParentCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/create-content-node-under-parent.cmd:CreateContentNodeUnderParentCommand",
+    "name": "CreateContentNodeUnderParentCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/create-content-node-under-parent.cmd.ts",
+    "line": 42
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/create-root-content-node.cmd:createRootContentNode",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/create-root-content-node.cmd:createRootContentNode",
+    "name": "createRootContentNode",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/create-root-content-node.cmd.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/create-root-content-node.cmd:CreateRootContentNodeCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/create-root-content-node.cmd:CreateRootContentNodeCommand",
+    "name": "CreateRootContentNodeCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/create-root-content-node.cmd.ts",
+    "line": 13
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/delete-content-node.cmd:deleteContentNode",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/delete-content-node.cmd:deleteContentNode",
+    "name": "deleteContentNode",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/delete-content-node.cmd.ts",
+    "line": 17,
+    "description": "Delete a content node (cascading to its relations and children)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/delete-content-node.cmd:DeleteContentNodeCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/delete-content-node.cmd:DeleteContentNodeCommand",
+    "name": "DeleteContentNodeCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/delete-content-node.cmd.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/ensure-core-relation-types.cmd:ensureCoreRelationTypes",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/ensure-core-relation-types.cmd:ensureCoreRelationTypes",
+    "name": "ensureCoreRelationTypes",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/ensure-core-relation-types.cmd.ts",
+    "line": 15
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/ensure-core-relation-types.cmd:EnsureCoreRelationTypesCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/ensure-core-relation-types.cmd:EnsureCoreRelationTypesCommand",
+    "name": "EnsureCoreRelationTypesCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/ensure-core-relation-types.cmd.ts",
+    "line": 11
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/insert-semantic-diff-entry.cmd:insertSemanticDiffEntry",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/insert-semantic-diff-entry.cmd:insertSemanticDiffEntry",
+    "name": "insertSemanticDiffEntry",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/insert-semantic-diff-entry.cmd.ts",
+    "line": 26,
+    "description": "Insert a single semantic diff entry record."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/insert-semantic-diff-entry.cmd:InsertSemanticDiffEntryInput",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/insert-semantic-diff-entry.cmd:InsertSemanticDiffEntryInput",
+    "name": "InsertSemanticDiffEntryInput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/insert-semantic-diff-entry.cmd.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/insert-semantic-diff-entry.cmd:InsertSemanticDiffEntryOutput",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/insert-semantic-diff-entry.cmd:InsertSemanticDiffEntryOutput",
+    "name": "InsertSemanticDiffEntryOutput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/insert-semantic-diff-entry.cmd.ts",
+    "line": 18
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/persist-content-graph-attachments.cmd:persistContentGraphAttachments",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/persist-content-graph-attachments.cmd:persistContentGraphAttachments",
+    "name": "persistContentGraphAttachments",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/persist-content-graph-attachments.cmd.ts",
+    "line": 31,
+    "description": "Persist relations and context evidence from a structured content graph payload.\n\nAfter element diff creates/updates elements, resolves payload.relations\nand payload.evidence endpoint refs to database IDs and persists them."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/persist-content-graph-attachments.cmd:PersistContentGraphAttachmentsInput",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/persist-content-graph-attachments.cmd:PersistContentGraphAttachmentsInput",
+    "name": "PersistContentGraphAttachmentsInput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/persist-content-graph-attachments.cmd.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/content/persist-content-graph-attachments.cmd:PersistContentGraphAttachmentsOutput",
+    "stableKey": "@cat/domain:packages/domain/src/commands/content/persist-content-graph-attachments.cmd:PersistContentGraphAttachmentsOutput",
+    "name": "PersistContentGraphAttachmentsOutput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/content/persist-content-graph-attachments.cmd.ts",
+    "line": 15
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/context/ensure-default-context-profile.cmd:ensureDefaultContextProfile",
+    "stableKey": "@cat/domain:packages/domain/src/commands/context/ensure-default-context-profile.cmd:ensureDefaultContextProfile",
+    "name": "ensureDefaultContextProfile",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/context/ensure-default-context-profile.cmd.ts",
+    "line": 15
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/context/ensure-default-context-profile.cmd:EnsureDefaultContextProfileCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/context/ensure-default-context-profile.cmd:EnsureDefaultContextProfileCommand",
+    "name": "EnsureDefaultContextProfileCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/context/ensure-default-context-profile.cmd.ts",
+    "line": 11
+  },
+  {
     "id": "@cat/domain:packages/domain/src/commands/cross-reference/parse-and-save.cmd:parseAndSaveCrossReferences",
     "stableKey": "@cat/domain:packages/domain/src/commands/cross-reference/parse-and-save.cmd:parseAndSaveCrossReferences",
     "name": "parseAndSaveCrossReferences",
@@ -1977,34 +2143,6 @@
     "line": 16
   },
   {
-    "id": "@cat/domain:packages/domain/src/commands/document/create-document-under-parent.cmd:createDocumentUnderParent",
-    "stableKey": "@cat/domain:packages/domain/src/commands/document/create-document-under-parent.cmd:createDocumentUnderParent",
-    "name": "createDocumentUnderParent",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/document/create-document-under-parent.cmd.ts",
-    "line": 19,
-    "description": "Create a new document under the given parent in the closure-table tree.\nIf `parentId` is null, the project root document is used as the parent."
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/commands/document/create-root-document.cmd:createRootDocument",
-    "stableKey": "@cat/domain:packages/domain/src/commands/document/create-root-document.cmd:createRootDocument",
-    "name": "createRootDocument",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/document/create-root-document.cmd.ts",
-    "line": 19
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/commands/document/create-root-document.cmd:CreateRootDocumentCommand",
-    "stableKey": "@cat/domain:packages/domain/src/commands/document/create-root-document.cmd:CreateRootDocumentCommand",
-    "name": "CreateRootDocumentCommand",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/document/create-root-document.cmd.ts",
-    "line": 15
-  },
-  {
     "id": "@cat/domain:packages/domain/src/commands/document/create-vectorized-chunks.cmd:createVectorizedChunks",
     "stableKey": "@cat/domain:packages/domain/src/commands/document/create-vectorized-chunks.cmd:createVectorizedChunks",
     "name": "createVectorizedChunks",
@@ -2032,31 +2170,13 @@
     "line": 24
   },
   {
-    "id": "@cat/domain:packages/domain/src/commands/document/delete-document.cmd:deleteDocument",
-    "stableKey": "@cat/domain:packages/domain/src/commands/document/delete-document.cmd:deleteDocument",
-    "name": "deleteDocument",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/document/delete-document.cmd.ts",
-    "line": 14
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/commands/document/delete-document.cmd:DeleteDocumentCommand",
-    "stableKey": "@cat/domain:packages/domain/src/commands/document/delete-document.cmd:DeleteDocumentCommand",
-    "name": "DeleteDocumentCommand",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/document/delete-document.cmd.ts",
-    "line": 12
-  },
-  {
     "id": "@cat/domain:packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd:bulkUpdateElementsForDiff",
     "stableKey": "@cat/domain:packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd:bulkUpdateElementsForDiff",
     "name": "bulkUpdateElementsForDiff",
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd.ts",
-    "line": 45
+    "line": 37
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd:BulkUpdateElementsForDiffCommand",
@@ -2065,7 +2185,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd.ts",
-    "line": 37
+    "line": 29
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd:BulkUpdateElementsForDiffCommandInput",
@@ -2074,7 +2194,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/element/bulk-update-elements-for-diff.cmd.ts",
-    "line": 41
+    "line": 33
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/element/create-elements.cmd:createElements",
@@ -2083,7 +2203,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/element/create-elements.cmd.ts",
-    "line": 27
+    "line": 39
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/element/create-elements.cmd:CreateElementsCommand",
@@ -2092,7 +2212,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/element/create-elements.cmd.ts",
-    "line": 25
+    "line": 37
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/element/delete-elements-by-ids.cmd:deleteElementsByIds",
@@ -2111,24 +2231,6 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/element/delete-elements-by-ids.cmd.ts",
     "line": 10
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/commands/element/insert-element-contexts.cmd:insertElementContexts",
-    "stableKey": "@cat/domain:packages/domain/src/commands/element/insert-element-contexts.cmd:insertElementContexts",
-    "name": "insertElementContexts",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/element/insert-element-contexts.cmd.ts",
-    "line": 31
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/commands/element/insert-element-contexts.cmd:InsertElementContextsCommand",
-    "stableKey": "@cat/domain:packages/domain/src/commands/element/insert-element-contexts.cmd:InsertElementContextsCommand",
-    "name": "InsertElementContextsCommand",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/element/insert-element-contexts.cmd.ts",
-    "line": 27
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/file/create-blob.cmd:createBlob",
@@ -3160,24 +3262,6 @@
     "line": 11
   },
   {
-    "id": "@cat/domain:packages/domain/src/commands/project/create-project-translation-snapshot.cmd:createProjectTranslationSnapshot",
-    "stableKey": "@cat/domain:packages/domain/src/commands/project/create-project-translation-snapshot.cmd:createProjectTranslationSnapshot",
-    "name": "createProjectTranslationSnapshot",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/project/create-project-translation-snapshot.cmd.ts",
-    "line": 26
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/commands/project/create-project-translation-snapshot.cmd:CreateProjectTranslationSnapshotCommand",
-    "stableKey": "@cat/domain:packages/domain/src/commands/project/create-project-translation-snapshot.cmd:CreateProjectTranslationSnapshotCommand",
-    "name": "CreateProjectTranslationSnapshotCommand",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/project/create-project-translation-snapshot.cmd.ts",
-    "line": 22
-  },
-  {
     "id": "@cat/domain:packages/domain/src/commands/project/create-project.cmd:createProject",
     "stableKey": "@cat/domain:packages/domain/src/commands/project/create-project.cmd:createProject",
     "name": "createProject",
@@ -3665,22 +3749,42 @@
     "line": 13
   },
   {
-    "id": "@cat/domain:packages/domain/src/commands/translation/auto-approve-document-translations.cmd:autoApproveDocumentTranslations",
-    "stableKey": "@cat/domain:packages/domain/src/commands/translation/auto-approve-document-translations.cmd:autoApproveDocumentTranslations",
-    "name": "autoApproveDocumentTranslations",
+    "id": "@cat/domain:packages/domain/src/commands/translation/auto-approve-content-node-translations.cmd:autoApproveContentNodeTranslations",
+    "stableKey": "@cat/domain:packages/domain/src/commands/translation/auto-approve-content-node-translations.cmd:autoApproveContentNodeTranslations",
+    "name": "autoApproveContentNodeTranslations",
     "kind": "function",
     "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/translation/auto-approve-document-translations.cmd.ts",
-    "line": 27
+    "filePath": "packages/domain/src/commands/translation/auto-approve-content-node-translations.cmd.ts",
+    "line": 29,
+    "description": "Auto-approve the latest translation for each element under a content node in the target language."
   },
   {
-    "id": "@cat/domain:packages/domain/src/commands/translation/auto-approve-document-translations.cmd:AutoApproveDocumentTranslationsCommand",
-    "stableKey": "@cat/domain:packages/domain/src/commands/translation/auto-approve-document-translations.cmd:AutoApproveDocumentTranslationsCommand",
-    "name": "AutoApproveDocumentTranslationsCommand",
+    "id": "@cat/domain:packages/domain/src/commands/translation/auto-approve-content-node-translations.cmd:AutoApproveContentNodeTranslationsCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/translation/auto-approve-content-node-translations.cmd:AutoApproveContentNodeTranslationsCommand",
+    "name": "AutoApproveContentNodeTranslationsCommand",
     "kind": "type",
     "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/commands/translation/auto-approve-document-translations.cmd.ts",
-    "line": 23
+    "filePath": "packages/domain/src/commands/translation/auto-approve-content-node-translations.cmd.ts",
+    "line": 20
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/translation/create-project-translation-snapshot.cmd:createProjectTranslationSnapshot",
+    "stableKey": "@cat/domain:packages/domain/src/commands/translation/create-project-translation-snapshot.cmd:createProjectTranslationSnapshot",
+    "name": "createProjectTranslationSnapshot",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/translation/create-project-translation-snapshot.cmd.ts",
+    "line": 24,
+    "description": "Create a translation snapshot for the project, recording all currently approved translations."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/translation/create-project-translation-snapshot.cmd:CreateProjectTranslationSnapshotCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/translation/create-project-translation-snapshot.cmd:CreateProjectTranslationSnapshotCommand",
+    "name": "CreateProjectTranslationSnapshotCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/translation/create-project-translation-snapshot.cmd.ts",
+    "line": 15
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/translation/create-translations.cmd:createTranslations",
@@ -3863,6 +3967,15 @@
     "line": 15
   },
   {
+    "id": "@cat/domain:packages/domain/src/content/graph-validation:assertStructuredPayloadGraphValid",
+    "stableKey": "@cat/domain:packages/domain/src/content/graph-validation:assertStructuredPayloadGraphValid",
+    "name": "assertStructuredPayloadGraphValid",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/content/graph-validation.ts",
+    "line": 24
+  },
+  {
     "id": "@cat/domain:packages/domain/src/events/domain-event-bus:DomainEventBus",
     "stableKey": "@cat/domain:packages/domain/src/events/domain-event-bus:DomainEventBus",
     "name": "DomainEventBus",
@@ -3878,7 +3991,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 104
+    "line": 119
   },
   {
     "id": "@cat/domain:packages/domain/src/events/domain-events:DomainEvent",
@@ -3887,7 +4000,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 101
+    "line": 116
   },
   {
     "id": "@cat/domain:packages/domain/src/events/domain-events:DomainEventMap",
@@ -3905,7 +4018,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 102
+    "line": 117
   },
   {
     "id": "@cat/domain:packages/domain/src/events/event-collector:createInProcessCollector",
@@ -4900,6 +5013,378 @@
     "line": 13
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/content/count-content-node-elements.query:countContentNodeElements",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/count-content-node-elements.query:countContentNodeElements",
+    "name": "countContentNodeElements",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/count-content-node-elements.query.ts",
+    "line": 32,
+    "description": "Count translatable elements under a content node matching the given filters."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/count-content-node-elements.query:CountContentNodeElementsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/count-content-node-elements.query:CountContentNodeElementsQuery",
+    "name": "CountContentNodeElementsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/count-content-node-elements.query.ts",
+    "line": 24
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/count-content-node-translations.query:countContentNodeTranslations",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/count-content-node-translations.query:countContentNodeTranslations",
+    "name": "countContentNodeTranslations",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/count-content-node-translations.query.ts",
+    "line": 28,
+    "description": "Count translations for a given language under a content node."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/count-content-node-translations.query:CountContentNodeTranslationsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/count-content-node-translations.query:CountContentNodeTranslationsQuery",
+    "name": "CountContentNodeTranslationsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/count-content-node-translations.query.ts",
+    "line": 20
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/find-project-content-node-by-label.query:findProjectContentNodeByLabel",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/find-project-content-node-by-label.query:findProjectContentNodeByLabel",
+    "name": "findProjectContentNodeByLabel",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/find-project-content-node-by-label.query.ts",
+    "line": 27,
+    "description": "Find a content node in a project by displayLabel (optionally filtered by kind)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/find-project-content-node-by-label.query:FindProjectContentNodeByLabelQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/find-project-content-node-by-label.query:FindProjectContentNodeByLabelQuery",
+    "name": "FindProjectContentNodeByLabelQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/find-project-content-node-by-label.query.ts",
+    "line": 19
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-blob-info.query:ContentNodeBlobInfo",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-blob-info.query:ContentNodeBlobInfo",
+    "name": "ContentNodeBlobInfo",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-blob-info.query.ts",
+    "line": 13
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-blob-info.query:getContentNodeBlobInfo",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-blob-info.query:getContentNodeBlobInfo",
+    "name": "getContentNodeBlobInfo",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-blob-info.query.ts",
+    "line": 24,
+    "description": "Get the blob storage info (key, storageProviderId, fileName) for the content node's file."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-blob-info.query:GetContentNodeBlobInfoQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-blob-info.query:GetContentNodeBlobInfoQuery",
+    "name": "GetContentNodeBlobInfoQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-blob-info.query.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-element-page-index.query:getContentNodeElementPageIndex",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-element-page-index.query:getContentNodeElementPageIndex",
+    "name": "getContentNodeElementPageIndex",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-element-page-index.query.ts",
+    "line": 36,
+    "description": "Get the page index of an element within its content node's element list (ordered by localOrder)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-element-page-index.query:GetContentNodeElementPageIndexQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-element-page-index.query:GetContentNodeElementPageIndexQuery",
+    "name": "GetContentNodeElementPageIndexQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-element-page-index.query.ts",
+    "line": 28
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:ContentNodeElementRow",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:ContentNodeElementRow",
+    "name": "ContentNodeElementRow",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-elements.query.ts",
+    "line": 44
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:ElementTranslationStatus",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:ElementTranslationStatus",
+    "name": "ElementTranslationStatus",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-elements.query.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:getContentNodeElements",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:getContentNodeElements",
+    "name": "getContentNodeElements",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-elements.query.ts",
+    "line": 96
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:GetContentNodeElementsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-elements.query:GetContentNodeElementsQuery",
+    "name": "GetContentNodeElementsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-elements.query.ts",
+    "line": 40
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-first-element.query:getContentNodeFirstElement",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-first-element.query:getContentNodeFirstElement",
+    "name": "getContentNodeFirstElement",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-first-element.query.ts",
+    "line": 41,
+    "description": "Get the first translatable element under a content node matching the given filters."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node-first-element.query:GetContentNodeFirstElementQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node-first-element.query:GetContentNodeFirstElementQuery",
+    "name": "GetContentNodeFirstElementQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node-first-element.query.ts",
+    "line": 33
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node.query:getContentNode",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node.query:getContentNode",
+    "name": "getContentNode",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node.query.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-node.query:GetContentNodeQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-node.query:GetContentNodeQuery",
+    "name": "GetContentNodeQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-node.query.ts",
+    "line": 7
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-relation.query:getContentRelation",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-relation.query:getContentRelation",
+    "name": "getContentRelation",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-relation.query.ts",
+    "line": 17,
+    "description": "Fetch a single ContentRelation row by ID."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-content-relation.query:GetContentRelationQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-content-relation.query:GetContentRelationQuery",
+    "name": "GetContentRelationQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-content-relation.query.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-context-evidence.query:getContextEvidence",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-context-evidence.query:getContextEvidence",
+    "name": "getContextEvidence",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-context-evidence.query.ts",
+    "line": 17,
+    "description": "Fetch a single ContextEvidence row by ID."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-context-evidence.query:GetContextEvidenceQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-context-evidence.query:GetContextEvidenceQuery",
+    "name": "GetContextEvidenceQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-context-evidence.query.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-element-translation-status.query:getElementTranslationStatus",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-element-translation-status.query:getElementTranslationStatus",
+    "name": "getElementTranslationStatus",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-element-translation-status.query.ts",
+    "line": 32,
+    "description": "Get the translation status for a single translatable element."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-element-translation-status.query:GetElementTranslationStatusQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-element-translation-status.query:GetElementTranslationStatusQuery",
+    "name": "GetElementTranslationStatusQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-element-translation-status.query.ts",
+    "line": 24
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-project-root-content-node.query:getProjectRootContentNode",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-project-root-content-node.query:getProjectRootContentNode",
+    "name": "getProjectRootContentNode",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-project-root-content-node.query.ts",
+    "line": 17,
+    "description": "Get the root content node of a project (kind = PROJECT_ROOT)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/get-project-root-content-node.query:GetProjectRootContentNodeQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/get-project-root-content-node.query:GetProjectRootContentNodeQuery",
+    "name": "GetProjectRootContentNodeQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/get-project-root-content-node.query.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-content-node-element-ids.query:listContentNodeElementIds",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-content-node-element-ids.query:listContentNodeElementIds",
+    "name": "listContentNodeElementIds",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-content-node-element-ids.query.ts",
+    "line": 18,
+    "description": "Get all translatable element IDs that belong to a content node (primary relations)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-content-node-element-ids.query:ListContentNodeElementIdsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-content-node-element-ids.query:ListContentNodeElementIdsQuery",
+    "name": "ListContentNodeElementIdsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-content-node-element-ids.query.ts",
+    "line": 10
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query:ContentNodeElementWithChunkIds",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query:ContentNodeElementWithChunkIds",
+    "name": "ContentNodeElementWithChunkIds",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query.ts",
+    "line": 22
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query:listContentNodeElementsWithChunkIds",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query:listContentNodeElementsWithChunkIds",
+    "name": "listContentNodeElementsWithChunkIds",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query.ts",
+    "line": 33,
+    "description": "Get all elements under a content node along with their chunk IDs (for batch auto-translation)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query:ListContentNodeElementsWithChunkIdsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query:ListContentNodeElementsWithChunkIdsQuery",
+    "name": "ListContentNodeElementsWithChunkIdsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-content-node-elements-with-chunk-ids.query.ts",
+    "line": 18
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-project-content-nodes.query:listProjectContentNodes",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-project-content-nodes.query:listProjectContentNodes",
+    "name": "listProjectContentNodes",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-project-content-nodes.query.ts",
+    "line": 26
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-project-content-nodes.query:ListProjectContentNodesQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-project-content-nodes.query:ListProjectContentNodesQuery",
+    "name": "ListProjectContentNodesQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-project-content-nodes.query.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/list-project-content-nodes.query:ProjectContentNodeRow",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/list-project-content-nodes.query:ProjectContentNodeRow",
+    "name": "ProjectContentNodeRow",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/list-project-content-nodes.query.ts",
+    "line": 21
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/context/assemble-context-evidence.query:assembleContextEvidence",
+    "stableKey": "@cat/domain:packages/domain/src/queries/context/assemble-context-evidence.query:assembleContextEvidence",
+    "name": "assembleContextEvidence",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/context/assemble-context-evidence.query.ts",
+    "line": 38
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/context/assemble-context-evidence.query:AssembleContextEvidenceQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/context/assemble-context-evidence.query:AssembleContextEvidenceQuery",
+    "name": "AssembleContextEvidenceQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/context/assemble-context-evidence.query.ts",
+    "line": 29
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/context/get-effective-context-profile.query:EffectiveContextProfile",
+    "stableKey": "@cat/domain:packages/domain/src/queries/context/get-effective-context-profile.query:EffectiveContextProfile",
+    "name": "EffectiveContextProfile",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/context/get-effective-context-profile.query.ts",
+    "line": 16
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/context/get-effective-context-profile.query:getEffectiveContextProfile",
+    "stableKey": "@cat/domain:packages/domain/src/queries/context/get-effective-context-profile.query:getEffectiveContextProfile",
+    "name": "getEffectiveContextProfile",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/context/get-effective-context-profile.query.ts",
+    "line": 24
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/context/get-effective-context-profile.query:GetEffectiveContextProfileQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/context/get-effective-context-profile.query:GetEffectiveContextProfileQuery",
+    "name": "GetEffectiveContextProfileQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/context/get-effective-context-profile.query.ts",
+    "line": 12
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/cross-reference/list-references-from.query:listReferencesFrom",
     "stableKey": "@cat/domain:packages/domain/src/queries/cross-reference/list-references-from.query:listReferencesFrom",
     "name": "listReferencesFrom",
@@ -4945,60 +5430,6 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/document/build-translation-status-conditions.ts",
     "line": 16
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/count-document-elements.query:countDocumentElements",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/count-document-elements.query:countDocumentElements",
-    "name": "countDocumentElements",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/count-document-elements.query.ts",
-    "line": 27
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/count-document-elements.query:CountDocumentElementsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/count-document-elements.query:CountDocumentElementsQuery",
-    "name": "CountDocumentElementsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/count-document-elements.query.ts",
-    "line": 23
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/count-document-translations.query:countDocumentTranslations",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/count-document-translations.query:countDocumentTranslations",
-    "name": "countDocumentTranslations",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/count-document-translations.query.ts",
-    "line": 24
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/count-document-translations.query:CountDocumentTranslationsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/count-document-translations.query:CountDocumentTranslationsQuery",
-    "name": "CountDocumentTranslationsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/count-document-translations.query.ts",
-    "line": 20
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/find-project-document-by-name.query:findProjectDocumentByName",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/find-project-document-by-name.query:findProjectDocumentByName",
-    "name": "findProjectDocumentByName",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/find-project-document-by-name.query.ts",
-    "line": 17
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/find-project-document-by-name.query:FindProjectDocumentByNameQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/find-project-document-by-name.query:FindProjectDocumentByNameQuery",
-    "name": "FindProjectDocumentByNameQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/find-project-document-by-name.query.ts",
-    "line": 13
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/document/get-active-file-blob-info.query:ActiveFileBlobInfo",
@@ -5064,178 +5495,6 @@
     "line": 11
   },
   {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-blob-info.query:DocumentBlobInfo",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-blob-info.query:DocumentBlobInfo",
-    "name": "DocumentBlobInfo",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-blob-info.query.ts",
-    "line": 21
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-blob-info.query:getDocumentBlobInfo",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-blob-info.query:getDocumentBlobInfo",
-    "name": "getDocumentBlobInfo",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-blob-info.query.ts",
-    "line": 27
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-blob-info.query:GetDocumentBlobInfoQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-blob-info.query:GetDocumentBlobInfoQuery",
-    "name": "GetDocumentBlobInfoQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-blob-info.query.ts",
-    "line": 17
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-element-page-index.query:getDocumentElementPageIndex",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-element-page-index.query:getDocumentElementPageIndex",
-    "name": "getDocumentElementPageIndex",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-element-page-index.query.ts",
-    "line": 31
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-element-page-index.query:GetDocumentElementPageIndexQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-element-page-index.query:GetDocumentElementPageIndexQuery",
-    "name": "GetDocumentElementPageIndexQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-element-page-index.query.ts",
-    "line": 27
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-element-translation-status.query:getDocumentElementTranslationStatus",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-element-translation-status.query:getDocumentElementTranslationStatus",
-    "name": "getDocumentElementTranslationStatus",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-element-translation-status.query.ts",
-    "line": 27
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-element-translation-status.query:GetDocumentElementTranslationStatusQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-element-translation-status.query:GetDocumentElementTranslationStatusQuery",
-    "name": "GetDocumentElementTranslationStatusQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-element-translation-status.query.ts",
-    "line": 23
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:DocumentElementRow",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:DocumentElementRow",
-    "name": "DocumentElementRow",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-elements.query.ts",
-    "line": 45
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:ElementTranslationStatus",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:ElementTranslationStatus",
-    "name": "ElementTranslationStatus",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-elements.query.ts",
-    "line": 27
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:getDocumentElements",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:getDocumentElements",
-    "name": "getDocumentElements",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-elements.query.ts",
-    "line": 97
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:GetDocumentElementsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-elements.query:GetDocumentElementsQuery",
-    "name": "GetDocumentElementsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-elements.query.ts",
-    "line": 41
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-file-export-context.query:DocumentFileExportContext",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-file-export-context.query:DocumentFileExportContext",
-    "name": "DocumentFileExportContext",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-file-export-context.query.ts",
-    "line": 15
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-file-export-context.query:getDocumentFileExportContext",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-file-export-context.query:getDocumentFileExportContext",
-    "name": "getDocumentFileExportContext",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-file-export-context.query.ts",
-    "line": 21
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-file-export-context.query:GetDocumentFileExportContextQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-file-export-context.query:GetDocumentFileExportContextQuery",
-    "name": "GetDocumentFileExportContextQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-file-export-context.query.ts",
-    "line": 11
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-first-element.query:getDocumentFirstElement",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-first-element.query:getDocumentFirstElement",
-    "name": "getDocumentFirstElement",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-first-element.query.ts",
-    "line": 32
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document-first-element.query:GetDocumentFirstElementQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document-first-element.query:GetDocumentFirstElementQuery",
-    "name": "GetDocumentFirstElementQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document-first-element.query.ts",
-    "line": 28
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document.query:getDocument",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document.query:getDocument",
-    "name": "getDocument",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document.query.ts",
-    "line": 13
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-document.query:GetDocumentQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-document.query:GetDocumentQuery",
-    "name": "GetDocumentQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-document.query.ts",
-    "line": 11
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/get-project-root-document.query:getProjectRootDocument",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/get-project-root-document.query:getProjectRootDocument",
-    "name": "getProjectRootDocument",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/get-project-root-document.query.ts",
-    "line": 16,
-    "description": "Query the root document for a project — the document with no parent in the\nclosure table."
-  },
-  {
     "id": "@cat/domain:packages/domain/src/queries/document/list-chunk-vectorization-inputs.query:ChunkVectorizationInput",
     "stableKey": "@cat/domain:packages/domain/src/queries/document/list-chunk-vectorization-inputs.query:ChunkVectorizationInput",
     "name": "ChunkVectorizationInput",
@@ -5263,58 +5522,13 @@
     "line": 10
   },
   {
-    "id": "@cat/domain:packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query:DocumentElementWithChunkIds",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query:DocumentElementWithChunkIds",
-    "name": "DocumentElementWithChunkIds",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query.ts",
-    "line": 22
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query:listDocumentElementsWithChunkIds",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query:listDocumentElementsWithChunkIds",
-    "name": "listDocumentElementsWithChunkIds",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query.ts",
-    "line": 29
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query:ListDocumentElementsWithChunkIdsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query:ListDocumentElementsWithChunkIdsQuery",
-    "name": "ListDocumentElementsWithChunkIdsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/list-document-elements-with-chunk-ids.query.ts",
-    "line": 18
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/list-element-ids-by-document.query:listElementIdsByDocument",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/list-element-ids-by-document.query:listElementIdsByDocument",
-    "name": "listElementIdsByDocument",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/list-element-ids-by-document.query.ts",
-    "line": 14
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/document/list-element-ids-by-document.query:ListElementIdsByDocumentQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/document/list-element-ids-by-document.query:ListElementIdsByDocumentQuery",
-    "name": "ListElementIdsByDocumentQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/document/list-element-ids-by-document.query.ts",
-    "line": 10
-  },
-  {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-contexts.query:getElementContexts",
     "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-contexts.query:getElementContexts",
     "name": "getElementContexts",
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-contexts.query.ts",
-    "line": 26
+    "line": 22
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-contexts.query:GetElementContextsQuery",
@@ -5323,7 +5537,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-contexts.query.ts",
-    "line": 13
+    "line": 14
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-contexts.query:GetElementContextsResult",
@@ -5332,34 +5546,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-contexts.query.ts",
-    "line": 17
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/get-element-info.query:ElementInfoQueryResult",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-info.query:ElementInfoQueryResult",
-    "name": "ElementInfoQueryResult",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/get-element-info.query.ts",
-    "line": 54
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/get-element-info.query:getElementInfo",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-info.query:getElementInfo",
-    "name": "getElementInfo",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/get-element-info.query.ts",
-    "line": 58
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/get-element-info.query:GetElementInfoQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-info.query:GetElementInfoQuery",
-    "name": "GetElementInfoQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/get-element-info.query.ts",
-    "line": 26
+    "line": 18
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-meta.query:getElementMeta",
@@ -5380,13 +5567,32 @@
     "line": 13
   },
   {
-    "id": "@cat/domain:packages/domain/src/queries/element/get-element-source-location.query:ElementSourceLocationRow",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-source-location.query:ElementSourceLocationRow",
-    "name": "ElementSourceLocationRow",
+    "id": "@cat/domain:packages/domain/src/queries/element/get-element-project.query:getElementProject",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-project.query:getElementProject",
+    "name": "getElementProject",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/get-element-project.query.ts",
+    "line": 17,
+    "description": "Get the projectId the element belongs to (directly from translatableElement table)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/element/get-element-project.query:GetElementProjectQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-project.query:GetElementProjectQuery",
+    "name": "GetElementProjectQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/get-element-project.query.ts",
+    "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/element/get-element-source-location.query:ElementSourceLocation",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/get-element-source-location.query:ElementSourceLocation",
+    "name": "ElementSourceLocation",
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-source-location.query.ts",
-    "line": 34
+    "line": 23
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-source-location.query:getElementSourceLocation",
@@ -5395,7 +5601,8 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-source-location.query.ts",
-    "line": 38
+    "line": 38,
+    "description": "Get the source file location info for an element (for editor source navigation)."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-source-location.query:GetElementSourceLocationQuery",
@@ -5413,7 +5620,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-with-chunk-ids.query.ts",
-    "line": 23
+    "line": 20
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-with-chunk-ids.query:getElementWithChunkIds",
@@ -5422,7 +5629,8 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-with-chunk-ids.query.ts",
-    "line": 31
+    "line": 33,
+    "description": "Get a single element's source text and its chunk IDs (for vector recall)."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/get-element-with-chunk-ids.query:GetElementWithChunkIdsQuery",
@@ -5431,7 +5639,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/get-element-with-chunk-ids.query.ts",
-    "line": 19
+    "line": 16
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/list-all-elements.query:listAllElements",
@@ -5535,13 +5743,40 @@
     "line": 10
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/element/list-elements-by-importer-scope.query:ElementByImporterScopeRow",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements-by-importer-scope.query:ElementByImporterScopeRow",
+    "name": "ElementByImporterScopeRow",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/list-elements-by-importer-scope.query.ts",
+    "line": 22
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/element/list-elements-by-importer-scope.query:listElementsByImporterScope",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements-by-importer-scope.query:listElementsByImporterScope",
+    "name": "listElementsByImporterScope",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/list-elements-by-importer-scope.query.ts",
+    "line": 35
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/element/list-elements-by-importer-scope.query:ListElementsByImporterScopeQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements-by-importer-scope.query:ListElementsByImporterScopeQuery",
+    "name": "ListElementsByImporterScopeQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/element/list-elements-by-importer-scope.query.ts",
+    "line": 18
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/element/list-elements-for-diff.query:ElementForDiff",
     "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements-for-diff.query:ElementForDiff",
     "name": "ElementForDiff",
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/list-elements-for-diff.query.ts",
-    "line": 14
+    "line": 15
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/list-elements-for-diff.query:listElementsForDiff",
@@ -5550,7 +5785,8 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/list-elements-for-diff.query.ts",
-    "line": 24
+    "line": 29,
+    "description": "Get element data for diff display by a list of element IDs."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/list-elements-for-diff.query:ListElementsForDiffQuery",
@@ -5559,52 +5795,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/list-elements-for-diff.query.ts",
-    "line": 10
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/list-elements.query:ElementWithString",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements.query:ElementWithString",
-    "name": "ElementWithString",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/list-elements.query.ts",
-    "line": 12
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/list-elements.query:listElements",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements.query:listElements",
-    "name": "listElements",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/list-elements.query.ts",
-    "line": 17
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/list-elements.query:listElementsByDocument",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements.query:listElementsByDocument",
-    "name": "listElementsByDocument",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/list-elements.query.ts",
-    "line": 51
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/list-elements.query:ListElementsByDocumentQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements.query:ListElementsByDocumentQuery",
-    "name": "ListElementsByDocumentQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/list-elements.query.ts",
-    "line": 47
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/element/list-elements.query:ListElementsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-elements.query:ListElementsQuery",
-    "name": "ListElementsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/element/list-elements.query.ts",
-    "line": 10
+    "line": 11
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/list-neighbor-elements.query:listNeighborElements",
@@ -5613,8 +5804,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/list-neighbor-elements.query.ts",
-    "line": 47,
-    "description": "Fetch the nearest sibling elements within the same document.\n\nPrefer `sortIndex` ordering when available; fall back to `id` ordering when\nthe reference element has no sort index."
+    "line": 34
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/element/list-neighbor-elements.query:ListNeighborElementsQuery",
@@ -5623,16 +5813,16 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/list-neighbor-elements.query.ts",
-    "line": 25
+    "line": 22
   },
   {
-    "id": "@cat/domain:packages/domain/src/queries/element/list-neighbor-elements.query:NeighborElement",
-    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-neighbor-elements.query:NeighborElement",
-    "name": "NeighborElement",
+    "id": "@cat/domain:packages/domain/src/queries/element/list-neighbor-elements.query:NeighborElementRow",
+    "stableKey": "@cat/domain:packages/domain/src/queries/element/list-neighbor-elements.query:NeighborElementRow",
+    "name": "NeighborElementRow",
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/element/list-neighbor-elements.query.ts",
-    "line": 29
+    "line": 26
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/file/get-blob-by-key.query:getBlobByKey",
@@ -6971,7 +7161,8 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/check-service-references.query.ts",
-    "line": 24
+    "line": 19,
+    "description": "Check if a plugin service is referenced by any entity (mfaProvider / blob / chunk)."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/check-service-references.query:CheckServiceReferencesQuery",
@@ -6980,7 +7171,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/plugin/check-service-references.query.ts",
-    "line": 20
+    "line": 10
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/plugin/get-plugin-config-instance-by-installation.query:getPluginConfigInstanceByInstallation",
@@ -7304,7 +7495,8 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/project/count-project-elements.query.ts",
-    "line": 19
+    "line": 30,
+    "description": "Count all translatable elements in a project matching the given filters."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/project/count-project-elements.query:CountProjectElementsQuery",
@@ -7313,7 +7505,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/project/count-project-elements.query.ts",
-    "line": 15
+    "line": 22
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/project/get-project-target-languages.query:getProjectTargetLanguages",
@@ -7368,33 +7560,6 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/project/list-owned-projects.query.ts",
     "line": 10
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/project/list-project-documents.query:listProjectDocuments",
-    "stableKey": "@cat/domain:packages/domain/src/queries/project/list-project-documents.query:listProjectDocuments",
-    "name": "listProjectDocuments",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/project/list-project-documents.query.ts",
-    "line": 20
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/project/list-project-documents.query:ListProjectDocumentsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/project/list-project-documents.query:ListProjectDocumentsQuery",
-    "name": "ListProjectDocumentsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/project/list-project-documents.query.ts",
-    "line": 12
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/project/list-project-documents.query:ProjectDocumentRow",
-    "stableKey": "@cat/domain:packages/domain/src/queries/project/list-project-documents.query:ProjectDocumentRow",
-    "name": "ProjectDocumentRow",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/project/list-project-documents.query.ts",
-    "line": 16
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/project/list-projects-by-creator.query:listProjectsByCreator",
@@ -7526,51 +7691,6 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/pull-request/list-prs.query.ts",
     "line": 17
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:getTranslationQaContext",
-    "stableKey": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:getTranslationQaContext",
-    "name": "getTranslationQaContext",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/qa/get-translation-qa-context.query.ts",
-    "line": 31
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:GetTranslationQaContextQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:GetTranslationQaContextQuery",
-    "name": "GetTranslationQaContextQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/qa/get-translation-qa-context.query.ts",
-    "line": 19
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:TranslationQaContext",
-    "stableKey": "@cat/domain:packages/domain/src/queries/qa/get-translation-qa-context.query:TranslationQaContext",
-    "name": "TranslationQaContext",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/qa/get-translation-qa-context.query.ts",
-    "line": 23
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/qa/list-document-glossary-ids.query:listDocumentGlossaryIds",
-    "stableKey": "@cat/domain:packages/domain/src/queries/qa/list-document-glossary-ids.query:listDocumentGlossaryIds",
-    "name": "listDocumentGlossaryIds",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/qa/list-document-glossary-ids.query.ts",
-    "line": 14
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/qa/list-document-glossary-ids.query:ListDocumentGlossaryIdsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/qa/list-document-glossary-ids.query:ListDocumentGlossaryIdsQuery",
-    "name": "ListDocumentGlossaryIdsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/qa/list-document-glossary-ids.query.ts",
-    "line": 10
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/qa/list-qa-result-items.query:listQaResultItems",
@@ -7762,6 +7882,34 @@
     "line": 12
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:getTranslationQaContext",
+    "stableKey": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:getTranslationQaContext",
+    "name": "getTranslationQaContext",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/translation/get-translation-qa-context.query.ts",
+    "line": 35,
+    "description": "Fetch the context required to run translation QA (translation text, source text, language info)."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:GetTranslationQaContextQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:GetTranslationQaContextQuery",
+    "name": "GetTranslationQaContextQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/translation/get-translation-qa-context.query.ts",
+    "line": 16
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:TranslationQaContext",
+    "stableKey": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:TranslationQaContext",
+    "name": "TranslationQaContext",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/translation/get-translation-qa-context.query.ts",
+    "line": 20
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/translation/get-translation-vote-total.query:getTranslationVoteTotal",
     "stableKey": "@cat/domain:packages/domain/src/queries/translation/get-translation-vote-total.query:getTranslationVoteTotal",
     "name": "getTranslationVoteTotal",
@@ -7778,34 +7926,6 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/translation/get-translation-vote-total.query.ts",
     "line": 11
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ApprovedTranslationEntry",
-    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ApprovedTranslationEntry",
-    "name": "ApprovedTranslationEntry",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/translation/list-document-approved-translations.query.ts",
-    "line": 27
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:listDocumentApprovedTranslations",
-    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:listDocumentApprovedTranslations",
-    "name": "listDocumentApprovedTranslations",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/translation/list-document-approved-translations.query.ts",
-    "line": 38,
-    "description": "Query approved translations from other elements in the same document,\nordered by proximity to the current element."
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ListDocumentApprovedTranslationsQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-document-approved-translations.query:ListDocumentApprovedTranslationsQuery",
-    "name": "ListDocumentApprovedTranslationsQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/translation/list-document-approved-translations.query.ts",
-    "line": 23
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/translation/list-qa-results-by-translation.query:listQaResultsByTranslation",
@@ -7878,33 +7998,6 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/translation/list-translations-by-ids.query.ts",
     "line": 23
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/translation/list-user-translation-history.query:listUserTranslationHistory",
-    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-user-translation-history.query:listUserTranslationHistory",
-    "name": "listUserTranslationHistory",
-    "kind": "function",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/translation/list-user-translation-history.query.ts",
-    "line": 65
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/translation/list-user-translation-history.query:ListUserTranslationHistoryQuery",
-    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-user-translation-history.query:ListUserTranslationHistoryQuery",
-    "name": "ListUserTranslationHistoryQuery",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/translation/list-user-translation-history.query.ts",
-    "line": 32
-  },
-  {
-    "id": "@cat/domain:packages/domain/src/queries/translation/list-user-translation-history.query:ListUserTranslationHistoryResult",
-    "stableKey": "@cat/domain:packages/domain/src/queries/translation/list-user-translation-history.query:ListUserTranslationHistoryResult",
-    "name": "ListUserTranslationHistoryResult",
-    "kind": "type",
-    "packageName": "@cat/domain",
-    "filePath": "packages/domain/src/queries/translation/list-user-translation-history.query.ts",
-    "line": 61
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/user/get-first-registered-user.query:getFirstRegisteredUser",
@@ -8032,6 +8125,24 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/vector/search-chunk-cosine-similarity.query.ts",
     "line": 13
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/testing/setup-test-db:setupTestDB",
+    "stableKey": "@cat/domain:packages/domain/src/testing/setup-test-db:setupTestDB",
+    "name": "setupTestDB",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/testing/setup-test-db.ts",
+    "line": 24
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/testing/setup-test-db:TestDB",
+    "stableKey": "@cat/domain:packages/domain/src/testing/setup-test-db:TestDB",
+    "name": "TestDB",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/testing/setup-test-db.ts",
+    "line": 16
   },
   {
     "id": "@cat/domain:packages/domain/src/types:Command",
@@ -8431,23 +8542,43 @@
     "line": 6
   },
   {
+    "id": "@cat/file-parsers:packages/file-parsers/src/stable-ref:encodeJsonPointerPart",
+    "stableKey": "@cat/file-parsers:packages/file-parsers/src/stable-ref:encodeJsonPointerPart",
+    "name": "encodeJsonPointerPart",
+    "kind": "function",
+    "packageName": "@cat/file-parsers",
+    "filePath": "packages/file-parsers/src/stable-ref.ts",
+    "line": 5,
+    "description": "Escape a JSON Pointer path segment (RFC 6901)."
+  },
+  {
+    "id": "@cat/file-parsers:packages/file-parsers/src/stable-ref:toJsonPointerRef",
+    "stableKey": "@cat/file-parsers:packages/file-parsers/src/stable-ref:toJsonPointerRef",
+    "name": "toJsonPointerRef",
+    "kind": "function",
+    "packageName": "@cat/file-parsers",
+    "filePath": "packages/file-parsers/src/stable-ref.ts",
+    "line": 13,
+    "description": "Combine a namespace and a list of path parts into a stable JSON Pointer-style reference."
+  },
+  {
     "id": "@cat/file-parsers:packages/file-parsers/src/types:ElementData",
     "stableKey": "@cat/file-parsers:packages/file-parsers/src/types:ElementData",
     "name": "ElementData",
-    "kind": "type",
+    "kind": "interface",
     "packageName": "@cat/file-parsers",
     "filePath": "packages/file-parsers/src/types.ts",
-    "line": 19,
-    "description": "A parsed translatable element."
+    "line": 15,
+    "description": "A parsed translatable element with stable identity references and local order."
   },
   {
     "id": "@cat/file-parsers:packages/file-parsers/src/types:ElementLocation",
     "stableKey": "@cat/file-parsers:packages/file-parsers/src/types:ElementLocation",
     "name": "ElementLocation",
-    "kind": "type",
+    "kind": "interface",
     "packageName": "@cat/file-parsers",
     "filePath": "packages/file-parsers/src/types.ts",
-    "line": 9,
+    "line": 5,
     "description": "Optional source location information."
   },
   {
@@ -8457,17 +8588,17 @@
     "kind": "type",
     "packageName": "@cat/file-parsers",
     "filePath": "packages/file-parsers/src/types.ts",
-    "line": 39,
+    "line": 40,
     "description": "File parser interface: parses file content into translatable elements and serializes translated elements back to file content."
   },
   {
     "id": "@cat/file-parsers:packages/file-parsers/src/types:SerializeElement",
     "stableKey": "@cat/file-parsers:packages/file-parsers/src/types:SerializeElement",
     "name": "SerializeElement",
-    "kind": "type",
+    "kind": "interface",
     "packageName": "@cat/file-parsers",
     "filePath": "packages/file-parsers/src/types.ts",
-    "line": 30,
+    "line": 28,
     "description": "Minimal element descriptor needed for serialization."
   },
   {
@@ -8900,7 +9031,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/create-element.ts",
-    "line": 32
+    "line": 37
   },
   {
     "id": "@cat/operations:packages/operations/src/create-element:createElementOp",
@@ -8909,7 +9040,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/create-element.ts",
-    "line": 48,
+    "line": 53,
     "description": "Create translatable elements.\n\nFirst creates TranslatableStrings (with vectorization), then inserts\nthe corresponding TranslatableElement rows."
   },
   {
@@ -8919,7 +9050,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/create-element.ts",
-    "line": 33
+    "line": 38
   },
   {
     "id": "@cat/operations:packages/operations/src/create-term:CreateTermInput",
@@ -9071,32 +9202,60 @@
     "line": 22
   },
   {
-    "id": "@cat/operations:packages/operations/src/diff-elements:DiffElementsInput",
-    "stableKey": "@cat/operations:packages/operations/src/diff-elements:DiffElementsInput",
-    "name": "DiffElementsInput",
-    "kind": "type",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/diff-elements.ts",
-    "line": 44
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/diff-elements:diffElementsOp",
-    "stableKey": "@cat/operations:packages/operations/src/diff-elements:diffElementsOp",
-    "name": "diffElementsOp",
+    "id": "@cat/operations:packages/operations/src/diff-structured-content:classifySemanticElementDiffForTest",
+    "stableKey": "@cat/operations:packages/operations/src/diff-structured-content:classifySemanticElementDiffForTest",
+    "name": "classifySemanticElementDiffForTest",
     "kind": "function",
     "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/diff-elements.ts",
-    "line": 67,
-    "description": "Compare old and new elements and apply additions, deletions, and updates.\n\n1. Fetch old elements\n2. Match old and new elements by meta\n3. Process text updates, sort-index updates, and position updates\n4. Create newly added elements\n5. Delete removed elements"
+    "filePath": "packages/operations/src/diff-structured-content.ts",
+    "line": 84,
+    "description": "Classify a single matched element pair semantically (pure function, testable)."
   },
   {
-    "id": "@cat/operations:packages/operations/src/diff-elements:DiffElementsOutput",
-    "stableKey": "@cat/operations:packages/operations/src/diff-elements:DiffElementsOutput",
-    "name": "DiffElementsOutput",
+    "id": "@cat/operations:packages/operations/src/diff-structured-content:ClassifySemanticElementDiffInput",
+    "stableKey": "@cat/operations:packages/operations/src/diff-structured-content:ClassifySemanticElementDiffInput",
+    "name": "ClassifySemanticElementDiffInput",
     "kind": "type",
     "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/diff-elements.ts",
-    "line": 45
+    "filePath": "packages/operations/src/diff-structured-content.ts",
+    "line": 52
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/diff-structured-content:ClassifySemanticElementDiffResult",
+    "stableKey": "@cat/operations:packages/operations/src/diff-structured-content:ClassifySemanticElementDiffResult",
+    "name": "ClassifySemanticElementDiffResult",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/diff-structured-content.ts",
+    "line": 63
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/diff-structured-content:DiffStructuredContentInput",
+    "stableKey": "@cat/operations:packages/operations/src/diff-structured-content:DiffStructuredContentInput",
+    "name": "DiffStructuredContentInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/diff-structured-content.ts",
+    "line": 43
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/diff-structured-content:diffStructuredContentOp",
+    "stableKey": "@cat/operations:packages/operations/src/diff-structured-content:diffStructuredContentOp",
+    "name": "diffStructuredContentOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/diff-structured-content.ts",
+    "line": 134,
+    "description": "Diff elements by stable identity from a structured content payload\nand record semantic diff entries."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/diff-structured-content:DiffStructuredContentOutput",
+    "stableKey": "@cat/operations:packages/operations/src/diff-structured-content:DiffStructuredContentOutput",
+    "name": "DiffStructuredContentOutput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/diff-structured-content.ts",
+    "line": 46
   },
   {
     "id": "@cat/operations:packages/operations/src/fetch-advise:FetchAdviseInput",
@@ -9373,7 +9532,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 152,
+    "line": 153,
     "description": "Derive a confidence score for an LLM translation suggestion.\n\nBase score from memory match confidence, plus fixed bonuses per context signal present.\nHard cap at 0.85, rounded to 4 decimal places."
   },
   {
@@ -9383,7 +9542,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 49
+    "line": 50
   },
   {
     "id": "@cat/operations:packages/operations/src/llm-translate:LlmTranslateInput",
@@ -9392,7 +9551,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 96
+    "line": 97
   },
   {
     "id": "@cat/operations:packages/operations/src/llm-translate:llmTranslateOp",
@@ -9401,7 +9560,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 483,
+    "line": 433,
     "description": "Built-in LLM Translation Suggestion (first-party suggestion source).\n\nSelf-loads element info, neighbor translations, element contexts, element metadata,\napproved translations, and comments via domain queries. Combines with\ncaller-provided memory recall and term recall results, then calls the LLM\nonce to produce a translation suggestion.\n\nReturns `{ suggestion: null }` when:\n- No LLM_PROVIDER is available\n- The LLM call fails\n- The element is not found\n- Database access fails"
   },
   {
@@ -9411,7 +9570,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 124
+    "line": 125
   },
   {
     "id": "@cat/operations:packages/operations/src/llm-translate:SessionTranslation",
@@ -9420,7 +9579,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/llm-translate.ts",
-    "line": 58
+    "line": 59
   },
   {
     "id": "@cat/operations:packages/operations/src/load-element-texts:LoadElementTextsInput",
@@ -9759,7 +9918,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
-    "line": 34
+    "line": 29
   },
   {
     "id": "@cat/operations:packages/operations/src/parse-file:parseFileOp",
@@ -9768,8 +9927,8 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
-    "line": 50,
-    "description": "Parse file content into a list of translatable elements.\n\nParses the file via the FILE_IMPORTER plugin, then fills in the\nsortIndex for each element."
+    "line": 45,
+    "description": "Parse file content into a structured content graph payload.\n\nParses the file via the FILE_IMPORTER plugin and assembles a\nStructuredContentPayload."
   },
   {
     "id": "@cat/operations:packages/operations/src/parse-file:ParseFileOutput",
@@ -9778,7 +9937,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
-    "line": 35
+    "line": 30
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/ambiguity-gate:evaluateAmbiguity",
@@ -10211,7 +10370,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 61
+    "line": 83
   },
   {
     "id": "@cat/operations:packages/operations/src/recall-context-rerank:recallContextRerankOp",
@@ -10220,7 +10379,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 85
+    "line": 107
   },
   {
     "id": "@cat/operations:packages/operations/src/recall-context-rerank:rerankTermRecallOp",
@@ -10229,7 +10388,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 159
+    "line": 180
   },
   {
     "id": "@cat/operations:packages/operations/src/recall-context-rerank:TermRecallContextRerankInput",
@@ -10238,7 +10397,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/recall-context-rerank.ts",
-    "line": 77
+    "line": 99
   },
   {
     "id": "@cat/operations:packages/operations/src/register-domain-event-handlers:registerDomainEventHandlers",
@@ -10742,32 +10901,32 @@
     "line": 23
   },
   {
-    "id": "@cat/operations:packages/operations/src/upsert-document-from-file:upsertDocumentFromFileOp",
-    "stableKey": "@cat/operations:packages/operations/src/upsert-document-from-file:upsertDocumentFromFileOp",
-    "name": "upsertDocumentFromFileOp",
+    "id": "@cat/operations:packages/operations/src/upsert-content-node-from-file:UpsertContentNodeFromFileInput",
+    "stableKey": "@cat/operations:packages/operations/src/upsert-content-node-from-file:UpsertContentNodeFromFileInput",
+    "name": "UpsertContentNodeFromFileInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/upsert-content-node-from-file.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/upsert-content-node-from-file:upsertContentNodeFromFileOp",
+    "stableKey": "@cat/operations:packages/operations/src/upsert-content-node-from-file:upsertContentNodeFromFileOp",
+    "name": "upsertContentNodeFromFileOp",
     "kind": "function",
     "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/upsert-document-from-file.ts",
-    "line": 43,
-    "description": "Update document elements from a file.\n\n1. Parse the file to obtain an element list\n2. Fetch the current (old) element IDs for the document\n3. Diff the new and old elements and apply additions, deletions, and updates"
+    "filePath": "packages/operations/src/upsert-content-node-from-file.ts",
+    "line": 47,
+    "description": "Synchronize file content to translatable elements under a content node\nvia file parsing and stable-identity diff."
   },
   {
-    "id": "@cat/operations:packages/operations/src/upsert-document-from-file:UpsertDocumentInput",
-    "stableKey": "@cat/operations:packages/operations/src/upsert-document-from-file:UpsertDocumentInput",
-    "name": "UpsertDocumentInput",
+    "id": "@cat/operations:packages/operations/src/upsert-content-node-from-file:UpsertContentNodeFromFileOutput",
+    "stableKey": "@cat/operations:packages/operations/src/upsert-content-node-from-file:UpsertContentNodeFromFileOutput",
+    "name": "UpsertContentNodeFromFileOutput",
     "kind": "type",
     "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/upsert-document-from-file.ts",
-    "line": 24
-  },
-  {
-    "id": "@cat/operations:packages/operations/src/upsert-document-from-file:UpsertDocumentOutput",
-    "stableKey": "@cat/operations:packages/operations/src/upsert-document-from-file:UpsertDocumentOutput",
-    "name": "UpsertDocumentOutput",
-    "kind": "type",
-    "packageName": "@cat/operations",
-    "filePath": "packages/operations/src/upsert-document-from-file.ts",
-    "line": 25
+    "filePath": "packages/operations/src/upsert-content-node-from-file.ts",
+    "line": 30
   },
   {
     "id": "@cat/operations:packages/operations/src/vector-term-align:VectorTermAlignInput",
@@ -11419,7 +11578,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/file-handler.ts",
-    "line": 15
+    "line": 14
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:CanImportContext",
@@ -11428,7 +11587,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/file-handler.ts",
-    "line": 7
+    "line": 10
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:ElementData",
@@ -11437,16 +11596,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/file-handler.ts",
-    "line": 33
-  },
-  {
-    "id": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:ElementLocation",
-    "stableKey": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:ElementLocation",
-    "name": "ElementLocation",
-    "kind": "type",
-    "packageName": "@cat/plugin-core",
-    "filePath": "packages/plugin-core/src/services/file-handler.ts",
-    "line": 24
+    "line": 18
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:ExportContext",
@@ -11455,7 +11605,16 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/file-handler.ts",
-    "line": 19
+    "line": 58
+  },
+  {
+    "id": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:FileImportResult",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:FileImportResult",
+    "name": "FileImportResult",
+    "kind": "type",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/services/file-handler.ts",
+    "line": 32
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/file-handler:ImportContext",
@@ -11464,7 +11623,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/file-handler.ts",
-    "line": 11
+    "line": 48
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/llm-provider:ChatCompletionFinishReason",
@@ -12048,7 +12207,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 54
+    "line": 49
   },
   {
     "id": "@cat/seed:packages/seed/src/pipeline:runSeedPipeline",
@@ -12057,7 +12216,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 73
+    "line": 70
   },
   {
     "id": "@cat/seed:packages/seed/src/pipeline:SeedSummary",
@@ -12066,7 +12225,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 64
+    "line": 61
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:DevSeedConfig",
@@ -12606,49 +12765,139 @@
     "line": 291
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/collection:CollectionContext",
-    "stableKey": "@cat/shared:packages/shared/src/schema/collection:CollectionContext",
-    "name": "CollectionContext",
+    "id": "@cat/shared:packages/shared/src/schema/content:ContentRelationAllowedEndpointPair",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:ContentRelationAllowedEndpointPair",
+    "name": "ContentRelationAllowedEndpointPair",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/collection.ts",
-    "line": 105
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 40
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/collection:CollectionContextData",
-    "stableKey": "@cat/shared:packages/shared/src/schema/collection:CollectionContextData",
-    "name": "CollectionContextData",
+    "id": "@cat/shared:packages/shared/src/schema/content:ContentRelationEndpoint",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:ContentRelationEndpoint",
+    "name": "ContentRelationEndpoint",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/collection.ts",
-    "line": 106
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 32
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/collection:CollectionElement",
-    "stableKey": "@cat/shared:packages/shared/src/schema/collection:CollectionElement",
-    "name": "CollectionElement",
+    "id": "@cat/shared:packages/shared/src/schema/content:ContextProfileConsumerBudget",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:ContextProfileConsumerBudget",
+    "name": "ContextProfileConsumerBudget",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/collection.ts",
-    "line": 104
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 229
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/collection:CollectionElementLocation",
-    "stableKey": "@cat/shared:packages/shared/src/schema/collection:CollectionElementLocation",
-    "name": "CollectionElementLocation",
+    "id": "@cat/shared:packages/shared/src/schema/content:ContextProfilePayload",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:ContextProfilePayload",
+    "name": "ContextProfilePayload",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/collection.ts",
-    "line": 107
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 246
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/collection:CollectionPayload",
-    "stableKey": "@cat/shared:packages/shared/src/schema/collection:CollectionPayload",
-    "name": "CollectionPayload",
+    "id": "@cat/shared:packages/shared/src/schema/content:ContextProfileRelationWeights",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:ContextProfileRelationWeights",
+    "name": "ContextProfileRelationWeights",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/collection.ts",
-    "line": 103
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 220
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:FlattenedContextEvidence",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:FlattenedContextEvidence",
+    "name": "FlattenedContextEvidence",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 267
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:RegisteredRelationTypeInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:RegisteredRelationTypeInput",
+    "name": "RegisteredRelationTypeInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 63
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:ScopeBindingInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:ScopeBindingInput",
+    "name": "ScopeBindingInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 282
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:SemanticDiffEntryPayload",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:SemanticDiffEntryPayload",
+    "name": "SemanticDiffEntryPayload",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 293
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:StableElementIdentity",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:StableElementIdentity",
+    "name": "StableElementIdentity",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 26
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:StructuredContentNodeInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:StructuredContentNodeInput",
+    "name": "StructuredContentNodeInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 136
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:StructuredContentPayload",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:StructuredContentPayload",
+    "name": "StructuredContentPayload",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 212
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:StructuredEvidenceInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:StructuredEvidenceInput",
+    "name": "StructuredEvidenceInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 195
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:StructuredRelationInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:StructuredRelationInput",
+    "name": "StructuredRelationInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 174
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/content:StructuredTranslatableElementInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/content:StructuredTranslatableElementInput",
+    "name": "StructuredTranslatableElementInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/content.ts",
+    "line": 156
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/agent:AgentEvent",
@@ -12768,58 +13017,94 @@
     "line": 29
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/drizzle/document:Document",
-    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/document:Document",
-    "name": "Document",
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentNode",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentNode",
+    "name": "ContentNode",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/drizzle/document.ts",
-    "line": 18
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 31
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/drizzle/document:DocumentClosure",
-    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/document:DocumentClosure",
-    "name": "DocumentClosure",
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentNodeToTask",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentNodeToTask",
+    "name": "ContentNodeToTask",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/drizzle/document.ts",
-    "line": 27
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 84
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/drizzle/document:DocumentToTask",
-    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/document:DocumentToTask",
-    "name": "DocumentToTask",
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentRelation",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentRelation",
+    "name": "ContentRelation",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/drizzle/document.ts",
-    "line": 34
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 77
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/drizzle/document:TranslatableElement",
-    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/document:TranslatableElement",
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentRelationType",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ContentRelationType",
+    "name": "ContentRelationType",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 54
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ContextEvidence",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ContextEvidence",
+    "name": "ContextEvidence",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 139
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ContextProfile",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ContextProfile",
+    "name": "ContextProfile",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 151
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:ScopeBinding",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:ScopeBinding",
+    "name": "ScopeBinding",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 167
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:SemanticDiffEntry",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:SemanticDiffEntry",
+    "name": "SemanticDiffEntry",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 183
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:TranslatableElement",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:TranslatableElement",
     "name": "TranslatableElement",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/drizzle/document.ts",
-    "line": 51
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 106
   },
   {
-    "id": "@cat/shared:packages/shared/src/schema/drizzle/document:TranslatableElementContext",
-    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/document:TranslatableElementContext",
-    "name": "TranslatableElementContext",
-    "kind": "type",
-    "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/drizzle/document.ts",
-    "line": 75
-  },
-  {
-    "id": "@cat/shared:packages/shared/src/schema/drizzle/document:VectorizedString",
-    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/document:VectorizedString",
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/content:VectorizedString",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/content:VectorizedString",
     "name": "VectorizedString",
     "kind": "type",
     "packageName": "@cat/shared",
-    "filePath": "packages/shared/src/schema/drizzle/document.ts",
-    "line": 61
+    "filePath": "packages/shared/src/schema/drizzle/content.ts",
+    "line": 116
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/entity-branch:EntityBranch",
@@ -13251,7 +13536,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 202
+    "line": 400
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentSessionStatus",
@@ -13260,7 +13545,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 126
+    "line": 321
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentSessionTrustPolicy",
@@ -13269,7 +13554,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 200
+    "line": 398
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentToolConfirmationStatus",
@@ -13278,7 +13563,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 198
+    "line": 396
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentToolTarget",
@@ -13287,7 +13572,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 197
+    "line": 395
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AsyncStatus",
@@ -13296,7 +13581,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 341
+    "line": 543
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangeAction",
@@ -13305,7 +13590,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 318
+    "line": 520
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetEntryAsyncStatus",
@@ -13314,7 +13599,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 351
+    "line": 553
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetStatus",
@@ -13323,7 +13608,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 289
+    "line": 487
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CommentReactionType",
@@ -13332,7 +13617,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 112
+    "line": 307
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CommentTargetType",
@@ -13341,7 +13626,97 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 309
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentBoundaryType",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentBoundaryType",
+    "name": "ContentBoundaryType",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 128
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentEvidenceKind",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentEvidenceKind",
+    "name": "ContentEvidenceKind",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 198
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentIdentityStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentIdentityStatus",
+    "name": "ContentIdentityStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 264
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentNodeExportRole",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentNodeExportRole",
+    "name": "ContentNodeExportRole",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
     "line": 114
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentNodeKind",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentNodeKind",
+    "name": "ContentNodeKind",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 92
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentNodeLifecycleStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentNodeLifecycleStatus",
+    "name": "ContentNodeLifecycleStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 103
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentRelationDirectionality",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentRelationDirectionality",
+    "name": "ContentRelationDirectionality",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 160
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentRelationLifecycleStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentRelationLifecycleStatus",
+    "name": "ContentRelationLifecycleStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 172
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContentRelationSemanticFamily",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContentRelationSemanticFamily",
+    "name": "ContentRelationSemanticFamily",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 150
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ContextConsumerPurpose",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ContextConsumerPurpose",
+    "name": "ContextConsumerPurpose",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 210
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CrossReferenceSourceType",
@@ -13350,7 +13725,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 268
+    "line": 466
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CrossReferenceTargetType",
@@ -13359,7 +13734,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 275
+    "line": 473
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EntityBranchStatus",
@@ -13368,7 +13743,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 251
+    "line": 449
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EntityType",
@@ -13377,7 +13752,16 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 312
+    "line": 514
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:EvidenceTrustLevel",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:EvidenceTrustLevel",
+    "name": "EvidenceTrustLevel",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 182
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:IssueCommentTargetType",
@@ -13386,7 +13770,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 257
+    "line": 455
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:IssueStatus",
@@ -13395,7 +13779,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 228
+    "line": 426
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageCategory",
@@ -13404,7 +13788,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 218
+    "line": 416
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageChannel",
@@ -13413,7 +13797,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 208
+    "line": 406
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:NotificationStatus",
@@ -13422,7 +13806,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 222
+    "line": 420
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ObjectType",
@@ -13431,7 +13815,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 174
+    "line": 372
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PermissionAction",
@@ -13440,7 +13824,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 195
+    "line": 393
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PluginServiceType",
@@ -13449,7 +13833,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 107
+    "line": 302
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PullRequestStatus",
@@ -13458,7 +13842,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 239
+    "line": 437
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PullRequestType",
@@ -13467,7 +13851,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 243
+    "line": 441
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallQuerySide",
@@ -13476,7 +13860,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 370
+    "line": 572
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallVariantType",
@@ -13485,7 +13869,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 364
+    "line": 566
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:Relation",
@@ -13494,7 +13878,16 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 191
+    "line": 389
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:RelationEndpointKind",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:RelationEndpointKind",
+    "name": "RelationEndpointKind",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 132
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ResourceType",
@@ -13503,7 +13896,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 113
+    "line": 308
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ReviewStatus",
@@ -13512,7 +13905,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 335
+    "line": 537
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RiskLevel",
@@ -13521,7 +13914,25 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 324
+    "line": 526
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ScopeBindingAssetKind",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ScopeBindingAssetKind",
+    "name": "ScopeBindingAssetKind",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 223
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:ScopeBindingMode",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:ScopeBindingMode",
+    "name": "ScopeBindingMode",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 228
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ScopeType",
@@ -13530,7 +13941,16 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 108
+    "line": 303
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:SemanticDiffKind",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:SemanticDiffKind",
+    "name": "SemanticDiffKind",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 243
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:SubjectType",
@@ -13539,7 +13959,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 178
+    "line": 376
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TaskStatus",
@@ -13548,7 +13968,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 109
+    "line": 304
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TermStatus",
@@ -13557,7 +13977,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 116
+    "line": 311
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TermType",
@@ -13566,7 +13986,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 115
+    "line": 310
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TokenType",
@@ -13584,7 +14004,16 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 110
+    "line": 305
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:VectorInvalidationReason",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:VectorInvalidationReason",
+    "name": "VectorInvalidationReason",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 254
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/extraction:CaptureResult",
@@ -14107,7 +14536,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/rerank.ts",
-    "line": 92
+    "line": 93
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankCandidateDocument",
@@ -14116,7 +14545,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/rerank.ts",
-    "line": 89
+    "line": 90
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankDecisionTrace",
@@ -14125,7 +14554,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/rerank.ts",
-    "line": 88
+    "line": 89
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankProviderCall",
@@ -14134,7 +14563,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/rerank.ts",
-    "line": 47
+    "line": 48
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankRequest",
@@ -14143,7 +14572,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/rerank.ts",
-    "line": 86
+    "line": 87
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/rerank:RerankResponse",
@@ -14152,7 +14581,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/rerank.ts",
-    "line": 87
+    "line": 88
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/term-recall:ConceptContext",
@@ -14507,8 +14936,8 @@
     "kind": "function",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/adapter.ts",
-    "line": 10,
-    "description": "Assemble ExtractionResult + platform routing into CollectionPayload."
+    "line": 15,
+    "description": "Assemble SourceExtractionGraphResult + platform routing into StructuredContentPayload."
   },
   {
     "id": "@cat/source-collector:packages/source-collector/src/collect:collect",
@@ -14517,8 +14946,8 @@
     "kind": "function",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/collect.ts",
-    "line": 13,
-    "description": "Collect translatable elements from source files and return a CollectionPayload."
+    "line": 12,
+    "description": "Collect translatable elements from source files and return a StructuredContentPayload."
   },
   {
     "id": "@cat/source-collector:packages/source-collector/src/extract:extract",
@@ -14527,8 +14956,8 @@
     "kind": "function",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/extract.ts",
-    "line": 15,
-    "description": "Extract translatable elements from source files, returning ExtractionResult (no platform params)."
+    "line": 22,
+    "description": "Extract translatable elements from source files, returning graph-structured result (no platform params)."
   },
   {
     "id": "@cat/source-collector:packages/source-collector/src/extractors/script-extract:extractFromScript",
@@ -14557,7 +14986,7 @@
     "kind": "interface",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/types.ts",
-    "line": 34,
+    "line": 39,
     "description": "Options for the collect() function."
   },
   {
@@ -14567,7 +14996,7 @@
     "kind": "interface",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/types.ts",
-    "line": 7,
+    "line": 12,
     "description": "Extraction options for a source extractor."
   },
   {
@@ -14577,8 +15006,18 @@
     "kind": "interface",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/types.ts",
-    "line": 66,
+    "line": 73,
     "description": "Platform routing parameters for toCollectionPayload()."
+  },
+  {
+    "id": "@cat/source-collector:packages/source-collector/src/types:SourceExtractionGraphResult",
+    "stableKey": "@cat/source-collector:packages/source-collector/src/types:SourceExtractionGraphResult",
+    "name": "SourceExtractionGraphResult",
+    "kind": "interface",
+    "packageName": "@cat/source-collector",
+    "filePath": "packages/source-collector/src/types.ts",
+    "line": 92,
+    "description": "Graph-structured result from source extraction (with nodes, relations, evidence)."
   },
   {
     "id": "@cat/source-collector:packages/source-collector/src/types:SourceExtractOptions",
@@ -14587,7 +15026,7 @@
     "kind": "interface",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/types.ts",
-    "line": 53,
+    "line": 60,
     "description": "Options for the extract() function (pure extraction, no platform params)."
   },
   {
@@ -14597,7 +15036,7 @@
     "kind": "interface",
     "packageName": "@cat/source-collector",
     "filePath": "packages/source-collector/src/types.ts",
-    "line": 18,
+    "line": 23,
     "description": "Source extractor interface — pluggable i18n text extraction implementation."
   },
   {
@@ -14801,8 +15240,8 @@
     "kind": "function",
     "packageName": "@cat/vcs",
     "filePath": "packages/vcs/src/diff-strategies-init.ts",
-    "line": 27,
-    "description": "Register all 13 entityType diff strategies into the registry"
+    "line": 34,
+    "description": "Register all entityType diff strategies into the registry (including content graph entities)"
   },
   {
     "id": "@cat/vcs:packages/vcs/src/diff-strategy:DiffResult",
@@ -14900,7 +15339,7 @@
     "kind": "function",
     "packageName": "@cat/vcs",
     "filePath": "packages/vcs/src/wire-entity-state-fetchers.ts",
-    "line": 12,
+    "line": 32,
     "description": "Inject EntityStateFetcher into each method in the registry.\nCalled once at server startup so rebase before-rewrite can query actual DB tables."
   },
   {
@@ -15407,7 +15846,7 @@
     "kind": "function",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/index.ts",
-    "line": 80
+    "line": 79
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/index:DefaultGraphRuntime",
@@ -15416,7 +15855,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/index.ts",
-    "line": 71
+    "line": 70
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/lease:LeaseManager",
@@ -15633,7 +16072,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/ingest-collection.ts",
-    "line": 37
+    "line": 22
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/ingest-collection:IngestCollectionOutput",
@@ -15642,7 +16081,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/ingest-collection.ts",
-    "line": 38
+    "line": 23
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/qa:QAPubPayload",

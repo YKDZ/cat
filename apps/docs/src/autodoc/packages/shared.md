@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 25
 
-* **Exported types**: 203
+* **Exported types**: 233
 
 ## Function Index
 
@@ -232,15 +232,35 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `ConfirmationPolicy` (type)
 
-* `CollectionPayload` (type)
+* `StableElementIdentity` (type)
 
-* `CollectionElement` (type)
+* `ContentRelationEndpoint` (type)
 
-* `CollectionContext` (type)
+* `ContentRelationAllowedEndpointPair` (type)
 
-* `CollectionContextData` (type)
+* `RegisteredRelationTypeInput` (type)
 
-* `CollectionElementLocation` (type)
+* `StructuredContentNodeInput` (type)
+
+* `StructuredTranslatableElementInput` (type)
+
+* `StructuredRelationInput` (type)
+
+* `StructuredEvidenceInput` (type)
+
+* `StructuredContentPayload` (type)
+
+* `ContextProfileRelationWeights` (type)
+
+* `ContextProfileConsumerBudget` (type)
+
+* `ContextProfilePayload` (type)
+
+* `FlattenedContextEvidence` (type)
+
+* `ScopeBindingInput` (type)
+
+* `SemanticDiffEntryPayload` (type)
 
 * `StoredAgentDefinition` (type)
 
@@ -268,17 +288,25 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `CommentReaction` (type)
 
-* `Document` (type)
+* `ContentNode` (type)
 
-* `DocumentClosure` (type)
+* `ContentRelationType` (type)
 
-* `DocumentToTask` (type)
+* `ContentRelation` (type)
+
+* `ContentNodeToTask` (type)
 
 * `TranslatableElement` (type)
 
 * `VectorizedString` (type)
 
-* `TranslatableElementContext` (type)
+* `ContextEvidence` (type)
+
+* `ContextProfile` (type)
+
+* `ScopeBinding` (type)
+
+* `SemanticDiffEntry` (type)
 
 * `EntityBranch` (type)
 
@@ -375,6 +403,38 @@ export const safeJoinURL = (base: string, path: string): string
 * `Vector` (type)
 
 * `TokenType` (type)
+
+* `ContentNodeKind` (type)
+
+* `ContentNodeLifecycleStatus` (type)
+
+* `ContentNodeExportRole` (type)
+
+* `ContentBoundaryType` (type)
+
+* `RelationEndpointKind` (type)
+
+* `ContentRelationSemanticFamily` (type)
+
+* `ContentRelationDirectionality` (type)
+
+* `ContentRelationLifecycleStatus` (type)
+
+* `EvidenceTrustLevel` (type)
+
+* `ContentEvidenceKind` (type)
+
+* `ContextConsumerPurpose` (type)
+
+* `ScopeBindingAssetKind` (type)
+
+* `ScopeBindingMode` (type)
+
+* `SemanticDiffKind` (type)
+
+* `VectorInvalidationReason` (type)
+
+* `ContentIdentityStatus` (type)
 
 * `PluginServiceType` (type)
 

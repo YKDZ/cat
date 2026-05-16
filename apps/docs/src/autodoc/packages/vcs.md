@@ -56,7 +56,7 @@ export async function rebaseBranch(db: DbHandle, branchId: number, appMethodRegi
  * then falls back to main data.
  * Returns null if deleted in branch, or if no branch changes exist (caller reads from main).
  */
-export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue", entityId: string): Promise<{ data: T; action: "CREATE" | "UPDATE"; } | { data: null; action: "DELETE"; } | null>
+export async function readWithOverlay(db: DbHandle, branchId: number, entityType: "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "term" | "translation" | "comment" | "auto_translation" | "content_relation_type" | "scope_binding" | "semantic_diff" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "issue", entityId: string): Promise<{ data: T; action: "CREATE" | "UPDATE"; } | { data: null; action: "DELETE"; } | null>
 ```
 
 ### `listWithOverlay`
@@ -66,7 +66,7 @@ export async function readWithOverlay(db: DbHandle, branchId: number, entityType
  * List query overlay: merges main data with branch changes
  * (CREATE appended, DELETE removed, UPDATE overwritten).
  */
-export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue", mainItems: T[], getItemId: (item: T) => string): Promise<T[]>
+export async function listWithOverlay(db: DbHandle, branchId: number, entityType: "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "term" | "translation" | "comment" | "auto_translation" | "content_relation_type" | "scope_binding" | "semantic_diff" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "issue", mainItems: T[], getItemId: (item: T) => string): Promise<T[]>
 ```
 
 ### `getBranchChangesetId`
@@ -91,7 +91,7 @@ export async function getBranchBaseChangesetId(db: DbHandle, branchId: number): 
 
 ```ts
 /**
- * Register all 13 entityType diff strategies into the registry
+ * Register all entityType diff strategies into the registry (including content graph entities)
  */
 export const registerAllDiffStrategies = (registry: DiffStrategyRegistry)
 ```
@@ -109,7 +109,7 @@ export const getDefaultRegistries = (): { diffRegistry: DiffStrategyRegistry; ap
  * Inject EntityStateFetcher into each method in the registry.
  * Called once at server startup so rebase before-rewrite can query actual DB tables.
  */
-export function wireEntityStateFetchers(_registry: ApplicationMethodRegistry, _db: DbHandle)
+export function wireEntityStateFetchers(registry: ApplicationMethodRegistry, db: DbHandle)
 ```
 
 ### packages/vcs/src/methods

@@ -10,11 +10,11 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (337 functions, 437 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (343 functions, 441 types)
 
-* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (104 functions, 120 types)
+* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (105 functions, 122 types)
 
-* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 203 types)
+* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 233 types)
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (9 functions, 6 types)
 
@@ -40,11 +40,11 @@
 
 * [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (13 functions, 18 types)
 
-* [**@cat/file-parsers**](./packages/file-parsers.md) (0 functions, 4 types)
+* [**@cat/file-parsers**](./packages/file-parsers.md) (2 functions, 4 types)
 
 * [**@cat/seed**](./packages/seed.md) (6 functions, 15 types)
 
-* [**@cat/source-collector**](./packages/source-collector.md) (5 functions, 5 types)
+* [**@cat/source-collector**](./packages/source-collector.md) (5 functions, 6 types)
 
 * [**@cat/screenshot-collector**](./packages/screenshot-collector.md) (10 functions, 6 types)
 

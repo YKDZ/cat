@@ -20,7 +20,6 @@
 | `CacheOptions` | type | 缓存配置选项 |
 | `createPluginCapabilities` | function |  |
 | `ProjectCapabilities` | type |  |
-| `DocumentCapabilities` | type |  |
 | `TranslationCapabilities` | type |  |
 | `SettingCapabilities` | type |  |
 | `AuthCapabilities` | type |  |
@@ -29,8 +28,6 @@
 | `UserCapabilities` | type |  |
 | `CommentCapabilities` | type |  |
 | `AgentCapabilities` | type |  |
-| `ElementCapabilities` | type |  |
-| `QaCapabilities` | type |  |
 | `GlossaryCapabilities` | type |  |
 | `MemoryCapabilities` | type |  |
 | `PluginCapabilities` | type |  |
@@ -59,4 +56,7 @@
 | `UpdateAgentDefinitionCommand` | type |  |
 | `createApiKey` | function |  |
 | `CreateApiKeyCommand` | interface |  |
-| *(724 more)* | | |
+| `revokeApiKey` | function |  |
+| `RevokeApiKeyCommand` | interface |  |
+| `updateApiKeyLastUsed` | function |  |
+| *(734 more)* | | |

@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 315
+* **Modules**: 322
 
-* **Exported functions**: 337
+* **Exported functions**: 343
 
-* **Exported types**: 437
+* **Exported types**: 441
 
 ## Function Index
 
@@ -292,7 +292,7 @@ export const updateBranchStatus: Command<
 export const addChangesetEntry: Command<
   AddChangesetEntryCommand,
   typeof changesetEntry.$inferSelect
-> = async (ctx: DbContext, command: { changesetId: number; entityType: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue"; entityId: string; action: "CREATE" | "UPDATE" | "DELETE"; riskLevel: "LOW" | "MEDIUM" | "HIGH"; before?: any; after?: any; fieldPath?: string | undefined; asyncStatus?: "FAILED" | "PENDING" | "READY" | null | undefined; asyncTaskIds?: string[] | undefined; }) => {...}
+> = async (ctx: DbContext, command: { changesetId: number; entityType: "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "term" | "translation" | "comment" | "auto_translation" | "content_relation_type" | "scope_binding" | "semantic_diff" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "issue"; entityId: string; action: "CREATE" | "UPDATE" | "DELETE"; riskLevel: "LOW" | "MEDIUM" | "HIGH"; before?: any; after?: any; fieldPath?: string | undefined; asyncStatus?: "FAILED" | "PENDING" | "READY" | null | undefined; asyncTaskIds?: string[] | undefined; }) => {...}
 ```
 
 ### `batchUpdateEntryBefore`
@@ -397,6 +397,107 @@ export const upsertCommentReaction: Command<
 > = async (ctx: DbContext, command: { commentId: number; userId: string; type: "+1" | "-1" | "LAUGH" | "HOORAY" | "CONFUSED" | "HEART" | "ROCKET" | "EYES"; }) => {...}
 ```
 
+### packages/domain/src/commands/content
+
+### `applyContentGraphEnvelope`
+
+```ts
+/**
+ * Persist relation types and nodes for a structured content graph payload.
+ *
+ * Merges CoreRelationTypeDefinitions with payload.relationTypes and upserts
+ * all relation types by (namespace, name, version). Upserts nodes by
+ * (projectId, importerId, sourceRootRef, stableSourceNodeRef). Returns
+ * node ref maps for subsequent diffing.
+ */
+export const applyContentGraphEnvelope: Command<
+  ApplyContentGraphEnvelopeInput,
+  AppliedGraphEnvelope
+> = async (ctx: DbContext, command: ApplyContentGraphEnvelopeInput) => {...}
+```
+
+### `bulkUpdatePrimaryRelationOrder`
+
+```ts
+export const bulkUpdatePrimaryRelationOrder: Command<
+  BulkUpdatePrimaryRelationOrderCommand
+> = async (ctx: DbContext, command: { primaryContentNodeId: string; data: { elementId: number; localOrder: number; }[]; }) => {...}
+```
+
+### `createContentNodeUnderParent`
+
+```ts
+export const createContentNodeUnderParent: Command<
+  CreateContentNodeUnderParentCommand,
+  typeof contentNode.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; parentContentNodeId: string; kind: "FILE" | "DIRECTORY" | "MARKDOWN_SECTION" | "SOURCE_COMPONENT" | "CUSTOM"; displayLabel: string; importerId: string; sourceRootRef: string; stableSourceNodeRef: string; exportRole: "FILE" | "DIRECTORY" | "NONE" | "SECTION"; boundaryType: "FILE" | "DIRECTORY" | "MODULE" | "NONE" | "SOURCE_ROOT"; localOrder: number; creatorId?: string | undefined; sourceUri?: string | null | undefined; sourcePath?: string | null | undefined; sourceType?: string | null | undefined; languageId?: string | null | undefined; fileHandlerId?: number | null | undefined; fileId?: number | null | undefined; }) => {...}
+```
+
+### `createRootContentNode`
+
+```ts
+export const createRootContentNode: Command<
+  CreateRootContentNodeCommand,
+  typeof contentNode.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; creatorId: string; }) => {...}
+```
+
+### `deleteContentNode`
+
+```ts
+/**
+ * Delete a content node (cascading to its relations and children).
+ */
+export const deleteContentNode: Command<DeleteContentNodeCommand> = async (ctx: DbContext, command: { contentNodeId: string; }) => {...}
+```
+
+### `ensureCoreRelationTypes`
+
+```ts
+export const ensureCoreRelationTypes: Command<
+  EnsureCoreRelationTypesCommand,
+  Record<string, number>
+> = async (ctx: DbContext) => {...}
+```
+
+### `insertSemanticDiffEntry`
+
+```ts
+/**
+ * Insert a single semantic diff entry record.
+ */
+export const insertSemanticDiffEntry: Command<
+  InsertSemanticDiffEntryInput,
+  InsertSemanticDiffEntryOutput
+> = async (ctx: DbContext, command: InsertSemanticDiffEntryInput) => {...}
+```
+
+### `persistContentGraphAttachments`
+
+```ts
+/**
+ * Persist relations and context evidence from a structured content graph payload.
+ *
+ * After element diff creates/updates elements, resolves payload.relations
+ * and payload.evidence endpoint refs to database IDs and persists them.
+ */
+export const persistContentGraphAttachments: Command<
+  PersistContentGraphAttachmentsInput,
+  PersistContentGraphAttachmentsOutput
+> = async (ctx: DbContext, command: PersistContentGraphAttachmentsInput) => {...}
+```
+
+### packages/domain/src/commands/context
+
+### `ensureDefaultContextProfile`
+
+```ts
+export const ensureDefaultContextProfile: Command<
+  EnsureDefaultContextProfileCommand,
+  typeof contextProfile.$inferSelect
+> = async (ctx: DbContext, command: { projectId: string; }) => {...}
+```
+
 ### packages/domain/src/commands/cross-reference
 
 ### `parseAndSaveCrossReferences`
@@ -422,32 +523,6 @@ export const bulkUpdateChunkVectorMetadata: Command<
 > = async (ctx: DbContext, command: { chunkIds: number[]; vectorizerId: number; vectorStorageId: number; }) => {...}
 ```
 
-### `createDocumentUnderParent`
-
-```ts
-/**
- * Create a new document under the given parent in the closure-table tree.
- * If `parentId` is null, the project root document is used as the parent.
- */
-export const createDocumentUnderParent = async (drizzle: Omit<DrizzleClient, "$client">, input: {
-    name: string;
-    projectId: string;
-    creatorId: string;
-    isDirectory?: boolean;
-    fileId?: number | null;
-    fileHandlerId?: number | null;
-  }, parentId: string | null): Promise<{ id: string; name: string | null; projectId: string; creatorId: string; fileHandlerId: number | null; fileId: number | null; isDirectory: boolean; createdAt: Date; updatedAt: Date; }>
-```
-
-### `createRootDocument`
-
-```ts
-export const createRootDocument: Command<
-  CreateRootDocumentCommand,
-  typeof document.$inferSelect
-> = async (ctx: DbContext, command: { projectId: string; creatorId: string; name: string; }) => {...}
-```
-
 ### `createVectorizedChunks`
 
 ```ts
@@ -457,12 +532,6 @@ export const createVectorizedChunks: Command<
 > = async (ctx: DbContext, command: { vectorizerId: number; vectorStorageId: number; chunkSetCount: number; chunks: { textIndex: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
 ```
 
-### `deleteDocument`
-
-```ts
-export const deleteDocument: Command<DeleteDocumentCommand> = async (ctx: DbContext, command: { documentId: string; }) => {...}
-```
-
 ### packages/domain/src/commands/element
 
 ### `bulkUpdateElementsForDiff`
@@ -470,27 +539,19 @@ export const deleteDocument: Command<DeleteDocumentCommand> = async (ctx: DbCont
 ```ts
 export const bulkUpdateElementsForDiff: Command<
   BulkUpdateElementsForDiffCommandInput
-> = async (ctx: DbContext, command: { stringIdUpdates?: { id: number; stringId: number; }[] | undefined; sortIndexUpdates?: { id: number; sortIndex: number; }[] | undefined; locationUpdates?: { id: number; sourceStartLine: number | null; sourceEndLine: number | null; sourceLocationMeta: z.core.util.JSONType; }[] | undefined; }) => {...}
+> = async (ctx: DbContext, command: { stringIdUpdates?: { id: number; stringId: number; }[] | undefined; locationUpdates?: { id: number; sourceStartLine: number | null; sourceEndLine: number | null; sourceLocationMeta: z.core.util.JSONType; }[] | undefined; }) => {...}
 ```
 
 ### `createElements`
 
 ```ts
-export const createElements: Command<CreateElementsCommand, number[]> = async (ctx: DbContext, command: { data: { documentId: string; stringId: number; meta?: z.core.util.JSONType | undefined; creatorId?: string | undefined; sortIndex?: number | undefined; sourceStartLine?: number | null | undefined; sourceEndLine?: number | null | undefined; sourceLocationMeta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+export const createElements: Command<CreateElementsCommand, number[]> = async (ctx: DbContext, command: { data: { projectId: string; primaryContentNodeId: string; importerId: string; sourceRootRef: string; sourceNodeRef: string; stableSourceRef: string; stringId: number; meta?: z.core.util.JSONType | undefined; creatorId?: string | undefined; localOrder?: number | undefined; sourceStartLine?: number | null | undefined; sourceEndLine?: number | null | undefined; sourceLocationMeta?: z.core.util.JSONType | undefined; }[]; }) => {...}
 ```
 
 ### `deleteElementsByIds`
 
 ```ts
 export const deleteElementsByIds: Command<DeleteElementsByIdsCommand> = async (ctx: DbContext, command: { elementIds: number[]; }) => {...}
-```
-
-### `insertElementContexts`
-
-```ts
-export const insertElementContexts: Command<
-  InsertElementContextsCommand
-> = async (ctx: DbContext, command: { data: { type: string; translatableElementId: number; textData?: string | null | undefined; jsonData?: unknown; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; }[]; }) => {...}
 ```
 
 ### packages/domain/src/commands/file
@@ -871,7 +932,7 @@ export const grantFirstUserSuperadmin: Command<
  */
 export const grantPermissionTuple: Command<
   GrantPermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
 ```
 
 ### `insertAuditLogs`
@@ -880,7 +941,7 @@ export const grantPermissionTuple: Command<
 /**
  * 批量插入鉴权审计日志。写入失败时静默忽略，不影响业务流程。
  */
-export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
+export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbContext, command: { entries: { subjectType: "user" | "role" | "agent"; subjectId: string; action: "check" | "grant" | "revoke"; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; result: boolean; traceId?: string | undefined; ip?: string | undefined; userAgent?: string | undefined; }[]; }) => {...}
 ```
 
 ### `revokePermissionTuple`
@@ -894,7 +955,7 @@ export const insertAuditLogs: Command<InsertAuditLogsCommand> = async (ctx: DbCo
  */
 export const revokePermissionTuple: Command<
   RevokePermissionTupleCommand
-> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
+> = async (ctx: DbContext, command: { subjectType: "user" | "role" | "agent"; subjectId: string; relation: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced"; objectType: "system" | "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
 ```
 
 ### `seedSystemRoles`
@@ -968,15 +1029,6 @@ export const upsertPluginConfigInstance: Command<
 export const addProjectTargetLanguages: Command<
   AddProjectTargetLanguagesCommand
 > = async (ctx: DbContext, command: { projectId: string; languageIds: string[]; }) => {...}
-```
-
-### `createProjectTranslationSnapshot`
-
-```ts
-export const createProjectTranslationSnapshot: Command<
-  CreateProjectTranslationSnapshotCommand,
-  number
-> = async (ctx: DbContext, command: { projectId: string; creatorId?: string | undefined; }) => {...}
 ```
 
 ### `createProject`
@@ -1241,13 +1293,32 @@ export const updateVectorizedStringStatus: Command<
 export const approveTranslation: Command<ApproveTranslationCommand> = async (ctx: DbContext, command: { translationId: number; }) => {...}
 ```
 
-### `autoApproveDocumentTranslations`
+### `autoApproveContentNodeTranslations`
 
 ```ts
-export const autoApproveDocumentTranslations: Command<
-  AutoApproveDocumentTranslationsCommand,
+/**
+ * Auto-approve the latest translation for each element under a content node in the target language.
+ *
+ * @returns Number of elements approved.
+ */
+export const autoApproveContentNodeTranslations: Command<
+  AutoApproveContentNodeTranslationsCommand,
   number
-> = async (ctx: DbContext, command: { documentId: string; languageId: string; }) => {...}
+> = async (ctx: DbContext, command: { contentNodeId: string; languageId: string; }) => {...}
+```
+
+### `createProjectTranslationSnapshot`
+
+```ts
+/**
+ * Create a translation snapshot for the project, recording all currently approved translations.
+ *
+ * @returns The snapshot ID.
+ */
+export const createProjectTranslationSnapshot: Command<
+  CreateProjectTranslationSnapshotCommand,
+  number
+> = async (ctx: DbContext, command: { projectId: string; creatorId?: string | undefined; }) => {...}
 ```
 
 ### `createTranslations`
@@ -1330,6 +1401,14 @@ export const updateVectorDimension: Command<
 
 ```ts
 export const upsertChunkVectors: Command<UpsertChunkVectorsCommand> = async (ctx: DbContext, command: { chunks: { chunkId: number; vector: number[]; }[]; }) => {...}
+```
+
+### packages/domain/src/content
+
+### `assertStructuredPayloadGraphValid`
+
+```ts
+export const assertStructuredPayloadGraphValid = (payload: StructuredContentPayload, registeredRelationTypes: readonly RegisteredRelationTypeInput[])
 ```
 
 ### packages/domain/src/events
@@ -1738,7 +1817,7 @@ export const listChangesets: Query<
 export const getChangesetEntries: Query<
   GetChangesetEntriesQuery,
   (typeof changesetEntry.$inferSelect)[]
-> = async (ctx: DbContext, query: { changesetId: number; entityType?: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { changesetId: number; entityType?: "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "term" | "translation" | "comment" | "auto_translation" | "content_relation_type" | "scope_binding" | "semantic_diff" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "issue" | undefined; }) => {...}
 ```
 
 ### `listBranchChangesetEntries`
@@ -1747,7 +1826,7 @@ export const getChangesetEntries: Query<
 export const listBranchChangesetEntries: Query<
   ListBranchChangesetEntriesQuery,
   (typeof changesetEntry.$inferSelect)[]
-> = async (ctx: DbContext, query: { branchId: number; entityType?: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { branchId: number; entityType?: "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "term" | "translation" | "comment" | "auto_translation" | "content_relation_type" | "scope_binding" | "semantic_diff" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "issue" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/chunk
@@ -1802,6 +1881,199 @@ export const listRootComments: Query<
 > = async (ctx: DbContext, query: { targetType: "ELEMENT" | "TRANSLATION"; targetId: number; pageIndex: number; pageSize: number; }) => {...}
 ```
 
+### packages/domain/src/queries/content
+
+### `countContentNodeElements`
+
+```ts
+/**
+ * Count translatable elements under a content node matching the given filters.
+ */
+export const countContentNodeElements: Query<
+  CountContentNodeElementsQuery,
+  number
+> = async (ctx: DbContext, query: { contentNodeId: string; searchQuery?: string | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `countContentNodeTranslations`
+
+```ts
+/**
+ * Count translations for a given language under a content node.
+ */
+export const countContentNodeTranslations: Query<
+  CountContentNodeTranslationsQuery,
+  number
+> = async (ctx: DbContext, query: { contentNodeId: string; languageId: string; isApproved?: boolean | undefined; }) => {...}
+```
+
+### `findProjectContentNodeByLabel`
+
+```ts
+/**
+ * Find a content node in a project by displayLabel (optionally filtered by kind).
+ */
+export const findProjectContentNodeByLabel: Query<
+  FindProjectContentNodeByLabelQuery,
+  typeof contentNode.$inferSelect | null
+> = async (ctx: DbContext, query: { projectId: string; displayLabel: string; kind?: "FILE" | "DIRECTORY" | "MARKDOWN_SECTION" | "SOURCE_COMPONENT" | "CUSTOM" | undefined; }) => {...}
+```
+
+### `getContentNodeBlobInfo`
+
+```ts
+/**
+ * Get the blob storage info (key, storageProviderId, fileName) for the content node's file.
+ */
+export const getContentNodeBlobInfo: Query<
+  GetContentNodeBlobInfoQuery,
+  ContentNodeBlobInfo | null
+> = async (ctx: DbContext, query: { contentNodeId: string; }) => {...}
+```
+
+### `getContentNodeElementPageIndex`
+
+```ts
+/**
+ * Get the page index of an element within its content node's element list (ordered by localOrder).
+ */
+export const getContentNodeElementPageIndex: Query<
+  GetContentNodeElementPageIndexQuery,
+  number
+> = async (ctx: DbContext, query: { elementId: number; pageSize: number; searchQuery?: string | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getContentNodeElements`
+
+```ts
+export const getContentNodeElements: Query<
+  GetContentNodeElementsQuery,
+  ContentNodeElementRow[]
+> = async (ctx: DbContext, query: { contentNodeId: string; page: number; pageSize: number; searchQuery?: string | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getContentNodeFirstElement`
+
+```ts
+/**
+ * Get the first translatable element under a content node matching the given filters.
+ */
+export const getContentNodeFirstElement: Query<
+  GetContentNodeFirstElementQuery,
+  ContentNodeElementRow | null
+> = async (ctx: DbContext, query: { contentNodeId: string; searchQuery?: string | undefined; greaterThan?: number | undefined; afterElementId?: number | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
+```
+
+### `getContentNode`
+
+```ts
+export const getContentNode: Query<
+  GetContentNodeQuery,
+  typeof contentNode.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `getContentRelation`
+
+```ts
+/**
+ * Fetch a single ContentRelation row by ID.
+ */
+export const getContentRelation: Query<
+  GetContentRelationQuery,
+  typeof contentRelation.$inferSelect | null
+> = async (ctx: DbContext, query: { id: string; }) => {...}
+```
+
+### `getContextEvidence`
+
+```ts
+/**
+ * Fetch a single ContextEvidence row by ID.
+ */
+export const getContextEvidence: Query<
+  GetContextEvidenceQuery,
+  typeof contextEvidence.$inferSelect | null
+> = async (ctx: DbContext, query: { id: number; }) => {...}
+```
+
+### `getElementTranslationStatus`
+
+```ts
+/**
+ * Get the translation status for a single translatable element.
+ */
+export const getElementTranslationStatus: Query<
+  GetElementTranslationStatusQuery,
+  ElementTranslationStatus
+> = async (ctx: DbContext, query: { elementId: number; languageId: string; }) => {...}
+```
+
+### `getProjectRootContentNode`
+
+```ts
+/**
+ * Get the root content node of a project (kind = PROJECT_ROOT).
+ */
+export const getProjectRootContentNode: Query<
+  GetProjectRootContentNodeQuery,
+  typeof contentNode.$inferSelect | null
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listContentNodeElementIds`
+
+```ts
+/**
+ * Get all translatable element IDs that belong to a content node (primary relations).
+ */
+export const listContentNodeElementIds: Query<
+  ListContentNodeElementIdsQuery,
+  number[]
+> = async (ctx: DbContext, query: { contentNodeId: string; }) => {...}
+```
+
+### `listContentNodeElementsWithChunkIds`
+
+```ts
+/**
+ * Get all elements under a content node along with their chunk IDs (for batch auto-translation).
+ */
+export const listContentNodeElementsWithChunkIds: Query<
+  ListContentNodeElementsWithChunkIdsQuery,
+  ContentNodeElementWithChunkIds[]
+> = async (ctx: DbContext, query: { contentNodeId: string; }) => {...}
+```
+
+### `listProjectContentNodes`
+
+```ts
+export const listProjectContentNodes: Query<
+  ListProjectContentNodesQuery,
+  ProjectContentNodeRow[]
+> = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### packages/domain/src/queries/context
+
+### `assembleContextEvidence`
+
+```ts
+export const assembleContextEvidence: Query<
+  AssembleContextEvidenceQuery,
+  FlattenedContextEvidence[]
+> = async (ctx: DbContext, query: { elementId: number; purpose: "QA" | "EDITOR" | "RECALL" | "AI" | "AGENT"; profileId?: string | undefined; maxItems?: number | undefined; maxTokens?: number | undefined; includeExpansion?: boolean | undefined; }) => {...}
+```
+
+### `getEffectiveContextProfile`
+
+```ts
+export const getEffectiveContextProfile: Query<
+  GetEffectiveContextProfileQuery,
+  EffectiveContextProfile
+> = async (ctx: DbContext, query: { projectId: string; profileId?: string | undefined; }) => {...}
+```
+
 ### packages/domain/src/queries/cross-reference
 
 ### `listReferencesFrom`
@@ -1836,33 +2108,6 @@ export const listReferencesTo: Query<
 export const buildTranslationStatusConditions = (db: DbHandle, isTranslated?: boolean, isApproved?: boolean, languageId?: string): SQL<unknown>[]
 ```
 
-### `countDocumentElements`
-
-```ts
-export const countDocumentElements: Query<
-  CountDocumentElementsQuery,
-  number
-> = async (ctx: DbContext, query: { documentId: string; searchQuery: string; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
-```
-
-### `countDocumentTranslations`
-
-```ts
-export const countDocumentTranslations: Query<
-  CountDocumentTranslationsQuery,
-  number
-> = async (ctx: DbContext, query: { documentId: string; languageId: string; isApproved?: boolean | undefined; }) => {...}
-```
-
-### `findProjectDocumentByName`
-
-```ts
-export const findProjectDocumentByName: Query<
-  FindProjectDocumentByNameQuery,
-  { id: string } | null
-> = async (ctx: DbContext, query: { projectId: string; name: string; isDirectory: boolean; }) => {...}
-```
-
 ### `getActiveFileBlobInfo`
 
 ```ts
@@ -1890,79 +2135,6 @@ export const getChunkVectorStorageId: Query<
 > = async (ctx: DbContext, query: { chunkId: number; }) => {...}
 ```
 
-### `getDocumentBlobInfo`
-
-```ts
-export const getDocumentBlobInfo: Query<
-  GetDocumentBlobInfoQuery,
-  DocumentBlobInfo | null
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
-```
-
-### `getDocumentElementPageIndex`
-
-```ts
-export const getDocumentElementPageIndex: Query<
-  GetDocumentElementPageIndexQuery,
-  number
-> = async (ctx: DbContext, query: { elementId: number; pageSize: number; searchQuery: string; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
-```
-
-### `getDocumentElementTranslationStatus`
-
-```ts
-export const getDocumentElementTranslationStatus: Query<
-  GetDocumentElementTranslationStatusQuery,
-  ElementTranslationStatus
-> = async (ctx: DbContext, query: { elementId: number; languageId: string; }) => {...}
-```
-
-### `getDocumentElements`
-
-```ts
-export const getDocumentElements: Query<
-  GetDocumentElementsQuery,
-  DocumentElementRow[]
-> = async (ctx: DbContext, query: { documentId: string; page: number; pageSize: number; searchQuery?: string | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
-```
-
-### `getDocumentFileExportContext`
-
-```ts
-export const getDocumentFileExportContext: Query<
-  GetDocumentFileExportContextQuery,
-  DocumentFileExportContext | null
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
-```
-
-### `getDocumentFirstElement`
-
-```ts
-export const getDocumentFirstElement: Query<
-  GetDocumentFirstElementQuery,
-  typeof translatableElement.$inferSelect | null
-> = async (ctx: DbContext, query: { documentId: string; searchQuery: string; greaterThan?: number | undefined; afterElementId?: number | undefined; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
-```
-
-### `getDocument`
-
-```ts
-export const getDocument: Query<
-  GetDocumentQuery,
-  typeof document.$inferSelect | null
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
-```
-
-### `getProjectRootDocument`
-
-```ts
-/**
- * Query the root document for a project — the document with no parent in the
- * closure table.
- */
-export const getProjectRootDocument = async (db: Omit<DrizzleClient, "$client">, projectId: string): Promise<string>
-```
-
 ### `listChunkVectorizationInputs`
 
 ```ts
@@ -1970,24 +2142,6 @@ export const listChunkVectorizationInputs: Query<
   ListChunkVectorizationInputsQuery,
   ChunkVectorizationInput[]
 > = async (ctx: DbContext, query: { chunkIds: number[]; }) => {...}
-```
-
-### `listDocumentElementsWithChunkIds`
-
-```ts
-export const listDocumentElementsWithChunkIds: Query<
-  ListDocumentElementsWithChunkIdsQuery,
-  DocumentElementWithChunkIds[]
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
-```
-
-### `listElementIdsByDocument`
-
-```ts
-export const listElementIdsByDocument: Query<
-  ListElementIdsByDocumentQuery,
-  number[]
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
 ```
 
 ### packages/domain/src/queries/element
@@ -1998,16 +2152,7 @@ export const listElementIdsByDocument: Query<
 export const getElementContexts: Query<
   GetElementContextsQuery,
   GetElementContextsResult
-> = async (ctx: DbContext, query: { elementId: number; }) => {...}
-```
-
-### `getElementInfo`
-
-```ts
-export const getElementInfo: Query<
-  GetElementInfoQuery,
-  ElementInfoQueryResult
-> = async (ctx: DbContext, query: { elementId: number; languageId?: string | undefined; }) => {...}
+> = async (ctx: DbContext, query: { elementId: number; purpose: "QA" | "EDITOR" | "RECALL" | "AI" | "AGENT"; maxItems?: number | undefined; }) => {...}
 ```
 
 ### `getElementMeta`
@@ -2019,18 +2164,36 @@ export const getElementMeta: Query<
 > = async (ctx: DbContext, query: { elementId: number; }) => {...}
 ```
 
+### `getElementProject`
+
+```ts
+/**
+ * Get the projectId the element belongs to (directly from translatableElement table).
+ */
+export const getElementProject: Query<
+  GetElementProjectQuery,
+  { projectId: string } | null
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
 ### `getElementSourceLocation`
 
 ```ts
+/**
+ * Get the source file location info for an element (for editor source navigation).
+ */
 export const getElementSourceLocation: Query<
   GetElementSourceLocationQuery,
-  ElementSourceLocationRow
+  ElementSourceLocation
 > = async (ctx: DbContext, query: { elementId: number; }) => {...}
 ```
 
 ### `getElementWithChunkIds`
 
 ```ts
+/**
+ * Get a single element's source text and its chunk IDs (for vector recall).
+ */
 export const getElementWithChunkIds: Query<
   GetElementWithChunkIdsQuery,
   ElementWithChunkIds | null
@@ -2079,46 +2242,34 @@ export const listElementSourceTexts: Query<
 > = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
 ```
 
+### `listElementsByImporterScope`
+
+```ts
+export const listElementsByImporterScope: Query<
+  ListElementsByImporterScopeQuery,
+  ElementByImporterScopeRow[]
+> = async (ctx: DbContext, query: { projectId: string; importerId: string; sourceRootRef: string; }) => {...}
+```
+
 ### `listElementsForDiff`
 
 ```ts
+/**
+ * Get element data for diff display by a list of element IDs.
+ */
 export const listElementsForDiff: Query<
   ListElementsForDiffQuery,
   ElementForDiff[]
 > = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
 ```
 
-### `listElements`
-
-```ts
-export const listElements: Query<
-  ListElementsQuery,
-  ElementWithString[]
-> = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
-```
-
-### `listElementsByDocument`
-
-```ts
-export const listElementsByDocument: Query<
-  ListElementsByDocumentQuery,
-  ElementWithString[]
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
-```
-
 ### `listNeighborElements`
 
 ```ts
-/**
- * Fetch the nearest sibling elements within the same document.
- *
- * Prefer `sortIndex` ordering when available; fall back to `id` ordering when
- * the reference element has no sort index.
- */
 export const listNeighborElements: Query<
   ListNeighborElementsQuery,
-  NeighborElement[]
-> = async (ctx: DbContext, query: { elementId: number; windowSize: number; }) => {...}
+  { before: NeighborElementRow[]; after: NeighborElementRow[] }
+> = async (ctx: DbContext, query: { elementId: number; before: number; after: number; }) => {...}
 ```
 
 ### packages/domain/src/queries/file
@@ -2728,7 +2879,7 @@ export const listPreferences: Query<
 export const getSubjectPermissionTuples: Query<
   GetSubjectPermissionTuplesQuery,
   SubjectPermissionTupleRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "system" | "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; }) => {...}
 ```
 
 ### `listPermissionObjects`
@@ -2737,7 +2888,7 @@ export const getSubjectPermissionTuples: Query<
 export const listPermissionObjects: Query<
   ListPermissionObjectsQuery,
   PermissionObjectRow[]
-> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced")[] | undefined; }) => {...}
+> = async (ctx: DbContext, query: { subjectType: "user" | "role" | "agent"; subjectId: string; objectType: "system" | "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; filterRelations?: ("superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced")[] | undefined; }) => {...}
 ```
 
 ### `listPermissionSubjects`
@@ -2746,7 +2897,7 @@ export const listPermissionObjects: Query<
 export const listPermissionSubjects: Query<
   ListPermissionSubjectsQuery,
   PermissionSubjectRow[]
-> = async (ctx: DbContext, query: { objectType: "system" | "project" | "document" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced" | undefined; }) => {...}
+> = async (ctx: DbContext, query: { objectType: "system" | "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "glossary" | "memory" | "term" | "translation" | "comment" | "plugin" | "setting" | "task" | "agent_definition" | "user"; objectId: string; filterRelation?: "superadmin" | "admin" | "owner" | "editor" | "viewer" | "member" | "direct_editor" | "isolation_forced" | undefined; }) => {...}
 ```
 
 ### `loadUserSystemRoles`
@@ -2767,6 +2918,11 @@ export const loadUserSystemRoles: Query<
 ### `checkServiceReferences`
 
 ```ts
+/**
+ * Check if a plugin service is referenced by any entity (mfaProvider / blob / chunk).
+ *
+ * @returns `true` if at least one reference exists (service must be kept), `false` if safe to delete.
+ */
 export const checkServiceReferences: Query<
   CheckServiceReferencesQuery,
   boolean
@@ -2901,10 +3057,13 @@ export const listPlugins: Query<
 ### `countProjectElements`
 
 ```ts
+/**
+ * Count all translatable elements in a project matching the given filters.
+ */
 export const countProjectElements: Query<
   CountProjectElementsQuery,
   number
-> = async (ctx: DbContext, query: { projectId: string; isTranslated?: boolean | undefined; isApproved?: boolean | undefined; languageId?: string | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; isApproved?: boolean | undefined; isTranslated?: boolean | undefined; languageId?: string | undefined; }) => {...}
 ```
 
 ### `getProjectTargetLanguages`
@@ -2932,15 +3091,6 @@ export const listOwnedProjects: Query<
   ListOwnedProjectsQuery,
   Array<typeof project.$inferSelect>
 > = async (ctx: DbContext, query: { creatorId: string; }) => {...}
-```
-
-### `listProjectDocuments`
-
-```ts
-export const listProjectDocuments: Query<
-  ListProjectDocumentsQuery,
-  ProjectDocumentRow[]
-> = async (ctx: DbContext, query: { projectId: string; page?: number | undefined; pageSize?: number | undefined; }) => {...}
 ```
 
 ### `listProjectsByCreator`
@@ -2998,7 +3148,7 @@ export const getPRByNumber: Query<
 export const getPRDiff: Query<
   GetPRDiffQuery,
   (typeof changesetEntry.$inferSelect)[]
-> = async (ctx: DbContext, query: { prId: number; entityType?: "project" | "document" | "element" | "term" | "translation" | "comment" | "auto_translation" | "document_tree" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "context" | "issue" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { prId: number; entityType?: "project" | "content_node" | "content_relation" | "context_evidence" | "context_profile" | "element" | "term" | "translation" | "comment" | "auto_translation" | "content_relation_type" | "scope_binding" | "semantic_diff" | "comment_reaction" | "term_concept" | "memory_item" | "project_settings" | "project_member" | "project_attributes" | "issue" | undefined; entityId?: string | undefined; limit?: number | undefined; }) => {...}
 ```
 
 ### `getPR`
@@ -3026,24 +3176,6 @@ export const listPRs: Query<
 ```
 
 ### packages/domain/src/queries/qa
-
-### `getTranslationQaContext`
-
-```ts
-export const getTranslationQaContext: Query<
-  GetTranslationQaContextQuery,
-  TranslationQaContext | null
-> = async (ctx: DbContext, query: { translationId: number; }) => {...}
-```
-
-### `listDocumentGlossaryIds`
-
-```ts
-export const listDocumentGlossaryIds: Query<
-  ListDocumentGlossaryIdsQuery,
-  string[]
-> = async (ctx: DbContext, query: { documentId: string; }) => {...}
-```
 
 ### `listQaResultItems`
 
@@ -3140,6 +3272,18 @@ export const getSelfTranslationVote: Query<
 > = async (ctx: DbContext, query: { translationId: number; voterId: string; }) => {...}
 ```
 
+### `getTranslationQaContext`
+
+```ts
+/**
+ * Fetch the context required to run translation QA (translation text, source text, language info).
+ */
+export const getTranslationQaContext: Query<
+  GetTranslationQaContextQuery,
+  TranslationQaContext | null
+> = async (ctx: DbContext, query: { translationId: number; }) => {...}
+```
+
 ### `getTranslationVoteTotal`
 
 ```ts
@@ -3147,19 +3291,6 @@ export const getTranslationVoteTotal: Query<
   GetTranslationVoteTotalQuery,
   number
 > = async (ctx: DbContext, query: { translationId: number; }) => {...}
-```
-
-### `listDocumentApprovedTranslations`
-
-```ts
-/**
- * Query approved translations from other elements in the same document,
- * ordered by proximity to the current element.
- */
-export const listDocumentApprovedTranslations: Query<
-  ListDocumentApprovedTranslationsQuery,
-  ApprovedTranslationEntry[]
-> = async (ctx: DbContext, query: { elementId: number; languageId: string; maxCount: number; }) => {...}
 ```
 
 ### `listQaResultsByTranslation`
@@ -3187,15 +3318,6 @@ export const listTranslationsByIds: Query<
   ListTranslationsByIdsQuery,
   TranslationWithVoteAndText[]
 > = async (ctx: DbContext, query: { translationIds: number[]; }) => {...}
-```
-
-### `listUserTranslationHistory`
-
-```ts
-export const listUserTranslationHistory: Query<
-  ListUserTranslationHistoryQuery,
-  ListUserTranslationHistoryResult
-> = async (ctx: DbContext, query: { projectId: string; userId: string; limit: number; sourceLanguageId?: string | undefined; translationLanguageId?: string | undefined; cursor?: number | undefined; }) => {...}
 ```
 
 ### packages/domain/src/queries/user
@@ -3256,6 +3378,14 @@ export const searchChunkCosineSimilarity: Query<
 > = async (ctx: DbContext, query: { vectors: number[][]; chunkIdRange: number[]; minSimilarity: number; maxAmount: number; }) => {...}
 ```
 
+### packages/domain/src/testing
+
+### `setupTestDB`
+
+```ts
+export const setupTestDB = async (): Promise<TestDB>
+```
+
 ## Type Index
 
 * `CacheStore` (interface) — 缓存存储接口
@@ -3265,8 +3395,6 @@ export const searchChunkCosineSimilarity: Query<
 * `CacheOptions` (type) — 缓存配置选项
 
 * `ProjectCapabilities` (type)
-
-* `DocumentCapabilities` (type)
 
 * `TranslationCapabilities` (type)
 
@@ -3283,10 +3411,6 @@ export const searchChunkCosineSimilarity: Query<
 * `CommentCapabilities` (type)
 
 * `AgentCapabilities` (type)
-
-* `ElementCapabilities` (type)
-
-* `QaCapabilities` (type)
 
 * `GlossaryCapabilities` (type)
 
@@ -3368,19 +3492,39 @@ export const searchChunkCosineSimilarity: Query<
 
 * `UpsertCommentReactionCommand` (type)
 
+* `ApplyContentGraphEnvelopeInput` (type)
+
+* `AppliedGraphEnvelope` (type)
+
+* `BulkUpdatePrimaryRelationOrderCommand` (type)
+
+* `CreateContentNodeUnderParentCommand` (type)
+
+* `CreateRootContentNodeCommand` (type)
+
+* `DeleteContentNodeCommand` (type)
+
+* `EnsureCoreRelationTypesCommand` (type)
+
+* `InsertSemanticDiffEntryInput` (type)
+
+* `InsertSemanticDiffEntryOutput` (type)
+
+* `PersistContentGraphAttachmentsInput` (type)
+
+* `PersistContentGraphAttachmentsOutput` (type)
+
+* `EnsureDefaultContextProfileCommand` (type)
+
 * `ParseAndSaveCrossReferencesCommand` (type)
 
 * `BulkUpdateChunkVectorMetadataCommand` (type)
 
 * `BulkUpdateChunkVectorMetadataResult` (type)
 
-* `CreateRootDocumentCommand` (type)
-
 * `CreateVectorizedChunksCommand` (type)
 
 * `CreateVectorizedChunksResult` (type)
-
-* `DeleteDocumentCommand` (type)
 
 * `BulkUpdateElementsForDiffCommand` (type)
 
@@ -3389,8 +3533,6 @@ export const searchChunkCosineSimilarity: Query<
 * `CreateElementsCommand` (type)
 
 * `DeleteElementsByIdsCommand` (type)
-
-* `InsertElementContextsCommand` (type)
 
 * `CreateBlobCommand` (type)
 
@@ -3516,8 +3658,6 @@ export const searchChunkCosineSimilarity: Query<
 
 * `AddProjectTargetLanguagesCommand` (type)
 
-* `CreateProjectTranslationSnapshotCommand` (type)
-
 * `CreateProjectCommand` (type)
 
 * `DeleteProjectCommand` (type)
@@ -3572,7 +3712,9 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ApproveTranslationCommand` (type)
 
-* `AutoApproveDocumentTranslationsCommand` (type)
+* `AutoApproveContentNodeTranslationsCommand` (type)
+
+* `CreateProjectTranslationSnapshotCommand` (type)
 
 * `CreateTranslationsCommand` (type)
 
@@ -3722,15 +3864,55 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ListRootCommentsQuery` (type)
 
+* `CountContentNodeElementsQuery` (type)
+
+* `CountContentNodeTranslationsQuery` (type)
+
+* `FindProjectContentNodeByLabelQuery` (type)
+
+* `GetContentNodeBlobInfoQuery` (type)
+
+* `ContentNodeBlobInfo` (type)
+
+* `GetContentNodeElementPageIndexQuery` (type)
+
+* `ElementTranslationStatus` (type)
+
+* `GetContentNodeElementsQuery` (type)
+
+* `ContentNodeElementRow` (type)
+
+* `GetContentNodeFirstElementQuery` (type)
+
+* `GetContentNodeQuery` (type)
+
+* `GetContentRelationQuery` (type)
+
+* `GetContextEvidenceQuery` (type)
+
+* `GetElementTranslationStatusQuery` (type)
+
+* `GetProjectRootContentNodeQuery` (type)
+
+* `ListContentNodeElementIdsQuery` (type)
+
+* `ListContentNodeElementsWithChunkIdsQuery` (type)
+
+* `ContentNodeElementWithChunkIds` (type)
+
+* `ListProjectContentNodesQuery` (type)
+
+* `ProjectContentNodeRow` (type)
+
+* `AssembleContextEvidenceQuery` (type)
+
+* `GetEffectiveContextProfileQuery` (type)
+
+* `EffectiveContextProfile` (type)
+
 * `ListReferencesFromQuery` (type)
 
 * `ListReferencesToQuery` (type)
-
-* `CountDocumentElementsQuery` (type)
-
-* `CountDocumentTranslationsQuery` (type)
-
-* `FindProjectDocumentByNameQuery` (type)
 
 * `GetActiveFileBlobInfoQuery` (type)
 
@@ -3740,51 +3922,21 @@ export const searchChunkCosineSimilarity: Query<
 
 * `GetChunkVectorStorageIdQuery` (type)
 
-* `GetDocumentBlobInfoQuery` (type)
-
-* `DocumentBlobInfo` (type)
-
-* `GetDocumentElementPageIndexQuery` (type)
-
-* `GetDocumentElementTranslationStatusQuery` (type)
-
-* `ElementTranslationStatus` (type)
-
-* `GetDocumentElementsQuery` (type)
-
-* `DocumentElementRow` (type)
-
-* `GetDocumentFileExportContextQuery` (type)
-
-* `DocumentFileExportContext` (type)
-
-* `GetDocumentFirstElementQuery` (type)
-
-* `GetDocumentQuery` (type)
-
 * `ListChunkVectorizationInputsQuery` (type)
 
 * `ChunkVectorizationInput` (type)
-
-* `ListDocumentElementsWithChunkIdsQuery` (type)
-
-* `DocumentElementWithChunkIds` (type)
-
-* `ListElementIdsByDocumentQuery` (type)
 
 * `GetElementContextsQuery` (type)
 
 * `GetElementContextsResult` (type)
 
-* `GetElementInfoQuery` (type)
-
-* `ElementInfoQueryResult` (type)
-
 * `GetElementMetaQuery` (type)
+
+* `GetElementProjectQuery` (type)
 
 * `GetElementSourceLocationQuery` (type)
 
-* `ElementSourceLocationRow` (type)
+* `ElementSourceLocation` (type)
 
 * `GetElementWithChunkIdsQuery` (type)
 
@@ -3804,19 +3956,17 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ElementSourceText` (type)
 
+* `ListElementsByImporterScopeQuery` (type)
+
+* `ElementByImporterScopeRow` (type)
+
 * `ListElementsForDiffQuery` (type)
 
 * `ElementForDiff` (type)
 
-* `ListElementsQuery` (type)
-
-* `ElementWithString` (type)
-
-* `ListElementsByDocumentQuery` (type)
-
 * `ListNeighborElementsQuery` (type)
 
-* `NeighborElement` (type)
+* `NeighborElementRow` (type)
 
 * `GetBlobByKeyQuery` (type)
 
@@ -4038,10 +4188,6 @@ export const searchChunkCosineSimilarity: Query<
 
 * `ListOwnedProjectsQuery` (type)
 
-* `ListProjectDocumentsQuery` (type)
-
-* `ProjectDocumentRow` (type)
-
 * `ListProjectsByCreatorQuery` (type)
 
 * `ListProjectsByCreatorResult` (type)
@@ -4057,12 +4203,6 @@ export const searchChunkCosineSimilarity: Query<
 * `GetPRQuery` (type)
 
 * `ListPRsQuery` (type)
-
-* `GetTranslationQaContextQuery` (type)
-
-* `TranslationQaContext` (type)
-
-* `ListDocumentGlossaryIdsQuery` (type)
 
 * `ListQaResultItemsQuery` (type)
 
@@ -4086,11 +4226,11 @@ export const searchChunkCosineSimilarity: Query<
 
 * `GetSelfTranslationVoteQuery` (type)
 
+* `GetTranslationQaContextQuery` (type)
+
+* `TranslationQaContext` (type)
+
 * `GetTranslationVoteTotalQuery` (type)
-
-* `ListDocumentApprovedTranslationsQuery` (type)
-
-* `ApprovedTranslationEntry` (type)
 
 * `ListQaResultsByTranslationQuery` (type)
 
@@ -4101,10 +4241,6 @@ export const searchChunkCosineSimilarity: Query<
 * `ListTranslationsByIdsQuery` (type)
 
 * `TranslationWithVoteAndText` (type)
-
-* `ListUserTranslationHistoryQuery` (type)
-
-* `ListUserTranslationHistoryResult` (type)
 
 * `GetUserAvatarFileQuery` (type)
 
@@ -4121,6 +4257,8 @@ export const searchChunkCosineSimilarity: Query<
 * `SearchChunkCosineSimilarityQuery` (type)
 
 * `ChunkCosineSimilarityItem` (type)
+
+* `TestDB` (type)
 
 * `DbHandle` (type)
 
