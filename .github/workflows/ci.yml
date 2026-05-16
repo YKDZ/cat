@@ -200,10 +200,9 @@ jobs:
           exit 1
 
       - name: Push Database Schema
-        working-directory: packages/db
         run: |
           set +e
-          pnpm exec drizzle-kit push --force > /tmp/db-push.log 2>&1
+          pnpm moon run db:push --quiet > /tmp/db-push.log 2>&1
           status=$?
           cat /tmp/db-push.log
           if [ "$status" -ne 0 ]; then

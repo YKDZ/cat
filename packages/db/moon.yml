@@ -33,14 +33,20 @@ tasks:
 
   migrate:
     command: "drizzle-kit migrate"
+    deps:
+      - "shared:build"
     options:
       cache: false
 
   push:
     command: "drizzle-kit push --force"
+    deps:
+      - "shared:build"
     options:
       cache: false
 
   studio:
     command: "drizzle-kit studio --host 0.0.0.0 --port 4983"
+    deps:
+      - "shared:build"
     preset: "server"
