@@ -114,17 +114,7 @@ jobs:
           for _ in $(seq 1 30); do
             status="$(docker inspect -f '{{.State.Health.Status}}' cat-search-runtime)"
             if [ "$status" = "healthy" ]; then
-              if python3 - <<'PY'
-import socket
-import sys
-
-try:
-    with socket.create_connection(("127.0.0.1", 5432), timeout=1):
-        sys.exit(0)
-except OSError:
-    sys.exit(1)
-PY
-              then
+              if python3 -c "import socket; socket.create_connection(('127.0.0.1', 5432), timeout=1).close()" >/dev/null 2>&1; then
                 exit 0
               fi
             fi
@@ -196,17 +186,7 @@ PY
           for _ in $(seq 1 30); do
             status="$(docker inspect -f '{{.State.Health.Status}}' cat-search-runtime-e2e)"
             if [ "$status" = "healthy" ]; then
-              if python3 - <<'PY'
-import socket
-import sys
-
-try:
-    with socket.create_connection(("127.0.0.1", 5432), timeout=1):
-        sys.exit(0)
-except OSError:
-    sys.exit(1)
-PY
-              then
+              if python3 -c "import socket; socket.create_connection(('127.0.0.1', 5432), timeout=1).close()" >/dev/null 2>&1; then
                 exit 0
               fi
             fi
