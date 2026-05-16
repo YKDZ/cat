@@ -47,7 +47,7 @@ const meta = computed(() => {
   <Card>
     <CardContent class="flex flex-col gap-2">
       <Badge variant="secondary" class="self-start text-xs">{{
-        t("邻居元素")
+        t("相关元素")
       }}</Badge>
       <Markdown :content="textData" size="sm" />
       <Collapsible v-model:open="open">

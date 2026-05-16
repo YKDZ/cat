@@ -1,7 +1,7 @@
-storage/
-plugins/
-ollama/
-drizzle/
-dist/
+/storage
+/plugins
+/ollama
+/drizzle
+/dist
 
 *.local.*
