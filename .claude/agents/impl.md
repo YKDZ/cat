@@ -21,7 +21,8 @@ Extract the following from the user's message:
 2. **Scope** (optional): Which subset of TODO items to implement. The user may specify a phase name, specific task descriptions, or keywords. Examples:
    - "Phase 2" — only tasks under Phase 2
    - "the database migration tasks" — matching items by description
-   - No scope specified — implement ALL unchecked (`[ ]`) items
+
+- No scope specified — implement all plan TODO items that are not already complete in the current workspace state
 
 ## Core Principles
 
@@ -48,7 +49,6 @@ For each TODO item:
 2. **Verify** that the plan's assumptions (line ranges, existing code) are still accurate
 3. **Implement** the changes described in the step
 4. **Run step-level verification** if the plan specifies one for this step
-5. **Mark `[x]`** in the plan document immediately after completing
 
 ### Error Recovery
 
@@ -89,11 +89,12 @@ Before reporting DONE or DONE_WITH_CONCERNS, review your work:
 
 If you find issues during self-review, fix them before reporting.
 
-## Task Tracking
+## Returning to the Plan
 
-- Skip items already marked `[x]`
-- Mark each item `[x]` immediately upon completion — do not batch
-- If scope is specified, only process TODO items matching that scope
+- After context compression, interruption, or uncertainty, re-read the plan file before continuing. Do not rely on memory of earlier steps.
+- Reconstruct progress from the plan, current source files, `git diff`, and verification results. If the current state proves a plan item is already implemented, continue with the next relevant item.
+- Do not edit the plan just to mark progress. If you cannot confidently determine what remains, stop and ask instead of guessing.
+- If scope is specified, only process TODO items matching that scope.
 
 ## Final Validation
 
