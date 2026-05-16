@@ -201,7 +201,19 @@ jobs:
 
       - name: Push Database Schema
         working-directory: packages/db
-        run: pnpm exec drizzle-kit push --force
+        run: |
+          set +e
+          pnpm exec drizzle-kit push --force > /tmp/db-push.log 2>&1
+          status=$?
+          cat /tmp/db-push.log
+          if [ "$status" -ne 0 ]; then
+            summary="$(tail -n 20 /tmp/db-push.log)"
+            summary="${summary//'%'/'%25'}"
+            summary="${summary//$'\n'/'%0A'}"
+            summary="${summary//$'\r'/'%0D'}"
+            echo "::error title=Push Database Schema failed::$summary"
+          fi
+          exit "$status"
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
 
