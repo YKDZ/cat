@@ -196,7 +196,8 @@ jobs:
           exit 1
 
       - name: Push Database Schema
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run db:push --quiet
+        working-directory: packages/db
+        run: pnpm exec drizzle-kit push --force
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
 
