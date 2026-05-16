@@ -18,7 +18,7 @@ export const updatePluginConfigInstanceValue: Command<
 > = async (ctx, command) => {
   await ctx.db
     .update(pluginConfigInstance)
-    .set({ value: command.value })
+    .set({ value: command.value, updatedAt: new Date() })
     .where(eq(pluginConfigInstance.id, command.instanceId));
 
   return { result: undefined, events: [] };

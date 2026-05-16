@@ -70,6 +70,21 @@ import {
   onNew as onNewMemory,
 } from "@/orpc/routers/memory";
 
+const DEFAULT_PROJECT_ID = "33333333-3333-4333-8333-333333333333";
+
+const createDrizzleClient = (projectId: string) => {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  return {
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ projectId }]),
+        }),
+      }),
+    }),
+  } as unknown as Context["drizzleDB"]["client"];
+};
+
 const createContext = (): Context => {
   const base = createAuthedTestContext();
   const pluginManager = new PluginManager("GLOBAL", "");
@@ -84,7 +99,9 @@ const createContext = (): Context => {
       scopes: [],
     },
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    drizzleDB: { client: {} } as unknown as Context["drizzleDB"],
+    drizzleDB: {
+      client: createDrizzleClient(DEFAULT_PROJECT_ID),
+    } as Context["drizzleDB"],
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     redis: {} as unknown as Context["redis"],
     isSSR: true,

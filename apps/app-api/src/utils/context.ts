@@ -137,6 +137,7 @@ export const getContext = async (
     csrfToken,
     isSSR: false,
     isWebSocket: false,
+    requestSignal: req.signal,
   };
 };
 
@@ -153,6 +154,8 @@ export type Context = {
   csrfToken?: string;
   isSSR: boolean;
   isWebSocket: boolean;
+  /** @zh 当前 HTTP 请求的取消信号。 @en Abort signal for the current HTTP request. */
+  requestSignal?: AbortSignal;
   /** @zh 分支工作空间 ID（由 withBranchContext 中间件注入）@en Branch workspace ID */
   branchId?: number;
   /** @zh 分支 changeset ID（由 withBranchContext 中间件注入）@en Branch changeset ID */

@@ -68,6 +68,7 @@ export const upsertPluginConfigInstance: Command<
         ],
         set: {
           value: command.value,
+          updatedAt: new Date(),
         },
       })
       .returning(),

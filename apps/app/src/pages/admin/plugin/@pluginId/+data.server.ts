@@ -1,27 +1,23 @@
-import type { Plugin, PluginConfig } from "@cat/shared";
 import type { PageContextServer } from "vike/types";
 
 import { render } from "vike/abort";
 
 import { ssc } from "@/server/ssc";
 
-export const data = async (
-  ctx: PageContextServer,
-): Promise<{
-  plugin: Plugin;
-  config: PluginConfig;
-}> => {
+export const data = async (ctx: PageContextServer) => {
   const { pluginId } = ctx.routeParams;
 
-  if (!pluginId) throw render("/", "Plugin id is required");
+  if (!pluginId) throw render(404, "Plugin id is required");
 
-  const plugin = await ssc(ctx).plugin.get({ pluginId });
-  const config = await ssc(ctx).plugin.getConfig({ pluginId });
+  const detail = await ssc(ctx).plugin.getDetail({
+    pluginId,
+    scopeType: "GLOBAL",
+    scopeId: "",
+  });
 
-  if (!plugin || !config)
-    throw render("/", `Plugin ${pluginId} does not exists`);
+  if (!detail) throw render(404, `Plugin ${pluginId} does not exist`);
 
-  return { plugin, config };
+  return { detail };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

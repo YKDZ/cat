@@ -15,7 +15,7 @@ export class LoginPage {
    */
   async login(email: string, password: string): Promise<void> {
     // Step 1: Identifier input (email)
-    const emailInput = this.page.getByRole("textbox", { name: "邮箱" });
+    const emailInput = this.page.locator('input[type="email"]');
     await emailInput.waitFor({ state: "visible" });
     await emailInput.fill(email);
     await this.page.getByRole("button", { name: "继续" }).click();

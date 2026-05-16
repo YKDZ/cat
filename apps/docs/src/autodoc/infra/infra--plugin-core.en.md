@@ -38,6 +38,7 @@
 | `ComponentRecord` | type |  |
 | `ComponentData` | type |  |
 | `PluginLoader` | interface |  |
+| `PluginRuntimeSnapshot` | type | Observation snapshot for a single plugin in the in-memory runtime. |
 | `RegisteredService` | type |  |
 | `AgentContextProvider` | interface | Agent 上下文提供器插件服务接口。
 
@@ -71,5 +72,4 @@ must approve exec |
 | `ChatMessageRole` | type | Chat message role. |
 | `ChatMessage` | type | A chat message in a conversation. |
 | `ToolDefinition` | type | Tool definition with JSON Schema parameters. |
-| `ToolCall` | type | A tool call initiated by the LLM. |
-| *(36 more)* | | |
+| *(37 more)* | | |

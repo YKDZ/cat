@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
-import type { Data } from "./+data.ts";
-import PluginList from "@/components/PluginList.vue";
 import { usePageContext } from "vike-vue/usePageContext";
+
+import PluginList from "@/components/PluginList.vue";
+
+import type { Data } from "./+data.ts";
 
 const { plugins } = useData<Data>();
 

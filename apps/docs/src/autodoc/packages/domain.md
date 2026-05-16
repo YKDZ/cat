@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 322
+* **Modules**: 323
 
-* **Exported functions**: 343
+* **Exported functions**: 344
 
-* **Exported types**: 441
+* **Exported types**: 442
 
 ## Function Index
 
@@ -1002,6 +1002,23 @@ export const syncPluginServices: Command<SyncPluginServicesCommand> = async (ctx
 
 ```ts
 export const uninstallPlugin: Command<UninstallPluginCommand> = async (ctx: DbContext, command: { installationId: number; }) => {...}
+```
+
+### `updatePluginConfigInstanceValueIfUnchanged`
+
+```ts
+/**
+ * Update a plugin config instance value only when its version is unchanged.
+ *
+ * @param ctx - Database context
+ * @param command - Update condition and value
+ *
+ * @returns Updated config instance, or null on version conflict
+ */
+export const updatePluginConfigInstanceValueIfUnchanged: Command<
+  UpdatePluginConfigInstanceValueIfUnchangedCommand,
+  typeof pluginConfigInstance.$inferSelect | null
+> = async (ctx: DbContext, command: { instanceId: number; value: any; expectedUpdatedAt: Date; }) => {...}
 ```
 
 ### `updatePluginConfigInstanceValue`
@@ -3649,6 +3666,8 @@ export const setupTestDB = async (): Promise<TestDB>
 * `SyncPluginServicesCommand` (type)
 
 * `UninstallPluginCommand` (type)
+
+* `UpdatePluginConfigInstanceValueIfUnchangedCommand` (type) — Command payload for updating a config instance value only when the version is unchanged.
 
 * `UpdatePluginConfigInstanceValueCommand` (type)
 

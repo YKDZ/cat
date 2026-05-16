@@ -4,11 +4,11 @@ Plugin system core: service registry, component registry, discovery
 
 ## Overview
 
-* **Modules**: 25
+* **Modules**: 26
 
 * **Exported functions**: 15
 
-* **Exported types**: 71
+* **Exported types**: 72
 
 ## Function Index
 
@@ -156,6 +156,8 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 * `ComponentData` (type)
 
 * `PluginLoader` (interface)
+
+* `PluginRuntimeSnapshot` (type) — Observation snapshot for a single plugin in the in-memory runtime.
 
 * `RegisteredService` (type)
 

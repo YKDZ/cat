@@ -10,7 +10,7 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (343 functions, 441 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (344 functions, 442 types)
 
 * [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (105 functions, 122 types)
 
@@ -24,7 +24,7 @@
 
 * [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (22 functions, 4 types)
 
-* [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (15 functions, 71 types)
+* [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (15 functions, 72 types)
 
 * [**@cat/auth**](./packages/auth.md) — DAG-based authentication flow engine (10 functions, 23 types)
 

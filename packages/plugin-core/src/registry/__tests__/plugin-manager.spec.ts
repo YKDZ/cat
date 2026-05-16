@@ -415,3 +415,44 @@ describe("PluginManager — service & component getters", () => {
     expect(manager.getComponentOfSlot("sidebar")).toHaveLength(0);
   });
 });
+
+describe("PluginManager — runtime snapshots and transient services", () => {
+  it("getRuntimeSnapshot() reports active services, components, and routes", async () => {
+    const svc = { getId: () => "svc-1", getType: () => "TOKENIZER" as const };
+    const component = { name: "test-panel", slot: "panel", url: "/panel.js" };
+    const plugin = makePlugin({
+      services: vi.fn().mockResolvedValue([svc]),
+      components: vi.fn().mockResolvedValue([component]),
+    });
+    setupActivateMocks({ withService: true });
+
+    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, makeLoader(plugin));
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+
+    const snapshot = manager.getRuntimeSnapshot(PLUGIN_ID);
+
+    expect(snapshot.isActive).toBe(true);
+    expect(snapshot.services).toHaveLength(1);
+    expect(snapshot.components).toHaveLength(1);
+    expect(snapshot.hasRoute).toBe(false);
+  });
+
+  it("createTransientServices() does not mutate the active registry", async () => {
+    const svc = {
+      getId: () => "candidate",
+      getType: () => "TOKENIZER" as const,
+    };
+    const plugin = makePlugin({ services: vi.fn().mockResolvedValue([svc]) });
+    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, makeLoader(plugin));
+    vi.mocked(executeQuery).mockReset();
+    vi.mocked(executeQuery).mockResolvedValueOnce([]);
+
+    const services = await manager.createTransientServices(FAKE_DB, PLUGIN_ID, {
+      enabled: true,
+    });
+
+    expect(services).toEqual([svc]);
+    expect(manager.getRuntimeSnapshot(PLUGIN_ID).services).toHaveLength(0);
+    expect(manager.isActive(PLUGIN_ID)).toBe(false);
+  });
+});

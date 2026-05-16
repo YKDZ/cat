@@ -3190,6 +3190,26 @@
     "line": 10
   },
   {
+    "id": "@cat/domain:packages/domain/src/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd:updatePluginConfigInstanceValueIfUnchanged",
+    "stableKey": "@cat/domain:packages/domain/src/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd:updatePluginConfigInstanceValueIfUnchanged",
+    "name": "updatePluginConfigInstanceValueIfUnchanged",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd.ts",
+    "line": 35,
+    "description": "Update a plugin config instance value only when its version is unchanged."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd:UpdatePluginConfigInstanceValueIfUnchangedCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd:UpdatePluginConfigInstanceValueIfUnchangedCommand",
+    "name": "UpdatePluginConfigInstanceValueIfUnchangedCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd.ts",
+    "line": 23,
+    "description": "Command payload for updating a config instance value only when the version is unchanged."
+  },
+  {
     "id": "@cat/domain:packages/domain/src/commands/plugin/update-plugin-config-instance-value.cmd:updatePluginConfigInstanceValue",
     "stableKey": "@cat/domain:packages/domain/src/commands/plugin/update-plugin-config-instance-value.cmd:updatePluginConfigInstanceValue",
     "name": "updatePluginConfigInstanceValue",
@@ -11443,6 +11463,16 @@
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/registry/loader.ts",
     "line": 18
+  },
+  {
+    "id": "@cat/plugin-core:packages/plugin-core/src/registry/plugin-manager:PluginRuntimeSnapshot",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/registry/plugin-manager:PluginRuntimeSnapshot",
+    "name": "PluginRuntimeSnapshot",
+    "kind": "type",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/registry/plugin-manager.ts",
+    "line": 56,
+    "description": "Observation snapshot for a single plugin in the in-memory runtime."
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/registry/service-registry:RegisteredService",

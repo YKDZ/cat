@@ -73,6 +73,7 @@ export * from "@/commands/plugin/register-plugin-definition.cmd";
 export * from "@/commands/plugin/sync-plugin-services.cmd";
 export * from "@/commands/plugin/delete-plugin-services.cmd";
 export * from "@/commands/plugin/update-plugin-config-instance-value.cmd";
+export * from "@/commands/plugin/update-plugin-config-instance-value-if-unchanged.cmd";
 export * from "@/commands/auth/register-user-with-password-account.cmd";
 export * from "@/commands/auth/create-account.cmd";
 export * from "@/commands/auth/create-mfa-provider.cmd";

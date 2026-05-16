@@ -59,4 +59,4 @@
 | `revokeApiKey` | function |  |
 | `RevokeApiKeyCommand` | interface |  |
 | `updateApiKeyLastUsed` | function |  |
-| *(734 more)* | | |
+| *(736 more)* | | |

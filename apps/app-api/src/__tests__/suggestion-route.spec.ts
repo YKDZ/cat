@@ -84,6 +84,19 @@ import { onNew as onNewSuggestion } from "@/orpc/routers/suggestion";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const createDrizzleClient = (projectId: string) => {
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  return {
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ projectId }]),
+        }),
+      }),
+    }),
+  } as unknown as Context["drizzleDB"]["client"];
+};
+
 const createContext = (): Context => {
   const base = createAuthedTestContext();
   const pluginManager = new PluginManager("GLOBAL", "");
@@ -98,7 +111,9 @@ const createContext = (): Context => {
       scopes: [],
     },
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    drizzleDB: { client: {} } as unknown as Context["drizzleDB"],
+    drizzleDB: {
+      client: createDrizzleClient(MOCK_ELEMENT.projectId),
+    } as Context["drizzleDB"],
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     redis: {} as unknown as Context["redis"],
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion

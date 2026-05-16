@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import type { PluginConfig, PluginConfigInstance } from "@cat/shared";
-import type { ScopeType } from "@cat/shared";
-import type { JSONType } from "@cat/shared";
-
-import { navigate } from "vike/client/router";
+import {
+  JSONSchemaSchema,
+  getDefaultFromSchema,
+  nonNullSafeZDotJson,
+  type NonNullJSONType,
+  type PluginConfig,
+  type PluginConfigInstance,
+  type ScopeType,
+} from "@cat/shared";
 import { ref } from "vue";
 
 import { orpc } from "@/rpc/orpc";
@@ -18,13 +22,20 @@ const props = defineProps<{
 
 const instance = ref<PluginConfigInstance | null>(null);
 
-const configSetter = async (value: JSONType) => {
-  await orpc.plugin.upsertConfigInstance({
+const defaultValue = (): NonNullJSONType => {
+  const schema = JSONSchemaSchema.parse(props.config.schema);
+  return nonNullSafeZDotJson.parse(getDefaultFromSchema(schema) ?? {});
+};
+
+const configSetter = async (value: NonNullJSONType) => {
+  const result = await orpc.plugin.saveConfigAndApply({
     pluginId: props.config.pluginId,
     scopeType: props.scopeType,
     scopeId: props.scopeId,
     value,
+    expectedUpdatedAt: instance.value?.updatedAt.toISOString() ?? null,
   });
+  if (result.configInstance) instance.value = result.configInstance;
 };
 
 const configGetter = async () => {
@@ -34,22 +45,17 @@ const configGetter = async () => {
       scopeType: props.scopeType,
       scopeId: props.scopeId,
     })
-    .then(async (data) => {
+    .then((data) => {
       if (!data) {
-        await navigate("/");
-        return {};
+        return defaultValue();
       }
-      instance.value = data as PluginConfigInstance;
+      instance.value = data;
       return data.value;
     });
 };
 
 const handleSaved = async () => {
-  await orpc.plugin.reloadPlugin({
-    pluginId: props.config.pluginId,
-    scopeType: props.scopeType,
-    scopeId: props.scopeId,
-  });
+  return;
 };
 </script>
 

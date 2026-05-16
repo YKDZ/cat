@@ -22,7 +22,7 @@ import {
   getSessionStore,
   type PluginCapabilities,
 } from "@cat/domain";
-import { JSONSchemaSchema, type JSONObject } from "@cat/shared";
+import { JSONSchemaSchema, type JSONObject, type JSONType } from "@cat/shared";
 import {
   getDefaultFromSchema,
   assertSingleNonNullish,
@@ -48,6 +48,21 @@ import { getPluginConfig } from "@/utils/config";
 
 import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 import { PluginDiscoveryService } from "./plugin-discovery";
+
+/**
+ * @zh 单个插件在内存运行时中的观察快照。
+ * @en Observation snapshot for a single plugin in the in-memory runtime.
+ */
+export type PluginRuntimeSnapshot = {
+  /** @zh 插件是否已激活。 @en Whether the plugin is active. */
+  isActive: boolean;
+  /** @zh 当前注册到内存中的服务。 @en Services currently registered in memory. */
+  services: RegisteredService[];
+  /** @zh 当前注册到内存中的组件。 @en Components currently registered in memory. */
+  components: ComponentRecord[];
+  /** @zh 当前是否挂载了插件路由。 @en Whether a plugin route is currently mounted. */
+  hasRoute: boolean;
+};
 
 /**
  * 作用域插件管理器
@@ -317,6 +332,60 @@ export class PluginManager {
     await this.activate(drizzle, pluginId);
   }
 
+  /**
+   * @zh 判断插件当前是否已在此作用域运行时中激活。
+   * @en Return whether the plugin is currently active in this scoped runtime.
+   *
+   * @param pluginId - {@zh 插件 ID} {@en Plugin ID}
+   * @returns - {@zh 已激活时为 true} {@en True when active}
+   */
+  public isActive(pluginId: string): boolean {
+    return this.activePlugins.has(pluginId);
+  }
+
+  /**
+   * @zh 获取插件在当前运行时中的服务、组件和路由快照。
+   * @en Get the plugin's current service, component, and route snapshot.
+   *
+   * @param pluginId - {@zh 插件 ID} {@en Plugin ID}
+   * @returns - {@zh 运行时观察快照} {@en Runtime observation snapshot}
+   */
+  public getRuntimeSnapshot(pluginId: string): PluginRuntimeSnapshot {
+    return {
+      isActive: this.isActive(pluginId),
+      services: this.serviceRegistry
+        .getAll()
+        .filter((service) => service.pluginId === pluginId),
+      components: this.componentRegistry.get(pluginId),
+      hasRoute: this.routeRegistry.resolve(pluginId) !== undefined,
+    };
+  }
+
+  /**
+   * @zh 使用候选配置创建临时服务实例，不注册服务、组件或路由。
+   * @en Create transient service instances with candidate config without registering services, components, or routes.
+   *
+   * @param drizzle - {@zh 长期有效数据库句柄} {@en Long-lived database handle}
+   * @param pluginId - {@zh 插件 ID} {@en Plugin ID}
+   * @param configOverride - {@zh 候选配置值} {@en Candidate config value}
+   * @returns - {@zh 临时服务实例列表} {@en Transient service instances}
+   */
+  public async createTransientServices(
+    drizzle: DbHandle,
+    pluginId: string,
+    configOverride: JSONType,
+  ): Promise<IPluginService[]> {
+    const pluginObj = await this.loader.getInstance(pluginId);
+    if (!pluginObj.services) return [];
+
+    const context = await this.createPluginContext(
+      drizzle,
+      pluginId,
+      configOverride,
+    );
+    return await pluginObj.services(context);
+  }
+
   // ────────────────────────────────────────────
   //  路由代理
   // ────────────────────────────────────────────
@@ -479,17 +548,15 @@ export class PluginManager {
   /**
    * 加载插件模块实例并构建上下文
    */
-  private async loadPlugin(
+  private async createPluginContext(
     drizzle: DbHandle,
     pluginId: string,
-  ): Promise<{ pluginObj: CatPlugin; context: PluginContext }> {
-    const pluginObj = await this.loader.getInstance(pluginId);
-    const config = await getPluginConfig(
-      drizzle,
-      pluginId,
-      this.scopeType,
-      this.scopeId,
-    );
+    configOverride?: JSONType,
+  ): Promise<PluginContext> {
+    const config =
+      configOverride === undefined
+        ? await getPluginConfig(drizzle, pluginId, this.scopeType, this.scopeId)
+        : configOverride;
 
     const registeredServices = await executeQuery(
       { db: drizzle },
@@ -497,7 +564,7 @@ export class PluginManager {
       { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
     );
 
-    const context: PluginContext = {
+    return {
       config,
       scopeType: this.scopeType,
       scopeId: this.scopeId,
@@ -512,6 +579,17 @@ export class PluginManager {
         checkPermission: this.createCheckPermission(pluginId),
       },
     };
+  }
+
+  /**
+   * 加载插件模块实例并构建上下文
+   */
+  private async loadPlugin(
+    drizzle: DbHandle,
+    pluginId: string,
+  ): Promise<{ pluginObj: CatPlugin; context: PluginContext }> {
+    const pluginObj = await this.loader.getInstance(pluginId);
+    const context = await this.createPluginContext(drizzle, pluginId);
 
     return { pluginObj, context };
   }

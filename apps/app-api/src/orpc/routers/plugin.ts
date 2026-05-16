@@ -28,6 +28,62 @@ import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 
 import { authed, base, checkPermission } from "@/orpc/server";
+import {
+  installPluginToScope,
+  getPluginDetailModel,
+  reloadPluginRuntime,
+  savePluginConfigAndApply,
+  uninstallPluginFromScope,
+} from "@/services/plugin-management";
+import { probePluginConfig } from "@/services/plugin-probe";
+import {
+  PluginActionResultSchema,
+  PluginDetailSchema,
+  PluginProbeResultSchema,
+  PluginScopeInputSchema,
+  ProbePluginConfigInputSchema,
+  SavePluginConfigAndApplyInputSchema,
+} from "@/services/plugin-schemas";
+
+export const getDetail = authed
+  .input(PluginScopeInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginDetailSchema.nullable())
+  .handler(async ({ context, input }) => {
+    return await getPluginDetailModel(context, input);
+  });
+
+export const install = authed
+  .input(PluginScopeInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginActionResultSchema)
+  .handler(async ({ context, input }) => {
+    return await installPluginToScope(context, input);
+  });
+
+export const uninstall = authed
+  .input(PluginScopeInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginActionResultSchema)
+  .handler(async ({ context, input }) => {
+    return await uninstallPluginFromScope(context, input);
+  });
+
+export const saveConfigAndApply = authed
+  .input(SavePluginConfigAndApplyInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginActionResultSchema)
+  .handler(async ({ context, input }) => {
+    return await savePluginConfigAndApply(context, input);
+  });
+
+export const probeConfig = authed
+  .input(ProbePluginConfigInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginProbeResultSchema)
+  .handler(async ({ context, input }) => {
+    return await probePluginConfig(context, input);
+  });
 
 export const reload = authed
   .input(
@@ -49,25 +105,11 @@ export const reload = authed
   });
 
 export const reloadPlugin = authed
-  .input(
-    z.object({
-      pluginId: z.string(),
-      scopeType: ScopeTypeSchema,
-      scopeId: z.string(),
-    }),
-  )
+  .input(PluginScopeInputSchema)
   .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginActionResultSchema)
   .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { pluginId, scopeType, scopeId } = input;
-
-    const registry = PluginManager.get(scopeType, scopeId);
-
-    await drizzle.transaction(async (tx) => {
-      await registry.reloadPlugin(tx, pluginId);
-    });
+    return await reloadPluginRuntime(context, input);
   });
 
 export const getConfigInstance = authed
