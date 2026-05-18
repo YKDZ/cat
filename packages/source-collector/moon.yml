@@ -11,6 +11,8 @@ tasks:
     inputs:
       - "@group(sources)"
       - "@group(tests)"
+    deps:
+      - "^:build"
     options:
       cache: true
 
