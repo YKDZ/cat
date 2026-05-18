@@ -8,6 +8,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@cat/ui";
 import { computed, inject } from "vue";
 import * as z from "zod";
