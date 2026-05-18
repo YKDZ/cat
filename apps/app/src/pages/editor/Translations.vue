@@ -14,7 +14,13 @@ const { state } = storeToRefs(useEditorTranslationStore());
 const { refetch } = useEditorTranslationStore();
 const { elementId } = storeToRefs(useEditorTableStore());
 
-watchClient(elementId, () => refetch(), { immediate: true });
+watchClient(
+  elementId,
+  () => {
+    if (elementId.value) refetch();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

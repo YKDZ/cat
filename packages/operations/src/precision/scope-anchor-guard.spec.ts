@@ -48,6 +48,12 @@ describe("buildAnchorSignature", () => {
     const sig = buildAnchorSignature("Order 42 done", "Order 42 completed");
     expect(sig.numbersCompatible).toBe(true);
   });
+
+  it("passes when candidate has no numbers (no conflict)", () => {
+    // "4 GB RAM minimum" vs term "RAM" — candidate has no numbers, so no numeric conflict
+    const sig = buildAnchorSignature("4 GB RAM minimum", "RAM");
+    expect(sig.numbersCompatible).toBe(true);
+  });
 });
 
 describe("applyGuardsToCandidates", () => {
@@ -115,6 +121,22 @@ describe("applyGuardsToCandidates", () => {
     const result = applyGuardsToCandidates(
       [cand],
       "Order 42 done",
+      HYPOTHESIS_UNKNOWN,
+      { allowedScopeIds: [] },
+    );
+    expect(result).toHaveLength(1);
+    expect(cand.hardFiltered).toBeFalsy();
+  });
+
+  it("does NOT hard-filter a term with no numbers when query has numbers", () => {
+    // Regression: "4 GB RAM minimum" vs term "RAM" — no numeric conflict when candidate has no numbers
+    const cand = makeTermCand(1, {
+      term: "RAM",
+      evidences: [{ channel: "lexical", confidence: 1.0 }],
+    });
+    const result = applyGuardsToCandidates(
+      [cand],
+      "4 GB RAM minimum",
       HYPOTHESIS_UNKNOWN,
       { allowedScopeIds: [] },
     );

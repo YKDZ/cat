@@ -28,9 +28,9 @@ export function buildAnchorSignature(
   const qAnchors = extractAnchors(queryText);
   const cAnchors = extractAnchors(candidateSource);
 
-  const numbersCompatible = qAnchors.numbers.every((n) =>
-    cAnchors.numbers.includes(n),
-  );
+  const numbersCompatible =
+    cAnchors.numbers.length === 0 ||
+    qAnchors.numbers.every((n) => cAnchors.numbers.includes(n));
   const placeholdersCompatible = qAnchors.placeholders.every((p) =>
     cAnchors.placeholders.includes(p),
   );
