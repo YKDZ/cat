@@ -1,96 +1,96 @@
 ---
 name: moon-task-runner
-description: Run one-off or multi-target moon tasks with low-noise output. Use when an agent needs to execute `moon exec`, `moon run`, `moon ci`, or `moon check` for standalone validation, focused testing, or multi-task QA, and decide directly whether to use `--quiet`, `--summary minimal`, or `MOON_OUTPUT_STYLE=buffer-only-failure`.
+description: 运行单次或多目标 moon 任务，保持输出少噪就。当 agent 需要执行 `moon exec`、`moon run`、`moon ci` 或 `moon check` 进行独立验证、重点测试或多任务 QA 时使用此 skill。
 user-invocable: false
 ---
 
-# Low-noise Moon Task Execution
+# 低噪小的 Moon 任务执行
 
-Use moon's exec-based commands to run targeted validation without flooding chat with decorative moon output.
-Do not rely on a wrapper script for this skill. Build the appropriate `moon` command directly based on the task, desired verbosity, and whether you need pass/fail-focused output.
+使用 moon 的 exec 类命令运行目标验证，而不会将装饰性的 moon 输出泻满聊天界面。
+对于此 skill，不要依赖包装脚本。根据任务、期望的详细程度以及是否需要以通过/失败为重点的输出，直接构建合适的 `moon` 命令。
 
-## When to Use
+## 何时使用
 
-- Run a single known task, such as `root:lint` or `app:typecheck`
-- Run multiple explicit tasks in one command for focused validation
-- Run affected tasks in CI mode without switching to a full QA workflow
-- Re-run a smaller subset of tasks after fixing a failure
-- Execute moon commands autonomously while keeping user-facing output small
+- 运行单个已知任务，例如 `root:lint` 或 `app:typecheck`
+- 将多个显式任务合并到一个命令中进行重点验证
+- 以 CI 模式运行受影响的任务，而不切换到完整的 QA 工作流
+- 修复失败后重新运行任务子集
+- 自主执行 moon 命令，同时保持用户可见输出小
 
-## Command Selection
+## 命令选择
 
-- `moon exec` — Default choice for ad hoc execution. Best when you need one or many explicit targets, `--query`, `--affected`, or `--on-failure continue`.
-- `moon run` — Use for a known target list when normal fail-fast behavior is preferred.
-- `moon ci` — Use for affected-by-changed-files runs with CI defaults.
-- `moon check` — Use when validating the standard build/test tasks of a project.
+- `moon exec` — 临时执行的默认选择。当需要一个或多个显式目标、`--query`、`--affected` 或 `--on-failure continue` 时最佳。
+- `moon run` — 当需要已知目标列表且首选正常快速失败行为时使用。
+- `moon ci` — 用于使用 CI 默认设置按变更的文件运行。
+- `moon check` — 验证项目的标准构建/测试任务时使用。
 
-## Output Guidance
+## 输出指导
 
-- Run commands from the repository root and prefer the `moon` binary directly instead of `pnpm moon`, especially in nested or multi-repo workspaces.
-- Prefer `--quiet` for agent-driven runs when you want to hide non-important moon UI while still keeping task warnings and errors visible.
-- Prefer `MOON_OUTPUT_STYLE=buffer-only-failure` when you want passing task output suppressed but still want failing task logs.
-- Do not add noisy flags like `--log trace` unless you are explicitly debugging moon itself.
-- Only add `--summary minimal` when a brief human-readable summary is genuinely useful.
-- Keep target scope narrow. Prefer `root:lint` over a workspace-wide `:lint` when the smaller command is enough.
-- If you need success-silent / failure-full QA semantics, use the `qa-check` skill instead of reimplementing log capture here.
+- 从仓库根目录运行命令，优先直接使用 `moon` 二进制而不是 `pnpm moon`，尤其是在嵌套或多仓库工作区中。
+- agent 驱动运行时，优先使用 `--quiet`，在隐藏非重要的 moon UI 的同时保持任务警告和错误可见。
+- 当想抑制通过的任务输出但仍要完整的失败任务日志时，优先使用 `MOON_OUTPUT_STYLE=buffer-only-failure`。
+- 不要添加噪散的标志，如 `--log trace`，除非明确调试 moon 本身。
+- 只有当简短的人类可读摘要真正有用时，才添加 `--summary minimal`。
+- 保持目标范围狭小。当较小的命令足够时，优先使用 `root:lint` 而不是全工作区的 `:lint`。
+- 如果需要成功沉默/失败完整的 QA 语义，使用 `qa-check` skill，而不要在此重新实现日志捕获。
 
-## Direct Invocation Heuristics
+## 直接调用经验法则
 
-Assemble the command yourself based on the situation:
+根据情况自己组装命令：
 
-- **Default low-noise validation**: use `--quiet` and `MOON_OUTPUT_STYLE=buffer-only-failure`.
-- **Need a short end-of-run summary**: add `--summary minimal`.
-- **Need full streaming output for debugging or user-requested visibility**: omit `--quiet` and, if needed, set `MOON_OUTPUT_STYLE=stream`.
-- **Need fail-fast behavior**: prefer `moon run`.
-- **Need affected CI defaults**: prefer `moon ci`.
-- **Need broad orchestration knobs like `--query`, `--affected`, or `--on-failure continue`**: prefer `moon exec`.
-- **Need the standard build/test bundle for a project**: prefer `moon check`.
+- **默认低噪小验证**：使用 `--quiet` 和 `MOON_OUTPUT_STYLE=buffer-only-failure`。
+- **需要简短的运行结束摘要**：添加 `--summary minimal`。
+- **需要完整流式输出用于调试或用户请求的可见性**：省略 `--quiet`，如有需要，设置 `MOON_OUTPUT_STYLE=stream`。
+- **需要快速失败行为**：优先使用 `moon run`。
+- **需要受影响的 CI 默认**：优先使用 `moon ci`。
+- **需要广泛的编排操控，如 `--query`、`--affected` 或 `--on-failure continue`**：优先使用 `moon exec`。
+- **需要项目的标准构建/测试捆**：优先使用 `moon check`。
 
-## Workflow
+## 工作流程
 
-1. Pick the smallest suitable moon subcommand.
-2. Decide the output mode before running it:
-   - low-noise validation → `MOON_OUTPUT_STYLE=buffer-only-failure` + `--quiet`
-   - human-readable summary → optionally add `--summary minimal`
-   - full debug visibility → omit `--quiet` and consider `MOON_OUTPUT_STYLE=stream`
+1. 选择最小适用的 moon 子命令。
+2. 运行前决定输出模式：
+   - 低噪小验证 → `MOON_OUTPUT_STYLE=buffer-only-failure` + `--quiet`
+   - 人类可读摘要 → 可选添加 `--summary minimal`
+   - 完整调试可见性 → 省略 `--quiet`，考虑使用 `MOON_OUTPUT_STYLE=stream`
 
-3. Run the command directly from the repository root. For example:
+3. 直接从仓库根目录运行命令。例如：
 
    ```bash
    cd /workspaces/cat
    MOON_OUTPUT_STYLE=buffer-only-failure moon exec root:lint --quiet
    ```
 
-4. For multi-task validation, pass multiple explicit targets:
+4. 对于多任务验证，传入多个显式目标：
 
    ```bash
    cd /workspaces/cat
    MOON_OUTPUT_STYLE=buffer-only-failure moon exec root:lint root:typecheck --quiet
    ```
 
-5. For affected CI-style runs:
+5. 对于受影响的 CI 风格运行：
 
    ```bash
    cd /workspaces/cat
    MOON_OUTPUT_STYLE=buffer-only-failure moon ci :test :lint --quiet
    ```
 
-6. If you need moon's normal UI, run directly without `--quiet`:
+6. 如果需要 moon 的正常 UI，省略 `--quiet` 直接运行：
 
    ```bash
    cd /workspaces/cat
    moon exec root:lint --summary minimal
    ```
 
-7. If you need successful task output to stream normally, override the output style explicitly:
+7. 如果需要成功任务输出正常流式传输，显式覆盖输出样式：
 
    ```bash
    cd /workspaces/cat
    MOON_OUTPUT_STYLE=stream moon exec app:build --summary minimal
    ```
 
-## Notes
+## 注意事项
 
-- This skill standardizes `exec`, `run`, `ci`, and `check`, but the agent should choose which one fits the situation best.
-- If passthrough args are needed, append them after `--` just like a normal `moon` command.
-- The important part is the decision policy, not a wrapper: choose the right moon subcommand, choose the right verbosity, and run it directly.
+- 此 skill 规范了 `exec`、`run`、`ci` 和 `check`，但 agent 应选择最适合情况的命令。
+- 如果需要传递参数，在 `--` 后面添加，就像正常的 `moon` 命令一样。
+- 重要的是决策策略，而不是包装器：选择正确的 moon 子命令，选择正确的详细程度，然后直接运行它。

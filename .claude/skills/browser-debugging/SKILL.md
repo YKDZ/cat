@@ -1,78 +1,78 @@
 ---
 name: browser-debugging
-description: Browser-based debugging and verification for the CAT app. Covers server lifecycle, build chain, login flow, Playwright-based browser tool usage, and common pitfalls. Use when verifying UI fixes via the integrated browser or running E2E-style manual checks.
+description: 针对 CAT 应用的浏览器调试与验证。涵盖服务器生命周期、构建链、登录流程、基于 Playwright 的浏览器工具用法及常见陷阱。在通过集成浏览器验证 UI 修复或运行 E2E 风格手动检查时使用。
 user-invocable: true
 ---
 
-# Browser Debugging & Verification
+# 浏览器调试与验证
 
-Guide for using the VS Code integrated browser tools to verify UI fixes in the CAT app.
+使用 VS Code 集成浏览器工具验证 CAT 应用 UI 修复的指南。
 
-There are two operating modes:
+有两种操作模式：
 
-- **Dev mode** (default) — `pnpm dev` with hot reload, fixed credentials, no build step
-- **Preview mode** (advanced) — `pnpm build && pnpm preview` mimics production; needed for SSR, bundle, or production-only bugs
+- **开发模式**（默认）— `pnpm dev` 带热重载、固定凭据、无需构建步骤
+- **预览模式**（高级）— `pnpm build && pnpm preview` 模拟生产环境；用于 SSR、bundle 或仅生产环境出现的 bug
 
 ---
 
-## Mode 1: Quick Debug (Dev Mode)
+## 模式一：快速调试（开发模式）
 
-### Starting the dev server
+### 启动开发服务器
 
 ```bash
-# From apps/app
+# 从 apps/app 目录执行
 pnpm moon run app:dev 2>&1 &
 ```
 
-After backgrounding, wait and confirm:
+后台化后，等待并确认：
 
 ```bash
 sleep 10 && lsof -i :3000 | head -5
 ```
 
-### Dev credentials
+### 开发模式凭据
 
-- **Email**: `admin@encmys.cn`
-- **Password**: `password`
+- **邮箱**: `admin@encmys.cn`
+- **密码**: `password`
 
-The password is fixed to `"password"` in dev mode (`NODE_ENV=development`). No need to look up a generated password.
+在开发模式下（`NODE_ENV=development`），密码固定为 `"password"`。无需查找生成的密码。
 
-### Hot reload behaviour
+### 热重载行为
 
-In dev mode, Vite watches source files and pushes updates without restarting the server. After editing a `.vue` or `.ts` file in `apps/app`, changes appear within 1–2 seconds — no rebuild or restart needed.
+在开发模式下，Vite 监听源文件并在不重启服务器的情况下推送更新。编辑 `apps/app` 中的 `.vue` 或 `.ts` 文件后，变更会在 1–2 秒内生效——无需重新构建或重启。
 
-For changes to **library packages** (e.g. `@cat/domain`, `@cat/ui`):
+对于**库包**的变更（例如 `@cat/domain`、`@cat/ui`）：
 
-- Rebuild the library: `pnpm moon run domain:build --force`
-- Vite picks up the updated `dist/` automatically via HMR — no server restart needed in most cases.
+- 重新构建库：`pnpm moon run domain:build --force`
+- Vite 通过 HMR 自动获取更新后的 `dist/`——大多数情况下无需重启服务器。
 
 ---
 
-## Mode 2: Production Verification (Preview Mode)
+## 模式二：生产验证（预览模式）
 
-Use preview mode when you need to verify SSR, bundle output, or production-specific behaviour.
+当需要验证 SSR、bundle 输出或仅在生产环境出现的行为时使用预览模式。
 
-### Build Chain
+### 构建链
 
 ```
 packages/shared → packages/db → packages/domain → apps/app-api → apps/app
 ```
 
 ```bash
-# Full chain rebuild
+# 完整链重建
 pnpm moon run domain:build app-api:build app:build --force
 ```
 
-### Starting the preview server
+### 启动预览服务器
 
 ```bash
 pnpm moon run app:preview 2>&1 &
 sleep 8 && lsof -i :3000 | head -5
 ```
 
-### Preview credentials
+### 预览模式凭据
 
-In preview mode (`NODE_ENV=production`), the admin password is a random hex string generated at first startup. Retrieve it from the database:
+在预览模式下（`NODE_ENV=production`），管理员密码是首次启动时生成的随机十六进制字符串。从数据库中获取：
 
 ```bash
 docker ps --format "table {{.ID}}\t{{.Image}}" | grep pgvector
@@ -80,202 +80,202 @@ docker exec <container-id> psql -U user -d cat -c \
   "SELECT value FROM \"Setting\" WHERE key = 'system:root_password';"
 ```
 
-Alternatively, use the seed tool (see below) to populate a known password.
+或者，使用 seed 工具（见下文）填充已知密码。
 
 ---
 
-## Environment Setup with Seed Tool
+## 使用 Seed 工具配置环境
 
-To populate the database with known test data and credentials, use the seed tool:
+要用已知的测试数据和凭据填充数据库，使用 seed 工具：
 
 ```bash
-# From repo root — requires dataset directory
+# 从仓库根目录执行——需要数据集目录
 tsx tools/seeder/main.ts datasets/default --skip-vectorization
 ```
 
-After seeding, `admin@encmys.cn` / `password` will work regardless of mode, provided the dataset defines it in `users.json`.
+填充后，`admin@encmys.cn` / `password` 将在任何模式下生效，前提是数据集在 `users.json` 中定义了该用户。
 
-See `.claude/skills/seeder/SKILL.md` for dataset creation and seed tool usage.
+参见 `.claude/skills/seeder/SKILL.md` 了解数据集创建和 seed 工具用法。
 
 ---
 
-## Server Lifecycle
+## 服务器生命周期
 
-### Stopping the server — CRITICAL SAFETY
+### 停止服务器——关键安全提示
 
-**NEVER** use any of these:
+**绝对不要**使用以下任何命令：
 
 ```bash
-# ALL of these can kill VS Code server → SSH disconnection
+# 这些命令都可能杀死 VS Code 服务器 → SSH 断开连接
 lsof -i :3000 -t | xargs kill        # ❌
 fuser -k 3000/tcp                     # ❌
 pkill -f "node"                       # ❌
 killall node                          # ❌
 ```
 
-**Why**: VS Code's port-forwarding process (`MainThrea`) shares port 3000. `lsof -i :3000` returns the VS Code PID alongside the app server PID. Killing it disconnects the session.
+**原因**：VS Code 的端口转发进程（`MainThrea`）共享 3000 端口。`lsof -i :3000` 会同时返回 VS Code PID 和应用服务器 PID。杀掉它会断开会话。
 
-**Safe approach for preview mode** (compiled server):
+**预览模式的安全方法**（已编译的服务器）：
 
 ```bash
-# 1. Find ONLY app server PIDs
+# 1. 只查找应用服务器 PID
 ps aux | grep "dist/server/index.mjs" | grep -v grep
 
-# 2. Kill specific PIDs
+# 2. 杀死特定 PID
 kill <PID1> <PID2> ...
 
-# 3. Verify
+# 3. 验证
 ps aux | grep "dist/server/index.mjs" | grep -v grep
 ```
 
-**Safe approach for dev mode** (Vite dev server):
+**开发模式的安全方法**（Vite 开发服务器）：
 
 ```bash
-# 1. Find Vite server PIDs
+# 1. 查找 Vite 服务器 PID
 ps aux | grep "vike dev\|vite" | grep -v grep
 
-# 2. Kill specific PIDs
+# 2. 杀死特定 PID
 kill <PID1> <PID2> ...
 ```
 
-### Zombie process accumulation
+### 僵尸进程堆积
 
-Multiple server invocations can leave orphan processes that bind port 3000. Always check before starting a new server:
+多次服务器调用可能会留下占用 3000 端口的孤儿进程。启动新服务器前始终检查：
 
 ```bash
-# Check for both dev and preview processes
+# 检查开发和预览进程
 ps aux | grep -E "dist/server/index.mjs|vike dev" | grep -v grep
-# Kill all found PIDs, then start new server
+# 杀死所有找到的 PID，然后启动新服务器
 ```
 
 ---
 
-## Login Flow
+## 登录流程
 
-The CAT app uses a two-step auth flow:
+CAT 应用使用两步认证流程：
 
-1. **Email step**: Enter email → click "继续"
-2. **Password step**: Enter password → click "验证"
-3. Wait for redirect to dashboard
+1. **邮箱步骤**：输入邮箱 → 点击"继续"
+2. **密码步骤**：输入密码 → 点击"验证"
+3. 等待重定向到仪表板
 
-### Browser tool sequence
+### 浏览器工具操作序列
 
 ```
 1. open_browser_page  → http://localhost:3000
-2. type_in_page       → email in textbox "邮箱"
-3. click_element      → button "继续"
-4. waitForTimeout(3000)  — wait for password form to appear
-5. type_in_page       → password in textbox "密码"
-6. click_element      → button "验证"
-7. waitForTimeout(3000)  — wait for redirect
-8. read_page          → verify dashboard loaded
+2. type_in_page       → 在"邮箱"文本框中输入邮箱
+3. click_element      → 点击"继续"按钮
+4. waitForTimeout(3000)  — 等待密码表单出现
+5. type_in_page       → 在"密码"文本框中输入密码
+6. click_element      → 点击"验证"按钮
+7. waitForTimeout(3000)  — 等待重定向
+8. read_page          → 验证仪表板已加载
 ```
 
 ---
 
-## Browser Tool Pitfalls
+## 浏览器工具常见陷阱
 
-### 1. Page transitions need explicit waits
+### 1. 页面跳转需要显式等待
 
-After `click_element` on a link/button that triggers navigation or async data loading, the snapshot returned is usually stale. Always add:
+在触发导航或异步数据加载的链接/按钮上执行 `click_element` 后，返回的快照通常是过时的。始终添加：
 
 ```javascript
-// via run_playwright_code
+// 通过 run_playwright_code
 await page.waitForTimeout(2000);
 ```
 
-Then call `read_page` to get the updated DOM.
+然后调用 `read_page` 获取更新后的 DOM。
 
 ### 2. `read_page` vs `screenshot_page`
 
-- **`read_page`** returns an accessibility tree (text, refs, structure). Best for finding interactive elements and verifying text content.
-- **`screenshot_page`** returns a visual image. Best for layout verification, but you cannot interact with elements from it.
-- **`read_page` is generally preferred** — it gives you refs for clicking, typing, etc.
+- **`read_page`** 返回无障碍树（文本、引用、结构）。最适合查找交互元素和验证文本内容。
+- **`screenshot_page`** 返回视觉图像。最适合布局验证，但无法从中与元素交互。
+- **通常优先使用 `read_page`** — 它提供用于点击、输入等操作的引用。
 
-### 3. Stale element refs after page changes
+### 3. 页面变化后元素引用过期
 
-Element refs (`e26`, `e27`, ...) are invalidated after any page navigation or significant DOM update. After waiting for a transition, call `read_page` again to get fresh refs before interacting.
+元素引用（`e26`、`e27` 等）在任何页面导航或重大 DOM 更新后都会失效。等待页面跳转后，重新调用 `read_page` 获取新引用再进行交互。
 
-### 4. Combobox / popup interactions
+### 4. 下拉框 / 弹出层交互
 
-For combobox pickers (like `MultiLanguagePicker`), the pattern is:
+对于下拉选择器（如 `MultiLanguagePicker`），操作模式为：
 
 ```
-1. click_element → button "Show popup"
+1. click_element → 点击"显示弹出层"按钮
 2. waitForTimeout(500)
-3. read_page → find the combobox list items
-4. type_in_page → filter text in the search input
-5. click_element → select an option
+3. read_page → 查找下拉列表项
+4. type_in_page → 在搜索输入框中输入过滤文本
+5. click_element → 选择一个选项
 ```
 
-Some pickers use virtual scrolling — items not in viewport won't appear in the accessibility tree. Use the search/filter input to surface specific items.
+某些选择器使用虚拟滚动——不在视口内的项目不会出现在无障碍树中。使用搜索/过滤输入框来显示特定项目。
 
-### 5. `scrollIntoViewIfNeeded` for off-screen elements
+### 5. 屏幕外元素使用 `scrollIntoViewIfNeeded`
 
-When taking a screenshot of an element below the fold:
+对折叠下方的元素截图时：
 
 ```
 screenshot_page with scrollIntoViewIfNeeded: true
 ```
 
-### 6. Console errors in browser output
+### 6. 浏览器输出中的控制台错误
 
-`run_playwright_code` output includes recent console errors. These are invaluable for debugging 500 errors or frontend exceptions. Always check the "Recent events" section.
+`run_playwright_code` 的输出包含最近的控制台错误。这对于调试 500 错误或前端异常非常宝贵。始终检查"Recent events"部分。
 
 ---
 
-## Verification Workflow Template
+## 验证工作流模板
 
-### Dev mode (default)
-
-```
-1. Start dev server      (moon run app:dev 2>&1 &)
-2. Wait for ready        (sleep 10 && lsof -i :3000)
-3. Open browser          (open_browser_page http://localhost:3000)
-4. Login                 (admin@encmys.cn / password)
-5. Navigate to target    (click links, waitForTimeout between navigations)
-6. Verify fix            (read_page → check DOM, screenshot_page → visual)
-7. Edit source file      (save → HMR picks up in 1-2s)
-8. read_page             (verify updated content)
-```
-
-### Preview mode (production verification)
+### 开发模式（默认）
 
 ```
-1. Rebuild chain         (moon run domain:build app-api:build app:build --force)
-2. Kill old server       (ps aux | grep "dist/server/index.mjs" → kill PIDs)
-3. Start preview         (moon run app:preview 2>&1 &)
-4. Wait for ready        (sleep 8 && lsof -i :3000)
-5. Open browser          (open_browser_page)
-6. Login                 (look up password from DB or use seeded credentials)
-7. Navigate + verify
+1. 启动开发服务器      (moon run app:dev 2>&1 &)
+2. 等待就绪            (sleep 10 && lsof -i :3000)
+3. 打开浏览器          (open_browser_page http://localhost:3000)
+4. 登录                (admin@encmys.cn / password)
+5. 导航到目标页面      (点击链接，导航间添加 waitForTimeout)
+6. 验证修复            (read_page → 检查 DOM，screenshot_page → 视觉)
+7. 编辑源文件          (保存 → HMR 在 1-2 秒内生效)
+8. read_page            (验证更新后的内容)
 ```
 
-### Round-trip persistence test
-
-When verifying data persistence (e.g. language picker saving to DB):
+### 预览模式（生产验证）
 
 ```
-1. Navigate to settings page
-2. read_page → verify saved value is displayed
-3. Modify value (add/remove)
-4. Wait for auto-save or click save
-5. Verify DB: docker exec <pg-container> psql -U user -d cat -c "SELECT ..."
-6. Reload page (navigate away then back, or page.reload())
-7. read_page → verify value still displayed
+1. 重建链              (moon run domain:build app-api:build app:build --force)
+2. 杀死旧服务器        (ps aux | grep "dist/server/index.mjs" → kill PIDs)
+3. 启动预览            (moon run app:preview 2>&1 &)
+4. 等待就绪            (sleep 8 && lsof -i :3000)
+5. 打开浏览器          (open_browser_page)
+6. 登录                (从 DB 查询密码或使用已填充的凭据)
+7. 导航 + 验证
 ```
 
-### Database queries via Docker
+### 数据持久化往返测试
+
+验证数据持久化时（例如语言选择器保存到数据库）：
+
+```
+1. 导航到设置页面
+2. read_page → 验证已保存的值已显示
+3. 修改值（添加/删除）
+4. 等待自动保存或点击保存
+5. 验证 DB：docker exec <pg-container> psql -U user -d cat -c "SELECT ..."
+6. 重新加载页面（导航离开后再返回，或 page.reload()）
+7. read_page → 验证值仍然显示
+```
+
+### 通过 Docker 查询数据库
 
 ```bash
-# Find postgres container
+# 查找 postgres 容器
 docker ps --format "table {{.ID}}\t{{.Image}}" | grep pgvector
 
-# Query example
+# 查询示例
 docker exec <container-id> psql -U user -d cat -c "SELECT ... FROM \"TableName\" ...;"
 ```
 
-Note: Table names are PascalCase and quoted. Column names are snake_case. JSONB fields accessed via `->` (JSON) or `->>` (text).
+注意：表名为 PascalCase 并需要引号。列名为 snake_case。JSONB 字段通过 `->` (JSON) 或 `->>` (文本) 访问。
 
 ---
 
