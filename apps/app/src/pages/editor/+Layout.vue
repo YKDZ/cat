@@ -30,7 +30,7 @@ watch(
   () => [
     ctx.routeParams.projectId,
     ctx.routeParams.languageToId,
-    globalThis.location?.search ?? "",
+    ctx.urlParsed.searchOriginal ?? "",
   ],
   () => {
     if (!ctx.routeParams.projectId || !ctx.routeParams.languageToId) return;
@@ -38,7 +38,7 @@ watch(
     const nextScope = parseEditorScopeFromRoute({
       projectId: ctx.routeParams.projectId,
       languageToId: ctx.routeParams.languageToId,
-      searchParams: new URLSearchParams(globalThis.location?.search ?? ""),
+      searchParams: new URLSearchParams(ctx.urlParsed.searchOriginal ?? ""),
     });
 
     contextStore.setScope(nextScope);
