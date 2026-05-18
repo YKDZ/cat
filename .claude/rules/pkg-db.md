@@ -47,14 +47,29 @@ paths:
 
 ## Schema 变更流程
 
-1. **优先生成自动 migration。**
+1. **默认使用 push 直接推送 schema 变更到开发数据库。**
+
+   ```bash
+   pnpm moon run db:push
+   ```
+
+   此命令等同于 `drizzle-kit push --force`，适合开发阶段快速迭代，无需生成 migration 文件。
+
+2. **schema / enum 变更后重新生成共享 Zod schema。**
+
+   ```bash
+   pnpm moon run db:codegen-schemas
+   ```
+
+3. **只有被明确要求时才生成 migration。**
 
    ```bash
    pnpm moon run db:drizzle:generate
    ```
 
-2. **只审查生成结果，不直接手改。** 如果 SQL 不正确，应修 schema 源文件后重新生成。
-3. **只有 Drizzle Kit 无法表达的场景才使用 custom migration。**
+   生成后只审查结果，不直接手改。如果 SQL 不正确，应修 schema 源文件后重新生成。
+
+4. **只有 Drizzle Kit 无法表达的场景才使用 custom migration。**
 
    ```bash
    pnpm --dir packages/db drizzle:generate -- --custom --name=<descriptive-name>
@@ -62,13 +77,7 @@ paths:
 
    使用 custom migration 时，需要在 PR / commit message 中说明为什么不能走自动生成。
 
-4. **schema / enum 变更后重新生成共享 Zod schema。**
-
-   ```bash
-   pnpm moon run db:codegen-schemas
-   ```
-
-5. **应用 migration 到开发数据库。**
+5. **应用已有 migration 到数据库（仅在明确要求时执行）。**
 
    ```bash
    pnpm moon run db:drizzle:migrate
