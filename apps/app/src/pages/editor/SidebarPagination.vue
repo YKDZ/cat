@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  Pagination,
-  PaginationContent,
-  PaginationNext,
-  PaginationPrevious,
-  PaginationFirst,
-  PaginationLast,
-} from "@cat/ui";
+import { Button } from "@cat/ui";
 import { useSidebar } from "@cat/ui";
 import {
   ChevronRightIcon,
@@ -28,14 +21,6 @@ const { elementTotalAmount, pageTotalAmount } = storeToRefs(
   useEditorTableStore(),
 );
 
-// Guard against Reka UI's usePagination clamping `page` to `pageCount` before
-// the element count query resolves. When total=0, pageCount=1, so any page>1
-// gets clamped and written back to the store via syncRef({ direction: 'both' }).
-// Ensuring total >= currentPage*pageSize keeps pageCount >= currentPage.
-const safeTotalForPagination = computed(() =>
-  Math.max(currentPage.value * pageSize.value, elementTotalAmount.value),
-);
-
 const { toPage } = useEditorTableStore();
 
 // 获取侧边栏宽度
@@ -46,6 +31,11 @@ const { width: sidebarWidth } = useSidebar(sidebarId);
 const isWideSidebar = computed(() => {
   return (sidebarWidth.value || 240) >= 320;
 });
+
+const isFirstPage = computed(() => currentPage.value <= 1);
+const isLastPage = computed(
+  () => currentPage.value >= Math.max(1, pageTotalAmount.value),
+);
 
 const handlePageChange = (page: number) => {
   if (page < 1 || page > Math.max(1, pageTotalAmount.value)) return;
@@ -71,63 +61,63 @@ const displayRange = computed(() => {
   <div class="flex w-full flex-col gap-1">
     <div
       :class="[
-        'flex items-center justify-center gap-0.5',
+        'flex items-center justify-center',
         isWideSidebar ? 'gap-1' : 'gap-0.5',
       ]"
     >
-      <Pagination
-        :items-per-page="pageSize"
-        :total="safeTotalForPagination"
-        :sibling-count="0"
-        :page="currentPage"
-        @update:page="handlePageChange"
+      <Button
+        variant="ghost"
+        :size="isWideSidebar ? 'sm' : 'icon-sm'"
+        :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+        :disabled="isFirstPage"
+        @click="handlePageChange(1)"
       >
-        <PaginationContent :class="isWideSidebar ? 'gap-1' : 'gap-0.5'">
-          <PaginationFirst
-            :size="isWideSidebar ? undefined : 'icon-sm'"
-            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
-            @click="handlePageChange(1)"
-          >
-            <ChevronsLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
-          </PaginationFirst>
-          <PaginationPrevious
-            :size="isWideSidebar ? undefined : 'icon-sm'"
-            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
-          >
-            <ChevronLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
-          </PaginationPrevious>
+        <ChevronsLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+      </Button>
+      <Button
+        variant="ghost"
+        :size="isWideSidebar ? 'sm' : 'icon-sm'"
+        :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+        :disabled="isFirstPage"
+        @click="handlePageChange(currentPage - 1)"
+      >
+        <ChevronLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+      </Button>
 
-          <div
-            :class="[
-              'pointer-events-none flex items-center justify-center px-1',
-              isWideSidebar ? 'min-w-14' : 'min-w-12',
-            ]"
-          >
-            <span
-              :class="[
-                'font-medium tabular-nums',
-                isWideSidebar ? 'text-sm' : 'text-xs',
-              ]"
-            >
-              {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
-            </span>
-          </div>
+      <div
+        :class="[
+          'pointer-events-none flex items-center justify-center px-1',
+          isWideSidebar ? 'min-w-14' : 'min-w-12',
+        ]"
+      >
+        <span
+          :class="[
+            'font-medium tabular-nums',
+            isWideSidebar ? 'text-sm' : 'text-xs',
+          ]"
+        >
+          {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
+        </span>
+      </div>
 
-          <PaginationNext
-            :size="isWideSidebar ? undefined : 'icon-sm'"
-            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
-          >
-            <ChevronRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
-          </PaginationNext>
-          <PaginationLast
-            :size="isWideSidebar ? undefined : 'icon-sm'"
-            :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
-            @click="handlePageChange(Math.max(1, pageTotalAmount))"
-          >
-            <ChevronsRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
-          </PaginationLast>
-        </PaginationContent>
-      </Pagination>
+      <Button
+        variant="ghost"
+        :size="isWideSidebar ? 'sm' : 'icon-sm'"
+        :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+        :disabled="isLastPage"
+        @click="handlePageChange(currentPage + 1)"
+      >
+        <ChevronRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+      </Button>
+      <Button
+        variant="ghost"
+        :size="isWideSidebar ? 'sm' : 'icon-sm'"
+        :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
+        :disabled="isLastPage"
+        @click="handlePageChange(Math.max(1, pageTotalAmount))"
+      >
+        <ChevronsRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
+      </Button>
     </div>
 
     <div class="flex items-center justify-center">
