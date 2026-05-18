@@ -4,7 +4,6 @@ import { RerankProvider } from "@cat/plugin-core";
 import * as z from "zod";
 
 const SingleConfigSchema = z.object({
-  id: z.string().optional(),
   baseURL: z.string(),
   "model-id": z.string().optional(),
   timeoutMs: z.number().positive().default(3000),
@@ -19,13 +18,11 @@ export const ConfigSchema = z
 
 const TEIResultSchema = z.object({
   index: z.int().min(0),
-  relevance_score: z.number(),
-  document: z.string().optional(),
+  score: z.number(),
+  text: z.string().nullish(),
 });
 
-const TEIResponseSchema = z.object({
-  results: z.array(TEIResultSchema),
-});
+const TEIResponseSchema = z.array(TEIResultSchema);
 
 export class TEIRerankProvider extends RerankProvider {
   private readonly providerConfig: SingleConfig;
@@ -36,9 +33,10 @@ export class TEIRerankProvider extends RerankProvider {
   }
 
   getId(): string {
-    return (
-      this.providerConfig.id ?? `tei-rerank:${this.providerConfig.baseURL}`
-    );
+    const modelId = this.providerConfig["model-id"];
+    return modelId
+      ? `tei-rerank:${this.providerConfig.baseURL}:${modelId}`
+      : `tei-rerank:${this.providerConfig.baseURL}`;
   }
 
   getModelName(): string {
@@ -92,7 +90,7 @@ export class TEIRerankProvider extends RerankProvider {
 
     const payload = TEIResponseSchema.parse(await response.json());
     const seen = new Set<number>();
-    const scores = payload.results.map((result) => {
+    const scores = payload.map((result) => {
       if (seen.has(result.index)) {
         throw new Error(`Duplicate TEI rerank index ${result.index}`);
       }
@@ -101,12 +99,12 @@ export class TEIRerankProvider extends RerankProvider {
       if (!candidate) {
         throw new Error(`Out-of-range TEI rerank index ${result.index}`);
       }
-      if (!Number.isFinite(result.relevance_score)) {
-        throw new Error(`Non-finite relevance_score at index ${result.index}`);
+      if (!Number.isFinite(result.score)) {
+        throw new Error(`Non-finite score at index ${result.index}`);
       }
       return {
         candidateId: candidate.candidateId,
-        score: result.relevance_score,
+        score: result.score,
       };
     });
 
