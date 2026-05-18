@@ -10,32 +10,17 @@
     }
   ],
   "config": {
-    "oneOf": [
-      {
-        "type": "object",
-        "required": ["baseURL"],
-        "properties": {
-          "id": { "type": "string" },
-          "baseURL": { "type": "string", "format": "url" },
-          "model-id": { "type": "string" },
-          "timeoutMs": { "type": "number", "default": 3000 },
-          "authorization": { "type": "string" }
-        }
-      },
-      {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "required": ["baseURL"],
-          "properties": {
-            "id": { "type": "string" },
-            "baseURL": { "type": "string", "format": "url" },
-            "model-id": { "type": "string" },
-            "timeoutMs": { "type": "number", "default": 3000 },
-            "authorization": { "type": "string" }
-          }
-        }
+    "type": "array",
+    "items": {
+      "type": "object",
+      "required": ["baseURL"],
+      "properties": {
+        "id": { "type": "string" },
+        "baseURL": { "type": "string", "format": "url" },
+        "model-id": { "type": "string" },
+        "timeoutMs": { "type": "number", "default": 3000 },
+        "authorization": { "type": "string" }
       }
-    ]
+    }
   }
 }
