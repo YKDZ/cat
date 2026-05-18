@@ -34,11 +34,12 @@ const isWideSidebar = computed(() => {
 
 const isFirstPage = computed(() => currentPage.value <= 1);
 const isLastPage = computed(
-  () => currentPage.value >= Math.max(1, pageTotalAmount.value),
+  () => currentPage.value >= Math.max(currentPage.value, pageTotalAmount.value),
 );
 
 const handlePageChange = (page: number) => {
-  if (page < 1 || page > Math.max(1, pageTotalAmount.value)) return;
+  if (page < 1 || page > Math.max(currentPage.value, pageTotalAmount.value))
+    return;
   currentPage.value = page;
   void toPage(page);
 };
@@ -96,7 +97,7 @@ const displayRange = computed(() => {
             isWideSidebar ? 'text-sm' : 'text-xs',
           ]"
         >
-          {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
+          {{ currentPage }}/{{ Math.max(currentPage, pageTotalAmount) }}
         </span>
       </div>
 
@@ -114,7 +115,7 @@ const displayRange = computed(() => {
         :size="isWideSidebar ? 'sm' : 'icon-sm'"
         :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
         :disabled="isLastPage"
-        @click="handlePageChange(Math.max(1, pageTotalAmount))"
+        @click="handlePageChange(Math.max(currentPage, pageTotalAmount))"
       >
         <ChevronsRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
       </Button>
