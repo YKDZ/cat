@@ -128,12 +128,16 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     if (!context.scope.value) return;
 
     contextStore.setCurrentPage(page);
-    await elementStore.loadPage(page - 1);
+    const rows = await elementStore.loadPage(page - 1);
+
+    // Navigate to the first element on the new page (not the previously
+    // selected element). This ensures that on a hard refresh the URL encodes
+    // an element that actually belongs to this page, so toElement() confirms
+    // currentPage == page instead of overriding it back to page 1.
+    const target = rows[0]?.id ?? "auto";
 
     if (contextStore.scope) {
-      await navigate(
-        buildEditorHref(contextStore.scope, elementId.value ?? "auto"),
-      );
+      await navigate(buildEditorHref(contextStore.scope, target));
     }
   };
 
