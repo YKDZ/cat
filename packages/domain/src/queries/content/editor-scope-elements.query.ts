@@ -515,15 +515,56 @@ export const getEditorScopeFirstElement: Query<
   GetEditorScopeFirstElementQuery,
   EditorElement | null
 > = async (ctx, query) => {
-  const afterPositionSql = query.afterElementId
-    ? sql`COALESCE((SELECT position FROM ordered_rows WHERE id = ${query.afterElementId}), -1)`
-    : sql`-1`;
+  // When afterElementId is given we look up its sort keys from the *unfiltered*
+  // scope (statusFilter: "all") so that cross-filter navigation works correctly
+  // even when the current element does not appear in the filtered result set
+  // (e.g. navigating from a translated element to the next untranslated one).
+  if (query.afterElementId) {
+    const keyResult = await ctx.db.execute<{
+      contentNodeSortKey: string;
+      localOrder: number;
+      id: number;
+    }>(sql`
+      ${orderedScopeSql({ ...query, statusFilter: "all" })}
+      SELECT "contentNodeSortKey", COALESCE("localOrder", 0) AS "localOrder", id
+      FROM ordered_rows
+      WHERE id = ${query.afterElementId}
+      LIMIT 1
+    `);
+
+    const afterRow = keyResult.rows[0];
+
+    const afterConditionSql = afterRow
+      ? sql`(
+          "contentNodeSortKey" > ${afterRow.contentNodeSortKey}
+          OR (
+            "contentNodeSortKey" = ${afterRow.contentNodeSortKey}
+            AND COALESCE("localOrder", 0) > ${afterRow.localOrder}
+          )
+          OR (
+            "contentNodeSortKey" = ${afterRow.contentNodeSortKey}
+            AND COALESCE("localOrder", 0) = ${afterRow.localOrder}
+            AND id > ${afterRow.id}
+          )
+        )`
+      : sql`TRUE`;
+
+    const result = await ctx.db.execute<EditorScopeRow>(sql`
+      ${orderedScopeSql(query)}
+      SELECT *
+      FROM ordered_rows
+      WHERE ${afterConditionSql}
+      ORDER BY "contentNodeSortKey" ASC, COALESCE("localOrder", 0) ASC, id ASC
+      LIMIT 1
+    `);
+
+    return result.rows[0] ?? null;
+  }
 
   const result = await ctx.db.execute<EditorScopeRow>(sql`
     ${orderedScopeSql(query)}
     SELECT *
     FROM ordered_rows
-    WHERE position > ${afterPositionSql}
     ORDER BY position ASC
     LIMIT 1
   `);

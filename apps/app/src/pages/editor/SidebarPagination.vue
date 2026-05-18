@@ -28,6 +28,14 @@ const { elementTotalAmount, pageTotalAmount } = storeToRefs(
   useEditorTableStore(),
 );
 
+// Guard against Reka UI's usePagination clamping `page` to `pageCount` before
+// the element count query resolves. When total=0, pageCount=1, so any page>1
+// gets clamped and written back to the store via syncRef({ direction: 'both' }).
+// Ensuring total >= currentPage*pageSize keeps pageCount >= currentPage.
+const safeTotalForPagination = computed(() =>
+  Math.max(currentPage.value * pageSize.value, elementTotalAmount.value),
+);
+
 const { toPage } = useEditorTableStore();
 
 // 获取侧边栏宽度
@@ -69,7 +77,7 @@ const displayRange = computed(() => {
     >
       <Pagination
         :items-per-page="pageSize"
-        :total="elementTotalAmount"
+        :total="safeTotalForPagination"
         :sibling-count="0"
         :page="currentPage"
         @update:page="handlePageChange"

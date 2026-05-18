@@ -66,9 +66,27 @@ vi.mock("vike/client/router", () => ({
   navigate: mocks.navigate,
 }));
 
+vi.mock("@pinia/colada", async () => {
+  const { ref } = await import("vue");
+  // Simulate a project with multiple available content nodes so
+  // hasMultipleContentNodes is true and the filter bar is rendered.
+  return {
+    useQuery: vi.fn(() => ({
+      state: ref({ data: [{ id: "node-a" }, { id: "node-b" }] }),
+      isPending: ref(false),
+    })),
+  };
+});
+
 vi.mock("./ContentNodeFilterPicker.vue", () => ({
   default: defineComponent({
     template: '<div data-testid="content-node-filter-picker" />',
+  }),
+}));
+
+vi.mock("@/components/tooltip/TextTooltip.vue", () => ({
+  default: defineComponent({
+    template: "<span><slot /></span>",
   }),
 }));
 
