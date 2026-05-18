@@ -24,8 +24,12 @@ Similar |
 | `CapturedScreenshot` | interface | Captured screenshot info — local file info and associated element for a single s |
 | `ScreenshotCollectOptions` | interface | Screenshot collection options. |
 | `UploadOptions` | interface | Upload options — for uploading screenshots to the platform. |
+| `CaptureStrictOptions` | type | Strict capture coverage options. |
 | `resolveUrl` | function | Resolve a potentially relative URL to an absolute one.
 When storage is proxied,  |
 | `uploadScreenshots` | function | Upload screenshots and return IMAGE context data list.
 Flow: prepareUpload → PUT |
 | `addImageContexts` | function | Add IMAGE contexts to existing elements via collection.addContexts endpoint. |
+| `resolveElementId` | function | Resolve an element database ID from seeder bindings. |
+| `uploadCaptureResult` | function |  |
+| `UploadCaptureResultOptions` | type |  |

@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 323
+* **Modules**: 328
 
-* **Exported functions**: 344
+* **Exported functions**: 352
 
-* **Exported types**: 442
+* **Exported types**: 451
 
 ## Function Index
 
@@ -131,7 +131,7 @@ export const createAgentRun: Command<
 export const createAgentSession: Command<
   CreateAgentSessionCommand,
   { sessionId: string }
-> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; documentId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; issueId?: number | undefined; pullRequestId?: number | undefined; } | undefined; }) => {...}
+> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; documentId?: string | undefined; branchId?: number | undefined; contentNodeIds?: string[] | undefined; currentElementContentNodeId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; issueId?: number | undefined; pullRequestId?: number | undefined; } | undefined; }) => {...}
 ```
 
 ### `deleteAgentDefinition`
@@ -487,7 +487,30 @@ export const persistContentGraphAttachments: Command<
 > = async (ctx: DbContext, command: PersistContentGraphAttachmentsInput) => {...}
 ```
 
+### `updatePrimaryElementRelationsForDiff`
+
+```ts
+/**
+ * Update primary containment relations for stable-identity diffs.
+ */
+export const updatePrimaryElementRelationsForDiff: Command<
+  UpdatePrimaryElementRelationsForDiffCommand
+> = async (ctx: DbContext, command: { updates: { elementId: number; primaryContentNodeId: string; localOrder: number | null; }[]; }) => {...}
+```
+
 ### packages/domain/src/commands/context
+
+### `addElementContextEvidence`
+
+```ts
+/**
+ * Add context evidence rows for elements in bulk.
+ */
+export const addElementContextEvidence: Command<
+  AddElementContextEvidenceCommandInput,
+  { addedCount: number }
+> = async (ctx: DbContext, command: { projectId: string; evidence: { elementId: number; kind: "TEXT" | "JSON" | "FILE" | "MARKDOWN" | "URL" | "IMAGE" | "COMMENT" | "SOURCE_LOCATION" | "SCREENSHOT" | "GENERATED_ANALYSIS" | "EXTERNAL_REFERENCE"; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; textData?: string | null | undefined; jsonData?: any; displayLabel?: string | null | undefined; trustLevel?: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED" | undefined; provenance?: any; }[]; }) => {...}
+```
 
 ### `ensureDefaultContextProfile`
 
@@ -1924,6 +1947,54 @@ export const countContentNodeTranslations: Query<
 > = async (ctx: DbContext, query: { contentNodeId: string; languageId: string; isApproved?: boolean | undefined; }) => {...}
 ```
 
+### `listEditorScopeElements`
+
+```ts
+/**
+ * List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project.
+ */
+export const listEditorScopeElements: Query<
+  ListEditorScopeElementsQuery,
+  EditorElement[]
+> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; pageSize: number; page: number; branchId?: number | undefined; }) => {...}
+```
+
+### `countEditorScopeElements`
+
+```ts
+/**
+ * Count the elements matching filters inside the editor scope.
+ */
+export const countEditorScopeElements: Query<
+  CountEditorScopeElementsQuery,
+  number
+> = async (ctx: DbContext, query: CountEditorScopeElementsQuery) => {...}
+```
+
+### `getEditorScopeFirstElement`
+
+```ts
+/**
+ * Get the first matching element in the editor scope, or the first one after a given element.
+ */
+export const getEditorScopeFirstElement: Query<
+  GetEditorScopeFirstElementQuery,
+  EditorElement | null
+> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; branchId?: number | undefined; afterElementId?: number | undefined; }) => {...}
+```
+
+### `getEditorScopeElementPageIndex`
+
+```ts
+/**
+ * Calculate the zero-based page index of an element under the same editor scope and filters; returns `null` if the element is out of scope.
+ */
+export const getEditorScopeElementPageIndex: Query<
+  GetEditorScopeElementPageIndexQuery,
+  number | null
+> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; pageSize: number; elementId: number; branchId?: number | undefined; }) => {...}
+```
+
 ### `findProjectContentNodeByLabel`
 
 ```ts
@@ -2060,6 +2131,18 @@ export const listContentNodeElementsWithChunkIds: Query<
   ListContentNodeElementsWithChunkIdsQuery,
   ContentNodeElementWithChunkIds[]
 > = async (ctx: DbContext, query: { contentNodeId: string; }) => {...}
+```
+
+### `listEditorScopeContentNodes`
+
+```ts
+/**
+ * List content nodes visible for a project under main or branch-overlay visibility.
+ */
+export const listEditorScopeContentNodes: Query<
+  ListEditorScopeContentNodesQuery,
+  ProjectContentNodeRow[]
+> = async (ctx: DbContext, query: { projectId: string; branchId?: number | undefined; }) => {...}
 ```
 
 ### `listProjectContentNodes`
@@ -2214,6 +2297,18 @@ export const getElementSourceLocation: Query<
 export const getElementWithChunkIds: Query<
   GetElementWithChunkIdsQuery,
   ElementWithChunkIds | null
+> = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
+### `getTranslatableElementRow`
+
+```ts
+/**
+ * Get the full `TranslatableElement` table row by element ID.
+ */
+export const getTranslatableElementRow: Query<
+  GetTranslatableElementRowQuery,
+  typeof translatableElement.$inferSelect | null
 > = async (ctx: DbContext, query: { elementId: number; }) => {...}
 ```
 
@@ -3531,6 +3626,12 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `PersistContentGraphAttachmentsOutput` (type)
 
+* `UpdatePrimaryElementRelationsForDiffCommand` (type)
+
+* `AddElementContextEvidenceCommand` (type) — Command input for adding element context evidence.
+
+* `AddElementContextEvidenceCommandInput` (type)
+
 * `EnsureDefaultContextProfileCommand` (type)
 
 * `ParseAndSaveCrossReferencesCommand` (type)
@@ -3887,6 +3988,14 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `CountContentNodeTranslationsQuery` (type)
 
+* `ListEditorScopeElementsQuery` (type) — Type for paginated editor-scope element queries.
+
+* `CountEditorScopeElementsQuery` (type) — Type for editor-scope element count queries.
+
+* `GetEditorScopeFirstElementQuery` (type) — Type for fetching the first matching element in an editor scope.
+
+* `GetEditorScopeElementPageIndexQuery` (type) — Type for editor-scope element page-index queries.
+
 * `FindProjectContentNodeByLabelQuery` (type)
 
 * `GetContentNodeBlobInfoQuery` (type)
@@ -3918,6 +4027,8 @@ export const setupTestDB = async (): Promise<TestDB>
 * `ListContentNodeElementsWithChunkIdsQuery` (type)
 
 * `ContentNodeElementWithChunkIds` (type)
+
+* `ListEditorScopeContentNodesQuery` (type) — Type for listing content nodes visible to an editor scope.
 
 * `ListProjectContentNodesQuery` (type)
 
@@ -3960,6 +4071,8 @@ export const setupTestDB = async (): Promise<TestDB>
 * `GetElementWithChunkIdsQuery` (type)
 
 * `ElementWithChunkIds` (type)
+
+* `GetTranslatableElementRowQuery` (type) — Type for fetching a full translatable-element row.
 
 * `ListAllElementsQuery` (type)
 

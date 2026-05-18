@@ -15,7 +15,7 @@ import {
   ChevronsLeftIcon,
 } from "@lucide/vue";
 import { storeToRefs } from "pinia";
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEditorContextStore } from "@/stores/editor/context";
@@ -23,7 +23,7 @@ import { useEditorTableStore } from "@/stores/editor/table";
 
 const { t } = useI18n();
 
-const { currentPage } = storeToRefs(useEditorContextStore());
+const { currentPage, pageSize } = storeToRefs(useEditorContextStore());
 const { elementTotalAmount, pageTotalAmount } = storeToRefs(
   useEditorTableStore(),
 );
@@ -39,41 +39,22 @@ const isWideSidebar = computed(() => {
   return (sidebarWidth.value || 240) >= 320;
 });
 
-watch(
-  currentPage,
-  (newPage, oldPage) => {
-    if (
-      newPage !== oldPage &&
-      newPage >= 1 &&
-      newPage <= pageTotalAmount.value
-    ) {
-      toPage(newPage - 1);
-    }
-  },
-  { immediate: false },
-);
-
-// Trigger initial page load when element count first becomes available.
-// On first client-side navigation (e.g. elementId="auto"), toElement is not
-// called, so toPage never fires for page 0. This watcher ensures the
-// current page is loaded once the element count is known.
-watch(
-  pageTotalAmount,
-  (newTotal) => {
-    if (
-      newTotal > 0 &&
-      currentPage.value >= 1 &&
-      currentPage.value <= newTotal
-    ) {
-      toPage(currentPage.value - 1);
-    }
-  },
-  { immediate: true },
-);
+const handlePageChange = (page: number) => {
+  if (page < 1 || page > Math.max(1, pageTotalAmount.value)) return;
+  currentPage.value = page;
+  void toPage(page);
+};
 
 const displayRange = computed(() => {
-  const from = (currentPage.value - 1) * 16 + 1;
-  const to = Math.min(currentPage.value * 16, elementTotalAmount.value);
+  if (elementTotalAmount.value === 0) {
+    return { from: 0, to: 0 };
+  }
+
+  const from = (currentPage.value - 1) * pageSize.value + 1;
+  const to = Math.min(
+    currentPage.value * pageSize.value,
+    elementTotalAmount.value,
+  );
   return { from, to };
 });
 </script>
@@ -87,16 +68,17 @@ const displayRange = computed(() => {
       ]"
     >
       <Pagination
-        :items-per-page="16"
+        :items-per-page="pageSize"
         :total="elementTotalAmount"
         :sibling-count="0"
-        v-model:page="currentPage"
+        :page="currentPage"
+        @update:page="handlePageChange"
       >
         <PaginationContent :class="isWideSidebar ? 'gap-1' : 'gap-0.5'">
           <PaginationFirst
             :size="isWideSidebar ? undefined : 'icon-sm'"
             :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
-            @click="currentPage = 1"
+            @click="handlePageChange(1)"
           >
             <ChevronsLeftIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
           </PaginationFirst>
@@ -132,7 +114,7 @@ const displayRange = computed(() => {
           <PaginationLast
             :size="isWideSidebar ? undefined : 'icon-sm'"
             :class="!isWideSidebar && 'px-1.5! pr-1.5!'"
-            @click="currentPage = pageTotalAmount"
+            @click="handlePageChange(Math.max(1, pageTotalAmount))"
           >
             <ChevronsRightIcon :class="isWideSidebar ? 'h-4 w-4' : 'h-3 w-3'" />
           </PaginationLast>

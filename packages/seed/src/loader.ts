@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as z from "zod";
 
-import { interpolateEnvVars } from "@/env-interpolation";
+import { interpolateEnvVars } from "./env-interpolation";
 import {
   type DevSeedConfig,
   DevSeedConfigSchema,
@@ -17,7 +17,7 @@ import {
   ProjectSeedSchema,
   type UserSeed,
   UserSeedSchema,
-} from "@/schemas";
+} from "./schemas";
 
 export type LoadedDevSeed = {
   config: DevSeedConfig;

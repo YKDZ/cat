@@ -40,6 +40,19 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
+   * @zh 从 URL 恢复分支 ID；PR 元数据稍后由 BranchCombobox 补齐。
+   * @en Restore branch ID from URL; BranchCombobox can hydrate PR metadata later.
+   */
+  const setBranchIdFromRoute = (branchIdFromRoute: number | null) => {
+    currentBranchId.value = branchIdFromRoute;
+    if (branchIdFromRoute === null) {
+      currentPRId.value = null;
+      currentPRNumber.value = null;
+      currentBranchName.value = null;
+    }
+  };
+
+  /**
    * @zh 离开分支工作空间，回到主分支
    * @en Leave the branch workspace and return to the main branch
    */
@@ -58,6 +71,7 @@ export const useBranchStore = defineStore("branch", () => {
     isOnBranch,
     isOnMainBranch,
     enterBranch,
+    setBranchIdFromRoute,
     leaveBranch,
   };
 });

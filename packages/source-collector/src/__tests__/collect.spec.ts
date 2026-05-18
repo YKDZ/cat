@@ -23,7 +23,7 @@ async function createTempFiles(files: Record<string, string>): Promise<string> {
 const mockExtractor: SourceExtractor = {
   id: "mock",
   supportedExtensions: [".txt"],
-  extract({ content, filePath }) {
+  extract({ content, filePath, sourceLanguageId }) {
     return content
       .split("\n")
       .filter((line) => line.trim() !== "")
@@ -33,7 +33,7 @@ const mockExtractor: SourceExtractor = {
         sourceNodeRef: `source-file:${filePath}`,
         localOrder: i,
         text: line.trim(),
-        languageId: "en",
+        languageId: sourceLanguageId ?? "en",
         meta: { extractor: "mock", file: filePath, line: i + 1 },
         location: { startLine: i + 1, endLine: i + 1 },
       }));
@@ -133,6 +133,30 @@ describe("collect", () => {
       expect(payload.elements).toHaveLength(0);
       // When no files match, we still have a root sentinel node
       expect(payload.nodes.length).toBeGreaterThanOrEqual(1);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("passes the configured source language through collect", async () => {
+    const dir = await createTempFiles({
+      "src/a.txt": "你好",
+    });
+
+    try {
+      const payload = await collect({
+        globs: ["src/**/*.txt"],
+        extractors: [mockExtractor],
+        baseDir: dir,
+        projectId: "12345678-1234-4000-8000-000000000001",
+        sourceLanguageId: "zh-Hans",
+        sourceRootRef: dir,
+      });
+
+      expect(payload.elements).toHaveLength(1);
+      expect(
+        payload.elements.every((element) => element.languageId === "zh-Hans"),
+      ).toBe(true);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

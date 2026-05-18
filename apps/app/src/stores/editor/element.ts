@@ -1,6 +1,6 @@
-import type { TranslatableElement } from "@cat/shared";
+import type { EditorElement } from "@cat/shared";
 
-import { TranslatableElementSchema } from "@cat/shared";
+import { EditorElementSchema } from "@cat/shared";
 import {
   ElementTranslationStatusSchema,
   type ElementTranslationStatus,
@@ -11,17 +11,13 @@ import * as z from "zod";
 
 import { orpc } from "@/rpc/orpc";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
+import { hashJSON } from "@/utils/hash.ts";
 
-export const TranslatableElementWithDetailsSchema =
-  TranslatableElementSchema.extend({
-    value: z.string(),
-    languageId: z.string(),
-    status: ElementTranslationStatusSchema.default("NO"),
-  });
+export const TranslatableElementWithDetailsSchema = EditorElementSchema.extend({
+  status: ElementTranslationStatusSchema.default("NO"),
+});
 
-type TranslatableElementWithDetails = z.infer<
-  typeof TranslatableElementWithDetailsSchema
->;
+export type TranslatableElementWithDetails = EditorElement;
 
 export const useEditorElementStore = defineStore("editorElement", () => {
   const context = storeToRefs(useEditorContextStore());
@@ -48,6 +44,41 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     return elements;
   });
 
+  const loadPage = async (
+    page: number,
+  ): Promise<TranslatableElementWithDetails[]> => {
+    if (!context.scope.value) return [];
+
+    const inputHash = await hashJSON({
+      projectId: context.projectId.value,
+      languageToId: context.languageToId.value,
+      branchId: context.scope.value.branchId,
+      contentNodeIds: context.contentNodeIds.value,
+      searchQuery: context.searchQuery.value,
+      statusFilter: context.statusFilter.value,
+      page,
+      pageSize: context.pageSize.value,
+    });
+
+    if (loadedPageHashes.get(page) === inputHash) {
+      return loadedPages.get(page) ?? [];
+    }
+
+    const elements = await orpc.editor.listElements({
+      ...context.scope.value,
+      page,
+      pageSize: context.pageSize.value,
+    });
+    const parsed = z
+      .array(TranslatableElementWithDetailsSchema)
+      .parse(elements);
+
+    loadedPages.set(page, parsed);
+    loadedPageHashes.set(page, inputHash);
+
+    return parsed;
+  };
+
   const getElementTranslationStatus = async (
     elementId: number,
   ): Promise<ElementTranslationStatus> => {
@@ -67,7 +98,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     }
   };
 
-  const updateElement = (updatedElement: TranslatableElement) => {
+  const updateElement = (updatedElement: TranslatableElementWithDetails) => {
     for (const [page, elements] of loadedPages.entries()) {
       const index = elements.findIndex((el) => el.id === updatedElement.id);
 
@@ -102,6 +133,13 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     loadedPageHashes.clear();
   };
 
+  const clearAndLoadCurrentPage = async () => {
+    refresh();
+    if (context.currentPage.value >= 1) {
+      await loadPage(context.currentPage.value - 1);
+    }
+  };
+
   return {
     loadedPages,
     loadedPageHashes,
@@ -111,6 +149,8 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     pendingElements,
     setElementPending,
     getElementTranslationStatus,
+    loadPage,
+    clearAndLoadCurrentPage,
     updateElement,
     updateElementStatus,
     refresh,

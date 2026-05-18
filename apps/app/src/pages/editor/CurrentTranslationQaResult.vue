@@ -13,17 +13,33 @@ import z from "zod";
 import { ws } from "@/rpc/ws";
 import { clientLogger as logger } from "@/utils/logger";
 
+/**
+ * @zh 当前翻译 QA 按钮的属性。
+ * @en Props for the current-translation QA button.
+ */
 const props = defineProps<{
+  /**
+   * @zh 当前原文信息。
+   * @en Current source payload.
+   */
   source: {
     text: string;
     tokens: Token[];
     languageId: string;
   };
+  /**
+   * @zh 当前译文信息。
+   * @en Current translation payload.
+   */
   translation: {
     text: string;
     tokens: Token[];
     languageId: string;
   };
+  /**
+   * @zh 兼容性命名：当前元素主内容节点 ID。
+   * @en Compatibility name: the current element primary content-node ID.
+   */
   documentId?: string;
 }>();
 
@@ -105,7 +121,9 @@ const primaryStatus = computed(() => {
 
 watch(
   () => [props.source, props.translation, props.documentId],
-  () => update(),
+  () => {
+    void update();
+  },
 );
 </script>
 

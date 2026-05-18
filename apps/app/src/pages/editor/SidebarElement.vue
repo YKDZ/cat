@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TranslatableElement } from "@cat/shared";
+import type { EditorElement } from "@cat/shared";
 import type { ElementTranslationStatus } from "@cat/shared";
 
 import { SidebarMenuButton } from "@cat/ui";
@@ -10,25 +10,25 @@ import { useEditorContextStore } from "@/stores/editor/context.ts";
 import { useEditorElementStore } from "@/stores/editor/element.ts";
 import { useEditorTableStore } from "@/stores/editor/table";
 
-const { documentId, languageToId } = storeToRefs(useEditorContextStore());
+import { buildEditorHref } from "./scope-url";
+
+const { scope } = storeToRefs(useEditorContextStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { pendingElements } = useEditorElementStore();
 
 const props = defineProps<{
-  element: Pick<TranslatableElement, "id"> & {
+  element: Pick<EditorElement, "id"> & {
     status: ElementTranslationStatus;
     value: string;
   };
 }>();
 
 const handleClick = async () => {
-  if (!props.element) return;
+  if (!props.element || !scope.value) return;
 
-  await navigate(
-    `/editor/${documentId.value}/${languageToId.value}/${props.element.id}`,
-    // 保持滚动位置，避免不必要的跳转
-    { keepScrollPosition: true },
-  );
+  await navigate(buildEditorHref(scope.value, props.element.id), {
+    keepScrollPosition: true,
+  });
 };
 /* onMounted(() => updateElementStatus(props.element.id)); */
 </script>

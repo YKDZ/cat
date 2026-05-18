@@ -1,5 +1,6 @@
 import { navigate } from "vike/client/router";
 
+import { buildEditorHref } from "@/pages/editor/scope-url";
 import { useEditorContextStore } from "@/stores/editor/context";
 import { useEditorTableStore } from "@/stores/editor/table";
 
@@ -23,8 +24,14 @@ export const useRegisterClientTools = (): void => {
   registerClientTool("get_editor_context", () => ({
     elementId: editorTable.elementId,
     translationValue: editorTable.translationValue,
+    projectId: editorContext.projectId ?? null,
     languageToId: editorContext.languageToId ?? null,
+    branchId: editorContext.scope?.branchId ?? null,
+    contentNodeIds: editorContext.contentNodeIds,
+    currentElementContentNodeId:
+      editorContext.currentElementContentNodeId ?? null,
     documentId: editorContext.documentId ?? null,
+    scope: editorContext.scope ?? null,
   }));
 
   // ─── Mutation tools ───
@@ -60,17 +67,12 @@ export const useRegisterClientTools = (): void => {
       if (typeof elementId !== "number")
         throw new Error("elementId must be a number");
 
-      const docId =
-        typeof args["documentId"] === "string"
-          ? args["documentId"]
-          : editorContext.documentId;
-      const langId =
-        typeof args["languageId"] === "string"
-          ? args["languageId"]
-          : editorContext.languageToId;
+      if (!editorContext.scope) {
+        throw new Error("editor scope is not ready");
+      }
 
       await editorTable.toElement(elementId);
-      await navigate(`/editor/${docId}/${langId}/${elementId}`);
+      await navigate(buildEditorHref(editorContext.scope, elementId));
       return { ok: true };
     },
   );

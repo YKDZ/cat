@@ -10,11 +10,11 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (344 functions, 442 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (352 functions, 451 types)
 
 * [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (105 functions, 122 types)
 
-* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 233 types)
+* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 243 types)
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (9 functions, 6 types)
 
@@ -36,17 +36,17 @@
 
 * [**@cat/agent**](./packages/agent.md) — Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser (13 functions, 36 types)
 
-* [**@cat/agent-tools**](./packages/agent-tools.md) — Built-in agent tools: kanban, translation, session management (3 functions, 0 types)
+* [**@cat/agent-tools**](./packages/agent-tools.md) — Built-in agent tools: kanban, translation, session management (6 functions, 0 types)
 
-* [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (13 functions, 18 types)
+* [**@cat/vcs**](./packages/vcs.md) — VCS engine: changeset management, branch merge/rebase, overlay reads, diff strategies (13 functions, 22 types)
 
 * [**@cat/file-parsers**](./packages/file-parsers.md) (2 functions, 4 types)
 
-* [**@cat/seed**](./packages/seed.md) (6 functions, 15 types)
+* [**@cat/seed**](./packages/seed.md) (10 functions, 24 types)
 
-* [**@cat/source-collector**](./packages/source-collector.md) (5 functions, 6 types)
+* [**@cat/source-collector**](./packages/source-collector.md) (8 functions, 8 types)
 
-* [**@cat/screenshot-collector**](./packages/screenshot-collector.md) (10 functions, 6 types)
+* [**@cat/screenshot-collector**](./packages/screenshot-collector.md) (12 functions, 8 types)
 
 * [**@cat/eval**](./packages/eval.md) (9 functions, 29 types)
 

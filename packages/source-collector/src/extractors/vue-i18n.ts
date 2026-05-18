@@ -16,11 +16,13 @@ export const vueI18nExtractor: SourceExtractor = {
   id: "vue-i18n",
   supportedExtensions: [".vue", ".ts", ".tsx", ".js", ".jsx"],
 
-  extract({ content, filePath }): CollectionElement[] {
+  extract({ content, filePath, sourceLanguageId }): CollectionElement[] {
     if (filePath.endsWith(".vue")) {
-      return extractFromVueSFC(content, filePath);
+      return extractFromVueSFC(content, filePath, { sourceLanguageId });
     }
-    return extractFromScript(content, filePath, "file", 0);
+    return extractFromScript(content, filePath, "file", 0, {
+      sourceLanguageId,
+    });
   },
 };
 
@@ -31,12 +33,18 @@ export const vueI18nExtractor: SourceExtractor = {
 function extractFromVueSFC(
   content: string,
   filePath: string,
+  options: { sourceLanguageId?: string } = {},
 ): CollectionElement[] {
   const { descriptor, errors } = parseSFC(content, {
     filename: filePath,
   });
 
-  if (errors.length > 0) return [];
+  if (errors.length > 0) {
+    const errorMessage = errors
+      .map((error) => (error instanceof Error ? error.message : String(error)))
+      .join("; ");
+    throw new Error(`Vue SFC parse failed for ${filePath}: ${errorMessage}`);
+  }
 
   const elements: CollectionElement[] = [];
 
@@ -45,7 +53,11 @@ function extractFromVueSFC(
     const templateStartLine = descriptor.template.loc.start.line - 1;
     const ast = parseTemplate(templateContent);
 
-    elements.push(...extractFromTemplate(ast, filePath, templateStartLine));
+    elements.push(
+      ...extractFromTemplate(ast, filePath, templateStartLine, {
+        sourceLanguageId: options.sourceLanguageId,
+      }),
+    );
   }
 
   if (descriptor.scriptSetup) {
@@ -57,6 +69,7 @@ function extractFromVueSFC(
         filePath,
         "scriptSetup",
         scriptStartLine,
+        { sourceLanguageId: options.sourceLanguageId },
       ),
     );
   }
@@ -65,7 +78,9 @@ function extractFromVueSFC(
     const scriptContent = descriptor.script.content;
     const scriptStartLine = descriptor.script.loc.start.line - 1;
     elements.push(
-      ...extractFromScript(scriptContent, filePath, "script", scriptStartLine),
+      ...extractFromScript(scriptContent, filePath, "script", scriptStartLine, {
+        sourceLanguageId: options.sourceLanguageId,
+      }),
     );
   }
 

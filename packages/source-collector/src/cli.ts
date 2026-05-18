@@ -23,6 +23,7 @@ source-collector — CAT 源码可翻译文本采集器
 extract 选项:
   --glob <pattern>          文件匹配模式（可重复使用多次）
   --framework <id>          提取框架：vue-i18n（默认）
+  --source-lang <id>        源语言 ID（默认：en）
   --base-dir <path>         基目录（默认：当前工作目录）
   --output, -o <path>       输出文件路径（默认：stdout）
 
@@ -41,14 +42,15 @@ collect 选项:
   # 纯粹提取（无需平台参数）
   source-collector extract \\
     --glob "src/**/*.{vue,ts}" \\
-    --framework vue-i18n
+    --framework vue-i18n \
+    --source-lang zh-Hans
 
   # 兼容命令（输出 CollectionPayload）
   source-collector collect \\
     --glob "src/**/*.{vue,ts}" \\
     --framework vue-i18n \\
     --project-id 00000000-0000-0000-0000-000000000001 \\
-    --source-lang zh_cn \\
+    --source-lang zh-Hans \
     --document-name "app-i18n"
 `;
 
@@ -91,11 +93,14 @@ async function runExtract(values: Record<string, unknown>): Promise<void> {
   const baseDir = resolve(
     typeof values["base-dir"] === "string" ? values["base-dir"] : process.cwd(),
   );
+  const sourceLanguageId =
+    typeof values["source-lang"] === "string" ? values["source-lang"] : "en";
 
   const result = await extract({
     globs,
     extractors: [extractor],
     baseDir,
+    sourceLanguageId,
   });
 
   const json = JSON.stringify(result, null, 2);
@@ -130,7 +135,7 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
   if (typeof rawSourceLang !== "string" || !rawSourceLang) {
     console.error(
       "[ERROR] MISSING_OPTION: --source-lang is required.\n" +
-        "  hint: Specify the source language ID, e.g. 'zh_cn' or 'en'.",
+        "  hint: Specify the source language ID, e.g. 'zh-Hans' or 'en'.",
     );
     process.exit(1);
   }
@@ -141,6 +146,7 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     globs,
     extractors: [extractor],
     baseDir,
+    sourceLanguageId: rawSourceLang,
   });
 
   const payload = toCollectionPayload(result, {

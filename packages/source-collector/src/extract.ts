@@ -1,4 +1,3 @@
-// oxlint-disable no-console
 import type {
   StructuredContentNodeInput,
   StructuredEvidenceInput,
@@ -11,18 +10,41 @@ import { readFile } from "node:fs/promises";
 import { extname, relative } from "node:path";
 
 import type {
+  SourceCollectionDiagnostic,
   SourceExtractionGraphResult,
   SourceExtractOptions,
 } from "./types.ts";
 
+type FileExtractionResult = {
+  fileNode: StructuredContentNodeInput;
+  elements: StructuredTranslatableElementInput[];
+  relations: StructuredRelationInput[];
+  evidence: StructuredEvidenceInput[];
+  diagnostics: SourceCollectionDiagnostic[];
+};
+
+type DiagnosticOnlyExtractionResult = {
+  diagnostics: SourceCollectionDiagnostic[];
+};
+
+const hasFileExtractionResult = (
+  result: FileExtractionResult | DiagnosticOnlyExtractionResult,
+): result is FileExtractionResult => {
+  return "fileNode" in result;
+};
+
 /**
  * @zh 从源文件中纯粹提取可翻译元素，返回图结构结果（不含平台参数）。
  * @en Extract translatable elements from source files, returning graph-structured result (no platform params).
+ *
+ * @param options - {@zh 纯提取选项} {@en Pure extraction options}
+ * @returns - {@zh 图结构提取结果} {@en Graph-structured extraction result}
  */
 export async function extract(
   options: SourceExtractOptions,
 ): Promise<SourceExtractionGraphResult> {
   const { globs, extractors, baseDir } = options;
+  const sourceLanguageId = options.sourceLanguageId ?? "en";
 
   const files = (await glob(globs, { cwd: baseDir, absolute: true })).sort();
 
@@ -39,6 +61,7 @@ export async function extract(
   const allElements: StructuredTranslatableElementInput[] = [];
   const allRelations: StructuredRelationInput[] = [];
   const allEvidence: StructuredEvidenceInput[] = [];
+  const diagnostics: SourceCollectionDiagnostic[] = [];
 
   const results = await Promise.all(
     files.map(async (absPath) => {
@@ -46,26 +69,77 @@ export async function extract(
       const ext = extname(absPath);
 
       const extractor = extMap.get(ext);
-      if (!extractor) return null;
+      if (!extractor) {
+        return {
+          diagnostics: [
+            {
+              severity: "warning" as const,
+              code: "NO_EXTRACTOR" as const,
+              filePath: relPath,
+              message: `No extractor registered for ${relPath}`,
+              details: { extension: ext },
+            },
+          ],
+        };
+      }
 
       let content: string;
       try {
         content = await readFile(absPath, "utf-8");
       } catch (err) {
-        console.warn(
-          `[WARN] Failed to read ${relPath}: ${err instanceof Error ? err.message : String(err)}`,
-        );
-        return null;
+        return {
+          diagnostics: [
+            {
+              severity: "error" as const,
+              code: "READ_FAILED" as const,
+              filePath: relPath,
+              message: `Failed to read ${relPath}`,
+              details: {
+                error: err instanceof Error ? err.message : String(err),
+              },
+            },
+          ],
+        };
       }
 
       let elements: StructuredTranslatableElementInput[];
       try {
-        elements = extractor.extract({ content, filePath: relPath });
+        elements = extractor.extract({
+          content,
+          filePath: relPath,
+          sourceLanguageId,
+        });
       } catch (err) {
-        console.warn(
-          `[WARN] Extraction failed for ${relPath}: ${err instanceof Error ? err.message : String(err)}`,
-        );
-        return null;
+        return {
+          diagnostics: [
+            {
+              severity: "error" as const,
+              code: "EXTRACT_FAILED" as const,
+              filePath: relPath,
+              message: `Extraction failed for ${relPath}`,
+              details: {
+                error: err instanceof Error ? err.message : String(err),
+              },
+            },
+          ],
+        };
+      }
+
+      const fileDiagnostics: SourceCollectionDiagnostic[] = [];
+      for (const element of elements) {
+        if (element.languageId !== sourceLanguageId) {
+          fileDiagnostics.push({
+            severity: "error",
+            code: "LANGUAGE_MISMATCH",
+            filePath: relPath,
+            message: `Element ${element.ref} language ${element.languageId} does not match configured source language ${sourceLanguageId}`,
+            details: {
+              elementRef: element.ref,
+              actual: element.languageId,
+              expected: sourceLanguageId,
+            },
+          });
+        }
       }
 
       const sourceNodeRef = `source-file:${relPath}`;
@@ -87,7 +161,7 @@ export async function extract(
 
       for (const el of elements) {
         fileRelations.push({
-          type: { namespace: "core", name: "contains", version: "1" },
+          type: { namespace: "core", name: "contains", version: "1.0.0" },
           source: { kind: "NODE" as const, nodeRef: sourceNodeRef },
           target: { kind: "ELEMENT" as const, elementRef: el.ref },
           localOrder: el.localOrder ?? 0,
@@ -129,12 +203,15 @@ export async function extract(
         elements,
         relations: fileRelations,
         evidence: fileEvidence,
+        diagnostics: fileDiagnostics,
       };
     }),
   );
 
   for (const result of results) {
     if (!result) continue;
+    diagnostics.push(...result.diagnostics);
+    if (!hasFileExtractionResult(result)) continue;
     allNodes.push(result.fileNode);
     allElements.push(...result.elements);
     allRelations.push(...result.relations);
@@ -159,6 +236,23 @@ export async function extract(
     });
   }
 
+  const identityCounts = new Map<string, number>();
+  for (const element of allElements) {
+    const key = `${element.sourceNodeRef}\u0000${element.stableSourceRef}`;
+    identityCounts.set(key, (identityCounts.get(key) ?? 0) + 1);
+  }
+
+  for (const [key, count] of identityCounts) {
+    if (count > 1) {
+      diagnostics.push({
+        severity: "error",
+        code: "DUPLICATE_STABLE_IDENTITY",
+        message: `Duplicate stable source identity ${key}`,
+        details: { key, count },
+      });
+    }
+  }
+
   return {
     importerId,
     relationTypes: [],
@@ -166,5 +260,6 @@ export async function extract(
     elements: allElements,
     relations: allRelations,
     evidence: allEvidence,
+    diagnostics,
   };
 }

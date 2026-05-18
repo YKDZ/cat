@@ -1,3 +1,4 @@
+import { addElementContextEvidence, executeCommand } from "@cat/domain";
 import {
   finishPresignedPutFile,
   firstOrGivenService,
@@ -126,4 +127,57 @@ export const finishUpload = authed
     );
 
     return { fileId };
+  });
+
+const HighlightRegionSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  width: z.number(),
+  height: z.number(),
+});
+
+/**
+ * @zh 为元素附加截图上下文证据。
+ * @en Attach screenshot context evidence to elements.
+ */
+export const addScreenshotEvidence = authed
+  .input(
+    z.object({
+      projectId: z.uuidv4(),
+      screenshots: z.array(
+        z.object({
+          elementId: z.int(),
+          elementRef: z.string().min(1),
+          fileId: z.int(),
+          route: z.string().min(1),
+          highlightRegion: HighlightRegionSchema.optional(),
+        }),
+      ),
+    }),
+  )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
+  .output(z.object({ addedCount: z.int() }))
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    return await executeCommand({ db: drizzle }, addElementContextEvidence, {
+      projectId: input.projectId,
+      evidence: input.screenshots.map((screenshot) => ({
+        elementId: screenshot.elementId,
+        kind: "SCREENSHOT" as const,
+        fileId: screenshot.fileId,
+        jsonData: screenshot.highlightRegion
+          ? { highlightRegion: screenshot.highlightRegion }
+          : null,
+        displayLabel: `screenshot:${screenshot.route}`,
+        trustLevel: "COLLECTED" as const,
+        provenance: {
+          source: "screenshot-collector",
+          route: screenshot.route,
+          elementRef: screenshot.elementRef,
+        },
+      })),
+    });
   });

@@ -6,20 +6,16 @@ import { useRefHistory } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { ref, computed } from "vue";
-import * as z from "zod";
 
+import { buildEditorHref } from "@/pages/editor/scope-url";
 import { orpc } from "@/rpc/orpc";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
-import {
-  TranslatableElementWithDetailsSchema,
-  useEditorElementStore,
-} from "@/stores/editor/element.ts";
+import { useEditorElementStore } from "@/stores/editor/element.ts";
 import { useProfileStore } from "@/stores/profile.ts";
-import { hashJSON } from "@/utils/hash.ts";
-import { clientLogger } from "@/utils/logger";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
-  const context = storeToRefs(useEditorContextStore());
+  const contextStore = useEditorContextStore();
+  const context = storeToRefs(contextStore);
   const elementStore = useEditorElementStore();
   const elementRefStore = storeToRefs(elementStore);
   const profile = storeToRefs(useProfileStore());
@@ -36,10 +32,28 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const translationValue = ref("");
   const sourceTokens = ref<Token[]>([]);
   const translationTokens = ref<Token[]>([]);
-  const searchQuery = ref("");
-  const isProofreading = ref(false);
 
   const { undo, redo } = useRefHistory(translationValue);
+
+  const countScope = computed(() => {
+    if (!context.scope.value) return null;
+
+    return {
+      projectId: context.scope.value.projectId,
+      languageToId: context.scope.value.languageToId,
+      branchId: context.scope.value.branchId,
+      contentNodeIds: context.scope.value.contentNodeIds,
+      searchQuery: context.scope.value.searchQuery,
+      statusFilter: context.scope.value.statusFilter,
+    };
+  });
+
+  const searchQuery = computed({
+    get: () => context.searchQuery.value,
+    set: (value: string) => {
+      contextStore.setSearchQuery(value);
+    },
+  });
 
   const element = computed(() => {
     if (!elementId.value) return null;
@@ -54,126 +68,99 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   });
 
   const { state: elementTotalAmountState } = useQuery({
-    key: ["documents", context.documentId.value!, "elementTotalAmount"],
+    key: () => ["editor-scope", countScope.value, "elementTotalAmount"],
     placeholderData: 0,
     query: async () => {
-      if (!context.documentId.value || !context.languageToId.value) return 0;
-
-      return await orpc.document.countElement({
-        documentId: context.documentId.value,
-        searchQuery: searchQuery.value,
-        isTranslated: !isProofreading.value ? undefined : true,
-        languageId: context.languageToId.value,
-      });
+      if (!countScope.value) return 0;
+      return await orpc.editor.countElements(countScope.value);
     },
-    enabled: !import.meta.env.SSR,
+    enabled: () => !import.meta.env.SSR && !!countScope.value,
   });
 
-  const elementTotalAmount = computed(() => {
-    if (
-      !context.documentId.value ||
-      !context.languageToId.value ||
-      !elementTotalAmountState.value ||
-      !elementTotalAmountState.value.data
-    )
-      return 0;
+  const elementTotalAmount = computed(
+    () => elementTotalAmountState.value.data ?? 0,
+  );
 
-    return elementTotalAmountState.value.data;
-  });
+  const pageTotalAmount = computed(() =>
+    Math.ceil((elementTotalAmount.value ?? 0) / context.pageSize.value),
+  );
 
-  const pageTotalAmount = computed(() => {
-    return Math.ceil(elementTotalAmount.value / context.pageSize.value);
-  });
-
-  const toElement = async (id: number) => {
-    const page = await orpc.document.getPageIndexOfElement({
-      elementId: id,
-      pageSize: context.pageSize.value,
-      searchQuery: searchQuery.value,
-      isTranslated: !isProofreading.value ? undefined : true,
-      languageId: context.languageToId.value,
-    });
-    await toPage(page);
-    elementId.value = id;
-    // translationValue is cleared synchronously by +Layout.vue watchClient
-    // before toElement is called, so no async race with user input.
-    // 页码从 1 开始
-    context.currentPage.value = page + 1;
+  const setCurrentElementContext = (
+    selectedElement: typeof element.value | null,
+  ) => {
+    contextStore.currentElementContentNodeId =
+      selectedElement?.primaryContentNodeId ?? undefined;
   };
 
-  // index 从 0 开始
-  // 前端需要以此为标准映射页码
-  const toPage = async (index: number) => {
-    if (!context.documentId.value || !context.languageToId.value) return;
+  const toElement = async (targetElementId: number) => {
+    if (!context.scope.value) return;
 
-    const isTranslated = !isProofreading.value ? undefined : true;
-    const inputHash = await hashJSON({
+    const pageIndex = await orpc.editor.getElementPageIndex({
+      ...context.scope.value,
+      elementId: targetElementId,
       pageSize: context.pageSize.value,
-      searchQuery: searchQuery.value,
-      isTranslated,
     });
 
-    if (
-      elementRefStore.loadedPagesIndex.value.includes(index) &&
-      elementRefStore.loadedPageHashes.value.get(index) === inputHash
-    ) {
+    if (pageIndex === null) {
+      const first = await orpc.editor.getFirstElement(context.scope.value);
+
+      if (!first) {
+        elementId.value = null;
+        setCurrentElementContext(null);
+        await navigate(buildEditorHref(context.scope.value, "empty"));
+        return;
+      }
+
+      elementId.value = first.id;
+      setCurrentElementContext(first);
+      await navigate(buildEditorHref(context.scope.value, first.id));
       return;
     }
 
-    await orpc.document
-      .getElements({
-        documentId: context.documentId.value,
-        page: index,
-        pageSize: context.pageSize.value,
-        searchQuery: searchQuery.value,
-        isTranslated,
-        languageId: context.languageToId.value,
-      })
-      .then((elements) => {
-        if (elements.length === 0) return;
-        const pElements = z
-          .array(TranslatableElementWithDetailsSchema)
-          .parse(elements);
-        elementRefStore.loadedPages.value.set(index, pElements);
-        elementRefStore.loadedPageHashes.value.set(index, inputHash);
-      });
+    contextStore.setCurrentPage(pageIndex + 1);
+    const rows = await elementStore.loadPage(pageIndex);
+    const selected = rows.find((item) => item.id === targetElementId) ?? null;
+    setCurrentElementContext(selected);
+    elementId.value = targetElementId;
+  };
+
+  const toPage = async (page: number) => {
+    if (!context.scope.value) return;
+
+    contextStore.setCurrentPage(page);
+    await elementStore.loadPage(page - 1);
+
+    if (contextStore.scope) {
+      await navigate(
+        buildEditorHref(contextStore.scope, elementId.value ?? "auto"),
+      );
+    }
   };
 
   const toNextUntranslated = async () => {
-    if (
-      !context.documentId.value ||
-      !element.value ||
-      !context.languageToId.value
-    )
-      return;
+    if (!context.scope.value || !elementId.value) return;
 
-    const firstUntranslatedElement = await orpc.document.getFirstElement({
-      documentId: context.documentId.value,
-      afterElementId: element.value.id,
-      isTranslated: false,
-      languageId: context.languageToId.value,
+    const firstUntranslatedElement = await orpc.editor.getFirstElement({
+      ...context.scope.value,
+      statusFilter: "untranslated",
+      afterElementId: elementId.value,
     });
 
     if (!firstUntranslatedElement) {
-      clientLogger.debug(
-        "[toNextUntranslated] No more untranslated elements found.",
-      );
+      await navigate(buildEditorHref(context.scope.value, "empty"));
       return;
     }
 
     await toElement(firstUntranslatedElement.id);
-    await navigate(
-      `/editor/${context.documentId.value}/${context.languageToId.value}/${firstUntranslatedElement.id}`,
-    );
+    if (contextStore.scope) {
+      await navigate(
+        buildEditorHref(contextStore.scope, firstUntranslatedElement.id),
+      );
+    }
   };
 
   const translate = async () => {
-    if (
-      !elementId.value ||
-      !context.languageToId.value ||
-      !context.document.value
-    )
-      return;
+    if (!elementId.value || !context.languageToId.value) return;
 
     const currentElementId = elementId.value;
     const currentLanguageId = context.languageToId.value;
@@ -232,7 +219,6 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     sourceTokens,
     translationTokens,
     searchQuery,
-    isProofreading,
     element,
     elementTotalAmount,
     elementLanguageId,

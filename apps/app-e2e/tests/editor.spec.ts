@@ -1,9 +1,16 @@
 import { test, expect } from "@/fixtures";
 
 test.describe("Editor - Element Loading (P0)", () => {
-  test("loads elements in the sidebar", async ({ editorPage, refs }) => {
+  test("loads elements in the sidebar via legacy redirect", async ({
+    editorPage,
+    refs,
+    page,
+  }) => {
     const documentId = refs["document:elements"];
     await editorPage.navigateToEditor(documentId, "zh-Hans");
+    await expect(page).toHaveURL(
+      /\/editor\/project\/[^/]+\/zh-Hans\/\d+\?nodes=/,
+    );
 
     // 20 elements seeded, 16 per page → page 1 shows 16
     const items = editorPage.getElementItems();
@@ -20,8 +27,36 @@ test.describe("Editor - Element Loading (P0)", () => {
     // Click the first element
     await editorPage.selectElement(0);
 
-    // URL should contain an element ID (numeric)
-    await expect(page).toHaveURL(/\/editor\/[^/]+\/zh-Hans\/\d+/);
+    // URL should contain the canonical project editor route.
+    await expect(page).toHaveURL(/\/editor\/project\/[^/]+\/zh-Hans\/\d+/);
+  });
+});
+
+test.describe("Editor - Project Scope", () => {
+  test("opens full-project editor without content-node filters", async ({
+    editorPage,
+    refs,
+    page,
+  }) => {
+    const projectId = refs["project"];
+    await editorPage.navigateToProjectEditor(projectId, "zh-Hans");
+
+    await expect(page).toHaveURL(/\/editor\/project\/[^/]+\/zh-Hans\/\d+/);
+    await expect(page).not.toHaveURL(/nodes=/);
+  });
+
+  test("opens a content-node filtered scope", async ({
+    editorPage,
+    refs,
+    page,
+  }) => {
+    const projectId = refs["project"];
+    const documentId = refs["document:elements"];
+    await editorPage.navigateToProjectEditor(projectId, "zh-Hans", [
+      documentId,
+    ]);
+
+    await expect(page).toHaveURL(new RegExp(`nodes=${documentId}`));
   });
 });
 

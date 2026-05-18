@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { CapturedScreenshot } from "../types.ts";
 
-import { resolveUrl } from "../upload.ts";
+import { resolveElementId, resolveUrl } from "../upload.ts";
 
 describe("upload URL resolution", () => {
   it("should resolve relative URLs from proxied storage", () => {
@@ -84,5 +84,27 @@ describe("screenshot deduplication by filePath", () => {
       uniqueFiles.set(s.filePath, list);
     }
     expect(uniqueFiles.size).toBe(0);
+  });
+});
+
+describe("resolveElementId", () => {
+  it("resolves numeric element IDs from seeder bindings", () => {
+    expect(
+      resolveElementId("vue-i18n:src/App.vue:template:L1", {
+        "element:vue-i18n:src/App.vue:template:L1": "42",
+      }),
+    ).toBe(42);
+  });
+
+  it("throws when the binding is missing", () => {
+    expect(() => resolveElementId("missing", {})).toThrow(
+      /Missing element binding/,
+    );
+  });
+
+  it("throws when the binding is not numeric", () => {
+    expect(() =>
+      resolveElementId("bad", { "element:bad": "not-a-number" }),
+    ).toThrow(/not numeric/);
   });
 });

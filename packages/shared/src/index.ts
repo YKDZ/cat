@@ -5,10 +5,12 @@ export { CustomElementNameSchema } from "./schema/ce.ts";
 
 // Extraction schema
 export {
+  type CaptureRouteResult,
   type CaptureResult,
   CaptureResultMetadataSchema,
   type CaptureResultMetadata,
   CaptureResultSchema,
+  CaptureRouteResultSchema,
   type CaptureScreenshotEntry,
   CaptureScreenshotEntrySchema,
   type ExtractionMetadata,
@@ -230,6 +232,29 @@ export {
   type StructuredTranslatableElementInput,
   StructuredTranslatableElementInputSchema,
 } from "./schema/content.ts";
+
+// Editor scope schemas
+export {
+  type EditorContentNodeFilter,
+  EditorContentNodeFilterSchema,
+  type EditorContentNodePathItem,
+  EditorContentNodePathItemSchema,
+  type EditorElement,
+  EditorElementSchema,
+  type EditorElementPageIndexQuery,
+  EditorElementPageIndexQuerySchema,
+  type EditorElementQuery,
+  EditorElementQuerySchema,
+  type EditorFirstElementQuery,
+  EditorFirstElementQuerySchema,
+  type EditorScope,
+  EditorScopeSchema,
+  type EditorScopeView,
+  EditorScopeViewSchema,
+  type EditorTranslationStatusFilter,
+  EditorTranslationStatusFilterSchema,
+  EditorTranslationStatusFilterValues,
+} from "./schema/editor.ts";
 
 // ─── Hand-written schemas with filtering or aliasing ───
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type {
+  CaptureStrictOptions,
   NavigationStep,
   ScreenshotCollectOptions,
   ScreenshotRoute,
@@ -53,5 +54,15 @@ describe("screenshot collector types", () => {
     expect(steps[0]?.action).toBe("click");
     expect(steps[1]?.action).toBe("fill");
     expect(steps[2]?.action).toBe("wait");
+  });
+
+  it("should accept strict capture options", () => {
+    const strict: CaptureStrictOptions = {
+      minScreenshots: 1,
+      requiredRoutes: ["/auth"],
+    };
+
+    expect(strict.minScreenshots).toBe(1);
+    expect(strict.requiredRoutes).toEqual(["/auth"]);
   });
 });

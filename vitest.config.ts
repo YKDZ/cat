@@ -114,6 +114,14 @@ export default defineConfig({
       },
       {
         test: {
+          name: "unit-seed",
+          include: ["packages/seed/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/seed")) },
+      },
+      {
+        test: {
           name: "unit-shared",
           include: ["packages/shared/src/**/*.{spec,test}.ts"],
           environment: "node",

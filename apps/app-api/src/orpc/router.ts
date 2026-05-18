@@ -5,6 +5,7 @@ import * as changeset from "./routers/changeset.ts";
 import * as collection from "./routers/collection.ts";
 import * as comment from "./routers/comment.ts";
 import * as document from "./routers/document.ts";
+import * as editor from "./routers/editor.ts";
 import * as element from "./routers/element.ts";
 import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
@@ -42,6 +43,7 @@ const router: AppRouter = {
   user,
   setting,
   document,
+  editor,
   element,
   ghostText,
   glossary,
@@ -73,6 +75,7 @@ export type AppRouter = {
   user: typeof user;
   setting: typeof setting;
   document: typeof document;
+  editor: typeof editor;
   element: typeof element;
   ghostText: typeof ghostText;
   glossary: typeof glossary;

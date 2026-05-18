@@ -51,9 +51,25 @@ export const RouteManifestSchema = z.object({
 
 // --- Capture Result ---
 
+export const CaptureRouteResultSchema = z.object({
+  route: z.string(),
+  auth: z.boolean().optional(),
+  status: z.enum([
+    "CAPTURED",
+    "NO_MATCH",
+    "NAVIGATION_FAILED",
+    "AUTH_SKIPPED",
+    "FAILED",
+  ]),
+  capturedCount: z.int().min(0),
+  missingElementRefs: z.array(z.string()).default([]),
+  error: z.string().optional(),
+});
+
 export const CaptureScreenshotEntrySchema = z.object({
   filePath: z.string(),
   elementRef: z.string(),
+  elementId: z.int().optional(),
   elementMeta: safeZDotJson,
   route: z.string(),
   highlightRegion: z
@@ -73,6 +89,7 @@ export const CaptureResultMetadataSchema = z.object({
 
 export const CaptureResultSchema = z.object({
   screenshots: z.array(CaptureScreenshotEntrySchema),
+  routeResults: z.array(CaptureRouteResultSchema).default([]),
   metadata: CaptureResultMetadataSchema.optional(),
 });
 
@@ -84,6 +101,7 @@ export type NavigationStep = z.infer<typeof NavigationStepSchema>;
 export type RouteEntry = z.infer<typeof RouteEntrySchema>;
 export type RouteManifest = z.infer<typeof RouteManifestSchema>;
 export type CaptureResult = z.infer<typeof CaptureResultSchema>;
+export type CaptureRouteResult = z.infer<typeof CaptureRouteResultSchema>;
 export type CaptureScreenshotEntry = z.infer<
   typeof CaptureScreenshotEntrySchema
 >;

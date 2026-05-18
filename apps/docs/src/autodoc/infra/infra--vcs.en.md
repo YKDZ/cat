@@ -35,6 +35,10 @@
 | `FieldChange` | interface | Field-level change description |
 | `DiffResult` | interface | Diff computation result |
 | `DiffStrategy` | interface | Entity diff strategy interface |
+| `EditorOverlayContentNodeRow` | type | Content-node row type for editor branch overlays. |
+| `EditorOverlayContentRelationRow` | type | Content-relation row type for editor branch overlays. |
+| `EditorOverlayElementRow` | type | Element row type for editor branch overlays. |
+| `EditorOverlayTranslationState` | type | Translation-state type for editor branch overlays. |
 | `getDefaultRegistries` | function |  |
 | `createSimpleMethods` | function | Create SimpleApplicationMethod instances for multiple entityTypes. |
 | `EntityStateFetcher` | type | Entity state fetcher callback, provided by the registrar for rebase before-rewri |

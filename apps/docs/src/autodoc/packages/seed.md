@@ -2,11 +2,11 @@
 
 ## Overview
 
-* **Modules**: 6
+* **Modules**: 10
 
-* **Exported functions**: 6
+* **Exported functions**: 10
 
-* **Exported types**: 15
+* **Exported types**: 24
 
 ## Function Index
 
@@ -47,6 +47,20 @@ export const runSeedPipeline = async (execCtx: ExecutorContext, loadedSeed: Load
   }): Promise<DevSeedResult>
 ```
 
+### `assertSafeDatabaseTarget`
+
+```ts
+/**
+ * Determine whether a database URL clearly targets development/test.
+ *
+ * @param databaseUrl - Database URL
+ * @param options - Safety options
+ *
+ * @returns Returns void when reset is allowed
+ */
+export const assertSafeDatabaseTarget = (databaseUrl: string | undefined, options: DatabaseSafetyOptions)
+```
+
 ### `truncateAllTables`
 
 ```ts
@@ -61,13 +75,75 @@ export const runSeedPipeline = async (execCtx: ExecutorContext, loadedSeed: Load
 export const truncateAllTables = async (execCtx: ExecutorContext): Promise<void>
 ```
 
+### packages/seed/src/bootstrap
+
+### `buildLocaleBridgeMaterial`
+
+```ts
+/**
+ * Build bootstrap memory material and evidence from locale catalogs.
+ *
+ * @param input - Locale bridge input
+ *
+ * @returns Locale bridge result
+ */
+export const buildLocaleBridgeMaterial = async (input: {
+  seedDir: string;
+  elements: StructuredTranslatableElementInput[];
+  catalogs: BootstrapLocaleCatalog[];
+  sourceLanguageId: string;
+}): Promise<LocaleBridgeResult>
+```
+
+### `writeBootstrapRunReport`
+
+```ts
+/**
+ * Write a bootstrap run report.
+ *
+ * @param seedDir - Seed dataset directory
+ * @param outputPath - Relative or absolute output path
+ * @param report - Report payload
+ *
+ * @returns Absolute report path
+ */
+export const writeBootstrapRunReport = async (seedDir: string, outputPath: string, report: BootstrapRunReport): Promise<string>
+```
+
+### `runBootstrapSourceGraph`
+
+```ts
+/**
+ * Run bootstrap source collection, locale bridge, and structured diff ingestion.
+ *
+ * @param input - Bootstrap input
+ *
+ * @returns Bootstrap result
+ */
+export const runBootstrapSourceGraph = async (input: RunBootstrapSourceGraphInput): Promise<RunBootstrapSourceGraphResult>
+```
+
 ## Type Index
+
+* `LocaleBridgeDiagnostic` (type) — Diagnostic emitted by the locale bridge.
+
+* `LocaleMemoryMaterial` (type) — Translation-memory material emitted by the locale bridge.
+
+* `LocaleBridgeResult` (type) — Locale bridge result.
+
+* `BootstrapRunReport` (type) — Bootstrap run report.
+
+* `RunBootstrapSourceGraphInput` (type) — Input for running bootstrap source graph ingestion.
+
+* `RunBootstrapSourceGraphResult` (type) — Result of running bootstrap source graph ingestion.
 
 * `LoadedDevSeed` (type)
 
 * `DevSeedResult` (type)
 
 * `SeedSummary` (type)
+
+* `DatabaseSafetyOptions` (type) — Safety options for database reset.
 
 * `PluginOverride` (type)
 
@@ -88,6 +164,10 @@ export const truncateAllTables = async (execCtx: ExecutorContext): Promise<void>
 * `ElementSeed` (type)
 
 * `UserSeed` (type)
+
+* `BootstrapLocaleCatalog` (type) — Bootstrap locale catalog type.
+
+* `BootstrapProfile` (type) — Bootstrap profile type.
 
 * `DevSeedConfig` (type)
 

@@ -6,13 +6,17 @@ import {
   getContentNode,
   getContentRelation,
   getContextEvidence,
-  getElementMeta,
+  getVectorizedString,
+  getTranslatableElementRow,
+  listTranslationsByIds,
 } from "@cat/domain";
 
 import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
 import type { EntityStateFetcher } from "./methods/simple-application-method.ts";
 
+import { EditorOverlayTranslationStateSchema } from "./editor-overlay-payload.ts";
 import { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
+import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
 /**
  * @zh 将 DB 行（可能包含 Date 等非 JSON 原生类型）安全序列化为 JSONType。
@@ -22,6 +26,12 @@ function rowToJSON(value: unknown): JSONType {
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
   return JSON.parse(JSON.stringify(value)) as JSONType;
 }
+
+const toTimestampString = (value: unknown, fallback: string): string => {
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") return value;
+  return fallback;
+};
 
 /**
  * @zh 向 ApplicationMethodRegistry 中的每个 method 注入 EntityStateFetcher。
@@ -36,7 +46,10 @@ export function wireEntityStateFetchers(
   function setFetcher(entityType: string, fetcher: EntityStateFetcher): void {
     if (!registry.has(entityType)) return;
     const method = registry.get(entityType);
-    if (method instanceof SimpleApplicationMethod) {
+    if (
+      method instanceof SimpleApplicationMethod ||
+      method instanceof VectorizedStringApplicationMethod
+    ) {
       method.setFetcher(fetcher);
     }
   }
@@ -100,18 +113,86 @@ export function wireEntityStateFetchers(
 
   const elementFetcher: EntityStateFetcher = {
     async fetchOne(entityId, _ctx) {
-      return executeQuery({ db }, getElementMeta, {
-        elementId: parseInt(entityId, 10),
+      const elementId = Number.parseInt(entityId, 10);
+      if (!Number.isInteger(elementId)) return null;
+
+      const row = await executeQuery({ db }, getTranslatableElementRow, {
+        elementId,
       });
+      return row ? rowToJSON(row) : null;
     },
     async fetchMany(entityIds, _ctx) {
       const results = new Map<string, JSONType>();
       await Promise.all(
         entityIds.map(async (id) => {
-          const meta = await executeQuery({ db }, getElementMeta, {
-            elementId: parseInt(id, 10),
+          const elementId = Number.parseInt(id, 10);
+          if (!Number.isInteger(elementId)) return;
+
+          const row = await executeQuery({ db }, getTranslatableElementRow, {
+            elementId,
           });
-          if (meta !== null) results.set(id, meta);
+          if (row !== null) results.set(id, rowToJSON(row));
+        }),
+      );
+      return results;
+    },
+  };
+
+  const fetchTranslationState = async (
+    entityId: string,
+  ): Promise<JSONType | null> => {
+    const translationId = Number.parseInt(entityId, 10);
+    if (!Number.isInteger(translationId)) return null;
+
+    const translations = await executeQuery({ db }, listTranslationsByIds, {
+      translationIds: [translationId],
+    });
+    const row = translations[0];
+    if (!row) return null;
+
+    const stringIdValue = Reflect.get(row, "stringId");
+    if (typeof stringIdValue !== "number") return null;
+
+    const stringRow = await executeQuery({ db }, getVectorizedString, {
+      stringId: stringIdValue,
+    });
+    if (!stringRow) return null;
+
+    const elementRow = await executeQuery({ db }, getTranslatableElementRow, {
+      elementId: row.translatableElementId,
+    });
+    if (!elementRow) return null;
+
+    const updatedAtValue = Reflect.get(row, "updatedAt");
+    const createdAt = toTimestampString(
+      row.createdAt,
+      new Date(0).toISOString(),
+    );
+    const updatedAt = toTimestampString(updatedAtValue, createdAt);
+
+    return rowToJSON(
+      EditorOverlayTranslationStateSchema.parse({
+        translatableElementId: row.translatableElementId,
+        languageId: stringRow.languageId,
+        text: row.text,
+        translatorId: row.translatorId,
+        approved: elementRow.approvedTranslationId === translationId,
+        createdAt,
+        updatedAt,
+      }),
+    );
+  };
+
+  const translationStateFetcher: EntityStateFetcher = {
+    async fetchOne(entityId, _ctx) {
+      return await fetchTranslationState(entityId);
+    },
+    async fetchMany(entityIds, _ctx) {
+      const results = new Map<string, JSONType>();
+      await Promise.all(
+        entityIds.map(async (id) => {
+          const state = await fetchTranslationState(id);
+          if (state !== null) results.set(id, state);
         }),
       );
       return results;
@@ -122,4 +203,5 @@ export function wireEntityStateFetchers(
   setFetcher("content_relation", contentRelationFetcher);
   setFetcher("context_evidence", contextEvidenceFetcher);
   setFetcher("element", elementFetcher);
+  setFetcher("translation", translationStateFetcher);
 }

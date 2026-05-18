@@ -1,15 +1,43 @@
 import type { AgentToolDefinition } from "@cat/agent";
 
-import { executeQuery, getContentNodeElements, getDbHandle } from "@cat/domain";
+import {
+  executeQuery,
+  getDbHandle,
+  listEditorScopeElements,
+} from "@cat/domain";
 import * as z from "zod";
 
-import { assertDocumentInSession } from "./assert-session-scope.ts";
+import {
+  assertContentNodesInSession,
+  assertDocumentInSession,
+  assertProjectInSession,
+  resolveEffectiveContentNodeIds,
+} from "./assert-session-scope.ts";
+
+const legacyStatusFilter = (input: {
+  isTranslated?: boolean;
+  isApproved?: boolean;
+}) => {
+  if (input.isApproved === true) return "approved" as const;
+  if (input.isApproved === false) return "unapproved" as const;
+  if (input.isTranslated === true) return "translated" as const;
+  if (input.isTranslated === false) return "untranslated" as const;
+  return "all" as const;
+};
 
 const listElementsArgs = z.object({
+  projectId: z
+    .uuidv4()
+    .optional()
+    .describe("Project UUID. Falls back to session projectId"),
   documentId: z
     .uuidv4()
     .optional()
-    .describe("Document UUID. Falls back to session documentId"),
+    .describe("Deprecated compatibility field for a single content node"),
+  contentNodeIds: z
+    .array(z.uuidv4())
+    .optional()
+    .describe("Content node filters. Empty means the whole project."),
   page: z.int().min(0).default(0).describe("Page number (0-indexed)"),
   pageSize: z
     .int()
@@ -40,38 +68,61 @@ const listElementsArgs = z.object({
 export const listElementsTool: AgentToolDefinition = {
   name: "list_elements",
   description:
-    "List translatable elements in a document with pagination. Returns element ID, source text, translation status, and sort index. Use this to browse the document and find elements that need translation.",
+    "List translatable elements in the current editor scope with pagination. Supports project-wide browsing, subtree filters, and legacy documentId compatibility. Returns element ID, source text, translation status, primary content-node metadata, and sort index.",
   parameters: listElementsArgs,
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
     const parsed = listElementsArgs.parse(args);
-    const documentId = parsed.documentId ?? ctx.session.documentId;
-
-    if (!documentId) {
-      throw new Error("list_elements requires documentId");
+    const projectId = parsed.projectId ?? ctx.session.projectId;
+    if (!projectId) {
+      throw new Error("list_elements requires projectId");
     }
 
-    await assertDocumentInSession(documentId, ctx);
-
     const languageId = parsed.languageId ?? ctx.session.languageId;
+    if (!languageId) {
+      throw new Error("list_elements requires languageId");
+    }
+
+    const requestedContentNodeIds = parsed.documentId
+      ? [parsed.documentId]
+      : parsed.contentNodeIds;
+    const contentNodeIds = resolveEffectiveContentNodeIds(
+      requestedContentNodeIds,
+      ctx,
+    );
+
+    if (parsed.documentId) {
+      await assertDocumentInSession(parsed.documentId, ctx);
+    }
+
+    assertProjectInSession(projectId, ctx);
+    await assertContentNodesInSession(contentNodeIds, ctx);
+
     const { client: db } = await getDbHandle();
-    const rows = await executeQuery({ db }, getContentNodeElements, {
-      contentNodeId: documentId,
+    const rows = await executeQuery({ db }, listEditorScopeElements, {
+      projectId,
+      languageToId: languageId,
+      branchId: ctx.session.branchId,
+      contentNodeIds,
       page: parsed.page,
       pageSize: parsed.pageSize,
-      searchQuery: parsed.searchQuery,
-      languageId,
-      isTranslated: parsed.isTranslated,
-      isApproved: parsed.isApproved,
+      searchQuery: parsed.searchQuery ?? "",
+      statusFilter: legacyStatusFilter({
+        isTranslated: parsed.isTranslated,
+        isApproved: parsed.isApproved,
+      }),
     });
 
     return {
+      scope: { projectId, contentNodeIds, languageId },
       elements: rows.map((row) => ({
         id: row.id,
         sourceText: row.value,
         languageId: row.languageId,
         status: row.status,
+        primaryContentNodeId: row.primaryContentNodeId,
+        primaryContentNodeLabel: row.primaryContentNodeLabel,
         sortIndex: row.localOrder,
       })),
       page: parsed.page,

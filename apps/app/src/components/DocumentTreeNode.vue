@@ -3,7 +3,7 @@ import type { ContentNode } from "@cat/shared";
 
 import { computed } from "vue";
 
-import type { TreeNode } from "./DocumentTree.vue";
+import type { TreeNode } from "./ContentNodeTree.vue";
 
 const props = defineProps<{
   node: TreeNode;

@@ -56,6 +56,11 @@ const makeMockDb = (options: {
   };
   const db = {
     select: (_shape: unknown) => selectChain,
+    update: (_table: unknown) => ({
+      set: (_vals: unknown) => ({
+        where: async (_predicate: unknown) => [],
+      }),
+    }),
     insert: (table: unknown) => {
       // Capture table name at insert time so returning() can route correctly.
       const tableName = getDrizzleTableName(table);
@@ -75,6 +80,7 @@ const makeMockDb = (options: {
               returning: async () => [{ id: relationId }],
             }),
             returning: async (_shape: unknown) => {
+              if (tableName === "ContentNode") return [{ id: contentNodeId }];
               // ContextEvidence uses a direct .returning() (no conflict handler)
               if (tableName === "ContextEvidence") return [{ id: evidenceId }];
               return [];

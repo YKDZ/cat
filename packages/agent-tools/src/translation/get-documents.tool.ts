@@ -30,7 +30,7 @@ const getDocumentsArgs = z.object({
 export const getDocumentsTool: AgentToolDefinition = {
   name: "get_documents",
   description:
-    "List documents in a project with pagination. Returns document metadata including parent relationships and directory flags so the agent can pick which document to inspect next.",
+    "List content nodes in a project. The returned documents array is a compatibility alias for content nodes.",
   parameters: getDocumentsArgs,
   sideEffectType: "none",
   toolSecurityLevel: "standard",
@@ -52,20 +52,26 @@ export const getDocumentsTool: AgentToolDefinition = {
     const start = parsed.page * parsed.pageSize;
     const end = start + parsed.pageSize;
     const documents = allRows.slice(start, end);
+    const contentNodes = documents.map((row) => ({
+      id: row.id,
+      name: row.displayLabel,
+      projectId: row.projectId,
+      creatorId: row.creatorId,
+      kind: row.kind,
+      exportRole: row.exportRole,
+      boundaryType: row.boundaryType,
+      fileHandlerId: row.fileHandlerId,
+      fileId: row.fileId,
+      isDirectory: row.kind === "DIRECTORY" || row.kind === "PROJECT_ROOT",
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      parentId: row.parentId,
+      localOrder: row.localOrder,
+    }));
 
     return {
-      documents: documents.map((row) => ({
-        id: row.id,
-        name: row.displayLabel,
-        projectId: row.projectId,
-        creatorId: row.creatorId,
-        fileHandlerId: row.fileHandlerId,
-        fileId: row.fileId,
-        isDirectory: row.kind === "DIRECTORY",
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        parentId: row.parentId,
-      })),
+      contentNodes,
+      documents: contentNodes,
       page: parsed.page,
       pageSize: parsed.pageSize,
       hasMore: end < allRows.length,

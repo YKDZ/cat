@@ -21,7 +21,8 @@
     "@types/node": "catalog:",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "@cat/domain": "workspace:*",

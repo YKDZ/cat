@@ -53,6 +53,9 @@ describe("session-hydration", () => {
       metadata: {
         providerId: 42,
         projectId: "11111111-1111-4111-8111-111111111111",
+        branchId: 7,
+        contentNodeIds: ["22222222-2222-4222-8222-222222222222"],
+        currentElementContentNodeId: "33333333-3333-4333-8333-333333333333",
       },
       runId: "run-1",
       runStatus: "running",
@@ -63,6 +66,13 @@ describe("session-hydration", () => {
 
     expect(state.runId).toBe("run-1");
     expect(state.metadata?.providerId).toBe(42);
+    expect(state.metadata?.branchId).toBe(7);
+    expect(state.metadata?.contentNodeIds).toEqual([
+      "22222222-2222-4222-8222-222222222222",
+    ]);
+    expect(state.metadata?.currentElementContentNodeId).toBe(
+      "33333333-3333-4333-8333-333333333333",
+    );
     expect(state.messages[0]).toMatchObject({
       role: "ASSISTANT",
       content: "ready",

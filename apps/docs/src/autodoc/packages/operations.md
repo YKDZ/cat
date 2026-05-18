@@ -224,7 +224,7 @@ export const deleteTermOp = async (data: DeleteTermInput, ctx?: OperationContext
 /**
  * Classify a single matched element pair semantically (pure function, testable).
  */
-export const classifySemanticElementDiffForTest = (input: ClassifySemanticElementDiffInput): ClassifySemanticElementDiffResult
+export const classifySemanticElementDiffForTest = (input: ClassifySemanticElementDiffInput): ClassifySemanticElementDiffResult | null
 ```
 
 ### `diffStructuredContentOp`
@@ -234,7 +234,7 @@ export const classifySemanticElementDiffForTest = (input: ClassifySemanticElemen
  * Diff elements by stable identity from a structured content payload
  * and record semantic diff entries.
  */
-export const diffStructuredContentOp = async (data: DiffStructuredContentInput, ctx?: OperationContext): Promise<{ contentNodeIds: string[]; relationIds: string[]; contextEvidenceIds: number[]; addedElementIds: number[]; removedElementIds: number[]; updatedElementIds: number[]; movedElementIds: number[]; semanticDiffIds: number[]; }>
+export const diffStructuredContentOp = async (data: DiffStructuredContentInput, ctx?: OperationContext): Promise<{ contentNodeIds: string[]; relationIds: string[]; contextEvidenceIds: number[]; addedElementIds: number[]; removedElementIds: number[]; updatedElementIds: number[]; movedElementIds: number[]; semanticDiffIds: number[]; elementIdsByRef: Record<string, number>; }>
 ```
 
 ### `fetchAdviseOp`

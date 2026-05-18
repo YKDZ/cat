@@ -11,6 +11,7 @@ import { chromium } from "playwright";
 
 import type { AuthOptions } from "./auth.ts";
 import type {
+  CaptureStrictOptions,
   CapturedScreenshot,
   NavigationStep,
   ScreenshotCollectOptions,
@@ -169,6 +170,7 @@ export interface CaptureOptions {
   outputDir: string;
   headless?: boolean;
   auth?: AuthOptions;
+  strict?: CaptureStrictOptions;
 }
 
 /**
@@ -186,6 +188,7 @@ export async function captureScreenshots(
     outputDir,
     headless = true,
     auth,
+    strict: _strict,
   } = options;
 
   await mkdir(outputDir, { recursive: true });
@@ -193,6 +196,7 @@ export async function captureScreenshots(
   const storageState = auth?.storageStatePath || undefined;
   const browser = await chromium.launch({ headless });
   const screenshots: CaptureResult["screenshots"] = [];
+  const routeResults: CaptureResult["routeResults"] = [];
 
   try {
     const context = await browser.newContext(
@@ -224,6 +228,9 @@ export async function captureScreenshots(
     }
 
     const uniqueTexts = [...textToElement.keys()];
+    const defaultMissingElementRefs = uniqueTexts
+      .map((text) => textToElement.get(text)?.ref)
+      .filter((ref): ref is string => Boolean(ref));
 
     // Helper to capture screenshots on a given page for a list of routes
     const captureForRoutes = async (
@@ -233,15 +240,24 @@ export async function captureScreenshots(
       for (const route of targetRoutes) {
         const url = new URL(route.path, baseUrl).href;
         console.error(`[INFO] Navigating to ${url}`);
+        const missingElementRefs = new Set(defaultMissingElementRefs);
+        let capturedForRoute = 0;
 
         try {
           await targetPage.goto(url, {
             waitUntil: route.waitUntil ?? "networkidle",
           });
         } catch (err) {
-          console.warn(
-            `[WARN] Failed to navigate to ${url}: ${err instanceof Error ? err.message : String(err)}`,
-          );
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          console.warn(`[WARN] Failed to navigate to ${url}: ${errorMessage}`);
+          routeResults.push({
+            route: route.path,
+            auth: route.auth,
+            status: "NAVIGATION_FAILED",
+            capturedCount: 0,
+            missingElementRefs: [...missingElementRefs],
+            error: errorMessage,
+          });
           continue;
         }
 
@@ -294,6 +310,7 @@ export async function captureScreenshots(
             screenshots.push({
               filePath,
               elementRef: element.ref,
+              elementId: undefined,
               elementMeta: element.meta,
               route: route.path,
               highlightRegion: {
@@ -303,17 +320,42 @@ export async function captureScreenshots(
                 height: Math.round(boundingBox.height),
               },
             });
+            missingElementRefs.delete(element.ref);
+            capturedForRoute += 1;
           } catch (err) {
             console.warn(
               `[WARN] Screenshot failed for text "${text.slice(0, 50)}" on ${route.path}: ${err instanceof Error ? err.message : String(err)}`,
             );
           }
         }
+
+        routeResults.push({
+          route: route.path,
+          auth: route.auth,
+          status: capturedForRoute > 0 ? "CAPTURED" : "NO_MATCH",
+          capturedCount: capturedForRoute,
+          missingElementRefs: [...missingElementRefs],
+        });
       }
     };
 
-    // Capture authenticated routes on the current (auth'd) page
-    await captureForRoutes(page, authRoutes);
+    const canCaptureAuthRoutes = Boolean(
+      auth?.storageStatePath || (auth?.email && auth?.password),
+    );
+
+    if (authRoutes.length > 0 && !canCaptureAuthRoutes) {
+      for (const route of authRoutes) {
+        routeResults.push({
+          route: route.path,
+          auth: route.auth,
+          status: "AUTH_SKIPPED",
+          capturedCount: 0,
+          missingElementRefs: [...defaultMissingElementRefs],
+        });
+      }
+    } else {
+      await captureForRoutes(page, authRoutes);
+    }
 
     // Capture unauthenticated routes in a fresh context (no auth cookies)
     if (noAuthRoutes.length > 0) {
@@ -331,6 +373,7 @@ export async function captureScreenshots(
 
   return {
     screenshots,
+    routeResults,
     metadata: {
       baseUrl,
       timestamp: new Date().toISOString(),

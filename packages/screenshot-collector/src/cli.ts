@@ -10,7 +10,11 @@ import { parseArgs } from "node:util";
 
 import { loadBindings, loadRouteManifest, resolveRoutes } from "./route.ts";
 import { captureScreenshots, collectScreenshots } from "./screenshot.ts";
-import { addImageContexts, uploadScreenshots } from "./upload.ts";
+import {
+  addImageContexts,
+  uploadCaptureResult,
+  uploadScreenshots,
+} from "./upload.ts";
 
 const HELP = `
 screenshot-collector — CAT Screenshot Context Collector
@@ -28,6 +32,8 @@ capture Options:
   --bindings <path>             Bindings JSON file (overrides route file bindings)
   --elements <path>             ExtractionResult JSON file
   --output-dir <path>           Screenshot output directory (default: ./screenshots)
+  --strict-min-screenshots <n>  Expected minimum screenshot count
+  --strict-route <path>         Route that should be covered (repeatable)
   --headless / --no-headless    Headless mode (default: true)
   --output, -o <path>           CaptureResult JSON output (default: stdout)
   --auth-email <email>          Login email (or CAT_AUTH_EMAIL env var)
@@ -36,6 +42,7 @@ capture Options:
 
 upload Options:
   --capture <path>              CaptureResult JSON file
+  --bindings <path>             Seeder bindings JSON file from --output-bindings
   --project-id <uuid>           Target project ID
   --document-name <name>        Document name
   --api-url <url>               Platform API URL (default: http://localhost:3000)
@@ -112,6 +119,24 @@ async function runCapture(values: Record<string, unknown>): Promise<void> {
       : "./screenshots",
   );
   const headless = values.headless !== false;
+  const strictMinScreenshots =
+    typeof values["strict-min-screenshots"] === "string"
+      ? Number(values["strict-min-screenshots"])
+      : undefined;
+  if (
+    strictMinScreenshots !== undefined &&
+    !Number.isInteger(strictMinScreenshots)
+  ) {
+    console.error(
+      "[ERROR] INVALID_OPTION: --strict-min-screenshots must be an integer.",
+    );
+    process.exit(1);
+  }
+  const strictRoutes = Array.isArray(values["strict-route"])
+    ? values["strict-route"].filter(
+        (route): route is string => typeof route === "string",
+      )
+    : [];
 
   // Auth options
   const authEmail =
@@ -138,6 +163,13 @@ async function runCapture(values: Record<string, unknown>): Promise<void> {
       password: authPassword ?? undefined,
       storageStatePath: authStorageState,
     },
+    strict:
+      strictMinScreenshots !== undefined || strictRoutes.length > 0
+        ? {
+            minScreenshots: strictMinScreenshots,
+            requiredRoutes: strictRoutes.length > 0 ? strictRoutes : undefined,
+          }
+        : undefined,
   });
 
   console.error(
@@ -158,6 +190,11 @@ async function runUpload(values: Record<string, unknown>): Promise<void> {
     values,
     "capture",
     "Specify the CaptureResult JSON file",
+  );
+  const bindingsPath = requireStringOpt(
+    values,
+    "bindings",
+    "Specify the seeder bindings JSON file",
   );
   const projectId = requireStringOpt(
     values,
@@ -189,27 +226,19 @@ async function runUpload(values: Record<string, unknown>): Promise<void> {
   // Load CaptureResult (validated with Zod)
   const captureContent = await readFile(resolve(capturePath), "utf-8");
   const captureResult = CaptureResultSchema.parse(JSON.parse(captureContent));
+  const bindings = await loadBindings(bindingsPath);
 
-  // Convert CaptureResult screenshots to CapturedScreenshot format for uploadScreenshots()
-  const captured = captureResult.screenshots.map((s) => ({
-    filePath: s.filePath,
-    element: {
-      ref: s.elementRef,
-      stableSourceRef: s.elementRef,
-      sourceNodeRef: "",
-      text: "", // not needed for upload, meta is used for matching
-      languageId: "",
-      meta: s.elementMeta,
-    },
-    highlightRegion: s.highlightRegion,
-  }));
-
-  const uploadOpts = { apiUrl, apiKey, projectId, documentName };
-  const uploadedContexts = await uploadScreenshots(captured, uploadOpts);
-  const result = await addImageContexts(uploadedContexts, uploadOpts);
+  const uploadOpts = {
+    apiUrl,
+    apiKey,
+    projectId,
+    documentName,
+    bindings,
+  };
+  const result = await uploadCaptureResult(captureResult, uploadOpts);
 
   console.error(
-    `[INFO] Uploaded ${result.addedCount} IMAGE contexts to platform`,
+    `[INFO] Uploaded ${result.uploadedCount} screenshots and added ${result.addedCount} screenshot evidence rows`,
   );
 }
 
@@ -373,6 +402,8 @@ const main = async () => {
       "document-name": { type: "string" },
       "api-url": { type: "string" },
       "api-key": { type: "string" },
+      "strict-min-screenshots": { type: "string" },
+      "strict-route": { type: "string", multiple: true },
       capture: { type: "string" },
       upload: { type: "boolean", default: false },
       headless: { type: "boolean", default: true },

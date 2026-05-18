@@ -1,3 +1,5 @@
+import type { JSONType } from "@cat/shared";
+
 import {
   and,
   contentRelation,
@@ -30,6 +32,10 @@ export type ElementByImporterScopeRow = {
   value: string;
   primaryContentNodeId: string | null;
   localOrder: number | null;
+  meta: JSONType | null;
+  sourceStartLine: number | null;
+  sourceEndLine: number | null;
+  sourceLocationMeta: JSONType | null;
 };
 
 export const listElementsByImporterScope: Query<
@@ -48,6 +54,10 @@ export const listElementsByImporterScope: Query<
       value: vectorizedString.value,
       primaryContentNodeId: contentRelation.sourceNodeId,
       localOrder: contentRelation.localOrder,
+      meta: translatableElement.meta,
+      sourceStartLine: translatableElement.sourceStartLine,
+      sourceEndLine: translatableElement.sourceEndLine,
+      sourceLocationMeta: translatableElement.sourceLocationMeta,
     })
     .from(translatableElement)
     .innerJoin(

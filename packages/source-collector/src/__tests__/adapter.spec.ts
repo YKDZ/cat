@@ -45,6 +45,7 @@ describe("toCollectionPayload", () => {
         trustLevel: "COLLECTED",
       },
     ],
+    diagnostics: [],
   };
 
   it("assembles StructuredContentPayload from SourceExtractionGraphResult + routing", () => {
@@ -82,6 +83,7 @@ describe("toCollectionPayload", () => {
       elements: [],
       relations: [],
       evidence: [],
+      diagnostics: [],
     };
     const payload = toCollectionPayload(empty, {
       projectId: "12345678-1234-4000-8000-000000000001",

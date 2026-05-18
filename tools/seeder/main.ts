@@ -1,10 +1,18 @@
 import { DrizzleDB, RedisConnection, ensureDB } from "@cat/db";
-import { loadDevSeed, runSeedPipeline, truncateAllTables } from "@cat/seed";
+import {
+  assertSafeDatabaseTarget,
+  loadDevSeed,
+  runSeedPipeline,
+  truncateAllTables,
+} from "@cat/seed";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const main = async (): Promise<void> => {
   const args = process.argv.slice(2);
+  const allowUnsafeReset =
+    args.includes("--allow-unsafe-reset") ||
+    args.includes("--yes-i-know-this-will-reset-db");
   const skipVectorization = args.includes("--skip-vectorization");
   const outputBindingsIdx = args.indexOf("--output-bindings");
   const outputBindingsPath =
@@ -17,7 +25,7 @@ const main = async (): Promise<void> => {
 
   if (!datasetDir) {
     console.error(
-      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--output-bindings <path>]",
+      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>]",
     );
     console.error("Example: tsx main.ts datasets/default");
     process.exit(1);
@@ -56,6 +64,7 @@ const main = async (): Promise<void> => {
 
   // 3. TRUNCATE all tables
   const execCtx = { db: drizzleDB.client };
+  assertSafeDatabaseTarget(process.env.DATABASE_URL, { allowUnsafeReset });
   console.log("[seed] Truncating all tables...");
   await truncateAllTables(execCtx);
   console.log("[seed] All tables truncated.");
@@ -92,7 +101,14 @@ const main = async (): Promise<void> => {
   console.log(`[seed] Glossary concepts: ${result.summary.glossaryConcepts}`);
   console.log(`[seed] Memory items: ${result.summary.memoryItems}`);
   console.log(`[seed] Elements: ${result.summary.elements}`);
+  console.log(`[seed] Bootstrap elements: ${result.summary.bootstrapElements}`);
+  console.log(
+    `[seed] Bootstrap locale memory items: ${result.summary.bootstrapLocaleMemoryItems}`,
+  );
   console.log(`[seed] Plugins configured: ${result.summary.plugins}`);
+  if (result.bootstrapReportPath) {
+    console.log(`[seed] Bootstrap report: ${result.bootstrapReportPath}`);
+  }
   console.log("[seed] ═══════════════════════════════════════");
   console.log("\n[seed] Refs:");
   for (const [ref, id] of result.refs.entries()) {

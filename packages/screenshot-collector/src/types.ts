@@ -5,6 +5,16 @@ import type { NavigationStep } from "@cat/shared";
 export type { NavigationStep };
 
 /**
+ * Strict capture coverage options.
+ */
+export type CaptureStrictOptions = {
+  /** Minimum number of screenshots expected from a capture run. */
+  minScreenshots?: number;
+  /** Routes that should be covered by capture diagnostics. */
+  requiredRoutes?: string[];
+};
+
+/**
  * Screenshot route configuration — describes a page to screenshot.
  */
 export interface ScreenshotRoute {

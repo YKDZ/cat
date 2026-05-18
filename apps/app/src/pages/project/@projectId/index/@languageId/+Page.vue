@@ -30,6 +30,10 @@ const handleBack = async () => {
   if (!project) return;
   await navigate(`/project/${project.id}`);
 };
+
+const handleOpenWorkbench = async () => {
+  await navigate(`/editor/project/${project.id}/${language.value.id}/auto`);
+};
 </script>
 
 <template>
@@ -41,7 +45,13 @@ const handleBack = async () => {
         </Button>
         <h3 class="text-xl font-bold">{{ t(language.id) }}</h3>
       </div>
-      <TranslationProgress :language :project />
+      <div class="flex items-center gap-2">
+        <Button variant="outline" @click="handleOpenWorkbench">
+          <div class="icon-[mdi--text-box-edit-outline] size-4" />
+          {{ t("打开编辑工作台") }}
+        </Button>
+        <TranslationProgress :language :project />
+      </div>
     </div>
     <LanguageDocumentTree :project="project" :language />
   </div>

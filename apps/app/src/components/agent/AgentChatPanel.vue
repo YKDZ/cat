@@ -15,6 +15,7 @@ import { useI18n } from "vue-i18n";
 
 import { orpc } from "@/rpc/orpc";
 import { useAgentStore } from "@/stores/agent";
+import { useEditorContextStore } from "@/stores/editor/context.ts";
 import { useRegisterClientTools } from "@/utils/agent/register-client-tools";
 import { clientLogger as logger } from "@/utils/logger";
 
@@ -34,6 +35,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const agentStore = useAgentStore();
+const editorContext = useEditorContextStore();
 const {
   messages,
   streamingText,
@@ -171,6 +173,25 @@ watch(inputText, () => {
   resizeComposer();
 });
 
+const buildSessionMetadata = () => {
+  const scope = editorContext.scope;
+
+  return {
+    projectId: props.projectId,
+    projectName: props.projectName,
+    providerId: selectedProviderId.value ?? undefined,
+    ...(scope
+      ? {
+          languageId: scope.languageToId,
+          branchId: scope.branchId,
+          contentNodeIds: scope.contentNodeIds,
+          currentElementContentNodeId:
+            editorContext.currentElementContentNodeId ?? undefined,
+        }
+      : {}),
+  };
+};
+
 watch(
   renderSignal,
   () => {
@@ -230,11 +251,7 @@ const handleSend = async () => {
   if (!activeSessionId.value && selectedDefinitionId.value) {
     const sessionId = await agentStore.createSession(
       selectedDefinitionId.value,
-      {
-        projectId: props.projectId,
-        projectName: props.projectName,
-        providerId: selectedProviderId.value ?? undefined,
-      },
+      buildSessionMetadata(),
     );
     if (!sessionId) return;
   }

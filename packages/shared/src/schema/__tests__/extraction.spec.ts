@@ -143,6 +143,7 @@ describe("CaptureResultSchema", () => {
         {
           filePath: "/tmp/shot.png",
           elementRef: "vue-i18n:app.vue:1:1",
+          elementId: 1,
           elementMeta: { framework: "vue-i18n" },
           route: "/project/abc",
           highlightRegion: { x: 10, y: 20, width: 100, height: 30 },
@@ -155,6 +156,7 @@ describe("CaptureResultSchema", () => {
     };
     const result = CaptureResultSchema.parse(input);
     expect(result.screenshots).toHaveLength(1);
+    expect(result.routeResults).toEqual([]);
     expect(result.metadata?.baseUrl).toBe("http://localhost:3000");
   });
 
@@ -176,5 +178,23 @@ describe("CaptureResultSchema", () => {
   it("parses empty screenshots array", () => {
     const result = CaptureResultSchema.parse({ screenshots: [] });
     expect(result.screenshots).toHaveLength(0);
+    expect(result.routeResults).toEqual([]);
+  });
+
+  it("parses route diagnostics with missing refs", () => {
+    const result = CaptureResultSchema.parse({
+      screenshots: [],
+      routeResults: [
+        {
+          route: "/auth",
+          status: "NO_MATCH",
+          capturedCount: 0,
+          missingElementRefs: ["element:one"],
+        },
+      ],
+    });
+
+    expect(result.routeResults[0]?.status).toBe("NO_MATCH");
+    expect(result.routeResults[0]?.missingElementRefs).toEqual(["element:one"]);
   });
 });

@@ -14,7 +14,10 @@ import {
 } from "@cat/server-shared/plugin";
 import * as z from "zod";
 
-import { assertElementInSession } from "./assert-session-scope.ts";
+import {
+  assertElementInSession,
+  resolveSessionDocumentId,
+} from "./assert-session-scope.ts";
 
 const submitTranslationArgs = z.object({
   elementId: z
@@ -100,7 +103,7 @@ export const submitTranslationTool: AgentToolDefinition = {
       memoryIds,
       vectorizerId: vectorizer?.id,
       vectorStorageId: vectorStorage?.id,
-      documentId: ctx.session.documentId ?? undefined,
+      documentId: resolveSessionDocumentId(ctx),
     });
 
     return {

@@ -13,9 +13,11 @@ import {
   listCachedVectorizedStrings,
   listElementsByImporterScope,
   persistContentGraphAttachments,
+  updatePrimaryElementRelationsForDiff,
 } from "@cat/domain";
 import {
   StructuredContentPayloadSchema,
+  type JSONType,
   type SemanticDiffEntryPayload,
   type StableElementIdentity,
 } from "@cat/shared";
@@ -25,8 +27,8 @@ import { createVectorizedStringOp } from "./create-vectorized-string";
 
 export const DiffStructuredContentInputSchema = z.object({
   payload: StructuredContentPayloadSchema,
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizerId: z.int().optional(),
+  vectorStorageId: z.int().optional(),
 });
 
 export const DiffStructuredContentOutputSchema = z.object({
@@ -38,6 +40,7 @@ export const DiffStructuredContentOutputSchema = z.object({
   updatedElementIds: z.array(z.int()),
   movedElementIds: z.array(z.int()),
   semanticDiffIds: z.array(z.int()),
+  elementIdsByRef: z.record(z.string(), z.int()),
 });
 
 export type DiffStructuredContentInput = z.infer<
@@ -58,6 +61,12 @@ export type ClassifySemanticElementDiffInput = {
   newLocalOrder: number | null | undefined;
   oldMeta: unknown;
   newMeta: unknown;
+  oldSourceStartLine: number | null | undefined;
+  newSourceStartLine: number | null | undefined;
+  oldSourceEndLine: number | null | undefined;
+  newSourceEndLine: number | null | undefined;
+  oldSourceLocationMeta: unknown;
+  newSourceLocationMeta: unknown;
 };
 
 export type ClassifySemanticElementDiffResult = {
@@ -69,6 +78,8 @@ export type ClassifySemanticElementDiffResult = {
     | "EVIDENCE_UPDATE";
   vectorInvalidationReason: "SOURCE_TEXT_CHANGED" | "NOT_REQUIRED";
 };
+
+const stableJson = (value: unknown): string => JSON.stringify(value ?? null);
 
 /**
  * @zh 对单个元素匹配执行语义差分分类（纯函数，用于测试）。
@@ -83,13 +94,19 @@ export type ClassifySemanticElementDiffResult = {
  */
 export const classifySemanticElementDiffForTest = (
   input: ClassifySemanticElementDiffInput,
-): ClassifySemanticElementDiffResult => {
+): ClassifySemanticElementDiffResult | null => {
   const textChanged = input.oldText !== input.newText;
   const nodeChanged =
     (input.oldPrimaryContentNodeId ?? null) !==
     (input.newPrimaryContentNodeId ?? null);
   const orderChanged =
     (input.oldLocalOrder ?? null) !== (input.newLocalOrder ?? null);
+  const locationChanged =
+    (input.oldSourceStartLine ?? null) !== (input.newSourceStartLine ?? null) ||
+    (input.oldSourceEndLine ?? null) !== (input.newSourceEndLine ?? null) ||
+    stableJson(input.oldSourceLocationMeta) !==
+      stableJson(input.newSourceLocationMeta);
+  const metaChanged = stableJson(input.oldMeta) !== stableJson(input.newMeta);
 
   if (textChanged) {
     return {
@@ -109,10 +126,19 @@ export const classifySemanticElementDiffForTest = (
       vectorInvalidationReason: "NOT_REQUIRED",
     };
   }
-  return {
-    diffKind: "METADATA_ONLY",
-    vectorInvalidationReason: "NOT_REQUIRED",
-  };
+  if (locationChanged) {
+    return {
+      diffKind: "EVIDENCE_UPDATE",
+      vectorInvalidationReason: "NOT_REQUIRED",
+    };
+  }
+  if (metaChanged) {
+    return {
+      diffKind: "METADATA_ONLY",
+      vectorInvalidationReason: "NOT_REQUIRED",
+    };
+  }
+  return null;
 };
 
 // ─── Main diff operation ──────────────────────────────────────────────────────
@@ -246,6 +272,18 @@ export const diffStructuredContentOp = async (
   const updatedElementIds: number[] = [];
   const movedElementIds: number[] = [];
   const elementIdByRef = new Map<string, number>();
+  const relationUpdates: {
+    elementId: number;
+    primaryContentNodeId: string;
+    localOrder: number | null;
+  }[] = [];
+  const locationUpdates: {
+    id: number;
+    sourceStartLine: number | null;
+    sourceEndLine: number | null;
+    sourceLocationMeta: JSONType | null;
+  }[] = [];
+  const stringIdUpdates: { id: number; stringId: number }[] = [];
 
   for (const [key, newEl] of newByIdentity) {
     const old = oldByIdentity.get(key);
@@ -267,9 +305,33 @@ export const diffStructuredContentOp = async (
         newPrimaryContentNodeId: newContentNodeId,
         oldLocalOrder: old.localOrder,
         newLocalOrder: newEl.localOrder ?? null,
-        oldMeta: null,
-        newMeta: newEl.meta,
+        oldMeta: old.meta,
+        newMeta: newEl.meta ?? null,
+        oldSourceStartLine: old.sourceStartLine,
+        newSourceStartLine: newEl.location?.startLine ?? null,
+        oldSourceEndLine: old.sourceEndLine,
+        newSourceEndLine: newEl.location?.endLine ?? null,
+        oldSourceLocationMeta: old.sourceLocationMeta,
+        newSourceLocationMeta: newEl.location?.custom ?? null,
       });
+
+      const nextSourceStartLine = newEl.location?.startLine ?? null;
+      const nextSourceEndLine = newEl.location?.endLine ?? null;
+      const nextSourceLocationMeta = newEl.location?.custom ?? null;
+
+      if (
+        (old.sourceStartLine ?? null) !== nextSourceStartLine ||
+        (old.sourceEndLine ?? null) !== nextSourceEndLine ||
+        stableJson(old.sourceLocationMeta) !==
+          stableJson(nextSourceLocationMeta)
+      ) {
+        locationUpdates.push({
+          id: old.id,
+          sourceStartLine: nextSourceStartLine,
+          sourceEndLine: nextSourceEndLine,
+          sourceLocationMeta: nextSourceLocationMeta,
+        });
+      }
 
       const oldIdentity: StableElementIdentity = {
         importerId: data.payload.importerId,
@@ -284,17 +346,19 @@ export const diffStructuredContentOp = async (
         stableSourceRef: newEl.stableSourceRef,
       };
 
-      await recordSemanticDiff({
-        ...classification,
-        elementId: old.id,
-        oldIdentity,
-        newIdentity,
-        oldText: old.value,
-        newText: newEl.text,
-        preservationPolicy: null,
-      });
+      if (classification !== null) {
+        await recordSemanticDiff({
+          ...classification,
+          elementId: old.id,
+          oldIdentity,
+          newIdentity,
+          oldText: old.value,
+          newText: newEl.text,
+          preservationPolicy: null,
+        });
+      }
 
-      if (classification.diffKind === "SOURCE_TEXT_UPDATE") {
+      if (classification?.diffKind === "SOURCE_TEXT_UPDATE") {
         const stringResult = await createVectorizedStringOp(
           {
             data: [{ text: newEl.text, languageId: newEl.languageId }],
@@ -305,15 +369,20 @@ export const diffStructuredContentOp = async (
         );
         const stringId = stringResult.stringIds[0];
         if (stringId !== undefined) {
-          await executeCommand({ db: drizzle }, bulkUpdateElementsForDiff, {
-            stringIdUpdates: [{ id: old.id, stringId }],
+          stringIdUpdates.push({ id: old.id, stringId });
+          updatedElementIds.push(old.id);
+        }
+      } else if (
+        classification?.diffKind === "MOVE" ||
+        classification?.diffKind === "REPARENT"
+      ) {
+        if (newContentNodeId) {
+          relationUpdates.push({
+            elementId: old.id,
+            primaryContentNodeId: newContentNodeId,
+            localOrder: newEl.localOrder ?? null,
           });
         }
-        updatedElementIds.push(old.id);
-      } else if (
-        classification.diffKind === "MOVE" ||
-        classification.diffKind === "REPARENT"
-      ) {
         movedElementIds.push(old.id);
       }
     }
@@ -510,6 +579,21 @@ export const diffStructuredContentOp = async (
     });
   }
 
+  if (relationUpdates.length > 0) {
+    await executeCommand(
+      { db: drizzle },
+      updatePrimaryElementRelationsForDiff,
+      { updates: relationUpdates },
+    );
+  }
+
+  if (stringIdUpdates.length > 0 || locationUpdates.length > 0) {
+    await executeCommand({ db: drizzle }, bulkUpdateElementsForDiff, {
+      stringIdUpdates,
+      locationUpdates,
+    });
+  }
+
   // 7. Persist graph attachments (relations + evidence)
   const attachments = await executeCommand(
     { db: drizzle },
@@ -530,5 +614,6 @@ export const diffStructuredContentOp = async (
     updatedElementIds,
     movedElementIds,
     semanticDiffIds,
+    elementIdsByRef: Object.fromEntries(elementIdByRef.entries()),
   };
 };

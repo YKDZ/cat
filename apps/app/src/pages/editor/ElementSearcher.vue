@@ -1,26 +1,39 @@
 <script setup lang="ts">
 import { Input } from "@cat/ui";
 import { Search } from "@lucide/vue";
+import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { ref } from "vue";
+import { navigate } from "vike/client/router";
+import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEditorContextStore } from "@/stores/editor/context";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
+
+import { buildEditorHref } from "./scope-url";
 
 const { t } = useI18n();
 
-const { searchQuery } = storeToRefs(useEditorTableStore());
-const { currentPage } = storeToRefs(useEditorContextStore());
-const { toPage } = useEditorTableStore();
-const isSearching = ref(false);
+const contextStore = useEditorContextStore();
+const { searchQuery } = storeToRefs(contextStore);
+const localQuery = ref(searchQuery.value);
 
-const handleSearch = async () => {
-  isSearching.value = true;
-  await toPage(0);
-  currentPage.value = 1;
-  isSearching.value = false;
-};
+watch(searchQuery, (value) => {
+  if (value !== localQuery.value) {
+    localQuery.value = value;
+  }
+});
+
+const commitSearch = useDebounceFn(async (value: string) => {
+  contextStore.setSearchQuery(value);
+  contextStore.setCurrentPage(1);
+  if (contextStore.scope) {
+    await navigate(buildEditorHref(contextStore.scope, "auto"));
+  }
+}, 250);
+
+watch(localQuery, (value) => {
+  void commitSearch(value);
+});
 </script>
 
 <template>
@@ -28,9 +41,8 @@ const handleSearch = async () => {
     <Input
       class="rounded-none pl-8"
       type="text"
-      :placeholder="t('搜索可翻译元素')"
-      v-model.trim="searchQuery"
-      @change="handleSearch"
+      :placeholder="t('搜索可翻译元素...')"
+      v-model.trim="localQuery"
     />
     <span
       class="absolute inset-y-0 start-0 flex items-center justify-center px-2"

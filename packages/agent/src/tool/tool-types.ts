@@ -25,7 +25,11 @@ export interface ToolExecutionContext {
     projectId: string;
     runId: string;
     providerId?: number;
+    /** @deprecated Use contentNodeIds/currentElementContentNodeId for editor scope. */
     documentId?: string;
+    branchId?: number;
+    contentNodeIds?: string[];
+    currentElementContentNodeId?: string;
     elementId?: number;
     languageId?: string;
     sourceLanguageId?: string;

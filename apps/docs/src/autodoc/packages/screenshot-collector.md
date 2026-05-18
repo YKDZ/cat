@@ -4,9 +4,9 @@
 
 * **Modules**: 5
 
-* **Exported functions**: 10
+* **Exported functions**: 12
 
-* **Exported types**: 6
+* **Exported types**: 8
 
 ## Function Index
 
@@ -80,7 +80,7 @@ export async function collectScreenshots(options: ScreenshotCollectOptions): Pro
  * Similar to collectScreenshots but works with ExtractionResult elements
  * and returns the new CaptureResult format.
  */
-export async function captureScreenshots(options: CaptureOptions): Promise<{ screenshots: { filePath: string; elementRef: string; elementMeta: any; route: string; highlightRegion?: { x: number; y: number; width: number; height: number; } | undefined; }[]; metadata?: { baseUrl: string; timestamp: string; } | undefined; }>
+export async function captureScreenshots(options: CaptureOptions): Promise<{ screenshots: { filePath: string; elementRef: string; elementMeta: any; route: string; elementId?: number | undefined; highlightRegion?: { x: number; y: number; width: number; height: number; } | undefined; }[]; routeResults: { route: string; status: "FAILED" | "CAPTURED" | "NO_MATCH" | "NAVIGATION_FAILED" | "AUTH_SKIPPED"; capturedCount: number; missingElementRefs: string[]; auth?: boolean | undefined; error?: string | undefined; }[]; metadata?: { baseUrl: string; timestamp: string; } | undefined; }>
 ```
 
 ### `resolveUrl`
@@ -112,6 +112,26 @@ export async function uploadScreenshots(screenshots: CapturedScreenshot[], optio
 export async function addImageContexts(contexts: { elementMeta: unknown; type: "IMAGE"; data: { fileId: number; highlightRegion?: { x: number; y: number; width: number; height: number; }; }; }[], options: UploadOptions): Promise<{ addedCount: number; }>
 ```
 
+### `resolveElementId`
+
+```ts
+/**
+ * Resolve an element database ID from seeder bindings.
+ *
+ * @param elementRef - Element reference
+ * @param bindings - Seeder binding map
+ *
+ * @returns Element database ID
+ */
+export const resolveElementId = (elementRef: string, bindings: Record<string, string>): number
+```
+
+### `uploadCaptureResult`
+
+```ts
+export const uploadCaptureResult = async (captureResult: CaptureResult, options: UploadCaptureResultOptions): Promise<{ uploadedCount: number; addedCount: number; }>
+```
+
 ## Type Index
 
 * `AuthOptions` (interface)
@@ -125,3 +145,7 @@ export async function addImageContexts(contexts: { elementMeta: unknown; type: "
 * `ScreenshotCollectOptions` (interface) — Screenshot collection options.
 
 * `UploadOptions` (interface) — Upload options — for uploading screenshots to the platform.
+
+* `CaptureStrictOptions` (type) — Strict capture coverage options.
+
+* `UploadCaptureResultOptions` (type)

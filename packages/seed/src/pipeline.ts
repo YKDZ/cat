@@ -40,11 +40,12 @@ import {
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 
-import type { LoadedDevSeed } from "@/loader";
-import type { PluginOverride } from "@/schemas";
+import type { LoadedDevSeed } from "./loader";
+import type { PluginOverride } from "./schemas";
 
-import { RefResolver } from "@/ref-resolver";
-import { VectorCache } from "@/vector-cache";
+import { runBootstrapSourceGraph } from "./bootstrap/source-bootstrap";
+import { RefResolver } from "./ref-resolver";
+import { VectorCache } from "./vector-cache";
 
 export type DevSeedResult = {
   refs: RefResolver;
@@ -54,6 +55,11 @@ export type DevSeedResult = {
   /** @deprecated Use contentNodeId instead */
   documentId: string | undefined;
   contentNodeId: string | undefined;
+  bootstrapReportPath?: string;
+  bootstrap?: {
+    elementIdsByRef: Record<string, number>;
+    memoryId?: string;
+  };
   userIds: string[];
   summary: SeedSummary;
 };
@@ -65,6 +71,9 @@ export type SeedSummary = {
   memoryItems: number;
   elements: number;
   plugins: number;
+  bootstrapElements: number;
+  bootstrapLocaleMemoryItems: number;
+  bootstrapEvidence: number;
 };
 
 export const runSeedPipeline = async (
@@ -93,6 +102,9 @@ export const runSeedPipeline = async (
     memoryItems: 0,
     elements: 0,
     plugins: 0,
+    bootstrapElements: 0,
+    bootstrapLocaleMemoryItems: 0,
+    bootstrapEvidence: 0,
   };
 
   // ── 1. Plugin manager setup ────────────────────────────────────────
@@ -207,6 +219,15 @@ export const runSeedPipeline = async (
       allLanguages.add(item.translationLanguage);
     }
   }
+  if (config.bootstrap?.enabled) {
+    allLanguages.add(config.bootstrap.sourceLanguageId);
+    for (const lang of config.bootstrap.targetLanguageIds) {
+      allLanguages.add(lang);
+    }
+    for (const catalog of config.bootstrap.localeCatalogs) {
+      allLanguages.add(catalog.languageId);
+    }
+  }
   await executeCommand(execCtx, ensureLanguages, {
     languageIds: [...allLanguages],
   });
@@ -261,6 +282,13 @@ export const runSeedPipeline = async (
     description: null,
     creatorId,
   });
+  await executeCommand(execCtx, grantPermissionTuple, {
+    subjectType: "user",
+    subjectId: creatorId,
+    relation: "owner",
+    objectType: "project",
+    objectId: project.id,
+  });
   refs.set("project", project.id);
   summary.projects += 1;
 
@@ -278,6 +306,39 @@ export const runSeedPipeline = async (
     projectId: project.id,
     languageIds: projectSeed.translationLanguages,
   });
+
+  let bootstrapResult: DevSeedResult["bootstrap"];
+  let bootstrapReportPath: string | undefined;
+  if (config.bootstrap?.enabled) {
+    const bootstrap = await runBootstrapSourceGraph({
+      execCtx,
+      pluginManager,
+      seedDir: loadedSeed.seedDir,
+      profileName: config.name,
+      creatorId,
+      projectId: project.id,
+      sourceLanguageId: projectSeed.sourceLanguage,
+      targetLanguageIds: projectSeed.translationLanguages,
+      profile: config.bootstrap,
+      skipVectorization:
+        opts.skipVectorization ?? !config.vectorization.enabled,
+    });
+    bootstrapResult = {
+      elementIdsByRef: bootstrap.elementIdsByRef,
+      memoryId: bootstrap.memoryId,
+    };
+    bootstrapReportPath = bootstrap.reportPath;
+    summary.bootstrapElements = Object.keys(bootstrap.elementIdsByRef).length;
+    summary.bootstrapLocaleMemoryItems =
+      bootstrap.report.locale.memoryItemCount;
+    summary.bootstrapEvidence = bootstrap.report.source.evidenceCount;
+    for (const [ref, id] of Object.entries(bootstrap.elementIdsByRef)) {
+      refs.set(`element:${ref}`, id);
+    }
+    if (bootstrap.memoryId) {
+      refs.set("memory:bootstrap-locale", bootstrap.memoryId);
+    }
+  }
 
   const elementsDocName = elementsSeed?.documentName ?? "document";
   const elementsNode = await executeCommand(
@@ -342,6 +403,13 @@ export const runSeedPipeline = async (
       creatorId,
       projectIds: [project.id],
     });
+    await executeCommand(execCtx, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "glossary",
+      objectId: glossary.id,
+    });
     glossaryId = glossary.id;
     refs.set("glossary", glossaryId);
 
@@ -382,6 +450,13 @@ export const runSeedPipeline = async (
       name: m.name,
       creatorId,
       projectIds: [project.id],
+    });
+    await executeCommand(execCtx, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "memory",
+      objectId: memory.id,
     });
     memoryId = memory.id;
     refs.set("memory", memoryId);
@@ -519,6 +594,8 @@ export const runSeedPipeline = async (
     memoryId,
     documentId: rootNode.id,
     contentNodeId: elementsNode.id,
+    bootstrapReportPath,
+    bootstrap: bootstrapResult,
     userIds,
     summary,
   };

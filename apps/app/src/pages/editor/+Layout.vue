@@ -2,50 +2,88 @@
 import { ScrollArea } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
+import { navigate } from "vike/client/router";
 import { watch } from "vue";
-import * as z from "zod";
 
+import { useBranchStore } from "@/stores/branch";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
 import { useEditorElementStore } from "@/stores/editor/element";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { syncRefWith, watchClient } from "@/utils/vue.ts";
+import { watchClient } from "@/utils/vue.ts";
 
 import ContextPanel from "./ContextPanel.vue";
 import Header from "./Header.vue";
+import { buildEditorHref, parseEditorScopeFromRoute } from "./scope-url";
 import Sidebar from "./Sidebar.vue";
 
 const ctx = usePageContext();
 
-const { refresh: refreshContext } = useEditorContextStore();
-const { refresh: refreshElement } = useEditorElementStore();
-const { toElement } = useEditorTableStore();
-const { elementId, translationValue } = storeToRefs(useEditorTableStore());
-const { documentId, languageToId } = storeToRefs(useEditorContextStore());
+const contextStore = useEditorContextStore();
+const tableStore = useEditorTableStore();
+const elementStore = useEditorElementStore();
+const branchStore = useBranchStore();
 
-syncRefWith(documentId, () => z.uuidv4().parse(ctx.routeParams["documentId"]));
-syncRefWith(languageToId, () => ctx.routeParams["languageToId"] ?? "");
-syncRefWith(elementId, () => parseInt(ctx.routeParams["elementId"] ?? ""));
+const { scope } = storeToRefs(contextStore);
+const { currentBranchId } = storeToRefs(branchStore);
 
-watchClient(
-  elementId,
-  (to, from) => {
-    // Clear the translation editor synchronously when switching elements so
-    // that toElement()'s async network work cannot race with typed input.
-    if (from && to !== from) translationValue.value = "";
-    if (to) toElement(to);
+watch(
+  () => [
+    ctx.routeParams.projectId,
+    ctx.routeParams.languageToId,
+    globalThis.location?.search ?? "",
+  ],
+  () => {
+    if (!ctx.routeParams.projectId || !ctx.routeParams.languageToId) return;
+
+    const nextScope = parseEditorScopeFromRoute({
+      projectId: ctx.routeParams.projectId,
+      languageToId: ctx.routeParams.languageToId,
+      searchParams: new URLSearchParams(globalThis.location?.search ?? ""),
+    });
+
+    contextStore.setScope(nextScope);
+    branchStore.setBranchIdFromRoute(nextScope.branchId ?? null);
   },
   { immediate: true },
 );
 
-watch(
-  documentId,
-  (newDoc, oldDoc) => {
-    if (newDoc === oldDoc) return;
-    refreshContext();
-    refreshElement();
+watchClient(
+  () => ctx.routeParams.elementId,
+  async (value) => {
+    if (value === "auto" || value === "empty") return;
+
+    const parsed = Number.parseInt(String(value ?? ""), 10);
+    if (!Number.isInteger(parsed)) return;
+
+    if (tableStore.elementId && parsed !== tableStore.elementId) {
+      tableStore.clear();
+    }
+
+    if (tableStore.elementId === parsed) return;
+
+    await tableStore.toElement(parsed);
   },
-  { immediate: false },
+  { immediate: true },
 );
+
+watchClient(
+  scope,
+  async (nextScope) => {
+    if (!nextScope) return;
+    await contextStore.refresh();
+    await elementStore.clearAndLoadCurrentPage();
+  },
+  { deep: true, immediate: true },
+);
+
+watchClient(currentBranchId, async (value) => {
+  if (!scope.value) return;
+  if ((scope.value.branchId ?? null) === (value ?? null)) return;
+
+  const next = { ...scope.value, branchId: value ?? undefined };
+  contextStore.setScope(next);
+  await navigate(buildEditorHref(next, tableStore.elementId ?? "auto"));
+});
 </script>
 
 <template>

@@ -20,17 +20,37 @@ export class EditorPage {
     languageToId: string,
   ): Promise<void> {
     await this.page.goto(`/editor/${documentId}/${languageToId}/auto`);
-    // Wait for the editor sidebar to load elements (skeleton disappears)
+    await this.waitForEditorReady();
+  }
+
+  /**
+   * Navigate to the canonical project editor route.
+   */
+  async navigateToProjectEditor(
+    projectId: string,
+    languageToId: string,
+    contentNodeIds: string[] = [],
+  ): Promise<void> {
+    const params = new URLSearchParams();
+    if (contentNodeIds.length > 0) {
+      params.set("nodes", contentNodeIds.join(","));
+    }
+
+    const suffix = params.toString();
+    await this.page.goto(
+      `/editor/project/${projectId}/${languageToId}/auto${suffix ? `?${suffix}` : ""}`,
+    );
+    await this.waitForEditorReady();
+  }
+
+  /**
+   * Wait until the editor sidebar has loaded visible element rows.
+   */
+  async waitForEditorReady(): Promise<void> {
     await this.page
       .locator('[data-sidebar="group-content"] [data-sidebar="menu-button"]')
       .first()
       .waitFor({ state: "visible", timeout: 30_000 });
-    // Wait for the document breadcrumb — confirms context.document is loaded
-    // so translate() will not silently early-exit with !context.document.value.
-    await this.page
-      .locator(".header")
-      .locator("span.inline-block")
-      .waitFor({ state: "visible", timeout: 10_000 });
   }
 
   /**
@@ -46,11 +66,7 @@ export class EditorPage {
     await this.page.goto(`/project/${projectId}/index/${languageId}`);
     // Click the document row by its name text
     await this.page.getByText(documentName).first().click();
-    // Wait for editor to load
-    await this.page
-      .locator('[data-sidebar="group-content"] [data-sidebar="menu-button"]')
-      .first()
-      .waitFor({ state: "visible", timeout: 30_000 });
+    await this.waitForEditorReady();
   }
 
   /**
@@ -72,7 +88,7 @@ export class EditorPage {
     const items = this.getElementItems();
     await items.nth(index).click();
     // Wait for the element to be selected (URL should update)
-    await this.page.waitForURL(/\/editor\/[^/]+\/[^/]+\/\d+/);
+    await this.page.waitForURL(/\/editor\/project\/[^/]+\/[^/]+\/\d+/);
     // Wait for the translate button — confirms toElement() completed and
     // elementId/context are stable before typing starts.
     await this.page

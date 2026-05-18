@@ -17,7 +17,6 @@ import { storeToRefs } from "pinia";
 import SidebarLogo from "@/components/SidebarLogo.vue";
 import { useEditorElementStore } from "@/stores/editor/element";
 
-import ElementSearcher from "./ElementSearcher.vue";
 import SidebarElement from "./SidebarElement.vue";
 import SidebarPagination from "./SidebarPagination.vue";
 
@@ -32,9 +31,6 @@ const sidebarId = "editor";
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarLogo :sidebarId="sidebarId" />
-        </SidebarMenuItem>
-        <SidebarMenuItem>
-          <ElementSearcher />
         </SidebarMenuItem> </SidebarMenu
     ></SidebarHeader>
     <SidebarContent class="overflow-x-hidden">

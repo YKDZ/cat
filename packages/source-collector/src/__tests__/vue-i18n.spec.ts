@@ -6,9 +6,12 @@ import { extractFromTemplate } from "../extractors/template-extract.ts";
 import { vueI18nExtractor } from "../extractors/vue-i18n.ts";
 
 describe("template extraction", () => {
-  const extract = (template: string) => {
+  const extract = (
+    template: string,
+    options?: { sourceLanguageId?: string },
+  ) => {
     const ast = parseTemplate(template);
-    return extractFromTemplate(ast, "test.vue", 0);
+    return extractFromTemplate(ast, "test.vue", 0, options);
   };
 
   it("extracts $t() from interpolation", () => {
@@ -84,17 +87,19 @@ describe("template extraction", () => {
     expect(els[0].text).toBe("直接指令");
   });
 
+  it("uses the configured source language for template extraction", () => {
+    const ast = parseTemplate(`<div>{{ $t("配置语言") }}</div>`);
+    const els = extractFromTemplate(ast, "test.vue", 0, {
+      sourceLanguageId: "zh-Hans",
+    });
+    expect(els).toHaveLength(1);
+    expect(els[0]?.languageId).toBe("zh-Hans");
+  });
+
   it("includes location info", () => {
     const els = extract(`<div>{{ $t("定位测试") }}</div>`);
     expect(els[0].location).toBeDefined();
     expect(els[0].location!.startLine).toBeGreaterThan(0);
-  });
-
-  it("generates stable ref for same input", () => {
-    const els1 = extract(`<div>{{ $t("稳定性") }}</div>`);
-    const els2 = extract(`<div>{{ $t("稳定性") }}</div>`);
-    expect(els1[0].ref).toBe(els2[0].ref);
-    expect(els1[0].meta).toEqual(els2[0].meta);
   });
 });
 
@@ -120,6 +125,20 @@ const label = t("标签文本");
     const els = extractFromScript(content, "test.ts", "file", 0);
     expect(els).toHaveLength(1);
     expect(els[0].text).toBe("全局调用");
+  });
+
+  it("uses the configured source language for script extraction", () => {
+    const els = extractFromScript(
+      `const label = t("脚本语言");`,
+      "test.ts",
+      "file",
+      0,
+      {
+        sourceLanguageId: "zh-Hans",
+      },
+    );
+    expect(els).toHaveLength(1);
+    expect(els[0]?.languageId).toBe("zh-Hans");
   });
 
   it("extracts multiple calls", () => {
@@ -186,6 +205,52 @@ const y = someFunction("not i18n");
     const els2 = extractFromScript(content, "test.ts", "file", 0);
     expect(els1[0].meta).toEqual(els2[0].meta);
   });
+
+  it("keeps stableSourceRef unchanged when harmless lines move", () => {
+    const before = extractFromScript(
+      `const msg = t("稳定行移动");`,
+      "test.ts",
+      "file",
+      0,
+    );
+    const after = extractFromScript(
+      `\n\nconst msg = t("稳定行移动");`,
+      "test.ts",
+      "file",
+      0,
+    );
+    expect(before[0]?.stableSourceRef).toBe(after[0]?.stableSourceRef);
+    expect(before[0]?.location?.startLine).not.toBe(
+      after[0]?.location?.startLine,
+    );
+  });
+
+  it("keeps duplicate text occurrences distinct within the same section", () => {
+    const els = extractFromScript(
+      `const a = t("重复");\nconst b = t("重复");`,
+      "test.ts",
+      "file",
+      0,
+    );
+    expect(els).toHaveLength(2);
+    expect(els[0]?.stableSourceRef).not.toBe(els[1]?.stableSourceRef);
+  });
+
+  it("keeps stableSourceRef unchanged when source text changes at the same call site", () => {
+    const before = extractFromScript(
+      `const msg = t("旧文案");`,
+      "test.ts",
+      "file",
+      0,
+    );
+    const after = extractFromScript(
+      `const msg = t("新文案");`,
+      "test.ts",
+      "file",
+      0,
+    );
+    expect(before[0]?.stableSourceRef).toBe(after[0]?.stableSourceRef);
+  });
 });
 
 describe("vueI18nExtractor (combined SFC)", () => {
@@ -246,13 +311,14 @@ const x = 1;
     expect(els).toHaveLength(0);
   });
 
-  it("handles SFC parse errors gracefully", () => {
+  it("throws on SFC parse errors so extract() can report diagnostics", () => {
     const broken = `<template><div>{{ $t("broken")`;
-    const els = vueI18nExtractor.extract({
-      content: broken,
-      filePath: "broken.vue",
-    });
-    expect(Array.isArray(els)).toBe(true);
+    expect(() =>
+      vueI18nExtractor.extract({
+        content: broken,
+        filePath: "broken.vue",
+      }),
+    ).toThrow(/parse failed/i);
   });
 
   it("handles real-world pattern: attribute binding", () => {

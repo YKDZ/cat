@@ -2,6 +2,7 @@
 import { Button } from "@cat/ui";
 import { Check, Copy, MoveRight, Redo, Trash, Undo } from "@lucide/vue";
 import { storeToRefs } from "pinia";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TextTooltip from "@/components/tooltip/TextTooltip.vue";
@@ -16,7 +17,13 @@ const { translate, toNextUntranslated, replace, clear, undo, redo } =
   useEditorTableStore();
 const { element, translationValue, sourceTokens, translationTokens } =
   storeToRefs(useEditorTableStore());
-const { documentId } = storeToRefs(useEditorContextStore());
+const context = useEditorContextStore();
+const { activeContentNodeId, currentElementContentNodeId } =
+  storeToRefs(context);
+
+const qaContentNodeId = computed(
+  () => currentElementContentNodeId.value ?? activeContentNodeId.value,
+);
 
 const handleTranslate = async (toNext: boolean) => {
   await translate();
@@ -63,6 +70,7 @@ const handleTranslate = async (toNext: boolean) => {
         </Button>
       </TextTooltip>
 
+      <!-- Compatibility prop name: this value is the current element primary content node ID. -->
       <CurrentTranslationQaResult
         v-if="element"
         :source="{
@@ -73,9 +81,9 @@ const handleTranslate = async (toNext: boolean) => {
         :translation="{
           tokens: translationTokens,
           text: translationValue,
-          languageId: element?.languageId!,
+          languageId: element.languageId,
         }"
-        :documentId
+        :document-id="qaContentNodeId"
       />
     </div>
     <div class="flex items-center gap-1">

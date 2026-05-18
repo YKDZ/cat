@@ -57,7 +57,11 @@ export const AgentSessionMetadataSchema = z.object({
   projectId: z.uuidv4().optional(),
   projectName: z.string().optional(),
   providerId: z.int().optional(),
+  /** @deprecated Use contentNodeIds for editor scope; kept for legacy document-scoped sessions. */
   documentId: z.uuidv4().optional(),
+  branchId: z.int().positive().optional(),
+  contentNodeIds: z.array(z.uuidv4()).optional(),
+  currentElementContentNodeId: z.uuidv4().optional(),
   elementId: z.int().optional(),
   languageId: z.string().optional(),
   sourceLanguageId: z.string().optional(),

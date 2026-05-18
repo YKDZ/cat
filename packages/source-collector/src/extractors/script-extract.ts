@@ -2,6 +2,8 @@ import type { StructuredTranslatableElementInput } from "@cat/shared";
 
 import { Node, Project } from "ts-morph";
 
+import { buildStableSourceRef, buildTextFingerprint } from "./stable-ref.ts";
+
 /** @zh 复用的 ts-morph Project 实例。 @en Reusable ts-morph Project instance. */
 let sharedProject: Project | undefined;
 
@@ -24,21 +26,83 @@ function getProject(): Project {
  */
 const I18N_CONTEXT_RE = /@i18n-context:\s*(.+)/;
 
+type ScriptExtractionOptions = {
+  sourceLanguageId?: string;
+};
+
+const getNodeName = (node: Node): string | undefined => {
+  if (Node.isIdentifier(node)) {
+    return node.getText();
+  }
+  if (Node.isStringLiteral(node) || Node.isNumericLiteral(node)) {
+    return node.getLiteralText();
+  }
+  if (Node.isComputedPropertyName(node)) {
+    return node.getExpression().getText();
+  }
+  return undefined;
+};
+
+const getStableTsAnchorSegment = (node: Node): string | undefined => {
+  if (Node.isClassDeclaration(node) && node.getName()) {
+    return `class:${node.getName()}`;
+  }
+  if (Node.isFunctionDeclaration(node) && node.getName()) {
+    return `function:${node.getName()}`;
+  }
+  if (Node.isMethodDeclaration(node)) {
+    const name = getNodeName(node.getNameNode());
+    return name ? `method:${name}` : undefined;
+  }
+  if (Node.isPropertyDeclaration(node)) {
+    const name = getNodeName(node.getNameNode());
+    return name ? `property:${name}` : undefined;
+  }
+  if (Node.isPropertyAssignment(node)) {
+    const name = getNodeName(node.getNameNode());
+    return name ? `property:${name}` : undefined;
+  }
+  if (Node.isVariableDeclaration(node)) {
+    return `variable:${node.getName()}`;
+  }
+  return undefined;
+};
+
+const findStableTsAnchor = (
+  node: Node,
+  section: "script" | "scriptSetup" | "file",
+): string => {
+  const segments: string[] = [];
+  let current = node.getParent();
+
+  while (current) {
+    const segment = getStableTsAnchorSegment(current);
+    if (segment) {
+      segments.push(segment);
+    }
+    current = current.getParent();
+  }
+
+  return segments.reverse().join("/") || section;
+};
+
 /**
  * @zh 从 TypeScript/JavaScript 源码中提取 i18n 调用。
  * @en Extract i18n calls from TypeScript/JavaScript source code.
  *
- * @param content 脚本内容字符串
- * @param filePath 相对文件路径
- * @param section 脚本段标识（"script" | "scriptSetup" | "file"）
- * @param lineOffset 脚本块在 SFC 中的起始行偏移（0-based）。
- *                   对于独立 TS 文件传 0。
+ * @param content - {@zh 脚本内容字符串} {@en Script content}
+ * @param filePath - {@zh 相对文件路径} {@en Relative file path}
+ * @param section - {@zh 脚本段标识} {@en Script section identifier}
+ * @param lineOffset - {@zh 脚本块在 SFC 中的起始行偏移（0-based）} {@en Starting line offset inside the SFC block (0-based)}
+ * @param options - {@zh 提取选项} {@en Extraction options}
+ * @returns - {@zh 提取出的可翻译元素} {@en Extracted translatable elements}
  */
 export function extractFromScript(
   content: string,
   filePath: string,
   section: "script" | "scriptSetup" | "file",
   lineOffset: number,
+  options: ScriptExtractionOptions = {},
 ): StructuredTranslatableElementInput[] {
   if (!content.includes("t(")) return [];
 
@@ -48,6 +112,8 @@ export function extractFromScript(
 
   const elements: StructuredTranslatableElementInput[] = [];
   const lines = content.split("\n");
+  const sourceLanguageId = options.sourceLanguageId ?? "en";
+  const occurrenceByAnchor = new Map<string, number>();
 
   try {
     sf.forEachDescendant((node) => {
@@ -98,17 +164,35 @@ export function extractFromScript(
           break;
       }
 
+      const anchorPath = findStableTsAnchor(node, section) ?? section;
+      const occurrenceKey = `${section}\u0000${anchorPath}`;
+      const ordinal = occurrenceByAnchor.get(occurrenceKey) ?? 0;
+      occurrenceByAnchor.set(occurrenceKey, ordinal + 1);
+      const stableSourceRef = buildStableSourceRef({
+        extractorId: "vue-i18n",
+        filePath,
+        section,
+        anchorPath,
+        callKind: funcName ?? "t",
+        ordinal,
+      });
+
       elements.push({
         ref: `vue-i18n:${filePath}:${section}:L${callLine}`,
-        stableSourceRef: `source:${filePath}:${section}:L${callLine}`,
+        stableSourceRef,
         sourceNodeRef: `source-file:${filePath}`,
         localOrder: elements.length,
         text,
-        languageId: "en",
+        languageId: sourceLanguageId,
         meta: {
           framework: "vue-i18n",
           file: filePath,
+          section,
           callSite: `${section}:L${callLine}`,
+          stableRefVersion: 1,
+          stableRefAnchor: anchorPath,
+          stableRefOrdinal: ordinal,
+          textFingerprint: buildTextFingerprint(text),
         },
         location: {
           startLine: callLine,

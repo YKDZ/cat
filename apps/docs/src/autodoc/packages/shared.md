@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 46
+* **Modules**: 47
 
 * **Exported functions**: 25
 
-* **Exported types**: 233
+* **Exported types**: 243
 
 ## Function Index
 
@@ -402,6 +402,24 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `Vector` (type)
 
+* `EditorTranslationStatusFilter` (type) — Editor translation-status filter type.
+
+* `EditorScope` (type) — Editor scope type.
+
+* `EditorElementQuery` (type) — Paginated editor element-query type.
+
+* `EditorFirstElementQuery` (type) — First-element query type.
+
+* `EditorElementPageIndexQuery` (type) — Element page-index query type.
+
+* `EditorContentNodePathItem` (type) — Editor content-node path-item type.
+
+* `EditorContentNodeFilter` (type) — Editor content-node filter type.
+
+* `EditorScopeView` (type) — Editor scope-view type.
+
+* `EditorElement` (type) — Editor element-row type.
+
 * `TokenType` (type)
 
 * `ContentNodeKind` (type)
@@ -521,6 +539,8 @@ export const safeJoinURL = (base: string, path: string): string
 * `RouteManifest` (type)
 
 * `CaptureResult` (type)
+
+* `CaptureRouteResult` (type)
 
 * `CaptureScreenshotEntry` (type)
 

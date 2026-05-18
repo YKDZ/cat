@@ -126,6 +126,78 @@ export const UserSeedSchema = z.object({
 
 export type UserSeed = z.infer<typeof UserSeedSchema>;
 
+/**
+ * @zh Bootstrap locale catalog 文件映射。
+ * @en Bootstrap locale catalog file mapping.
+ */
+export const BootstrapLocaleCatalogSchema = z.object({
+  path: z.string().min(1),
+  localeId: z.string().min(1),
+  languageId: z.string().min(1),
+});
+
+/**
+ * @zh Bootstrap 源采集配置。
+ * @en Bootstrap source collection configuration.
+ */
+export const BootstrapSourceProfileSchema = z.object({
+  baseDir: z.string().min(1),
+  globs: z.array(z.string().min(1)).min(1),
+  extractor: z.literal("vue-i18n").default("vue-i18n"),
+  parseFailureTolerance: z.int().min(0).default(0),
+});
+
+/**
+ * @zh Bootstrap 截图配置。
+ * @en Bootstrap screenshot configuration.
+ */
+export const BootstrapScreenshotProfileSchema = z.object({
+  routes: z.string().min(1),
+  strict: z.boolean().default(false),
+  minScreenshots: z.int().min(0).default(0),
+});
+
+/**
+ * @zh Bootstrap 报告输出配置。
+ * @en Bootstrap report output configuration.
+ */
+export const BootstrapReportProfileSchema = z.object({
+  output: z.string().min(1).default("artifacts/bootstrap-report.json"),
+});
+
+/**
+ * @zh Bootstrap profile schema。
+ * @en Bootstrap profile schema.
+ */
+export const BootstrapProfileSchema = z.object({
+  enabled: z.boolean().default(false),
+  importerId: z.string().min(1).default("cat-app-vue-i18n"),
+  sourceRootRef: z.string().min(1).default("cat-app-source"),
+  sourceLanguageId: z.string().min(1),
+  targetLanguageIds: z.array(z.string().min(1)).min(1),
+  source: BootstrapSourceProfileSchema,
+  localeCatalogs: z.array(BootstrapLocaleCatalogSchema).default([]),
+  failOnZeroElements: z.boolean().default(true),
+  report: BootstrapReportProfileSchema.default({
+    output: "artifacts/bootstrap-report.json",
+  }),
+  screenshots: BootstrapScreenshotProfileSchema.optional(),
+});
+
+/**
+ * @zh Bootstrap locale catalog 类型。
+ * @en Bootstrap locale catalog type.
+ */
+export type BootstrapLocaleCatalog = z.infer<
+  typeof BootstrapLocaleCatalogSchema
+>;
+
+/**
+ * @zh Bootstrap profile 类型。
+ * @en Bootstrap profile type.
+ */
+export type BootstrapProfile = z.infer<typeof BootstrapProfileSchema>;
+
 // ── Dev seed config (seed.yaml) ──────────────────────────────────────
 
 export const DevSeedConfigSchema = z.object({
@@ -141,6 +213,7 @@ export const DevSeedConfigSchema = z.object({
     loader: z.enum(["real", "test"]).default("real"),
     overrides: z.array(PluginOverrideSchema).default([]),
   }),
+  bootstrap: BootstrapProfileSchema.optional(),
 });
 
 export type DevSeedConfig = z.infer<typeof DevSeedConfigSchema>;

@@ -11,6 +11,8 @@ const mocked = vi.hoisted(() => ({
   getContentNode: Symbol("getContentNode"),
   getLanguage: Symbol("getLanguage"),
   getContentNodeElements: Symbol("getContentNodeElements"),
+  listEditorScopeElements: Symbol("listEditorScopeElements"),
+  getEditorScopeElementPageIndex: Symbol("getEditorScopeElementPageIndex"),
   assembleContextEvidence: Symbol("assembleContextEvidence"),
   getElementWithChunkIds: Symbol("getElementWithChunkIds"),
   getProjectTargetLanguages: Symbol("getProjectTargetLanguages"),
@@ -29,6 +31,8 @@ vi.mock("@cat/domain", () => ({
   getContentNode: mocked.getContentNode,
   getLanguage: mocked.getLanguage,
   getContentNodeElements: mocked.getContentNodeElements,
+  listEditorScopeElements: mocked.listEditorScopeElements,
+  getEditorScopeElementPageIndex: mocked.getEditorScopeElementPageIndex,
   assembleContextEvidence: mocked.assembleContextEvidence,
   getElementWithChunkIds: mocked.getElementWithChunkIds,
   getProjectTargetLanguages: mocked.getProjectTargetLanguages,
@@ -80,6 +84,9 @@ const createCtx = (
 });
 
 describe("translation tools", () => {
+  const createdAt = new Date("2025-01-01T00:00:00.000Z");
+  const updatedAt = new Date("2025-01-02T00:00:00.000Z");
+
   beforeEach(() => {
     mocked.qaOp.mockReset();
     mocked.termRecallOp.mockReset();
@@ -185,8 +192,6 @@ describe("translation tools", () => {
   });
 
   it("lists project documents with session project fallback and pagination", async () => {
-    const createdAt = new Date("2025-01-01T00:00:00.000Z");
-    const updatedAt = new Date("2025-01-02T00:00:00.000Z");
     mocked.executeQuery.mockResolvedValueOnce([
       {
         id: "44444444-4444-4444-8444-444444444444",
@@ -196,9 +201,12 @@ describe("translation tools", () => {
         fileHandlerId: null,
         fileId: null,
         kind: "DIRECTORY",
+        exportRole: "DIRECTORY",
+        boundaryType: "SOFT",
         createdAt,
         updatedAt,
         parentId: null,
+        localOrder: 1,
       },
       {
         id: "66666666-6666-4666-8666-666666666666",
@@ -208,9 +216,12 @@ describe("translation tools", () => {
         fileHandlerId: 9,
         fileId: 10,
         kind: "FILE",
+        exportRole: "FILE",
+        boundaryType: "HARD",
         createdAt,
         updatedAt,
         parentId: "44444444-4444-4444-8444-444444444444",
+        localOrder: 2,
       },
       {
         id: "77777777-7777-4777-8777-777777777777",
@@ -220,9 +231,12 @@ describe("translation tools", () => {
         fileHandlerId: 9,
         fileId: 11,
         kind: "FILE",
+        exportRole: "FILE",
+        boundaryType: "HARD",
         createdAt,
         updatedAt,
         parentId: "44444444-4444-4444-8444-444444444444",
+        localOrder: 3,
       },
     ]);
 
@@ -236,30 +250,72 @@ describe("translation tools", () => {
       },
     );
     expect(result).toEqual({
-      documents: [
+      contentNodes: [
         {
           id: "44444444-4444-4444-8444-444444444444",
           name: "docs",
           projectId: "project-1",
           creatorId: "55555555-5555-4555-8555-555555555555",
+          kind: "DIRECTORY",
+          exportRole: "DIRECTORY",
+          boundaryType: "SOFT",
           fileHandlerId: null,
           fileId: null,
           isDirectory: true,
           createdAt,
           updatedAt,
           parentId: null,
+          localOrder: 1,
         },
         {
           id: "66666666-6666-4666-8666-666666666666",
           name: "README.md",
           projectId: "project-1",
           creatorId: "55555555-5555-4555-8555-555555555555",
+          kind: "FILE",
+          exportRole: "FILE",
+          boundaryType: "HARD",
           fileHandlerId: 9,
           fileId: 10,
           isDirectory: false,
           createdAt,
           updatedAt,
           parentId: "44444444-4444-4444-8444-444444444444",
+          localOrder: 2,
+        },
+      ],
+      documents: [
+        {
+          id: "44444444-4444-4444-8444-444444444444",
+          name: "docs",
+          projectId: "project-1",
+          creatorId: "55555555-5555-4555-8555-555555555555",
+          kind: "DIRECTORY",
+          exportRole: "DIRECTORY",
+          boundaryType: "SOFT",
+          fileHandlerId: null,
+          fileId: null,
+          isDirectory: true,
+          createdAt,
+          updatedAt,
+          parentId: null,
+          localOrder: 1,
+        },
+        {
+          id: "66666666-6666-4666-8666-666666666666",
+          name: "README.md",
+          projectId: "project-1",
+          creatorId: "55555555-5555-4555-8555-555555555555",
+          kind: "FILE",
+          exportRole: "FILE",
+          boundaryType: "HARD",
+          fileHandlerId: 9,
+          fileId: 10,
+          isDirectory: false,
+          createdAt,
+          updatedAt,
+          parentId: "44444444-4444-4444-8444-444444444444",
+          localOrder: 2,
         },
       ],
       page: 0,
@@ -274,21 +330,31 @@ describe("translation tools", () => {
       id: "33333333-3333-4333-8333-333333333333",
       projectId: "project-1",
     });
-    // Second call: getContentNodeElements
+    // Second call: listEditorScopeElements
     mocked.executeQuery.mockResolvedValueOnce([
       {
         id: 1,
         value: "Hello",
         languageId: "en-US",
         status: "NO",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeLabel: "README.md",
+        primaryContentNodeKind: "FILE",
+        contentNodePath: [],
         localOrder: 10,
+        contentNodeSortKey: "0000000010:README.md",
       },
       {
         id: 2,
         value: "World",
         languageId: "en-US",
         status: "TRANSLATED",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeLabel: "README.md",
+        primaryContentNodeKind: "FILE",
+        contentNodePath: [],
         localOrder: 20,
+        contentNodeSortKey: "0000000020:README.md",
       },
     ]);
 
@@ -303,24 +369,32 @@ describe("translation tools", () => {
     expect(mocked.executeQuery).toHaveBeenNthCalledWith(
       2,
       { db: { tag: "db" } },
-      mocked.getContentNodeElements,
+      mocked.listEditorScopeElements,
       {
-        contentNodeId: "33333333-3333-4333-8333-333333333333",
+        projectId: "project-1",
+        languageToId: "zh-CN",
+        branchId: undefined,
+        contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
         page: 0,
         pageSize: 2,
-        searchQuery: undefined,
-        languageId: "zh-CN",
-        isTranslated: undefined,
-        isApproved: undefined,
+        searchQuery: "",
+        statusFilter: "all",
       },
     );
     expect(result).toEqual({
+      scope: {
+        projectId: "project-1",
+        contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
+        languageId: "zh-CN",
+      },
       elements: [
         {
           id: 1,
           sourceText: "Hello",
           languageId: "en-US",
           status: "NO",
+          primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
+          primaryContentNodeLabel: "README.md",
           sortIndex: 10,
         },
         {
@@ -328,6 +402,8 @@ describe("translation tools", () => {
           sourceText: "World",
           languageId: "en-US",
           status: "TRANSLATED",
+          primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
+          primaryContentNodeLabel: "README.md",
           sortIndex: 20,
         },
       ],
@@ -335,6 +411,180 @@ describe("translation tools", () => {
       pageSize: 2,
       hasMore: true,
     });
+  });
+
+  it("accepts descendant content nodes inside a scoped session", async () => {
+    const directoryId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const fileId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+
+    mocked.executeQuery.mockResolvedValueOnce([
+      {
+        id: directoryId,
+        projectId: "project-1",
+        creatorId: "creator-1",
+        displayLabel: "docs",
+        fileHandlerId: null,
+        fileId: null,
+        kind: "DIRECTORY",
+        exportRole: "DIRECTORY",
+        boundaryType: "SOFT",
+        createdAt,
+        updatedAt,
+        parentId: null,
+        localOrder: 1,
+      },
+      {
+        id: fileId,
+        projectId: "project-1",
+        creatorId: "creator-1",
+        displayLabel: "README.md",
+        fileHandlerId: 1,
+        fileId: 2,
+        kind: "FILE",
+        exportRole: "FILE",
+        boundaryType: "HARD",
+        createdAt,
+        updatedAt,
+        parentId: directoryId,
+        localOrder: 2,
+      },
+    ]);
+    mocked.executeQuery.mockResolvedValueOnce([
+      {
+        id: 8,
+        value: "Scoped row",
+        languageId: "en-US",
+        status: "NO",
+        primaryContentNodeId: fileId,
+        primaryContentNodeLabel: "README.md",
+        primaryContentNodeKind: "FILE",
+        contentNodePath: [],
+        localOrder: 1,
+        contentNodeSortKey: "0000000001:README.md",
+      },
+    ]);
+
+    const result = await listElementsTool.execute(
+      { contentNodeIds: [fileId], pageSize: 10 },
+      createCtx({
+        documentId: undefined,
+        contentNodeIds: [directoryId],
+        branchId: 42,
+      }),
+    );
+
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      2,
+      { db: { tag: "db" } },
+      mocked.listEditorScopeElements,
+      {
+        projectId: "project-1",
+        languageToId: "zh-CN",
+        branchId: 42,
+        contentNodeIds: [fileId],
+        page: 0,
+        pageSize: 10,
+        searchQuery: "",
+        statusFilter: "all",
+      },
+    );
+    expect(result).toEqual(
+      expect.objectContaining({
+        scope: {
+          projectId: "project-1",
+          contentNodeIds: [fileId],
+          languageId: "zh-CN",
+        },
+      }),
+    );
+  });
+
+  it("rejects sibling content nodes outside the session subtree", async () => {
+    const directoryId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const siblingId = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
+    mocked.executeQuery.mockResolvedValueOnce([
+      {
+        id: directoryId,
+        projectId: "project-1",
+        creatorId: "creator-1",
+        displayLabel: "docs",
+        fileHandlerId: null,
+        fileId: null,
+        kind: "DIRECTORY",
+        exportRole: "DIRECTORY",
+        boundaryType: "SOFT",
+        createdAt,
+        updatedAt,
+        parentId: null,
+        localOrder: 1,
+      },
+      {
+        id: siblingId,
+        projectId: "project-1",
+        creatorId: "creator-1",
+        displayLabel: "other.md",
+        fileHandlerId: 1,
+        fileId: 2,
+        kind: "FILE",
+        exportRole: "FILE",
+        boundaryType: "HARD",
+        createdAt,
+        updatedAt,
+        parentId: null,
+        localOrder: 2,
+      },
+    ]);
+
+    await expect(
+      listElementsTool.execute(
+        { contentNodeIds: [siblingId] },
+        createCtx({
+          documentId: undefined,
+          contentNodeIds: [directoryId],
+        }),
+      ),
+    ).rejects.toThrow("outside the session editor scope");
+  });
+
+  it("does not let empty contentNodeIds escape a constrained session", async () => {
+    const directoryId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+    mocked.executeQuery.mockResolvedValueOnce([
+      {
+        id: directoryId,
+        projectId: "project-1",
+        creatorId: "creator-1",
+        displayLabel: "docs",
+        fileHandlerId: null,
+        fileId: null,
+        kind: "DIRECTORY",
+        exportRole: "DIRECTORY",
+        boundaryType: "SOFT",
+        createdAt,
+        updatedAt,
+        parentId: null,
+        localOrder: 1,
+      },
+    ]);
+    mocked.executeQuery.mockResolvedValueOnce([]);
+
+    await listElementsTool.execute(
+      { contentNodeIds: [] },
+      createCtx({
+        documentId: undefined,
+        contentNodeIds: [directoryId],
+      }),
+    );
+
+    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
+      2,
+      { db: { tag: "db" } },
+      mocked.listEditorScopeElements,
+      expect.objectContaining({
+        contentNodeIds: [directoryId],
+      }),
+    );
   });
 
   it("delegates get_neighbors and reshapes neighbor output", async () => {

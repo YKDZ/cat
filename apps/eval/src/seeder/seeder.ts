@@ -184,14 +184,16 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       await executeCommand(execCtx, createGlossaryTerms, {
         glossaryId,
         creatorId: userId,
-        data: conceptSeed.terms.map((t) => ({
-          conceptId: concept.id,
-          term: t.term,
-          termLanguageId: t.termLanguageId,
-          translation: t.translation,
-          translationLanguageId: t.translationLanguageId,
-          definition: conceptSeed.definition,
-        })),
+        data: conceptSeed.terms.map(
+          (t: (typeof conceptSeed.terms)[number]) => ({
+            conceptId: concept.id,
+            term: t.term,
+            termLanguageId: t.termLanguageId,
+            translation: t.translation,
+            translationLanguageId: t.translationLanguageId,
+            definition: conceptSeed.definition,
+          }),
+        ),
       });
 
       await buildTermRecallVariantsOp({ conceptId: concept.id });

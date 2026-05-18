@@ -18,41 +18,45 @@ import ProgressBar from "./progress/bar/ProgressBar.vue";
 const { t } = useI18n();
 
 const props = defineProps<{
-  document: Pick<ContentNode, "id">;
+  document: Pick<ContentNode, "id" | "projectId">;
   language: Pick<Language, "id">;
 }>();
 
+const baseScope = computed(() => ({
+  projectId: props.document.projectId,
+  languageToId: props.language.id,
+  contentNodeIds: [props.document.id],
+  searchQuery: "",
+  statusFilter: "all" as const,
+  page: 1,
+  pageSize: 16,
+}));
+
 const { state: elementAmountState } = useQuery({
-  key: ["elementAmount", props.document.id],
+  key: () => ["editor-elementAmount", baseScope.value],
   placeholderData: 0,
-  query: () =>
-    orpc.document.countElement({
-      documentId: props.document.id,
-    }),
+  query: () => orpc.editor.countElements(baseScope.value),
   enabled: !import.meta.env.SSR,
 });
 
 const { state: translatedElementAmountState } = useQuery({
-  key: ["translatedElementAmount", props.document.id, props.language.id],
+  key: () => ["editor-translatedElementAmount", baseScope.value],
   placeholderData: 0,
   query: () =>
-    orpc.document.countElement({
-      documentId: props.document.id,
-      isTranslated: true,
-      languageId: props.language.id,
+    orpc.editor.countElements({
+      ...baseScope.value,
+      statusFilter: "translated",
     }),
   enabled: !import.meta.env.SSR,
 });
 
 const { state: approvedElementAmountState } = useQuery({
-  key: ["approvedElementAmount", props.document.id, props.language.id],
+  key: () => ["editor-approvedElementAmount", baseScope.value],
   placeholderData: 0,
   query: () =>
-    orpc.document.countElement({
-      documentId: props.document.id,
-      isTranslated: true,
-      isApproved: true,
-      languageId: props.language.id,
+    orpc.editor.countElements({
+      ...baseScope.value,
+      statusFilter: "approved",
     }),
   enabled: !import.meta.env.SSR,
 });

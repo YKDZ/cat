@@ -25,6 +25,12 @@ export type {
 export { OCCConflictError } from "./changeset-service.ts";
 
 export type { VCSContext } from "./vcs-middleware.ts";
+export type {
+  EditorOverlayContentNodeRow,
+  EditorOverlayContentRelationRow,
+  EditorOverlayElementRow,
+  EditorOverlayTranslationState,
+} from "./editor-overlay-payload.ts";
 
 // ── Classes ──────────────────────────────────────────────────────────────────
 export { ApplicationMethodRegistry } from "./application-method-registry.ts";
@@ -43,6 +49,13 @@ export {
   listWithOverlay,
   getBranchChangesetId,
 } from "./branch-overlay.ts";
+
+export {
+  EditorOverlayContentNodeRowSchema,
+  EditorOverlayContentRelationRowSchema,
+  EditorOverlayElementRowSchema,
+  EditorOverlayTranslationStateSchema,
+} from "./editor-overlay-payload.ts";
 
 export { registerAllDiffStrategies } from "./diff-strategies-init.ts";
 

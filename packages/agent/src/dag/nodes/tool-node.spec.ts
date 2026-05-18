@@ -46,6 +46,12 @@ describe("runToolNode", () => {
         sessionMetadata: {
           providerId: 123,
           documentId: "11111111-1111-4111-8111-111111111111",
+          branchId: 42,
+          contentNodeIds: [
+            "22222222-2222-4222-8222-222222222222",
+            "33333333-3333-4333-8333-333333333333",
+          ],
+          currentElementContentNodeId: "44444444-4444-4444-8444-444444444444",
           elementId: 88,
           languageId: "zh-CN",
           sourceLanguageId: "en-US",
@@ -71,6 +77,12 @@ describe("runToolNode", () => {
       runId: "run-1",
       providerId: 123,
       documentId: "11111111-1111-4111-8111-111111111111",
+      branchId: 42,
+      contentNodeIds: [
+        "22222222-2222-4222-8222-222222222222",
+        "33333333-3333-4333-8333-333333333333",
+      ],
+      currentElementContentNodeId: "44444444-4444-4444-8444-444444444444",
       elementId: 88,
       languageId: "zh-CN",
       sourceLanguageId: "en-US",

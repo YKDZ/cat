@@ -113,6 +113,44 @@ export const applyContentGraphEnvelope: Command<
 
   for (const node of payload.nodes) {
     // oxlint-disable-next-line no-await-in-loop
+    const existing = await ctx.db
+      .select({ id: contentNode.id })
+      .from(contentNode)
+      .where(
+        and(
+          eq(contentNode.projectId, payload.projectId),
+          eq(contentNode.importerId, payload.importerId),
+          eq(contentNode.sourceRootRef, payload.sourceRootRef),
+          eq(contentNode.stableSourceNodeRef, node.stableSourceNodeRef),
+        ),
+      )
+      .limit(1);
+
+    if (existing[0]) {
+      // oxlint-disable-next-line no-await-in-loop
+      await ctx.db
+        .update(contentNode)
+        .set({
+          kind: node.kind,
+          displayLabel: node.displayLabel,
+          sourceUri: node.sourceUri ?? null,
+          sourcePath: node.sourcePath ?? null,
+          sourceType: node.sourceType ?? null,
+          languageId: node.languageId ?? null,
+          exportRole: node.exportRole ?? "NONE",
+          boundaryType: node.boundaryType ?? "NONE",
+          fileId: node.file?.fileId ?? null,
+          metadata: node.metadata ?? null,
+          provenance: node.provenance ?? null,
+        })
+        .where(eq(contentNode.id, existing[0].id));
+
+      contentNodeIdByRef.set(node.ref, existing[0].id);
+      stableSourceNodeRefByRef.set(node.ref, node.stableSourceNodeRef);
+      continue;
+    }
+
+    // oxlint-disable-next-line no-await-in-loop
     const rows = await ctx.db
       .insert(contentNode)
       .values({
@@ -131,24 +169,6 @@ export const applyContentGraphEnvelope: Command<
         fileId: node.file?.fileId ?? null,
         metadata: node.metadata ?? null,
         provenance: node.provenance ?? null,
-      })
-      .onConflictDoUpdate({
-        target: [
-          contentNode.projectId,
-          contentNode.importerId,
-          contentNode.sourceRootRef,
-          contentNode.stableSourceNodeRef,
-        ],
-        set: {
-          displayLabel: node.displayLabel,
-          sourcePath: node.sourcePath ?? null,
-          sourceType: node.sourceType ?? null,
-          languageId: node.languageId ?? null,
-          exportRole: node.exportRole ?? "NONE",
-          boundaryType: node.boundaryType ?? "NONE",
-          fileId: node.file?.fileId ?? null,
-          metadata: node.metadata ?? null,
-        },
       })
       .returning({ id: contentNode.id });
 

@@ -13,7 +13,7 @@ import {
 } from "@cat/ui";
 import { GitBranch } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "@/rpc/orpc";
@@ -59,9 +59,39 @@ const filteredPrs = computed(() => {
   );
 });
 
+watch(
+  [() => branchStore.currentBranchId, prs],
+  ([branchId, availablePrs]) => {
+    if (branchId === null) return;
+
+    const matchedPr = availablePrs.find((pr) => pr.branchId === branchId);
+    if (!matchedPr) return;
+    if (
+      branchStore.currentPRId === matchedPr.id &&
+      branchStore.currentPRNumber === matchedPr.number &&
+      branchStore.currentBranchName
+    ) {
+      return;
+    }
+
+    branchStore.enterBranch(
+      matchedPr.branchId,
+      matchedPr.id,
+      matchedPr.number,
+      `pr-${matchedPr.number}`,
+    );
+  },
+  { immediate: true },
+);
+
 const displayName = computed(() => {
   if (branchStore.isOnMainBranch) return "main";
-  return branchStore.currentBranchName ?? `PR #${branchStore.currentPRNumber}`;
+  return (
+    branchStore.currentBranchName ??
+    (branchStore.currentBranchId !== null
+      ? `branch-${branchStore.currentBranchId}`
+      : "main")
+  );
 });
 
 const handleSelect = (pr: PullRequest) => {

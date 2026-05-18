@@ -14,6 +14,7 @@ export const buildPromptVariables = (input: {
   projectId: input.metadata?.projectId ?? "",
   projectName: input.metadata?.projectName ?? "",
   maxTurns: String(input.constraints.maxSteps),
+  // oxlint-disable-next-line typescript/no-deprecated -- prompt variables still expose documentId for legacy document-scoped templates
   documentId: input.metadata?.documentId ?? "",
   elementId:
     input.metadata?.elementId !== undefined

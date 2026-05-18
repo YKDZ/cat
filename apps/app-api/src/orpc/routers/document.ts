@@ -1,10 +1,11 @@
 import type { VCSContext } from "@cat/vcs";
 
 import {
-  countContentNodeElements,
+  countEditorScopeElements,
   countContentNodeTranslations,
   createContentNodeUnderParent,
   deleteContentNode,
+  ensureCoreRelationTypes,
   executeCommand,
   executeQuery,
   findProjectContentNodeByLabel,
@@ -12,11 +13,11 @@ import {
   getContentNode,
   getContentNodeBlobInfo,
   getContentNodeElementPageIndex,
-  getContentNodeElements,
-  getContentNodeFirstElement,
+  getEditorScopeFirstElement,
   getElementTranslationStatus as getElementTranslationStatusQuery,
   getProject,
   getProjectRootContentNode,
+  listEditorScopeElements,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import {
@@ -30,10 +31,15 @@ import {
   ContentNodeSchema,
   ElementTranslationStatusSchema,
   FileMetaSchema,
+  type JSONType,
   TranslatableElementSchema,
 } from "@cat/shared";
 import { sanitizeFileName } from "@cat/shared";
-import { listWithOverlay, readWithOverlay } from "@cat/vcs";
+import {
+  EditorOverlayContentNodeRowSchema,
+  EditorOverlayContentRelationRowSchema,
+  readWithOverlay,
+} from "@cat/vcs";
 import { runGraph, upsertContentNodeGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import { randomUUID } from "node:crypto";
@@ -48,6 +54,10 @@ import {
   checkPermission,
 } from "@/orpc/server";
 import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
+
+const toJSONType = (value: unknown): JSONType =>
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- VCS payloads must cross a JSON serialization boundary before being stored in changesets
+  JSON.parse(JSON.stringify(value)) as JSONType;
 
 export const prepareCreateFromFile = authed
   .input(
@@ -156,6 +166,15 @@ export const finishCreateFromFile = authed
       });
     }
 
+    const service = pluginManager
+      .getServices("FILE_IMPORTER")
+      .find(({ service }) => service.canImport({ name: fileName }));
+
+    if (!service)
+      throw new ORPCError("NOT_FOUND", {
+        message: "No suitable file handler found for this file",
+      });
+
     // Isolation write: record document creation in branch changeset
     if (
       context.branchId !== undefined &&
@@ -166,8 +185,36 @@ export const finishCreateFromFile = authed
           "branchProjectId missing when branch context is active",
         );
       }
+
+      const rootNode = await executeQuery(
+        { db: drizzle },
+        getProjectRootContentNode,
+        { projectId },
+      );
+
+      if (!rootNode) {
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: `Project ${projectId} has no root content node`,
+        });
+      }
+
+      const relationTypeIds = await executeCommand(
+        { db: drizzle },
+        ensureCoreRelationTypes,
+        {},
+      );
+      const containsTypeId = relationTypeIds["core:contains:1.0.0"];
+
+      if (containsTypeId === undefined) {
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: "Core contains relation type is missing",
+        });
+      }
+
       const { middleware } = createVCSRouteHelper(drizzle);
+      const timestamp = new Date().toISOString();
       const entityId = randomUUID();
+      const relationId = randomUUID();
       await middleware.interceptWrite(
         {
           mode: "isolation",
@@ -179,7 +226,66 @@ export const finishCreateFromFile = authed
         entityId,
         "CREATE",
         null,
-        { projectId, displayLabel: fileName, languageId },
+        toJSONType(
+          EditorOverlayContentNodeRowSchema.parse({
+            id: entityId,
+            projectId,
+            creatorId: user.id,
+            kind: "FILE",
+            displayLabel: fileName,
+            importerId: service.id,
+            sourceRootRef: projectId,
+            stableSourceNodeRef: fileName,
+            sourceUri: null,
+            sourcePath: null,
+            sourceType: null,
+            languageId,
+            exportRole: "FILE",
+            boundaryType: "FILE",
+            fileHandlerId: service.dbId ?? null,
+            fileId,
+            lifecycleStatus: "ACTIVE",
+            provenance: null,
+            metadata: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          }),
+        ),
+        async () => undefined,
+      );
+      await middleware.interceptWrite(
+        {
+          mode: "isolation",
+          projectId: context.branchProjectId,
+          branchId: context.branchId,
+          branchChangesetId: context.branchChangesetId,
+        },
+        "content_relation",
+        relationId,
+        "CREATE",
+        null,
+        toJSONType(
+          EditorOverlayContentRelationRowSchema.parse({
+            id: relationId,
+            projectId,
+            relationTypeId: containsTypeId,
+            sourceEndpointKind: "NODE",
+            sourceNodeId: rootNode.id,
+            sourceElementId: null,
+            targetEndpointKind: "NODE",
+            targetNodeId: entityId,
+            targetElementId: null,
+            isPrimary: true,
+            localOrder: 0,
+            confidenceBasisPoints: 10000,
+            lifecycleStatus: "ACTIVE",
+            weightHint: null,
+            provenance: null,
+            validationMetadata: null,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          }),
+        ),
         async () => undefined,
       );
       return;
@@ -195,15 +301,6 @@ export const finishCreateFromFile = authed
         kind: "FILE",
       },
     );
-
-    const service = pluginManager
-      .getServices("FILE_IMPORTER")
-      .find(({ service }) => service.canImport({ name: fileName }));
-
-    if (!service)
-      throw new ORPCError("NOT_FOUND", {
-        message: "No suitable file handler found for this file",
-      });
 
     let targetContentNodeId: string;
 
@@ -296,6 +393,52 @@ export const get = authed
     });
   });
 
+const legacyStatusFilter = (input: {
+  isTranslated?: boolean;
+  isApproved?: boolean;
+}) => {
+  if (input.isTranslated === false) return "untranslated" as const;
+  if (input.isTranslated === true && input.isApproved === false) {
+    return "unapproved" as const;
+  }
+  if (input.isApproved === true) return "approved" as const;
+  if (input.isTranslated === true) return "translated" as const;
+  return "all" as const;
+};
+
+const resolveLegacyDocumentScope = async (
+  drizzle: Parameters<typeof executeQuery>[0]["db"],
+  input: {
+    documentId: string;
+    languageId?: string;
+    searchQuery?: string;
+    isTranslated?: boolean;
+    isApproved?: boolean;
+    branchId?: number;
+  },
+) => {
+  const node = await executeQuery({ db: drizzle }, getContentNode, {
+    id: input.documentId,
+  });
+
+  if (!node) {
+    throw new ORPCError("NOT_FOUND", {
+      message: `Content node ${input.documentId} not found`,
+    });
+  }
+
+  return {
+    projectId: node.projectId,
+    languageToId: input.languageId ?? "",
+    branchId: input.branchId,
+    contentNodeIds: [input.documentId],
+    searchQuery: input.searchQuery ?? "",
+    statusFilter: legacyStatusFilter(input),
+    page: 1,
+    pageSize: 16,
+  };
+};
+
 export const countElement = authed
   .input(
     z.object({
@@ -312,13 +455,8 @@ export const countElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    return await executeQuery({ db: drizzle }, countContentNodeElements, {
-      contentNodeId: input.documentId,
-      searchQuery: input.searchQuery,
-      isApproved: input.isApproved,
-      isTranslated: input.isTranslated,
-      languageId: input.languageId,
-    });
+    const scope = await resolveLegacyDocumentScope(drizzle, input);
+    return await executeQuery({ db: drizzle }, countEditorScopeElements, scope);
   });
 
 export const getFirstElement = authed
@@ -339,14 +477,10 @@ export const getFirstElement = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    return await executeQuery({ db: drizzle }, getContentNodeFirstElement, {
-      contentNodeId: input.documentId,
-      searchQuery: input.searchQuery,
-      greaterThan: input.greaterThan,
-      afterElementId: input.afterElementId,
-      isApproved: input.isApproved,
-      isTranslated: input.isTranslated,
-      languageId: input.languageId,
+    const scope = await resolveLegacyDocumentScope(drizzle, input);
+    return await executeQuery({ db: drizzle }, getEditorScopeFirstElement, {
+      ...scope,
+      afterElementId: input.afterElementId ?? input.greaterThan,
     });
   });
 
@@ -430,41 +564,22 @@ export const getElements = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { isApproved, isTranslated } = input;
-
-    if (isApproved !== undefined && isTranslated !== true) {
-      throw new ORPCError("BAD_REQUEST", {
-        message: "isTranslated must be true when isApproved is set",
-      });
-    }
-
-    const mainItems = await executeQuery(
-      { db: drizzle },
-      getContentNodeElements,
-      {
-        contentNodeId: input.documentId,
-        page: input.page,
-        pageSize: input.pageSize,
-        searchQuery: input.searchQuery,
-        isApproved: input.isApproved,
-        isTranslated: input.isTranslated,
-        languageId: input.languageId,
-      },
-    );
-
-    if (context.branchId !== undefined) {
-      return await listWithOverlay(
-        drizzle,
-        context.branchId,
-        "element",
-        mainItems,
-        (item) => String(item.id),
-      );
-    }
-
-    return mainItems;
+    const scope = await resolveLegacyDocumentScope(drizzle, {
+      ...input,
+      branchId: context.branchId,
+    });
+    return await executeQuery({ db: drizzle }, listEditorScopeElements, {
+      ...scope,
+      page: input.page,
+      pageSize: input.pageSize,
+    });
   });
 
+/**
+ * @deprecated
+ * @zh 该接口缺少 `documentId`/`contentNodeIds` 作用域输入，无法表达项目级编辑器范围；请改用 `orpc.editor.getElementPageIndex`。
+ * @en This endpoint lacks `documentId`/`contentNodeIds` scope input and cannot represent project-level editor scopes; use `orpc.editor.getElementPageIndex` instead.
+ */
 export const getPageIndexOfElement = authed
   .input(
     z.object({

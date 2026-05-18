@@ -4,11 +4,11 @@ VCS engine: changeset management, branch merge/rebase, overlay reads, diff strat
 
 ## Overview
 
-* **Modules**: 11
+* **Modules**: 12
 
 * **Exported functions**: 13
 
-* **Exported types**: 18
+* **Exported types**: 22
 
 ## Function Index
 
@@ -181,6 +181,14 @@ export const createGenericStrategy = (options: {
 * `DiffResult` (interface) — Diff computation result
 
 * `DiffStrategy` (interface) — Entity diff strategy interface
+
+* `EditorOverlayContentNodeRow` (type) — Content-node row type for editor branch overlays.
+
+* `EditorOverlayContentRelationRow` (type) — Content-relation row type for editor branch overlays.
+
+* `EditorOverlayElementRow` (type) — Element row type for editor branch overlays.
+
+* `EditorOverlayTranslationState` (type) — Translation-state type for editor branch overlays.
 
 * `EntityStateFetcher` (type) — Entity state fetcher callback, provided by the registrar for rebase before-rewrite.
 

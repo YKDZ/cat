@@ -29,7 +29,7 @@ import { serverLogger as logger } from "@cat/server-shared";
 import { QaResultItemSchema, QaResultSchema } from "@cat/shared";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
 import { JSONObjectSchema } from "@cat/shared";
-import { listWithOverlay } from "@cat/vcs";
+import { EditorOverlayTranslationStateSchema, listWithOverlay } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,
   batchAutoTranslateGraph,
@@ -109,6 +109,7 @@ export const create = authed
       }
       const { middleware } = createVCSRouteHelper(drizzle);
       const entityId = crypto.randomUUID();
+      const timestamp = new Date().toISOString();
       await middleware.interceptWrite(
         {
           mode: "isolation",
@@ -120,7 +121,15 @@ export const create = authed
         entityId,
         "CREATE",
         null,
-        { elementId, languageId, text, translatorId: user.id },
+        EditorOverlayTranslationStateSchema.parse({
+          translatableElementId: elementId,
+          languageId,
+          text,
+          translatorId: user.id,
+          approved: false,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        }),
         async () => undefined,
       );
       return;
