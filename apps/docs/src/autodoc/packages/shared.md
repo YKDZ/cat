@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 25
 
-* **Exported types**: 243
+* **Exported types**: 244
 
 ## Function Index
 
@@ -406,6 +406,8 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `EditorScope` (type) — Editor scope type.
 
+* `OperationScope` (type) — Batch operation scope type.
+
 * `EditorElementQuery` (type) — Paginated editor element-query type.
 
 * `EditorFirstElementQuery` (type) — First-element query type.
@@ -653,7 +655,7 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `RerankDecisionTrace` (type)
 
-* `RerankCandidateDocument` (type)
+* `RerankCandidateItem` (type) — Rerank candidate-item type.
 
 * `RerankBand` (type)
 

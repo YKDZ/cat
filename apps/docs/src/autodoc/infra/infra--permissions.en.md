@@ -24,7 +24,7 @@
 语义：如果 subject 对 parentObject 有 parentRelation，
       则隐含对 childObject  |
 | `AscendRule` | type | "上溯"规则：element/translation 没有自己的权限元组，
-鉴权时自动查找所属 document。 |
+鉴权时自动查找所属 project/content node。 |
 | `seedSystemRoles` | function | 系统启动时调用（幂等）：确保 4 个系统角色存在。
 使用 INSERT ... ON CONFLICT DO NOTHING。 |
 | `grantFirstUserSuperadmin` | function | 在 createAccount 注册流程后调用。

@@ -4,7 +4,7 @@
 
 * **Modules**: 5
 
-* **Exported functions**: 12
+* **Exported functions**: 10
 
 * **Exported types**: 8
 
@@ -91,25 +91,6 @@ export async function captureScreenshots(options: CaptureOptions): Promise<{ scr
  * When storage is proxied, prepareUpload returns relative URLs like `/api/storage/upload/:id`.
  */
 export function resolveUrl(url: string, apiUrl: string): string
-```
-
-### `uploadScreenshots`
-
-```ts
-/**
- * Upload screenshots and return IMAGE context data list.
- * Flow: prepareUpload → PUT file → finishUpload → collect context entries.
- */
-export async function uploadScreenshots(screenshots: CapturedScreenshot[], options: UploadOptions): Promise<{ elementMeta: unknown; type: "IMAGE"; data: { fileId: number; highlightRegion?: { x: number; y: number; width: number; height: number; }; }; }[]>
-```
-
-### `addImageContexts`
-
-```ts
-/**
- * Add IMAGE contexts to existing elements via collection.addContexts endpoint.
- */
-export async function addImageContexts(contexts: { elementMeta: unknown; type: "IMAGE"; data: { fileId: number; highlightRegion?: { x: number; y: number; width: number; height: number; }; }; }[], options: UploadOptions): Promise<{ addedCount: number; }>
 ```
 
 ### `resolveElementId`

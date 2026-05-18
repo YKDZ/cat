@@ -138,7 +138,7 @@ export async function determineWriteMode(engine: PermissionEngine, authCtx: Auth
   resolveParentId：给定 child object ID，查 DB 返回 parent object ID。
 
 * `AscendRule` (type) — "上溯"规则：element/translation 没有自己的权限元组，
-  鉴权时自动查找所属 document。
+  鉴权时自动查找所属 project/content node。
 
 * `CompletedFactor` (type) — 完成的认证因子信息
 

@@ -10,10 +10,9 @@
 | ------ | ---- | ----------- |
 | `assertContentNodesInSession` | function | Verify content-node filters belong to the session project and obey the session c |
 | `resolveEffectiveContentNodeIds` | function | Resolve the effective content-node scope for a tool request in the current Agent |
-| `resolveSessionDocumentId` | function | Resolve the content-node ID that should be attached to translation writes for th |
-| `assertElementInSession` | function | Verify the given element belongs to the current session's project (and document  |
+| `resolveSessionContentNodeContextId` | function | Resolve the content-node context ID for the current session. |
+| `assertElementInSession` | function | Verify the given element belongs to the current session's project and editor sco |
 | `assertProjectInSession` | function | Verify the given project belongs to the current session's project scope. |
-| `assertDocumentInSession` | function | Verify the given documentId matches the session scope and belongs to the session |
 
 ## Related Topics
 

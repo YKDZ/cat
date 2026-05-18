@@ -6,7 +6,7 @@ Built-in agent tools: kanban, translation, session management
 
 * **Modules**: 1
 
-* **Exported functions**: 6
+* **Exported functions**: 5
 
 * **Exported types**: 0
 
@@ -42,26 +42,26 @@ export const assertContentNodesInSession = async (contentNodeIds: string[], ctx:
 export const resolveEffectiveContentNodeIds = (requested: string[] | undefined, ctx: ToolExecutionContext): string[]
 ```
 
-### `resolveSessionDocumentId`
+### `resolveSessionContentNodeContextId`
 
 ```ts
 /**
- * Resolve the content-node ID that should be attached to translation writes for the current session.
+ * Resolve the content-node context ID for the current session.
  *
  * @param ctx - Tool execution context
  *
  * @returns Context content-node ID for the current session
  */
-export const resolveSessionDocumentId = (ctx: ToolExecutionContext): string | undefined
+export const resolveSessionContentNodeContextId = (ctx: ToolExecutionContext): string | undefined
 ```
 
 ### `assertElementInSession`
 
 ```ts
 /**
- * Verify the given element belongs to the current session's project (and document when session is document-scoped).
+ * Verify the given element belongs to the current session's project and editor scope.
  *
- * @returns 解析后的元素数据（value, languageId, projectId, documentId, chunkIds）。 / Resolved element data.
+ * @returns 解析后的元素数据（value, languageId, projectId, primaryContentNodeId, chunkIds）。 / Resolved element data.
  */
 export const assertElementInSession = async (elementId: number, ctx: ToolExecutionContext): Promise<ElementWithChunkIds>
 ```
@@ -73,13 +73,4 @@ export const assertElementInSession = async (elementId: number, ctx: ToolExecuti
  * Verify the given project belongs to the current session's project scope.
  */
 export const assertProjectInSession = (projectId: string, ctx: ToolExecutionContext)
-```
-
-### `assertDocumentInSession`
-
-```ts
-/**
- * Verify the given documentId matches the session scope and belongs to the session's project.
- */
-export const assertDocumentInSession = async (documentId: string, ctx: ToolExecutionContext): Promise<void>
 ```

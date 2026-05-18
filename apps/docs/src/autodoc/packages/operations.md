@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 87
+* **Modules**: 88
 
-* **Exported functions**: 105
+* **Exported functions**: 106
 
-* **Exported types**: 122
+* **Exported types**: 124
 
 ## Function Index
 
@@ -198,7 +198,7 @@ export const createVectorizedStringOp = async (data: CreateVectorizedStringInput
  *
  * @returns Deduplicated candidates annotated with glossary existence flags
  */
-export const deduplicateAndMatchOp = async (data: DeduplicateAndMatchInput, _ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; documentFrequency: number; source: "statistical" | "llm" | "both"; existsInGlossary: boolean; existingConceptId: number | null; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; }>
+export const deduplicateAndMatchOp = async (data: DeduplicateAndMatchInput, _ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; elementFrequency: number; source: "statistical" | "llm" | "both"; existsInGlossary: boolean; existingConceptId: number | null; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; }>
 ```
 
 ### `deleteTermOp`
@@ -333,7 +333,7 @@ export const llmTermAlignOp = async (data: LlmTermAlignInput, ctx?: OperationCon
  *
  * @returns Enhanced candidate list and the count of newly added LLM candidates
  */
-export const llmTermEnhanceOp = async (data: LlmTermEnhanceInput, ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; documentFrequency: number; source: "statistical" | "llm" | "both"; existsInGlossary: boolean; existingConceptId: number | null; definition: string | null; subjects: string[] | null; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; llmCandidatesAdded: number; }>
+export const llmTermEnhanceOp = async (data: LlmTermEnhanceInput, ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; elementFrequency: number; source: "statistical" | "llm" | "both"; existsInGlossary: boolean; existingConceptId: number | null; definition: string | null; subjects: string[] | null; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; llmCandidatesAdded: number; }>
 ```
 
 ### `deriveLlmTranslateConfidence`
@@ -382,14 +382,14 @@ export const llmTranslateOp = async (data: LlmTranslateInput, ctx?: OperationCon
  * Batch load element texts.
  *
  * Loads TranslatableElements and their TranslatableString.value in bulk
- * by documentIds or elementIds, returning a normalized list.
+ * by operation scope, returning a normalized list.
  *
- * @param data - Load input; accepts documentIds or elementIds
- * @param _ctx - Operation context (unused)
+ * @param data - Load input using OperationScope
+ * @param ctx - Operation context
  *
  * @returns Normalized list of element texts
  */
-export const loadElementTextsOp = async (data: LoadElementTextsInput, _ctx?: OperationContext): Promise<{ elements: { elementId: number; text: string; languageId: string; }[]; }>
+export const loadElementTextsOp = async (data: LoadElementTextsInput, ctx?: OperationContext): Promise<{ elements: { elementId: number; text: string; languageId: string; }[]; }>
 ```
 
 ### `lookupTermsForElementOp`
@@ -761,6 +761,20 @@ export const registerDomainEventHandlers = (db: DrizzleClient, options?: { plugi
 export const registerVectorizationConsumer = async (queue: TaskQueue<VectorizationTask>, options?: { batchSize?: number }): Promise<void>
 ```
 
+### `resolveOperationScopeElementsOp`
+
+```ts
+/**
+ * Resolve elements inside an operation scope with chunk metadata.
+ *
+ * @param data - Operation-scope input
+ * @param _ctx - Operation context (currently unused)
+ *
+ * @returns Resolved element list
+ */
+export const resolveOperationScopeElementsOp = async (data: ResolveOperationScopeElementsInput, _ctx?: OperationContext): Promise<{ elements: OperationScopeElement[]; }>
+```
+
 ### `retrieveEmbeddingsOp`
 
 ```ts
@@ -930,7 +944,7 @@ export const statisticalTermAlignOp = async (data: StatisticalTermAlignInput, ct
  *
  * @returns Extracted term candidates and the segmenter type used
  */
-export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput, ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; documentFrequency: number; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; nlpSegmenterUsed: "plugin" | "intl-fallback"; }>
+export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput, ctx?: OperationContext): Promise<{ candidates: { text: string; normalizedText: string; posPattern: string[]; confidence: number; frequency: number; elementFrequency: number; occurrences: { elementId: number; ranges: { start: number; end: number; }[]; }[]; }[]; nlpSegmenterUsed: "plugin" | "intl-fallback"; }>
 ```
 
 ### `streamSearchMemoryOp`
@@ -1542,7 +1556,7 @@ export const selectContextBand = ({
 
 ```ts
 /**
- * Normalize a term candidate into a RerankCandidateDocument for provider submission.
+ * Normalize a term candidate into a RerankCandidateItem for provider submission.
  */
 export const normalizePrecisionTermCandidate = (c: RecallCandidate & RawTermResult, index: number): { candidateId: string; surface: "term" | "memory"; originalIndex: number; originalConfidence: number; title: string; sourceText: string; targetText?: string | undefined; definitionText?: string | undefined; contextText?: string | undefined; }
 ```
@@ -1551,7 +1565,7 @@ export const normalizePrecisionTermCandidate = (c: RecallCandidate & RawTermResu
 
 ```ts
 /**
- * Normalize a memory candidate into a RerankCandidateDocument for provider submission.
+ * Normalize a memory candidate into a RerankCandidateItem for provider submission.
  */
 export const normalizePrecisionMemoryCandidate = (c: RecallCandidate & RawMemoryResult, index: number): { candidateId: string; surface: "term" | "memory"; originalIndex: number; originalConfidence: number; title: string; sourceText: string; targetText?: string | undefined; definitionText?: string | undefined; contextText?: string | undefined; }
 ```
@@ -1560,7 +1574,7 @@ export const normalizePrecisionMemoryCandidate = (c: RecallCandidate & RawMemory
 
 ```ts
 /**
- * Normalize a slice of RecallCandidates into RerankCandidateDocuments.
+ * Normalize a slice of RecallCandidates into RerankCandidateItems.
  * The index is relative to the slice (for stable candidateId ordering).
  */
 export const normalizePrecisionCandidates = (_queryText: string, band: RecallCandidate[]): { candidateId: string; surface: "term" | "memory"; originalIndex: number; originalConfidence: number; title: string; sourceText: string; targetText?: string | undefined; definitionText?: string | undefined; contextText?: string | undefined; }[]
@@ -1755,6 +1769,10 @@ export const orchestrateRerank = async ({
 * `RecallContextRerankInput` (type)
 
 * `TermRecallContextRerankInput` (type)
+
+* `ResolveOperationScopeElementsInput` (type) — Input type for resolving elements inside an operation scope.
+
+* `OperationScopeElement` (type) — Operation-scope element with chunk metadata.
 
 * `RetrieveEmbeddingsInput` (type)
 

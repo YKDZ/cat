@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 328
+* **Modules**: 331
 
-* **Exported functions**: 352
+* **Exported functions**: 355
 
-* **Exported types**: 451
+* **Exported types**: 456
 
 ## Function Index
 
@@ -131,7 +131,7 @@ export const createAgentRun: Command<
 export const createAgentSession: Command<
   CreateAgentSessionCommand,
   { sessionId: string }
-> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; documentId?: string | undefined; branchId?: number | undefined; contentNodeIds?: string[] | undefined; currentElementContentNodeId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; issueId?: number | undefined; pullRequestId?: number | undefined; } | undefined; }) => {...}
+> = async (ctx: DbContext, command: { agentDefinitionId: string; userId: string; projectId?: string | undefined; metadata?: { projectId?: string | undefined; projectName?: string | undefined; providerId?: number | undefined; branchId?: number | undefined; contentNodeIds?: string[] | undefined; currentElementContentNodeId?: string | undefined; elementId?: number | undefined; languageId?: string | undefined; sourceLanguageId?: string | undefined; issueId?: number | undefined; pullRequestId?: number | undefined; } | undefined; }) => {...}
 ```
 
 ### `deleteAgentDefinition`
@@ -533,26 +533,6 @@ export const ensureDefaultContextProfile: Command<
 export const parseAndSaveCrossReferences: Command<
   ParseAndSaveCrossReferencesCommand
 > = async (ctx: DbContext, command: { projectId: string; sourceType: "issue" | "pr" | "issue_comment"; sourceId: number; text: string; }) => {...}
-```
-
-### packages/domain/src/commands/document
-
-### `bulkUpdateChunkVectorMetadata`
-
-```ts
-export const bulkUpdateChunkVectorMetadata: Command<
-  BulkUpdateChunkVectorMetadataCommand,
-  BulkUpdateChunkVectorMetadataResult
-> = async (ctx: DbContext, command: { chunkIds: number[]; vectorizerId: number; vectorStorageId: number; }) => {...}
-```
-
-### `createVectorizedChunks`
-
-```ts
-export const createVectorizedChunks: Command<
-  CreateVectorizedChunksCommand,
-  CreateVectorizedChunksResult
-> = async (ctx: DbContext, command: { vectorizerId: number; vectorStorageId: number; chunkSetCount: number; chunks: { textIndex: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
 ```
 
 ### packages/domain/src/commands/element
@@ -1347,6 +1327,20 @@ export const autoApproveContentNodeTranslations: Command<
 > = async (ctx: DbContext, command: { contentNodeId: string; languageId: string; }) => {...}
 ```
 
+### `autoApproveOperationScopeTranslations`
+
+```ts
+/**
+ * Auto-approve the latest translation for the provided element set in the target language.
+ *
+ * @returns Number of elements approved.
+ */
+export const autoApproveOperationScopeTranslations: Command<
+  AutoApproveOperationScopeTranslationsCommand,
+  number
+> = async (ctx: DbContext, command: { elementIds: number[]; languageId: string; }) => {...}
+```
+
 ### `createProjectTranslationSnapshot`
 
 ```ts
@@ -1367,7 +1361,7 @@ export const createProjectTranslationSnapshot: Command<
 export const createTranslations: Command<
   CreateTranslationsCommand,
   number[]
-> = async (ctx: DbContext, command: { data: { translatableElementId: number; stringId: number; translatorId?: string | null | undefined; meta?: z.core.util.JSONType | undefined; }[]; documentId?: string | undefined; }) => {...}
+> = async (ctx: DbContext, command: { data: { translatableElementId: number; stringId: number; translatorId?: string | null | undefined; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
 ```
 
 ### `deleteTranslation`
@@ -1420,6 +1414,24 @@ export const updateUser: Command<
 ```
 
 ### packages/domain/src/commands/vector
+
+### `bulkUpdateChunkVectorMetadata`
+
+```ts
+export const bulkUpdateChunkVectorMetadata: Command<
+  BulkUpdateChunkVectorMetadataCommand,
+  BulkUpdateChunkVectorMetadataResult
+> = async (ctx: DbContext, command: { chunkIds: number[]; vectorizerId: number; vectorStorageId: number; }) => {...}
+```
+
+### `createVectorizedChunks`
+
+```ts
+export const createVectorizedChunks: Command<
+  CreateVectorizedChunksCommand,
+  CreateVectorizedChunksResult
+> = async (ctx: DbContext, command: { vectorizerId: number; vectorStorageId: number; chunkSetCount: number; chunks: { textIndex: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
+```
 
 ### `ensureVectorStorageSchema`
 
@@ -2200,50 +2212,6 @@ export const listReferencesTo: Query<
 > = async (ctx: DbContext, query: { targetType: "issue" | "pr"; targetId: number; }) => {...}
 ```
 
-### packages/domain/src/queries/document
-
-### `buildTranslationStatusConditions`
-
-```ts
-export const buildTranslationStatusConditions = (db: DbHandle, isTranslated?: boolean, isApproved?: boolean, languageId?: string): SQL<unknown>[]
-```
-
-### `getActiveFileBlobInfo`
-
-```ts
-export const getActiveFileBlobInfo: Query<
-  GetActiveFileBlobInfoQuery,
-  ActiveFileBlobInfo | null
-> = async (ctx: DbContext, query: { fileId: number; }) => {...}
-```
-
-### `getActiveFileName`
-
-```ts
-export const getActiveFileName: Query<
-  GetActiveFileNameQuery,
-  string | null
-> = async (ctx: DbContext, query: { fileId: number; }) => {...}
-```
-
-### `getChunkVectorStorageId`
-
-```ts
-export const getChunkVectorStorageId: Query<
-  GetChunkVectorStorageIdQuery,
-  number | null
-> = async (ctx: DbContext, query: { chunkId: number; }) => {...}
-```
-
-### `listChunkVectorizationInputs`
-
-```ts
-export const listChunkVectorizationInputs: Query<
-  ListChunkVectorizationInputsQuery,
-  ChunkVectorizationInput[]
-> = async (ctx: DbContext, query: { chunkIds: number[]; }) => {...}
-```
-
 ### packages/domain/src/queries/element
 
 ### `getElementContexts`
@@ -2375,6 +2343,18 @@ export const listElementsForDiff: Query<
 > = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
 ```
 
+### `listElementsWithChunkIdsByIds`
+
+```ts
+/**
+ * Batch-fetch element source text, project, primary content node, and chunk ids.
+ */
+export const listElementsWithChunkIdsByIds: Query<
+  ListElementsWithChunkIdsByIdsQuery,
+  ElementWithChunkIdsById[]
+> = async (ctx: DbContext, query: { elementIds: number[]; }) => {...}
+```
+
 ### `listNeighborElements`
 
 ```ts
@@ -2385,6 +2365,24 @@ export const listNeighborElements: Query<
 ```
 
 ### packages/domain/src/queries/file
+
+### `getActiveFileBlobInfo`
+
+```ts
+export const getActiveFileBlobInfo: Query<
+  GetActiveFileBlobInfoQuery,
+  ActiveFileBlobInfo | null
+> = async (ctx: DbContext, query: { fileId: number; }) => {...}
+```
+
+### `getActiveFileName`
+
+```ts
+export const getActiveFileName: Query<
+  GetActiveFileNameQuery,
+  string | null
+> = async (ctx: DbContext, query: { fileId: number; }) => {...}
+```
 
 ### `getBlobByKey`
 
@@ -3375,6 +3373,12 @@ export const listVectorizedStringsById: Query<
 
 ### packages/domain/src/queries/translation
 
+### `buildTranslationStatusConditions`
+
+```ts
+export const buildTranslationStatusConditions = (db: DbHandle, isTranslated?: boolean, isApproved?: boolean, languageId?: string): SQL<unknown>[]
+```
+
 ### `getSelfTranslationVote`
 
 ```ts
@@ -3382,6 +3386,23 @@ export const getSelfTranslationVote: Query<
   GetSelfTranslationVoteQuery,
   typeof translationVote.$inferSelect | null
 > = async (ctx: DbContext, query: { translationId: number; voterId: string; }) => {...}
+```
+
+### `getTranslationCreatedEventContext`
+
+```ts
+/**
+ * Resolve project, element, and primary content-node context for translation ids.
+ *
+ * @param ctx - Query context
+ * @param query - Translation-id query input
+ *
+ * @returns Translation-created event context grouped by project
+ */
+export const getTranslationCreatedEventContext: Query<
+  GetTranslationCreatedEventContextQuery,
+  TranslationCreatedEventContext[]
+> = async (ctx: DbContext, query: { translationIds: number[]; }) => {...}
 ```
 
 ### `getTranslationQaContext`
@@ -3472,12 +3493,30 @@ export const getUser: Query<
 
 ### packages/domain/src/queries/vector
 
+### `getChunkVectorStorageId`
+
+```ts
+export const getChunkVectorStorageId: Query<
+  GetChunkVectorStorageIdQuery,
+  number | null
+> = async (ctx: DbContext, query: { chunkId: number; }) => {...}
+```
+
 ### `getChunkVectors`
 
 ```ts
 export const getChunkVectors: Query<
   GetChunkVectorsQuery,
   VectorChunk[]
+> = async (ctx: DbContext, query: { chunkIds: number[]; }) => {...}
+```
+
+### `listChunkVectorizationInputs`
+
+```ts
+export const listChunkVectorizationInputs: Query<
+  ListChunkVectorizationInputsQuery,
+  ChunkVectorizationInput[]
 > = async (ctx: DbContext, query: { chunkIds: number[]; }) => {...}
 ```
 
@@ -3635,14 +3674,6 @@ export const setupTestDB = async (): Promise<TestDB>
 * `EnsureDefaultContextProfileCommand` (type)
 
 * `ParseAndSaveCrossReferencesCommand` (type)
-
-* `BulkUpdateChunkVectorMetadataCommand` (type)
-
-* `BulkUpdateChunkVectorMetadataResult` (type)
-
-* `CreateVectorizedChunksCommand` (type)
-
-* `CreateVectorizedChunksResult` (type)
 
 * `BulkUpdateElementsForDiffCommand` (type)
 
@@ -3834,6 +3865,8 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `AutoApproveContentNodeTranslationsCommand` (type)
 
+* `AutoApproveOperationScopeTranslationsCommand` (type)
+
 * `CreateProjectTranslationSnapshotCommand` (type)
 
 * `CreateTranslationsCommand` (type)
@@ -3849,6 +3882,14 @@ export const setupTestDB = async (): Promise<TestDB>
 * `UpdateUserAvatarCommand` (type)
 
 * `UpdateUserCommand` (type)
+
+* `BulkUpdateChunkVectorMetadataCommand` (type)
+
+* `BulkUpdateChunkVectorMetadataResult` (type)
+
+* `CreateVectorizedChunksCommand` (type)
+
+* `CreateVectorizedChunksResult` (type)
 
 * `EnsureVectorStorageSchemaCommand` (type)
 
@@ -4044,18 +4085,6 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `ListReferencesToQuery` (type)
 
-* `GetActiveFileBlobInfoQuery` (type)
-
-* `ActiveFileBlobInfo` (type)
-
-* `GetActiveFileNameQuery` (type)
-
-* `GetChunkVectorStorageIdQuery` (type)
-
-* `ListChunkVectorizationInputsQuery` (type)
-
-* `ChunkVectorizationInput` (type)
-
 * `GetElementContextsQuery` (type)
 
 * `GetElementContextsResult` (type)
@@ -4096,9 +4125,19 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `ElementForDiff` (type)
 
+* `ListElementsWithChunkIdsByIdsQuery` (type) — Type for bulk element detail queries.
+
+* `ElementWithChunkIdsById` (type) — Element detail with chunk metadata.
+
 * `ListNeighborElementsQuery` (type)
 
 * `NeighborElementRow` (type)
+
+* `GetActiveFileBlobInfoQuery` (type)
+
+* `ActiveFileBlobInfo` (type)
+
+* `GetActiveFileNameQuery` (type)
 
 * `GetBlobByKeyQuery` (type)
 
@@ -4358,6 +4397,10 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `GetSelfTranslationVoteQuery` (type)
 
+* `GetTranslationCreatedEventContextQuery` (type)
+
+* `TranslationCreatedEventContext` (type) — Context payload for translation-created events.
+
 * `GetTranslationQaContextQuery` (type)
 
 * `TranslationQaContext` (type)
@@ -4382,9 +4425,15 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `GetUserQuery` (type)
 
+* `GetChunkVectorStorageIdQuery` (type)
+
 * `GetChunkVectorsQuery` (type)
 
 * `VectorChunk` (type)
+
+* `ListChunkVectorizationInputsQuery` (type)
+
+* `ChunkVectorizationInput` (type)
 
 * `SearchChunkCosineSimilarityQuery` (type)
 
