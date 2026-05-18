@@ -1660,7 +1660,7 @@ export const agentSession = snakeCase.table(
     currentTurn: integer().default(0).notNull(),
     /** Session-level trust policy for tool confirmation */
     trustPolicy: agentSessionTrustPolicy().notNull().default("CONFIRM_ALL"),
-    /** Business context metadata (e.g. projectId, documentId) */
+    /** Business context metadata (e.g. projectId, contentNodeIds, editor scope) */
     metadata: jsonb().$type<JSONType>().notNull().default({}),
     ...timestamps,
   },
@@ -1869,7 +1869,7 @@ export const entitySnapshot = snakeCase.table("EntitySnapshot", {
     .references(() => project.id, { onDelete: "cascade" }),
   name: text().notNull(),
   description: text(),
-  /** PROJECT | DOCUMENT | ELEMENT */
+  /** PROJECT | CONTENT_NODE | ELEMENT */
   level: text().notNull().default("PROJECT"),
   scopeFilter: jsonb().$type<JSONType>(),
   createdBy: uuid().references(() => user.id, { onDelete: "set null" }),

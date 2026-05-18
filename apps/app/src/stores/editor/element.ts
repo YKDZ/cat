@@ -84,7 +84,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
   ): Promise<ElementTranslationStatus> => {
     if (!elementId || !context.languageToId.value) return "NO";
 
-    return await orpc.document.getElementTranslationStatus({
+    return await orpc.element.getTranslationStatus({
       elementId,
       languageId: context.languageToId.value,
     });

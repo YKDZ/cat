@@ -11,10 +11,14 @@ import Readme from "./Readme.vue";
 
 const project = inject(useInjectionKey<Data>()("project"))!;
 const targetLanguages = inject(useInjectionKey<Data>()("targetLanguages"))!;
-const documents = inject(useInjectionKey<Data>()("documents"))!;
+const contentNodes = inject(useInjectionKey<Data>()("contentNodes"))!;
 
 const readme = computed(() => {
-  return documents.find((doc) => doc.displayLabel === "README.md") ?? null;
+  return (
+    contentNodes.find(
+      (contentNode) => contentNode.displayLabel === "README.md",
+    ) ?? null
+  );
 });
 </script>
 

@@ -69,7 +69,7 @@ beforeEach(() => {
 interface SeedResult {
   projectId: string;
   userId: string;
-  documentId: string;
+  contentNodeId: string;
   elementIds: number[];
 }
 
@@ -153,26 +153,25 @@ async function seedProjectWithElements(opts?: {
   return {
     projectId: project.id,
     userId: user.id,
-    documentId: doc.id,
+    contentNodeId: doc.id,
     elementIds,
   };
 }
 
 describe("runAutoTranslatePipeline — gate logic", () => {
   test("skips when elementIds is empty", async () => {
-    const { projectId, documentId } = await seedProjectWithElements();
+    const { projectId } = await seedProjectWithElements();
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds: [] },
+      { projectId, elementIds: [] },
     );
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   test("skips when enableAutoTranslation is false", async () => {
-    const { projectId, documentId, elementIds } =
-      await seedProjectWithElements();
+    const { projectId, elementIds } = await seedProjectWithElements();
 
     await executeCommand({ db: testDb.client }, updateProjectSettings, {
       projectId,
@@ -181,15 +180,14 @@ describe("runAutoTranslatePipeline — gate logic", () => {
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
   test("skips when project pullRequests feature is disabled", async () => {
-    const { projectId, documentId, elementIds } =
-      await seedProjectWithElements();
+    const { projectId, elementIds } = await seedProjectWithElements();
 
     await executeCommand({ db: testDb.client }, updateProjectFeatures, {
       projectId,
@@ -198,7 +196,7 @@ describe("runAutoTranslatePipeline — gate logic", () => {
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     expect(mockFetch).not.toHaveBeenCalled();
@@ -206,16 +204,14 @@ describe("runAutoTranslatePipeline — gate logic", () => {
 
   test("skips elements whose sourceLanguageId equals the target language", async () => {
     // Source = "en", target also includes "en"
-    const { projectId, documentId, elementIds } = await seedProjectWithElements(
-      {
-        sourceLanguageId: "en",
-        targetLanguageIds: ["en"],
-      },
-    );
+    const { projectId, elementIds } = await seedProjectWithElements({
+      sourceLanguageId: "en",
+      targetLanguageIds: ["en"],
+    });
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     // No candidates should be fetched because source === target
@@ -229,12 +225,10 @@ describe("runAutoTranslatePipeline — language selection", () => {
       languageIds: ["en", "de", "fr"],
     });
 
-    const { projectId, documentId, elementIds } = await seedProjectWithElements(
-      {
-        sourceLanguageId: "en",
-        targetLanguageIds: ["de", "fr"],
-      },
-    );
+    const { projectId, elementIds } = await seedProjectWithElements({
+      sourceLanguageId: "en",
+      targetLanguageIds: ["de", "fr"],
+    });
 
     // Restrict to only "de" even though "fr" is also a project language
     await executeCommand({ db: testDb.client }, updateProjectSettings, {
@@ -244,7 +238,7 @@ describe("runAutoTranslatePipeline — language selection", () => {
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     // fetch should be called once (for "de" only)
@@ -260,12 +254,10 @@ describe("runAutoTranslatePipeline — language selection", () => {
       languageIds: ["en", "de", "fr"],
     });
 
-    const { projectId, documentId, elementIds } = await seedProjectWithElements(
-      {
-        sourceLanguageId: "en",
-        targetLanguageIds: ["de", "fr"],
-      },
-    );
+    const { projectId, elementIds } = await seedProjectWithElements({
+      sourceLanguageId: "en",
+      targetLanguageIds: ["de", "fr"],
+    });
 
     // Ensure autoTranslationLanguages is empty (falls back to project langs)
     await executeCommand({ db: testDb.client }, updateProjectSettings, {
@@ -275,7 +267,7 @@ describe("runAutoTranslatePipeline — language selection", () => {
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     // fetch should be called once per element per language (1 element × 2 langs)
@@ -285,12 +277,11 @@ describe("runAutoTranslatePipeline — language selection", () => {
 
 describe("runAutoTranslatePipeline — changeset entries", () => {
   test("writes auto_translation entries to the changeset when candidate is found", async () => {
-    const { projectId, documentId, elementIds } =
-      await seedProjectWithElements();
+    const { projectId, elementIds } = await seedProjectWithElements();
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     // Fetch the changeset created for this project+language
@@ -323,12 +314,11 @@ describe("runAutoTranslatePipeline — changeset entries", () => {
   test("writes no entries when no candidate is returned", async () => {
     mockFetch.mockResolvedValue(null);
 
-    const { projectId, documentId, elementIds } =
-      await seedProjectWithElements();
+    const { projectId, elementIds } = await seedProjectWithElements();
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     const { findOrCreateAutoTranslatePR } =
@@ -351,12 +341,11 @@ describe("runAutoTranslatePipeline — changeset entries", () => {
   });
 
   test("entityId format is element:{id}:lang:{languageId}", async () => {
-    const { projectId, documentId, elementIds } =
-      await seedProjectWithElements();
+    const { projectId, elementIds } = await seedProjectWithElements();
 
     await runAutoTranslatePipeline(
       { db: testDb.client },
-      { projectId, documentId, elementIds },
+      { projectId, elementIds },
     );
 
     const { findOrCreateAutoTranslatePR } =

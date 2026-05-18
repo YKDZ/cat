@@ -95,8 +95,10 @@ export const eventPayloadSchemas = {
 
   // Workflow domain events
   "workflow:translation:created": z.object({
-    documentId: z.uuidv4().optional(),
-    translationIds: z.array(z.number()),
+    projectId: z.uuidv4(),
+    translationIds: z.array(z.int()),
+    elementIds: z.array(z.int()),
+    primaryContentNodeIds: z.array(z.uuidv4()),
   }),
   "workflow:qa:issue": z.object({
     traceId: z.string(),

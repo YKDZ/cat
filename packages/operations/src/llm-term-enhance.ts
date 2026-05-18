@@ -16,7 +16,7 @@ type RawCandidate = {
   posPattern: string[];
   confidence: number;
   frequency: number;
-  documentFrequency: number;
+  elementFrequency: number;
   source: "statistical" | "llm" | "both";
   existsInGlossary: boolean;
   existingConceptId: number | null;
@@ -41,7 +41,7 @@ export const LlmTermEnhanceInputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       source: z.enum(["statistical", "llm", "both"]),
       existsInGlossary: z.boolean(),
       existingConceptId: z.int().nullable(),
@@ -73,7 +73,7 @@ export const LlmTermEnhanceOutputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       source: z.enum(["statistical", "llm", "both"]),
       existsInGlossary: z.boolean(),
       existingConceptId: z.int().nullable(),
@@ -316,7 +316,7 @@ export const llmTermEnhanceOp = async (
         posPattern: candidate.posPattern,
         confidence: Math.max(candidate.confidence, threshold),
         frequency: candidate.frequency,
-        documentFrequency: candidate.documentFrequency,
+        elementFrequency: candidate.elementFrequency,
         source: candidate.source === "statistical" ? "both" : candidate.source,
         existsInGlossary: candidate.existsInGlossary,
         existingConceptId: candidate.existingConceptId,

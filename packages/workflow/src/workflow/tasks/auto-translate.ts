@@ -26,7 +26,7 @@ export const AutoTranslateConfigSchema = z.object({
       maxTokens: z.int().default(1024),
     })
     .optional(),
-  gatherDocumentContext: z.boolean().default(false),
+  gatherScopeContext: z.boolean().default(false),
   weights: z
     .object({
       memory: z.number().min(0).default(1.0),
@@ -56,7 +56,6 @@ export const AutoTranslateInputSchema = z.object({
   memoryVectorStorageId: z.int(),
   translationVectorStorageId: z.int(),
   vectorizerId: z.int(),
-  documentId: z.uuidv4(),
   config: AutoTranslateConfigSchema.optional(),
 });
 
@@ -176,7 +175,6 @@ const CreateTranslationNodeInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()),
   vectorizerId: z.int(),
   translationVectorStorageId: z.int(),
-  documentId: z.uuidv4(),
 });
 
 // ─── 6 节点线性流水线 ─────────────────────────────────────────────────────────────
@@ -194,7 +192,7 @@ export const autoTranslateGraph = defineGraph({
       input: AutoTranslateInputSchema,
       output: GatherContextOutputSchema,
       handler: async (input, _ctx) => {
-        // 后续可在 config.gatherDocumentContext === true 时查询邻近 element 已有翻译
+        // 后续可在 config.gatherScopeContext === true 时查询邻近 element 已有翻译
         // 需要新增 domain query listNeighborTranslations
         return {
           text: input.text,
@@ -418,7 +416,6 @@ export const autoTranslateGraph = defineGraph({
         memoryIds: "memoryIds",
         vectorizerId: "vectorizerId",
         translationVectorStorageId: "translationVectorStorageId",
-        documentId: "documentId",
       },
       handler: async (input, ctx) => {
         const text = input.selectedText || input.fallbackText;
@@ -440,7 +437,6 @@ export const autoTranslateGraph = defineGraph({
             vectorizerId: input.vectorizerId,
             vectorStorageId: input.translationVectorStorageId,
             translatorId: input.translatorId,
-            documentId: input.documentId,
           },
           { signal: ctx.signal },
         );

@@ -118,7 +118,7 @@ export const StatisticalTermExtractInputSchema = z.object({
   nlpSegmenterId: z.int().optional(),
   config: z.object({
     maxTermTokens: z.int().min(1).max(10).default(5),
-    minDocFreq: z.int().min(1).default(2),
+    minElementFrequency: z.int().min(1).default(2),
     minTermLength: z.int().min(1).default(2),
     tfIdfThreshold: z.number().min(0).max(1).default(0.05),
     tfidfWeight: z.number().min(0).max(1).default(0.6),
@@ -134,7 +134,7 @@ export const StatisticalTermExtractOutputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       occurrences: z.array(
         z.object({
           elementId: z.int(),
@@ -262,7 +262,8 @@ export const statisticalTermExtractOp = async (
 
   // === Phase B: TF-IDF + C-value Scoring ===
   const N = data.texts.length;
-  const { minDocFreq, tfIdfThreshold, tfidfWeight, cvalueWeight } = data.config;
+  const { minElementFrequency, tfIdfThreshold, tfidfWeight, cvalueWeight } =
+    data.config;
 
   // First pass: compute raw TF-IDF and C-value for all candidates
   type RawCandidate = {
@@ -275,7 +276,7 @@ export const statisticalTermExtractOp = async (
   const rawCandidates: RawCandidate[] = [];
 
   for (const [normalizedText, acc] of ngramMap) {
-    if (acc.df < minDocFreq) continue;
+    if (acc.df < minElementFrequency) continue;
 
     const tfidf = acc.tf * Math.log((N + 1) / (acc.df + 1));
     const cvalue = computeCValue(
@@ -337,7 +338,7 @@ export const statisticalTermExtractOp = async (
       posPattern: acc.posPattern,
       confidence,
       frequency: acc.tf,
-      documentFrequency: acc.df,
+      elementFrequency: acc.df,
       occurrences,
     });
   }

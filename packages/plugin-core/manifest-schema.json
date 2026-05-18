@@ -127,7 +127,7 @@
             "type": "string",
             "enum": [
               "project",
-              "document",
+              "content_node",
               "glossary",
               "memory",
               "translation",

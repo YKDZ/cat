@@ -75,7 +75,7 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
           glossaryId: seededCtx.glossaryId,
           memoryId: seededCtx.memoryId,
           agentDefinitionId: seededCtx.agentDefinitionId,
-          documentId: seededCtx.documentId,
+          contentNodeId: seededCtx.contentNodeId,
           db: seededCtx.db,
           userId: seededCtx.userId,
         };

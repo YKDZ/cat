@@ -56,7 +56,6 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
       { db: fakeDb },
       {
         projectId: payload.projectId,
-        documentId: "",
         elementIds: payload.elementIds,
       },
     );
@@ -79,10 +78,8 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
 
     const [ctxArg, inputArg] = mockPipeline.mock.calls[0];
     expect(ctxArg).toEqual({ db: fakeDb });
-    // documentId is always empty string in Phase 3 (no longer in element:created event)
     expect(inputArg).toEqual({
       projectId: payload.projectId,
-      documentId: "",
       elementIds: payload.elementIds,
     });
   });

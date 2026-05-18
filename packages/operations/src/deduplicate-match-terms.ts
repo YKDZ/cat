@@ -12,7 +12,7 @@ export const DeduplicateAndMatchInputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       source: z.enum(["statistical", "llm", "both"]).default("statistical"),
       occurrences: z.array(
         z.object({
@@ -34,7 +34,7 @@ export const DeduplicateAndMatchOutputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       source: z.enum(["statistical", "llm", "both"]),
       existsInGlossary: z.boolean(),
       existingConceptId: z.int().nullable(),
@@ -136,7 +136,7 @@ export const deduplicateAndMatchOp = async (
       posPattern: candidate.posPattern,
       confidence: candidate.confidence,
       frequency: candidate.frequency,
-      documentFrequency: candidate.documentFrequency,
+      elementFrequency: candidate.elementFrequency,
       source: candidate.source,
       existsInGlossary: existingConceptId !== null,
       existingConceptId,

@@ -27,7 +27,6 @@ export const AutoTranslateInputSchema = z.object({
   memoryVectorStorageId: z.int(),
   translationVectorStorageId: z.int(),
   vectorizerId: z.int(),
-  documentId: z.uuidv4(),
 });
 
 export const AutoTranslateOutputSchema = z.object({
@@ -103,7 +102,6 @@ export const autoTranslateOp = async (
       translatorId: data.translatorId,
       vectorizerId: data.vectorizerId,
       vectorStorageId: data.translationVectorStorageId,
-      documentId: data.documentId,
     },
     { traceId },
   );

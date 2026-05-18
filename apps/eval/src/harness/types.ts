@@ -11,7 +11,7 @@ export type HarnessContext = {
   glossaryId: string | undefined;
   memoryId: string | undefined;
   agentDefinitionId: string | undefined;
-  documentId: string | undefined;
+  contentNodeId: string | undefined;
   db: DrizzleDB;
   userId: string;
 };

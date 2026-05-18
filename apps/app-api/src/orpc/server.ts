@@ -138,12 +138,6 @@ export const checkContentNodePermission = (relation: Relation) => {
 };
 
 /**
- * 路由词汇别名：checkDocumentPermission → checkContentNodePermission
- * 仅在路由命名仍使用 "document" 词汇时使用。不调用任何 Document 查询。
- */
-export const checkDocumentPermission = checkContentNodePermission;
-
-/**
  * 检查 Element 权限（通过 translatableElement.projectId 直接传递）。
  * 输入：elementId (number)
  *
@@ -211,41 +205,6 @@ export const requirePermission = (
     const allowed = await engine.check(
       context.auth,
       { type: objectType, id: getObjectId(input) },
-      relation,
-    );
-    if (!allowed) throw new ORPCError("FORBIDDEN");
-    return await next({
-      context: {
-        user: context.user,
-        sessionId: context.sessionId,
-        auth: context.auth,
-      },
-    });
-  });
-
-/**
- * @deprecated 使用 checkDocumentPermission 配合 .use() 替代
- * Document 权限检查中间件工厂。
- */
-// oxlint-disable-next-line explicit-module-boundary-types
-export const requireDocumentPermission = (
-  relation: Relation,
-  getDocumentId: (input: unknown) => string,
-) =>
-  authed.use(async ({ context, next }, input) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const contentNodeId = getDocumentId(input);
-
-    const node = await getContentNode({ db: drizzle }, { id: contentNodeId });
-    if (!node)
-      throw new ORPCError("NOT_FOUND", { message: "Content node not found" });
-
-    const engine = getPermissionEngine();
-    const allowed = await engine.check(
-      context.auth,
-      { type: "project", id: node.projectId },
       relation,
     );
     if (!allowed) throw new ORPCError("FORBIDDEN");

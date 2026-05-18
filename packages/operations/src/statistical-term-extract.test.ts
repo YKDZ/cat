@@ -77,7 +77,7 @@ describe("statisticalTermExtractOp", () => {
         languageId: "en",
         config: {
           maxTermTokens: 3,
-          minDocFreq: 1,
+          minElementFrequency: 1,
           minTermLength: 2,
           tfIdfThreshold: 0,
           tfidfWeight: 0.6,
@@ -104,7 +104,7 @@ describe("statisticalTermExtractOp", () => {
         languageId: "en",
         config: {
           maxTermTokens: 3,
-          minDocFreq: 1,
+          minElementFrequency: 1,
           minTermLength: 2,
           tfIdfThreshold: 0,
           tfidfWeight: 0.6,

@@ -37,10 +37,10 @@ const props = defineProps<{
     languageId: string;
   };
   /**
-   * @zh 兼容性命名：当前元素主内容节点 ID。
-   * @en Compatibility name: the current element primary content-node ID.
+   * @zh 当前元素主内容节点 ID。
+   * @en Primary content-node ID of the current element.
    */
-  documentId?: string;
+  contentNodeId?: string;
 }>();
 
 const { t } = useI18n();
@@ -60,7 +60,7 @@ const IssueSchema = z.object({
 type Issue = z.infer<typeof IssueSchema>;
 
 const update = async () => {
-  if (!props.documentId) return;
+  if (!props.contentNodeId) return;
 
   if (cancel) {
     await cancel();
@@ -72,7 +72,7 @@ const update = async () => {
     ws.qa.check({
       source: props.source,
       translation: props.translation,
-      documentId: props.documentId,
+      contentNodeId: props.contentNodeId,
     }),
     {
       onEvent: (issue) => {
@@ -120,7 +120,7 @@ const primaryStatus = computed(() => {
 });
 
 watch(
-  () => [props.source, props.translation, props.documentId],
+  () => [props.source, props.translation, props.contentNodeId],
   () => {
     void update();
   },

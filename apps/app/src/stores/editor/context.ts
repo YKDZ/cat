@@ -125,8 +125,6 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     contentNodeFilters,
     activeContentNodeId,
     contentNodeId: activeContentNodeId,
-    documentId: activeContentNodeId,
-    document: project,
     setScope,
     clearContentNodeFilter,
     setContentNodeFilters,

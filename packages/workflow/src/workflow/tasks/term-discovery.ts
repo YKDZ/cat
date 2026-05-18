@@ -4,6 +4,7 @@ import {
   loadElementTextsOp,
   statisticalTermExtractOp,
 } from "@cat/operations";
+import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "@/graph/dsl";
@@ -16,8 +17,8 @@ export const TermDiscoveryConfigSchema = z.object({
       enabled: z.boolean().default(true),
       /** Maximum number of tokens in a candidate term (N-gram max N) */
       maxTermTokens: z.int().min(1).max(10).default(5),
-      /** Minimum document frequency (must appear in at least N elements) */
-      minDocFreq: z.int().min(1).default(2),
+      /** Minimum element frequency (must appear in at least N elements) */
+      minElementFrequency: z.int().min(1).default(2),
       /** Minimum character length of a candidate term */
       minTermLength: z.int().min(1).default(2),
       /** TF-IDF + C-value combined confidence threshold (0-1) */
@@ -46,11 +47,7 @@ export const TermDiscoveryConfigSchema = z.object({
     .optional(),
 });
 
-export const TermDiscoveryInputSchema = z.object({
-  /** Document IDs — all elements within these documents are included */
-  documentIds: z.array(z.uuidv4()).optional(),
-  /** Or specify element IDs directly */
-  elementIds: z.array(z.int()).optional(),
+export const TermDiscoveryInputSchema = OperationScopeSchema.extend({
   /** Target glossary for dedup comparison */
   glossaryId: z.uuidv4(),
   /** Source language of the elements */
@@ -75,7 +72,7 @@ export const TermDiscoveryCandidateSchema = z.object({
   /** Total occurrences across all elements */
   frequency: z.int(),
   /** Number of distinct elements containing this candidate */
-  documentFrequency: z.int(),
+  elementFrequency: z.int(),
   /** Which strategy produced this candidate */
   source: z.enum(["statistical", "llm", "both"]),
   /** POS pattern of the candidate (UPOS tags, null when from LLM-only) */
@@ -149,7 +146,7 @@ const StatExtractOutputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       occurrences: z.array(
         z.object({
           elementId: z.int(),
@@ -169,7 +166,7 @@ const DedupMatchInputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       occurrences: z.array(
         z.object({
           elementId: z.int(),
@@ -190,7 +187,7 @@ const DedupMatchOutputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       source: z.enum(["statistical", "llm", "both"]),
       existsInGlossary: z.boolean(),
       existingConceptId: z.int().nullable(),
@@ -212,7 +209,7 @@ const LlmEnhanceInputSchema = z.object({
       posPattern: z.array(z.string()),
       confidence: z.number().min(0).max(1),
       frequency: z.int(),
-      documentFrequency: z.int(),
+      elementFrequency: z.int(),
       source: z.enum(["statistical", "llm", "both"]),
       existsInGlossary: z.boolean(),
       existingConceptId: z.int().nullable(),
@@ -256,7 +253,9 @@ export const termDiscoveryGraph = defineGraph({
         const opCtx = { traceId: ctx.runId, signal: ctx.signal };
         const { elements } = await loadElementTextsOp(
           {
-            documentIds: input.documentIds,
+            projectId: input.projectId,
+            branchId: input.branchId,
+            contentNodeIds: input.contentNodeIds,
             elementIds: input.elementIds,
             sourceLanguageId: input.sourceLanguageId,
           },
@@ -294,7 +293,7 @@ export const termDiscoveryGraph = defineGraph({
             nlpSegmenterId: input.nlpSegmenterId,
             config: {
               maxTermTokens: statConfig?.maxTermTokens ?? 5,
-              minDocFreq: statConfig?.minDocFreq ?? 2,
+              minElementFrequency: statConfig?.minElementFrequency ?? 2,
               minTermLength: statConfig?.minTermLength ?? 2,
               tfIdfThreshold: statConfig?.tfIdfThreshold ?? 0.05,
               tfidfWeight: statConfig?.tfidfWeight ?? 0.6,
@@ -390,7 +389,7 @@ export const termDiscoveryGraph = defineGraph({
           normalizedText: c.normalizedText,
           confidence: c.confidence,
           frequency: c.frequency,
-          documentFrequency: c.documentFrequency,
+          elementFrequency: c.elementFrequency,
           source: c.source,
           posPattern: c.posPattern.length > 0 ? c.posPattern : null,
           definition: c.definition ?? null,

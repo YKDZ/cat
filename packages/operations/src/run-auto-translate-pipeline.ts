@@ -17,7 +17,6 @@ import { findOrCreateAutoTranslatePR } from "./find-or-create-auto-translate-pr"
 
 export interface RunAutoTranslatePipelineInput {
   projectId: string;
-  documentId: string;
   elementIds: number[];
 }
 
@@ -31,7 +30,7 @@ export const runAutoTranslatePipeline = async (
   input: RunAutoTranslatePipelineInput,
 ): Promise<void> => {
   const { db } = ctx;
-  const { projectId, documentId, elementIds } = input;
+  const { projectId, elementIds } = input;
 
   if (elementIds.length === 0) return;
 
@@ -133,6 +132,4 @@ export const runAutoTranslatePipeline = async (
       }
     }),
   );
-
-  void documentId; // referenced by input for future use (e.g., filtering by document)
 };

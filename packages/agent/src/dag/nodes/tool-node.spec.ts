@@ -45,7 +45,6 @@ describe("runToolNode", () => {
         projectId: "project-1",
         sessionMetadata: {
           providerId: 123,
-          documentId: "11111111-1111-4111-8111-111111111111",
           branchId: 42,
           contentNodeIds: [
             "22222222-2222-4222-8222-222222222222",
@@ -76,7 +75,6 @@ describe("runToolNode", () => {
       projectId: "project-1",
       runId: "run-1",
       providerId: 123,
-      documentId: "11111111-1111-4111-8111-111111111111",
       branchId: 42,
       contentNodeIds: [
         "22222222-2222-4222-8222-222222222222",

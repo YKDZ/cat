@@ -1,5 +1,5 @@
 {
-  "documentName": "e2e-test.json",
+  "contentNodeLabel": "e2e-test.json",
   "elements": [
     {
       "ref": "el:001",

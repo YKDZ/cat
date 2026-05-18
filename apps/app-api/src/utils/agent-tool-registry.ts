@@ -4,12 +4,12 @@ import type { AgentToolProviderToolDef } from "@cat/plugin-core";
 import { ToolRegistry, type AgentToolDefinition } from "@cat/agent";
 import {
   finishTool,
-  getDocumentsTool,
   getNeighborsTool,
   getTranslationsTool,
   issueClaimTool,
   issueCreateTool,
   issueListTool,
+  listContentNodesTool,
   listElementsTool,
   prCreateTool,
   prUpdateTool,
@@ -58,7 +58,7 @@ export const createAgentToolRegistry = (
     finishTool,
     readPrecheckTool,
     updateScratchpadTool,
-    getDocumentsTool,
+    listContentNodesTool,
     searchTmTool,
     searchTermbaseTool,
     qaCheckTool,

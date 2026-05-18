@@ -52,8 +52,6 @@ export type DevSeedResult = {
   projectId: string;
   glossaryId: string | undefined;
   memoryId: string | undefined;
-  /** @deprecated Use contentNodeId instead */
-  documentId: string | undefined;
   contentNodeId: string | undefined;
   bootstrapReportPath?: string;
   bootstrap?: {
@@ -299,7 +297,6 @@ export const runSeedPipeline = async (
     projectId: project.id,
     creatorId,
   });
-  refs.set("document:root", rootNode.id);
   refs.set("content-node:root", rootNode.id);
 
   await executeCommand(execCtx, addProjectTargetLanguages, {
@@ -340,7 +337,8 @@ export const runSeedPipeline = async (
     }
   }
 
-  const elementsDocName = elementsSeed?.documentName ?? "document";
+  const elementsContentNodeLabel =
+    elementsSeed?.contentNodeLabel ?? "content-node";
   const elementsNode = await executeCommand(
     execCtx,
     createContentNodeUnderParent,
@@ -349,16 +347,15 @@ export const runSeedPipeline = async (
       creatorId,
       parentContentNodeId: rootNode.id,
       kind: "FILE",
-      displayLabel: elementsDocName,
+      displayLabel: elementsContentNodeLabel,
       importerId: "seed",
       sourceRootRef: `project:${project.id}`,
-      stableSourceNodeRef: elementsDocName,
+      stableSourceNodeRef: elementsContentNodeLabel,
       exportRole: "FILE",
       boundaryType: "FILE",
       localOrder: 0,
     },
   );
-  refs.set("document:elements", elementsNode.id);
   refs.set("content-node:elements", elementsNode.id);
 
   // ── 8. Scoped plugin overrides ──────────────────────────────────────
@@ -592,7 +589,6 @@ export const runSeedPipeline = async (
     projectId: project.id,
     glossaryId,
     memoryId,
-    documentId: rootNode.id,
     contentNodeId: elementsNode.id,
     bootstrapReportPath,
     bootstrap: bootstrapResult,

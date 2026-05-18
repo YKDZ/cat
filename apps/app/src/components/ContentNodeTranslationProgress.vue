@@ -17,15 +17,27 @@ import ProgressBar from "./progress/bar/ProgressBar.vue";
 
 const { t } = useI18n();
 
+/**
+ * @zh 内容节点翻译进度属性。
+ * @en Props for the content-node translation progress component.
+ */
 const props = defineProps<{
-  document: Pick<ContentNode, "id" | "projectId">;
+  /**
+   * @zh 当前内容节点。
+   * @en Current content node.
+   */
+  contentNode: Pick<ContentNode, "id" | "projectId">;
+  /**
+   * @zh 目标语言。
+   * @en Target language.
+   */
   language: Pick<Language, "id">;
 }>();
 
 const baseScope = computed(() => ({
-  projectId: props.document.projectId,
+  projectId: props.contentNode.projectId,
   languageToId: props.language.id,
-  contentNodeIds: [props.document.id],
+  contentNodeIds: [props.contentNode.id],
   searchQuery: "",
   statusFilter: "all" as const,
   page: 1,

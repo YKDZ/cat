@@ -50,22 +50,21 @@ export const useEditorTranslationStore = defineStore(
 
     let abortController: AbortController | null = null;
     watch(
-      () => context.documentId.value,
-      async (documentId) => {
+      () => context.scope.value,
+      async (scope) => {
         if (abortController) {
           abortController.abort();
           abortController = null;
         }
 
-        if (!documentId || import.meta.env.SSR) return;
+        if (!scope || import.meta.env.SSR) return;
 
         abortController = new AbortController();
 
         try {
-          const stream = await orpc.translation.onCreate(
-            { documentId },
-            { signal: abortController.signal },
-          );
+          const stream = await orpc.translation.onCreate(scope, {
+            signal: abortController.signal,
+          });
 
           for await (const translation of stream) {
             elementStore.setElementPending(

@@ -1,10 +1,8 @@
+import type { JSONType } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 
 import {
-  countEditorScopeElements,
-  countContentNodeTranslations,
   createContentNodeUnderParent,
-  deleteContentNode,
   ensureCoreRelationTypes,
   executeCommand,
   executeQuery,
@@ -12,12 +10,8 @@ import {
   getActiveFileName,
   getContentNode,
   getContentNodeBlobInfo,
-  getContentNodeElementPageIndex,
-  getEditorScopeFirstElement,
-  getElementTranslationStatus as getElementTranslationStatusQuery,
   getProject,
   getProjectRootContentNode,
-  listEditorScopeElements,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import {
@@ -27,18 +21,11 @@ import {
   getServiceFromDBId,
   preparePresignedPutFile,
 } from "@cat/server-shared";
-import {
-  ContentNodeSchema,
-  ElementTranslationStatusSchema,
-  FileMetaSchema,
-  type JSONType,
-  TranslatableElementSchema,
-} from "@cat/shared";
+import { FileMetaSchema, type ContentNode } from "@cat/shared";
 import { sanitizeFileName } from "@cat/shared";
 import {
   EditorOverlayContentNodeRowSchema,
   EditorOverlayContentRelationRowSchema,
-  readWithOverlay,
 } from "@cat/vcs";
 import { runGraph, upsertContentNodeGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
@@ -49,8 +36,7 @@ import * as z from "zod";
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import {
   authed,
-  checkDocumentPermission,
-  checkElementPermission,
+  checkContentNodePermission,
   checkPermission,
 } from "@/orpc/server";
 import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
@@ -58,6 +44,37 @@ import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
 const toJSONType = (value: unknown): JSONType =>
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- VCS payloads must cross a JSON serialization boundary before being stored in changesets
   JSON.parse(JSON.stringify(value)) as JSONType;
+
+const assertFileCapability = (node: {
+  id: string;
+  fileId: number | null;
+  fileHandlerId: number | null;
+  exportRole: string | null;
+  boundaryType: string | null;
+}) => {
+  if (node.fileId === null || node.fileHandlerId === null) {
+    throw new ORPCError("BAD_REQUEST", {
+      message: `Content node ${node.id} does not support file operations`,
+    });
+  }
+};
+
+const getRequiredContentNode = async (
+  drizzle: Parameters<typeof executeQuery>[0]["db"],
+  contentNodeId: string,
+): Promise<ContentNode> => {
+  const node = await executeQuery({ db: drizzle }, getContentNode, {
+    id: contentNodeId,
+  });
+
+  if (!node) {
+    throw new ORPCError("NOT_FOUND", {
+      message: `Content node ${contentNodeId} not found`,
+    });
+  }
+
+  return node;
+};
 
 export const prepareCreateFromFile = authed
   .input(
@@ -80,16 +97,16 @@ export const prepareCreateFromFile = authed
     } = context;
     const { meta } = input;
 
-    // TODO 配置 storage
     const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
 
-    if (!storage)
+    if (!storage) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: `No storage provider found`,
+        message: "No storage provider found",
       });
+    }
 
     const name = sanitizeFileName(meta.name);
-    const key = join("documents", randomUUID() + name);
+    const key = join("files", randomUUID() + name);
 
     const { url, putSessionId, fileId } = await preparePresignedPutFile(
       drizzle,
@@ -100,11 +117,7 @@ export const prepareCreateFromFile = authed
       name,
     );
 
-    return {
-      url,
-      putSessionId,
-      fileId,
-    };
+    return { url, putSessionId, fileId };
   });
 
 export const finishCreateFromFile = authed
@@ -170,12 +183,13 @@ export const finishCreateFromFile = authed
       .getServices("FILE_IMPORTER")
       .find(({ service }) => service.canImport({ name: fileName }));
 
-    if (!service)
+    if (!service) {
       throw new ORPCError("NOT_FOUND", {
         message: "No suitable file handler found for this file",
       });
+    }
 
-    // Isolation write: record document creation in branch changeset
+    // Isolation write: record file content-node creation in branch changeset
     if (
       context.branchId !== undefined &&
       context.branchChangesetId !== undefined
@@ -215,6 +229,7 @@ export const finishCreateFromFile = authed
       const timestamp = new Date().toISOString();
       const entityId = randomUUID();
       const relationId = randomUUID();
+
       await middleware.interceptWrite(
         {
           mode: "isolation",
@@ -253,6 +268,7 @@ export const finishCreateFromFile = authed
         ),
         async () => undefined,
       );
+
       await middleware.interceptWrite(
         {
           mode: "isolation",
@@ -288,10 +304,10 @@ export const finishCreateFromFile = authed
         ),
         async () => undefined,
       );
+
       return;
     }
 
-    // 名称相同则视为重复节点
     const existingNode = await executeQuery(
       { db: drizzle },
       findProjectContentNodeByLabel,
@@ -367,309 +383,13 @@ export const finishCreateFromFile = authed
     );
   });
 
-export const get = authed
-  .input(z.object({ documentId: z.uuidv4(), branchId: z.int().optional() }))
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
-  .output(ContentNodeSchema.nullable())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { documentId } = input;
-
-    if (context.branchId !== undefined) {
-      const overlayEntry = await readWithOverlay<
-        z.infer<typeof ContentNodeSchema>
-      >(drizzle, context.branchId, "content_node", documentId);
-      if (overlayEntry !== null) {
-        if (overlayEntry.action === "DELETE") return null;
-        return overlayEntry.data;
-      }
-    }
-
-    return await executeQuery({ db: drizzle }, getContentNode, {
-      id: documentId,
-    });
-  });
-
-const legacyStatusFilter = (input: {
-  isTranslated?: boolean;
-  isApproved?: boolean;
-}) => {
-  if (input.isTranslated === false) return "untranslated" as const;
-  if (input.isTranslated === true && input.isApproved === false) {
-    return "unapproved" as const;
-  }
-  if (input.isApproved === true) return "approved" as const;
-  if (input.isTranslated === true) return "translated" as const;
-  return "all" as const;
-};
-
-const resolveLegacyDocumentScope = async (
-  drizzle: Parameters<typeof executeQuery>[0]["db"],
-  input: {
-    documentId: string;
-    languageId?: string;
-    searchQuery?: string;
-    isTranslated?: boolean;
-    isApproved?: boolean;
-    branchId?: number;
-  },
-) => {
-  const node = await executeQuery({ db: drizzle }, getContentNode, {
-    id: input.documentId,
-  });
-
-  if (!node) {
-    throw new ORPCError("NOT_FOUND", {
-      message: `Content node ${input.documentId} not found`,
-    });
-  }
-
-  return {
-    projectId: node.projectId,
-    languageToId: input.languageId ?? "",
-    branchId: input.branchId,
-    contentNodeIds: [input.documentId],
-    searchQuery: input.searchQuery ?? "",
-    statusFilter: legacyStatusFilter(input),
-    page: 1,
-    pageSize: 16,
-  };
-};
-
-export const countElement = authed
+export const getUrl = authed
   .input(
     z.object({
-      documentId: z.uuidv4(),
-      searchQuery: z.string().default(""),
-      isApproved: z.boolean().optional(),
-      isTranslated: z.boolean().optional(),
-      languageId: z.string().optional(),
+      contentNodeId: z.uuidv4(),
     }),
   )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
-  .output(z.int().min(0))
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const scope = await resolveLegacyDocumentScope(drizzle, input);
-    return await executeQuery({ db: drizzle }, countEditorScopeElements, scope);
-  });
-
-export const getFirstElement = authed
-  .input(
-    z.object({
-      documentId: z.uuidv4(),
-      searchQuery: z.string().default(""),
-      greaterThan: z.int().optional(),
-      afterElementId: z.int().optional(),
-      isApproved: z.boolean().optional(),
-      isTranslated: z.boolean().optional(),
-      languageId: z.string().optional(),
-    }),
-  )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
-  .output(TranslatableElementSchema.nullable())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const scope = await resolveLegacyDocumentScope(drizzle, input);
-    return await executeQuery({ db: drizzle }, getEditorScopeFirstElement, {
-      ...scope,
-      afterElementId: input.afterElementId ?? input.greaterThan,
-    });
-  });
-
-export const exportTranslatedFile = authed
-  .input(
-    z.object({
-      documentId: z.uuidv4(),
-      languageId: z.string(),
-    }),
-  )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
-  .output(z.void())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const { documentId } = input;
-
-    const node = await executeQuery({ db: drizzle }, getContentNode, {
-      id: documentId,
-    });
-
-    if (!node) {
-      throw new ORPCError("NOT_FOUND", {
-        message: `Document ${documentId} not found`,
-      });
-    }
-
-    if (!node.fileId || !node.fileHandlerId)
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "指定文档不是基于文件的",
-      });
-
-    // TODO 导出文件
-  });
-
-export const getElementTranslationStatus = authed
-  .input(
-    z.object({
-      elementId: z.int(),
-      languageId: z.string(),
-    }),
-  )
-  .use(checkElementPermission("viewer"), (i) => i.elementId)
-  .output(ElementTranslationStatusSchema)
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    return await executeQuery(
-      { db: drizzle },
-      getElementTranslationStatusQuery,
-      input,
-    );
-  });
-export const getElements = authed
-  .input(
-    z.object({
-      documentId: z.string(),
-      page: z.int().default(0),
-      pageSize: z.int().default(16),
-      searchQuery: z.string().default(""),
-      isApproved: z.boolean().optional(),
-      isTranslated: z.boolean().optional(),
-      languageId: z.string().optional(),
-      branchId: z.int().optional(),
-    }),
-  )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
-  .output(
-    z.array(
-      TranslatableElementSchema.extend({
-        value: z.string(),
-        languageId: z.string(),
-        status: ElementTranslationStatusSchema,
-      }),
-    ),
-  )
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const scope = await resolveLegacyDocumentScope(drizzle, {
-      ...input,
-      branchId: context.branchId,
-    });
-    return await executeQuery({ db: drizzle }, listEditorScopeElements, {
-      ...scope,
-      page: input.page,
-      pageSize: input.pageSize,
-    });
-  });
-
-/**
- * @deprecated
- * @zh 该接口缺少 `documentId`/`contentNodeIds` 作用域输入，无法表达项目级编辑器范围；请改用 `orpc.editor.getElementPageIndex`。
- * @en This endpoint lacks `documentId`/`contentNodeIds` scope input and cannot represent project-level editor scopes; use `orpc.editor.getElementPageIndex` instead.
- */
-export const getPageIndexOfElement = authed
-  .input(
-    z.object({
-      elementId: z.int(),
-      pageSize: z.int().default(16),
-      searchQuery: z.string().default(""),
-      isApproved: z.boolean().optional(),
-      isTranslated: z.boolean().optional(),
-      languageId: z.string().optional(),
-    }),
-  )
-  .use(checkElementPermission("viewer"), (i) => i.elementId)
-  .output(z.int())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-
-    const { isApproved, isTranslated } = input;
-
-    if (isApproved !== undefined && isTranslated !== true) {
-      throw new ORPCError("BAD_REQUEST", {
-        message: "isTranslated must be true when isApproved is set",
-      });
-    }
-
-    return await executeQuery(
-      { db: drizzle },
-      getContentNodeElementPageIndex,
-      input,
-    );
-  });
-
-export const del = authed
-  .input(
-    z.object({
-      id: z.uuidv4(),
-      branchId: z.int().optional(),
-    }),
-  )
-  .use(checkDocumentPermission("editor"), (i) => i.id)
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
-  .output(z.void())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-
-    if (
-      context.branchId !== undefined &&
-      context.branchChangesetId !== undefined
-    ) {
-      if (context.branchProjectId === undefined) {
-        throw new Error(
-          "branchProjectId missing when branch context is active",
-        );
-      }
-      const { middleware } = createVCSRouteHelper(drizzle);
-      const currentNode = await executeQuery({ db: drizzle }, getContentNode, {
-        id: input.id,
-      });
-      await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
-        "content_node",
-        input.id,
-        "DELETE",
-        currentNode,
-        null,
-        async () => undefined,
-      );
-      return;
-    }
-
-    await executeCommand({ db: drizzle }, deleteContentNode, {
-      contentNodeId: input.id,
-    });
-  });
-
-export const getDocumentFileUrl = authed
-  .input(
-    z.object({
-      documentId: z.uuidv4(),
-    }),
-  )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+  .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
   .output(z.string().nullable())
   .handler(async ({ context, input }) => {
     const {
@@ -677,18 +397,17 @@ export const getDocumentFileUrl = authed
       sessionStore,
       pluginManager,
     } = context;
-    const { documentId } = input;
+
+    const node = await getRequiredContentNode(drizzle, input.contentNodeId);
+    assertFileCapability(node);
 
     const result = await executeQuery({ db: drizzle }, getContentNodeBlobInfo, {
-      contentNodeId: documentId,
+      contentNodeId: input.contentNodeId,
     });
 
-    if (!result) {
-      return null;
-    }
+    if (!result) return null;
 
     const { key, storageProviderId } = result;
-
     if (!key || !storageProviderId) return null;
 
     const provider = getServiceFromDBId<StorageProvider>(
@@ -696,22 +415,16 @@ export const getDocumentFileUrl = authed
       storageProviderId,
     );
 
-    return await getDownloadUrl(
-      sessionStore,
-      provider,
-      storageProviderId,
-      key,
-      120,
-    );
+    return getDownloadUrl(sessionStore, provider, storageProviderId, key, 120);
   });
 
-export const getDocumentFileInfo = authed
+export const getInfo = authed
   .input(
     z.object({
-      documentId: z.uuidv4(),
+      contentNodeId: z.uuidv4(),
     }),
   )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+  .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
   .output(
     z
       .object({
@@ -725,10 +438,12 @@ export const getDocumentFileInfo = authed
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { documentId } = input;
+
+    const node = await getRequiredContentNode(drizzle, input.contentNodeId);
+    assertFileCapability(node);
 
     const result = await executeQuery({ db: drizzle }, getContentNodeBlobInfo, {
-      contentNodeId: documentId,
+      contentNodeId: input.contentNodeId,
     });
 
     if (!result || !result.key || !result.storageProviderId) {
@@ -738,27 +453,29 @@ export const getDocumentFileInfo = authed
     return {
       key: result.key,
       storageProviderId: result.storageProviderId,
-      fileName: result.fileName || documentId,
+      fileName: result.fileName || node.displayLabel,
     };
   });
 
-export const countTranslation = authed
+export const exportTranslated = authed
   .input(
     z.object({
-      documentId: z.uuidv4(),
+      contentNodeId: z.uuidv4(),
       languageId: z.string(),
-      isApproved: z.boolean().optional(),
     }),
   )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
-  .output(z.int().min(0))
+  .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
+  .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    return await executeQuery({ db: drizzle }, countContentNodeTranslations, {
-      contentNodeId: input.documentId,
-      languageId: input.languageId,
-      isApproved: input.isApproved,
-    });
+
+    const node = await getRequiredContentNode(drizzle, input.contentNodeId);
+    assertFileCapability(node);
+
+    void input.languageId;
+    void node;
+
+    // TODO 导出文件
   });

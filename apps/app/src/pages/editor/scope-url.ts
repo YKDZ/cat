@@ -116,26 +116,3 @@ export const buildEditorHref = (
 
   return suffix ? `${path}?${suffix}` : path;
 };
-
-/**
- * @zh 为 legacy document editor route 构建兼容链接。
- * @en Build a compatibility href for the legacy document editor route.
- *
- * @param input - {@zh 旧路由输入} {@en Legacy route input}
- * @returns - {@zh 旧路由链接} {@en Legacy route href}
- */
-export const buildLegacyDocumentEditorHref = (input: {
-  documentId: string;
-  languageToId: string;
-  target: EditorElementRouteTarget;
-  branchId?: number;
-}): string => {
-  const params = new URLSearchParams();
-  if (input.branchId !== undefined) {
-    params.set("branchId", String(input.branchId));
-  }
-  const suffix = params.toString();
-  const path = `/editor/${input.documentId}/${input.languageToId}/${input.target}`;
-
-  return suffix ? `${path}?${suffix}` : path;
-};

@@ -42,9 +42,9 @@ const items = computed(() => {
       href: `/project/${props.project.id}`,
     },
     {
-      title: t("文档"),
+      title: t("内容节点"),
       icon: Book,
-      href: `/project/${props.project.id}/documents`,
+      href: `/project/${props.project.id}/content-nodes`,
     },
     {
       title: t("记忆"),

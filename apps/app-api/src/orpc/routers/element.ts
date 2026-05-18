@@ -2,9 +2,11 @@ import {
   executeQuery,
   getElementContexts,
   getElementSourceLocation,
+  getElementTranslationStatus as getElementTranslationStatusQuery,
 } from "@cat/domain";
 import { StorageProvider } from "@cat/plugin-core";
 import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
+import { ElementTranslationStatusSchema } from "@cat/shared";
 import { FlattenedContextEvidenceSchema } from "@cat/shared";
 import { safeZDotJson } from "@cat/shared";
 import * as z from "zod";
@@ -88,4 +90,25 @@ export const getSourceLocation = authed
       sourceLocationMeta: row.sourceLocationMeta ?? null,
       fileHandlerId: row.fileHandlerId ?? null,
     };
+  });
+
+export const getTranslationStatus = authed
+  .input(
+    z.object({
+      elementId: z.int(),
+      languageId: z.string(),
+    }),
+  )
+  .use(checkElementPermission("viewer"), (i) => i.elementId)
+  .output(ElementTranslationStatusSchema)
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+
+    return executeQuery(
+      { db: drizzle },
+      getElementTranslationStatusQuery,
+      input,
+    );
   });

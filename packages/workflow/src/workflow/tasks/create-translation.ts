@@ -1,4 +1,10 @@
-import { createTranslations, executeCommand, getDbHandle } from "@cat/domain";
+import {
+  createTranslations,
+  executeCommand,
+  executeQuery,
+  getDbHandle,
+  getTranslationCreatedEventContext,
+} from "@cat/domain";
 import { insertMemory } from "@cat/operations";
 import { safeZDotJson } from "@cat/shared";
 import { zip } from "@cat/shared";
@@ -27,7 +33,6 @@ export const CreateTranslationInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()).default([]),
   vectorizerId: z.int(),
   vectorStorageId: z.int(),
-  documentId: z.uuidv4().optional(),
 });
 
 export const CreateTranslationOutputSchema = z.object({
@@ -36,8 +41,10 @@ export const CreateTranslationOutputSchema = z.object({
 });
 
 export const CreateTranslationPubPayloadSchema = z.object({
-  documentId: z.uuidv4(),
+  projectId: z.uuidv4(),
   translationIds: z.array(z.int()),
+  elementIds: z.array(z.int()),
+  primaryContentNodeIds: z.array(z.uuidv4()),
 });
 
 export type CreateTranslationPubPayload = z.infer<
@@ -101,13 +108,17 @@ export const createTranslationGraph = defineGraph({
             }),
         );
 
-        await ctx.emit({
-          type: "workflow:translation:created",
-          payload: {
-            documentId: input.documentId,
-            translationIds,
-          },
-        });
+        const eventContexts = await executeQuery(
+          { db: translationDb },
+          getTranslationCreatedEventContext,
+          { translationIds },
+        );
+
+        await Promise.all(
+          eventContexts.map(async (payload) =>
+            ctx.emit({ type: "workflow:translation:created", payload }),
+          ),
+        );
 
         let memoryItemIds: number[] = [];
         if (input.memoryIds.length > 0) {

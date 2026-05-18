@@ -335,7 +335,7 @@ export const countElement = authed
     return await executeQuery({ db: drizzle }, countProjectElements, input);
   });
 
-export const getDocuments = authed
+export const listContentNodes = authed
   .input(z.object({ projectId: z.string() }))
   .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .output(

@@ -1,6 +1,10 @@
 import type { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
 
 import {
+  commentDiffStrategy,
+  commentReactionDiffStrategy,
+} from "./strategies/comment.diff.ts";
+import {
   contentNodeDiffStrategy,
   contentRelationDiffStrategy,
   contentRelationTypeDiffStrategy,
@@ -9,10 +13,6 @@ import {
   scopeBindingDiffStrategy,
   semanticDiffEntryDiffStrategy,
 } from "./strategies/content-graph.diff.ts";
-import {
-  commentDiffStrategy,
-  commentReactionDiffStrategy,
-} from "./strategies/document-tree.diff.ts";
 import { elementDiffStrategy } from "./strategies/element.diff.ts";
 import { memoryItemDiffStrategy } from "./strategies/memory-item.diff.ts";
 import {

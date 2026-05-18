@@ -11,7 +11,7 @@ import * as z from "zod";
 
 import type { Query } from "@/types";
 
-import { buildTranslationStatusConditions } from "@/queries/document/build-translation-status-conditions";
+import { buildTranslationStatusConditions } from "@/queries/translation/build-translation-status-conditions";
 
 export const CountProjectElementsQuerySchema = z.object({
   projectId: z.uuidv4(),

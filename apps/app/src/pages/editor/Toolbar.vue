@@ -70,7 +70,7 @@ const handleTranslate = async (toNext: boolean) => {
         </Button>
       </TextTooltip>
 
-      <!-- Compatibility prop name: this value is the current element primary content node ID. -->
+      <!-- 当前值是当前元素的主内容节点 ID，用于 QA 检查范围。 -->
       <CurrentTranslationQaResult
         v-if="element"
         :source="{
@@ -83,7 +83,7 @@ const handleTranslate = async (toNext: boolean) => {
           text: translationValue,
           languageId: element.languageId,
         }"
-        :document-id="qaContentNodeId"
+        :content-node-id="qaContentNodeId"
       />
     </div>
     <div class="flex items-center gap-1">

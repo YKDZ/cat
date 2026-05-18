@@ -53,12 +53,10 @@ export const AgentScopeSchema = z.object({
  * @zh Agent 会话元数据 Schema。
  * @en Agent session metadata schema.
  */
-export const AgentSessionMetadataSchema = z.object({
+export const AgentSessionMetadataSchema = z.strictObject({
   projectId: z.uuidv4().optional(),
   projectName: z.string().optional(),
   providerId: z.int().optional(),
-  /** @deprecated Use contentNodeIds for editor scope; kept for legacy document-scoped sessions. */
-  documentId: z.uuidv4().optional(),
   branchId: z.int().positive().optional(),
   contentNodeIds: z.array(z.uuidv4()).optional(),
   currentElementContentNodeId: z.uuidv4().optional(),

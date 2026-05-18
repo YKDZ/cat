@@ -30,7 +30,6 @@ export const useRegisterClientTools = (): void => {
     contentNodeIds: editorContext.contentNodeIds,
     currentElementContentNodeId:
       editorContext.currentElementContentNodeId ?? null,
-    documentId: editorContext.documentId ?? null,
     scope: editorContext.scope ?? null,
   }));
 

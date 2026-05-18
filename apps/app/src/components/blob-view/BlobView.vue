@@ -12,7 +12,7 @@ import UnsupportedViewer from "./renderers/UnsupportedViewer.vue";
 import { detectFileType } from "./types";
 
 const props = defineProps<{
-  documentId?: string;
+  contentNodeId?: string;
   fileUrl?: string | null;
   fileName: string;
   language?: string;
@@ -48,7 +48,7 @@ const fileSize = computed(() => {
 });
 
 watch(
-  () => [props.documentId, props.fileUrl],
+  () => [props.contentNodeId, props.fileUrl],
   () => {
     totalBytes.value = 0;
   },

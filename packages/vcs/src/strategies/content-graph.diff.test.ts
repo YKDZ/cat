@@ -19,6 +19,8 @@ describe("content graph VCS strategies", () => {
     }
     expect(diffRegistry.has("document")).toBe(false);
     expect(diffRegistry.has("document_tree")).toBe(false);
+    expect(diffRegistry.has("content_node")).toBe(true);
+    expect(diffRegistry.has("content_relation")).toBe(true);
   });
 
   it("treats primary relation order changes as cascading", () => {

@@ -12,14 +12,16 @@ export class EditorPage {
    */
 
   /**
-   * Navigate to the editor for a specific document and target language.
-   * Uses the `/auto` route which redirects to the first untranslated element.
+   * Navigate to the canonical editor route for a single content node.
    */
-  async navigateToEditor(
-    documentId: string,
-    languageToId: string,
-  ): Promise<void> {
-    await this.page.goto(`/editor/${documentId}/${languageToId}/auto`);
+  async navigateToEditor(input: {
+    projectId: string;
+    languageToId: string;
+    contentNodeId: string;
+  }): Promise<void> {
+    await this.page.goto(
+      `/editor/project/${input.projectId}/${input.languageToId}/auto?nodes=${input.contentNodeId}`,
+    );
     await this.waitForEditorReady();
   }
 
@@ -55,17 +57,16 @@ export class EditorPage {
 
   /**
    * Navigate to editor from project dashboard.
-   * DocumentTreeNode rows are clickable (entire row, no separate "编辑" button).
-   * Clicking a document row triggers `handleEdit` → `navigate('/editor/...')`.
+   * Content-node rows are clickable (entire row, no separate "编辑" button).
+   * Clicking a content-node row triggers `handleEdit` → `navigate('/editor/...')`.
    */
   async navigateFromProject(
     projectId: string,
     languageId: string,
-    documentName: string,
+    contentNodeName: string,
   ): Promise<void> {
     await this.page.goto(`/project/${projectId}/index/${languageId}`);
-    // Click the document row by its name text
-    await this.page.getByText(documentName).first().click();
+    await this.page.getByText(contentNodeName).first().click();
     await this.waitForEditorReady();
   }
 

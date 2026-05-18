@@ -97,13 +97,14 @@ describe("RouteManifestSchema", () => {
       routes: [
         { template: "/project/$ref:project" },
         {
-          template: "/editor/$ref:document:elements/$ref:language:target/empty",
+          template:
+            "/editor/project/$ref:project/$ref:language:target/auto?nodes=$ref:content-node:elements",
           waitAfterLoad: 2000,
         },
       ],
       bindings: {
         project: "a1b2c3d4-0000-0000-0000-000000000001",
-        "document:elements": "42",
+        "content-node:elements": "42",
         "language:target": "67",
       },
     };

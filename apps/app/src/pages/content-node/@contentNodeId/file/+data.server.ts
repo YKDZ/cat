@@ -13,19 +13,20 @@ import { render } from "vike/abort";
 export const data = async (ctx: PageContextServer) => {
   const { client: drizzle } = ctx.globalContext.drizzleDB;
   const { pluginManager } = ctx.globalContext;
-  const { documentId } = ctx.routeParams;
+  const { contentNodeId } = ctx.routeParams;
 
-  if (!documentId) throw render("/", `Document id not provided`);
+  if (!contentNodeId) throw render("/", "Content node id not provided");
 
-  const document = await executeQuery({ db: drizzle }, getContentNode, {
-    id: documentId,
+  const contentNode = await executeQuery({ db: drizzle }, getContentNode, {
+    id: contentNodeId,
   });
 
-  if (!document) throw render("/", `Document ${documentId} not found`);
+  if (!contentNode) {
+    throw render("/", `Content node ${contentNodeId} not found`);
+  }
 
-  // 获取文件信息
   const fileInfo = await executeQuery({ db: drizzle }, getContentNodeBlobInfo, {
-    contentNodeId: documentId,
+    contentNodeId,
   });
 
   let fileUrl: string | null = null;
@@ -63,7 +64,7 @@ export const data = async (ctx: PageContextServer) => {
     );
   }
 
-  return { document, fileInfo: activeFileInfo, fileUrl };
+  return { contentNode, fileInfo: activeFileInfo, fileUrl };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

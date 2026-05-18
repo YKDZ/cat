@@ -10,11 +10,7 @@ import { parseArgs } from "node:util";
 
 import { loadBindings, loadRouteManifest, resolveRoutes } from "./route.ts";
 import { captureScreenshots, collectScreenshots } from "./screenshot.ts";
-import {
-  addImageContexts,
-  uploadCaptureResult,
-  uploadScreenshots,
-} from "./upload.ts";
+import { uploadCaptureResult } from "./upload.ts";
 
 const HELP = `
 screenshot-collector — CAT Screenshot Context Collector
@@ -44,7 +40,6 @@ upload Options:
   --capture <path>              CaptureResult JSON file
   --bindings <path>             Seeder bindings JSON file from --output-bindings
   --project-id <uuid>           Target project ID
-  --document-name <name>        Document name
   --api-url <url>               Platform API URL (default: http://localhost:3000)
   --api-key <key>               API Key (or CAT_API_KEY env var)
 
@@ -53,11 +48,8 @@ collect Options: (legacy, all existing options preserved)
   --routes <path>               Route config file
   --elements <path>             CollectionPayload JSON file
   --output-dir <path>           Screenshot output directory (default: ./screenshots)
-  --project-id <uuid>           Target project ID (required for --upload)
-  --document-name <name>        Document name (required for --upload)
   --api-url <url>               Platform API URL (default: http://localhost:3000)
   --api-key <key>               API Key (or CAT_API_KEY env var)
-  --upload                      Upload screenshots and add contexts
   --headless / --no-headless
 
   -h, --help                    Show help
@@ -201,11 +193,6 @@ async function runUpload(values: Record<string, unknown>): Promise<void> {
     "project-id",
     "Specify the target project ID",
   );
-  const documentName = requireStringOpt(
-    values,
-    "document-name",
-    "Specify the document name",
-  );
 
   const apiKey =
     (typeof values["api-key"] === "string" ? values["api-key"] : null) ??
@@ -232,7 +219,6 @@ async function runUpload(values: Record<string, unknown>): Promise<void> {
     apiUrl,
     apiKey,
     projectId,
-    documentName,
     bindings,
   };
   const result = await uploadCaptureResult(captureResult, uploadOpts);
@@ -317,66 +303,11 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     },
   }));
 
-  // Optionally upload and add contexts
   if (values.upload) {
-    const rawProjectId = values["project-id"];
-    if (typeof rawProjectId !== "string" || !rawProjectId) {
-      console.error(
-        "[ERROR] MISSING_OPTION: --project-id is required when --upload is set.",
-      );
-      process.exit(1);
-    }
-
-    const rawDocumentName = values["document-name"];
-    if (typeof rawDocumentName !== "string" || !rawDocumentName) {
-      console.error(
-        "[ERROR] MISSING_OPTION: --document-name is required when --upload is set.",
-      );
-      process.exit(1);
-    }
-
-    const apiKey =
-      (typeof values["api-key"] === "string" ? values["api-key"] : null) ??
-      process.env["CAT_API_KEY"] ??
-      "";
-
-    if (!apiKey) {
-      console.error(
-        "[ERROR] MISSING_OPTION: --api-key is required when --upload is set.\n" +
-          "  hint: Set --api-key <key> or export CAT_API_KEY=cat_...",
-      );
-      process.exit(1);
-    }
-
-    const apiUrl =
-      typeof values["api-url"] === "string"
-        ? values["api-url"]
-        : "http://localhost:3000";
-
-    const uploadOpts = {
-      apiUrl,
-      apiKey,
-      projectId: rawProjectId,
-      documentName: rawDocumentName,
-    };
-
-    const uploadedContexts = await uploadScreenshots(captured, uploadOpts);
-    const result = await addImageContexts(uploadedContexts, uploadOpts);
-
     console.error(
-      `[INFO] Uploaded ${result.addedCount} IMAGE contexts to platform`,
+      "[ERROR] UNSUPPORTED_OPTION: collect --upload was removed; run capture then upload instead.",
     );
-
-    imageContexts = uploadedContexts.map((uc) => ({
-      elementRef:
-        captured.find((c) => c.element.meta === uc.elementMeta)?.element.ref ??
-        "",
-      type: "IMAGE" as const,
-      data: {
-        fileId: uc.data.fileId,
-        highlightRegion: uc.data.highlightRegion,
-      },
-    }));
+    process.exit(1);
   }
 
   // Output CollectionPayload JSON to stdout (legacy format)
@@ -399,7 +330,6 @@ const main = async () => {
       elements: { type: "string" },
       "output-dir": { type: "string", default: "./screenshots" },
       "project-id": { type: "string" },
-      "document-name": { type: "string" },
       "api-url": { type: "string" },
       "api-key": { type: "string" },
       "strict-min-screenshots": { type: "string" },

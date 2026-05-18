@@ -14,26 +14,27 @@ import {
 } from "@cat/server-shared/plugin";
 import * as z from "zod";
 
-import {
-  assertElementInSession,
-  resolveSessionDocumentId,
-} from "./assert-session-scope.ts";
+import { assertElementInSession } from "./assert-session-scope.ts";
 
-const submitTranslationArgs = z.object({
-  elementId: z
-    .int()
-    .positive()
-    .describe("Translatable element ID to translate"),
-  text: z.string().min(1).describe("Translation text"),
-  languageId: z
-    .string()
-    .optional()
-    .describe("Target language ID (BCP-47). Falls back to session languageId"),
-  createMemory: z
-    .boolean()
-    .default(true)
-    .describe("Whether to save this translation to translation memory"),
-});
+const submitTranslationArgs = z
+  .object({
+    elementId: z
+      .int()
+      .positive()
+      .describe("Translatable element ID to translate"),
+    text: z.string().min(1).describe("Translation text"),
+    languageId: z
+      .string()
+      .optional()
+      .describe(
+        "Target language ID (BCP-47). Falls back to session languageId",
+      ),
+    createMemory: z
+      .boolean()
+      .default(true)
+      .describe("Whether to save this translation to translation memory"),
+  })
+  .strict();
 
 export const submitTranslationTool: AgentToolDefinition = {
   name: "submit_translation",
@@ -103,7 +104,6 @@ export const submitTranslationTool: AgentToolDefinition = {
       memoryIds,
       vectorizerId: vectorizer?.id,
       vectorStorageId: vectorStorage?.id,
-      documentId: resolveSessionDocumentId(ctx),
     });
 
     return {

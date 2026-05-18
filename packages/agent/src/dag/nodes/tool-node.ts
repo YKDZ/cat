@@ -83,8 +83,6 @@ export const runToolNode = async (
       projectId,
       runId,
       providerId: sessionMetadata?.providerId,
-      // oxlint-disable-next-line typescript/no-deprecated -- legacy document-scoped sessions still hydrate documentId during the editor-scope migration
-      documentId: sessionMetadata?.documentId,
       branchId: sessionMetadata?.branchId,
       contentNodeIds: sessionMetadata?.contentNodeIds,
       currentElementContentNodeId: sessionMetadata?.currentElementContentNodeId,

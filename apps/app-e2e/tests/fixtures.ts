@@ -45,7 +45,7 @@ const loadRefs = (): E2ERefs => {
   }
 
   // Validate required refs
-  const required = ["project", "user:admin", "document:elements"];
+  const required = ["project", "user:admin", "content-node:elements"];
   for (const ref of required) {
     if (!_cachedRefs[ref]) {
       throw new Error(

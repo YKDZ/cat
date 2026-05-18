@@ -32,7 +32,7 @@ collect 选项:
   --framework <id>          提取框架：vue-i18n（默认）
   --project-id <uuid>       目标项目 ID
   --source-lang <id>        源语言 ID
-  --document-name <name>    文档名称
+  --source-root-ref <name>  源根引用
   --base-dir <path>         基目录（默认：当前工作目录）
   --output, -o <path>       输出文件路径（默认：stdout）
 
@@ -40,18 +40,18 @@ collect 选项:
 
 示例:
   # 纯粹提取（无需平台参数）
-  source-collector extract \\
-    --glob "src/**/*.{vue,ts}" \\
+  source-collector extract \
+    --glob "src/**/*.{vue,ts}" \
     --framework vue-i18n \
     --source-lang zh-Hans
 
   # 兼容命令（输出 CollectionPayload）
-  source-collector collect \\
-    --glob "src/**/*.{vue,ts}" \\
-    --framework vue-i18n \\
-    --project-id 00000000-0000-0000-0000-000000000001 \\
+  source-collector collect \
+    --glob "src/**/*.{vue,ts}" \
+    --framework vue-i18n \
+    --project-id 00000000-0000-0000-0000-000000000001 \
     --source-lang zh-Hans \
-    --document-name "app-i18n"
+    --source-root-ref "app-i18n"
 `;
 
 const FRAMEWORKS: Record<string, SourceExtractor> = {
@@ -140,7 +140,7 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     process.exit(1);
   }
 
-  const rawSourceRootRef = values["document-name"] ?? baseDir;
+  const rawSourceRootRef = values["source-root-ref"] ?? baseDir;
 
   const result = await extract({
     globs,
@@ -175,7 +175,7 @@ const main = async () => {
       framework: { type: "string", default: "vue-i18n" },
       "project-id": { type: "string" },
       "source-lang": { type: "string" },
-      "document-name": { type: "string" },
+      "source-root-ref": { type: "string" },
       "base-dir": { type: "string" },
       output: { type: "string", short: "o" },
       help: { type: "boolean", short: "h" },

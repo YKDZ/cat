@@ -33,7 +33,7 @@ import Picker from "@/components/picker/Picker.vue";
 import { orpc } from "@/rpc/orpc";
 
 const props = defineProps<{
-  document: Pick<ContentNode, "id">;
+  contentNode: Pick<ContentNode, "id" | "projectId">;
   language: Pick<Language, "id">;
 }>();
 
@@ -48,7 +48,7 @@ const schema = toTypedSchema(
     advisorId: z.int().optional(),
     enableLlmRefine: z.boolean().default(false),
     llmProviderId: z.int().optional(),
-    gatherDocumentContext: z.boolean().default(false),
+    gatherScopeContext: z.boolean().default(false),
   }),
 );
 
@@ -57,7 +57,7 @@ const { handleSubmit, values } = useForm({
   initialValues: {
     minMemorySimilarity: [0.72],
     enableLlmRefine: false,
-    gatherDocumentContext: false,
+    gatherScopeContext: false,
   },
 });
 
@@ -85,8 +85,12 @@ const llmProviderOptions = computed<PickerOption<number>[]>(() => {
 
 const onSubmit = handleSubmit(async (formValues) => {
   const { runId } = await orpc.translation.autoTranslate({
+    scope: {
+      projectId: props.contentNode.projectId,
+      contentNodeIds: [props.contentNode.id],
+      elementIds: [],
+    },
     languageId: props.language.id,
-    documentId: props.document.id,
     advisorId: formValues.advisorId,
     minMemorySimilarity: formValues.minMemorySimilarity[0],
     config: {
@@ -94,7 +98,7 @@ const onSubmit = handleSubmit(async (formValues) => {
         enabled: formValues.enableLlmRefine,
         llmProviderId: formValues.llmProviderId,
       },
-      gatherDocumentContext: formValues.gatherDocumentContext,
+      gatherScopeContext: formValues.gatherScopeContext,
     },
   });
   const projectId = ctx.routeParams?.projectId;
@@ -129,7 +133,7 @@ const { state: llmState } = useQuery({
         <DialogDescription>
           {{
             t(
-              "系统将使用你选择的翻译建议器，以及项目绑定的术语库和记忆库，自动为文档中尚未翻译的内容填充翻译。",
+              "系统将使用你选择的翻译建议器，以及项目绑定的术语库和记忆库，自动为当前内容节点范围中尚未翻译的内容填充翻译。",
             )
           }}
         </DialogDescription>
@@ -173,9 +177,10 @@ const { state: llmState } = useQuery({
           >
             <div class="space-y-0.5">
               <FormLabel>{{ t("启用 LLM 精修") }}</FormLabel>
-              <FormDescription>{{
-                t("使用 LLM 对翻译结果进行术语一致性和风格精修")
-              }}</FormDescription>
+              <FormDescription
+                >{ { t("使用 LLM 对翻译结果进行术语一致性和风格精修") }
+                }</FormDescription
+              >
             </div>
             <FormControl>
               <Switch :checked="value" @update:checked="handleChange" />
@@ -198,18 +203,16 @@ const { state: llmState } = useQuery({
             </FormControl>
           </FormItem>
         </FormField>
-        <FormField
-          v-slot="{ value, handleChange }"
-          name="gatherDocumentContext"
-        >
+        <FormField v-slot="{ value, handleChange }" name="gatherScopeContext">
           <FormItem
             class="flex flex-row items-center justify-between rounded-lg border p-3"
           >
             <div class="space-y-0.5">
-              <FormLabel>{{ t("收集文档上下文") }}</FormLabel>
-              <FormDescription>{{
-                t("收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性")
-              }}</FormDescription>
+              <FormLabel>{{ t("收集范围上下文") }}</FormLabel>
+              <FormDescription
+                >{ { t("收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性") }
+                }</FormDescription
+              >
             </div>
             <FormControl>
               <Switch :checked="value" @update:checked="handleChange" />

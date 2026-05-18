@@ -26,7 +26,7 @@ export type EntityStateFetcher = {
 
 /**
  * @zh 简单 CRUD 应用方法。适用于无异步依赖的实体（project_settings、project_member、
- * project_attributes、context、comment、comment_reaction、document、document_tree、term）。
+ * project_attributes、context、comment、comment_reaction、content_node、content_relation、element、translation、term）。
  * Phase 0b 中为存根实现——仅记录操作并返回 APPLIED。
  * @en Simple CRUD application method for entities with no async dependencies.
  * Stub implementation for Phase 0b — records the action and returns APPLIED.

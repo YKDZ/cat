@@ -1,13 +1,18 @@
 import { test, expect } from "@/fixtures";
 
 test.describe("Editor - Element Loading (P0)", () => {
-  test("loads elements in the sidebar via legacy redirect", async ({
+  test("loads elements in the sidebar from the canonical content-node route", async ({
     editorPage,
     refs,
     page,
   }) => {
-    const documentId = refs["document:elements"];
-    await editorPage.navigateToEditor(documentId, "zh-Hans");
+    const projectId = refs["project"];
+    const contentNodeId = refs["content-node:elements"];
+    await editorPage.navigateToEditor({
+      projectId,
+      languageToId: "zh-Hans",
+      contentNodeId,
+    });
     await expect(page).toHaveURL(
       /\/editor\/project\/[^/]+\/zh-Hans\/\d+\?nodes=/,
     );
@@ -21,8 +26,13 @@ test.describe("Editor - Element Loading (P0)", () => {
   });
 
   test("can select an element", async ({ editorPage, refs, page }) => {
-    const documentId = refs["document:elements"];
-    await editorPage.navigateToEditor(documentId, "zh-Hans");
+    const projectId = refs["project"];
+    const contentNodeId = refs["content-node:elements"];
+    await editorPage.navigateToEditor({
+      projectId,
+      languageToId: "zh-Hans",
+      contentNodeId,
+    });
 
     // Click the first element
     await editorPage.selectElement(0);
@@ -51,19 +61,24 @@ test.describe("Editor - Project Scope", () => {
     page,
   }) => {
     const projectId = refs["project"];
-    const documentId = refs["document:elements"];
+    const contentNodeId = refs["content-node:elements"];
     await editorPage.navigateToProjectEditor(projectId, "zh-Hans", [
-      documentId,
+      contentNodeId,
     ]);
 
-    await expect(page).toHaveURL(new RegExp(`nodes=${documentId}`));
+    await expect(page).toHaveURL(new RegExp(`nodes=${contentNodeId}`));
   });
 });
 
 test.describe("Editor - Translation (P0)", () => {
   test("can input and submit a translation", async ({ editorPage, refs }) => {
-    const documentId = refs["document:elements"];
-    await editorPage.navigateToEditor(documentId, "zh-Hans");
+    const projectId = refs["project"];
+    const contentNodeId = refs["content-node:elements"];
+    await editorPage.navigateToEditor({
+      projectId,
+      languageToId: "zh-Hans",
+      contentNodeId,
+    });
 
     // Select first element
     await editorPage.selectElement(0);
@@ -84,8 +99,13 @@ test.describe("Editor - Translation (P0)", () => {
 
 test.describe("Editor - Pagination (P1)", () => {
   test("can navigate to page 2", async ({ editorPage, refs }) => {
-    const documentId = refs["document:elements"];
-    await editorPage.navigateToEditor(documentId, "zh-Hans");
+    const projectId = refs["project"];
+    const contentNodeId = refs["content-node:elements"];
+    await editorPage.navigateToEditor({
+      projectId,
+      languageToId: "zh-Hans",
+      contentNodeId,
+    });
 
     // Verify we're on page 1
     const pageText = await editorPage.getCurrentPageText();
@@ -106,8 +126,13 @@ test.describe("Editor - Pagination (P1)", () => {
 
 test.describe("Editor - Context Panel (P1)", () => {
   test("can view element context", async ({ editorPage, refs, page }) => {
-    const documentId = refs["document:elements"];
-    await editorPage.navigateToEditor(documentId, "zh-Hans");
+    const projectId = refs["project"];
+    const contentNodeId = refs["content-node:elements"];
+    await editorPage.navigateToEditor({
+      projectId,
+      languageToId: "zh-Hans",
+      contentNodeId,
+    });
 
     // Select first element (el:001 has context data)
     await editorPage.selectElement(0);

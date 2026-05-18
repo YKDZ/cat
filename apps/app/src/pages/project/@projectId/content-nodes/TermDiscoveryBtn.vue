@@ -24,7 +24,7 @@ import { useToastStore } from "@/stores/toast.ts";
 
 const props = defineProps<{
   project: Project;
-  documents: Pick<ContentNode, "id" | "kind">[];
+  contentNodes: Pick<ContentNode, "id" | "kind">[];
 }>();
 
 const { t } = useI18n();
@@ -36,16 +36,16 @@ const glossaryIds = ref<string[]>([]);
 const sourceLanguageId = ref<string | undefined>(undefined);
 
 const glossaryId = computed(() => glossaryIds.value[0]);
-const documentIds = computed(() =>
-  props.documents
-    .filter((document) => document.kind !== "DIRECTORY")
-    .map((document) => document.id),
+const contentNodeIds = computed(() =>
+  props.contentNodes
+    .filter((contentNode) => contentNode.kind !== "DIRECTORY")
+    .map((contentNode) => contentNode.id),
 );
 const canSubmit = computed(
   () =>
     !!glossaryId.value &&
     !!sourceLanguageId.value &&
-    documentIds.value.length > 0,
+    contentNodeIds.value.length > 0,
 );
 
 const handleStart = async () => {
@@ -54,7 +54,7 @@ const handleStart = async () => {
   await orpc.glossary
     .startTermDiscovery({
       projectId: props.project.id,
-      documentIds: documentIds.value,
+      contentNodeIds: contentNodeIds.value,
       glossaryId: glossaryId.value!,
       sourceLanguageId: sourceLanguageId.value!,
     })
@@ -80,7 +80,7 @@ const handleStart = async () => {
       <DialogHeader>
         <DialogTitle>{{ t("开始术语发现") }}</DialogTitle>
         <DialogDescription>
-          {{ t("从文档中自动提取候选术语并存入术语库") }}
+          {{ t("从内容节点范围中自动提取候选术语并存入术语库") }}
         </DialogDescription>
       </DialogHeader>
 

@@ -36,7 +36,7 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const { insert } = useEditorTableStore();
-const { document } = storeToRefs(useEditorContextStore());
+const { project } = storeToRefs(useEditorContextStore());
 
 const handleInsert = () => {
   insert(props.term.translation);
@@ -83,13 +83,13 @@ useHotKeys(`T+${props.index + 1}`, handleInsert);
       <div class="flex items-center gap-2">
         <div class="flex min-w-0 flex-1 items-center gap-2">
           <TokenViewer
-            v-if="document"
+            v-if="project"
             :text="term.term"
             class="truncate font-medium text-foreground"
           />
           <ArrowRight class="mx-1 size-4 shrink-0 text-muted-foreground" />
           <TokenViewer
-            v-if="document"
+            v-if="project"
             :text="term.translation"
             class="truncate text-foreground"
           />

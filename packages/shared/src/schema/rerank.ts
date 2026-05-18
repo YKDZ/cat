@@ -22,7 +22,11 @@ export const RerankContextHintsSchema = z.object({
   conceptContextSummary: z.string().optional(),
 });
 
-export const RerankCandidateDocumentSchema = z.object({
+/**
+ * @zh 重排候选项 Schema。
+ * @en Rerank candidate-item schema.
+ */
+export const RerankCandidateItemSchema = z.object({
   candidateId: z.string(),
   surface: RerankSurfaceSchema,
   originalIndex: z.int().min(0),
@@ -39,7 +43,7 @@ export const RerankRequestSchema = z.object({
   surface: RerankSurfaceSchema,
   queryText: z.string(),
   band: RerankBandSchema,
-  candidates: z.array(RerankCandidateDocumentSchema).min(1),
+  candidates: z.array(RerankCandidateItemSchema).min(1),
   contextHints: RerankContextHintsSchema.optional(),
   rerankProviderId: z.int().optional(),
   timeoutMs: z.int().positive().optional(),
@@ -87,7 +91,9 @@ export const RerankDecisionTraceSchema = z.object({
 export type RerankRequest = z.infer<typeof RerankRequestSchema>;
 export type RerankResponse = z.infer<typeof RerankResponseSchema>;
 export type RerankDecisionTrace = z.infer<typeof RerankDecisionTraceSchema>;
-export type RerankCandidateDocument = z.infer<
-  typeof RerankCandidateDocumentSchema
->;
+/**
+ * @zh 重排候选项类型。
+ * @en Rerank candidate-item type.
+ */
+export type RerankCandidateItem = z.infer<typeof RerankCandidateItemSchema>;
 export type RerankBand = z.infer<typeof RerankBandSchema>;

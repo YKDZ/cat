@@ -11,10 +11,14 @@ describe("resolveRouteTemplate", () => {
 
   it("resolves multiple placeholders", () => {
     const template =
-      "/editor/$ref:document:elements/$ref:language:target/empty";
-    const bindings = { "document:elements": "42", "language:target": "67" };
+      "/editor/project/$ref:project/$ref:language:target/auto?nodes=$ref:content-node:elements";
+    const bindings = {
+      project: "abc-123",
+      "content-node:elements": "42",
+      "language:target": "67",
+    };
     expect(resolveRouteTemplate(template, bindings)).toBe(
-      "/editor/42/67/empty",
+      "/editor/project/abc-123/67/auto?nodes=42",
     );
   });
 
@@ -23,12 +27,13 @@ describe("resolveRouteTemplate", () => {
   });
 
   it("throws listing all missing bindings", () => {
-    const template = "/project/$ref:project/$ref:document";
+    const template =
+      "/editor/project/$ref:project/zh-Hans/auto?nodes=$ref:content-node:elements";
     expect(() => resolveRouteTemplate(template, {})).toThrow(
       "Missing bindings for route template",
     );
     expect(() => resolveRouteTemplate(template, {})).toThrow(/project/);
-    expect(() => resolveRouteTemplate(template, {})).toThrow(/document/);
+    expect(() => resolveRouteTemplate(template, {})).toThrow(/content-node/);
   });
 
   it("handles names with colons, dashes, underscores", () => {

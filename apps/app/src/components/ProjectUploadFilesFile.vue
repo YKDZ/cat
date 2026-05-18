@@ -24,13 +24,13 @@ const languageId = ref<string>("en");
 const upload = async () => {
   if (isProcessing.value) return;
   if (!languageId.value) {
-    info("必须指定文件语言");
+    info(t("必须指定文件语言"));
     return;
   }
 
   isProcessing.value = true;
 
-  const { url, putSessionId } = await orpc.document.prepareCreateFromFile({
+  const { url, putSessionId } = await orpc.file.prepareCreateFromFile({
     meta: {
       name: props.file.name,
       size: props.file.size,
@@ -40,7 +40,7 @@ const upload = async () => {
 
   await uploadFileToS3PresignedURL(props.file, url);
 
-  await orpc.document
+  await orpc.file
     .finishCreateFromFile({
       projectId: props.projectId,
       languageId: languageId.value,

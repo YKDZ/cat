@@ -101,9 +101,7 @@ const handleClick = () => {
 
       <div
         :class="
-          isDirectoryLike
-            ? 'icon-[mdi--folder]'
-            : 'icon-[mdi--file-document-outline]'
+          isDirectoryLike ? 'icon-[mdi--folder]' : 'icon-[mdi--file-outline]'
         "
         class="size-4 shrink-0 text-foreground"
       />

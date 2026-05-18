@@ -52,7 +52,7 @@ describe("registerBuiltinAgents", () => {
         tools: expect.arrayContaining([
           "submit_translation",
           "list_elements",
-          "get_documents",
+          "list_content_nodes",
         ]),
       }),
     );

@@ -1,4 +1,11 @@
-import { translation } from "@cat/db";
+import {
+  and,
+  contentRelation,
+  eq,
+  inArray,
+  translatableElement,
+  translation,
+} from "@cat/db";
 import * as z from "zod";
 
 import type { Command } from "@/types";
@@ -14,7 +21,6 @@ export const CreateTranslationsCommandSchema = z.object({
       meta: z.json().optional(),
     }),
   ),
-  documentId: z.uuidv4().optional(),
 });
 
 export type CreateTranslationsCommand = z.infer<
@@ -38,15 +44,61 @@ export const createTranslations: Command<
     .returning({ id: translation.id });
 
   const translationIds = inserted.map((item) => item.id);
-  const events =
-    command.documentId === undefined
-      ? []
-      : [
-          domainEvent("translation:created", {
-            documentId: command.documentId,
-            translationIds,
-          }),
-        ];
+  const contextRows = await ctx.db
+    .select({
+      translationId: translation.id,
+      elementId: translatableElement.id,
+      projectId: translatableElement.projectId,
+      primaryContentNodeId: contentRelation.sourceNodeId,
+    })
+    .from(translation)
+    .innerJoin(
+      translatableElement,
+      eq(translatableElement.id, translation.translatableElementId),
+    )
+    .leftJoin(
+      contentRelation,
+      and(
+        eq(contentRelation.targetElementId, translatableElement.id),
+        eq(contentRelation.targetEndpointKind, "ELEMENT"),
+        eq(contentRelation.sourceEndpointKind, "NODE"),
+        eq(contentRelation.isPrimary, true),
+      ),
+    )
+    .where(inArray(translation.id, translationIds));
+
+  const byProject = new Map<
+    string,
+    {
+      translationIds: Set<number>;
+      elementIds: Set<number>;
+      primaryContentNodeIds: Set<string>;
+    }
+  >();
+
+  for (const row of contextRows) {
+    const bucket = byProject.get(row.projectId) ?? {
+      translationIds: new Set<number>(),
+      elementIds: new Set<number>(),
+      primaryContentNodeIds: new Set<string>(),
+    };
+
+    bucket.translationIds.add(row.translationId);
+    bucket.elementIds.add(row.elementId);
+    if (row.primaryContentNodeId !== null) {
+      bucket.primaryContentNodeIds.add(row.primaryContentNodeId);
+    }
+    byProject.set(row.projectId, bucket);
+  }
+
+  const events = [...byProject.entries()].map(([projectId, value]) =>
+    domainEvent("translation:created", {
+      projectId,
+      translationIds: [...value.translationIds],
+      elementIds: [...value.elementIds],
+      primaryContentNodeIds: [...value.primaryContentNodeIds],
+    }),
+  );
 
   return {
     result: translationIds,

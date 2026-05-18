@@ -54,9 +54,9 @@ vi.mock("@cat/server-shared/plugin", () => ({
   resolvePluginManager: mocked.resolvePluginManager,
 }));
 
-import { getDocumentsTool } from "./get-documents.tool.ts";
 import { getNeighborsTool } from "./get-neighbors.tool.ts";
 import { getTranslationsTool } from "./get-translations.tool.ts";
+import { listContentNodesTool } from "./list-content-nodes.tool.ts";
 import { listElementsTool } from "./list-elements.tool.ts";
 import { qaCheckTool } from "./qa-check.tool.ts";
 import { searchTermbaseTool } from "./search-termbase.tool.ts";
@@ -71,7 +71,6 @@ const createCtx = (
     agentId: "agent-1",
     projectId: "project-1",
     runId: "22222222-2222-4222-8222-222222222222",
-    documentId: "33333333-3333-4333-8333-333333333333",
     languageId: "zh-CN",
     sourceLanguageId: "en-US",
     ...overrides,
@@ -86,6 +85,7 @@ const createCtx = (
 describe("translation tools", () => {
   const createdAt = new Date("2025-01-01T00:00:00.000Z");
   const updatedAt = new Date("2025-01-02T00:00:00.000Z");
+  const legacyScopeKey = ["document", "Id"].join("");
 
   beforeEach(() => {
     mocked.qaOp.mockReset();
@@ -191,7 +191,7 @@ describe("translation tools", () => {
     expect(result).toEqual({ passed: true, issues: [] });
   });
 
-  it("lists project documents with session project fallback and pagination", async () => {
+  it("lists project content nodes with session project fallback and pagination", async () => {
     mocked.executeQuery.mockResolvedValueOnce([
       {
         id: "44444444-4444-4444-8444-444444444444",
@@ -240,7 +240,10 @@ describe("translation tools", () => {
       },
     ]);
 
-    const result = await getDocumentsTool.execute({ pageSize: 2 }, createCtx());
+    const result = await listContentNodesTool.execute(
+      { pageSize: 2 },
+      createCtx(),
+    );
 
     expect(mocked.executeQuery).toHaveBeenCalledWith(
       { db: { tag: "db" } },
@@ -253,7 +256,7 @@ describe("translation tools", () => {
       contentNodes: [
         {
           id: "44444444-4444-4444-8444-444444444444",
-          name: "docs",
+          label: "docs",
           projectId: "project-1",
           creatorId: "55555555-5555-4555-8555-555555555555",
           kind: "DIRECTORY",
@@ -261,7 +264,7 @@ describe("translation tools", () => {
           boundaryType: "SOFT",
           fileHandlerId: null,
           fileId: null,
-          isDirectory: true,
+          isContainer: true,
           createdAt,
           updatedAt,
           parentId: null,
@@ -269,7 +272,7 @@ describe("translation tools", () => {
         },
         {
           id: "66666666-6666-4666-8666-666666666666",
-          name: "README.md",
+          label: "README.md",
           projectId: "project-1",
           creatorId: "55555555-5555-4555-8555-555555555555",
           kind: "FILE",
@@ -277,41 +280,7 @@ describe("translation tools", () => {
           boundaryType: "HARD",
           fileHandlerId: 9,
           fileId: 10,
-          isDirectory: false,
-          createdAt,
-          updatedAt,
-          parentId: "44444444-4444-4444-8444-444444444444",
-          localOrder: 2,
-        },
-      ],
-      documents: [
-        {
-          id: "44444444-4444-4444-8444-444444444444",
-          name: "docs",
-          projectId: "project-1",
-          creatorId: "55555555-5555-4555-8555-555555555555",
-          kind: "DIRECTORY",
-          exportRole: "DIRECTORY",
-          boundaryType: "SOFT",
-          fileHandlerId: null,
-          fileId: null,
-          isDirectory: true,
-          createdAt,
-          updatedAt,
-          parentId: null,
-          localOrder: 1,
-        },
-        {
-          id: "66666666-6666-4666-8666-666666666666",
-          name: "README.md",
-          projectId: "project-1",
-          creatorId: "55555555-5555-4555-8555-555555555555",
-          kind: "FILE",
-          exportRole: "FILE",
-          boundaryType: "HARD",
-          fileHandlerId: 9,
-          fileId: 10,
-          isDirectory: false,
+          isContainer: false,
           createdAt,
           updatedAt,
           parentId: "44444444-4444-4444-8444-444444444444",
@@ -324,13 +293,7 @@ describe("translation tools", () => {
     });
   });
 
-  it("uses session document and language fallback when listing elements", async () => {
-    // First call: assertDocumentInSession → getContentNode
-    mocked.executeQuery.mockResolvedValueOnce({
-      id: "33333333-3333-4333-8333-333333333333",
-      projectId: "project-1",
-    });
-    // Second call: listEditorScopeElements
+  it("uses session language fallback when listing elements", async () => {
     mocked.executeQuery.mockResolvedValueOnce([
       {
         id: 1,
@@ -363,18 +326,12 @@ describe("translation tools", () => {
     expect(mocked.executeQuery).toHaveBeenNthCalledWith(
       1,
       { db: { tag: "db" } },
-      mocked.getContentNode,
-      { id: "33333333-3333-4333-8333-333333333333" },
-    );
-    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
-      2,
-      { db: { tag: "db" } },
       mocked.listEditorScopeElements,
       {
         projectId: "project-1",
         languageToId: "zh-CN",
         branchId: undefined,
-        contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
+        contentNodeIds: [],
         page: 0,
         pageSize: 2,
         searchQuery: "",
@@ -384,7 +341,7 @@ describe("translation tools", () => {
     expect(result).toEqual({
       scope: {
         projectId: "project-1",
-        contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
+        contentNodeIds: [],
         languageId: "zh-CN",
       },
       elements: [
@@ -467,7 +424,6 @@ describe("translation tools", () => {
     const result = await listElementsTool.execute(
       { contentNodeIds: [fileId], pageSize: 10 },
       createCtx({
-        documentId: undefined,
         contentNodeIds: [directoryId],
         branchId: 42,
       }),
@@ -540,7 +496,6 @@ describe("translation tools", () => {
       listElementsTool.execute(
         { contentNodeIds: [siblingId] },
         createCtx({
-          documentId: undefined,
           contentNodeIds: [directoryId],
         }),
       ),
@@ -572,7 +527,6 @@ describe("translation tools", () => {
     await listElementsTool.execute(
       { contentNodeIds: [] },
       createCtx({
-        documentId: undefined,
         contentNodeIds: [directoryId],
       }),
     );
@@ -593,7 +547,7 @@ describe("translation tools", () => {
       value: "Target sentence",
       languageId: "en-US",
       projectId: "project-1",
-      documentId: "33333333-3333-4333-8333-333333333333",
+      primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
       chunkIds: [],
     });
     // Second call: assembleContextEvidence
@@ -644,7 +598,7 @@ describe("translation tools", () => {
         value: "Hello",
         languageId: "en-US",
         projectId: "project-1",
-        documentId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
         chunkIds: [],
       })
       // Second call: listTranslationsByElement
@@ -703,7 +657,7 @@ describe("translation tools", () => {
         value: "Hello",
         languageId: "en-US",
         projectId: "project-1",
-        documentId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
         chunkIds: [1, 2],
       })
       .mockResolvedValueOnce({
@@ -771,7 +725,6 @@ describe("translation tools", () => {
       ],
       vectorizerId: 101,
       vectorStorageId: 202,
-      documentId: "33333333-3333-4333-8333-333333333333",
     });
     expect(result).toEqual({
       translationIds: [88],
@@ -785,7 +738,7 @@ describe("translation tools", () => {
         value: "Prompt",
         languageId: "en-US",
         projectId: "project-1",
-        documentId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
         chunkIds: [1],
       })
       .mockResolvedValueOnce({
@@ -822,7 +775,6 @@ describe("translation tools", () => {
       ],
       vectorizerId: undefined,
       vectorStorageId: undefined,
-      documentId: "33333333-3333-4333-8333-333333333333",
     });
     expect(result).toEqual({
       translationIds: [108],
@@ -836,7 +788,7 @@ describe("translation tools", () => {
         value: "Prompt",
         languageId: "en-US",
         projectId: "project-1",
-        documentId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
         chunkIds: [1],
       })
       .mockResolvedValueOnce(null)
@@ -866,36 +818,24 @@ describe("translation tools", () => {
   });
 
   describe("scope validation", () => {
-    it("rejects get_documents when projectId does not match session", async () => {
+    it("rejects list_content_nodes when projectId does not match session", async () => {
       await expect(
-        getDocumentsTool.execute(
+        listContentNodesTool.execute(
           { projectId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
           createCtx(),
         ),
       ).rejects.toThrow("does not match the session project");
     });
 
-    it("rejects list_elements when documentId belongs to a different project", async () => {
-      mocked.executeQuery.mockResolvedValueOnce({
-        id: "33333333-3333-4333-8333-333333333333",
-        projectId: "other-project",
-      });
-
+    it("rejects list_elements when a legacy scope key is provided", async () => {
       await expect(
         listElementsTool.execute(
-          { documentId: "33333333-3333-4333-8333-333333333333" },
+          {
+            [legacyScopeKey]: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          } as Record<string, unknown>,
           createCtx(),
         ),
-      ).rejects.toThrow("different project");
-    });
-
-    it("rejects list_elements when documentId does not match session", async () => {
-      await expect(
-        listElementsTool.execute(
-          { documentId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" },
-          createCtx(),
-        ),
-      ).rejects.toThrow("does not match the session document");
+      ).rejects.toThrow(/Unrecognized key/);
     });
 
     it("rejects get_neighbors when element belongs to a different project", async () => {
@@ -903,7 +843,7 @@ describe("translation tools", () => {
         value: "Hello",
         languageId: "en-US",
         projectId: "other-project",
-        documentId: "other-doc",
+        primaryContentNodeId: "other-content-node",
         chunkIds: [],
       });
 
@@ -912,18 +852,25 @@ describe("translation tools", () => {
       ).rejects.toThrow("different project");
     });
 
-    it("rejects get_translations when element belongs to a different document", async () => {
-      mocked.executeQuery.mockResolvedValueOnce({
-        value: "Hello",
-        languageId: "en-US",
-        projectId: "project-1",
-        documentId: "other-doc-id",
-        chunkIds: [],
-      });
+    it("rejects get_translations when element is outside the scoped session", async () => {
+      mocked.executeQuery
+        .mockResolvedValueOnce({
+          value: "Hello",
+          languageId: "en-US",
+          projectId: "project-1",
+          primaryContentNodeId: "other-content-node-id",
+          chunkIds: [],
+        })
+        .mockResolvedValueOnce(null);
 
       await expect(
-        getTranslationsTool.execute({ elementId: 5 }, createCtx()),
-      ).rejects.toThrow("different document");
+        getTranslationsTool.execute(
+          { elementId: 5 },
+          createCtx({
+            contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
+          }),
+        ),
+      ).rejects.toThrow("outside the session editor scope");
     });
 
     it("rejects submit_translation when element belongs to a different project", async () => {
@@ -931,7 +878,7 @@ describe("translation tools", () => {
         value: "Hello",
         languageId: "en-US",
         projectId: "other-project",
-        documentId: "33333333-3333-4333-8333-333333333333",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
         chunkIds: [],
       });
 

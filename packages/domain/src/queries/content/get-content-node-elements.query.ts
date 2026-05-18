@@ -17,7 +17,7 @@ import * as z from "zod";
 
 import type { DbHandle, Query } from "@/types";
 
-import { buildTranslationStatusConditions } from "@/queries/document/build-translation-status-conditions";
+import { buildTranslationStatusConditions } from "@/queries/translation/build-translation-status-conditions";
 
 export const ElementTranslationStatusSchema = z.enum([
   "NO",

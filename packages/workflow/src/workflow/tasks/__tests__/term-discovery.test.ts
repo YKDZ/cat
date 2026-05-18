@@ -68,7 +68,7 @@ describe("termDiscoveryGraph", () => {
           normalizedText: "run cat",
           confidence: 0.82,
           frequency: 2,
-          documentFrequency: 1,
+          elementFrequency: 1,
           posPattern: ["VERB", "NOUN"],
           occurrences: [{ elementId: 1, ranges: [{ start: 0, end: 11 }] }],
         },
@@ -82,7 +82,7 @@ describe("termDiscoveryGraph", () => {
           normalizedText: "run cat",
           confidence: 0.82,
           frequency: 2,
-          documentFrequency: 1,
+          elementFrequency: 1,
           posPattern: ["VERB", "NOUN"],
           occurrences: [{ elementId: 1, ranges: [{ start: 0, end: 11 }] }],
           source: "statistical",
@@ -98,7 +98,7 @@ describe("termDiscoveryGraph", () => {
           normalizedText: "run cat",
           confidence: 0.82,
           frequency: 2,
-          documentFrequency: 1,
+          elementFrequency: 1,
           posPattern: ["VERB", "NOUN"],
           occurrences: [{ elementId: 1, ranges: [{ start: 0, end: 11 }] }],
           source: "statistical",
@@ -114,7 +114,9 @@ describe("termDiscoveryGraph", () => {
 
   it("passes nlpSegmenterId through to statistical extraction", async () => {
     const result = await runGraph(termDiscoveryGraph, {
-      documentIds: ["33333333-3333-4333-8333-333333333333"],
+      projectId: "22222222-2222-4222-8222-222222222222",
+      contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
+      elementIds: [],
       glossaryId: "11111111-1111-4111-8111-111111111111",
       sourceLanguageId: "en",
       nlpSegmenterId: 77,

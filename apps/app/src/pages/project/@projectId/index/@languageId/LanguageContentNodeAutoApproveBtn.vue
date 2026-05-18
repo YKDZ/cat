@@ -20,22 +20,24 @@ import { useToastStore } from "@/stores/toast.ts";
 const { t } = useI18n();
 
 const props = defineProps<{
-  document: Pick<ContentNode, "id">;
+  contentNode: Pick<ContentNode, "id" | "projectId">;
   language: Pick<Language, "id">;
 }>();
 
 const { info, rpcWarn } = useToastStore();
 
 const handleAutoApprove = async () => {
-  if (!props.language) return;
-
   await orpc.translation
     .autoApprove({
-      documentId: props.document.id,
+      scope: {
+        projectId: props.contentNode.projectId,
+        contentNodeIds: [props.contentNode.id],
+        elementIds: [],
+      },
       languageId: props.language.id,
     })
     .then((count) => {
-      info(`成功自动批准 ${count} 条可用的翻译`);
+      info(t("成功自动批准 {count} 条可用翻译", { count }));
     })
     .catch(rpcWarn);
 };
@@ -61,7 +63,7 @@ const handleAutoApprove = async () => {
         </p>
       </article>
       <DialogFooter>
-        <Button @click="handleAutoApprove">确认</Button>
+        <Button @click="handleAutoApprove">{{ t("确认") }}</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>

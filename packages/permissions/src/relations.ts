@@ -33,7 +33,7 @@ export type TransitiveRule = {
 
 /**
  * "上溯"规则：element/translation 没有自己的权限元组，
- * 鉴权时自动查找所属 document。
+ * 鉴权时自动查找所属 project/content node。
  */
 export type AscendRule = {
   childObjectType: ObjectType;

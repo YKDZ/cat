@@ -48,7 +48,7 @@ afterAll(async () => {
 interface SeedResult {
   projectId: string;
   userId: string;
-  documentId: string;
+  contentNodeId: string;
   elementId: number;
   sourceStringId: number;
 }
@@ -119,7 +119,7 @@ async function seedProject(): Promise<SeedResult> {
   return {
     projectId: project.id,
     userId: user.id,
-    documentId: doc.id,
+    contentNodeId: doc.id,
     elementId: elementId,
     sourceStringId: sourceStringId,
   };

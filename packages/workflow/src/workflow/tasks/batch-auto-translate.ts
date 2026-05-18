@@ -1,8 +1,5 @@
-import {
-  executeQuery,
-  getDbHandle,
-  listContentNodeElementsWithChunkIds,
-} from "@cat/domain";
+import { resolveOperationScopeElementsOp } from "@cat/operations";
+import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "@/graph/dsl";
@@ -15,8 +12,7 @@ import {
 
 // ─── Input / Output Schemas ───────────────────────────────────────────────────
 
-export const BatchAutoTranslateInputSchema = z.object({
-  documentId: z.uuidv4(),
+export const BatchAutoTranslateInputSchema = OperationScopeSchema.extend({
   languageId: z.string(),
   advisorId: z.int().optional(),
   minMemorySimilarity: z.number().min(0).max(1).default(0.72),
@@ -64,7 +60,6 @@ const TranslateAllNodeInputSchema = z.object({
       chunkIds: z.array(z.int()),
     }),
   ),
-  documentId: z.uuidv4(),
   languageId: z.string(),
   advisorId: z.int().optional(),
   minMemorySimilarity: z.number().min(0).max(1),
@@ -78,33 +73,54 @@ const TranslateAllNodeInputSchema = z.object({
   config: AutoTranslateConfigSchema.optional(),
 });
 
-// ─── Document 级批量自动翻译图 ─────────────────────────────────────────────────
+// ─── 范围级批量自动翻译图 ───────────────────────────────────────────────────────
 
 export const batchAutoTranslateGraph = defineGraph({
   id: "batch-auto-translate",
   version: "1.0.0",
-  description: "文档级批量自动翻译",
+  description: "范围级批量自动翻译",
 
   input: BatchAutoTranslateInputSchema,
   output: BatchAutoTranslateOutputSchema,
 
   nodes: {
     "load-elements": defineNode({
-      input: z.object({ documentId: z.uuidv4() }),
+      input: BatchAutoTranslateInputSchema.pick({
+        projectId: true,
+        branchId: true,
+        contentNodeIds: true,
+        elementIds: true,
+        languageId: true,
+      }),
       output: LoadElementsOutputSchema,
       inputMapping: {
-        documentId: "documentId",
+        projectId: "projectId",
+        branchId: "branchId",
+        contentNodeIds: "contentNodeIds",
+        elementIds: "elementIds",
+        languageId: "languageId",
       },
-      handler: async (input, _ctx) => {
-        const { client: db } = await getDbHandle();
-        const elements = await executeQuery(
-          { db },
-          listContentNodeElementsWithChunkIds,
+      handler: async (input, ctx) => {
+        const { elements } = await resolveOperationScopeElementsOp(
           {
-            contentNodeId: input.documentId,
+            projectId: input.projectId,
+            branchId: input.branchId,
+            contentNodeIds: input.contentNodeIds,
+            elementIds: input.elementIds,
+            languageToId: input.languageId,
+            statusFilter: "untranslated",
           },
+          { traceId: ctx.runId, signal: ctx.signal },
         );
-        return { elements };
+
+        return {
+          elements: elements.map((element) => ({
+            id: element.id,
+            value: element.value,
+            languageId: element.languageId,
+            chunkIds: element.chunkIds,
+          })),
+        };
       },
     }),
 
@@ -116,7 +132,6 @@ export const batchAutoTranslateGraph = defineGraph({
       timeoutMs: 24 * 60 * 60 * 1000,
       inputMapping: {
         elements: "load-elements.elements",
-        documentId: "documentId",
         languageId: "languageId",
         advisorId: "advisorId",
         minMemorySimilarity: "minMemorySimilarity",
@@ -156,7 +171,6 @@ export const batchAutoTranslateGraph = defineGraph({
                 memoryVectorStorageId: input.memoryVectorStorageId,
                 translationVectorStorageId: input.translationVectorStorageId,
                 vectorizerId: input.vectorizerId,
-                documentId: input.documentId,
                 config: input.config,
               },
               { signal: ctx.signal, pluginManager: ctx.pluginManager },

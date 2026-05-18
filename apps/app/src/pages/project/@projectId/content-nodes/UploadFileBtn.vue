@@ -5,10 +5,10 @@ import { Button } from "@cat/ui";
 import {
   Dialog,
   DialogContent,
-  DialogTrigger,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
+  DialogTrigger,
 } from "@cat/ui";
 import { Plus } from "@lucide/vue";
 import { useI18n } from "vue-i18n";

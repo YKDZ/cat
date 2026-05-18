@@ -1,5 +1,5 @@
 import type {
-  RerankCandidateDocument,
+  RerankCandidateItem,
   RerankDecisionTrace,
   RerankRequest,
   RerankResponse,
@@ -58,7 +58,7 @@ const failClosedTrace = (
  * Returns the validated scores array, or null if validation fails.
  */
 const validateScoreCoverage = (
-  candidates: RerankCandidateDocument[],
+  candidates: RerankCandidateItem[],
   scores: ScoreEntry[],
 ): ScoreEntry[] | null => {
   const candidateIds = new Set(candidates.map((c) => c.candidateId));

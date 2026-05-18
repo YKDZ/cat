@@ -144,7 +144,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     languageIds: [...allLanguages],
   });
 
-  // ── 7. Project + root document ─────────────────────────────────────
+  // ── 7. Project + root content node ─────────────────────────────────
   const project = await executeCommand(execCtx, createProject, {
     name: projectSeed.name,
     description: null,
@@ -152,11 +152,11 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   });
   refs.set("project", project.id);
 
-  const rootDoc = await executeCommand(execCtx, createRootContentNode, {
+  const rootNode = await executeCommand(execCtx, createRootContentNode, {
     projectId: project.id,
     creatorId: userId,
   });
-  refs.set("document:root", rootDoc.id);
+  refs.set("content-node:root", rootNode.id);
 
   // ── 8. Glossary seeding ────────────────────────────────────────────
   let glossaryId: string | undefined;
@@ -266,7 +266,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   }
 
   // ── 10. Element seeding ────────────────────────────────────────────
-  let documentId: string | undefined = rootDoc?.id;
+  let contentNodeId: string | undefined = rootNode.id;
   if (elementsSeed) {
     for (const elSeed of elementsSeed.elements) {
       const stringIds = await executeCommand(execCtx, createVectorizedStrings, {
@@ -277,7 +277,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
         data: [
           {
             projectId: project.id,
-            primaryContentNodeId: rootDoc.id,
+            primaryContentNodeId: rootNode.id,
             importerId: "eval",
             sourceRootRef: `project:${project.id}`,
             sourceNodeRef: `eval#${elSeed.ref}`,
@@ -388,7 +388,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     projectId: project.id,
     glossaryId,
     memoryId,
-    documentId,
+    contentNodeId,
     agentDefinitionId,
     userId,
     cleanup: async () => {

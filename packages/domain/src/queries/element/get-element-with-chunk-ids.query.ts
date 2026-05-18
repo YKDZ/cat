@@ -20,7 +20,7 @@ export type GetElementWithChunkIdsQuery = z.infer<
 export type ElementWithChunkIds = {
   id: number;
   projectId: string;
-  documentId: string | null;
+  primaryContentNodeId: string | null;
   value: string;
   languageId: string;
   chunkIds: number[];
@@ -64,23 +64,24 @@ export const getElementWithChunkIds: Query<
     chunkIds = chunkRows.map((r) => r.id);
   }
 
-  const docRows = await ctx.db
+  const primaryRows = await ctx.db
     .select({ sourceNodeId: contentRelation.sourceNodeId })
     .from(contentRelation)
     .where(
       and(
         eq(contentRelation.targetElementId, query.elementId),
         eq(contentRelation.targetEndpointKind, "ELEMENT"),
+        eq(contentRelation.sourceEndpointKind, "NODE"),
         eq(contentRelation.isPrimary, true),
       ),
     )
     .limit(1);
-  const documentId = docRows[0]?.sourceNodeId ?? null;
+  const primaryContentNodeId = primaryRows[0]?.sourceNodeId ?? null;
 
   return {
     id: elementRow.id,
     projectId: elementRow.projectId,
-    documentId,
+    primaryContentNodeId,
     value: elementRow.value,
     languageId: elementRow.languageId,
     chunkIds,

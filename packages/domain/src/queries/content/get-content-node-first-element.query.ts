@@ -19,7 +19,7 @@ import type {
 } from "@/queries/content/get-content-node-elements.query";
 import type { Query } from "@/types";
 
-import { buildTranslationStatusConditions } from "@/queries/document/build-translation-status-conditions";
+import { buildTranslationStatusConditions } from "@/queries/translation/build-translation-status-conditions";
 
 export const GetContentNodeFirstElementQuerySchema = z.object({
   contentNodeId: z.uuidv4(),

@@ -58,6 +58,23 @@ export const EditorScopeSchema = z.object({
 export type EditorScope = z.infer<typeof EditorScopeSchema>;
 
 /**
+ * @zh 批量操作范围；空 contentNodeIds 表示整个项目，elementIds 表示额外的直接元素集合。
+ * @en Batch operation scope; an empty contentNodeIds means the whole project, while elementIds adds direct element targets.
+ */
+export const OperationScopeSchema = z.object({
+  projectId: z.uuidv4(),
+  branchId: z.int().positive().optional(),
+  contentNodeIds: z.array(z.uuidv4()).max(50).default([]),
+  elementIds: z.array(z.int().positive()).max(1000).default([]),
+});
+
+/**
+ * @zh 批量操作范围类型。
+ * @en Batch operation scope type.
+ */
+export type OperationScope = z.infer<typeof OperationScopeSchema>;
+
+/**
  * @zh 分页元素查询输入；`page` 为 0 基，与后端现有分页行为保持一致。
  * @en Paginated element-query input; `page` is zero-based to match the existing backend pagination behavior.
  */

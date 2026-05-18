@@ -68,6 +68,4 @@ export interface UploadOptions {
   apiKey: string;
   /** Project ID. */
   projectId: string;
-  /** Document name. */
-  documentName: string;
 }

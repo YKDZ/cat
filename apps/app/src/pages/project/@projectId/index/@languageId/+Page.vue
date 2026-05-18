@@ -10,7 +10,7 @@ import { useInjectionKey } from "@/utils/provide.ts";
 import type { Data } from "../../+data.server.ts";
 
 import TranslationProgress from "../TranslationProgress.vue";
-import LanguageDocumentTree from "./LanguageDocumentTree.vue";
+import LanguageContentNodeTree from "./LanguageContentNodeTree.vue";
 
 const ctx = usePageContext();
 const { t } = useI18n();
@@ -53,6 +53,6 @@ const handleOpenWorkbench = async () => {
         <TranslationProgress :language :project />
       </div>
     </div>
-    <LanguageDocumentTree :project="project" :language />
+    <LanguageContentNodeTree :project="project" :language />
   </div>
 </template>

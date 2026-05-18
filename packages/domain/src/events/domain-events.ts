@@ -7,7 +7,12 @@ export type DomainEventMap = {
   "setting:updated": { key: string };
   "user:created": { userId: string };
   "user:updated": { userId: string };
-  "translation:created": { documentId: string; translationIds: number[] };
+  "translation:created": {
+    projectId: string;
+    translationIds: number[];
+    elementIds: number[];
+    primaryContentNodeIds: string[];
+  };
   "translation:updated": { translationIds: number[] };
   "translation:deleted": { translationIds: number[] };
   "term:created": { glossaryId: string; termIds: number[] };
@@ -47,7 +52,11 @@ export type DomainEventMap = {
   "comment:updated": { commentId: number };
   "comment:deleted": { commentId: number };
   "memory:item:created": { memoryId: string; itemIds: number[] };
-  "qa:completed": { documentId: string; issueCount: number };
+  "qa:completed": {
+    projectId: string;
+    elementIds: number[];
+    issueCount: number;
+  };
   // ─── Vectorization ───
   "vectorization:enqueued": { stringIds: number[]; taskId: string };
   "vectorization:completed": { stringIds: number[]; taskId: string };

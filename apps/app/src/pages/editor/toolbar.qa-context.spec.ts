@@ -61,12 +61,12 @@ vi.mock("@/components/tooltip/TextTooltip.vue", () => ({
 vi.mock("./CurrentTranslationQaResult.vue", () => ({
   default: defineComponent({
     props: {
-      documentId: {
+      contentNodeId: {
         type: String,
         default: undefined,
       },
     },
-    template: '<div data-testid="qa-document-id">{{ documentId }}</div>',
+    template: '<div data-testid="qa-content-node-id">{{ contentNodeId }}</div>',
   }),
 }));
 
@@ -139,7 +139,7 @@ describe("Toolbar QA context", () => {
       },
     });
 
-    expect(wrapper.get('[data-testid="qa-document-id"]').text()).toBe(
+    expect(wrapper.get('[data-testid="qa-content-node-id"]').text()).toBe(
       "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     );
   });
@@ -154,7 +154,7 @@ describe("Toolbar QA context", () => {
       },
     });
 
-    expect(wrapper.get('[data-testid="qa-document-id"]').text()).toBe(
+    expect(wrapper.get('[data-testid="qa-content-node-id"]').text()).toBe(
       "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     );
   });

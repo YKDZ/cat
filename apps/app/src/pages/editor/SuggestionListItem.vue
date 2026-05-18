@@ -13,7 +13,7 @@ import { useEditorTableStore } from "@/stores/editor/table.ts";
 import { useHotKeys } from "@/utils/magic-keys.ts";
 
 const { replace } = useEditorTableStore();
-const { document } = storeToRefs(useEditorContextStore());
+const { project } = storeToRefs(useEditorContextStore());
 
 const props = defineProps<{
   suggestion: TranslationSuggestion;
@@ -47,7 +47,7 @@ useHotKeys(`S+${props.index + 1}`, handleCopy);
 <template>
   <div class="flex flex-col gap-1 px-3 py-2">
     <button class="text-wrapcursor-pointer text-start" @click="handleCopy">
-      <TokenViewer v-if="document" :text="suggestion.translation" />
+      <TokenViewer v-if="project" :text="suggestion.translation" />
     </button>
     <span v-if="state.status === 'success'">{{ state.data?.name }}</span>
     <Skeleton v-else class="h-2 w-5" />

@@ -1,16 +1,11 @@
 import type { OperationContext } from "@cat/domain";
 
-import { getDbHandle } from "@cat/domain";
-import {
-  executeQuery,
-  listContentNodeElementIds,
-  listElementSourceTexts,
-} from "@cat/domain";
+import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
 
-export const LoadElementTextsInputSchema = z.object({
-  documentIds: z.array(z.uuidv4()).optional(),
-  elementIds: z.array(z.int()).optional(),
+import { resolveOperationScopeElementsOp } from "./resolve-operation-scope-elements";
+
+export const LoadElementTextsInputSchema = OperationScopeSchema.extend({
   /** Source language of the elements */
   sourceLanguageId: z.string().min(1),
 });
@@ -33,56 +28,39 @@ export type LoadElementTextsOutput = z.infer<
 /**
  * @zh 批量加载元素文本。
  *
- * 根据 documentIds 或 elementIds 批量加载 TranslatableElement 及其
- * TranslatableString.value，返回统一格式的文本列表。
+ * 根据批量操作范围批量加载 TranslatableElement 及其 TranslatableString.value，
+ * 返回统一格式的文本列表。
  * @en Batch load element texts.
  *
  * Loads TranslatableElements and their TranslatableString.value in bulk
- * by documentIds or elementIds, returning a normalized list.
+ * by operation scope, returning a normalized list.
  *
- * @param data - {@zh 加载输入参数，支持 documentIds 或 elementIds} {@en Load input; accepts documentIds or elementIds}
- * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
+ * @param data - {@zh 加载输入参数，使用 OperationScope 描述范围} {@en Load input using OperationScope}
+ * @param ctx - {@zh 操作上下文} {@en Operation context}
  * @returns - {@zh 统一格式的元素文本列表} {@en Normalized list of element texts}
  */
 export const loadElementTextsOp = async (
   data: LoadElementTextsInput,
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<LoadElementTextsOutput> => {
-  const { client: drizzle } = await getDbHandle();
+  const { elements } = await resolveOperationScopeElementsOp(
+    {
+      projectId: data.projectId,
+      branchId: data.branchId,
+      contentNodeIds: data.contentNodeIds,
+      elementIds: data.elementIds,
+      languageToId: data.sourceLanguageId,
+      statusFilter: "all",
+      sourceLanguageId: data.sourceLanguageId,
+    },
+    ctx,
+  );
 
-  // Gather all element IDs
-  const allElementIds = new Set<number>(data.elementIds ?? []);
-
-  if (data.documentIds && data.documentIds.length > 0) {
-    const docElementIdLists = await Promise.all(
-      data.documentIds.map(async (documentId) =>
-        executeQuery({ db: drizzle }, listContentNodeElementIds, {
-          contentNodeId: documentId,
-        }),
-      ),
-    );
-    for (const ids of docElementIdLists) {
-      for (const id of ids) {
-        allElementIds.add(id);
-      }
-    }
-  }
-
-  if (allElementIds.size === 0) {
-    return { elements: [] };
-  }
-
-  const rows = await executeQuery({ db: drizzle }, listElementSourceTexts, {
-    elementIds: [...allElementIds],
-  });
-
-  const elements = rows
-    .filter((row) => row.sourceLanguageId === data.sourceLanguageId)
-    .map((row) => ({
-      elementId: row.id,
-      text: row.text,
-      languageId: row.sourceLanguageId,
-    }));
-
-  return { elements };
+  return {
+    elements: elements.map((element) => ({
+      elementId: element.id,
+      text: element.value,
+      languageId: element.languageId,
+    })),
+  };
 };

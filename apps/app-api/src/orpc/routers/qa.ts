@@ -16,7 +16,7 @@ import {
 } from "@cat/workflow/tasks";
 import z from "zod";
 
-import { authed, checkDocumentPermission } from "@/orpc/server.ts";
+import { authed, checkContentNodePermission } from "@/orpc/server.ts";
 
 export const check = authed
   .input(
@@ -31,18 +31,18 @@ export const check = authed
         text: z.string(),
         tokens: z.array(TokenSchema),
       }),
-      documentId: z.uuidv4(),
+      contentNodeId: z.uuidv4(),
     }),
   )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+  .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { documentId, source, translation } = input;
+    const { contentNodeId, source, translation } = input;
 
     const contentNode = await executeQuery({ db: drizzle }, getContentNode, {
-      id: documentId,
+      id: contentNodeId,
     });
 
     const glossaryIds = contentNode

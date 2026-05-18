@@ -1,4 +1,4 @@
-import type { RerankCandidateDocument } from "@cat/shared";
+import type { RerankCandidateItem } from "@cat/shared";
 
 import type {
   RecallCandidate,
@@ -7,12 +7,12 @@ import type {
 } from "../precision/types";
 
 /**
- * Normalize a term candidate into a RerankCandidateDocument for provider submission.
+ * Normalize a term candidate into a RerankCandidateItem for provider submission.
  */
 export const normalizePrecisionTermCandidate = (
   c: RecallCandidate & RawTermResult,
   index: number,
-): RerankCandidateDocument => ({
+): RerankCandidateItem => ({
   candidateId: `term:${c.conceptId}`,
   surface: "term",
   originalIndex: index,
@@ -24,12 +24,12 @@ export const normalizePrecisionTermCandidate = (
 });
 
 /**
- * Normalize a memory candidate into a RerankCandidateDocument for provider submission.
+ * Normalize a memory candidate into a RerankCandidateItem for provider submission.
  */
 export const normalizePrecisionMemoryCandidate = (
   c: RecallCandidate & RawMemoryResult,
   index: number,
-): RerankCandidateDocument => ({
+): RerankCandidateItem => ({
   candidateId: `memory:${c.id}`,
   surface: "memory",
   originalIndex: index,
@@ -40,13 +40,13 @@ export const normalizePrecisionMemoryCandidate = (
 });
 
 /**
- * Normalize a slice of RecallCandidates into RerankCandidateDocuments.
+ * Normalize a slice of RecallCandidates into RerankCandidateItems.
  * The index is relative to the slice (for stable candidateId ordering).
  */
 export const normalizePrecisionCandidates = (
   _queryText: string,
   band: RecallCandidate[],
-): RerankCandidateDocument[] =>
+): RerankCandidateItem[] =>
   band.map((c, index) => {
     if (c.surface === "term") {
       return normalizePrecisionTermCandidate(

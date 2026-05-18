@@ -190,7 +190,6 @@ export const registerDomainEventHandlers = (
       { db },
       {
         projectId: event.payload.projectId,
-        documentId: "",
         elementIds: event.payload.elementIds,
       },
     ).catch((error: unknown) => {

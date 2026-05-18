@@ -632,31 +632,30 @@ export const startTermDiscovery = authed
       });
     }
 
-    const projectDocuments =
-      !input.documentIds?.length && !input.elementIds?.length
-        ? await executeQuery({ db: drizzle }, listProjectContentNodes, {
-            projectId: input.projectId,
-          })
-        : [];
-    const { projectId: _ignored, ...graphInput } = input;
-    const hasElementIds = (graphInput.elementIds?.length ?? 0) > 0;
-    const resolvedDocumentIds =
-      (graphInput.documentIds?.length ?? 0) > 0 || hasElementIds
-        ? graphInput.documentIds
-        : projectDocuments
-            .filter((document) => document.kind !== "DIRECTORY")
-            .map((document) => document.id);
+    const shouldLoadAllProjectNodes =
+      input.contentNodeIds.length === 0 && input.elementIds.length === 0;
+    const projectContentNodes = shouldLoadAllProjectNodes
+      ? await executeQuery({ db: drizzle }, listProjectContentNodes, {
+          projectId: input.projectId,
+        })
+      : [];
+    const resolvedContentNodeIds = shouldLoadAllProjectNodes
+      ? projectContentNodes
+          .filter((contentNode) => contentNode.kind !== "DIRECTORY")
+          .map((contentNode) => contentNode.id)
+      : input.contentNodeIds;
 
-    const resolvedGraphInput = {
-      ...graphInput,
-      documentIds: resolvedDocumentIds,
-    };
-
-    if (!hasElementIds && (resolvedDocumentIds?.length ?? 0) === 0) {
+    if (input.elementIds.length === 0 && resolvedContentNodeIds.length === 0) {
       throw new ORPCError("BAD_REQUEST", {
-        message: "No project documents available for term discovery",
+        message: "No project content nodes available for term discovery",
       });
     }
+
+    const resolvedGraphInput = {
+      ...input,
+      contentNodeIds: resolvedContentNodeIds,
+    };
+
     const runId = await runtime.scheduler.start(
       "term-discovery",
       JSONObjectSchema.parse(resolvedGraphInput),

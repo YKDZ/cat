@@ -1,5 +1,7 @@
 import { defineSubject } from "@tools/autodoc";
 
+// oxlint-disable typescript/no-unsafe-call -- defineSubject is a typed autodoc manifest helper
+
 export default defineSubject({
   id: "infra/operations",
   title: { zh: "操作与任务系统", en: "Operations & Tasks" },

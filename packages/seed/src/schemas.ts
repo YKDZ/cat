@@ -92,7 +92,7 @@ export const ElementSeedSchema = z.object({
 });
 
 export const ElementsSeedSchema = z.object({
-  documentName: z.string().min(1).default("document"),
+  contentNodeLabel: z.string().min(1).default("content-node"),
   elements: z.array(ElementSeedSchema).min(1),
 });
 

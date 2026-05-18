@@ -13,7 +13,7 @@ const props = defineProps<{
 }>();
 
 const markdownContent = ref<string>("");
-let lastRequestedDocumentId: string | null = null;
+let lastRequestedContentNodeId: string | null = null;
 
 const updateContent = async () => {
   if (!props.readme) {
@@ -22,12 +22,12 @@ const updateContent = async () => {
 
   markdownContent.value = "";
 
-  const documentId = props.readme.id;
-  lastRequestedDocumentId = documentId;
+  const contentNodeId = props.readme.id;
+  lastRequestedContentNodeId = contentNodeId;
 
   try {
-    const fileUrl = await orpc.document.getDocumentFileUrl({
-      documentId,
+    const fileUrl = await orpc.file.getUrl({
+      contentNodeId,
     });
 
     if (!fileUrl) {
@@ -43,7 +43,7 @@ const updateContent = async () => {
 
     const text = await response.text();
 
-    if (lastRequestedDocumentId !== documentId) {
+    if (lastRequestedContentNodeId !== contentNodeId) {
       return;
     }
 

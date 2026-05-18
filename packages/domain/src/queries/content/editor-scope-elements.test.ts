@@ -207,7 +207,6 @@ const seedFixture = async () => {
     { db: testDb.client },
     createTranslations,
     {
-      documentId: fileA.id,
       data: [
         {
           translatableElementId: elementIds[1],

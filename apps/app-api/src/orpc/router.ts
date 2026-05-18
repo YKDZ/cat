@@ -4,9 +4,10 @@ import * as auth from "./routers/auth/index.ts";
 import * as changeset from "./routers/changeset.ts";
 import * as collection from "./routers/collection.ts";
 import * as comment from "./routers/comment.ts";
-import * as document from "./routers/document.ts";
+import * as contentNode from "./routers/content-node.ts";
 import * as editor from "./routers/editor.ts";
 import * as element from "./routers/element.ts";
+import * as file from "./routers/file.ts";
 import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
 import * as issueComment from "./routers/issue-comment.ts";
@@ -42,9 +43,10 @@ const router: AppRouter = {
   authFlow,
   user,
   setting,
-  document,
+  contentNode,
   editor,
   element,
+  file,
   ghostText,
   glossary,
   language,
@@ -74,9 +76,10 @@ export type AppRouter = {
   authFlow: typeof authFlow;
   user: typeof user;
   setting: typeof setting;
-  document: typeof document;
+  contentNode: typeof contentNode;
   editor: typeof editor;
   element: typeof element;
+  file: typeof file;
   ghostText: typeof ghostText;
   glossary: typeof glossary;
   language: typeof language;

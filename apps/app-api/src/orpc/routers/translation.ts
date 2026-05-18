@@ -2,7 +2,7 @@ import type { VCSContext } from "@cat/vcs";
 
 import {
   approveTranslation,
-  autoApproveContentNodeTranslations,
+  autoApproveOperationScopeTranslations,
   createAgentDefinition,
   createAgentSession,
   deleteTranslation,
@@ -10,7 +10,7 @@ import {
   executeQuery,
   findAgentDefinitionByNameAndScope,
   getAgentSessionByExternalId,
-  getContentNode,
+  getEditorScopeElementPageIndex,
   getElementWithChunkIds,
   getProjectTargetLanguages,
   getSelfTranslationVote,
@@ -24,9 +24,15 @@ import {
   unapproveTranslation,
   upsertTranslationVote,
 } from "@cat/domain";
+import { resolveOperationScopeElementsOp } from "@cat/operations";
 import { AsyncMessageQueue, firstOrGivenService } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
-import { QaResultItemSchema, QaResultSchema } from "@cat/shared";
+import {
+  EditorScopeSchema,
+  OperationScopeSchema,
+  QaResultItemSchema,
+  QaResultSchema,
+} from "@cat/shared";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
 import { JSONObjectSchema } from "@cat/shared";
 import { EditorOverlayTranslationStateSchema, listWithOverlay } from "@cat/vcs";
@@ -43,8 +49,8 @@ import * as z from "zod";
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import {
   authed,
-  checkDocumentPermission,
   checkElementPermission,
+  checkPermission,
   checkTranslationPermission,
 } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
@@ -59,6 +65,9 @@ const TranslationDataSchema = TranslationSchema.omit({
 });
 
 type TranslationData = z.infer<typeof TranslationDataSchema>;
+type CreateTranslationPubPayload = z.infer<
+  typeof CreateTranslationPubPayloadSchema
+>;
 
 export const translationRouter = authed
   .input(
@@ -176,7 +185,6 @@ export const create = authed
           },
         ],
         memoryIds: createMemory ? memoryIds : [],
-        documentId: undefined,
         vectorStorageId: storage.id,
         vectorizerId: vectorizer.id,
         translatorId: user.id,
@@ -195,18 +203,50 @@ export const create = authed
 
 export const onCreate = authed
   .input(
-    z.object({
-      documentId: z.string(),
+    EditorScopeSchema.pick({
+      projectId: true,
+      languageToId: true,
+      branchId: true,
+      contentNodeIds: true,
+      searchQuery: true,
+      statusFilter: true,
+      pageSize: true,
     }),
   )
-  .use(checkDocumentPermission("viewer"), (i) => i.documentId)
+  .use(checkPermission("project", "viewer"), (i) => i.projectId)
   .handler(async function* ({ context, input }) {
     const {
       drizzleDB: { client: drizzle },
     } = context;
-    const { documentId } = input;
 
     const queue = new AsyncMessageQueue<TranslationData>();
+
+    const isEventInScope = async (payload: CreateTranslationPubPayload) => {
+      if (payload.projectId !== input.projectId) return false;
+      if (
+        input.contentNodeIds.length === 0 &&
+        input.searchQuery.trim() === ""
+      ) {
+        return true;
+      }
+
+      const pageIndexes = await Promise.all(
+        payload.elementIds.map(async (elementId) =>
+          executeQuery({ db: drizzle }, getEditorScopeElementPageIndex, {
+            projectId: input.projectId,
+            languageToId: input.languageToId,
+            branchId: input.branchId,
+            contentNodeIds: input.contentNodeIds,
+            searchQuery: input.searchQuery,
+            statusFilter: "all",
+            pageSize: input.pageSize,
+            elementId,
+          }),
+        ),
+      );
+
+      return pageIndexes.some((pageIndex) => pageIndex !== null);
+    };
 
     const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(
       "workflow:translation:created",
@@ -221,7 +261,7 @@ export const onCreate = authed
           return;
         }
 
-        if (parsed.data.documentId !== documentId) {
+        if (!(await isEventInScope(parsed.data))) {
           return;
         }
 
@@ -346,21 +386,32 @@ export const getSelfVote = authed
 export const autoApprove = authed
   .input(
     z.object({
-      documentId: z.uuidv4(),
+      scope: OperationScopeSchema,
       languageId: z.string(),
     }),
   )
-  .use(checkDocumentPermission("editor"), (i) => i.documentId)
+  .use(checkPermission("project", "editor"), (i) => i.scope.projectId)
   .output(z.int())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
 
+    const { elements } = await resolveOperationScopeElementsOp({
+      ...input.scope,
+      languageToId: input.languageId,
+      statusFilter: "translated",
+    });
+
+    if (elements.length === 0) return 0;
+
     return await executeCommand(
       { db: drizzle },
-      autoApproveContentNodeTranslations,
-      { contentNodeId: input.documentId, languageId: input.languageId },
+      autoApproveOperationScopeTranslations,
+      {
+        elementIds: elements.map((element) => element.id),
+        languageId: input.languageId,
+      },
     );
   });
 
@@ -397,7 +448,7 @@ export const unapprove = authed
 export const autoTranslate = authed
   .input(
     z.object({
-      documentId: z.string(),
+      scope: OperationScopeSchema,
       advisorId: z.int().optional(),
       languageId: z.string(),
       minMemorySimilarity: z.number().min(0).max(1).default(0.72),
@@ -405,7 +456,7 @@ export const autoTranslate = authed
       config: batchAutoTranslateGraph.inputSchema.shape.config.optional(),
     }),
   )
-  .use(checkDocumentPermission("editor"), (i) => i.documentId)
+  .use(checkPermission("project", "editor"), (i) => i.scope.projectId)
   .output(z.object({ runId: z.uuidv4() }))
   .handler(async ({ context, input }) => {
     const {
@@ -414,7 +465,7 @@ export const autoTranslate = authed
       user,
     } = context;
     const {
-      documentId,
+      scope,
       advisorId,
       languageId,
       minMemorySimilarity,
@@ -435,35 +486,30 @@ export const autoTranslate = authed
         message: `No TEXT_VECTORIZER service available`,
       });
 
-    const document = await executeQuery({ db: drizzle }, getContentNode, {
-      id: documentId,
+    await resolveOperationScopeElementsOp({
+      ...scope,
+      languageToId: languageId,
+      statusFilter: "untranslated",
     });
-
-    if (!document) {
-      throw new ORPCError("NOT_FOUND", {
-        message: `Content node ${documentId} not found`,
-      });
-    }
 
     const targetLanguages = await executeQuery(
       { db: drizzle },
       getProjectTargetLanguages,
-      { projectId: document.projectId },
+      { projectId: scope.projectId },
     );
 
     if (!targetLanguages.some((item) => item.id === languageId)) {
       throw new ORPCError("BAD_REQUEST", {
-        message:
-          "Document does not exist or language is not claimed in project",
+        message: "Language is not claimed in project",
       });
     }
 
     const [memoryIds, glossaryIds] = await Promise.all([
       executeQuery({ db: drizzle }, listMemoryIdsByProject, {
-        projectId: document.projectId,
+        projectId: scope.projectId,
       }),
       executeQuery({ db: drizzle }, listProjectGlossaryIds, {
-        projectId: document.projectId,
+        projectId: scope.projectId,
       }),
     ]);
 
@@ -516,7 +562,12 @@ export const autoTranslate = authed
       {
         agentDefinitionId: existingDef.externalId,
         userId: user.id,
-        projectId: document.projectId,
+        projectId: scope.projectId,
+        metadata: {
+          projectId: scope.projectId,
+          languageId,
+          contentNodeIds: scope.contentNodeIds,
+        },
       },
     );
 
@@ -535,7 +586,7 @@ export const autoTranslate = authed
     const runtime = await getGraphRuntime(drizzle, pluginManager);
 
     const graphInput = JSONObjectSchema.parse({
-      documentId,
+      ...scope,
       languageId,
       advisorId,
       minMemorySimilarity,

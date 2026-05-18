@@ -2,7 +2,6 @@ import type { ToolExecutionContext } from "@cat/agent";
 
 import {
   executeQuery,
-  getContentNode,
   getDbHandle,
   getEditorScopeElementPageIndex,
   getElementWithChunkIds,
@@ -10,13 +9,6 @@ import {
   listProjectContentNodes,
   type ProjectContentNodeRow,
 } from "@cat/domain";
-
-const getLegacySessionDocumentId = (
-  ctx: ToolExecutionContext,
-): string | undefined => {
-  // oxlint-disable-next-line typescript/no-deprecated -- legacy sessions may still only carry documentId
-  return ctx.session.documentId;
-};
 
 const buildScopedContentNodeSet = (
   rows: ProjectContentNodeRow[],
@@ -63,20 +55,11 @@ export const assertContentNodesInSession = async (
   contentNodeIds: string[],
   ctx: ToolExecutionContext,
 ): Promise<void> => {
-  const legacyDocumentId = getLegacySessionDocumentId(ctx);
-  if (ctx.session.contentNodeIds === undefined && legacyDocumentId) {
-    for (const contentNodeId of contentNodeIds) {
-      if (contentNodeId !== legacyDocumentId) {
-        throw new Error(
-          `Content node ${contentNodeId} is outside the session editor scope`,
-        );
-      }
-    }
-    await assertDocumentInSession(legacyDocumentId, ctx);
+  const sessionContentNodeIds = ctx.session.contentNodeIds ?? [];
+  if (contentNodeIds.length === 0 && sessionContentNodeIds.length === 0) {
     return;
   }
 
-  const sessionContentNodeIds = ctx.session.contentNodeIds ?? [];
   const { client: db } = await getDbHandle();
   const rows = await executeQuery({ db }, listProjectContentNodes, {
     projectId: ctx.session.projectId,
@@ -105,48 +88,43 @@ export const resolveEffectiveContentNodeIds = (
   ctx: ToolExecutionContext,
 ): string[] => {
   const sessionScope = ctx.session.contentNodeIds;
-  const legacyDocumentId = getLegacySessionDocumentId(ctx);
 
   if (requested === undefined) {
-    if (sessionScope !== undefined) return sessionScope;
-    return legacyDocumentId ? [legacyDocumentId] : [];
+    return sessionScope ?? [];
   }
 
   if (requested.length === 0) {
     if (sessionScope !== undefined && sessionScope.length > 0)
       return sessionScope;
-    if (sessionScope === undefined && legacyDocumentId)
-      return [legacyDocumentId];
   }
 
   return requested;
 };
 
 /**
- * @zh 解析当前会话中应传给翻译写入链路的内容节点 ID。
- * @en Resolve the content-node ID that should be attached to translation writes for the current session.
+ * @zh 解析当前会话的内容节点上下文 ID。
+ * @en Resolve the content-node context ID for the current session.
  *
  * @param ctx - {@zh 工具执行上下文} {@en Tool execution context}
  * @returns - {@zh 当前会话的上下文内容节点 ID} {@en Context content-node ID for the current session}
  */
-export const resolveSessionDocumentId = (
+export const resolveSessionContentNodeContextId = (
   ctx: ToolExecutionContext,
 ): string | undefined => {
   return (
     ctx.session.currentElementContentNodeId ??
     (ctx.session.contentNodeIds?.length === 1
       ? ctx.session.contentNodeIds[0]
-      : undefined) ??
-    getLegacySessionDocumentId(ctx)
+      : undefined)
   );
 };
 
 /**
- * @zh 验证指定元素属于当前会话的项目（以及文档，若会话绑定了文档）。
- * @en Verify the given element belongs to the current session's project (and document when session is document-scoped).
+ * @zh 验证指定元素属于当前会话的项目与编辑范围。
+ * @en Verify the given element belongs to the current session's project and editor scope.
  *
  * @throws 若元素不存在或不在会话作用域内。 / If element not found or out of scope.
- * @returns 解析后的元素数据（value, languageId, projectId, documentId, chunkIds）。 / Resolved element data.
+ * @returns 解析后的元素数据（value, languageId, projectId, primaryContentNodeId, chunkIds）。 / Resolved element data.
  */
 export const assertElementInSession = async (
   elementId: number,
@@ -194,17 +172,8 @@ export const assertElementInSession = async (
 
     if (pageIndex === null) {
       throw new Error(
-        `Element ${elementId} is outside the session editor scope`,
+        `Element ${elementId} is outside the session editor scope (primary content node: ${element.primaryContentNodeId ?? "unknown"})`,
       );
-    }
-  } else {
-    const legacyDocumentId = getLegacySessionDocumentId(ctx);
-    if (
-      legacyDocumentId &&
-      element.documentId &&
-      element.documentId !== legacyDocumentId
-    ) {
-      throw new Error(`Element ${elementId} belongs to a different document`);
     }
   }
 
@@ -223,38 +192,5 @@ export const assertProjectInSession = (
 ): void => {
   if (projectId !== ctx.session.projectId) {
     throw new Error(`Project ${projectId} does not match the session project`);
-  }
-};
-
-/**
- * @zh 验证指定文档属于当前会话的项目（以及匹配会话的 documentId，若存在）。
- * @en Verify the given documentId matches the session scope and belongs to the session's project.
- *
- * @throws 若文档不存在或不在会话作用域内。 / If document not found or out of scope.
- */
-export const assertDocumentInSession = async (
-  documentId: string,
-  ctx: ToolExecutionContext,
-): Promise<void> => {
-  if (ctx.session.contentNodeIds !== undefined) {
-    await assertContentNodesInSession([documentId], ctx);
-  }
-
-  const legacyDocumentId = getLegacySessionDocumentId(ctx);
-  if (legacyDocumentId && documentId !== legacyDocumentId) {
-    throw new Error(
-      `Document ${documentId} does not match the session document`,
-    );
-  }
-
-  const { client: db } = await getDbHandle();
-  const doc = await executeQuery({ db }, getContentNode, { id: documentId });
-
-  if (!doc) {
-    throw new Error(`Document ${documentId} not found`);
-  }
-
-  if (doc.projectId !== ctx.session.projectId) {
-    throw new Error(`Document ${documentId} belongs to a different project`);
   }
 };

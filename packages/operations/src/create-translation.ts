@@ -28,7 +28,6 @@ export const CreateTranslationInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()).default([]),
   vectorizerId: z.int().optional(),
   vectorStorageId: z.int().optional(),
-  documentId: z.uuidv4().optional(),
 });
 
 export const CreateTranslationOutputSchema = z.object({
@@ -105,7 +104,6 @@ export const createTranslationOp = async (
           stringId,
         }),
       ),
-      documentId: data.documentId,
     },
   );
 

@@ -302,6 +302,13 @@ export {
 
 // === Term Discovery Operations ===
 export {
+  resolveOperationScopeElementsOp,
+  ResolveOperationScopeElementsInputSchema,
+  type ResolveOperationScopeElementsInput,
+  type OperationScopeElement,
+} from "./resolve-operation-scope-elements";
+
+export {
   loadElementTextsOp,
   LoadElementTextsInputSchema,
   LoadElementTextsOutputSchema,

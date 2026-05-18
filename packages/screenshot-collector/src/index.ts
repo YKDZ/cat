@@ -7,7 +7,7 @@ export type {
 } from "./types.ts";
 export { collectScreenshots, captureScreenshots } from "./screenshot.ts";
 export type { CaptureOptions } from "./screenshot.ts";
-export { uploadScreenshots, addImageContexts } from "./upload.ts";
+export { uploadCaptureResult } from "./upload.ts";
 export {
   loadRouteManifest,
   loadBindings,
