@@ -11,5 +11,6 @@
   "basic-tokenizer",
   "basic-qa-checker",
   "openai-llm-provider",
-  "spacy-segmenter"
+  "spacy-segmenter",
+  "tei-rerank-provider"
 ]
