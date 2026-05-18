@@ -2,9 +2,9 @@
 import { Badge, Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import TextTooltip from "@/components/tooltip/TextTooltip.vue";
 import { useEditorContextStore } from "@/stores/editor/context";
 
 import ContentNodeFilterPicker from "./ContentNodeFilterPicker.vue";
@@ -13,10 +13,6 @@ import { buildEditorHref } from "./scope-url";
 const { t } = useI18n();
 const contextStore = useEditorContextStore();
 const { scope, contentNodeFilters } = storeToRefs(contextStore);
-
-const scopeLabel = computed(() =>
-  contentNodeFilters.value.length === 0 ? t("整个项目") : t("内容节点范围"),
-);
 
 const removeFilter = async (id: string) => {
   if (!scope.value) return;
@@ -37,10 +33,6 @@ const clearFilters = async () => {
 
 <template>
   <div class="flex flex-wrap items-center gap-2 text-sm">
-    <span class="text-muted-foreground">{{ scopeLabel }}</span>
-    <Badge v-if="contentNodeFilters.length === 0" variant="secondary">
-      {{ t("整个项目") }}
-    </Badge>
     <Badge
       v-for="filter in contentNodeFilters"
       :key="filter.id"
@@ -56,13 +48,14 @@ const clearFilters = async () => {
       />
     </Badge>
     <ContentNodeFilterPicker />
-    <Button
+    <TextTooltip
       v-if="contentNodeFilters.length > 0"
-      variant="ghost"
-      size="sm"
-      @click="clearFilters"
+      :tooltip="t('查看整个项目')"
+      side="bottom"
     >
-      {{ t("查看整个项目") }}
-    </Button>
+      <Button variant="ghost" size="icon" class="size-8" @click="clearFilters">
+        <div class="icon-[mdi--filter-remove-outline] size-4" />
+      </Button>
+    </TextTooltip>
   </div>
 </template>

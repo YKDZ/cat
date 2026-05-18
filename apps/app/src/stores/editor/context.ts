@@ -70,7 +70,17 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     projectId.value = next.projectId;
     languageToId.value = next.languageToId;
     branchId.value = next.branchId;
-    contentNodeIds.value = [...new Set(next.contentNodeIds)];
+
+    // Only update the array when its content actually changes to avoid
+    // creating a new reference that would spuriously trigger the scope watcher.
+    const newIds = [...new Set(next.contentNodeIds)];
+    if (
+      newIds.length !== contentNodeIds.value.length ||
+      newIds.some((id, i) => id !== contentNodeIds.value[i])
+    ) {
+      contentNodeIds.value = newIds;
+    }
+
     searchQuery.value = next.searchQuery;
     statusFilter.value = next.statusFilter;
     currentPage.value = next.page;

@@ -11,13 +11,13 @@ import {
   ComboboxList,
   ComboboxTrigger,
 } from "@cat/ui";
-import { Plus } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
+import TextTooltip from "@/components/tooltip/TextTooltip.vue";
 import { orpc } from "@/rpc/orpc";
 import { useEditorContextStore } from "@/stores/editor/context";
 
@@ -76,12 +76,13 @@ const handleSelect = async (node: EditorContentNodeFilter) => {
 <template>
   <Combobox v-model:search-term="searchTerm">
     <ComboboxAnchor>
-      <ComboboxTrigger as-child>
-        <Button variant="outline" size="sm" class="h-8 gap-2">
-          <Plus class="size-4" />
-          {{ t("添加内容节点") }}
-        </Button>
-      </ComboboxTrigger>
+      <TextTooltip :tooltip="t('按内容节点筛选')" side="bottom">
+        <ComboboxTrigger as-child>
+          <Button variant="outline" size="icon" class="size-8">
+            <div class="icon-[mdi--filter-plus-outline] size-4" />
+          </Button>
+        </ComboboxTrigger>
+      </TextTooltip>
     </ComboboxAnchor>
     <ComboboxList class="w-80">
       <ComboboxInput :placeholder="t('搜索内容节点...')" />
