@@ -1,5 +1,7 @@
 import {
   alias,
+  and,
+  contentRelation,
   eq,
   translatableElement,
   translation,
@@ -19,6 +21,11 @@ export type GetTranslationQaContextQuery = z.infer<
 
 export type TranslationQaContext = {
   projectId: string;
+  elementId: number;
+  translationId: number;
+  translatorId: string | null;
+  approvedTranslationId: number | null;
+  primaryContentNodeId: string | null;
   translationText: string;
   translationLanguageId: string;
   elementText: string;
@@ -39,6 +46,11 @@ export const getTranslationQaContext: Query<
   const rows = await ctx.db
     .select({
       projectId: translatableElement.projectId,
+      elementId: translatableElement.id,
+      translationId: translation.id,
+      translatorId: translation.translatorId,
+      approvedTranslationId: translatableElement.approvedTranslationId,
+      primaryContentNodeId: contentRelation.sourceNodeId,
       translationText: translationString.value,
       translationLanguageId: translationString.languageId,
       elementText: elementString.value,
@@ -52,6 +64,15 @@ export const getTranslationQaContext: Query<
     .innerJoin(
       translatableElement,
       eq(translatableElement.id, translation.translatableElementId),
+    )
+    .leftJoin(
+      contentRelation,
+      and(
+        eq(contentRelation.targetElementId, translatableElement.id),
+        eq(contentRelation.targetEndpointKind, "ELEMENT"),
+        eq(contentRelation.sourceEndpointKind, "NODE"),
+        eq(contentRelation.isPrimary, true),
+      ),
     )
     .innerJoin(
       elementString,

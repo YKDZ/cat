@@ -98,6 +98,7 @@ export * from "@/queries/comment/list-child-comments.query";
 export * from "@/queries/comment/list-comment-reactions.query";
 export * from "@/queries/comment/get-comment-recipient.query";
 export * from "@/queries/qa/list-qa-result-items.query";
+export * from "@/queries/qa-review/index.ts";
 export * from "@/queries/translation/list-translations-by-element.query";
 export * from "@/queries/translation/list-translations-by-ids.query";
 export * from "@/queries/translation/get-translation-created-event-context.query";

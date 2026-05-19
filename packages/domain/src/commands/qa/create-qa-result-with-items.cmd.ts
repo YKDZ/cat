@@ -21,6 +21,11 @@ export type CreateQaResultWithItemsCommand = z.infer<
   typeof CreateQaResultWithItemsCommandSchema
 >;
 
+export type CreateQaResultWithItemsResult = {
+  qaResultId: number;
+  itemIds: number[];
+};
+
 type TxCapableDb = DbHandle & {
   transaction?: (fn: (tx: DbHandle) => Promise<void>) => Promise<void>;
 };
@@ -28,7 +33,7 @@ type TxCapableDb = DbHandle & {
 const insertQaResultWithItems = async (
   db: DbHandle,
   command: CreateQaResultWithItemsCommand,
-) => {
+): Promise<CreateQaResultWithItemsResult> => {
   const inserted = assertSingleNonNullish(
     await db
       .insert(qaResult)
@@ -36,33 +41,46 @@ const insertQaResultWithItems = async (
       .returning({ id: qaResult.id }),
   );
 
-  if (command.items.length > 0) {
-    await db.insert(qaResultItem).values(
-      command.items.map((item) => ({
-        isPassed: item.isPassed,
-        checkerId: item.checkerId,
-        resultId: inserted.id,
-        meta: (item.meta ?? null) as JSONType | null,
-      })),
-    );
-  }
+  const itemIds =
+    command.items.length === 0
+      ? []
+      : (
+          await db
+            .insert(qaResultItem)
+            .values(
+              command.items.map((item) => ({
+                isPassed: item.isPassed,
+                checkerId: item.checkerId,
+                resultId: inserted.id,
+                meta: (item.meta ?? null) as JSONType | null,
+              })),
+            )
+            .returning({ id: qaResultItem.id })
+        ).map((row) => row.id);
+
+  return {
+    qaResultId: inserted.id,
+    itemIds,
+  };
 };
 
 export const createQaResultWithItems: Command<
-  CreateQaResultWithItemsCommand
+  CreateQaResultWithItemsCommand,
+  CreateQaResultWithItemsResult
 > = async (ctx, command) => {
   const txCandidate = ctx.db as TxCapableDb;
+  let result!: CreateQaResultWithItemsResult;
 
   if (typeof txCandidate.transaction === "function") {
     await txCandidate.transaction(async (tx) => {
-      await insertQaResultWithItems(tx, command);
+      result = await insertQaResultWithItems(tx, command);
     });
   } else {
-    await insertQaResultWithItems(ctx.db, command);
+    result = await insertQaResultWithItems(ctx.db, command);
   }
 
   return {
-    result: undefined,
+    result,
     events: [],
   };
 };

@@ -11,6 +11,7 @@ import {
 import z from "zod";
 
 import { qaOp } from "./qa";
+import { runQaReviewForTranslationOp } from "./qa-review/run-translation-review";
 import { tokenizeOp } from "./tokenize";
 
 export const QaTranslationInputSchema = z.object({
@@ -88,14 +89,38 @@ export const qaTranslationOp = async (
   );
 
   // 5. 持久化 QA 结果
-  await executeCommand({ db: drizzle }, createQaResultWithItems, {
-    translationId: payload.translationId,
-    items: qaResult2.result.map((item) => ({
-      isPassed: item.isPassed,
-      checkerId: item.checkerId,
-      meta: item.meta,
-    })),
-  });
+  const qaItems = qaResult2.result.map((item) => ({
+    isPassed: item.isPassed,
+    checkerId: item.checkerId,
+    meta: item.meta,
+  }));
+
+  const persistedQa = await executeCommand(
+    { db: drizzle },
+    createQaResultWithItems,
+    {
+      translationId: payload.translationId,
+      items: qaItems,
+    },
+  );
+
+  await runQaReviewForTranslationOp(
+    {
+      projectId: data.projectId,
+      elementId: data.elementId,
+      translationId: data.translationId,
+      languageId: data.translationLanguageId,
+      sourceText: data.elementText,
+      translationText: data.translationText,
+      primaryContentNodeId: data.primaryContentNodeId,
+      branchId: undefined,
+      pullRequestId: undefined,
+      qaResultId: persistedQa.qaResultId,
+      qaResultItemIds: persistedQa.itemIds,
+      qaItems,
+    },
+    { ...ctx, traceId },
+  );
 
   return {};
 };

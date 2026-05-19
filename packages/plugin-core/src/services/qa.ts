@@ -14,12 +14,53 @@ export interface QAIssue {
   severity: QASeverity;
   message: string;
   targetTokenIndex?: number;
+  ruleId?: string;
+  ruleFamily?: string;
+  confidence?: number;
+  sourceSpan?: { start: number; end: number; quote?: string };
+  targetSpan?: { start: number; end: number; quote?: string };
+  defaultAction?:
+    | "BLOCK_APPROVAL"
+    | "NEEDS_REVIEW"
+    | "INFORMATIONAL"
+    | "PASS"
+    | "SUPPRESSED";
+  suggestedText?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export const QAIssueSchema = z.object({
   severity: z.enum(QASeverityValues),
   message: z.string(),
   targetTokenIndex: z.int().optional(),
+  ruleId: z.string().optional(),
+  ruleFamily: z.string().optional(),
+  confidence: z.number().min(0).max(1).optional(),
+  sourceSpan: z
+    .object({
+      start: z.int().min(0),
+      end: z.int().min(0),
+      quote: z.string().optional(),
+    })
+    .optional(),
+  targetSpan: z
+    .object({
+      start: z.int().min(0),
+      end: z.int().min(0),
+      quote: z.string().optional(),
+    })
+    .optional(),
+  defaultAction: z
+    .enum([
+      "BLOCK_APPROVAL",
+      "NEEDS_REVIEW",
+      "INFORMATIONAL",
+      "PASS",
+      "SUPPRESSED",
+    ])
+    .optional(),
+  suggestedText: z.string().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**

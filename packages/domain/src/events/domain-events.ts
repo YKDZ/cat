@@ -1,4 +1,8 @@
-import type { MessageCategory, MessageChannel } from "@cat/shared";
+import type {
+  MessageCategory,
+  MessageChannel,
+  QaReviewQueueStatus,
+} from "@cat/shared";
 import type { JSONType } from "@cat/shared";
 
 import { createEvent, type AnyEventOf, type EventOf } from "@cat/core";
@@ -56,6 +60,64 @@ export type DomainEventMap = {
     projectId: string;
     elementIds: number[];
     issueCount: number;
+  };
+  "qa-review:run-completed": {
+    projectId: string;
+    elementId: number;
+    translationId?: number;
+    runId: number;
+    findingCount: number;
+    maxRiskScore: number;
+  };
+  "qa-review:queue-updated": {
+    projectId: string;
+    queueItemId: number;
+    status: QaReviewQueueStatus;
+    riskScore: number;
+    previousStatus?: QaReviewQueueStatus;
+  };
+  "qa-review:annotation-created": {
+    projectId: string;
+    queueItemId: number;
+    annotationId: number;
+    intent: string;
+    authorId?: string;
+  };
+  "qa-review:suggestion-created": {
+    projectId: string;
+    queueItemId: number;
+    suggestionId: number;
+    annotationId: number;
+    authorId?: string;
+  };
+  "qa-review:suggestion-applied": {
+    projectId: string;
+    queueItemId: number;
+    suggestionId: number;
+    appliedTranslationId?: number;
+    appliedChangesetEntryId?: number;
+    userId?: string;
+  };
+  "qa-review:suggestion-rejected": {
+    projectId: string;
+    queueItemId: number;
+    suggestionId: number;
+    annotationId: number;
+    rejectedBy?: string;
+  };
+  "qa-review:decision-submitted": {
+    projectId: string;
+    queueItemId: number;
+    decisionId: number;
+    decision: string;
+    reviewerId?: string;
+  };
+  "qa-review:context-promoted": {
+    projectId: string;
+    elementId: number;
+    contextEvidenceId: number;
+    annotationId?: number;
+    decisionId?: number;
   };
   // ─── Vectorization ───
   "vectorization:enqueued": { stringIds: number[]; taskId: string };

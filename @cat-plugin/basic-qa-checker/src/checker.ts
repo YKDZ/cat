@@ -21,6 +21,10 @@ export class NumberConsistencyChecker extends QAChecker {
         issues.push({
           severity: "error",
           message: `译文中缺失数字 "${num}" (原文有 ${count} 个，译文仅有 ${targetCount} 个)`,
+          ruleId: "basic.number-consistency.missing",
+          ruleFamily: "number",
+          defaultAction: "NEEDS_REVIEW",
+          confidence: 0.7,
         });
       }
     }
@@ -37,8 +41,12 @@ export class NumberConsistencyChecker extends QAChecker {
         issues.push({
           severity: "error",
           message: `译文中存在多余数字 "${num}"`,
+          ruleId: "basic.number-consistency.extra",
+          ruleFamily: "number",
           targetTokenIndex:
             targetTokenIndex !== -1 ? targetTokenIndex : undefined,
+          defaultAction: "NEEDS_REVIEW",
+          confidence: 0.7,
         });
       }
     }
@@ -67,6 +75,10 @@ export class VariableConsistencyChecker extends QAChecker {
         issues.push({
           severity: "error",
           message: `译文中缺失变量 "${variable}"`,
+          ruleId: "basic.variable-consistency.missing",
+          ruleFamily: "placeholder",
+          defaultAction: "BLOCK_APPROVAL",
+          confidence: 1,
         });
       }
     }
@@ -83,8 +95,12 @@ export class VariableConsistencyChecker extends QAChecker {
         issues.push({
           severity: "error",
           message: `译文中存在多余变量 "${variable}"`,
+          ruleId: "basic.variable-consistency.extra",
+          ruleFamily: "placeholder",
           targetTokenIndex:
             targetTokenIndex !== -1 ? targetTokenIndex : undefined,
+          defaultAction: "BLOCK_APPROVAL",
+          confidence: 1,
         });
       }
     }

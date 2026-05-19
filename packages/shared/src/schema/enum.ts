@@ -536,6 +536,128 @@ export const ReviewStatusValues = [
 export const ReviewStatusSchema = z.enum(ReviewStatusValues);
 export type ReviewStatus = (typeof ReviewStatusValues)[number];
 
+export const QaReviewRunLayerValues = ["DETERMINISTIC", "SEMANTIC"] as const;
+export const QaReviewRunLayerSchema = z.enum(QaReviewRunLayerValues);
+export type QaReviewRunLayer = (typeof QaReviewRunLayerValues)[number];
+
+export const QaReviewRunStatusValues = [
+  "COMPLETED",
+  "PARTIAL",
+  "FAILED",
+  "SKIPPED",
+] as const;
+export const QaReviewRunStatusSchema = z.enum(QaReviewRunStatusValues);
+export type QaReviewRunStatus = (typeof QaReviewRunStatusValues)[number];
+
+export const QaFindingActionValues = [
+  "BLOCK_APPROVAL",
+  "NEEDS_REVIEW",
+  "INFORMATIONAL",
+  "PASS",
+  "SUPPRESSED",
+] as const;
+export const QaFindingActionSchema = z.enum(QaFindingActionValues);
+export type QaFindingAction = (typeof QaFindingActionValues)[number];
+
+export const QaFindingDispositionValues = [
+  "OPEN",
+  "CONFIRMED",
+  "FALSE_POSITIVE",
+  "ACCEPTED",
+  "SUPPRESSED",
+  "SUPERSEDED",
+] as const;
+export const QaFindingDispositionSchema = z.enum(QaFindingDispositionValues);
+export type QaFindingDisposition = (typeof QaFindingDispositionValues)[number];
+
+export const QaReviewRiskBucketValues = [
+  "BLOCKING",
+  "HIGH",
+  "MEDIUM",
+  "LOW",
+  "INFO",
+] as const;
+export const QaReviewRiskBucketSchema = z.enum(QaReviewRiskBucketValues);
+export type QaReviewRiskBucket = (typeof QaReviewRiskBucketValues)[number];
+
+export const QaReviewQueueStatusValues = [
+  "OPEN",
+  "CLAIMED",
+  "BLOCKED",
+  "REQUEST_CHANGES",
+  "APPROVABLE",
+  "RESOLVED",
+  "SUPERSEDED",
+] as const;
+export const QaReviewQueueStatusSchema = z.enum(QaReviewQueueStatusValues);
+export type QaReviewQueueStatus = (typeof QaReviewQueueStatusValues)[number];
+
+export const QaReviewAnnotationIntentValues = [
+  "ACTION_REQUIRED",
+  "SUGGESTION",
+  "QUESTION",
+  "NOTE",
+  "PRAISE",
+  "WONT_FIX",
+] as const;
+export const QaReviewAnnotationIntentSchema = z.enum(
+  QaReviewAnnotationIntentValues,
+);
+export type QaReviewAnnotationIntent =
+  (typeof QaReviewAnnotationIntentValues)[number];
+
+export const QaReviewAnnotationStatusValues = [
+  "OPEN",
+  "ACCEPTED",
+  "REJECTED",
+  "RESOLVED",
+  "SUPERSEDED",
+  "HIDDEN",
+] as const;
+export const QaReviewAnnotationStatusSchema = z.enum(
+  QaReviewAnnotationStatusValues,
+);
+export type QaReviewAnnotationStatus =
+  (typeof QaReviewAnnotationStatusValues)[number];
+
+export const QaReviewDecisionTypeValues = [
+  "APPROVE",
+  "REQUEST_CHANGES",
+  "REJECT_CANDIDATE",
+  "CLOSE_FINDING",
+  "PRAISE",
+  "DEFER",
+] as const;
+export const QaReviewDecisionTypeSchema = z.enum(QaReviewDecisionTypeValues);
+export type QaReviewDecisionType = (typeof QaReviewDecisionTypeValues)[number];
+
+export const QaReviewSuggestionStatusValues = [
+  "OPEN",
+  "APPLIED",
+  "REJECTED",
+  "SUPERSEDED",
+] as const;
+export const QaReviewSuggestionStatusSchema = z.enum(
+  QaReviewSuggestionStatusValues,
+);
+export type QaReviewSuggestionStatus =
+  (typeof QaReviewSuggestionStatusValues)[number];
+
+export const QaReviewNotificationTypeValues = [
+  "ACTION_REQUESTED",
+  "SUGGESTION_PROPOSED",
+  "SUGGESTION_APPLIED",
+  "SUGGESTION_REJECTED",
+  "QA_BLOCKED",
+  "PRAISE_RECEIVED",
+  "REVIEW_RESOLVED",
+] as const;
+export const QaReviewNotificationTypeSchema = z.enum(
+  QaReviewNotificationTypeValues,
+);
+export type QaReviewNotificationType =
+  (typeof QaReviewNotificationTypeValues)[number];
+
 // ─── Async Status ──────────────────────────────────────────
 
 export const AsyncStatusValues = ["READY", "PENDING", "FAILED"] as const;

@@ -201,6 +201,9 @@ export {
   type QaTranslationOutput,
 } from "./qa-translation";
 
+export { applyQaReviewPolicy } from "./qa-review/policy";
+export { normalizeQaResultItems } from "./qa-review/normalize";
+
 export {
   termRecallOp,
   TermRecallInputSchema,

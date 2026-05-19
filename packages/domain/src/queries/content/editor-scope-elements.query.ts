@@ -72,7 +72,7 @@ export const GetEditorScopeElementPageIndexQuerySchema =
  */
 export type GetEditorScopeElementPageIndexQuery = EditorElementPageIndexQuery;
 
-type EditorScopeSqlInput = CountEditorScopeElementsQuery;
+export type EditorScopeSqlInput = CountEditorScopeElementsQuery;
 
 type EditorScopeRow = EditorElement & {
   position: number;
@@ -468,6 +468,14 @@ const orderedScopeSql = (query: EditorScopeSqlInput) => sql`
     FROM scoped_rows
   )
 `;
+
+/**
+ * @zh 构建 editor scope 元素查询共享的 CTE/过滤 SQL。
+ * @en Build the shared CTE/filter SQL used by editor-scope element queries.
+ */
+export const buildEditorScopeElementFilterSql = (
+  query: EditorScopeSqlInput,
+): ReturnType<typeof orderedScopeSql> => orderedScopeSql(query);
 
 /**
  * @zh 按编辑器作用域分页列出元素；空 `contentNodeIds` 表示整个项目。

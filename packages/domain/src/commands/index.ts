@@ -42,6 +42,7 @@ export * from "@/commands/memory/replace-memory-recall-variants.cmd";
 export * from "@/commands/qa/create-qa-result.cmd";
 export * from "@/commands/qa/create-qa-result-items.cmd";
 export * from "@/commands/qa/create-qa-result-with-items.cmd";
+export * from "@/commands/qa-review/index.ts";
 export * from "@/commands/setting/set-setting.cmd";
 export * from "@/commands/string/create-vectorized-strings.cmd";
 export * from "@/commands/string/attach-chunk-set-to-string.cmd";

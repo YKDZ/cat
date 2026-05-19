@@ -4,6 +4,10 @@ import type {
   AgentConstraints,
   AgentSecurityPolicy,
   Orchestration,
+  QaReviewProfileConfig,
+  QaReviewRunMeta,
+  QaReviewSpan,
+  QaReviewTextRange,
 } from "@cat/shared";
 import type { _JSONSchema, JSONType, NonNullJSONType } from "@cat/shared";
 import type { ProjectSettingPayload } from "@cat/shared";
@@ -63,6 +67,16 @@ import {
   SemanticDiffKindValues,
   VectorInvalidationReasonValues,
   ContentIdentityStatusValues,
+  QaReviewRunLayerValues,
+  QaReviewRunStatusValues,
+  QaFindingActionValues,
+  QaFindingDispositionValues,
+  QaReviewRiskBucketValues,
+  QaReviewQueueStatusValues,
+  QaReviewAnnotationIntentValues,
+  QaReviewAnnotationStatusValues,
+  QaReviewDecisionTypeValues,
+  QaReviewSuggestionStatusValues,
   type ContentRelationAllowedEndpointPair,
   type ContextProfilePayload,
   type SemanticDiffEntryPayload,
@@ -138,6 +152,43 @@ export const entityType = pgEnum("EntityType", EntityTypeValues);
 export const changeAction = pgEnum("ChangeAction", ChangeActionValues);
 export const riskLevel = pgEnum("RiskLevel", RiskLevelValues);
 export const reviewStatus = pgEnum("ReviewStatus", ReviewStatusValues);
+export const qaReviewRunLayer = pgEnum(
+  "QaReviewRunLayer",
+  QaReviewRunLayerValues,
+);
+export const qaReviewRunStatus = pgEnum(
+  "QaReviewRunStatus",
+  QaReviewRunStatusValues,
+);
+export const qaFindingAction = pgEnum("QaFindingAction", QaFindingActionValues);
+export const qaFindingDisposition = pgEnum(
+  "QaFindingDisposition",
+  QaFindingDispositionValues,
+);
+export const qaReviewRiskBucket = pgEnum(
+  "QaReviewRiskBucket",
+  QaReviewRiskBucketValues,
+);
+export const qaReviewQueueStatus = pgEnum(
+  "QaReviewQueueStatus",
+  QaReviewQueueStatusValues,
+);
+export const qaReviewAnnotationIntent = pgEnum(
+  "QaReviewAnnotationIntent",
+  QaReviewAnnotationIntentValues,
+);
+export const qaReviewAnnotationStatus = pgEnum(
+  "QaReviewAnnotationStatus",
+  QaReviewAnnotationStatusValues,
+);
+export const qaReviewDecisionType = pgEnum(
+  "QaReviewDecisionType",
+  QaReviewDecisionTypeValues,
+);
+export const qaReviewSuggestionStatus = pgEnum(
+  "QaReviewSuggestionStatus",
+  QaReviewSuggestionStatusValues,
+);
 export const asyncStatus = pgEnum("AsyncStatus", AsyncStatusValues);
 export const changesetEntryAsyncStatus = pgEnum(
   "ChangesetEntryAsyncStatus",
@@ -994,7 +1045,10 @@ export const issueCommentThread = snakeCase.table(
       entityType: string;
       entityId: string;
       fieldPath: string;
-      changesetEntryId: number;
+      changesetEntryId?: number;
+      reviewAnnotationId?: number;
+      reviewSuggestionId?: number;
+      targetRange?: QaReviewTextRange;
     } | null>(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
@@ -1546,6 +1600,355 @@ export const qaResultItem = snakeCase.table("QaResultItem", {
     }),
   ...timestamps,
 });
+
+export const qaReviewProfile = snakeCase.table(
+  "QaReviewProfile",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    languageId: text().references(() => language.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    contentNodeId: uuid().references(() => contentNode.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    branchId: integer().references(() => entityBranch.id, {
+      onDelete: "cascade",
+    }),
+    name: text().notNull().default("Default QA Review Profile"),
+    config: jsonb().$type<QaReviewProfileConfig>().notNull(),
+    isDefault: boolean().notNull().default(false),
+    enabled: boolean().notNull().default(true),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId),
+    index().on(table.projectId, table.languageId),
+    index().on(table.contentNodeId),
+    index().on(table.branchId),
+  ],
+);
+
+export const qaReviewRun = snakeCase.table(
+  "QaReviewRun",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    elementId: integer()
+      .notNull()
+      .references(() => translatableElement.id, { onDelete: "cascade" }),
+    translationId: integer().references(() => translation.id, {
+      onDelete: "cascade",
+    }),
+    qaResultId: integer().references(() => qaResult.id, {
+      onDelete: "set null",
+    }),
+    profileId: integer().references(() => qaReviewProfile.id, {
+      onDelete: "set null",
+    }),
+    branchId: integer().references(() => entityBranch.id, {
+      onDelete: "set null",
+    }),
+    pullRequestId: integer().references(() => pullRequest.id, {
+      onDelete: "set null",
+    }),
+    layer: qaReviewRunLayer().notNull(),
+    status: qaReviewRunStatus().notNull(),
+    checkerServiceId: integer().references(() => pluginService.id, {
+      onDelete: "set null",
+    }),
+    modelServiceId: integer().references(() => pluginService.id, {
+      onDelete: "set null",
+    }),
+    riskScore: integer().notNull().default(0),
+    summary: text(),
+    errorMessage: text(),
+    meta: jsonb().$type<QaReviewRunMeta>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId, table.elementId),
+    index().on(table.translationId),
+    index().on(table.qaResultId),
+    index().on(table.branchId),
+    index().on(table.pullRequestId),
+    index().on(table.status),
+    check(
+      "qaReviewRun_riskScore_check",
+      sql`${table.riskScore} BETWEEN 0 AND 100`,
+    ),
+  ],
+);
+
+export const qaReviewFinding = snakeCase.table(
+  "QaReviewFinding",
+  {
+    id: serial().primaryKey(),
+    runId: integer()
+      .notNull()
+      .references(() => qaReviewRun.id, { onDelete: "cascade" }),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    elementId: integer()
+      .notNull()
+      .references(() => translatableElement.id, { onDelete: "cascade" }),
+    translationId: integer().references(() => translation.id, {
+      onDelete: "cascade",
+    }),
+    qaResultItemId: integer().references(() => qaResultItem.id, {
+      onDelete: "set null",
+    }),
+    checkerServiceId: integer().references(() => pluginService.id, {
+      onDelete: "set null",
+    }),
+    layer: qaReviewRunLayer().notNull(),
+    ruleId: text().notNull(),
+    ruleFamily: text().notNull(),
+    severity: text().notNull(),
+    action: qaFindingAction().notNull(),
+    disposition: qaFindingDisposition().notNull().default("OPEN"),
+    confidenceBasisPoints: integer().notNull().default(10000),
+    riskScore: integer().notNull().default(0),
+    message: text().notNull(),
+    explanation: text(),
+    sourceSpan: jsonb().$type<QaReviewSpan>(),
+    targetSpan: jsonb().$type<QaReviewSpan>(),
+    suggestedText: text(),
+    reviewedBy: uuid().references(() => user.id, { onDelete: "set null" }),
+    reviewedAt: timestamp({ withTimezone: true }),
+    meta: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.projectId, table.elementId),
+    index().on(table.translationId),
+    index().on(table.runId),
+    index().on(table.action, table.disposition),
+    index().on(table.ruleFamily),
+    check(
+      "qaReviewFinding_confidenceBasisPoints_check",
+      sql`${table.confidenceBasisPoints} BETWEEN 0 AND 10000`,
+    ),
+    check(
+      "qaReviewFinding_riskScore_check",
+      sql`${table.riskScore} BETWEEN 0 AND 100`,
+    ),
+  ],
+);
+
+export const qaReviewQueueItem = snakeCase.table(
+  "QaReviewQueueItem",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    languageId: text()
+      .notNull()
+      .references(() => language.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    elementId: integer()
+      .notNull()
+      .references(() => translatableElement.id, { onDelete: "cascade" }),
+    translationId: integer().references(() => translation.id, {
+      onDelete: "cascade",
+    }),
+    branchId: integer().references(() => entityBranch.id, {
+      onDelete: "cascade",
+    }),
+    pullRequestId: integer().references(() => pullRequest.id, {
+      onDelete: "set null",
+    }),
+    scopeKey: text().notNull(),
+    status: qaReviewQueueStatus().notNull().default("OPEN"),
+    riskBucket: qaReviewRiskBucket().notNull().default("LOW"),
+    riskScore: integer().notNull().default(0),
+    hardFindingCount: integer().notNull().default(0),
+    softFindingCount: integer().notNull().default(0),
+    informationalFindingCount: integer().notNull().default(0),
+    unresolvedAnnotationCount: integer().notNull().default(0),
+    annotationCount: integer().notNull().default(0),
+    claimedBy: uuid().references(() => user.id, { onDelete: "set null" }),
+    claimedAt: timestamp({ withTimezone: true }),
+    lastFindingAt: timestamp({ withTimezone: true }),
+    lastActivityAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    resolvedAt: timestamp({ withTimezone: true }),
+    supersededByTranslationId: integer().references(() => translation.id, {
+      onDelete: "set null",
+    }),
+    optimisticVersion: integer().notNull().default(1),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex().on(
+      table.projectId,
+      table.languageId,
+      table.elementId,
+      table.translationId,
+      table.scopeKey,
+    ),
+    index().on(table.projectId, table.languageId, table.status),
+    index().on(table.projectId, table.languageId, table.riskBucket),
+    index().on(table.branchId),
+    index().on(table.pullRequestId),
+    index().on(table.claimedBy),
+    check(
+      "qaReviewQueueItem_riskScore_check",
+      sql`${table.riskScore} BETWEEN 0 AND 100`,
+    ),
+  ],
+);
+
+export const qaReviewAnnotation = snakeCase.table(
+  "QaReviewAnnotation",
+  {
+    id: serial().primaryKey(),
+    queueItemId: integer()
+      .notNull()
+      .references(() => qaReviewQueueItem.id, { onDelete: "cascade" }),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    elementId: integer()
+      .notNull()
+      .references(() => translatableElement.id, { onDelete: "cascade" }),
+    translationId: integer().references(() => translation.id, {
+      onDelete: "cascade",
+    }),
+    findingId: integer().references(() => qaReviewFinding.id, {
+      onDelete: "set null",
+    }),
+    authorId: uuid().references(() => user.id, { onDelete: "set null" }),
+    authorAgentId: integer().references(() => agentDefinition.id, {
+      onDelete: "set null",
+    }),
+    branchId: integer().references(() => entityBranch.id, {
+      onDelete: "set null",
+    }),
+    pullRequestId: integer().references(() => pullRequest.id, {
+      onDelete: "set null",
+    }),
+    intent: qaReviewAnnotationIntent().notNull(),
+    status: qaReviewAnnotationStatus().notNull().default("OPEN"),
+    body: text().notNull(),
+    targetRange: jsonb().$type<QaReviewTextRange>(),
+    quote: text(),
+    isPromotable: boolean().notNull().default(false),
+    promotedContextEvidenceId: integer().references(() => contextEvidence.id, {
+      onDelete: "set null",
+    }),
+    parentAnnotationId: integer(),
+    rootAnnotationId: integer(),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.parentAnnotationId],
+      foreignColumns: [table.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+    foreignKey({
+      columns: [table.rootAnnotationId],
+      foreignColumns: [table.id],
+    })
+      .onUpdate("cascade")
+      .onDelete("set null"),
+    index().on(table.queueItemId, table.status),
+    index().on(table.findingId),
+    index().on(table.intent, table.status),
+    index().on(table.pullRequestId),
+  ],
+);
+
+export const qaReviewSuggestion = snakeCase.table(
+  "QaReviewSuggestion",
+  {
+    id: serial().primaryKey(),
+    annotationId: integer()
+      .notNull()
+      .references(() => qaReviewAnnotation.id, { onDelete: "cascade" }),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    elementId: integer()
+      .notNull()
+      .references(() => translatableElement.id, { onDelete: "cascade" }),
+    translationId: integer().references(() => translation.id, {
+      onDelete: "cascade",
+    }),
+    proposedText: text().notNull(),
+    targetRange: jsonb().$type<QaReviewTextRange>(),
+    status: qaReviewSuggestionStatus().notNull().default("OPEN"),
+    appliedTranslationId: integer().references(() => translation.id, {
+      onDelete: "set null",
+    }),
+    appliedChangesetEntryId: integer().references(() => changesetEntry.id, {
+      onDelete: "set null",
+    }),
+    appliedBy: uuid().references(() => user.id, { onDelete: "set null" }),
+    appliedAt: timestamp({ withTimezone: true }),
+    rejectionReason: text(),
+    metadata: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex().on(table.annotationId),
+    index().on(table.projectId, table.elementId),
+    index().on(table.status),
+  ],
+);
+
+export const qaReviewDecision = snakeCase.table(
+  "QaReviewDecision",
+  {
+    id: serial().primaryKey(),
+    queueItemId: integer()
+      .notNull()
+      .references(() => qaReviewQueueItem.id, { onDelete: "cascade" }),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, { onDelete: "cascade" }),
+    elementId: integer()
+      .notNull()
+      .references(() => translatableElement.id, { onDelete: "cascade" }),
+    translationId: integer().references(() => translation.id, {
+      onDelete: "cascade",
+    }),
+    findingId: integer().references(() => qaReviewFinding.id, {
+      onDelete: "set null",
+    }),
+    annotationId: integer().references(() => qaReviewAnnotation.id, {
+      onDelete: "set null",
+    }),
+    branchId: integer().references(() => entityBranch.id, {
+      onDelete: "set null",
+    }),
+    pullRequestId: integer().references(() => pullRequest.id, {
+      onDelete: "set null",
+    }),
+    decision: qaReviewDecisionType().notNull(),
+    reviewerId: uuid().references(() => user.id, { onDelete: "set null" }),
+    reason: text().notNull(),
+    expectedVersion: integer().notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index().on(table.queueItemId, table.createdAt),
+    index().on(table.projectId, table.elementId),
+    index().on(table.decision),
+  ],
+);
 
 export const user = snakeCase.table(
   "User",

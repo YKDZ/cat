@@ -38,6 +38,13 @@ import {
   projectTargetLanguage,
   qaResult,
   qaResultItem,
+  qaReviewAnnotation,
+  qaReviewDecision,
+  qaReviewFinding,
+  qaReviewProfile,
+  qaReviewQueueItem,
+  qaReviewRun,
+  qaReviewSuggestion,
   scopeBinding,
   semanticDiffEntry,
   setting,
@@ -107,6 +114,13 @@ type SelectSchemaTable =
   | typeof projectTargetLanguage
   | typeof qaResult
   | typeof qaResultItem
+  | typeof qaReviewAnnotation
+  | typeof qaReviewDecision
+  | typeof qaReviewFinding
+  | typeof qaReviewProfile
+  | typeof qaReviewQueueItem
+  | typeof qaReviewRun
+  | typeof qaReviewSuggestion
   | typeof scopeBinding
   | typeof semanticDiffEntry
   | typeof setting
@@ -669,6 +683,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "qa.ts",
+    imports: [
+      'import { QaReviewProfileConfigSchema, QaReviewRunMetaSchema, QaReviewSpanSchema, QaReviewTextRangeSchema } from "../qa-review.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -684,6 +701,67 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         overrides: {
           meta: "nonNullSafeZDotJson",
         },
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewProfileSchema",
+        typeExportName: "QaReviewProfile",
+        buildShape: buildSelectShape(qaReviewProfile),
+        overrides: {
+          config: "QaReviewProfileConfigSchema",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewRunSchema",
+        typeExportName: "QaReviewRun",
+        buildShape: buildSelectShape(qaReviewRun),
+        overrides: {
+          meta: "QaReviewRunMetaSchema.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewFindingSchema",
+        typeExportName: "QaReviewFinding",
+        buildShape: buildSelectShape(qaReviewFinding),
+        overrides: {
+          sourceSpan: "QaReviewSpanSchema.nullable()",
+          targetSpan: "QaReviewSpanSchema.nullable()",
+          meta: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewQueueItemSchema",
+        typeExportName: "QaReviewQueueItem",
+        buildShape: buildSelectShape(qaReviewQueueItem),
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewAnnotationSchema",
+        typeExportName: "QaReviewAnnotation",
+        buildShape: buildSelectShape(qaReviewAnnotation),
+        overrides: {
+          targetRange: "QaReviewTextRangeSchema.nullable()",
+          metadata: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewSuggestionSchema",
+        typeExportName: "QaReviewSuggestion",
+        buildShape: buildSelectShape(qaReviewSuggestion),
+        overrides: {
+          targetRange: "QaReviewTextRangeSchema.nullable()",
+          metadata: "safeZDotJson.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "QaReviewDecisionSchema",
+        typeExportName: "QaReviewDecision",
+        buildShape: buildSelectShape(qaReviewDecision),
       },
     ],
   },
