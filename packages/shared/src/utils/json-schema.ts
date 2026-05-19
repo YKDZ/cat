@@ -2,6 +2,23 @@ import type { JSONSchema, JSONType } from "@/schema/json.ts";
 
 import { JSONSchemaSchema } from "@/schema/json.ts";
 
+const hasMissingRequiredDefaults = (schema: JSONSchema): boolean => {
+  if (typeof schema === "boolean") return false;
+
+  const required = schema.required ?? [];
+  if (required.length === 0) return false;
+
+  const properties = schema.properties ?? {};
+
+  return required.some((key) => {
+    const propSchema = properties[key];
+    if (propSchema === undefined) return true;
+    return (
+      getDefaultFromSchema(JSONSchemaSchema.parse(propSchema)) === undefined
+    );
+  });
+};
+
 export const getDefaultFromSchema = (
   schema: JSONSchema,
 ): JSONType | undefined => {
@@ -36,9 +53,11 @@ export const getDefaultFromSchema = (
         .filter((val) => val !== undefined);
       return arr.length > 0 ? arr : undefined;
     } else if (itemsSchema) {
-      const itemDefault = getDefaultFromSchema(
-        JSONSchemaSchema.parse(itemsSchema),
-      );
+      const parsedItemsSchema = JSONSchemaSchema.parse(itemsSchema);
+      const itemDefault = getDefaultFromSchema(parsedItemsSchema);
+      if (hasMissingRequiredDefaults(parsedItemsSchema)) {
+        return undefined;
+      }
       return itemDefault !== undefined ? [itemDefault] : undefined;
     }
     return undefined;

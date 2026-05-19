@@ -16237,7 +16237,7 @@
     "kind": "function",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/utils/json-schema.ts",
-    "line": 5
+    "line": 22
   },
   {
     "id": "@cat/shared:packages/shared/src/utils/logger/types:LogEntry",

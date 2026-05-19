@@ -3,7 +3,7 @@ import type { RerankProviderCall, RerankResponse } from "@cat/shared";
 import { RerankProvider } from "@cat/plugin-core";
 import * as z from "zod";
 
-const SingleConfigSchema = z.object({
+export const SingleConfigSchema = z.object({
   baseURL: z.string(),
   "model-id": z.string().optional(),
   timeoutMs: z.number().positive().default(3000),
