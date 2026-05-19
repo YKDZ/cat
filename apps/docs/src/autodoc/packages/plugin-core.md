@@ -4,11 +4,11 @@ Plugin system core: service registry, component registry, discovery
 
 ## Overview
 
-* **Modules**: 26
+* **Modules**: 27
 
-* **Exported functions**: 15
+* **Exported functions**: 16
 
-* **Exported types**: 72
+* **Exported types**: 76
 
 ## Function Index
 
@@ -86,6 +86,21 @@ export function createSandbox(pluginId: string, win: Window, options: SandboxOpt
 export const setupDefaultDistortions: DistortionSetup = (membrane: Membrane, pluginId: string, win: Window) => {...}
 ```
 
+### packages/plugin-core/src/services
+
+### `hasAvailabilityProbe`
+
+```ts
+/**
+ * Determine whether a plugin service implements the availability probe protocol.
+ *
+ * @param service - Plugin service to inspect
+ *
+ * @returns Whether the service implements the availability probe
+ */
+export const hasAvailabilityProbe = (service: IPluginService): boolean
+```
+
 ### packages/plugin-core/src/utils
 
 ### `getPluginConfig`
@@ -151,11 +166,15 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 
 * `RouteContext` (type)
 
+* `BuiltinPluginEntry` (type) — Single plugin entry inside the builtin plugin catalog.
+
 * `ComponentRecord` (type)
 
 * `ComponentData` (type)
 
 * `PluginLoader` (interface)
+
+* `DefaultPluginSource` (type)
 
 * `PluginRuntimeSnapshot` (type) — Observation snapshot for a single plugin in the in-memory runtime.
 
@@ -239,7 +258,11 @@ export const parseInner = async (content: string, offsetInParent: number, rules:
 
 * `QASeverity` (type)
 
+* `PluginServiceAvailabilityProbe` (interface) — Protocol for plugin services that expose structured availability probing.
+
 * `IPluginService` (interface)
+
+* `PluginServiceAvailability` (type) — Runtime availability summary for a plugin service.
 
 * `PutStreamContext` (type)
 

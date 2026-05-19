@@ -4,11 +4,11 @@ DAG-based authentication flow engine
 
 ## Overview
 
-* **Modules**: 11
+* **Modules**: 12
 
 * **Exported functions**: 10
 
-* **Exported types**: 23
+* **Exported types**: 24
 
 ## Function Index
 
@@ -136,6 +136,8 @@ export const sessionFinalizerExecutor: AuthNodeExecutor = async (ctx: AuthNodeEx
 * `InitFlowArgs` (interface)
 
 * `AdvanceFlowArgs` (interface)
+
+* `FlowCacheStore` (type) — Minimal cache store contract for auth flow snapshot persistence.
 
 * `AuthEdge` (interface)
 

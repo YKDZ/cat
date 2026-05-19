@@ -34,6 +34,7 @@ Marks the flow  |
 | `HttpContext` | interface |  |
 | `InitFlowArgs` | interface |  |
 | `AdvanceFlowArgs` | interface |  |
+| `FlowCacheStore` | type | Minimal cache store contract for auth flow snapshot persistence. |
 | `AuthEdge` | interface |  |
 | `AuthFlowDefinition` | interface |  |
 | `CompletedFactor` | interface |  |

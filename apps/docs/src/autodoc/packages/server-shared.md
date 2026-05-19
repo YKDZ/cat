@@ -112,7 +112,7 @@ export const getServiceFromDBId = (pluginManager: PluginManager, id: number): T
 /**
  * 找到指定组件在本地插件目录中的位置
  */
-export const resolvePluginComponentPath = (pluginManager: PluginManager, pluginId: string, componentName: string): string
+export const resolvePluginComponentPath = async (pluginManager: PluginManager, pluginId: string, componentName: string): Promise<string>
 ```
 
 ### `initAllVectorStorage`

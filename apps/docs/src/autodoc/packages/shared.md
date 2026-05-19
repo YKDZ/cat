@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 25
 
-* **Exported types**: 274
+* **Exported types**: 278
 
 ## Function Index
 
@@ -356,6 +356,12 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `Setting` (type)
 
+* `RuntimeCacheEntry` (type)
+
+* `RuntimeSessionEntry` (type)
+
+* `RuntimeQueueTask` (type)
+
 * `Plugin` (type)
 
 * `PluginInstallation` (type)
@@ -437,6 +443,8 @@ export const safeJoinURL = (base: string, path: string): string
 * `EditorElement` (type) — Editor element-row type.
 
 * `TokenType` (type)
+
+* `QueueTaskStatus` (type)
 
 * `ContentNodeKind` (type)
 

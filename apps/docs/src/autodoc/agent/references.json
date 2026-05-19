@@ -725,6 +725,16 @@
     "line": 36
   },
   {
+    "id": "@cat/auth:packages/auth/src/storage/cache-flow-storage:FlowCacheStore",
+    "stableKey": "@cat/auth:packages/auth/src/storage/cache-flow-storage:FlowCacheStore",
+    "name": "FlowCacheStore",
+    "kind": "type",
+    "packageName": "@cat/auth",
+    "filePath": "packages/auth/src/storage/cache-flow-storage.ts",
+    "line": 8,
+    "description": "Minimal cache store contract for auth flow snapshot persistence."
+  },
+  {
     "id": "@cat/auth:packages/auth/src/types:AAL",
     "stableKey": "@cat/auth:packages/auth/src/types:AAL",
     "name": "AAL",
@@ -1060,7 +1070,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 166
+    "line": 172
   },
   {
     "id": "@cat/db:packages/db/src/zod/generators:GeneratedFileSpec",
@@ -1069,7 +1079,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 168
+    "line": 174
   },
   {
     "id": "@cat/domain:packages/domain/src/cache/cache-decorator:generateCacheKey",
@@ -4371,6 +4381,16 @@
     "line": 7
   },
   {
+    "id": "@cat/domain:packages/domain/src/infrastructure/db-handle:getCurrentRedisHandle",
+    "stableKey": "@cat/domain:packages/domain/src/infrastructure/db-handle:getCurrentRedisHandle",
+    "name": "getCurrentRedisHandle",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/infrastructure/db-handle.ts",
+    "line": 51,
+    "description": "Read the current Redis handle without creating a new connection."
+  },
+  {
     "id": "@cat/domain:packages/domain/src/infrastructure/db-handle:getDbHandle",
     "stableKey": "@cat/domain:packages/domain/src/infrastructure/db-handle:getDbHandle",
     "name": "getDbHandle",
@@ -4386,7 +4406,8 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/infrastructure/db-handle.ts",
-    "line": 30
+    "line": 36,
+    "description": "Get the global Redis handle, creating and caching it when needed."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/agent/find-agent-definition-by-definition-id-and-scope.query:findAgentDefinitionByDefinitionIdAndScope",
@@ -8866,6 +8887,136 @@
     "line": 13
   },
   {
+    "id": "@cat/domain:packages/domain/src/queue/postgres-task-queue:PostgresTaskQueueOptions",
+    "stableKey": "@cat/domain:packages/domain/src/queue/postgres-task-queue:PostgresTaskQueueOptions",
+    "name": "PostgresTaskQueueOptions",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queue/postgres-task-queue.ts",
+    "line": 11,
+    "description": "Optional configuration for the PostgreSQL task queue."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/profile:resolveRuntimeProfile",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/profile:resolveRuntimeProfile",
+    "name": "resolveRuntimeProfile",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/profile.ts",
+    "line": 79,
+    "description": "Resolve the CAT runtime profile from environment variables."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/state:getRuntimeState",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/state:getRuntimeState",
+    "name": "getRuntimeState",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/state.ts",
+    "line": 25,
+    "description": "Get the current CAT runtime state from the process."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/state:initRuntimeState",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/state:initRuntimeState",
+    "name": "initRuntimeState",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/state.ts",
+    "line": 15,
+    "description": "Initialize the process-wide CAT runtime state."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/state:requireRuntimeState",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/state:requireRuntimeState",
+    "name": "requireRuntimeState",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/state.ts",
+    "line": 34,
+    "description": "Get the current runtime state, or throw when it has not been initialized."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:DatabaseRuntimeSummary",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:DatabaseRuntimeSummary",
+    "name": "DatabaseRuntimeSummary",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 148,
+    "description": "Summary of database runtime capabilities."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:RuntimeBackend",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:RuntimeBackend",
+    "name": "RuntimeBackend",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 29,
+    "description": "Runtime backend kind."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:RuntimeFeature",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:RuntimeFeature",
+    "name": "RuntimeFeature",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 68,
+    "description": "Runtime feature flag name."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:RuntimeProfile",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:RuntimeProfile",
+    "name": "RuntimeProfile",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 96,
+    "description": "Resolved runtime profile configuration."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:RuntimeProfileName",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:RuntimeProfileName",
+    "name": "RuntimeProfileName",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 17,
+    "description": "Runtime profile name."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:RuntimeState",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:RuntimeState",
+    "name": "RuntimeState",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 190,
+    "description": "Process-wide shared runtime state snapshot."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:RuntimeStorePolicy",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:RuntimeStorePolicy",
+    "name": "RuntimeStorePolicy",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 74,
+    "description": "Summary of a single runtime storage policy."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/runtime/types:SearchRuntimeLevel",
+    "stableKey": "@cat/domain:packages/domain/src/runtime/types:SearchRuntimeLevel",
+    "name": "SearchRuntimeLevel",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/runtime/types.ts",
+    "line": 45,
+    "description": "Search runtime capability level."
+  },
+  {
     "id": "@cat/domain:packages/domain/src/testing/setup-test-db:setupTestDB",
     "stableKey": "@cat/domain:packages/domain/src/testing/setup-test-db:setupTestDB",
     "name": "setupTestDB",
@@ -10383,7 +10534,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/memory-recall-bm25.ts",
-    "line": 47
+    "line": 54
   },
   {
     "id": "@cat/operations:packages/operations/src/memory-recall-bm25:collectBm25MemorySuggestionsOp",
@@ -10392,7 +10543,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/memory-recall-bm25.ts",
-    "line": 74
+    "line": 87
   },
   {
     "id": "@cat/operations:packages/operations/src/memory-recall-bm25:compressBm25Score",
@@ -10401,7 +10552,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/memory-recall-bm25.ts",
-    "line": 39
+    "line": 46
   },
   {
     "id": "@cat/operations:packages/operations/src/memory-template:fillTemplate",
@@ -10657,7 +10808,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
-    "line": 29
+    "line": 33
   },
   {
     "id": "@cat/operations:packages/operations/src/parse-file:parseFileOp",
@@ -10666,7 +10817,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
-    "line": 45,
+    "line": 49,
     "description": "Parse file content into a structured content graph payload.\n\nParses the file via the FILE_IMPORTER plugin and assembles a\nStructuredContentPayload."
   },
   {
@@ -10676,7 +10827,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/parse-file.ts",
-    "line": 30
+    "line": 34
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/ambiguity-gate:evaluateAmbiguity",
@@ -12252,6 +12403,16 @@
     "line": 50
   },
   {
+    "id": "@cat/plugin-core:packages/plugin-core/src/registry/builtin-loader:BuiltinPluginEntry",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/registry/builtin-loader:BuiltinPluginEntry",
+    "name": "BuiltinPluginEntry",
+    "kind": "type",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/registry/builtin-loader.ts",
+    "line": 13,
+    "description": "Single plugin entry inside the builtin plugin catalog."
+  },
+  {
     "id": "@cat/plugin-core:packages/plugin-core/src/registry/component-registry:ComponentData",
     "stableKey": "@cat/plugin-core:packages/plugin-core/src/registry/component-registry:ComponentData",
     "name": "ComponentData",
@@ -12279,13 +12440,22 @@
     "line": 18
   },
   {
+    "id": "@cat/plugin-core:packages/plugin-core/src/registry/plugin-manager:DefaultPluginSource",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/registry/plugin-manager:DefaultPluginSource",
+    "name": "DefaultPluginSource",
+    "kind": "type",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/registry/plugin-manager.ts",
+    "line": 52
+  },
+  {
     "id": "@cat/plugin-core:packages/plugin-core/src/registry/plugin-manager:PluginRuntimeSnapshot",
     "stableKey": "@cat/plugin-core:packages/plugin-core/src/registry/plugin-manager:PluginRuntimeSnapshot",
     "name": "PluginRuntimeSnapshot",
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/registry/plugin-manager.ts",
-    "line": 56,
+    "line": 58,
     "description": "Observation snapshot for a single plugin in the in-memory runtime."
   },
   {
@@ -12598,13 +12768,43 @@
     "line": 11
   },
   {
+    "id": "@cat/plugin-core:packages/plugin-core/src/services/service:hasAvailabilityProbe",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/services/service:hasAvailabilityProbe",
+    "name": "hasAvailabilityProbe",
+    "kind": "function",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/services/service.ts",
+    "line": 58,
+    "description": "Determine whether a plugin service implements the availability probe protocol."
+  },
+  {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/service:IPluginService",
     "stableKey": "@cat/plugin-core:packages/plugin-core/src/services/service:IPluginService",
     "name": "IPluginService",
     "kind": "interface",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/service.ts",
-    "line": 3
+    "line": 36
+  },
+  {
+    "id": "@cat/plugin-core:packages/plugin-core/src/services/service:PluginServiceAvailability",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/services/service:PluginServiceAvailability",
+    "name": "PluginServiceAvailability",
+    "kind": "type",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/services/service.ts",
+    "line": 7,
+    "description": "Runtime availability summary for a plugin service."
+  },
+  {
+    "id": "@cat/plugin-core:packages/plugin-core/src/services/service:PluginServiceAvailabilityProbe",
+    "stableKey": "@cat/plugin-core:packages/plugin-core/src/services/service:PluginServiceAvailabilityProbe",
+    "name": "PluginServiceAvailabilityProbe",
+    "kind": "interface",
+    "packageName": "@cat/plugin-core",
+    "filePath": "packages/plugin-core/src/services/service.ts",
+    "line": 24,
+    "description": "Protocol for plugin services that expose structured availability probing."
   },
   {
     "id": "@cat/plugin-core:packages/plugin-core/src/services/storage-provider:DeleteContext",
@@ -13246,7 +13446,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 240
+    "line": 235
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementSeed",
@@ -13355,7 +13555,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/truncate.ts",
-    "line": 13,
+    "line": 17,
     "description": "TRUNCATE all application tables with CASCADE.\nPreserves table structure and enum types — only data is cleared.\n\nWe query pg_tables to get all tables in the current schema,\nthen TRUNCATE them all at once. This avoids hardcoding table names\nand automatically adapts to schema changes."
   },
   {
@@ -13524,7 +13724,7 @@
     "kind": "function",
     "packageName": "@cat/server-shared",
     "filePath": "packages/server-shared/src/plugin.ts",
-    "line": 89
+    "line": 92
   },
   {
     "id": "@cat/server-shared:packages/server-shared/src/plugin:resolvePluginComponentPath",
@@ -13543,7 +13743,7 @@
     "kind": "function",
     "packageName": "@cat/server-shared",
     "filePath": "packages/server-shared/src/plugin.ts",
-    "line": 103
+    "line": 106
   },
   {
     "id": "@cat/server-shared:packages/server-shared/src/stream:hashFromReadable",
@@ -14327,6 +14527,33 @@
     "line": 10
   },
   {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/misc:RuntimeCacheEntry",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/misc:RuntimeCacheEntry",
+    "name": "RuntimeCacheEntry",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/misc.ts",
+    "line": 43
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/misc:RuntimeQueueTask",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/misc:RuntimeQueueTask",
+    "name": "RuntimeQueueTask",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/misc.ts",
+    "line": 68
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/misc:RuntimeSessionEntry",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/misc:RuntimeSessionEntry",
+    "name": "RuntimeSessionEntry",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/misc.ts",
+    "line": 53
+  },
+  {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/misc:Setting",
     "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/misc:Setting",
     "name": "Setting",
@@ -14721,7 +14948,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 400
+    "line": 409
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentSessionStatus",
@@ -14730,7 +14957,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 321
+    "line": 330
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentSessionTrustPolicy",
@@ -14739,7 +14966,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 398
+    "line": 407
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentToolConfirmationStatus",
@@ -14748,7 +14975,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 396
+    "line": 405
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentToolTarget",
@@ -14757,7 +14984,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 395
+    "line": 404
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AsyncStatus",
@@ -14766,7 +14993,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 665
+    "line": 674
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangeAction",
@@ -14775,7 +15002,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 520
+    "line": 529
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetEntryAsyncStatus",
@@ -14784,7 +15011,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 675
+    "line": 684
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetStatus",
@@ -14793,7 +15020,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 487
+    "line": 496
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CommentReactionType",
@@ -14802,7 +15029,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 307
+    "line": 316
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CommentTargetType",
@@ -14811,7 +15038,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 309
+    "line": 318
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentBoundaryType",
@@ -14820,7 +15047,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 128
+    "line": 137
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentEvidenceKind",
@@ -14829,7 +15056,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 198
+    "line": 207
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentIdentityStatus",
@@ -14838,7 +15065,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 264
+    "line": 273
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentNodeExportRole",
@@ -14847,7 +15074,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 114
+    "line": 123
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentNodeKind",
@@ -14856,7 +15083,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 92
+    "line": 101
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentNodeLifecycleStatus",
@@ -14865,7 +15092,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 103
+    "line": 112
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentRelationDirectionality",
@@ -14874,7 +15101,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 160
+    "line": 169
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentRelationLifecycleStatus",
@@ -14883,7 +15110,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 172
+    "line": 181
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContentRelationSemanticFamily",
@@ -14892,7 +15119,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 150
+    "line": 159
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ContextConsumerPurpose",
@@ -14901,7 +15128,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 210
+    "line": 219
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CrossReferenceSourceType",
@@ -14910,7 +15137,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 466
+    "line": 475
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:CrossReferenceTargetType",
@@ -14919,7 +15146,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 473
+    "line": 482
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EntityBranchStatus",
@@ -14928,7 +15155,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 449
+    "line": 458
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EntityType",
@@ -14937,7 +15164,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 514
+    "line": 523
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:EvidenceTrustLevel",
@@ -14946,7 +15173,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 182
+    "line": 191
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:IssueCommentTargetType",
@@ -14955,7 +15182,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 455
+    "line": 464
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:IssueStatus",
@@ -14964,7 +15191,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 426
+    "line": 435
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageCategory",
@@ -14973,7 +15200,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 416
+    "line": 425
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageChannel",
@@ -14982,7 +15209,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 406
+    "line": 415
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:NotificationStatus",
@@ -14991,7 +15218,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 420
+    "line": 429
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ObjectType",
@@ -15000,7 +15227,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 372
+    "line": 381
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PermissionAction",
@@ -15009,7 +15236,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 393
+    "line": 402
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PluginServiceType",
@@ -15018,7 +15245,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 302
+    "line": 311
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PullRequestStatus",
@@ -15027,7 +15254,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 437
+    "line": 446
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:PullRequestType",
@@ -15036,7 +15263,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 441
+    "line": 450
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaFindingAction",
@@ -15045,7 +15272,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 560
+    "line": 569
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaFindingDisposition",
@@ -15054,7 +15281,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 571
+    "line": 580
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewAnnotationIntent",
@@ -15063,7 +15290,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 606
+    "line": 615
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewAnnotationStatus",
@@ -15072,7 +15299,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 620
+    "line": 629
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewDecisionType",
@@ -15081,7 +15308,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 632
+    "line": 641
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewNotificationType",
@@ -15090,7 +15317,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 658
+    "line": 667
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewQueueStatus",
@@ -15099,7 +15326,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 593
+    "line": 602
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewRiskBucket",
@@ -15108,7 +15335,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 581
+    "line": 590
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewRunLayer",
@@ -15117,7 +15344,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 541
+    "line": 550
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewRunStatus",
@@ -15126,7 +15353,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 550
+    "line": 559
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewSuggestionStatus",
@@ -15135,7 +15362,16 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 643
+    "line": 652
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QueueTaskStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QueueTaskStatus",
+    "name": "QueueTaskStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 29
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallQuerySide",
@@ -15144,7 +15380,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 694
+    "line": 703
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallVariantType",
@@ -15153,7 +15389,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 688
+    "line": 697
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:Relation",
@@ -15162,7 +15398,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 389
+    "line": 398
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RelationEndpointKind",
@@ -15171,7 +15407,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 132
+    "line": 141
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ResourceType",
@@ -15180,7 +15416,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 308
+    "line": 317
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ReviewStatus",
@@ -15189,7 +15425,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 537
+    "line": 546
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RiskLevel",
@@ -15198,7 +15434,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 526
+    "line": 535
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ScopeBindingAssetKind",
@@ -15207,7 +15443,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 223
+    "line": 232
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ScopeBindingMode",
@@ -15216,7 +15452,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 228
+    "line": 237
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ScopeType",
@@ -15225,7 +15461,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 303
+    "line": 312
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:SemanticDiffKind",
@@ -15234,7 +15470,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 243
+    "line": 252
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:SubjectType",
@@ -15243,7 +15479,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 376
+    "line": 385
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TaskStatus",
@@ -15252,7 +15488,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 304
+    "line": 313
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TermStatus",
@@ -15261,7 +15497,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 311
+    "line": 320
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TermType",
@@ -15270,7 +15506,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 310
+    "line": 319
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:TokenType",
@@ -15288,7 +15524,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 305
+    "line": 314
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:VectorInvalidationReason",
@@ -15297,7 +15533,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 254
+    "line": 263
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/extraction:CaptureResult",
@@ -17338,7 +17574,7 @@
     "kind": "function",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/index.ts",
-    "line": 79
+    "line": 80
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/index:DefaultGraphRuntime",
@@ -17347,7 +17583,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/index.ts",
-    "line": 70
+    "line": 71
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/lease:LeaseManager",

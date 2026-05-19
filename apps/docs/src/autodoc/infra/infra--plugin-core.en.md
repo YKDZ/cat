@@ -35,9 +35,11 @@
 | `PluginContext` | type | 插件运行时上下文
 包含当前插件的配置、已注册的服务以及当前所处的作用域信息 |
 | `RouteContext` | type |  |
+| `BuiltinPluginEntry` | type | Single plugin entry inside the builtin plugin catalog. |
 | `ComponentRecord` | type |  |
 | `ComponentData` | type |  |
 | `PluginLoader` | interface |  |
+| `DefaultPluginSource` | type |  |
 | `PluginRuntimeSnapshot` | type | Observation snapshot for a single plugin in the in-memory runtime. |
 | `RegisteredService` | type |  |
 | `AgentContextProvider` | interface | Agent 上下文提供器插件服务接口。
@@ -70,6 +72,4 @@ must approve exec |
 | `ImportContext` | type |  |
 | `ExportContext` | type |  |
 | `ChatMessageRole` | type | Chat message role. |
-| `ChatMessage` | type | A chat message in a conversation. |
-| `ToolDefinition` | type | Tool definition with JSON Schema parameters. |
-| *(37 more)* | | |
+| *(42 more)* | | |

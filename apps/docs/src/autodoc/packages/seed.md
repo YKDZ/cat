@@ -41,9 +41,12 @@ export const loadDevSeed = (seedDir: string, options: LoadDevSeedOptions): Loade
 ```ts
 export const runSeedPipeline = async (execCtx: ExecutorContext, loadedSeed: LoadedDevSeed, opts: {
     pluginsDir: string;
-    defaultPluginsJsonPath: string;
+    defaultPluginIds?: string[];
+    defaultPluginsJsonPath?: string;
+    pluginLoader?: PluginLoader;
     cacheDir: string;
     skipVectorization?: boolean;
+    skipPluginBootstrap?: boolean;
   }): Promise<DevSeedResult>
 ```
 
@@ -72,7 +75,7 @@ export const assertSafeDatabaseTarget = (databaseUrl: string | undefined, option
  * then TRUNCATE them all at once. This avoids hardcoding table names
  * and automatically adapts to schema changes.
  */
-export const truncateAllTables = async (execCtx: ExecutorContext): Promise<void>
+export const truncateAllTables = async (execCtx: ExecutorContext, options: TruncateAllTablesOptions): Promise<void>
 ```
 
 ### packages/seed/src/bootstrap

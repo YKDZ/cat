@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 349
+* **Modules**: 353
 
-* **Exported functions**: 377
+* **Exported functions**: 382
 
-* **Exported types**: 482
+* **Exported types**: 491
 
 ## Function Index
 
@@ -1599,7 +1599,23 @@ export const getDbHandle = async (): Promise<DrizzleDB>
 ### `getRedisHandle`
 
 ```ts
+/**
+ * Get the global Redis handle, creating and caching it when needed.
+ *
+ * @returns Connected Redis handle
+ */
 export const getRedisHandle = async (): Promise<RedisConnection>
+```
+
+### `getCurrentRedisHandle`
+
+```ts
+/**
+ * Read the current Redis handle without creating a new connection.
+ *
+ * @returns Current Redis handle, or `undefined` when not initialized
+ */
+export const getCurrentRedisHandle = (): RedisConnection | undefined
 ```
 
 ### packages/domain/src/queries
@@ -3789,6 +3805,56 @@ export const searchChunkCosineSimilarity: Query<
 > = async (ctx: DbContext, query: { vectors: number[][]; chunkIdRange: number[]; minSimilarity: number; maxAmount: number; }) => {...}
 ```
 
+### packages/domain/src/runtime
+
+### `resolveRuntimeProfile`
+
+```ts
+/**
+ * Resolve the CAT runtime profile from environment variables.
+ *
+ * @param env - Environment variables to resolve from
+ *
+ * @returns The resolved runtime profile
+ */
+export const resolveRuntimeProfile = (env: NodeJS.ProcessEnv): RuntimeProfile
+```
+
+### `initRuntimeState`
+
+```ts
+/**
+ * Initialize the process-wide CAT runtime state.
+ *
+ * @param state - Runtime state snapshot to store
+ *
+ * @returns No return value
+ */
+export const initRuntimeState = (state: RuntimeState)
+```
+
+### `getRuntimeState`
+
+```ts
+/**
+ * Get the current CAT runtime state from the process.
+ *
+ * @returns Current runtime state, or `undefined` when not initialized
+ */
+export const getRuntimeState = (): RuntimeState | undefined
+```
+
+### `requireRuntimeState`
+
+```ts
+/**
+ * Get the current runtime state, or throw when it has not been initialized.
+ *
+ * @returns Current runtime state
+ */
+export const requireRuntimeState = (): RuntimeState
+```
+
 ### packages/domain/src/testing
 
 ### `setupTestDB`
@@ -4750,6 +4816,24 @@ export const setupTestDB = async (): Promise<TestDB>
 * `SearchChunkCosineSimilarityQuery` (type)
 
 * `ChunkCosineSimilarityItem` (type)
+
+* `PostgresTaskQueueOptions` (type) — Optional configuration for the PostgreSQL task queue.
+
+* `RuntimeProfileName` (type) — Runtime profile name.
+
+* `RuntimeBackend` (type) — Runtime backend kind.
+
+* `SearchRuntimeLevel` (type) — Search runtime capability level.
+
+* `RuntimeFeature` (type) — Runtime feature flag name.
+
+* `RuntimeStorePolicy` (type) — Summary of a single runtime storage policy.
+
+* `RuntimeProfile` (type) — Resolved runtime profile configuration.
+
+* `DatabaseRuntimeSummary` (type) — Summary of database runtime capabilities.
+
+* `RuntimeState` (type) — Process-wide shared runtime state snapshot.
 
 * `TestDB` (type)
 
