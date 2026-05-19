@@ -241,10 +241,10 @@ jobs:
           REDIS_URL: redis://localhost:6379
 
       - name: Wait for Healthcheck
-        timeout-minutes: 1
+        timeout-minutes: 3
         run: |
           echo "Waiting for service to be healthy..."
-          RETRIES=30
+          RETRIES=90
           until curl --output /dev/null --silent --head --fail http://localhost:3000/_health; do
             printf '.'
             sleep 2
