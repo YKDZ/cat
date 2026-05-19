@@ -1177,7 +1177,7 @@ importers:
         version: 1.0.0-rc.2
       drizzle-seed:
         specifier: ^0.3.1
-        version: 0.3.1(drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3))
+        version: 0.3.1
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(esbuild@0.28.0)(rollup@4.60.3)(typescript@6.0.0-beta)(vite@8.0.11(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.4))
@@ -1448,7 +1448,7 @@ importers:
         version: link:../shared
       playwright:
         specifier: ^1.59.1
-        version: 1.59.1
+        version: 1.60.0
       yaml:
         specifier: 'catalog:'
         version: 2.8.4
@@ -1706,7 +1706,7 @@ importers:
         version: 2.0.9
       zod:
         specifier: 'catalog:'
-        version: 4.4.3
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.2.4
@@ -7898,8 +7898,18 @@ packages:
     engines: {node: '>=18'}
     hasBin: true
 
+  playwright-core@1.60.0:
+    resolution: {integrity: sha512-9bW6zvX/m0lEbgTKJ6YppOKx8H3VOPBMOCFh2irXFOT4BbHgrx5hPjwJYLT40Lu+4qtD36qKc/Hn56StUW57IA==}
+    engines: {node: '>=18'}
+    hasBin: true
+
   playwright@1.59.1:
     resolution: {integrity: sha512-C8oWjPR3F81yljW9o5OxcWzfh6avkVwDD2VYdwIGqTkl+OGFISgypqzfu7dOe4QNLL2aqcWBmI3PMtLIK233lw==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.60.0:
+    resolution: {integrity: sha512-hheHdokM8cdqCb0lcE3s+zT4t4W+vvjpGxsZlDnikarzx8tSzMebh3UiFtgqwFwnTnjYQcsyMF8ei2mCO/tpeA==}
     engines: {node: '>=18'}
     hasBin: true
 
@@ -14106,11 +14116,9 @@ snapshots:
       pg: 8.20.0
       zod: 4.4.3
 
-  drizzle-seed@0.3.1(drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)):
+  drizzle-seed@0.3.1:
     dependencies:
       pure-rand: 6.1.0
-    optionalDependencies:
-      drizzle-orm: 1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
 
   dunder-proto@1.0.1:
     dependencies:
@@ -15939,9 +15947,17 @@ snapshots:
 
   playwright-core@1.59.1: {}
 
+  playwright-core@1.60.0: {}
+
   playwright@1.59.1:
     dependencies:
       playwright-core: 1.59.1
+    optionalDependencies:
+      fsevents: 2.3.2
+
+  playwright@1.60.0:
+    dependencies:
+      playwright-core: 1.60.0
     optionalDependencies:
       fsevents: 2.3.2
 
