@@ -1177,7 +1177,7 @@ importers:
         version: 1.0.0-rc.2
       drizzle-seed:
         specifier: ^0.3.1
-        version: 0.3.1(drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3))
+        version: 0.3.1
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(esbuild@0.28.0)(rollup@4.60.3)(typescript@6.0.0-beta)(vite@8.0.11(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.4))
@@ -1706,7 +1706,7 @@ importers:
         version: 2.0.9
       zod:
         specifier: 'catalog:'
-        version: 4.4.3
+        version: 3.25.76
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.2.4
@@ -1722,7 +1722,7 @@ importers:
         version: 0.9.1(typescript@6.0.0-beta)(vue@3.5.34(typescript@6.0.0-beta))
       shadcn-vue:
         specifier: ^2.6.2
-        version: 2.6.2(eslint@9.37.0(jiti@2.7.0))(vue@3.5.34(typescript@6.0.0-beta))
+        version: 2.7.3(eslint@9.37.0(jiti@2.7.0))(vue@3.5.34(typescript@6.0.0-beta))
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(esbuild@0.28.0)(rollup@4.60.3)(typescript@6.0.0-beta)(vite@8.0.11(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.4))
@@ -2289,8 +2289,8 @@ packages:
   '@docsearch/sidepanel-js@4.6.3':
     resolution: {integrity: sha512-grGSmvXzG0if+mrzdIKykvpIAuEQ9u0sEJ2eLRRCaQfJvsWqh2C2/aY04bIzWvDh7myi5rvl8D+tUNsVrjYQ3A==}
 
-  '@dotenvx/dotenvx@1.65.0':
-    resolution: {integrity: sha512-v4FA/Lw3pTEloLxBqTOaYDX6MNo0Jo7lGBsPZhwnJBqRJp0AzQg1ZZNxrFsh6HVC6QWeWrfIKLn0y2eyIXaVDg==}
+  '@dotenvx/dotenvx@1.66.0':
+    resolution: {integrity: sha512-qlQFhHUjhRDybrinqLAD0MClVZDOrsq80O8eD5iSjz3Qa/4f3Jg7SQrOaSobrRyP1QaWIYLGtGpj2c7H0D8NUw==}
     hasBin: true
 
   '@drizzle-team/brocli@0.11.0':
@@ -6716,8 +6716,8 @@ packages:
     resolution: {integrity: sha512-DyFP3BM/3YHTQOCUL/w0OZHR0lpKeGrxotcHWcqNEdnltqFwXVfhEBQ94eIo34AfQpo0rGki4cyIiftY06h2Fg==}
     engines: {node: 6.* || 8.* || >= 10.*}
 
-  get-east-asian-width@1.5.0:
-    resolution: {integrity: sha512-CQ+bEO+Tva/qlmw24dCejulK5pMzVnUOFOijVogd3KQs07HnRIgp8TGipvCCRT06xeYEbpbgwaCxglFyiuIcmA==}
+  get-east-asian-width@1.6.0:
+    resolution: {integrity: sha512-QRbvDIbx6YklUe6RxeTeleMR0yv3cYH6PsPZHcnVn7xv7zO1BHN8r0XETu8n6Ye3Q+ahtSarc3WgtNWmehIBfA==}
     engines: {node: '>=18'}
 
   get-intrinsic@1.3.0:
@@ -8290,6 +8290,11 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  semver@7.8.0:
+    resolution: {integrity: sha512-AcM7dV/5ul4EekoQ29Agm5vri8JNqRyj39o0qpX6vDF2GZrtutZl5RwgD1XnZjiTAfncsJhMI48QQH3sN87YNA==}
+    engines: {node: '>=10'}
+    hasBin: true
+
   send@1.2.1:
     resolution: {integrity: sha512-1gnZf7DFcoIcajTjTwjwuDjzuz4PPcY2StKPlsGAQ1+YH20IRVrBaXSWmdjowTJ6u8Rc01PoYOGHXfP1mYcZNQ==}
     engines: {node: '>= 18'}
@@ -8304,8 +8309,8 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
-  shadcn-vue@2.6.2:
-    resolution: {integrity: sha512-5IGP8qaLyaRDs3g+ap9epeZ/KoaUKlv9cjeAxdkdIaOUDwu5ktI3ntfk+dgfk2EGBdZDrXLG3jiOEdygVifh0w==}
+  shadcn-vue@2.7.3:
+    resolution: {integrity: sha512-bYfn9RbjG98++IjvCEhVhvva64mjDAGrtE4QNSuy6jjtE/XpI3syRJaBYmrvPBI93W27dLGbCTr8p7gnvjkQvQ==}
     hasBin: true
 
   shebang-command@2.0.0:
@@ -8534,6 +8539,9 @@ packages:
 
   tailwindcss@4.2.4:
     resolution: {integrity: sha512-HhKppgO81FQof5m6TEnuBWCZGgfRAWbaeOaGT00KOy/Pf/j6oUihdvBpA7ltCeAvZpFhW3j0PTclkxsd4IXYDA==}
+
+  tailwindcss@4.3.0:
+    resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
 
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
@@ -10070,7 +10078,7 @@ snapshots:
 
   '@docsearch/sidepanel-js@4.6.3': {}
 
-  '@dotenvx/dotenvx@1.65.0':
+  '@dotenvx/dotenvx@1.66.0':
     dependencies:
       commander: 11.1.0
       dotenv: 17.4.2
@@ -14106,11 +14114,9 @@ snapshots:
       pg: 8.20.0
       zod: 4.4.3
 
-  drizzle-seed@0.3.1(drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)):
+  drizzle-seed@0.3.1:
     dependencies:
       pure-rand: 6.1.0
-    optionalDependencies:
-      drizzle-orm: 1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
 
   dunder-proto@1.0.1:
     dependencies:
@@ -14601,7 +14607,7 @@ snapshots:
 
   get-caller-file@2.0.5: {}
 
-  get-east-asian-width@1.5.0: {}
+  get-east-asian-width@1.6.0: {}
 
   get-intrinsic@1.3.0:
     dependencies:
@@ -14930,7 +14936,7 @@ snapshots:
       acorn: 8.16.0
       eslint-visitor-keys: 3.4.3
       espree: 9.6.1
-      semver: 7.7.4
+      semver: 7.8.0
 
   jsonfile@6.2.1:
     dependencies:
@@ -15533,7 +15539,7 @@ snapshots:
 
   node-abi@3.92.0:
     dependencies:
-      semver: 7.7.4
+      semver: 7.8.0
 
   node-domexception@1.0.0: {}
 
@@ -16417,6 +16423,8 @@ snapshots:
 
   semver@7.7.4: {}
 
+  semver@7.8.0: {}
+
   send@1.2.1:
     dependencies:
       debug: 4.4.3
@@ -16446,9 +16454,9 @@ snapshots:
 
   setprototypeof@1.2.0: {}
 
-  shadcn-vue@2.6.2(eslint@9.37.0(jiti@2.7.0))(vue@3.5.34(typescript@6.0.0-beta)):
+  shadcn-vue@2.7.3(eslint@9.37.0(jiti@2.7.0))(vue@3.5.34(typescript@6.0.0-beta)):
     dependencies:
-      '@dotenvx/dotenvx': 1.65.0
+      '@dotenvx/dotenvx': 1.66.0
       '@modelcontextprotocol/sdk': 1.29.0(zod@3.25.76)
       '@unovue/detypes': 0.8.5
       '@vue/compiler-sfc': 3.5.34
@@ -16472,9 +16480,9 @@ snapshots:
       postcss-selector-parser: 7.1.1
       prompts: 2.4.2
       reka-ui: 2.9.7(vue@3.5.34(typescript@6.0.0-beta))
-      semver: 7.7.4
+      semver: 7.8.0
       stringify-object: 6.0.0
-      tailwindcss: 4.2.4
+      tailwindcss: 4.3.0
       tinyexec: 1.1.2
       tinyglobby: 0.2.16
       ts-morph: 27.0.2
@@ -16639,7 +16647,7 @@ snapshots:
 
   string-width@8.2.1:
     dependencies:
-      get-east-asian-width: 1.5.0
+      get-east-asian-width: 1.6.0
       strip-ansi: 7.2.0
 
   string_decoder@1.3.0:
@@ -16770,6 +16778,8 @@ snapshots:
       - yaml
 
   tailwindcss@4.2.4: {}
+
+  tailwindcss@4.3.0: {}
 
   tapable@2.3.3: {}
 
@@ -17437,7 +17447,7 @@ snapshots:
       eslint-visitor-keys: 5.0.1
       espree: 11.2.0
       esquery: 1.7.0
-      semver: 7.7.4
+      semver: 7.8.0
     transitivePeerDependencies:
       - supports-color
 
