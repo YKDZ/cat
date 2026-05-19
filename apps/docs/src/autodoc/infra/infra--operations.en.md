@@ -87,7 +87,7 @@ Queries the TRANSLATION_ADVISOR plugin s |
 in paral |
 | `FetchBestTranslationCandidateInput` | type |  |
 | `FetchBestTranslationCandidateOutput` | type |  |
-| *(180 more)* | | |
+| *(187 more)* | | |
 
 ## Related Topics
 

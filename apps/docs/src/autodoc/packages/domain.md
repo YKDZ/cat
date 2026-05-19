@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 331
+* **Modules**: 349
 
-* **Exported functions**: 355
+* **Exported functions**: 377
 
-* **Exported types**: 456
+* **Exported types**: 482
 
 ## Function Index
 
@@ -1177,7 +1177,7 @@ export const mergePR: Command<
 export const submitReview: Command<
   SubmitReviewCommand,
   typeof pullRequest.$inferSelect
-> = async (ctx: DbContext, command: { prId: number; reviewerId: string; decision: "CHANGES_REQUESTED" | "APPROVE"; }) => {...}
+> = async (ctx: DbContext, command: { prId: number; reviewerId: string; decision: "APPROVE" | "CHANGES_REQUESTED"; }) => {...}
 ```
 
 ### `updatePRStatus`
@@ -1216,7 +1216,8 @@ export const createQaResultItems: Command<CreateQaResultItemsCommand> = async (c
 
 ```ts
 export const createQaResultWithItems: Command<
-  CreateQaResultWithItemsCommand
+  CreateQaResultWithItemsCommand,
+  CreateQaResultWithItemsResult
 > = async (ctx: DbContext, command: { translationId: number; items: { isPassed: boolean; checkerId: number; meta?: z.core.util.JSONType | undefined; }[]; }) => {...}
 ```
 
@@ -1227,6 +1228,116 @@ export const createQaResult: Command<
   CreateQaResultCommand,
   { id: number }
 > = async (ctx: DbContext, command: { translationId: number; }) => {...}
+```
+
+### packages/domain/src/commands/qa-review
+
+### `claimQaReviewQueueItem`
+
+```ts
+/**
+ * Mark a QA review queue item as claimed and record the claimant.
+ */
+export const claimQaReviewQueueItem: Command<
+  ClaimQaReviewQueueItemCommand,
+  typeof qaReviewQueueItem.$inferSelect
+> = async (ctx: DbContext, input: { queueItemId: number; userId: string; }) => {...}
+```
+
+### `createQaReviewAnnotation`
+
+```ts
+/**
+ * Create an annotation under a QA review queue item and update queue activity counters.
+ */
+export const createQaReviewAnnotation: Command<
+  CreateQaReviewAnnotationCommand,
+  typeof qaReviewAnnotation.$inferSelect
+> = async (ctx: DbContext, input: { queueItemId: number; intent: "ACTION_REQUIRED" | "SUGGESTION" | "QUESTION" | "NOTE" | "PRAISE" | "WONT_FIX"; body: string; isPromotable: boolean; findingId?: number | undefined; targetRange?: { start: number; end: number; } | undefined; quote?: string | undefined; parentAnnotationId?: number | undefined; authorId?: string | undefined; authorAgentId?: number | undefined; }) => {...}
+```
+
+### `createQaReviewRunWithFindings`
+
+```ts
+/**
+ * Create a QA review run and its findings in the same transaction.
+ */
+export const createQaReviewRunWithFindings: Command<
+  CreateQaReviewRunWithFindingsCommand,
+  CreateQaReviewRunWithFindingsResult
+> = async (ctx: DbContext, input: { projectId: string; elementId: number; translationId: number | null; layer: "DETERMINISTIC" | "SEMANTIC"; status: "COMPLETED" | "FAILED" | "PARTIAL" | "SKIPPED"; riskScore: number; findings: { layer: "DETERMINISTIC" | "SEMANTIC"; ruleId: string; ruleFamily: string; severity: "error" | "warning" | "info"; action: "BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED"; disposition: "SUPPRESSED" | "OPEN" | "CONFIRMED" | "FALSE_POSITIVE" | "ACCEPTED" | "SUPERSEDED"; confidenceBasisPoints: number; riskScore: number; message: string; explanation: string | null; sourceSpan: { tokenIndex?: number | undefined; textRange?: { start: number; end: number; } | undefined; quote?: string | undefined; } | null; targetSpan: { tokenIndex?: number | undefined; textRange?: { start: number; end: number; } | undefined; quote?: string | undefined; } | null; suggestedText: string | null; meta: any; checkerServiceId?: number | null | undefined; qaResultItemId?: number | null | undefined; }[]; qaResultId?: number | null | undefined; profileId?: number | null | undefined; branchId?: number | null | undefined; pullRequestId?: number | null | undefined; checkerServiceId?: number | null | undefined; modelServiceId?: number | null | undefined; summary?: string | null | undefined; errorMessage?: string | null | undefined; meta?: { profileId?: number | null | undefined; traceId?: string | undefined; deterministicOnly?: boolean | undefined; rawError?: string | undefined; } | null | undefined; }) => {...}
+```
+
+### `createQaReviewSuggestion`
+
+```ts
+/**
+ * Create the unique suggestion record for an annotation whose intent is `SUGGESTION`.
+ */
+export const createQaReviewSuggestion: Command<
+  CreateQaReviewSuggestionCommand,
+  typeof qaReviewSuggestion.$inferSelect
+> = async (ctx: DbContext, input: { annotationId: number; proposedText: string; targetRange?: { start: number; end: number; } | undefined; }) => {...}
+```
+
+### `markQaReviewSuggestionApplied`
+
+```ts
+/**
+ * Mark a QA review suggestion as applied and accept the corresponding annotation.
+ */
+export const markQaReviewSuggestionApplied: Command<
+  MarkQaReviewSuggestionAppliedCommand,
+  typeof qaReviewSuggestion.$inferSelect
+> = async (ctx: DbContext, input: { suggestionId: number; expectedStatus: "OPEN"; appliedTranslationId?: number | undefined; appliedChangesetEntryId?: number | undefined; appliedBy?: string | undefined; }) => {...}
+```
+
+### `materializeQaReviewQueueItem`
+
+```ts
+/**
+ * Materialize or update a QA review queue item from the current translation findings.
+ */
+export const materializeQaReviewQueueItem: Command<
+  MaterializeQaReviewQueueItemCommand,
+  MaterializeQaReviewQueueItemResult
+> = async (ctx: DbContext, input: { projectId: string; languageId: string; elementId: number; translationId?: number | null | undefined; branchId?: number | null | undefined; pullRequestId?: number | null | undefined; }) => {...}
+```
+
+### `rejectQaReviewSuggestion`
+
+```ts
+/**
+ * Reject an open QA review suggestion and reject the corresponding annotation.
+ */
+export const rejectQaReviewSuggestion: Command<
+  RejectQaReviewSuggestionCommand,
+  typeof qaReviewSuggestion.$inferSelect
+> = async (ctx: DbContext, input: { suggestionId: number; rejectedBy: string; rejectionReason: string; expectedStatus: "OPEN"; }) => {...}
+```
+
+### `submitQaReviewDecision`
+
+```ts
+/**
+ * Submit a QA review decision and perform finding closure plus optimistic concurrency checks when needed.
+ */
+export const submitQaReviewDecision: Command<
+  SubmitQaReviewDecisionCommandInput,
+  typeof qaReviewDecision.$inferSelect
+> = async (ctx: DbContext, input: { queueItemId: number; decision: "REQUEST_CHANGES" | "PRAISE" | "APPROVE" | "REJECT_CANDIDATE" | "CLOSE_FINDING" | "DEFER"; reason: string; expectedVersion: number; overrideBlocking: boolean; reviewerId: string; findingId?: number | undefined; findingDisposition?: "SUPPRESSED" | "FALSE_POSITIVE" | "ACCEPTED" | undefined; annotationId?: number | undefined; }) => {...}
+```
+
+### `transitionQaReviewAnnotation`
+
+```ts
+/**
+ * Transition a QA review annotation according to the explicit state machine and sync queue unresolved counts.
+ */
+export const transitionQaReviewAnnotation: Command<
+  TransitionQaReviewAnnotationCommand,
+  typeof qaReviewAnnotation.$inferSelect
+> = async (ctx: DbContext, input: { annotationId: number; status: "REJECTED" | "OPEN" | "ACCEPTED" | "SUPERSEDED" | "RESOLVED" | "HIDDEN"; actorId?: string | undefined; reason?: string | undefined; }) => {...}
 ```
 
 ### packages/domain/src/commands/sequence
@@ -1957,6 +2068,15 @@ export const countContentNodeTranslations: Query<
   CountContentNodeTranslationsQuery,
   number
 > = async (ctx: DbContext, query: { contentNodeId: string; languageId: string; isApproved?: boolean | undefined; }) => {...}
+```
+
+### `buildEditorScopeElementFilterSql`
+
+```ts
+/**
+ * Build the shared CTE/filter SQL used by editor-scope element queries.
+ */
+export const buildEditorScopeElementFilterSql = (query: EditorScopeSqlInput): import("drizzle-orm").SQL<unknown>
 ```
 
 ### `listEditorScopeElements`
@@ -3296,6 +3416,146 @@ export const listQaResultItems: Query<
 > = async (ctx: DbContext, query: { qaResultId: number; }) => {...}
 ```
 
+### packages/domain/src/queries/qa-review
+
+### `countQaReviewQueueItems`
+
+```ts
+/**
+ * Count QA review queue items under the current editor scope plus queue filters.
+ */
+export const countQaReviewQueueItems: Query<
+  CountQaReviewQueueItemsQuery,
+  number
+> = async (ctx: DbContext, input: { projectId: string; contentNodeIds: string[]; searchQuery: string; languageToId: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
+```
+
+### `getQaReviewNotificationRecipient`
+
+```ts
+/**
+ * Resolve the user who should receive a QA review notification while avoiding self-notifications.
+ */
+export const getQaReviewNotificationRecipient: Query<
+  GetQaReviewNotificationRecipientQuery,
+  GetQaReviewNotificationRecipientResult
+> = async (ctx: DbContext, input: { queueItemId?: number | undefined; annotationId?: number | undefined; suggestionId?: number | undefined; triggererId?: string | undefined; }) => {...}
+```
+
+### `getQaReviewQueueItemProject`
+
+```ts
+/**
+ * Get the owning project for a QA review queue item.
+ */
+export const getQaReviewQueueItemProject: Query<
+  { queueItemId: number },
+  { projectId: string } | null
+> = async (ctx: DbContext, input: { queueItemId: number; }) => {...}
+```
+
+### `getQaReviewAnnotationProject`
+
+```ts
+/**
+ * Get the owning project for a QA review annotation.
+ */
+export const getQaReviewAnnotationProject: Query<
+  { annotationId: number },
+  { projectId: string } | null
+> = async (ctx: DbContext, input: { annotationId: number; }) => {...}
+```
+
+### `getQaReviewSuggestionProject`
+
+```ts
+/**
+ * Get the owning project for a QA review suggestion.
+ */
+export const getQaReviewSuggestionProject: Query<
+  { suggestionId: number },
+  { projectId: string } | null
+> = async (ctx: DbContext, input: { suggestionId: number; }) => {...}
+```
+
+### `getQaReviewQueueItemDetail`
+
+```ts
+/**
+ * Get a single QA review queue item detail including source/candidate/approved translations and related findings/annotations/suggestions/decisions.
+ */
+export const getQaReviewQueueItemDetail: Query<
+  GetQaReviewQueueItemDetailQuery,
+  QaReviewQueueItemDetail | null
+> = async (ctx: DbContext, input: { queueItemId: number; }) => {...}
+```
+
+### `getQaReviewSuggestion`
+
+```ts
+/**
+ * Fetch a single QA review suggestion by ID.
+ */
+export const getQaReviewSuggestion: Query<
+  GetQaReviewSuggestionQuery,
+  typeof qaReviewSuggestion.$inferSelect | null
+> = async (ctx: DbContext, input: { suggestionId: number; }) => {...}
+```
+
+### `listQaReviewAnnotations`
+
+```ts
+/**
+ * List annotations under a queue item, hiding hidden annotations by default.
+ */
+export const listQaReviewAnnotations: Query<
+  ListQaReviewAnnotationsQuery,
+  Array<typeof qaReviewAnnotation.$inferSelect>
+> = async (ctx: DbContext, input: { queueItemId: number; includeHidden: boolean; }) => {...}
+```
+
+### `listQaReviewFindings`
+
+```ts
+/**
+ * List QA review findings for a queue item, hiding suppressed/superseded entries by default.
+ */
+export const listQaReviewFindings: Query<
+  ListQaReviewFindingsQuery,
+  Array<typeof qaReviewFinding.$inferSelect>
+> = async (ctx: DbContext, input: { queueItemId: number; includeSuppressed: boolean; }) => {...}
+```
+
+### `buildQaReviewQueueRowsSql`
+
+```ts
+export const buildQaReviewQueueRowsSql = (input: ListQaReviewQueueItemsQuery): SQL<unknown>
+```
+
+### `listQaReviewQueueItems`
+
+```ts
+/**
+ * List QA review queue items with pagination using the shared editor scope and queue filters.
+ */
+export const listQaReviewQueueItems: Query<
+  ListQaReviewQueueItemsQuery,
+  QaReviewQueueListItem[]
+> = async (ctx: DbContext, input: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; pageSize: number; page: number; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
+```
+
+### `resolveQaReviewProfile`
+
+```ts
+/**
+ * Resolve the most specific QA review profile for the given project/language/content-node/branch scope.
+ */
+export const resolveQaReviewProfile: Query<
+  ResolveQaReviewProfileQuery,
+  ResolveQaReviewProfileResult
+> = async (ctx: DbContext, input: { projectId: string; languageId: string; contentNodeId?: string | null | undefined; branchId?: number | null | undefined; }) => {...}
+```
+
 ### packages/domain/src/queries/session
 
 ### `listSessionsByUser`
@@ -3839,9 +4099,33 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `UpdatePRCommand` (type)
 
+* `ClaimQaReviewQueueItemCommand` (type)
+
+* `CreateQaReviewAnnotationCommand` (type)
+
+* `CreateQaReviewRunWithFindingsCommand` (type)
+
+* `CreateQaReviewRunWithFindingsResult` (type)
+
+* `CreateQaReviewSuggestionCommand` (type)
+
+* `MarkQaReviewSuggestionAppliedCommand` (type)
+
+* `MaterializeQaReviewQueueItemCommand` (type)
+
+* `MaterializeQaReviewQueueItemResult` (type)
+
+* `RejectQaReviewSuggestionCommand` (type)
+
+* `SubmitQaReviewDecisionCommandInput` (type)
+
+* `TransitionQaReviewAnnotationCommand` (type)
+
 * `CreateQaResultItemsCommand` (type)
 
 * `CreateQaResultWithItemsCommand` (type)
+
+* `CreateQaResultWithItemsResult` (type)
 
 * `CreateQaResultCommand` (type)
 
@@ -4036,6 +4320,8 @@ export const setupTestDB = async (): Promise<TestDB>
 * `GetEditorScopeFirstElementQuery` (type) — Type for fetching the first matching element in an editor scope.
 
 * `GetEditorScopeElementPageIndexQuery` (type) — Type for editor-scope element page-index queries.
+
+* `EditorScopeSqlInput` (type)
 
 * `FindProjectContentNodeByLabelQuery` (type)
 
@@ -4374,6 +4660,32 @@ export const setupTestDB = async (): Promise<TestDB>
 * `GetPRQuery` (type)
 
 * `ListPRsQuery` (type)
+
+* `CountQaReviewQueueItemsQuery` (type)
+
+* `GetQaReviewNotificationRecipientQuery` (type)
+
+* `GetQaReviewNotificationRecipientResult` (type)
+
+* `GetQaReviewQueueItemDetailQuery` (type)
+
+* `QaReviewTranslationDetail` (type)
+
+* `QaReviewQueueItemDetail` (type)
+
+* `GetQaReviewSuggestionQuery` (type)
+
+* `ListQaReviewAnnotationsQuery` (type)
+
+* `ListQaReviewFindingsQuery` (type)
+
+* `ListQaReviewQueueItemsQuery` (type)
+
+* `QaReviewQueueListItem` (type)
+
+* `ResolveQaReviewProfileQuery` (type)
+
+* `ResolveQaReviewProfileResult` (type)
 
 * `ListQaResultItemsQuery` (type)
 

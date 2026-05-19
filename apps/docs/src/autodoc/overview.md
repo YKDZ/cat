@@ -10,11 +10,11 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (355 functions, 456 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (377 functions, 482 types)
 
-* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (106 functions, 124 types)
+* [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (110 functions, 127 types)
 
-* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 244 types)
+* [**@cat/shared**](./packages/shared.md) — Shared Zod schemas, type definitions, and utility functions (25 functions, 274 types)
 
 * [**@cat/db**](./packages/db.md) — Database layer: Drizzle ORM schemas and Redis client (9 functions, 6 types)
 

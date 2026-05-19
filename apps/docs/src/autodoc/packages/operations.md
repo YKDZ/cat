@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 88
+* **Modules**: 92
 
-* **Exported functions**: 106
+* **Exported functions**: 110
 
-* **Exported types**: 124
+* **Exported types**: 127
 
 ## Function Index
 
@@ -638,7 +638,7 @@ export const nlpSegmentOp = async (data: NlpSegmentInput, ctx?: OperationContext
  *
  * @returns Structured content graph payload
  */
-export const parseFileOp = async (data: ParseFileInput, _ctx?: OperationContext): Promise<{ payload: { payloadVersion: "content-graph/v1"; projectId: string; sourceLanguageId: string; importerId: string; sourceRootRef: string; relationTypes: { namespace: string; name: string; version: string; semanticFamily: "CUSTOM" | "CONTAINMENT" | "ORDERING" | "SOURCE_REFERENCE" | "SCOPE" | "DEPENDENCY" | "VERSIONING" | "EVIDENCE" | "DISCUSSION" | "DUPLICATE" | "SEMANTIC"; allowedEndpointPairs: { source: "ELEMENT" | "NODE"; target: "ELEMENT" | "NODE"; }[]; directionality: "DIRECTED" | "UNDIRECTED"; participatesInContainment: boolean; participatesInExport: boolean; supportsOrdering: boolean; weightingEligible: boolean; defaultTrustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ownerPluginId?: string | null | undefined; deprecation?: any; migration?: any; metadata?: any; }[]; nodes: { ref: string; kind: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "MARKDOWN_SECTION" | "SOURCE_COMPONENT" | "UI_ROUTE" | "MODULE" | "MOD" | "VERSION" | "NAMESPACE" | "CHAPTER" | "PACKAGE" | "SCREENSHOT_TARGET" | "CUSTOM"; displayLabel: string; importerId: string; sourceRootRef: string; stableSourceNodeRef: string; exportRole: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "NONE" | "SECTION"; boundaryType: "PROJECT" | "FILE" | "DIRECTORY" | "MODULE" | "MOD" | "NAMESPACE" | "NONE" | "SOURCE_ROOT"; parentRef?: string | null | undefined; sourceUri?: string | null | undefined; sourcePath?: string | null | undefined; sourceType?: string | null | undefined; languageId?: string | null | undefined; file?: { fileId: number; fileHandlerId?: number | null | undefined; } | null | undefined; metadata?: any; provenance?: any; }[]; elements: { ref: string; stableSourceRef: string; sourceNodeRef: string; text: string; languageId: string; localOrder?: number | undefined; meta?: any; location?: { startLine?: number | undefined; endLine?: number | undefined; custom?: any; } | undefined; }[]; relations: { type: { namespace: string; name: string; version: string; }; source: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; target: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; isPrimary: boolean; confidenceBasisPoints: number; localOrder?: number | null | undefined; provenance?: any; metadata?: any; }[]; evidence: { attachedTo: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; } | { kind: "RELATION"; relationRef: string; }; kind: "TEXT" | "JSON" | "FILE" | "MARKDOWN" | "URL" | "IMAGE" | "COMMENT" | "SOURCE_LOCATION" | "SCREENSHOT" | "GENERATED_ANALYSIS" | "EXTERNAL_REFERENCE"; trustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ref?: string | undefined; textData?: string | null | undefined; jsonData?: any; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; displayLabel?: string | null | undefined; freshness?: string | null | undefined; provenance?: any; }[]; options?: { branchId?: number | undefined; } | undefined; }; }>
+export const parseFileOp = async (data: ParseFileInput, _ctx?: OperationContext): Promise<{ payload: { payloadVersion: "content-graph/v1"; projectId: string; sourceLanguageId: string; importerId: string; sourceRootRef: string; relationTypes: { namespace: string; name: string; version: string; semanticFamily: "SEMANTIC" | "CUSTOM" | "CONTAINMENT" | "ORDERING" | "SOURCE_REFERENCE" | "SCOPE" | "DEPENDENCY" | "VERSIONING" | "EVIDENCE" | "DISCUSSION" | "DUPLICATE"; allowedEndpointPairs: { source: "ELEMENT" | "NODE"; target: "ELEMENT" | "NODE"; }[]; directionality: "DIRECTED" | "UNDIRECTED"; participatesInContainment: boolean; participatesInExport: boolean; supportsOrdering: boolean; weightingEligible: boolean; defaultTrustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ownerPluginId?: string | null | undefined; deprecation?: any; migration?: any; metadata?: any; }[]; nodes: { ref: string; kind: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "MARKDOWN_SECTION" | "SOURCE_COMPONENT" | "UI_ROUTE" | "MODULE" | "MOD" | "VERSION" | "NAMESPACE" | "CHAPTER" | "PACKAGE" | "SCREENSHOT_TARGET" | "CUSTOM"; displayLabel: string; importerId: string; sourceRootRef: string; stableSourceNodeRef: string; exportRole: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "NONE" | "SECTION"; boundaryType: "PROJECT" | "FILE" | "DIRECTORY" | "MODULE" | "MOD" | "NAMESPACE" | "NONE" | "SOURCE_ROOT"; parentRef?: string | null | undefined; sourceUri?: string | null | undefined; sourcePath?: string | null | undefined; sourceType?: string | null | undefined; languageId?: string | null | undefined; file?: { fileId: number; fileHandlerId?: number | null | undefined; } | null | undefined; metadata?: any; provenance?: any; }[]; elements: { ref: string; stableSourceRef: string; sourceNodeRef: string; text: string; languageId: string; localOrder?: number | undefined; meta?: any; location?: { startLine?: number | undefined; endLine?: number | undefined; custom?: any; } | undefined; }[]; relations: { type: { namespace: string; name: string; version: string; }; source: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; target: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; isPrimary: boolean; confidenceBasisPoints: number; localOrder?: number | null | undefined; provenance?: any; metadata?: any; }[]; evidence: { attachedTo: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; } | { kind: "RELATION"; relationRef: string; }; kind: "TEXT" | "JSON" | "FILE" | "MARKDOWN" | "URL" | "IMAGE" | "COMMENT" | "SOURCE_LOCATION" | "SCREENSHOT" | "GENERATED_ANALYSIS" | "EXTERNAL_REFERENCE"; trustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ref?: string | undefined; textData?: string | null | undefined; jsonData?: any; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; displayLabel?: string | null | undefined; freshness?: string | null | undefined; provenance?: any; }[]; options?: { branchId?: number | undefined; } | undefined; }; }>
 ```
 
 ### `qaTranslationOp`
@@ -1525,6 +1525,44 @@ export function assignTopics(candidates: RecallCandidate[], registry: TaxonomyRe
 export const candidateKey = (c: RawResult): string
 ```
 
+### packages/operations/src/qa-review
+
+### `normalizeQaResultItems`
+
+```ts
+export const normalizeQaResultItems = (input: {
+  qaResultItemIds: number[];
+  items: Array<{ isPassed: boolean; checkerId: number; meta: unknown }>;
+}): { layer: "DETERMINISTIC" | "SEMANTIC"; ruleId: string; ruleFamily: string; severity: "error" | "warning" | "info"; action: "BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED"; disposition: "SUPPRESSED" | "OPEN" | "CONFIRMED" | "FALSE_POSITIVE" | "ACCEPTED" | "SUPERSEDED"; confidenceBasisPoints: number; riskScore: number; message: string; explanation: string | null; sourceSpan: { tokenIndex?: number | undefined; textRange?: { start: number; end: number; } | undefined; quote?: string | undefined; } | null; targetSpan: { tokenIndex?: number | undefined; textRange?: { start: number; end: number; } | undefined; quote?: string | undefined; } | null; suggestedText: string | null; meta: any; checkerServiceId?: number | null | undefined; qaResultItemId?: number | null | undefined; }[]
+```
+
+### `applyQaReviewPolicy`
+
+```ts
+export const applyQaReviewPolicy = (input: {
+  findings: NormalizedQaFinding[];
+  profile: QaReviewProfileConfig;
+}): { layer: "DETERMINISTIC" | "SEMANTIC"; ruleId: string; ruleFamily: string; severity: "error" | "warning" | "info"; action: "BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED"; disposition: "SUPPRESSED" | "OPEN" | "CONFIRMED" | "FALSE_POSITIVE" | "ACCEPTED" | "SUPERSEDED"; confidenceBasisPoints: number; riskScore: number; message: string; explanation: string | null; sourceSpan: { tokenIndex?: number | undefined; textRange?: { start: number; end: number; } | undefined; quote?: string | undefined; } | null; targetSpan: { tokenIndex?: number | undefined; textRange?: { start: number; end: number; } | undefined; quote?: string | undefined; } | null; suggestedText: string | null; meta: any; checkerServiceId?: number | null | undefined; qaResultItemId?: number | null | undefined; }[]
+```
+
+### `runQaReviewForTranslationOp`
+
+```ts
+/**
+ * Run deterministic/semantic QA review pipeline for a translation and materialize the review queue item.
+ */
+export const runQaReviewForTranslationOp = async (input: RunQaReviewForTranslationInput, ctx?: OperationContext): Promise<{ queueItemId: number | null; }>
+```
+
+### `runSemanticQaReview`
+
+```ts
+/**
+ * Run the optional semantic QA review layer and degrade gracefully when disabled, unavailable, or invalid.
+ */
+export const runSemanticQaReview = async (input: RunSemanticQaReviewInput): Promise<RunSemanticQaReviewResult>
+```
+
 ### packages/operations/src/rerank
 
 ### `applyBandOrder`
@@ -1749,6 +1787,12 @@ export const orchestrateRerank = async ({
 * `LookedUpTermWithPrecision` (type) — LookedUpTerm extended with optional pipeline decision trace (for regression testing).
 
 * `MemorySuggestionWithPrecision` (type) — MemorySuggestion extended with optional pipeline decision trace (for regression testing).
+
+* `RunQaReviewForTranslationInput` (type)
+
+* `RunSemanticQaReviewInput` (type)
+
+* `RunSemanticQaReviewResult` (type)
 
 * `QaTranslationInput` (type)
 

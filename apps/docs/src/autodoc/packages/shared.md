@@ -4,11 +4,11 @@ Shared Zod schemas, type definitions, and utility functions
 
 ## Overview
 
-* **Modules**: 47
+* **Modules**: 48
 
 * **Exported functions**: 25
 
-* **Exported types**: 244
+* **Exported types**: 274
 
 ## Function Index
 
@@ -382,6 +382,20 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `QaResultItem` (type)
 
+* `QaReviewProfile` (type)
+
+* `QaReviewRun` (type)
+
+* `QaReviewFinding` (type)
+
+* `QaReviewQueueItem` (type)
+
+* `QaReviewAnnotation` (type)
+
+* `QaReviewSuggestion` (type)
+
+* `QaReviewDecision` (type)
+
 * `Translation` (type)
 
 * `TranslationVote` (type)
@@ -522,6 +536,28 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `ReviewStatus` (type)
 
+* `QaReviewRunLayer` (type)
+
+* `QaReviewRunStatus` (type)
+
+* `QaFindingAction` (type)
+
+* `QaFindingDisposition` (type)
+
+* `QaReviewRiskBucket` (type)
+
+* `QaReviewQueueStatus` (type)
+
+* `QaReviewAnnotationIntent` (type)
+
+* `QaReviewAnnotationStatus` (type)
+
+* `QaReviewDecisionType` (type)
+
+* `QaReviewSuggestionStatus` (type)
+
+* `QaReviewNotificationType` (type)
+
 * `AsyncStatus` (type)
 
 * `ChangesetEntryAsyncStatus` (type)
@@ -640,6 +676,30 @@ export const safeJoinURL = (base: string, path: string): string
 * `ProviderStatus` (type)
 
 * `ProjectSettingPayload` (type)
+
+* `QaReviewTextRange` (type)
+
+* `QaReviewSpan` (type)
+
+* `QaReviewRule` (type)
+
+* `QaReviewProfileConfig` (type)
+
+* `NormalizedQaFinding` (type)
+
+* `QaReviewNotificationData` (type)
+
+* `QaReviewQueueFilters` (type)
+
+* `SubmitQaReviewDecisionInput` (type)
+
+* `CreateQaReviewAnnotationInput` (type)
+
+* `CreateQaReviewSuggestionInput` (type)
+
+* `ApplyQaReviewSuggestionInput` (type)
+
+* `QaReviewRunMeta` (type)
 
 * `RecallChannel` (type)
 

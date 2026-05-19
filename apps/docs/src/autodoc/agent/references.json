@@ -1060,7 +1060,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 152
+    "line": 166
   },
   {
     "id": "@cat/db:packages/db/src/zod/generators:GeneratedFileSpec",
@@ -1069,7 +1069,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 154
+    "line": 168
   },
   {
     "id": "@cat/domain:packages/domain/src/cache/cache-decorator:generateCacheKey",
@@ -3564,6 +3564,195 @@
     "line": 20
   },
   {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/claim-queue-item.cmd:claimQaReviewQueueItem",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/claim-queue-item.cmd:claimQaReviewQueueItem",
+    "name": "claimQaReviewQueueItem",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/claim-queue-item.cmd.ts",
+    "line": 22,
+    "description": "Mark a QA review queue item as claimed and record the claimant."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/claim-queue-item.cmd:ClaimQaReviewQueueItemCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/claim-queue-item.cmd:ClaimQaReviewQueueItemCommand",
+    "name": "ClaimQaReviewQueueItemCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/claim-queue-item.cmd.ts",
+    "line": 14
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-annotation.cmd:createQaReviewAnnotation",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-annotation.cmd:createQaReviewAnnotation",
+    "name": "createQaReviewAnnotation",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-annotation.cmd.ts",
+    "line": 33,
+    "description": "Create an annotation under a QA review queue item and update queue activity counters."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-annotation.cmd:CreateQaReviewAnnotationCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-annotation.cmd:CreateQaReviewAnnotationCommand",
+    "name": "CreateQaReviewAnnotationCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-annotation.cmd.ts",
+    "line": 25
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-run-with-findings.cmd:createQaReviewRunWithFindings",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-run-with-findings.cmd:createQaReviewRunWithFindings",
+    "name": "createQaReviewRunWithFindings",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-run-with-findings.cmd.ts",
+    "line": 118,
+    "description": "Create a QA review run and its findings in the same transaction."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-run-with-findings.cmd:CreateQaReviewRunWithFindingsCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-run-with-findings.cmd:CreateQaReviewRunWithFindingsCommand",
+    "name": "CreateQaReviewRunWithFindingsCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-run-with-findings.cmd.ts",
+    "line": 34
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-run-with-findings.cmd:CreateQaReviewRunWithFindingsResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-run-with-findings.cmd:CreateQaReviewRunWithFindingsResult",
+    "name": "CreateQaReviewRunWithFindingsResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-run-with-findings.cmd.ts",
+    "line": 38
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-suggestion.cmd:createQaReviewSuggestion",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-suggestion.cmd:createQaReviewSuggestion",
+    "name": "createQaReviewSuggestion",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-suggestion.cmd.ts",
+    "line": 25,
+    "description": "Create the unique suggestion record for an annotation whose intent is `SUGGESTION`."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/create-suggestion.cmd:CreateQaReviewSuggestionCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/create-suggestion.cmd:CreateQaReviewSuggestionCommand",
+    "name": "CreateQaReviewSuggestionCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/create-suggestion.cmd.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/mark-suggestion-applied.cmd:markQaReviewSuggestionApplied",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/mark-suggestion-applied.cmd:markQaReviewSuggestionApplied",
+    "name": "markQaReviewSuggestionApplied",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/mark-suggestion-applied.cmd.ts",
+    "line": 50,
+    "description": "Mark a QA review suggestion as applied and accept the corresponding annotation."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/mark-suggestion-applied.cmd:MarkQaReviewSuggestionAppliedCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/mark-suggestion-applied.cmd:MarkQaReviewSuggestionAppliedCommand",
+    "name": "MarkQaReviewSuggestionAppliedCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/mark-suggestion-applied.cmd.ts",
+    "line": 42
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/materialize-queue-item.cmd:materializeQaReviewQueueItem",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/materialize-queue-item.cmd:materializeQaReviewQueueItem",
+    "name": "materializeQaReviewQueueItem",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/materialize-queue-item.cmd.ts",
+    "line": 267,
+    "description": "Materialize or update a QA review queue item from the current translation findings."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/materialize-queue-item.cmd:MaterializeQaReviewQueueItemCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/materialize-queue-item.cmd:MaterializeQaReviewQueueItemCommand",
+    "name": "MaterializeQaReviewQueueItemCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/materialize-queue-item.cmd.ts",
+    "line": 32
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/materialize-queue-item.cmd:MaterializeQaReviewQueueItemResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/materialize-queue-item.cmd:MaterializeQaReviewQueueItemResult",
+    "name": "MaterializeQaReviewQueueItemResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/materialize-queue-item.cmd.ts",
+    "line": 36
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/reject-suggestion.cmd:rejectQaReviewSuggestion",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/reject-suggestion.cmd:rejectQaReviewSuggestion",
+    "name": "rejectQaReviewSuggestion",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/reject-suggestion.cmd.ts",
+    "line": 38,
+    "description": "Reject an open QA review suggestion and reject the corresponding annotation."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/reject-suggestion.cmd:RejectQaReviewSuggestionCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/reject-suggestion.cmd:RejectQaReviewSuggestionCommand",
+    "name": "RejectQaReviewSuggestionCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/reject-suggestion.cmd.ts",
+    "line": 30
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/submit-decision.cmd:submitQaReviewDecision",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/submit-decision.cmd:submitQaReviewDecision",
+    "name": "submitQaReviewDecision",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/submit-decision.cmd.ts",
+    "line": 131,
+    "description": "Submit a QA review decision and perform finding closure plus optimistic concurrency checks when needed."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/submit-decision.cmd:SubmitQaReviewDecisionCommandInput",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/submit-decision.cmd:SubmitQaReviewDecisionCommandInput",
+    "name": "SubmitQaReviewDecisionCommandInput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/submit-decision.cmd.ts",
+    "line": 51
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/transition-annotation.cmd:transitionQaReviewAnnotation",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/transition-annotation.cmd:transitionQaReviewAnnotation",
+    "name": "transitionQaReviewAnnotation",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/transition-annotation.cmd.ts",
+    "line": 44,
+    "description": "Transition a QA review annotation according to the explicit state machine and sync queue unresolved counts."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/transition-annotation.cmd:TransitionQaReviewAnnotationCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/transition-annotation.cmd:TransitionQaReviewAnnotationCommand",
+    "name": "TransitionQaReviewAnnotationCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/transition-annotation.cmd.ts",
+    "line": 36
+  },
+  {
     "id": "@cat/domain:packages/domain/src/commands/qa/create-qa-result-items.cmd:createQaResultItems",
     "stableKey": "@cat/domain:packages/domain/src/commands/qa/create-qa-result-items.cmd:createQaResultItems",
     "name": "createQaResultItems",
@@ -3588,7 +3777,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/qa/create-qa-result-with-items.cmd.ts",
-    "line": 51
+    "line": 67
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/qa/create-qa-result-with-items.cmd:CreateQaResultWithItemsCommand",
@@ -3598,6 +3787,15 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/qa/create-qa-result-with-items.cmd.ts",
     "line": 20
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa/create-qa-result-with-items.cmd:CreateQaResultWithItemsResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa/create-qa-result-with-items.cmd:CreateQaResultWithItemsResult",
+    "name": "CreateQaResultWithItemsResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa/create-qa-result-with-items.cmd.ts",
+    "line": 24
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/qa/create-qa-result.cmd:createQaResult",
@@ -4098,7 +4296,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 128
+    "line": 190
   },
   {
     "id": "@cat/domain:packages/domain/src/events/domain-events:DomainEvent",
@@ -4107,7 +4305,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 125
+    "line": 187
   },
   {
     "id": "@cat/domain:packages/domain/src/events/domain-events:DomainEventMap",
@@ -4116,7 +4314,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 6
+    "line": 10
   },
   {
     "id": "@cat/domain:packages/domain/src/events/domain-events:DomainEventType",
@@ -4125,7 +4323,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/events/domain-events.ts",
-    "line": 126
+    "line": 188
   },
   {
     "id": "@cat/domain:packages/domain/src/events/event-collector:createInProcessCollector",
@@ -5158,13 +5356,23 @@
     "line": 20
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:buildEditorScopeElementFilterSql",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:buildEditorScopeElementFilterSql",
+    "name": "buildEditorScopeElementFilterSql",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
+    "line": 476,
+    "description": "Build the shared CTE/filter SQL used by editor-scope element queries."
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:countEditorScopeElements",
     "stableKey": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:countEditorScopeElements",
     "name": "countEditorScopeElements",
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 497,
+    "line": 505,
     "description": "Count the elements matching filters inside the editor scope."
   },
   {
@@ -5178,13 +5386,22 @@
     "description": "Type for editor-scope element count queries."
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:EditorScopeSqlInput",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:EditorScopeSqlInput",
+    "name": "EditorScopeSqlInput",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
+    "line": 75
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:getEditorScopeElementPageIndex",
     "stableKey": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:getEditorScopeElementPageIndex",
     "name": "getEditorScopeElementPageIndex",
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 538,
+    "line": 587,
     "description": "Calculate the zero-based page index of an element under the same editor scope and filters; returns `null` if the element is out of scope."
   },
   {
@@ -5204,7 +5421,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 514,
+    "line": 522,
     "description": "Get the first matching element in the editor scope, or the first one after a given element."
   },
   {
@@ -5224,7 +5441,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 476,
+    "line": 484,
     "description": "List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project."
   },
   {
@@ -7896,6 +8113,242 @@
     "line": 17
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/count-review-queue-items.query:countQaReviewQueueItems",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/count-review-queue-items.query:countQaReviewQueueItems",
+    "name": "countQaReviewQueueItems",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/count-review-queue-items.query.ts",
+    "line": 25,
+    "description": "Count QA review queue items under the current editor scope plus queue filters."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/count-review-queue-items.query:CountQaReviewQueueItemsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/count-review-queue-items.query:CountQaReviewQueueItemsQuery",
+    "name": "CountQaReviewQueueItemsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/count-review-queue-items.query.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:getQaReviewNotificationRecipient",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:getQaReviewNotificationRecipient",
+    "name": "getQaReviewNotificationRecipient",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-notification-recipient.query.ts",
+    "line": 45,
+    "description": "Resolve the user who should receive a QA review notification while avoiding self-notifications."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:GetQaReviewNotificationRecipientQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:GetQaReviewNotificationRecipientQuery",
+    "name": "GetQaReviewNotificationRecipientQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-notification-recipient.query.ts",
+    "line": 33
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:GetQaReviewNotificationRecipientResult",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:GetQaReviewNotificationRecipientResult",
+    "name": "GetQaReviewNotificationRecipientResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-notification-recipient.query.ts",
+    "line": 37
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-object-project.query:getQaReviewAnnotationProject",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-object-project.query:getQaReviewAnnotationProject",
+    "name": "getQaReviewAnnotationProject",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-object-project.query.ts",
+    "line": 30,
+    "description": "Get the owning project for a QA review annotation."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-object-project.query:getQaReviewQueueItemProject",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-object-project.query:getQaReviewQueueItemProject",
+    "name": "getQaReviewQueueItemProject",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-object-project.query.ts",
+    "line": 14,
+    "description": "Get the owning project for a QA review queue item."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-object-project.query:getQaReviewSuggestionProject",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-object-project.query:getQaReviewSuggestionProject",
+    "name": "getQaReviewSuggestionProject",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-object-project.query.ts",
+    "line": 46,
+    "description": "Get the owning project for a QA review suggestion."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:getQaReviewQueueItemDetail",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:getQaReviewQueueItemDetail",
+    "name": "getQaReviewQueueItemDetail",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-queue-item-detail.query.ts",
+    "line": 67,
+    "description": "Get a single QA review queue item detail including source/candidate/approved translations and related findings/annotations/suggestions/decisions."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:GetQaReviewQueueItemDetailQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:GetQaReviewQueueItemDetailQuery",
+    "name": "GetQaReviewQueueItemDetailQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-queue-item-detail.query.ts",
+    "line": 34
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:QaReviewQueueItemDetail",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:QaReviewQueueItemDetail",
+    "name": "QaReviewQueueItemDetail",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-queue-item-detail.query.ts",
+    "line": 48
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:QaReviewTranslationDetail",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-queue-item-detail.query:QaReviewTranslationDetail",
+    "name": "QaReviewTranslationDetail",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-queue-item-detail.query.ts",
+    "line": 38
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-suggestion.query:getQaReviewSuggestion",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-suggestion.query:getQaReviewSuggestion",
+    "name": "getQaReviewSuggestion",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-suggestion.query.ts",
+    "line": 18,
+    "description": "Fetch a single QA review suggestion by ID."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-suggestion.query:GetQaReviewSuggestionQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-suggestion.query:GetQaReviewSuggestionQuery",
+    "name": "GetQaReviewSuggestionQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-review-suggestion.query.ts",
+    "line": 10
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-annotations.query:listQaReviewAnnotations",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-annotations.query:listQaReviewAnnotations",
+    "name": "listQaReviewAnnotations",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-annotations.query.ts",
+    "line": 19,
+    "description": "List annotations under a queue item, hiding hidden annotations by default."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-annotations.query:ListQaReviewAnnotationsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-annotations.query:ListQaReviewAnnotationsQuery",
+    "name": "ListQaReviewAnnotationsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-annotations.query.ts",
+    "line": 11
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-findings.query:listQaReviewFindings",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-findings.query:listQaReviewFindings",
+    "name": "listQaReviewFindings",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-findings.query.ts",
+    "line": 35,
+    "description": "List QA review findings for a queue item, hiding suppressed/superseded entries by default."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-findings.query:ListQaReviewFindingsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-findings.query:ListQaReviewFindingsQuery",
+    "name": "ListQaReviewFindingsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-findings.query.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:buildQaReviewQueueRowsSql",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:buildQaReviewQueueRowsSql",
+    "name": "buildQaReviewQueueRowsSql",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-queue-items.query.ts",
+    "line": 127
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:listQaReviewQueueItems",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:listQaReviewQueueItems",
+    "name": "listQaReviewQueueItems",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-queue-items.query.ts",
+    "line": 206,
+    "description": "List QA review queue items with pagination using the shared editor scope and queue filters."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:ListQaReviewQueueItemsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:ListQaReviewQueueItemsQuery",
+    "name": "ListQaReviewQueueItemsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-queue-items.query.ts",
+    "line": 71
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:QaReviewQueueListItem",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:QaReviewQueueListItem",
+    "name": "QaReviewQueueListItem",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-queue-items.query.ts",
+    "line": 75
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:resolveQaReviewProfile",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:resolveQaReviewProfile",
+    "name": "resolveQaReviewProfile",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/resolve-review-profile.query.ts",
+    "line": 48,
+    "description": "Resolve the most specific QA review profile for the given project/language/content-node/branch scope."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:ResolveQaReviewProfileQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:ResolveQaReviewProfileQuery",
+    "name": "ResolveQaReviewProfileQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/resolve-review-profile.query.ts",
+    "line": 35
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:ResolveQaReviewProfileResult",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:ResolveQaReviewProfileResult",
+    "name": "ResolveQaReviewProfileResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/resolve-review-profile.query.ts",
+    "line": 39
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/qa/list-qa-result-items.query:listQaResultItems",
     "stableKey": "@cat/domain:packages/domain/src/queries/qa/list-qa-result-items.query:listQaResultItems",
     "name": "listQaResultItems",
@@ -8129,7 +8582,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/translation/get-translation-qa-context.query.ts",
-    "line": 35,
+    "line": 42,
     "description": "Fetch the context required to run translation QA (translation text, source text, language info)."
   },
   {
@@ -8139,7 +8592,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/translation/get-translation-qa-context.query.ts",
-    "line": 16
+    "line": 18
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/translation/get-translation-qa-context.query:TranslationQaContext",
@@ -8148,7 +8601,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/translation/get-translation-qa-context.query.ts",
-    "line": 20
+    "line": 22
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/translation/get-translation-vote-total.query:getTranslationVoteTotal",
@@ -10524,13 +10977,78 @@
     "line": 50
   },
   {
+    "id": "@cat/operations:packages/operations/src/qa-review/normalize:normalizeQaResultItems",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/normalize:normalizeQaResultItems",
+    "name": "normalizeQaResultItems",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/normalize.ts",
+    "line": 5
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/qa-review/policy:applyQaReviewPolicy",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/policy:applyQaReviewPolicy",
+    "name": "applyQaReviewPolicy",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/policy.ts",
+    "line": 3
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/qa-review/run-translation-review:RunQaReviewForTranslationInput",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/run-translation-review:RunQaReviewForTranslationInput",
+    "name": "RunQaReviewForTranslationInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/run-translation-review.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/qa-review/run-translation-review:runQaReviewForTranslationOp",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/run-translation-review:runQaReviewForTranslationOp",
+    "name": "runQaReviewForTranslationOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/run-translation-review.ts",
+    "line": 36,
+    "description": "Run deterministic/semantic QA review pipeline for a translation and materialize the review queue item."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/qa-review/semantic-review:runSemanticQaReview",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/semantic-review:runSemanticQaReview",
+    "name": "runSemanticQaReview",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/semantic-review.ts",
+    "line": 85,
+    "description": "Run the optional semantic QA review layer and degrade gracefully when disabled, unavailable, or invalid."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/qa-review/semantic-review:RunSemanticQaReviewInput",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/semantic-review:RunSemanticQaReviewInput",
+    "name": "RunSemanticQaReviewInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/semantic-review.ts",
+    "line": 62
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/qa-review/semantic-review:RunSemanticQaReviewResult",
+    "stableKey": "@cat/operations:packages/operations/src/qa-review/semantic-review:RunSemanticQaReviewResult",
+    "name": "RunSemanticQaReviewResult",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/qa-review/semantic-review.ts",
+    "line": 73
+  },
+  {
     "id": "@cat/operations:packages/operations/src/qa-translation:QaTranslationInput",
     "stableKey": "@cat/operations:packages/operations/src/qa-translation:QaTranslationInput",
     "name": "QaTranslationInput",
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/qa-translation.ts",
-    "line": 22
+    "line": 23
   },
   {
     "id": "@cat/operations:packages/operations/src/qa-translation:qaTranslationOp",
@@ -10539,7 +11057,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/qa-translation.ts",
-    "line": 45,
+    "line": 46,
     "description": "Run the full QA pipeline for a specific translation.\n\n1. Fetch the translation text, source text, and language information\n2. Look up relevant terms (via backend query chain)\n3. Tokenize source and translation texts in parallel (with term annotations)\n4. Run QA checks\n5. Persist QA results"
   },
   {
@@ -10549,7 +11067,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/qa-translation.ts",
-    "line": 23
+    "line": 24
   },
   {
     "id": "@cat/operations:packages/operations/src/qa:QAInput",
@@ -12058,7 +12576,7 @@
     "kind": "interface",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/qa.ts",
-    "line": 28,
+    "line": 69,
     "description": "QA 上下文"
   },
   {
@@ -13902,7 +14420,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/drizzle/qa.ts",
-    "line": 13
+    "line": 14
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaResultItem",
@@ -13911,7 +14429,70 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/drizzle/qa.ts",
-    "line": 25
+    "line": 26
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewAnnotation",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewAnnotation",
+    "name": "QaReviewAnnotation",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 152
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewDecision",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewDecision",
+    "name": "QaReviewDecision",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 193
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewFinding",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewFinding",
+    "name": "QaReviewFinding",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 95
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewProfile",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewProfile",
+    "name": "QaReviewProfile",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 42
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewQueueItem",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewQueueItem",
+    "name": "QaReviewQueueItem",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 125
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewRun",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewRun",
+    "name": "QaReviewRun",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 65
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewSuggestion",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/qa:QaReviewSuggestion",
+    "name": "QaReviewSuggestion",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/qa.ts",
+    "line": 173
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/translation:Translation",
@@ -14155,7 +14736,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 543
+    "line": 665
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangeAction",
@@ -14173,7 +14754,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 553
+    "line": 675
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:ChangesetStatus",
@@ -14428,13 +15009,112 @@
     "line": 441
   },
   {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaFindingAction",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaFindingAction",
+    "name": "QaFindingAction",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 560
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaFindingDisposition",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaFindingDisposition",
+    "name": "QaFindingDisposition",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 571
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewAnnotationIntent",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewAnnotationIntent",
+    "name": "QaReviewAnnotationIntent",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 606
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewAnnotationStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewAnnotationStatus",
+    "name": "QaReviewAnnotationStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 620
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewDecisionType",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewDecisionType",
+    "name": "QaReviewDecisionType",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 632
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewNotificationType",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewNotificationType",
+    "name": "QaReviewNotificationType",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 658
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewQueueStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewQueueStatus",
+    "name": "QaReviewQueueStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 593
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewRiskBucket",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewRiskBucket",
+    "name": "QaReviewRiskBucket",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 581
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewRunLayer",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewRunLayer",
+    "name": "QaReviewRunLayer",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 541
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewRunStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewRunStatus",
+    "name": "QaReviewRunStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 550
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:QaReviewSuggestionStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:QaReviewSuggestionStatus",
+    "name": "QaReviewSuggestionStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 643
+  },
+  {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallQuerySide",
     "stableKey": "@cat/shared:packages/shared/src/schema/enum:RecallQuerySide",
     "name": "RecallQuerySide",
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 572
+    "line": 694
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:RecallVariantType",
@@ -14443,7 +15123,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/enum.ts",
-    "line": 566
+    "line": 688
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:Relation",
@@ -15084,6 +15764,114 @@
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/project-setting.ts",
     "line": 8
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:ApplyQaReviewSuggestionInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:ApplyQaReviewSuggestionInput",
+    "name": "ApplyQaReviewSuggestionInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 150
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:CreateQaReviewAnnotationInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:CreateQaReviewAnnotationInput",
+    "name": "CreateQaReviewAnnotationInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 133
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:CreateQaReviewSuggestionInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:CreateQaReviewSuggestionInput",
+    "name": "CreateQaReviewSuggestionInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 142
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:NormalizedQaFinding",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:NormalizedQaFinding",
+    "name": "NormalizedQaFinding",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 80
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewNotificationData",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewNotificationData",
+    "name": "QaReviewNotificationData",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 94
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewProfileConfig",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewProfileConfig",
+    "name": "QaReviewProfileConfig",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 60
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewQueueFilters",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewQueueFilters",
+    "name": "QaReviewQueueFilters",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 105
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewRule",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewRule",
+    "name": "QaReviewRule",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 41
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewRunMeta",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewRunMeta",
+    "name": "QaReviewRunMeta",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 160
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewSpan",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewSpan",
+    "name": "QaReviewSpan",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 31
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewTextRange",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewTextRange",
+    "name": "QaReviewTextRange",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 24
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:SubmitQaReviewDecisionInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:SubmitQaReviewDecisionInput",
+    "name": "SubmitQaReviewDecisionInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 119
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/recall:RecallChannel",
