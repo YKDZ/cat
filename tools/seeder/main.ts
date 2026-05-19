@@ -47,9 +47,7 @@ const main = async (): Promise<void> => {
   collectOptionValueIndexes(args, "--output-bindings", valueIndexes);
   collectOptionValueIndexes(args, "--local-overrides", valueIndexes);
   const datasetDir = args.find(
-    (a, i) =>
-      !a.startsWith("--") &&
-      !valueIndexes.has(i),
+    (a, i) => !a.startsWith("--") && !valueIndexes.has(i),
   );
 
   if (!datasetDir) {
@@ -102,8 +100,22 @@ const main = async (): Promise<void> => {
     }
   }
 
-  const vectorizationEnabled = loadedSeed.config.vectorization.enabled;
-  const shouldSkipVectorization = skipVectorization || !vectorizationEnabled;
+  const hasVectorizerConfigured = loadedSeed.config.plugins.overrides.some(
+    (o) => o.plugin === "openai-vectorizer" || o.plugin.includes("vectorizer"),
+  );
+  const shouldSkipVectorization = skipVectorization || !hasVectorizerConfigured;
+
+  if (skipVectorization) {
+    console.log("[seed] Vectorization: skipped (--skip-vectorization flag).");
+  } else if (hasVectorizerConfigured) {
+    console.log(
+      "[seed] Vectorization: enabled (vectorizer plugin configured; use --skip-vectorization to skip).",
+    );
+  } else {
+    console.log(
+      "[seed] Vectorization: auto-skipped (no vectorizer plugin configured).",
+    );
+  }
 
   // 2. Connect to database
   const drizzleDB = new DrizzleDB();

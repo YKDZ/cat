@@ -14,7 +14,7 @@ seed 工具通过一条命令清空数据库并填充预定义数据，用于搭
 # 从仓库根目录执行
 pnpm tsx tools/seeder/main.ts <dataset-dir>
 
-# 跳过向量化（无外部服务时）
+# 跳过向量化（向量化服务不可用时使用此 flag 强制跳过）
 pnpm tsx tools/seeder/main.ts <dataset-dir> --skip-vectorization
 
 # 输出 bindings 文件（供 eval 等工具使用）

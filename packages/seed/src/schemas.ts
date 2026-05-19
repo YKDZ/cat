@@ -225,11 +225,6 @@ export const DevSeedConfigSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   seed: SeedConfigSchema,
-  vectorization: z
-    .object({
-      enabled: z.boolean().default(true),
-    })
-    .default({ enabled: true }),
   plugins: z.object({
     loader: z.enum(["real", "test"]).default("real"),
     overrides: z.array(PluginOverrideSchema).default([]),

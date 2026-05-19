@@ -136,6 +136,13 @@ export const runBootstrapSourceGraph = async (
       ? "enabled"
       : "unavailable";
 
+  if (vectorizationStatus === "unavailable") {
+    throw new Error(
+      "[seed] Bootstrap vectorization services unavailable (TEXT_VECTORIZER or VECTOR_STORAGE not found). " +
+        "Ensure the vectorizer plugin is configured, or pass --skip-vectorization to skip.",
+    );
+  }
+
   const diff = await diffStructuredContentOp({
     payload,
     vectorizerId: vectorizer?.id,
@@ -239,12 +246,7 @@ export const runBootstrapSourceGraph = async (
     diagnostics: {
       source: sourceDiagnostics,
       locale: locale.diagnostics,
-      warnings:
-        vectorizationStatus === "unavailable"
-          ? [
-              "Vectorization services unavailable; source strings were seeded without vectors.",
-            ]
-          : [],
+      warnings: [],
     },
   };
 

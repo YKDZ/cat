@@ -6,9 +6,6 @@ seed:
   users: seed/users.json
   elements: seed/elements.json
 
-vectorization:
-  enabled: false
-
 plugins:
   loader: real
   overrides: []

@@ -321,8 +321,7 @@ export const runSeedPipeline = async (
       sourceLanguageId: projectSeed.sourceLanguage,
       targetLanguageIds: projectSeed.translationLanguages,
       profile: config.bootstrap,
-      skipVectorization:
-        opts.skipVectorization ?? !config.vectorization.enabled,
+      skipVectorization: opts.skipVectorization ?? false,
     });
     bootstrapResult = {
       elementIdsByRef: bootstrap.elementIdsByRef,
@@ -569,21 +568,13 @@ export const runSeedPipeline = async (
 
   // ── 12. Vectorization (optional) ───────────────────────────────────
   if (!opts.skipVectorization) {
-    try {
-      await vectorizeWithCache({
-        execCtx,
-        pluginManager,
-        cache: new VectorCache(opts.cacheDir),
-        vectorizerOverride,
-        dimension,
-      });
-    } catch (err) {
-      console.warn(
-        "[seed] Vectorization failed (external services may be unavailable):",
-        err,
-      );
-      console.warn("[seed] Continuing without vectorization.");
-    }
+    await vectorizeWithCache({
+      execCtx,
+      pluginManager,
+      cache: new VectorCache(opts.cacheDir),
+      vectorizerOverride,
+      dimension,
+    });
   } else {
     console.log("[seed] Vectorization skipped (--skip-vectorization).");
   }
@@ -646,10 +637,10 @@ const vectorizeWithCache = async (opts: {
   const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");
   const storageEntry = firstOrGivenService(pm, "VECTOR_STORAGE");
   if (!vectorizerEntry || !storageEntry) {
-    console.warn(
-      "[seed] No vectorizer or storage service available — skipping vectorization",
+    throw new Error(
+      "[seed] No vectorizer or storage service available. " +
+        "Ensure the vectorizer plugin is configured, or pass --skip-vectorization to skip.",
     );
-    return;
   }
   const vectorizer = vectorizerEntry.service;
   const storage = storageEntry.service;
@@ -674,29 +665,17 @@ const vectorizeWithCache = async (opts: {
     if (cached) {
       chunkDataArrays = cached;
     } else {
-      try {
-        const result = await vectorizer.vectorize({
-          elements: [{ text, languageId }],
-        });
-        chunkDataArrays = result.map((r: unknown) =>
-          // oxlint-disable-next-line typescript/no-unsafe-return
-          Array.isArray(r) ? r : [r],
-        ) as typeof chunkDataArrays;
-        cache.set(modelName, text, languageId, chunkDataArrays, dimension);
-      } catch (err) {
-        const msg = String(err);
-        if (msg.includes("dimension") || msg.includes("expected")) {
-          console.warn(
-            `[seed] Dimension mismatch for model "${modelName}" — invalidating cache`,
-          );
-          cache.invalidateModel(modelName);
-        }
-        console.error(`[seed] Failed to vectorize string ${stringId}:`, err);
-        continue;
-      }
+      const result = await vectorizer.vectorize({
+        elements: [{ text, languageId }],
+      });
+      chunkDataArrays = result.map((r: unknown) =>
+        // oxlint-disable-next-line typescript/no-unsafe-return
+        Array.isArray(r) ? r : [r],
+      ) as typeof chunkDataArrays;
+      cache.set(modelName, text, languageId, chunkDataArrays, dimension);
     }
 
-    try {
+    {
       const vectorizerPlugin = await db.execute(
         sql`SELECT id FROM "PluginService" WHERE service_type = 'TEXT_VECTORIZER' LIMIT 1`,
       );
@@ -735,11 +714,6 @@ const vectorizeWithCache = async (opts: {
       await executeCommand(execCtx, attachChunkSetToString, {
         updates: [{ stringId, chunkSetId: chunkSetIds[0] }],
       });
-    } catch (err) {
-      console.error(
-        `[seed] Failed to store vectors for string ${stringId}:`,
-        err,
-      );
     }
   }
 
