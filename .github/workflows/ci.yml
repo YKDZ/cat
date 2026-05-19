@@ -285,6 +285,7 @@ jobs:
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
           CAT_RUNTIME_PROFILE: lite
           CAT_SEARCH_REQUIREMENT: full-search-runtime
+          PW_REUSE_EXISTING_SERVER: "true"
           E2E_SKIP_DB_CHECK: "true"
 
       - name: Upload Playwright Report
