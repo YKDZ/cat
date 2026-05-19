@@ -21,6 +21,8 @@
 | `readYamlWithEnv` | function |  |
 | `readJson` | function |  |
 | `loadDevSeed` | function |  |
+| `LoadedLocalSeedOverride` | type | Summary of a loaded local seed override source, excluding config values. |
+| `LoadDevSeedOptions` | type | Optional local override settings for loading a development seed. |
 | `LoadedDevSeed` | type |  |
 | `runSeedPipeline` | function |  |
 | `DevSeedResult` | type |  |
@@ -28,6 +30,7 @@
 | `assertSafeDatabaseTarget` | function | Determine whether a database URL clearly targets development/test. |
 | `DatabaseSafetyOptions` | type | Safety options for database reset. |
 | `PluginOverride` | type |  |
+| `LocalSeedConfig` | type | Local seed override config type. |
 | `SeedConfig` | type |  |
 | `ProjectSeed` | type |  |
 | `GlossarySeed` | type |  |

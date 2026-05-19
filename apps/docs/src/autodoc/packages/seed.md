@@ -6,7 +6,7 @@
 
 * **Exported functions**: 10
 
-* **Exported types**: 24
+* **Exported types**: 27
 
 ## Function Index
 
@@ -15,13 +15,13 @@
 ### `interpolateEnvVars`
 
 ```ts
-export const interpolateEnvVars = (obj: unknown): unknown
+export const interpolateEnvVars = (obj: unknown, options: { preserveMissing?: boolean }): unknown
 ```
 
 ### `readYamlWithEnv`
 
 ```ts
-export const readYamlWithEnv = (filePath: string, schema: z.ZodType<T>): T
+export const readYamlWithEnv = (filePath: string, schema: z.ZodType<T>, options: { preserveMissingEnv?: boolean }): T
 ```
 
 ### `readJson`
@@ -33,7 +33,7 @@ export const readJson = (filePath: string, schema: z.ZodType<T>): T
 ### `loadDevSeed`
 
 ```ts
-export const loadDevSeed = (seedDir: string): LoadedDevSeed
+export const loadDevSeed = (seedDir: string, options: LoadDevSeedOptions): LoadedDevSeed
 ```
 
 ### `runSeedPipeline`
@@ -137,6 +137,10 @@ export const runBootstrapSourceGraph = async (input: RunBootstrapSourceGraphInpu
 
 * `RunBootstrapSourceGraphResult` (type) — Result of running bootstrap source graph ingestion.
 
+* `LoadedLocalSeedOverride` (type) — Summary of a loaded local seed override source, excluding config values.
+
+* `LoadDevSeedOptions` (type) — Optional local override settings for loading a development seed.
+
 * `LoadedDevSeed` (type)
 
 * `DevSeedResult` (type)
@@ -146,6 +150,8 @@ export const runBootstrapSourceGraph = async (input: RunBootstrapSourceGraphInpu
 * `DatabaseSafetyOptions` (type) — Safety options for database reset.
 
 * `PluginOverride` (type)
+
+* `LocalSeedConfig` (type) — Local seed override config type.
 
 * `SeedConfig` (type)
 

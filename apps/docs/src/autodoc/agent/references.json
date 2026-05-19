@@ -13114,7 +13114,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/env-interpolation.ts",
-    "line": 26
+    "line": 30
   },
   {
     "id": "@cat/seed:packages/seed/src/loader:loadDevSeed",
@@ -13123,7 +13123,17 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/loader.ts",
-    "line": 47
+    "line": 175
+  },
+  {
+    "id": "@cat/seed:packages/seed/src/loader:LoadDevSeedOptions",
+    "stableKey": "@cat/seed:packages/seed/src/loader:LoadDevSeedOptions",
+    "name": "LoadDevSeedOptions",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/loader.ts",
+    "line": 37,
+    "description": "Optional local override settings for loading a development seed."
   },
   {
     "id": "@cat/seed:packages/seed/src/loader:LoadedDevSeed",
@@ -13132,7 +13142,17 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/loader.ts",
-    "line": 22
+    "line": 42
+  },
+  {
+    "id": "@cat/seed:packages/seed/src/loader:LoadedLocalSeedOverride",
+    "stableKey": "@cat/seed:packages/seed/src/loader:LoadedLocalSeedOverride",
+    "name": "LoadedLocalSeedOverride",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/loader.ts",
+    "line": 28,
+    "description": "Summary of a loaded local seed override source, excluding config values."
   },
   {
     "id": "@cat/seed:packages/seed/src/loader:readJson",
@@ -13141,7 +13161,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/loader.ts",
-    "line": 42
+    "line": 66
   },
   {
     "id": "@cat/seed:packages/seed/src/loader:readYamlWithEnv",
@@ -13150,7 +13170,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/loader.ts",
-    "line": 32
+    "line": 53
   },
   {
     "id": "@cat/seed:packages/seed/src/pipeline:DevSeedResult",
@@ -13206,7 +13226,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 191,
+    "line": 212,
     "description": "Bootstrap locale catalog type."
   },
   {
@@ -13216,7 +13236,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 199,
+    "line": 220,
     "description": "Bootstrap profile type."
   },
   {
@@ -13226,7 +13246,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 219
+    "line": 240
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementSeed",
@@ -13235,7 +13255,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 100
+    "line": 121
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementsSeed",
@@ -13244,7 +13264,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 99
+    "line": 120
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:GlossaryConceptSeed",
@@ -13253,7 +13273,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 65
+    "line": 86
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:GlossarySeed",
@@ -13262,7 +13282,17 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 64
+    "line": 85
+  },
+  {
+    "id": "@cat/seed:packages/seed/src/schemas:LocalSeedConfig",
+    "stableKey": "@cat/seed:packages/seed/src/schemas:LocalSeedConfig",
+    "name": "LocalSeedConfig",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/schemas.ts",
+    "line": 35,
+    "description": "Local seed override config type."
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:MemoryItemSeed",
@@ -13271,7 +13301,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 83
+    "line": 104
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:MemorySeed",
@@ -13280,7 +13310,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 82
+    "line": 103
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:PluginOverride",
@@ -13289,7 +13319,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 14
+    "line": 17
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ProjectSeed",
@@ -13298,7 +13328,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 38
+    "line": 59
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:SeedConfig",
@@ -13307,7 +13337,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 28
+    "line": 49
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:UserSeed",
@@ -13316,7 +13346,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 127
+    "line": 148
   },
   {
     "id": "@cat/seed:packages/seed/src/truncate:truncateAllTables",
