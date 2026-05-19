@@ -27,11 +27,27 @@ export const getDbHandle = async (): Promise<DrizzleDB> => {
   return globalThis["__DRIZZLE_DB__"];
 };
 
+/**
+ * @zh 获取全局 Redis 句柄；若尚未创建则建立连接并缓存。
+ * @en Get the global Redis handle, creating and caching it when needed.
+ *
+ * @returns - {@zh 已连接的 Redis 句柄} {@en Connected Redis handle}
+ */
 export const getRedisHandle = async (): Promise<RedisConnection> => {
   if (!globalThis["__REDIS__"]) {
     const db = new RedisConnection();
     await db.connect();
     globalThis["__REDIS__"] = db;
   }
+  return globalThis["__REDIS__"];
+};
+
+/**
+ * @zh 读取当前已存在的 Redis 句柄；不会主动创建连接。
+ * @en Read the current Redis handle without creating a new connection.
+ *
+ * @returns - {@zh 当前 Redis 句柄；若未初始化则为 `undefined`} {@en Current Redis handle, or `undefined` when not initialized}
+ */
+export const getCurrentRedisHandle = (): RedisConnection | undefined => {
   return globalThis["__REDIS__"];
 };

@@ -2,6 +2,10 @@ import type { ExecutorContext } from "@cat/domain";
 
 import { sql } from "@cat/db";
 
+type TruncateAllTablesOptions = {
+  excludeTables?: string[];
+};
+
 /**
  * TRUNCATE all application tables with CASCADE.
  * Preserves table structure and enum types — only data is cleared.
@@ -12,13 +16,24 @@ import { sql } from "@cat/db";
  */
 export const truncateAllTables = async (
   execCtx: ExecutorContext,
+  options: TruncateAllTablesOptions = {},
 ): Promise<void> => {
+  const excludedTables = options.excludeTables ?? [];
+
   const result = await execCtx.db.execute(sql`
     SELECT string_agg('"' || tablename || '"', ', ') AS tables
     FROM pg_tables
     WHERE schemaname = current_schema()
       AND tablename NOT LIKE '__drizzle%'
       AND tablename NOT LIKE 'drizzle%'
+      ${
+        excludedTables.length > 0
+          ? sql`AND tablename NOT IN (${sql.join(
+              excludedTables.map((table) => sql`${table}`),
+              sql`, `,
+            )})`
+          : sql``
+      }
   `);
 
   const firstRow: unknown = result.rows?.[0];

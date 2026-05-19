@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
+import { PluginServiceUnavailableError } from "@cat/plugin-core";
 import { createServer } from "node:http";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { Pool } from "undici";
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import * as z from "zod";
 
 import { SpacyWordSegmenter } from "./segmenter";
@@ -150,6 +152,7 @@ describe("SpacyWordSegmenter", () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     await closeServer?.();
     closeServer = undefined;
   });
@@ -162,8 +165,25 @@ describe("SpacyWordSegmenter", () => {
     expect(segmenter.getId()).toBe("spacy-word-segmenter");
   });
 
-  test("requires serverUrl to exist in runtime config", () => {
-    expect(() => new SpacyWordSegmenter({})).toThrow();
+  test("treats placeholder config as unavailable and avoids remote calls", async () => {
+    const segmenter = new SpacyWordSegmenter({});
+    const requestSpy = vi.spyOn(Pool.prototype, "request");
+
+    await expect(segmenter.getSupportedLanguages()).resolves.toEqual([]);
+    await expect(segmenter.getAvailability()).resolves.toMatchObject({
+      available: false,
+      reason: "missing-config",
+    });
+    await expect(
+      segmenter.segment({ text: "Hello", languageId: "en-US" }),
+    ).rejects.toBeInstanceOf(PluginServiceUnavailableError);
+    await expect(
+      segmenter.batchSegment({
+        languageId: "en-US",
+        items: [{ id: "1", text: "Alpha" }],
+      }),
+    ).rejects.toBeInstanceOf(PluginServiceUnavailableError);
+    expect(requestSpy).not.toHaveBeenCalled();
   });
 
   test("loads supported languages from /languages", async () => {
@@ -305,6 +325,37 @@ describe("SpacyWordSegmenter", () => {
       timeout: 5,
     });
     await expect(segmenter.getSupportedLanguages()).resolves.toEqual([]);
+  });
+
+  test("reports remote-unreachable availability when the spaCy server is down", async () => {
+    const unavailableUrl = serverUrl;
+    await closeServer?.();
+    closeServer = undefined;
+
+    const segmenter = new SpacyWordSegmenter({
+      serverUrl: unavailableUrl,
+      timeout: 5,
+    });
+
+    await expect(segmenter.getAvailability()).resolves.toMatchObject({
+      available: false,
+      reason: "remote-unreachable",
+    });
+  });
+
+  test("throws PluginServiceUnavailableError when segmenting against an unreachable server", async () => {
+    const unavailableUrl = serverUrl;
+    await closeServer?.();
+    closeServer = undefined;
+
+    const segmenter = new SpacyWordSegmenter({
+      serverUrl: unavailableUrl,
+      timeout: 5,
+    });
+
+    await expect(
+      segmenter.segment({ text: "Hello", languageId: "en-US" }),
+    ).rejects.toBeInstanceOf(PluginServiceUnavailableError);
   });
 
   test("rejects invalid /segment payloads", async () => {

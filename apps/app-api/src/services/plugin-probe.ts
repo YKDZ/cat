@@ -1,6 +1,7 @@
 import type {
   LLMProvider,
   NlpWordSegmenter,
+  PluginServiceAvailability,
   RerankProvider,
   StorageProvider,
   TextVectorizer,
@@ -8,7 +9,12 @@ import type {
 } from "@cat/plugin-core";
 import type { NonNullJSONType, PluginServiceType } from "@cat/shared";
 
-import { PluginManager, type IPluginService } from "@cat/plugin-core";
+import {
+  PluginManager,
+  PluginServiceUnavailableError,
+  hasAvailabilityProbe,
+  type IPluginService,
+} from "@cat/plugin-core";
 import { ORPCError } from "@orpc/client";
 
 import type { Context } from "@/utils/context";
@@ -162,6 +168,53 @@ const failedResult = (
   };
 };
 
+const availabilityReasonToProbeCategory = (
+  reason: PluginServiceAvailability["reason"],
+): NonNullable<PluginProbeServiceResult["error"]>["category"] => {
+  switch (reason) {
+    case "missing-config":
+      return "MISSING_CONFIG";
+    case "disabled-by-runtime":
+      return "DISABLED_BY_RUNTIME";
+    case "remote-unreachable":
+      return "REMOTE_UNREACHABLE";
+    case "ok":
+      return "UNKNOWN";
+  }
+};
+
+const unavailableResult = (
+  serviceType: PluginServiceType,
+  serviceId: string,
+  availability: PluginServiceAvailability,
+): PluginProbeServiceResult => {
+  return {
+    serviceType,
+    serviceId,
+    status: "UNAVAILABLE",
+    billable: billable(serviceType),
+    latencyMs: 0,
+    summary: { reason: availability.reason },
+    warnings: [availability.message ?? availability.reason],
+    error: {
+      category: availabilityReasonToProbeCategory(availability.reason),
+      message: availability.message ?? availability.reason,
+    },
+  };
+};
+
+const failedOrUnavailableResult = (
+  serviceType: PluginServiceType,
+  serviceId: string,
+  error: unknown,
+  latencyMs: number | null,
+): PluginProbeServiceResult => {
+  if (error instanceof PluginServiceUnavailableError) {
+    return unavailableResult(serviceType, serviceId, error.availability);
+  }
+  return failedResult(serviceType, serviceId, error, latencyMs);
+};
+
 const probeLlm = async (
   service: LLMProvider,
   signal: AbortSignal,
@@ -192,7 +245,12 @@ const probeLlm = async (
     },
   );
   if (error)
-    return failedResult(serviceType, serviceId, error, resultBase.latencyMs);
+    return failedOrUnavailableResult(
+      serviceType,
+      serviceId,
+      error,
+      resultBase.latencyMs,
+    );
   return {
     ...resultBase,
     status: "SUCCESS",
@@ -225,7 +283,12 @@ const probeTextVectorizer = async (
     },
   );
   if (error)
-    return failedResult(serviceType, serviceId, error, resultBase.latencyMs);
+    return failedOrUnavailableResult(
+      serviceType,
+      serviceId,
+      error,
+      resultBase.latencyMs,
+    );
   return {
     ...resultBase,
     status: "SUCCESS",
@@ -284,7 +347,12 @@ const probeRerank = async (
     },
   );
   if (error)
-    return failedResult(serviceType, serviceId, error, resultBase.latencyMs);
+    return failedOrUnavailableResult(
+      serviceType,
+      serviceId,
+      error,
+      resultBase.latencyMs,
+    );
   return {
     ...resultBase,
     status: "SUCCESS",
@@ -310,7 +378,12 @@ const probeStorage = async (
     },
   );
   if (error)
-    return failedResult(serviceType, serviceId, error, resultBase.latencyMs);
+    return failedOrUnavailableResult(
+      serviceType,
+      serviceId,
+      error,
+      resultBase.latencyMs,
+    );
   return {
     ...resultBase,
     status: "SUCCESS",
@@ -345,7 +418,12 @@ const probeTranslationAdvisor = async (
     },
   );
   if (error)
-    return failedResult(serviceType, serviceId, error, resultBase.latencyMs);
+    return failedOrUnavailableResult(
+      serviceType,
+      serviceId,
+      error,
+      resultBase.latencyMs,
+    );
   return {
     ...resultBase,
     status: "SUCCESS",
@@ -379,7 +457,12 @@ const probeNlpSegmenter = async (
     },
   );
   if (error)
-    return failedResult(serviceType, serviceId, error, resultBase.latencyMs);
+    return failedOrUnavailableResult(
+      serviceType,
+      serviceId,
+      error,
+      resultBase.latencyMs,
+    );
   return {
     ...resultBase,
     status: "SUCCESS",
@@ -480,6 +563,17 @@ const probeService = async (
   service: IPluginService,
   signal: AbortSignal,
 ): Promise<PluginProbeServiceResult> => {
+  if (hasAvailabilityProbe(service)) {
+    const availability = await service.getAvailability();
+    if (!availability.available) {
+      return unavailableResult(
+        service.getType(),
+        service.getId(),
+        availability,
+      );
+    }
+  }
+
   switch (service.getType()) {
     case "AGENT_CONTEXT_PROVIDER":
     case "AGENT_TOOL_PROVIDER":
@@ -525,11 +619,16 @@ const overallStatus = (
 ): PluginProbeResult["overallStatus"] => {
   if (results.length === 0) return "UNSUPPORTED";
   if (results.every((result) => result.status === "SUCCESS")) return "SUCCESS";
+  if (results.every((result) => result.status === "UNAVAILABLE"))
+    return "UNAVAILABLE";
   if (results.every((result) => result.status === "UNSUPPORTED"))
     return "UNSUPPORTED";
   if (results.some((result) => result.status === "CANCELLED"))
     return "CANCELLED";
+  if (results.some((result) => result.status === "FAILED")) return "FAILED";
   if (results.some((result) => result.status === "SUCCESS")) return "WARNING";
+  if (results.some((result) => result.status === "UNAVAILABLE"))
+    return "WARNING";
   return "FAILED";
 };
 

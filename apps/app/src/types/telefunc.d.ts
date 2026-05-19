@@ -12,7 +12,7 @@ declare module "telefunc" {
       auth: AuthContext | null;
       pluginManager: PluginManager;
       drizzleDB: DrizzleDB;
-      redis: RedisConnection;
+      redis?: RedisConnection;
       helpers: HTTPHelpers;
     }
   }

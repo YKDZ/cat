@@ -4,7 +4,25 @@ import { resolve } from "node:path";
 // Load .env from the app-e2e directory (not CWD, which may differ)
 dotenv.config({ path: resolve(import.meta.dirname, ".env") });
 
-import { defineConfig, devices } from "@playwright/test";
+import {
+  defineConfig,
+  devices,
+  type ReporterDescription,
+} from "@playwright/test";
+
+const reporters: ReporterDescription[] = process.env.CI
+  ? [["html", { open: "never" }]]
+  : [["line"], ["html", { open: "never" }]];
+
+const reuseExistingServer = process.env.PW_REUSE_EXISTING_SERVER === "true";
+
+const webServerEnv = {
+  PORT: process.env.PORT ?? "3000",
+  REDIS_URL: process.env.REDIS_URL ?? "",
+  ...(process.env.DATABASE_URL
+    ? { DATABASE_URL: process.env.DATABASE_URL }
+    : {}),
+};
 
 export default defineConfig({
   testDir: "./tests",
@@ -12,7 +30,7 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: "html",
+  reporter: reporters,
   timeout: 90_000,
 
   globalSetup: "./global-setup.ts",
@@ -33,13 +51,9 @@ export default defineConfig({
   webServer: {
     command: "pnpm moon run app:preview",
     url: `http://localhost:${process.env.PORT ?? 3000}/_health`,
-    reuseExistingServer: true,
+    reuseExistingServer,
     timeout: 300_000,
-    env: {
-      PORT: process.env.PORT ?? "3000",
-      DATABASE_URL: process.env.DATABASE_URL ?? "",
-      REDIS_URL: process.env.REDIS_URL ?? "",
-    },
+    env: webServerEnv,
   },
 
   projects: [

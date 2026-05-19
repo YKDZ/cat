@@ -5,3 +5,17 @@ stack: "backend"
 workspace:
   inheritedTasks:
     exclude: ["test"]
+
+tasks:
+  test:
+    command: "vitest run --config ../../vitest.config.ts --project=unit-server-shared"
+    inputs:
+      - "@group(sources)"
+      - "@group(tests)"
+    deps:
+      - "^:build"
+    options:
+      cache: true
+
+  test-unit:
+    extends: "test"

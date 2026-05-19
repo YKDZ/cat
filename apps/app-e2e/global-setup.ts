@@ -1,7 +1,7 @@
 import type { FullConfig } from "@playwright/test";
 // oxlint-disable no-console -- intentional diagnostic logging in globalSetup
 
-import { DrizzleDB, ensureDB, RedisConnection } from "@cat/db";
+import { DrizzleDB, ensureDB, RedisConnection, sql } from "@cat/db";
 import { loadDevSeed, runSeedPipeline, truncateAllTables } from "@cat/seed";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -10,6 +10,15 @@ const E2E_REFS_PATH = resolve(
   import.meta.dirname,
   "test-results/e2e-refs.json",
 );
+
+const PRESERVED_PLUGIN_TABLES = [
+  "Plugin",
+  "PluginConfig",
+  "PluginConfigInstance",
+  "PluginInstallation",
+  "PluginService",
+  "PluginComponent",
+];
 
 const validateDatabaseUrl = (): string => {
   const url = process.env.DATABASE_URL;
@@ -62,9 +71,25 @@ const globalSetup = async (_config: FullConfig): Promise<void> => {
 
     // 3. Truncate all tables
     console.log("[e2e globalSetup] Truncating all tables...");
-    await truncateAllTables(execCtx);
+    await truncateAllTables(execCtx, {
+      excludeTables: PRESERVED_PLUGIN_TABLES,
+    });
 
-    // 3a. Clear stale Redis queues (prevents server startup hang during crash recovery)
+    // 3a. Clear stale PostgreSQL queues (prevents server startup hang during crash recovery)
+    await drizzleDB.client
+      .execute(
+        sql`
+          DELETE FROM "RuntimeQueueTask" WHERE queue_name = 'vectorization'
+        `,
+      )
+      .then(() => {
+        console.log(
+          "[e2e globalSetup] Cleared PostgreSQL vectorization queue.",
+        );
+      })
+      .catch(() => undefined);
+
+    // 3b. Clear stale Redis queues when configured.
     if (process.env.REDIS_URL) {
       const redis = new RedisConnection();
       await redis.connect();
@@ -74,7 +99,7 @@ const globalSetup = async (_config: FullConfig): Promise<void> => {
       console.log("[e2e globalSetup] Cleared Redis vectorization queues.");
     }
 
-    // 3b. Remove stale auth storage-state files (from a previous DB seed)
+    // 3c. Remove stale auth storage-state files (from a previous DB seed)
     const authDir = resolve(import.meta.dirname, "test-results/.auth");
     await rm(authDir, { recursive: true, force: true });
 
@@ -105,6 +130,7 @@ const globalSetup = async (_config: FullConfig): Promise<void> => {
       defaultPluginsJsonPath,
       cacheDir,
       skipVectorization: true,
+      skipPluginBootstrap: true,
     });
 
     console.log(

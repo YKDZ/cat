@@ -3,6 +3,12 @@ import { expect, type Page } from "@playwright/test";
 export class EditorPage {
   constructor(private readonly page: Page) {}
 
+  private getEditorSidebar(): ReturnType<Page["locator"]> {
+    return this.page.locator('[data-sidebar="sidebar"]').filter({
+      has: this.page.locator('[data-sidebar="footer"] .tabular-nums'),
+    });
+  }
+
   /**
    * The sidebar `[data-sidebar="sidebar"]` is the rendered wrapper.
    * Note: `<Sidebar :id="editor">` uses `id` only for state management
@@ -49,8 +55,12 @@ export class EditorPage {
    * Wait until the editor sidebar has loaded visible element rows.
    */
   async waitForEditorReady(): Promise<void> {
-    await this.page
-      .locator('[data-sidebar="group-content"] [data-sidebar="menu-button"]')
+    await this.page.waitForURL(
+      /\/editor\/project\/[^/]+\/[^/]+\/(?:auto|empty|\d+)(?:\?.*)?$/,
+      { timeout: 30_000 },
+    );
+
+    await this.getElementItems()
       .first()
       .waitFor({ state: "visible", timeout: 30_000 });
   }
@@ -65,7 +75,7 @@ export class EditorPage {
     languageId: string,
     contentNodeName: string,
   ): Promise<void> {
-    await this.page.goto(`/project/${projectId}/index/${languageId}`);
+    await this.page.goto(`/project/${projectId}/${languageId}`);
     await this.page.getByText(contentNodeName).first().click();
     await this.waitForEditorReady();
   }
@@ -75,7 +85,7 @@ export class EditorPage {
    * Scoped to `[data-sidebar="group-content"]` to exclude header menu buttons.
    */
   getElementItems(): ReturnType<Page["locator"]> {
-    return this.page.locator(
+    return this.getEditorSidebar().locator(
       '[data-sidebar="group-content"] [data-sidebar="menu-button"]',
     );
   }

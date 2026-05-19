@@ -2,11 +2,11 @@ import "dotenv/config";
 import type { Server as VikeServer } from "vike/types";
 
 import app, { wsHelper } from "@cat/app-api/app";
-import { getDbHandle, getRedisHandle } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
 import vike from "@vikejs/hono";
 
 import { initializeApp } from "@/server/initialize.ts";
+import { createShutdownHandler } from "@/server/shutdown.ts";
 
 vike(app);
 
@@ -39,46 +39,7 @@ export default {
       }
 
       wsHelper.injectWebSocket(nodeServer);
-
-      let isShuttingDown = false;
-
-      const shutdown = () => {
-        if (isShuttingDown) return;
-        isShuttingDown = true;
-
-        const handler = async () => {
-          logger
-            .withSituation("SERVER")
-            .info("About to shutdown server gracefully...");
-
-          await server.close();
-
-          try {
-            (await getRedisHandle()).disconnect();
-          } catch {
-            // already closed
-          }
-
-          try {
-            await (await getDbHandle()).disconnect();
-          } catch {
-            // already closed
-          }
-
-          logger
-            .withSituation("SERVER")
-            .info("Successfully shutdown gracefully. Goodbye");
-
-          process.exit(0);
-        };
-
-        handler().catch((err: unknown) => {
-          logger
-            .withSituation("SERVER")
-            .error(err, "Error occurred during server shutdown");
-          process.exit(1);
-        });
-      };
+      const shutdown = createShutdownHandler(server);
 
       process.on("SIGTERM", shutdown);
       process.on("SIGQUIT", shutdown);

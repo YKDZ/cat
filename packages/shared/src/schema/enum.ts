@@ -19,6 +19,15 @@ export type TokenType = (typeof TokenTypeValues)[number];
 export const TaskStatusValues = ["COMPLETED", "PENDING", "FAILED"] as const;
 export const TaskStatusSchema = z.enum(TaskStatusValues);
 
+export const QueueTaskStatusValues = [
+  "PENDING",
+  "PROCESSING",
+  "SUCCEEDED",
+  "FAILED",
+] as const;
+export const QueueTaskStatusSchema = z.enum(QueueTaskStatusValues);
+export type QueueTaskStatus = (typeof QueueTaskStatusValues)[number];
+
 export const PluginServiceTypeValues = [
   "AUTH_FACTOR",
   "STORAGE_PROVIDER",

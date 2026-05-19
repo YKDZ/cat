@@ -1,5 +1,3 @@
-import type { VectorizationTask } from "@cat/operations";
-
 import { registerBuiltinAgents } from "@cat/agent";
 import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
@@ -8,9 +6,10 @@ import {
   getFirstRegisteredUser,
   getSetting,
   getDbHandle,
-  getRedisHandle,
+  getCurrentRedisHandle,
+  initRuntimeState,
+  resolveRuntimeProfile,
   type DrizzleClient,
-  getCacheStore,
   initCacheStore,
   initSessionStore,
 } from "@cat/domain";
@@ -27,10 +26,6 @@ import {
 } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import {
-  initAllVectorStorage,
-  RedisCacheStore,
-  RedisSessionStore,
-  RedisTaskQueue,
   serverLogger as logger,
   setVectorizationQueue,
 } from "@cat/server-shared";
@@ -38,8 +33,14 @@ import { assertPromise } from "@cat/shared";
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import { createDefaultGraphRuntime } from "@cat/workflow";
 import { access } from "fs/promises";
-import { join, resolve } from "path";
+import { join } from "path";
 
+import {
+  createAppPluginLoader,
+  getDefaultPluginIds,
+} from "./default-plugins/catalog";
+import { createRuntimeBackends } from "./runtime-backends";
+import { startPostgresRuntimeCleanup } from "./runtime-cleanup";
 import { assertSearchRuntimeHealth } from "./search-runtime-health";
 
 const getStringSetting = async (
@@ -78,15 +79,32 @@ export const initializeApp = async (): Promise<void> => {
     }
 
     await ensureDB(drizzleDB);
-    await assertSearchRuntimeHealth(drizzleDB.client);
+    const profile = resolveRuntimeProfile();
+    const database = await assertSearchRuntimeHealth(drizzleDB.client, profile);
+    initRuntimeState({
+      profile,
+      database,
+      initializedAt: new Date().toISOString(),
+    });
 
-    const redis = await getRedisHandle();
-    await redis.ping();
+    const backends = await createRuntimeBackends(profile, drizzleDB.client);
+    const existingRedis = getCurrentRedisHandle();
+    if (!backends.redis && existingRedis) {
+      existingRedis.disconnect();
+    }
+    Reflect.set(globalThis, "__REDIS__", backends.redis);
 
-    initCacheStore(new RedisCacheStore(redis.redis));
-    initSessionStore(new RedisSessionStore(redis.redis));
+    initCacheStore(backends.cacheStore);
+    initSessionStore(backends.sessionStore);
+    setVectorizationQueue(backends.vectorizationQueue);
+    globalThis.runtimeCleanup?.stop();
+    globalThis.runtimeCleanup = startPostgresRuntimeCleanup([
+      backends.cacheStore,
+      backends.sessionStore,
+    ]);
 
-    const pluginManager = PluginManager.get("GLOBAL", "");
+    const pluginLoader = createAppPluginLoader();
+    const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader);
 
     const routeRegistry = pluginManager.getRouteRegistry();
     globalThis.app.all(
@@ -99,13 +117,12 @@ export const initializeApp = async (): Promise<void> => {
       },
     );
 
-    await drizzleDB.client.transaction(async (tx) => {
-      await PluginManager.installDefaults(
-        tx,
-        pluginManager,
-        resolve(process.cwd(), "default-plugins.json"),
-      );
-    });
+    await pluginManager.getDiscovery().syncDefinitions(drizzleDB.client);
+    await PluginManager.installDefaults(
+      drizzleDB.client,
+      pluginManager,
+      getDefaultPluginIds(),
+    );
 
     // restore() 必须在事务外用 pool client 调用，确保 capabilities 持有的
     // DB 句柄是长期有效的 pool 连接，而非已提交/关闭的事务句柄。
@@ -117,15 +134,8 @@ export const initializeApp = async (): Promise<void> => {
       await ensureRootUser(tx);
     });
 
-    await initAllVectorStorage(pluginManager);
     registerDomainEventHandlers(drizzleDB.client, { pluginManager });
-
-    const vectorizationQueue = new RedisTaskQueue<VectorizationTask>(
-      redis.redis,
-      "vectorization",
-    );
-    setVectorizationQueue(vectorizationQueue);
-    await registerVectorizationConsumer(vectorizationQueue);
+    await registerVectorizationConsumer(backends.vectorizationQueue);
 
     const messageGateway = new MessageGateway({
       db: drizzleDB.client,
@@ -139,10 +149,9 @@ export const initializeApp = async (): Promise<void> => {
 
     createDefaultGraphRuntime(drizzleDB.client, pluginManager);
 
-    const cacheStore = getCacheStore();
     initPermissionEngine({
       db: drizzleDB.client,
-      cache: cacheStore,
+      cache: backends.cacheStore,
       auditEnabled: true,
     });
 
@@ -166,7 +175,7 @@ export const initializeApp = async (): Promise<void> => {
 
     // Store resources in globalThis for Vike's onCreateGlobalContext to consume
     globalThis.drizzleDB = drizzleDB;
-    globalThis.redis = redis;
+    globalThis.redis = backends.redis;
     globalThis.pluginManager = pluginManager;
     globalThis.serverName = await getStringSetting(
       drizzleDB.client,

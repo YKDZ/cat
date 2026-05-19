@@ -17,7 +17,7 @@ export type TestContext = {
   sessionId: string | null;
   pluginManager: PluginManager;
   drizzleDB: DrizzleDB;
-  redis: RedisConnection;
+  redis?: RedisConnection;
   cacheStore: CacheStore;
   sessionStore: SessionStore;
   helpers: HTTPHelpers;
@@ -79,8 +79,7 @@ export const createTestContext = (
   pluginManager: null as unknown as PluginManager,
   // oxlint-disable-next-line no-unsafe-type-assertion
   drizzleDB: null as unknown as DrizzleDB,
-  // oxlint-disable-next-line no-unsafe-type-assertion
-  redis: null as unknown as RedisConnection,
+  redis: undefined,
   cacheStore: createMockCacheStore(),
   sessionStore: createMockSessionStore(),
   helpers: createMockHTTPHelpers(),

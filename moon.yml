@@ -71,6 +71,12 @@ tasks:
       cache: false
       runFromWorkspaceRoot: true
 
+  moon-task-audit:
+    command: "tsx scripts/moon-task-audit.ts"
+    options:
+      cache: false
+      runFromWorkspaceRoot: true
+
 workspace:
   inheritedTasks:
     exclude: ["build", "test"]

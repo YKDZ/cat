@@ -8,7 +8,7 @@ class Plugin implements CatPlugin {
       ? ctx.config
       : ctx.config
         ? [ctx.config]
-        : [];
+        : [{}];
 
     const configs = rawConfigs.flatMap((rawConfig) => {
       const parsed = SingleConfigSchema.safeParse(rawConfig);

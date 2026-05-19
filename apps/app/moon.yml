@@ -8,12 +8,51 @@ tags:
 tasks:
   build:
     script: "vike build"
+    inputs:
+      - "src/**/*"
+      - "locales/**/*"
+      - "default-plugins.json"
+      - "vite.config.ts"
+      - "package.json"
+      - "tsconfig*.json"
+    outputs:
+      - "dist/"
+    deps:
+      - "^:build"
+      - "password-auth-provider:build"
+      - "json-file-handler:build"
+      - "yaml-file-handler:build"
+      - "markdown-file-handler:build"
+      - "local-storage-provider:build"
+      - "basic-tokenizer:build"
+      - "basic-qa-checker:build"
+      - "tiny-widget:build"
+      - "openai-vectorizer:build"
+      - "openai-llm-provider:build"
+      - "libretranslate-advisor:build"
+      - "spacy-segmenter:build"
+      - "tei-rerank-provider:build"
+    options:
+      cache: true
 
   dev:
     script: "vike dev | pino-pretty"
     preset: "server"
     deps:
       - "db:push"
+      - "password-auth-provider:build"
+      - "json-file-handler:build"
+      - "yaml-file-handler:build"
+      - "markdown-file-handler:build"
+      - "local-storage-provider:build"
+      - "basic-tokenizer:build"
+      - "basic-qa-checker:build"
+      - "tiny-widget:build"
+      - "openai-vectorizer:build"
+      - "openai-llm-provider:build"
+      - "libretranslate-advisor:build"
+      - "spacy-segmenter:build"
+      - "tei-rerank-provider:build"
 
   preview:
     script: "tsx scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs"

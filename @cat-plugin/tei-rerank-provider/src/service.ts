@@ -1,16 +1,24 @@
 import type { RerankProviderCall, RerankResponse } from "@cat/shared";
 
-import { RerankProvider } from "@cat/plugin-core";
+import {
+  PluginServiceUnavailableError,
+  RerankProvider,
+  type PluginServiceAvailability,
+} from "@cat/plugin-core";
 import * as z from "zod";
 
 export const SingleConfigSchema = z.object({
-  baseURL: z.string(),
+  baseURL: z.string().optional(),
   "model-id": z.string().optional(),
   timeoutMs: z.number().positive().default(3000),
   authorization: z.string().optional(),
 });
 
 export type SingleConfig = z.infer<typeof SingleConfigSchema>;
+
+const normalizeConfigValue = (value: string | undefined): string => {
+  return value?.trim() ?? "";
+};
 
 export const ConfigSchema = z
   .union([SingleConfigSchema, z.array(SingleConfigSchema)])
@@ -33,17 +41,33 @@ export class TEIRerankProvider extends RerankProvider {
   }
 
   getId(): string {
+    const baseURL = normalizeConfigValue(this.providerConfig.baseURL);
     const modelId = this.providerConfig["model-id"];
     return modelId
-      ? `tei-rerank:${this.providerConfig.baseURL}:${modelId}`
-      : `tei-rerank:${this.providerConfig.baseURL}`;
+      ? `tei-rerank:${baseURL || "unconfigured"}:${modelId}`
+      : `tei-rerank:${baseURL || "unconfigured"}`;
   }
 
   getModelName(): string {
     return this.providerConfig["model-id"] ?? "unknown";
   }
 
+  getAvailability(): PluginServiceAvailability {
+    return normalizeConfigValue(this.providerConfig.baseURL).length > 0
+      ? { available: true, reason: "ok" }
+      : {
+          available: false,
+          reason: "missing-config",
+          message: "TEI rerank provider requires a baseURL.",
+        };
+  }
+
   async rerank(input: RerankProviderCall): Promise<RerankResponse> {
+    const availability = this.getAvailability();
+    if (!availability.available) {
+      throw new PluginServiceUnavailableError(availability);
+    }
+
     const startedAt = performance.now();
     const timeoutMs = input.request.timeoutMs ?? this.providerConfig.timeoutMs;
     const timeoutSignal = AbortSignal.timeout(timeoutMs);

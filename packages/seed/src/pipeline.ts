@@ -79,9 +79,12 @@ export const runSeedPipeline = async (
   loadedSeed: LoadedDevSeed,
   opts: {
     pluginsDir: string;
-    defaultPluginsJsonPath: string;
+    defaultPluginIds?: string[];
+    defaultPluginsJsonPath?: string;
+    pluginLoader?: PluginLoader;
     cacheDir: string;
     skipVectorization?: boolean;
+    skipPluginBootstrap?: boolean;
   },
 ): Promise<DevSeedResult> => {
   const {
@@ -104,6 +107,7 @@ export const runSeedPipeline = async (
     bootstrapLocaleMemoryItems: 0,
     bootstrapEvidence: 0,
   };
+  const skipPluginBootstrap = opts.skipPluginBootstrap === true;
 
   // ── 1. Plugin manager setup ────────────────────────────────────────
   PluginManager.clear();
@@ -116,7 +120,7 @@ export const runSeedPipeline = async (
     );
     loader = new mod.TestPluginLoader();
   } else {
-    loader = new FileSystemPluginLoader(opts.pluginsDir);
+    loader = opts.pluginLoader ?? new FileSystemPluginLoader(opts.pluginsDir);
   }
   const pluginManager = PluginManager.get("GLOBAL", "", loader);
 
@@ -126,17 +130,25 @@ export const runSeedPipeline = async (
   // password-auth-provider, vectorizers, etc.). GLOBAL overrides are applied
   // before restore so dynamic providers with required config do not activate
   // once with invalid default config.
-  await pluginManager
-    .getDiscovery()
-    .syncDefinitions(execCtx.db as DrizzleClient);
-  await PluginManager.installDefaults(
-    execCtx.db as DrizzleClient,
-    pluginManager,
-    opts.defaultPluginsJsonPath,
-  );
-  console.log(
-    "[seed] Plugin defaults installed (syncDefinitions + installDefaults).",
-  );
+  if (!skipPluginBootstrap) {
+    await pluginManager
+      .getDiscovery()
+      .syncDefinitions(execCtx.db as DrizzleClient);
+    const defaultPluginSource =
+      opts.defaultPluginIds ?? opts.defaultPluginsJsonPath ?? [];
+    await PluginManager.installDefaults(
+      execCtx.db as DrizzleClient,
+      pluginManager,
+      defaultPluginSource,
+    );
+    console.log(
+      "[seed] Plugin defaults installed (syncDefinitions + installDefaults).",
+    );
+  } else {
+    console.log(
+      "[seed] Plugin bootstrap skipped; reusing existing plugin DB state.",
+    );
+  }
 
   // ── 3. GLOBAL plugin config overrides ──────────────────────────────
   const globalOverrides = config.plugins.overrides.filter(
@@ -145,6 +157,18 @@ export const runSeedPipeline = async (
   const scopedOverrides = config.plugins.overrides.filter(
     (o) => o.scope !== "GLOBAL",
   );
+
+  if (
+    skipPluginBootstrap &&
+    (globalOverrides.length > 0 ||
+      scopedOverrides.length > 0 ||
+      config.bootstrap?.enabled ||
+      !opts.skipVectorization)
+  ) {
+    throw new Error(
+      "[seed] skipPluginBootstrap requires no plugin overrides, bootstrap disabled, and skipVectorization=true.",
+    );
+  }
 
   // Create a bootstrap user for config override creatorId
   const bootstrapUser = await executeCommand(execCtx, createUser, {
@@ -196,10 +220,35 @@ export const runSeedPipeline = async (
     summary.plugins += 1;
   }
 
-  await pluginManager.restore(execCtx.db);
-  console.log("[seed] Plugin restore complete.");
+  if (!skipPluginBootstrap) {
+    await pluginManager.restore(execCtx.db);
+    console.log("[seed] Plugin restore complete.");
+  }
 
   // ── 4. Dimension reconciliation ────────────────────────────────────
+  if (
+    !skipPluginBootstrap &&
+    opts.defaultPluginIds?.includes("system-pgvector-storage")
+  ) {
+    const vectorStorageEntry = firstOrGivenService(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorStorageRecord = pluginManager
+      .getServices("VECTOR_STORAGE")
+      .find((service) => service.dbId === vectorStorageEntry?.id);
+
+    if (
+      !vectorStorageEntry ||
+      vectorStorageRecord?.pluginId !== "system-pgvector-storage" ||
+      vectorStorageRecord.id !== "native-pgvector"
+    ) {
+      throw new Error(
+        "[seed] Expected system-pgvector-storage:native-pgvector to be the active vector storage service.",
+      );
+    }
+  }
+
   const vectorizerOverride = config.plugins.overrides.find(
     (o) => o.plugin === "openai-vectorizer" || o.plugin.includes("vectorizer"),
   );

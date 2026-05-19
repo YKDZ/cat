@@ -1,19 +1,16 @@
 import {
   type CacheStore,
   getCacheStore,
+  getCurrentRedisHandle,
   type SessionStore,
   getSessionStore,
-  initCacheStore,
-  initSessionStore,
   getDbHandle,
-  getRedisHandle,
   type DrizzleDB,
   type RedisConnection,
 } from "@cat/domain";
 import { type AuthContext, loadUserSystemRoles } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import { userFromSessionId } from "@cat/server-shared";
-import { RedisCacheStore, RedisSessionStore } from "@cat/server-shared";
 import { User } from "@cat/shared";
 import { createHTTPHelpers, HTTPHelpers } from "@cat/shared";
 
@@ -28,11 +25,8 @@ export const getContext = async (
   const helpers = createHTTPHelpers(req, resHeaders);
 
   const drizzleDB = await getDbHandle();
-  const redis = await getRedisHandle();
+  const redis = getCurrentRedisHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
-
-  initCacheStore(new RedisCacheStore(redis.redis));
-  initSessionStore(new RedisSessionStore(redis.redis));
 
   const cacheStore = getCacheStore();
   const sessionStore = getSessionStore();
@@ -147,7 +141,7 @@ export type Context = {
   auth: AuthContext | null;
   pluginManager: PluginManager;
   drizzleDB: DrizzleDB;
-  redis: RedisConnection;
+  redis?: RedisConnection;
   cacheStore: CacheStore;
   sessionStore: SessionStore;
   helpers: HTTPHelpers;

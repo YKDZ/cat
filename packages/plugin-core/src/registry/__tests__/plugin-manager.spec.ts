@@ -3,11 +3,13 @@
  *
  * All @cat/domain boundary calls (executeCommand / executeQuery / helpers) are
  * mocked via the root __mocks__/@cat/domain.ts.
- * PluginDiscoveryService is mocked inline so its singleton does not leak state.
  */
 import type { DrizzleClient } from "@cat/domain";
 import type { PluginData, PluginManifest } from "@cat/shared";
 
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { CatPlugin } from "@/entities/plugin";
@@ -17,13 +19,6 @@ import type { PluginLoader } from "@/registry/loader";
 
 // Domain mock: uses __mocks__/@cat/domain.ts
 vi.mock("@cat/domain");
-
-// Discovery service: avoid singleton state leakage between tests
-vi.mock("@/registry/plugin-discovery", () => ({
-  PluginDiscoveryService: {
-    getInstance: vi.fn(),
-  },
-}));
 
 /* ─── Imports that follow mocks ────────────────────────────────────────────── */
 import { executeCommand, executeQuery } from "@cat/domain";
@@ -64,7 +59,26 @@ function makeLoader(pluginObj: CatPlugin): PluginLoader {
     getData: vi.fn().mockResolvedValue(MINIMAL_DATA),
     getInstance: vi.fn().mockResolvedValue(pluginObj),
     listAvailablePlugins: vi.fn().mockResolvedValue([MINIMAL_MANIFEST]),
+    resolveAssetPath: vi.fn().mockResolvedValue(null),
   };
+}
+
+function createManager(
+  loader: PluginLoader,
+  serviceRegistry?: ServiceRegistry,
+  componentRegistry?: ComponentRegistry,
+): PluginManager {
+  mockDiscovery.getLoader.mockReturnValue(loader);
+
+  return new PluginManager(
+    SCOPE_TYPE,
+    SCOPE_ID,
+    loader,
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    mockDiscovery as unknown as PluginDiscoveryService,
+    serviceRegistry,
+    componentRegistry,
+  );
 }
 
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion
@@ -104,20 +118,21 @@ function setupActivateMocks(overrides?: {
 
 /* ─── Discovery mock setup ─────────────────────────────────────────────────── */
 
-let mockDiscovery: { registerDefinition: ReturnType<typeof vi.fn> };
+let mockDiscovery: {
+  getLoader: ReturnType<typeof vi.fn>;
+  registerDefinition: ReturnType<typeof vi.fn>;
+  syncDefinitions: ReturnType<typeof vi.fn>;
+};
 
 beforeEach(() => {
   PluginManager.clear();
   vi.clearAllMocks();
 
   mockDiscovery = {
+    getLoader: vi.fn(),
     registerDefinition: vi.fn().mockResolvedValue(undefined),
+    syncDefinitions: vi.fn().mockResolvedValue(undefined),
   };
-  // oxlint-disable-next-line unbound-method
-  vi.mocked(PluginDiscoveryService.getInstance).mockReturnValue(
-    // oxlint-disable-next-line typescript/no-unsafe-argument, typescript/no-unsafe-type-assertion
-    mockDiscovery as unknown as PluginDiscoveryService,
-  );
 });
 
 afterEach(() => {
@@ -141,6 +156,17 @@ describe("PluginManager — static instance management", () => {
     expect(a).not.toBe(b);
   });
 
+  it("throws when the same scope is requested with a different loader", () => {
+    const firstLoader = makeLoader(makePlugin());
+    const secondLoader = makeLoader(makePlugin());
+
+    PluginManager.get(SCOPE_TYPE, SCOPE_ID, firstLoader);
+
+    expect(() => {
+      PluginManager.get(SCOPE_TYPE, SCOPE_ID, secondLoader);
+    }).toThrow(/different loader/i);
+  });
+
   it("PluginManager.clear() removes all cached instances", () => {
     const loader = makeLoader(makePlugin());
     const a = PluginManager.get(SCOPE_TYPE, SCOPE_ID, loader);
@@ -148,12 +174,24 @@ describe("PluginManager — static instance management", () => {
     const b = PluginManager.get(SCOPE_TYPE, SCOPE_ID, loader);
     expect(a).not.toBe(b);
   });
+
+  it("PluginManager.clear() allows recreating a scope with a different loader", () => {
+    const firstLoader = makeLoader(makePlugin());
+    const secondLoader = makeLoader(makePlugin());
+
+    PluginManager.get(SCOPE_TYPE, SCOPE_ID, firstLoader);
+    PluginManager.clear();
+
+    const recreated = PluginManager.get(SCOPE_TYPE, SCOPE_ID, secondLoader);
+
+    expect(recreated.getLoader()).toBe(secondLoader);
+  });
 });
 
 describe("PluginManager — install()", () => {
   it("calls executeCommand with installPlugin args", async () => {
     const loader = makeLoader(makePlugin());
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     vi.mocked(executeCommand).mockResolvedValue(undefined);
 
@@ -175,7 +213,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     const loader = makeLoader(plugin);
     setupActivateMocks({ withService: true });
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
 
     await manager.activate(FAKE_DB, PLUGIN_ID);
 
@@ -197,7 +235,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     const loader = makeLoader(plugin);
     setupActivateMocks();
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     await manager.activate(FAKE_DB, PLUGIN_ID);
 
     const slotComponents = manager.getComponentOfSlot("sidebar");
@@ -209,7 +247,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     const loader = makeLoader(makePlugin());
     setupActivateMocks();
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     await manager.activate(FAKE_DB, PLUGIN_ID);
 
     expect(mockDiscovery.registerDefinition).toHaveBeenCalledWith(
@@ -222,7 +260,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     const loader = makeLoader(makePlugin());
     setupActivateMocks();
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     await manager.activate(FAKE_DB, PLUGIN_ID);
 
     const callsBefore = vi.mocked(executeQuery).mock.calls.length;
@@ -243,7 +281,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     );
     setupActivateMocks({ withService: true });
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     await manager.activate(FAKE_DB, PLUGIN_ID);
 
     // Service should be present
@@ -257,7 +295,7 @@ describe("PluginManager — activate() → deactivate()", () => {
 
   it("deactivate() is a no-op when the plugin was never activated", async () => {
     const loader = makeLoader(makePlugin());
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
 
     // Should not throw
     await expect(
@@ -276,7 +314,7 @@ describe("PluginManager — activate() → deactivate()", () => {
     );
     setupActivateMocks();
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     await manager.activate(FAKE_DB, PLUGIN_ID);
     expect(manager.getComponentOfSlot("toolbar")).toHaveLength(1);
 
@@ -297,7 +335,7 @@ describe("PluginManager — reloadPlugin()", () => {
     // First activation
     setupActivateMocks({ withService: true });
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
     await manager.activate(FAKE_DB, PLUGIN_ID);
     expect(manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1")).not.toBeNull();
 
@@ -314,7 +352,7 @@ describe("PluginManager — reloadPlugin()", () => {
 describe("PluginManager — uninstall()", () => {
   it("uninstall() calls executeQuery for installation then executeCommand", async () => {
     const loader = makeLoader(makePlugin());
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, loader);
+    const manager = createManager(loader);
 
     // Mock: getPluginInstallation returns an installation record
     vi.mocked(executeQuery).mockResolvedValueOnce({ id: 99 });
@@ -339,13 +377,7 @@ describe("PluginManager — service & component getters", () => {
       id: "svc-1",
     };
     const registry = new ServiceRegistry([svc]);
-    const manager = new PluginManager(
-      SCOPE_TYPE,
-      SCOPE_ID,
-      makeLoader(makePlugin()),
-      undefined,
-      registry,
-    );
+    const manager = createManager(makeLoader(makePlugin()), registry);
 
     const result = manager.getServices("TOKENIZER");
     expect(result).toHaveLength(1);
@@ -361,13 +393,7 @@ describe("PluginManager — service & component getters", () => {
       id: "svc-2",
     };
     const registry = new ServiceRegistry([svc]);
-    const manager = new PluginManager(
-      SCOPE_TYPE,
-      SCOPE_ID,
-      makeLoader(makePlugin()),
-      undefined,
-      registry,
-    );
+    const manager = createManager(makeLoader(makePlugin()), registry);
 
     expect(manager.getAllServices()).toHaveLength(1);
   });
@@ -381,11 +407,8 @@ describe("PluginManager — service & component getters", () => {
     };
     const registry = new ComponentRegistry();
     registry.combine(PLUGIN_ID, [record]);
-    const manager = new PluginManager(
-      SCOPE_TYPE,
-      SCOPE_ID,
+    const manager = createManager(
       makeLoader(makePlugin()),
-      undefined,
       undefined,
       registry,
     );
@@ -402,11 +425,8 @@ describe("PluginManager — service & component getters", () => {
     };
     const registry = new ComponentRegistry();
     registry.combine(PLUGIN_ID, [record]);
-    const manager = new PluginManager(
-      SCOPE_TYPE,
-      SCOPE_ID,
+    const manager = createManager(
       makeLoader(makePlugin()),
-      undefined,
       undefined,
       registry,
     );
@@ -426,7 +446,7 @@ describe("PluginManager — runtime snapshots and transient services", () => {
     });
     setupActivateMocks({ withService: true });
 
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, makeLoader(plugin));
+    const manager = createManager(makeLoader(plugin));
     await manager.activate(FAKE_DB, PLUGIN_ID);
 
     const snapshot = manager.getRuntimeSnapshot(PLUGIN_ID);
@@ -443,7 +463,7 @@ describe("PluginManager — runtime snapshots and transient services", () => {
       getType: () => "TOKENIZER" as const,
     };
     const plugin = makePlugin({ services: vi.fn().mockResolvedValue([svc]) });
-    const manager = new PluginManager(SCOPE_TYPE, SCOPE_ID, makeLoader(plugin));
+    const manager = createManager(makeLoader(plugin));
     vi.mocked(executeQuery).mockReset();
     vi.mocked(executeQuery).mockResolvedValueOnce([]);
 
@@ -454,5 +474,39 @@ describe("PluginManager — runtime snapshots and transient services", () => {
     expect(services).toEqual([svc]);
     expect(manager.getRuntimeSnapshot(PLUGIN_ID).services).toHaveLength(0);
     expect(manager.isActive(PLUGIN_ID)).toBe(false);
+  });
+});
+
+describe("PluginManager.installDefaults()", () => {
+  it("installs missing plugins from a string array", async () => {
+    const manager = createManager(makeLoader(makePlugin()));
+    const installSpy = vi
+      .spyOn(manager, "install")
+      .mockResolvedValue(undefined);
+    vi.mocked(executeQuery).mockResolvedValueOnce([]);
+
+    await PluginManager.installDefaults(FAKE_DB, manager, [PLUGIN_ID]);
+
+    expect(installSpy).toHaveBeenCalledWith(FAKE_DB, PLUGIN_ID);
+  });
+
+  it("still accepts a legacy JSON file path", async () => {
+    const manager = createManager(makeLoader(makePlugin()));
+    const installSpy = vi
+      .spyOn(manager, "install")
+      .mockResolvedValue(undefined);
+    vi.mocked(executeQuery).mockResolvedValueOnce([]);
+
+    const dir = await mkdtemp(join(tmpdir(), "plugin-defaults-"));
+    const filePath = join(dir, "defaults.json");
+
+    try {
+      await writeFile(filePath, JSON.stringify([PLUGIN_ID]), "utf8");
+      await PluginManager.installDefaults(FAKE_DB, manager, filePath);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+
+    expect(installSpy).toHaveBeenCalledWith(FAKE_DB, PLUGIN_ID);
   });
 });

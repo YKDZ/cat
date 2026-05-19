@@ -3,6 +3,8 @@ import type { MessageGateway } from "@cat/message";
 import type { PluginManager } from "@cat/plugin-core";
 import type { Hono } from "hono";
 
+import type { RuntimeCleanupHandle } from "@/server/runtime-cleanup";
+
 export {};
 
 declare global {
@@ -11,8 +13,9 @@ declare global {
   var messageGateway: MessageGateway;
   // Set by server/initialize.ts at startup; consumed by +onCreateGlobalContext.server.ts
   var drizzleDB: DrizzleDB;
-  var redis: RedisConnection;
+  var redis: RedisConnection | undefined;
   var pluginManager: PluginManager;
   var serverName: string;
   var serverBaseURL: string;
+  var runtimeCleanup: RuntimeCleanupHandle | null | undefined;
 }

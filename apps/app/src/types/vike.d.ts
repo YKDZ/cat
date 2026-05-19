@@ -40,7 +40,7 @@ declare global {
     }
     interface GlobalContextServer {
       drizzleDB: DrizzleDB;
-      redis: RedisConnection;
+      redis?: RedisConnection;
       pluginManager: PluginManager;
       resolvePluginComponentPath: typeof resolvePluginComponentPath;
     }

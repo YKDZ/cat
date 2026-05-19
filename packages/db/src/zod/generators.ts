@@ -45,6 +45,9 @@ import {
   qaReviewQueueItem,
   qaReviewRun,
   qaReviewSuggestion,
+  runtimeCacheEntry,
+  runtimeQueueTask,
+  runtimeSessionEntry,
   scopeBinding,
   semanticDiffEntry,
   setting,
@@ -121,6 +124,9 @@ type SelectSchemaTable =
   | typeof qaReviewQueueItem
   | typeof qaReviewRun
   | typeof qaReviewSuggestion
+  | typeof runtimeCacheEntry
+  | typeof runtimeQueueTask
+  | typeof runtimeSessionEntry
   | typeof scopeBinding
   | typeof semanticDiffEntry
   | typeof setting
@@ -544,6 +550,33 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(setting),
         overrides: {
           value: "nonNullSafeZDotJson",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "RuntimeCacheEntrySchema",
+        typeExportName: "RuntimeCacheEntry",
+        buildShape: buildSelectShape(runtimeCacheEntry),
+        overrides: {
+          value: "safeZDotJson",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "RuntimeSessionEntrySchema",
+        typeExportName: "RuntimeSessionEntry",
+        buildShape: buildSelectShape(runtimeSessionEntry),
+        overrides: {
+          fields: "z.record(z.string(), z.string())",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "RuntimeQueueTaskSchema",
+        typeExportName: "RuntimeQueueTask",
+        buildShape: buildSelectShape(runtimeQueueTask),
+        overrides: {
+          payload: "nonNullSafeZDotJson",
         },
       },
     ],

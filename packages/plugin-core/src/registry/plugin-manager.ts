@@ -49,6 +49,8 @@ import { getPluginConfig } from "@/utils/config";
 import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 import { PluginDiscoveryService } from "./plugin-discovery";
 
+export type DefaultPluginSource = string | string[];
+
 /**
  * @zh 单个插件在内存运行时中的观察快照。
  * @en Observation snapshot for a single plugin in the in-memory runtime.
@@ -87,9 +89,7 @@ export class PluginManager {
     scopeType: ScopeType,
     scopeId: string,
     loader: PluginLoader = new FileSystemPluginLoader(),
-    discovery: PluginDiscoveryService = PluginDiscoveryService.getInstance(
-      loader,
-    ),
+    discovery: PluginDiscoveryService = new PluginDiscoveryService(loader),
     serviceRegistry: ServiceRegistry = new ServiceRegistry(),
     componentRegistry: ComponentRegistry = new ComponentRegistry(),
   ) {
@@ -99,7 +99,6 @@ export class PluginManager {
     this.discovery = discovery;
     this.serviceRegistry = serviceRegistry;
     this.componentRegistry = componentRegistry;
-    this.discovery = PluginDiscoveryService.getInstance(loader);
   }
 
   private createCapabilities = (
@@ -141,15 +140,38 @@ export class PluginManager {
   ): PluginManager {
     const key = `${scopeType}:${scopeId}`;
     let instance = PluginManager.instances.get(key);
-    if (!instance) {
-      instance = new PluginManager(scopeType, scopeId, loader);
-      PluginManager.instances.set(key, instance);
+    if (instance) {
+      if (loader && loader !== instance.getLoader()) {
+        throw new Error(
+          `PluginManager for scope ${key} already exists with a different loader; call PluginManager.clear() before replacing loaders`,
+        );
+      }
+
+      return instance;
     }
+
+    instance = new PluginManager(scopeType, scopeId, loader);
+    PluginManager.instances.set(key, instance);
+
     return instance;
   }
 
   public static clear(): void {
     PluginManager.instances.clear();
+    PluginDiscoveryService.clear();
+  }
+
+  private static async readDefaultPluginIds(
+    source: DefaultPluginSource,
+  ): Promise<string[]> {
+    if (Array.isArray(source)) {
+      return source;
+    }
+
+    const parsed: unknown = JSON.parse(await readFile(source, "utf-8"));
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string")
+      : [];
   }
 
   /**
@@ -159,14 +181,9 @@ export class PluginManager {
   public static async installDefaults(
     drizzle: DrizzleClient,
     manager: PluginManager,
-    defaultPluginsPath: string,
+    defaultPlugins: DefaultPluginSource,
   ): Promise<void> {
-    const parsed: unknown = JSON.parse(
-      await readFile(defaultPluginsPath, "utf-8"),
-    );
-    const pluginIds: string[] = Array.isArray(parsed)
-      ? parsed.filter((v): v is string => typeof v === "string")
-      : [];
+    const pluginIds = await PluginManager.readDefaultPluginIds(defaultPlugins);
 
     const installed = new Set(
       (

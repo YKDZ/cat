@@ -441,6 +441,85 @@ describe("plugin probe service", () => {
     expect(result.results[0]?.error?.category).toBe("TIMEOUT");
   });
 
+  it("returns UNAVAILABLE without calling service methods when availability is missing-config", async () => {
+    const vectorize = vi.fn();
+    const vectorizer = {
+      getId: () => "unavailable-vectorizer",
+      getType: () => "TEXT_VECTORIZER" as const,
+      getAvailability: () => ({
+        available: false,
+        reason: "missing-config" as const,
+        message: "Vectorizer is not configured.",
+      }),
+      canVectorize: () => false,
+      vectorize,
+    };
+    const manager = makeManager(
+      async () => [vectorizer],
+      [{ id: "unavailable-vectorizer", type: "TEXT_VECTORIZER" }],
+    );
+    vi.spyOn(PluginManager, "get").mockReturnValue(manager);
+    mockDetailQueries();
+
+    const result = await probePluginConfig(createContext(manager), {
+      pluginId: PLUGIN_ID,
+      scopeType: "GLOBAL",
+      scopeId: "",
+      target: "CANDIDATE",
+    });
+
+    expect(result.overallStatus).toBe("UNAVAILABLE");
+    expect(result.results[0]).toMatchObject({
+      status: "UNAVAILABLE",
+      error: {
+        category: "MISSING_CONFIG",
+        message: "Vectorizer is not configured.",
+      },
+    });
+    expect(vectorize).not.toHaveBeenCalled();
+  });
+
+  it("returns WARNING when successful and unavailable services are mixed", async () => {
+    const storage = {
+      getId: () => "storage",
+      getType: () => "STORAGE_PROVIDER" as const,
+      ping: vi.fn().mockResolvedValue(undefined),
+    };
+    const vectorizer = {
+      getId: () => "unavailable-vectorizer",
+      getType: () => "TEXT_VECTORIZER" as const,
+      getAvailability: () => ({
+        available: false,
+        reason: "missing-config" as const,
+        message: "Vectorizer is not configured.",
+      }),
+      canVectorize: () => false,
+      vectorize: vi.fn(),
+    };
+    const manager = makeManager(
+      async () => [storage, vectorizer],
+      [
+        { id: "storage", type: "STORAGE_PROVIDER" },
+        { id: "unavailable-vectorizer", type: "TEXT_VECTORIZER" },
+      ],
+    );
+    vi.spyOn(PluginManager, "get").mockReturnValue(manager);
+    mockDetailQueries();
+
+    const result = await probePluginConfig(createContext(manager), {
+      pluginId: PLUGIN_ID,
+      scopeType: "GLOBAL",
+      scopeId: "",
+      target: "CANDIDATE",
+    });
+
+    expect(result.overallStatus).toBe("WARNING");
+    expect(result.results.map((entry) => entry.status)).toEqual([
+      "SUCCESS",
+      "UNAVAILABLE",
+    ]);
+  });
+
   it("returns structured factory failures without leaking secrets", async () => {
     const manager = makeManager(async () => {
       throw new Error("apiKey=sk-secret");

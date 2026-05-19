@@ -1,7 +1,11 @@
 import type { OperationContext } from "@cat/domain";
 
 import { getDbHandle } from "@cat/domain";
-import { executeQuery, getActiveFileBlobInfo } from "@cat/domain";
+import {
+  executeQuery,
+  getActiveFileBlobInfo,
+  getContentNode,
+} from "@cat/domain";
 import {
   PluginManager,
   type FileImporter,
@@ -62,6 +66,15 @@ export const parseFileOp = async (
   }
 
   const { name, key, storageProviderId } = fileBlobInfo;
+  const existingContentNode = data.contentNodeId
+    ? await executeQuery({ db: drizzle }, getContentNode, {
+        id: data.contentNodeId,
+      })
+    : null;
+
+  if (data.contentNodeId && existingContentNode === null) {
+    throw new Error(`Content node ${data.contentNodeId} not found`);
+  }
 
   const provider = getServiceFromDBId<StorageProvider>(
     pluginManager,
@@ -77,11 +90,16 @@ export const parseFileOp = async (
 
   const fileContent = await readableToBuffer(await provider.getStream({ key }));
 
-  const sourceRootRef = data.contentNodeId
+  const sourceRootRef =
+    existingContentNode?.sourceRootRef ??
+    (data.contentNodeId
+      ? `content-node:${data.contentNodeId}`
+      : `uploaded-file-name:${name}`);
+  const sourceNodeRef = data.contentNodeId
     ? `content-node:${data.contentNodeId}`
-    : `uploaded-file-name:${name}`;
-  const sourceNodeRef = `file:${data.fileId}`;
-  const stableSourceNodeRef = `file-name:${name}`;
+    : `file:${data.fileId}`;
+  const stableSourceNodeRef =
+    existingContentNode?.stableSourceNodeRef ?? `file-name:${name}`;
 
   const imported = await handler.import({
     fileContent,
@@ -93,26 +111,44 @@ export const parseFileOp = async (
     stableSourceNodeRef,
   });
 
+  const payloadImporterId =
+    existingContentNode?.importerId ?? imported.importerId;
+  const payloadSourceRootRef =
+    existingContentNode?.sourceRootRef ?? imported.sourceRootRef;
+  const payloadSourceNode = {
+    ref: imported.sourceNode.ref,
+    kind: existingContentNode?.kind ?? "FILE",
+    displayLabel:
+      existingContentNode?.displayLabel ?? imported.sourceNode.displayLabel,
+    importerId: payloadImporterId,
+    sourceRootRef: payloadSourceRootRef,
+    stableSourceNodeRef:
+      existingContentNode?.stableSourceNodeRef ??
+      imported.sourceNode.stableSourceNodeRef,
+    sourcePath:
+      imported.sourceNode.sourcePath ?? existingContentNode?.sourcePath ?? null,
+    sourceType:
+      imported.sourceNode.sourceType ?? existingContentNode?.sourceType ?? null,
+    languageId: existingContentNode?.languageId ?? null,
+    exportRole: existingContentNode?.exportRole ?? "NONE",
+    boundaryType: existingContentNode?.boundaryType ?? "NONE",
+    file: existingContentNode
+      ? {
+          fileId: data.fileId,
+          fileHandlerId: existingContentNode.fileHandlerId,
+        }
+      : null,
+  };
+
   const payload: StructuredContentPayload =
     StructuredContentPayloadSchema.parse({
       payloadVersion: "content-graph/v1",
       projectId: data.projectId,
       sourceLanguageId: data.languageId,
-      importerId: imported.importerId,
-      sourceRootRef: imported.sourceRootRef,
+      importerId: payloadImporterId,
+      sourceRootRef: payloadSourceRootRef,
       relationTypes: imported.relationTypes ?? [],
-      nodes: [
-        {
-          ref: imported.sourceNode.ref,
-          kind: "FILE",
-          displayLabel: imported.sourceNode.displayLabel,
-          importerId: imported.importerId,
-          sourceRootRef: imported.sourceRootRef,
-          stableSourceNodeRef: imported.sourceNode.stableSourceNodeRef,
-          sourcePath: imported.sourceNode.sourcePath ?? null,
-          sourceType: imported.sourceNode.sourceType ?? null,
-        },
-      ],
+      nodes: [payloadSourceNode],
       elements: imported.elements.map((element) => ({
         ref: element.ref,
         stableSourceRef: element.stableSourceRef,

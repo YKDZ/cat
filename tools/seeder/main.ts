@@ -1,10 +1,19 @@
-import { DrizzleDB, RedisConnection, ensureDB } from "@cat/db";
+import { DrizzleDB, RedisConnection, ensureDB, sql } from "@cat/db";
+import {
+  BuiltinPluginLoader,
+  CompositePluginLoader,
+  FileSystemPluginLoader,
+} from "@cat/plugin-core";
 import {
   assertSafeDatabaseTarget,
   loadDevSeed,
   runSeedPipeline,
   truncateAllTables,
 } from "@cat/seed";
+import {
+  defaultProductPluginIds,
+  systemPgVectorEntry,
+} from "@cat/server-shared";
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -61,10 +70,10 @@ const main = async (): Promise<void> => {
   const absoluteDir = resolve(process.cwd(), datasetDir);
   const pluginsDir = resolve(import.meta.dirname, "../../@cat-plugin");
   const cacheDir = resolve(absoluteDir, "../../.vector-cache");
-  const defaultPluginsJsonPath = resolve(
-    import.meta.dirname,
-    "../../apps/app/default-plugins.json",
-  );
+  const pluginLoader = new CompositePluginLoader([
+    new BuiltinPluginLoader([systemPgVectorEntry]),
+    new FileSystemPluginLoader(pluginsDir),
+  ]);
 
   // Load .env from apps/app
   try {
@@ -130,14 +139,27 @@ const main = async (): Promise<void> => {
   console.log("[seed] All tables truncated.");
 
   // Flush vectorization queue to prevent stale tasks from blocking next app start
-  const redisConn = new RedisConnection();
-  try {
-    await redisConn.connect();
-    await redisConn.redis.del("queue:vectorization:pending");
-    await redisConn.redis.del("queue:vectorization:processing");
-    console.log("[seed] Vectorization queue flushed.");
-  } finally {
-    redisConn.disconnect();
+  await drizzleDB.client
+    .execute(
+      sql`
+        DELETE FROM "RuntimeQueueTask" WHERE queue_name = 'vectorization'
+      `,
+    )
+    .then(() => {
+      console.log("[seed] PostgreSQL vectorization queue flushed.");
+    })
+    .catch(() => undefined);
+
+  if (process.env.REDIS_URL) {
+    const redisConn = new RedisConnection();
+    try {
+      await redisConn.connect();
+      await redisConn.redis.del("queue:vectorization:pending");
+      await redisConn.redis.del("queue:vectorization:processing");
+      console.log("[seed] Redis vectorization queue flushed.");
+    } finally {
+      redisConn.disconnect();
+    }
   }
 
   // 4. Run ensureDB (languages, default settings)
@@ -148,8 +170,9 @@ const main = async (): Promise<void> => {
   console.log("[seed] Running seed pipeline...");
   const result = await runSeedPipeline(execCtx, loadedSeed, {
     pluginsDir,
-    defaultPluginsJsonPath,
+    defaultPluginIds: [...defaultProductPluginIds],
     cacheDir,
+    pluginLoader,
     skipVectorization: shouldSkipVectorization,
   });
 

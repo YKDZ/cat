@@ -7,7 +7,7 @@ import {
 import { logger } from "@cat/shared";
 import { existsSync } from "node:fs";
 import { access, mkdir, readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { join, resolve, sep } from "node:path";
 import { pathToFileURL } from "node:url";
 import z from "zod";
 
@@ -20,6 +20,10 @@ export interface PluginLoader {
   getData: (pluginId: string) => Promise<PluginData>;
   getInstance: (pluginId: string) => Promise<CatPlugin>;
   listAvailablePlugins: () => Promise<PluginManifest[]>;
+  resolveAssetPath?: (
+    pluginId: string,
+    relativePath: string,
+  ) => Promise<string | null>;
 }
 
 export class FileSystemPluginLoader implements PluginLoader {
@@ -118,5 +122,19 @@ export class FileSystemPluginLoader implements PluginLoader {
     );
 
     return results;
+  };
+
+  public resolveAssetPath = async (
+    pluginId: string,
+    relativePath: string,
+  ): Promise<string | null> => {
+    const pluginRoot = resolve(this.getPluginFsPath(pluginId));
+    const targetPath = resolve(pluginRoot, relativePath);
+
+    if (targetPath !== pluginRoot && targetPath.startsWith(pluginRoot + sep)) {
+      return targetPath;
+    }
+
+    return null;
   };
 }

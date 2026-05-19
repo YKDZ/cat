@@ -29,3 +29,40 @@ export const SettingSchema = z.object({
 });
 
 export type Setting = z.infer<typeof SettingSchema>;
+
+export const RuntimeCacheEntrySchema = z.object({
+  namespace: z.string(),
+  key: z.string(),
+  value: safeZDotJson,
+  expiresAt: DrizzleDateTimeSchema.nullable(),
+  lastAccessedAt: DrizzleDateTimeSchema.nullable(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type RuntimeCacheEntry = z.infer<typeof RuntimeCacheEntrySchema>;
+
+export const RuntimeSessionEntrySchema = z.object({
+  key: z.string(),
+  fields: z.record(z.string(), z.string()),
+  expiresAt: DrizzleDateTimeSchema,
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type RuntimeSessionEntry = z.infer<typeof RuntimeSessionEntrySchema>;
+
+export const RuntimeQueueTaskSchema = z.object({
+  queueName: z.string(),
+  taskId: z.string(),
+  payload: nonNullSafeZDotJson,
+  status: z.enum(["PENDING", "PROCESSING", "SUCCEEDED", "FAILED"]),
+  retryCount: z.int(),
+  enqueuedAt: DrizzleDateTimeSchema,
+  leasedUntil: DrizzleDateTimeSchema.nullable(),
+  lastError: z.string().nullable(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type RuntimeQueueTask = z.infer<typeof RuntimeQueueTaskSchema>;

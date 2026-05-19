@@ -4,10 +4,14 @@ import type {
   NlpSegmentContext,
   NlpSegmentResult,
   NlpToken,
+  PluginServiceAvailability,
 } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared";
 
-import { NlpWordSegmenter } from "@cat/plugin-core";
+import {
+  NlpWordSegmenter,
+  PluginServiceUnavailableError,
+} from "@cat/plugin-core";
 import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
@@ -21,12 +25,18 @@ import {
 } from "./types";
 
 const SpacyConfigSchema = z.object({
-  serverUrl: z.url(),
+  serverUrl: z.url().default("http://localhost:8000"),
   timeout: z.int().positive().optional().default(30000),
   languageModelMap: z.record(z.string(), z.string()).optional(),
 });
 
 type SpacyConfig = z.infer<typeof SpacyConfigSchema>;
+
+const PLACEHOLDER_SERVER_URLS = new Set(["", "http://localhost:8000"]);
+
+const normalizeServerUrl = (value: string | undefined): string => {
+  return value?.trim().toLowerCase().replace(/\/+$/, "") ?? "";
+};
 
 export class SpacyWordSegmenter extends NlpWordSegmenter {
   private readonly pool: Pool;
@@ -43,6 +53,10 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
   getId = (): string => "spacy-word-segmenter";
 
   getSupportedLanguages = async (): Promise<string[]> => {
+    if (this.getMissingConfigAvailability()) {
+      return [];
+    }
+
     try {
       const response = await this.pool.request({
         method: "GET",
@@ -63,18 +77,49 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
     }
   };
 
+  getAvailability = async (): Promise<PluginServiceAvailability> => {
+    const missingConfig = this.getMissingConfigAvailability();
+    if (missingConfig) {
+      return missingConfig;
+    }
+
+    const languages = await this.getSupportedLanguages();
+    return languages.length > 0
+      ? { available: true, reason: "ok" }
+      : {
+          available: false,
+          reason: "remote-unreachable",
+          message:
+            "spaCy server is unreachable or returned no supported languages.",
+        };
+  };
+
   segment = async (ctx: NlpSegmentContext): Promise<NlpSegmentResult> => {
+    const missingConfig = this.getMissingConfigAvailability();
+    if (missingConfig) {
+      throw new PluginServiceUnavailableError(missingConfig);
+    }
+
     const lang = this.mapLanguage(ctx.languageId);
 
-    const response = await this.pool.request({
-      method: "POST",
-      path: "/segment",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text: ctx.text, lang }),
-      signal: ctx.signal,
-      headersTimeout: this.config.timeout,
-      bodyTimeout: this.config.timeout,
-    });
+    let response;
+    try {
+      response = await this.pool.request({
+        method: "POST",
+        path: "/segment",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: ctx.text, lang }),
+        signal: ctx.signal,
+        headersTimeout: this.config.timeout,
+        bodyTimeout: this.config.timeout,
+      });
+    } catch {
+      throw new PluginServiceUnavailableError({
+        available: false,
+        reason: "remote-unreachable",
+        message: "spaCy server is unreachable.",
+      });
+    }
 
     const spacyResult = SpacySegmentResponseSchema.parse(
       await response.body.json(),
@@ -85,17 +130,31 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
   override batchSegment = async (
     ctx: NlpBatchSegmentContext,
   ): Promise<NlpBatchSegmentResult> => {
+    const missingConfig = this.getMissingConfigAvailability();
+    if (missingConfig) {
+      throw new PluginServiceUnavailableError(missingConfig);
+    }
+
     const lang = this.mapLanguage(ctx.languageId);
 
-    const response = await this.pool.request({
-      method: "POST",
-      path: "/batch-segment",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: ctx.items, lang }),
-      signal: ctx.signal,
-      headersTimeout: this.config.timeout,
-      bodyTimeout: this.config.timeout,
-    });
+    let response;
+    try {
+      response = await this.pool.request({
+        method: "POST",
+        path: "/batch-segment",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: ctx.items, lang }),
+        signal: ctx.signal,
+        headersTimeout: this.config.timeout,
+        bodyTimeout: this.config.timeout,
+      });
+    } catch {
+      throw new PluginServiceUnavailableError({
+        available: false,
+        reason: "remote-unreachable",
+        message: "spaCy server is unreachable.",
+      });
+    }
 
     const data = SpacyBatchSegmentResponseSchema.parse(
       await response.body.json(),
@@ -129,6 +188,19 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
     isStop: t.is_stop,
     isPunct: t.is_punct,
   });
+
+  private getMissingConfigAvailability =
+    (): PluginServiceAvailability | null => {
+      return PLACEHOLDER_SERVER_URLS.has(
+        normalizeServerUrl(this.config.serverUrl),
+      )
+        ? {
+            available: false,
+            reason: "missing-config",
+            message: "spaCy segmenter requires a non-placeholder serverUrl.",
+          }
+        : null;
+    };
 
   private mapLanguage = (languageId: string): string =>
     this.config.languageModelMap?.[languageId] ?? languageId.split("-")[0];

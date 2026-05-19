@@ -7,21 +7,24 @@ import { FileSystemPluginLoader, type PluginLoader } from "./loader";
 /**
  * 插件发现服务
  * 负责维护文件系统到数据库 plugin 表的同步
- * 这是一个全局单例服务，不涉及具体的作用域安装
+ * 默认由各个 PluginManager 独立持有；静态单例仅保留给旧调用方。
  */
 export class PluginDiscoveryService {
-  private static instance: PluginDiscoveryService;
-  private loader: PluginLoader;
+  private static instance: PluginDiscoveryService | undefined;
 
-  private constructor(loader: PluginLoader = new FileSystemPluginLoader()) {
-    this.loader = loader;
-  }
+  public constructor(
+    private readonly loader: PluginLoader = new FileSystemPluginLoader(),
+  ) {}
 
   public static getInstance(loader?: PluginLoader): PluginDiscoveryService {
-    if (!PluginDiscoveryService.instance) {
+    if (!PluginDiscoveryService.instance || loader) {
       PluginDiscoveryService.instance = new PluginDiscoveryService(loader);
     }
     return PluginDiscoveryService.instance;
+  }
+
+  public static clear(): void {
+    PluginDiscoveryService.instance = undefined;
   }
 
   public getLoader = (): PluginLoader => this.loader;

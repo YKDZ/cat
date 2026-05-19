@@ -144,6 +144,14 @@ export default defineConfig({
         },
         resolve: { alias: alias(resolve(ROOT, "packages/db")) },
       },
+      {
+        test: {
+          name: "unit-server-shared",
+          include: ["packages/server-shared/src/**/*.{spec,test}.ts"],
+          environment: "node",
+        },
+        resolve: { alias: alias(resolve(ROOT, "packages/server-shared")) },
+      },
 
       // ── 中间层：按命名区分单测 / 集成测试 ──────────────────────────────
       {
@@ -255,6 +263,13 @@ export default defineConfig({
           environment: "node",
         },
         resolve: { alias: alias(resolve(ROOT, "tools/autodoc")) },
+      },
+      {
+        test: {
+          name: "unit-root",
+          include: ["scripts/**/*.spec.ts"],
+          environment: "node",
+        },
       },
       {
         test: {

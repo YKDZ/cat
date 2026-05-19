@@ -2,6 +2,7 @@ import type { JSONType } from "@cat/shared";
 import type { TranslationAdvise } from "@cat/shared";
 
 import {
+  type PluginServiceAvailability,
   TranslationAdvisor,
   type GetSuggestionsContext,
 } from "@cat/plugin-core";
@@ -9,15 +10,25 @@ import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
 
-const ApiConfigSchema = z.object({
-  url: z.url(),
-  key: z.string(),
-  "alternatives-amount": z.int().min(0),
-});
+const ApiConfigSchema = z
+  .object({
+    url: z.url().default("http://localhost:5000/"),
+    key: z.string().default("your api key"),
+    "alternatives-amount": z.int().min(0).default(2),
+  })
+  .default({
+    url: "http://localhost:5000/",
+    key: "your api key",
+    "alternatives-amount": 2,
+  });
 
-const BaseConfigSchema = z.object({
-  "advisor-name": z.string(),
-});
+const BaseConfigSchema = z
+  .object({
+    "advisor-name": z.string().default("LibreTranslate"),
+  })
+  .default({
+    "advisor-name": "LibreTranslate",
+  });
 
 const ConfigSchema = z.object({
   api: ApiConfigSchema,
@@ -26,7 +37,11 @@ const ConfigSchema = z.object({
 
 type Config = z.infer<typeof ConfigSchema>;
 
-const supportedLanguages = new Map<string, string[]>();
+const PLACEHOLDER_API_KEYS = new Set(["", "your api key"]);
+
+const normalizeConfigValue = (value: string | undefined): string => {
+  return value?.trim().toLowerCase() ?? "";
+};
 
 export class Advisor extends TranslationAdvisor {
   private pool: Pool;
@@ -38,50 +53,6 @@ export class Advisor extends TranslationAdvisor {
 
     this.config = ConfigSchema.parse(config);
     this.pool = new Pool(this.config.api.url);
-    this.fetchSupportedLanguages().catch((err: unknown) => {
-      logger
-        .withSituation("PLUGIN")
-        .error(err, "Failed to fetch supported languages");
-    });
-  }
-
-  async fetchSupportedLanguages(): Promise<void> {
-    await this.pool
-      .request({
-        method: "GET",
-        path: "/languages",
-      })
-      .then(async (res) => {
-        await res.body
-          .json()
-          .then((body) => {
-            const successBody = z
-              .array(
-                z.object({
-                  code: z.string(),
-                  name: z.string(),
-                  targets: z.array(z.string()),
-                }),
-              )
-              .parse(body);
-            successBody.forEach((item) => {
-              supportedLanguages.set(item.code, item.targets);
-            });
-          })
-          .catch((e: unknown) => {
-            logger
-              .withSituation("PLUGIN")
-              .error(e, "Can not parse all supported languages response body.");
-          });
-      })
-      .catch((e: unknown) => {
-        logger
-          .withSituation("PLUGIN")
-          .error(
-            e,
-            `Can not query all supported language from LibreTranslate service`,
-          );
-      });
   }
 
   getId(): string {
@@ -92,10 +63,32 @@ export class Advisor extends TranslationAdvisor {
     return this.config.base["advisor-name"];
   }
 
+  getAvailability(): PluginServiceAvailability {
+    const apiKey = normalizeConfigValue(this.config.api.key);
+
+    return !PLACEHOLDER_API_KEYS.has(apiKey)
+      ? { available: true, reason: "ok" }
+      : {
+          available: false,
+          reason: "missing-config",
+          message: "LibreTranslate advisor requires a non-placeholder API key.",
+        };
+  }
+
   async advise({
     source: { text, languageId },
     targetLanguageId,
   }: GetSuggestionsContext): Promise<TranslationAdvise[]> {
+    const availability = this.getAvailability();
+    if (!availability.available) {
+      return [
+        {
+          translation: availability.message ?? availability.reason,
+          confidence: 0,
+        },
+      ] satisfies TranslationAdvise[];
+    }
+
     const sourceLang = languageId.replaceAll("_", "-");
     const targetLang = targetLanguageId.replaceAll("_", "-");
 

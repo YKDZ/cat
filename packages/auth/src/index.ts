@@ -6,4 +6,5 @@ export * from "./scheduler.ts";
 export * from "./types.ts";
 export * from "./flows/index.ts";
 export * from "./executors/index.ts";
+export * from "./storage/cache-flow-storage.ts";
 export * from "./storage/redis-flow-storage.ts";

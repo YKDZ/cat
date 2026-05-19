@@ -16,7 +16,7 @@ app.get("/:pluginId/component/:componentName", async (c) => {
   const componentName = c.req.param("componentName");
 
   try {
-    const filePath = resolvePluginComponentPath(
+    const filePath = await resolvePluginComponentPath(
       pluginManager,
       pluginId,
       componentName,
@@ -42,7 +42,7 @@ app.get("/:pluginId/component/:componentName", async (c) => {
     return stream(
       c,
       async (s) => {
-        const fileStream = Readable.toWeb(createReadStream(filePath, "utf8"));
+        const fileStream = Readable.toWeb(createReadStream(filePath));
         // oxlint-disable-next-line no-unsafe-type-assertion
         await s.pipe(fileStream as unknown as ReadableStream);
       },

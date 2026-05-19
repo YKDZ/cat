@@ -8,12 +8,16 @@ import type {
   ChatCompletionTool,
 } from "openai/resources/chat/completions";
 
-import { LLMProvider } from "@cat/plugin-core";
+import {
+  LLMProvider,
+  PluginServiceUnavailableError,
+  type PluginServiceAvailability,
+} from "@cat/plugin-core";
 import OpenAI from "openai";
 import { Stream } from "openai/streaming";
 import { z } from "zod";
 
-const SingleConfigSchema = z.object({
+export const SingleConfigSchema = z.object({
   id: z.string().optional(),
   apiKey: z.string().optional(),
   baseURL: z.string().optional(),
@@ -26,6 +30,12 @@ export const ConfigSchema = z.union([
 ]);
 
 type SingleConfig = z.infer<typeof SingleConfigSchema>;
+
+const PLACEHOLDER_API_KEYS = new Set(["", "dummy-key", "your api key"]);
+
+const normalizeConfigValue = (value: string | undefined): string => {
+  return value?.trim().toLowerCase() ?? "";
+};
 
 export class OpenAILLMProvider extends LLMProvider {
   private client: OpenAI;
@@ -48,8 +58,30 @@ export class OpenAILLMProvider extends LLMProvider {
     return this.config.model;
   }
 
+  getAvailability(): PluginServiceAvailability {
+    const apiKey = normalizeConfigValue(this.config.apiKey);
+    const baseURL = normalizeConfigValue(this.config.baseURL);
+
+    return !PLACEHOLDER_API_KEYS.has(apiKey) || baseURL.length > 0
+      ? { available: true, reason: "ok" }
+      : {
+          available: false,
+          reason: "missing-config",
+          message: "OpenAI LLM provider requires apiKey or baseURL.",
+        };
+  }
+
   // generator function — arrow function cannot be used with yield, function keyword required here
   async *chat(request: ChatCompletionRequest): AsyncIterable<LLMChunk> {
+    const availability = this.getAvailability();
+    if (!availability.available) {
+      yield {
+        type: "error",
+        error: new PluginServiceUnavailableError(availability),
+      };
+      return;
+    }
+
     const messages = request.messages.map(toOpenAIMessage);
     const tools = request.tools?.map(toOpenAITool);
 

@@ -64,6 +64,8 @@ const handleExportTranslated = async (
         v-if="node.fileId !== null && node.fileHandlerId !== null"
         variant="outline"
         size="icon"
+        :aria-label="t('导出翻译后文件')"
+        :title="t('导出翻译后文件')"
         @click="handleExportTranslated(node)"
       >
         <div class="icon-[mdi--download] size-4" />

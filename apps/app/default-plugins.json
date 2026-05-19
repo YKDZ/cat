@@ -5,7 +5,6 @@
   "openai-vectorizer",
   "yaml-file-handler",
   "local-storage-provider",
-  "pgvector-storage",
   "markdown-file-handler",
   "tiny-widget",
   "basic-tokenizer",

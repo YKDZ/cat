@@ -2,7 +2,7 @@ import {
   AuthFlowRegistry,
   AuthFlowScheduler,
   AuthNodeRegistry,
-  RedisFlowStorage,
+  CacheFlowStorage,
   credentialCollectorExecutor,
   pluginCustomExecutor,
   sessionFinalizerExecutor,
@@ -61,11 +61,11 @@ const FlowStateSchema = z.object({
 
 type SchedulerCtx = Pick<
   Context,
-  "redis" | "sessionStore" | "cacheStore" | "drizzleDB" | "pluginManager"
+  "sessionStore" | "cacheStore" | "drizzleDB" | "pluginManager"
 >;
 
 const buildScheduler = (ctx: SchedulerCtx): AuthFlowScheduler => {
-  const storage = new RedisFlowStorage(ctx.redis.redis);
+  const storage = new CacheFlowStorage(ctx.cacheStore);
 
   const flowRegistry = new AuthFlowRegistry();
   flowRegistry.register(standardLoginFlow);
@@ -150,7 +150,7 @@ export const advanceFlow = base
 
     // On flow completion, create the browser session from the blackboard.
     if (state.status === "completed") {
-      const storage = new RedisFlowStorage(context.redis.redis);
+      const storage = new CacheFlowStorage(context.cacheStore);
       const snap = await storage.load(input.flowId);
 
       const userId = snap?.data?.identity?.userId;

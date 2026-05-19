@@ -5,6 +5,7 @@ import type {
 
 import {
   executeQuery,
+  getRuntimeState,
   getDbHandle,
   listBm25MemorySuggestions,
   type RawMemorySuggestion,
@@ -12,6 +13,7 @@ import {
 } from "@cat/domain";
 
 export const BM25_DISABLED_REASON = "not-in-bm25-first-rollout";
+export const BM25_DISABLED_BY_RUNTIME_REASON = "search-runtime-unavailable";
 
 export const MEMORY_RECALL_BM25_REGISTRY = {
   en: {
@@ -36,6 +38,11 @@ const isBm25LanguageId = (
 ): languageId is keyof typeof MEMORY_RECALL_BM25_REGISTRY =>
   Object.hasOwn(MEMORY_RECALL_BM25_REGISTRY, languageId);
 
+const isBm25RuntimeAvailable = (): boolean => {
+  const state = getRuntimeState();
+  return !state || state.database.searchLevel === "full-search-runtime";
+};
+
 export function compressBm25Score(
   rawScore: number,
   _profile: MemoryRecallBm25CompressionProfile,
@@ -59,7 +66,13 @@ export function buildMemoryRecallBm25Capabilities(
         : null;
 
       return supported
-        ? { ...supported, enabled: true, disabledReason: null }
+        ? isBm25RuntimeAvailable()
+          ? { ...supported, enabled: true, disabledReason: null }
+          : {
+              ...supported,
+              enabled: false,
+              disabledReason: BM25_DISABLED_BY_RUNTIME_REASON,
+            }
         : {
             languageId,
             enabled: false,
@@ -79,14 +92,17 @@ export async function collectBm25MemorySuggestionsOp(
     memoryIds: string[];
     maxAmount: number;
   },
-  drizzle: Awaited<ReturnType<typeof getDbHandle>>["client"],
+  drizzle?: Awaited<ReturnType<typeof getDbHandle>>["client"],
 ): Promise<RawMemorySuggestion[]> {
   const supported = isBm25LanguageId(input.sourceLanguageId)
     ? MEMORY_RECALL_BM25_REGISTRY[input.sourceLanguageId]
     : null;
   if (!supported) return [];
+  if (!isBm25RuntimeAvailable()) return [];
 
-  const rows = await executeQuery({ db: drizzle }, listBm25MemorySuggestions, {
+  const db = drizzle ?? (await getDbHandle()).client;
+
+  const rows = await executeQuery({ db }, listBm25MemorySuggestions, {
     ...input,
   });
 

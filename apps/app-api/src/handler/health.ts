@@ -1,3 +1,4 @@
+import { getRuntimeState } from "@cat/domain";
 import { Hono } from "hono";
 
 const app = new Hono();
@@ -8,6 +9,7 @@ app.get("/", (c) => {
       {
         status: "starting",
         message: "Server is initializing...",
+        runtime: getRuntimeState() ?? null,
       },
       503,
     );
@@ -16,6 +18,7 @@ app.get("/", (c) => {
   return c.json({
     status: "ok",
     timestamp: new Date().toISOString(),
+    runtime: getRuntimeState() ?? null,
   });
 });
 

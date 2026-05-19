@@ -60,11 +60,11 @@ const PLUGIN_ROOT = join(cwd(), "plugins");
 /**
  * 找到指定组件在本地插件目录中的位置
  */
-export const resolvePluginComponentPath = (
+export const resolvePluginComponentPath = async (
   pluginManager: PluginManager,
   pluginId: string,
   componentName: string,
-): string => {
+): Promise<string> => {
   const component = pluginManager
     .getComponents(pluginId)
     .find((component) => component.name === componentName);
@@ -72,10 +72,13 @@ export const resolvePluginComponentPath = (
     throw new Error("missing component");
   }
 
+  const resolvedByLoader = await pluginManager
+    .getLoader()
+    .resolveAssetPath?.(pluginId, component.url);
   const pluginRoot = resolve(PLUGIN_ROOT, pluginId);
-  const targetPath = resolve(pluginRoot, component.url);
+  const targetPath = resolvedByLoader ?? resolve(pluginRoot, component.url);
 
-  if (!targetPath.startsWith(pluginRoot + path.sep)) {
+  if (!resolvedByLoader && !targetPath.startsWith(pluginRoot + path.sep)) {
     throw new Error("invalid path");
   }
 

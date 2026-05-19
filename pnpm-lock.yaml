@@ -71,6 +71,9 @@ importers:
       '@cat/cli':
         specifier: workspace:*
         version: link:apps/cli
+      '@electric-sql/pglite':
+        specifier: ^0.2.12
+        version: 0.2.17
       '@moonrepo/cli':
         specifier: ^2.2.4
         version: 2.2.4
@@ -431,6 +434,45 @@ importers:
 
   apps/app:
     dependencies:
+      '@cat-plugin/basic-qa-checker':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/basic-qa-checker
+      '@cat-plugin/basic-tokenizer':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/basic-tokenizer
+      '@cat-plugin/json-file-handler':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/json-file-handler
+      '@cat-plugin/libretranslate-advisor':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/libretranslate-advisor
+      '@cat-plugin/local-storage-provider':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/local-storage-provider
+      '@cat-plugin/markdown-file-handler':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/markdown-file-handler
+      '@cat-plugin/openai-llm-provider':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/openai-llm-provider
+      '@cat-plugin/openai-vectorizer':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/openai-vectorizer
+      '@cat-plugin/password-auth-provider':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/password-auth-provider
+      '@cat-plugin/spacy-segmenter':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/spacy-segmenter
+      '@cat-plugin/tei-rerank-provider':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/tei-rerank-provider
+      '@cat-plugin/tiny-widget':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/tiny-widget
+      '@cat-plugin/yaml-file-handler':
+        specifier: workspace:*
+        version: link:../../@cat-plugin/yaml-file-handler
       '@cat/agent':
         specifier: workspace:*
         version: link:../../packages/agent
@@ -440,6 +482,9 @@ importers:
       '@cat/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@cat/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@cat/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -1110,7 +1155,7 @@ importers:
         version: 17.4.2
       drizzle-orm:
         specifier: 'catalog:'
-        version: 1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
+        version: 1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -1132,7 +1177,7 @@ importers:
         version: 1.0.0-rc.2
       drizzle-seed:
         specifier: ^0.3.1
-        version: 0.3.1(drizzle-orm@1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3))
+        version: 0.3.1(drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3))
       unplugin-dts:
         specifier: 'catalog:'
         version: 1.0.0-beta.6(esbuild@0.28.0)(rollup@4.60.3)(typescript@6.0.0-beta)(vite@8.0.11(@types/node@24.12.2)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.21.0)(yaml@2.8.4))
@@ -1172,7 +1217,7 @@ importers:
         version: 1.0.0-rc.2
       drizzle-orm:
         specifier: 'catalog:'
-        version: 1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
+        version: 1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -1588,7 +1633,7 @@ importers:
         version: link:../shared
       drizzle-orm:
         specifier: 'catalog:'
-        version: 1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
+        version: 1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
       pg:
         specifier: ^8.20.0
         version: 8.20.0
@@ -2256,6 +2301,9 @@ packages:
     engines: {bun: '>=1', deno: '>=2.7.10', node: '>=16'}
     peerDependencies:
       '@noble/ciphers': ^1.0.0
+
+  '@electric-sql/pglite@0.2.17':
+    resolution: {integrity: sha512-qEpKRT2oUaWDH6tjRxLHjdzMqRUGYDnGZlKrnL4dJ77JVMcP2Hpo3NYnOSPKdZdeec57B6QPprCUFg0picx5Pw==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -10041,6 +10089,8 @@ snapshots:
     dependencies:
       '@noble/ciphers': 1.3.0
 
+  '@electric-sql/pglite@0.2.17': {}
+
   '@emnapi/core@1.10.0':
     dependencies:
       '@emnapi/wasi-threads': 1.2.1
@@ -14046,8 +14096,9 @@ snapshots:
       get-tsconfig: 4.14.0
       jiti: 2.7.0
 
-  drizzle-orm@1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3):
+  drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3):
     optionalDependencies:
+      '@electric-sql/pglite': 0.2.17
       '@opentelemetry/api': 1.9.1
       '@types/better-sqlite3': 7.6.13
       '@types/pg': 8.20.0
@@ -14055,11 +14106,11 @@ snapshots:
       pg: 8.20.0
       zod: 4.4.3
 
-  drizzle-seed@0.3.1(drizzle-orm@1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)):
+  drizzle-seed@0.3.1(drizzle-orm@1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)):
     dependencies:
       pure-rand: 6.1.0
     optionalDependencies:
-      drizzle-orm: 1.0.0-rc.2(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
+      drizzle-orm: 1.0.0-rc.2(@electric-sql/pglite@0.2.17)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.9.0)(pg@8.20.0)(zod@4.4.3)
 
   dunder-proto@1.0.1:
     dependencies:

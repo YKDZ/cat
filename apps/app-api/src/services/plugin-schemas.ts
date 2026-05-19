@@ -39,6 +39,7 @@ export const PluginProbeStatusSchema = z.enum([
   "WARNING",
   "FAILED",
   "UNSUPPORTED",
+  "UNAVAILABLE",
   "CANCELLED",
 ]);
 
@@ -191,6 +192,9 @@ export const PluginProbeErrorSchema = z.object({
     "CANCELLED",
     "INVALID_RESPONSE",
     "UNSUPPORTED",
+    "MISSING_CONFIG",
+    "DISABLED_BY_RUNTIME",
+    "REMOTE_UNREACHABLE",
     "UNKNOWN",
   ]),
   message: z.string(),

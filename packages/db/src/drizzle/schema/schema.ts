@@ -17,6 +17,7 @@ import {
   ResourceTypeValues,
   ScopeTypeValues,
   TaskStatusValues,
+  QueueTaskStatusValues,
   CommentReactionTypeValues,
   TranslatableElementContextTypeValues,
   CommentTargetTypeValues,
@@ -103,6 +104,8 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const taskStatus = pgEnum("TaskStatus", TaskStatusValues);
+
+export const queueTaskStatus = pgEnum("QueueTaskStatus", QueueTaskStatusValues);
 
 export const pluginServiceType = pgEnum(
   "PluginServiceType",
@@ -819,6 +822,53 @@ export const pluginComponent = snakeCase.table("PluginComponent", {
     }),
   ...timestamps,
 });
+
+export const runtimeCacheEntry = snakeCase.table(
+  "RuntimeCacheEntry",
+  {
+    namespace: text().notNull(),
+    key: text().notNull(),
+    value: jsonb().$type<JSONType>().notNull(),
+    expiresAt: timestamp({ withTimezone: true }),
+    lastAccessedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.namespace, table.key] }),
+    index().on(table.expiresAt),
+  ],
+);
+
+export const runtimeSessionEntry = snakeCase.table(
+  "RuntimeSessionEntry",
+  {
+    key: text().primaryKey(),
+    fields: jsonb().$type<Record<string, string>>().notNull(),
+    expiresAt: timestamp({ withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (table) => [index().on(table.expiresAt)],
+);
+
+export const runtimeQueueTask = snakeCase.table(
+  "RuntimeQueueTask",
+  {
+    queueName: text().notNull(),
+    taskId: text().notNull(),
+    payload: jsonb().$type<NonNullJSONType>().notNull(),
+    status: queueTaskStatus().notNull().default("PENDING"),
+    retryCount: integer().notNull().default(0),
+    enqueuedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+    leasedUntil: timestamp({ withTimezone: true }),
+    lastError: text(),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.queueName, table.taskId] }),
+    index().on(table.queueName, table.status, table.enqueuedAt),
+    index().on(table.queueName, table.status, table.leasedUntil),
+  ],
+);
 
 export const project = snakeCase.table(
   "Project",

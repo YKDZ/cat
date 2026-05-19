@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist/spec",
+    "tsBuildInfoFile": "dist/tsconfig.spec.tsbuildinfo",
+    "types": ["vitest/globals", "node"],
+    "composite": true
+  },
+  "include": ["src/**/*.spec.ts", "src/**/*.test.ts"],
+  "references": [
+    { "path": "./tsconfig.lib.json" },
+    { "path": "../plugin-core/tsconfig.lib.json" },
+    { "path": "../domain/tsconfig.lib.json" }
+  ]
+}
