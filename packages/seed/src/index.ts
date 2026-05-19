@@ -1,6 +1,8 @@
 export {
   loadDevSeed,
+  type LoadedLocalSeedOverride,
   type LoadedDevSeed,
+  type LoadDevSeedOptions,
   readJson,
   readYamlWithEnv,
 } from "./loader";
@@ -35,6 +37,7 @@ export type {
   BootstrapLocaleCatalog,
   BootstrapProfile,
   DevSeedConfig,
+  LocalSeedConfig,
   SeedConfig,
   PluginOverride,
   ProjectSeed,
@@ -53,6 +56,7 @@ export {
   BootstrapScreenshotProfileSchema,
   BootstrapSourceProfileSchema,
   DevSeedConfigSchema,
+  LocalSeedConfigSchema,
   SeedConfigSchema,
   PluginOverrideSchema,
   ProjectSeedSchema,

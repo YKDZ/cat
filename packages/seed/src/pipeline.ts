@@ -4,7 +4,7 @@
 import type { DrizzleClient } from "@cat/db";
 import type { ExecutorContext } from "@cat/domain";
 import type { PluginLoader } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared";
+import type { JSONObject, JSONType } from "@cat/shared";
 
 import { pluginInstallation, sql, eq, and, contextEvidence } from "@cat/db";
 import {
@@ -123,7 +123,9 @@ export const runSeedPipeline = async (
   // ── 2. Full app-like plugin bootstrap ──────────────────────────────
   // Mirror the app bootstrap sequence. syncDefinitions discovers all plugin
   // files, installDefaults registers/installs default plugins (including
-  // password-auth-provider, vectorizers, etc.), and restore activates them.
+  // password-auth-provider, vectorizers, etc.). GLOBAL overrides are applied
+  // before restore so dynamic providers with required config do not activate
+  // once with invalid default config.
   await pluginManager
     .getDiscovery()
     .syncDefinitions(execCtx.db as DrizzleClient);
@@ -132,9 +134,8 @@ export const runSeedPipeline = async (
     pluginManager,
     opts.defaultPluginsJsonPath,
   );
-  await pluginManager.restore(execCtx.db);
   console.log(
-    "[seed] Plugin bootstrap complete (syncDefinitions + installDefaults + restore).",
+    "[seed] Plugin defaults installed (syncDefinitions + installDefaults).",
   );
 
   // ── 3. GLOBAL plugin config overrides ──────────────────────────────
@@ -194,6 +195,9 @@ export const runSeedPipeline = async (
     await pluginManager.reloadPlugin(execCtx.db, data.id);
     summary.plugins += 1;
   }
+
+  await pluginManager.restore(execCtx.db);
+  console.log("[seed] Plugin restore complete.");
 
   // ── 4. Dimension reconciliation ────────────────────────────────────
   const vectorizerOverride = config.plugins.overrides.find(
@@ -601,7 +605,8 @@ const getDimensionFromConfig = (
   override: PluginOverride | undefined,
 ): number | undefined => {
   if (!override) return undefined;
-  const model = override.config?.["model-id"] ?? override.config?.model;
+  if (!isRecordConfig(override.config)) return undefined;
+  const model = override.config["model-id"] ?? override.config.model;
   if (typeof model !== "string") return undefined;
   const dimensionMap: Record<string, number> = {
     "text-embedding-3-small": 1536,
@@ -609,6 +614,22 @@ const getDimensionFromConfig = (
     "text-embedding-ada-002": 1536,
   };
   return dimensionMap[model] ?? 1024;
+};
+
+const isRecordConfig = (
+  config: PluginOverride["config"] | undefined,
+): config is JSONObject => {
+  return (
+    typeof config === "object" && config !== null && !Array.isArray(config)
+  );
+};
+
+const getVectorizerModelName = (
+  override: PluginOverride | undefined,
+): string => {
+  if (!override || !isRecordConfig(override.config)) return "unknown";
+  const model = override.config.model ?? override.config["model-id"];
+  return typeof model === "string" ? model : "unknown";
 };
 
 const vectorizeWithCache = async (opts: {
@@ -619,7 +640,7 @@ const vectorizeWithCache = async (opts: {
   dimension: number;
 }): Promise<void> => {
   const { execCtx, pluginManager, cache, vectorizerOverride, dimension } = opts;
-  const modelName = (vectorizerOverride?.config?.model as string) ?? "unknown";
+  const modelName = getVectorizerModelName(vectorizerOverride);
 
   const pm = resolvePluginManager(pluginManager);
   const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");

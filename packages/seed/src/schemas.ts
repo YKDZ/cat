@@ -1,17 +1,38 @@
-import { RelationSchema } from "@cat/shared";
-import { safeZDotJson } from "@cat/shared";
+import type { NonNullJSONType } from "@cat/shared";
+
+import { RelationSchema, nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 // ── Plugin override ──────────────────────────────────────────────────
+
+const PluginConfigValueSchema: z.ZodType<NonNullJSONType> = nonNullSafeZDotJson;
 
 export const PluginOverrideSchema = z.object({
   plugin: z.string(),
   scope: z.enum(["GLOBAL", "PROJECT", "USER"]),
   scopeId: z.string().optional(),
-  config: z.record(z.string(), z.unknown()),
+  config: PluginConfigValueSchema,
 });
 
 export type PluginOverride = z.infer<typeof PluginOverrideSchema>;
+
+/**
+ * @zh 本地 seed 覆盖配置，仅承载不应提交到版本控制的插件配置。
+ * @en Local seed override config, intended only for plugin config that should not be committed.
+ */
+export const LocalSeedConfigSchema = z.object({
+  plugins: z
+    .object({
+      overrides: z.array(PluginOverrideSchema).default([]),
+    })
+    .default({ overrides: [] }),
+});
+
+/**
+ * @zh 本地 seed 覆盖配置类型。
+ * @en Local seed override config type.
+ */
+export type LocalSeedConfig = z.infer<typeof LocalSeedConfigSchema>;
 
 // ── Seed file references ─────────────────────────────────────────────
 

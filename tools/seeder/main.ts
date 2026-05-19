@@ -8,24 +8,53 @@ import {
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
+const collectOptionValueIndexes = (
+  args: string[],
+  optionName: string,
+  indexes: Set<number>,
+): void => {
+  for (const [index, arg] of args.entries()) {
+    if (arg !== optionName) continue;
+    indexes.add(index + 1);
+  }
+};
+
+const optionValues = (args: string[], optionName: string): string[] => {
+  const values: string[] = [];
+  for (const [index, arg] of args.entries()) {
+    if (arg !== optionName) continue;
+    const value = args[index + 1];
+    if (!value || value.startsWith("--")) {
+      throw new Error(`Missing value for ${optionName}`);
+    }
+    values.push(value);
+  }
+  return values;
+};
+
 const main = async (): Promise<void> => {
   const args = process.argv.slice(2);
   const allowUnsafeReset =
     args.includes("--allow-unsafe-reset") ||
     args.includes("--yes-i-know-this-will-reset-db");
   const skipVectorization = args.includes("--skip-vectorization");
+  const noLocalOverrides = args.includes("--no-local-overrides");
   const outputBindingsIdx = args.indexOf("--output-bindings");
   const outputBindingsPath =
     outputBindingsIdx !== -1 ? args[outputBindingsIdx + 1] : undefined;
+  const localOverridePaths = optionValues(args, "--local-overrides");
+  const valueIndexes = new Set<number>();
+  collectOptionValueIndexes(args, "--output-bindings", valueIndexes);
+  collectOptionValueIndexes(args, "--local-overrides", valueIndexes);
   const datasetDir = args.find(
     (a, i) =>
       !a.startsWith("--") &&
-      (outputBindingsIdx === -1 || i !== outputBindingsIdx + 1),
+      !valueIndexes.has(i),
   );
 
   if (!datasetDir) {
     console.error(
-      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>]",
+      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>] [--local-overrides <path>] [--no-local-overrides]",
     );
     console.error("Example: tsx main.ts datasets/default");
     process.exit(1);
@@ -49,10 +78,29 @@ const main = async (): Promise<void> => {
   console.log(`[seed] Loading dataset from: ${absoluteDir}`);
 
   // 1. Load & validate dataset
-  const loadedSeed = loadDevSeed(absoluteDir);
+  const discoveredLocalOverridePaths = noLocalOverrides
+    ? []
+    : [
+        resolve(import.meta.dirname, "local/seed.yaml"),
+        resolve(absoluteDir, "seed.local.yaml"),
+      ];
+  const loadedSeed = loadDevSeed(absoluteDir, {
+    localOverridePaths: [
+      ...discoveredLocalOverridePaths,
+      ...localOverridePaths.map((path) => resolve(process.cwd(), path)),
+    ],
+  });
   console.log(
     `[seed] Dataset "${loadedSeed.config.name}" loaded successfully.`,
   );
+  if (loadedSeed.localOverrideSources.length > 0) {
+    console.log("[seed] Local overrides loaded:");
+    for (const source of loadedSeed.localOverrideSources) {
+      console.log(
+        `  ${source.path} (${source.pluginOverrideCount} plugin overrides)`,
+      );
+    }
+  }
 
   const vectorizationEnabled = loadedSeed.config.vectorization.enabled;
   const shouldSkipVectorization = skipVectorization || !vectorizationEnabled;

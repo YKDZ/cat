@@ -3,7 +3,7 @@
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
 // oxlint-disable typescript-eslint/no-unsafe-return -- vectorize result requires cast
 import type { ExecutorContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
+import type { JSONObject, JSONType } from "@cat/shared";
 
 import { RedisConnection, sql } from "@cat/db";
 import {
@@ -402,7 +402,8 @@ const getDimensionFromConfig = (
   override: PluginOverride | undefined,
 ): number | undefined => {
   if (!override) return undefined;
-  const model = override.config?.["model-id"] ?? override.config?.model;
+  if (!isRecordConfig(override.config)) return undefined;
+  const model = override.config["model-id"] ?? override.config.model;
   if (typeof model !== "string") return undefined;
   const dimensionMap: Record<string, number> = {
     "text-embedding-3-small": 1536,
@@ -415,6 +416,22 @@ const getDimensionFromConfig = (
   return dimensionMap[model] ?? 1024;
 };
 
+const isRecordConfig = (
+  config: PluginOverride["config"] | undefined,
+): config is JSONObject => {
+  return (
+    typeof config === "object" && config !== null && !Array.isArray(config)
+  );
+};
+
+const getVectorizerModelName = (
+  override: PluginOverride | undefined,
+): string => {
+  if (!override || !isRecordConfig(override.config)) return "unknown";
+  const model = override.config.model ?? override.config["model-id"];
+  return typeof model === "string" ? model : "unknown";
+};
+
 const vectorizeWithCache = async (opts: {
   execCtx: ExecutorContext;
   pluginManager: PluginManager;
@@ -423,7 +440,7 @@ const vectorizeWithCache = async (opts: {
   dimension: number;
 }): Promise<void> => {
   const { execCtx, pluginManager, cache, vectorizerOverride, dimension } = opts;
-  const modelName = (vectorizerOverride?.config?.model as string) ?? "unknown";
+  const modelName = getVectorizerModelName(vectorizerOverride);
 
   const pm = resolvePluginManager(pluginManager);
   const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");

@@ -1,1 +1,4 @@
 .vector-cache
+local/
+*.local.yaml
+*.local.yml

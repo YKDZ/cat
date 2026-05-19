@@ -16,6 +16,15 @@ pnpm tsx tools/seeder/main.ts <dataset-dir>
 
 # 跳过向量化（无外部服务时）
 pnpm tsx tools/seeder/main.ts <dataset-dir> --skip-vectorization
+
+# 输出 bindings 文件（供 eval 等工具使用）
+pnpm tsx tools/seeder/main.ts <dataset-dir> --output-bindings /tmp/bindings.json
+
+# 追加额外的本地插件覆盖文件
+pnpm tsx tools/seeder/main.ts <dataset-dir> --local-overrides /path/to/extra.yaml
+
+# 禁用自动本地插件覆盖发现
+pnpm tsx tools/seeder/main.ts <dataset-dir> --no-local-overrides
 ```
 
 ### 前置条件
@@ -28,6 +37,57 @@ pnpm tsx tools/seeder/main.ts <dataset-dir> --skip-vectorization
 **完整模式可选**：
 
 - 外部服务可达（spacy、vectorizer）— 仅向量化阶段需要
+
+---
+
+## 本地插件覆盖
+
+插件服务配置（模型地址、API key 等）在本地开发时通常是固定的，没有必要在每个数据集中重复配置，也不应该提交到版本控制。使用本地插件覆盖机制可以将这些配置放到被 gitignore 的文件里。
+
+### 自动发现顺序
+
+每次运行 seed 时，以下路径按序被自动加载（后加载的覆盖前加载的）：
+
+1. `<dataset>/seed.yaml`（`plugins.overrides`）—— 数据集内配置，会提交
+2. `tools/seeder/local/seed.yaml` —— 全局本地覆盖，**不提交**
+3. `<dataset>/seed.local.yaml` —— 数据集级本地覆盖，**不提交**
+4. 所有 `--local-overrides <path>` 传入的文件，按顺序最后生效
+
+`tools/seeder/local/`、`*.local.yaml`、`*.local.yml` 均已被 `tools/seeder/.gitignore` 忽略。
+
+### 本地覆盖文件格式
+
+与 `seed.yaml` 格式相同，只需 `plugins.overrides` 字段：
+
+```yaml
+plugins:
+  overrides:
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: "${VECTORIZER_MODEL:-qwen3-embedding:8b}"
+        baseURL: "${VECTORIZER_URL:-http://127.0.0.1:11434/v1}"
+        apiKey: "${VECTORIZER_API_KEY:-dummy-key}"
+    - plugin: spacy-segmenter
+      scope: GLOBAL
+      config:
+        serverUrl: "${SPACY_URL:-http://127.0.0.1:8000}"
+```
+
+`config` 可以是任意非 `null` JSON 值。大多数插件使用 object；动态 provider 类插件（如 `openai-llm-provider`、`tei-rerank-provider`）可使用 array。
+
+### 合并规则
+
+覆盖按 `(plugin, scope, scopeId)` 三元组匹配：
+
+- 匹配到已有项 → **替换**
+- 未匹配 → **追加**
+
+数据集中含未设置 env 变量的旧插件配置（如 `${LLM_API_KEY}`）不会提前报错，会在本地覆盖合并完成后统一校验。这样本地覆盖可以将其完整替换掉。
+
+### 初始化本地覆盖文件
+
+从当前数据库导出目标插件配置到 `tools/seeder/local/seed.yaml`：通过查询 `PluginConfigInstance JOIN PluginInstallation` 中 `scope_type = 'GLOBAL'` 的记录即可获得各插件的当前配置，生成的文件放在 `tools/seeder/local/` 内不会被提交。
 
 ---
 
@@ -64,15 +124,16 @@ seed:
 plugins:
   loader: real # "real" 使用真实插件, "test" 使用 mock
   overrides:
+    # 仅填写不含 API key 的基础插件；有 key 的插件放到 local/seed.yaml
+    - plugin: pgvector-storage
+      scope: GLOBAL
+      config: {}
     - plugin: openai-vectorizer
       scope: GLOBAL
       config:
         model-id: "${VECTORIZER_MODEL:-qwen3-embedding:4b}"
         baseURL: "${VECTORIZER_URL:-http://172.17.0.1:11434/v1}"
         apiKey: "${VECTORIZER_API_KEY:-ollama}"
-    - plugin: pgvector-storage
-      scope: GLOBAL
-      config: {}
     - plugin: spacy-segmenter
       scope: GLOBAL
       config:
@@ -191,7 +252,7 @@ plugins:
 
 **`Duplicate ref`**：数据文件中存在重复的 ref 字符串。确保每个 ref 全局唯一。
 
-**`Environment variable "X" is not set`**：seed.yaml 中引用了未设置的环境变量。使用 `${VAR:-default}` 语法提供默认值，或在 shell 中 `export VAR=value`。
+**`Environment variable "X" is not set`**：seed.yaml 中引用了未设置的环境变量。使用 `${VAR:-default}` 语法提供默认值，或在 shell 中 `export VAR=value`。如果是含私密 API key 的插件，将其 override 放到 `tools/seeder/local/seed.yaml`，这样本地覆盖会替换掉数据集中的占位配置。
 
 **向量化失败**：外部服务（vectorizer、spacy）不可用。使用 `--skip-vectorization` 跳过向量化阶段，核心数据仍会正常填充。
 
