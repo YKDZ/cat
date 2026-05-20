@@ -103,6 +103,12 @@ export const initializeApp = async (): Promise<void> => {
       backends.sessionStore,
     ]);
 
+    // Clear stale PluginManager instances before re-initialization.
+    // In Vite dev mode, HMR re-evaluates +server.ts and calls initializeApp()
+    // multiple times. Each call creates a fresh PluginLoader instance, which
+    // would otherwise cause PluginManager.get() to throw because the existing
+    // GLOBAL instance was created with a different (previous) loader reference.
+    PluginManager.clear();
     const pluginLoader = createAppPluginLoader();
     const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader);
 

@@ -257,6 +257,7 @@ export const termDiscoveryGraph = defineGraph({
             branchId: input.branchId,
             contentNodeIds: input.contentNodeIds,
             elementIds: input.elementIds,
+            sortMode: input.sortMode,
             sourceLanguageId: input.sourceLanguageId,
           },
           opCtx,

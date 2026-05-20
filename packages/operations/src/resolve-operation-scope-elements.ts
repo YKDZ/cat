@@ -66,6 +66,7 @@ const collectPagedScopeElements = async (
       contentNodeIds: input.contentNodeIds,
       searchQuery: "",
       statusFilter: input.statusFilter,
+      sortMode: input.sortMode,
       page,
       pageSize,
     });
@@ -167,8 +168,9 @@ export const resolveOperationScopeElementsOp = async (
     });
   }
 
-  for (const detail of details) {
-    if (!requestedDirectElementIds.has(detail.id)) continue;
+  for (const requestedId of input.elementIds) {
+    const detail = detailById.get(requestedId);
+    if (!detail || !requestedDirectElementIds.has(detail.id)) continue;
     elementsById.set(detail.id, detail);
   }
 

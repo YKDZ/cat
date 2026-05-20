@@ -72,6 +72,7 @@ describe("project editor auto guard", () => {
       contentNodeIds: [nodeId],
       searchQuery: "foo",
       statusFilter: "translated",
+      sortMode: "structure",
       page: 3,
       pageSize: 20,
     });
@@ -94,6 +95,7 @@ describe("project editor auto guard", () => {
       contentNodeIds: [],
       searchQuery: "",
       statusFilter: "all",
+      sortMode: "structure",
       page: 1,
       pageSize: 16,
     });

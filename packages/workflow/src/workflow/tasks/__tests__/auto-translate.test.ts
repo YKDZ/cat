@@ -163,6 +163,85 @@ describe("autoTranslateGraph", () => {
       }),
       expect.any(Object),
     );
-    expect(result).toEqual({ translationIds: [99] });
+    expect(result).toMatchObject({ translationIds: [99] });
+    expect(result.scopeTranslationSeed).toMatchObject({
+      elementId: 1,
+      source: "Order 43 completed",
+      translation: "订单 43 已完成",
+      reason: "batch-runtime",
+    });
+  });
+
+  it("injects runtime scope seeds into advisor memories and LLM neighbor context", async () => {
+    const { runGraph } = await vi.importActual<
+      typeof import("@/graph/dsl/run-graph")
+    >("@/graph/dsl/run-graph");
+    mocks.llmRefineTranslationOp.mockResolvedValue({
+      refinedText: "请确认订单",
+      refined: true,
+    });
+
+    const result = await runGraph(
+      autoTranslateGraph,
+      {
+        translatableElementId: 2,
+        text: "Confirm order",
+        primaryContentNodeId: "11111111-1111-4111-8111-111111111111",
+        translationLanguageId: "zh-Hans",
+        sourceLanguageId: "en",
+        translatorId: null,
+        advisorId: 1,
+        memoryIds: [],
+        glossaryIds: [],
+        chunkIds: [],
+        minMemorySimilarity: 0.72,
+        maxMemoryAmount: 3,
+        memoryVectorStorageId: 1,
+        translationVectorStorageId: 2,
+        vectorizerId: 3,
+        scopeTranslationSeeds: [
+          {
+            elementId: 1,
+            source: "Order",
+            translation: "订单",
+            sourceLanguageId: "en",
+            targetLanguageId: "zh-Hans",
+            primaryContentNodeId: "11111111-1111-4111-8111-111111111111",
+            confidence: 0.91,
+            trustLevel: "HIGH",
+            reason: "batch-runtime",
+          },
+        ],
+        config: {
+          llm: { enabled: true },
+          gatherScopeContext: true,
+          highConfidenceThreshold: 0.99,
+        },
+      },
+      { pluginManager },
+    );
+
+    expect(mocks.fetchAdviseOp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        preloadedMemories: expect.arrayContaining([
+          { source: "Order", translation: "订单", confidence: 0.91 },
+        ]),
+      }),
+      expect.any(Object),
+    );
+    expect(mocks.llmRefineTranslationOp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        neighborTranslations: [{ source: "Order", translation: "订单" }],
+      }),
+      expect.any(Object),
+    );
+    expect(result.scopeTranslationSeed).toMatchObject({
+      elementId: 2,
+      source: "Confirm order",
+      translation: "请确认订单",
+      confidence: 0.97,
+      trustLevel: "HIGH",
+      reason: "batch-runtime",
+    });
   });
 });

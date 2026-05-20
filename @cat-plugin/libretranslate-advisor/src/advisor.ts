@@ -13,12 +13,12 @@ import * as z from "zod";
 const ApiConfigSchema = z
   .object({
     url: z.url().default("http://localhost:5000/"),
-    key: z.string().default("your api key"),
+    key: z.string().default(""),
     "alternatives-amount": z.int().min(0).default(2),
   })
   .default({
     url: "http://localhost:5000/",
-    key: "your api key",
+    key: "",
     "alternatives-amount": 2,
   });
 
@@ -36,12 +36,6 @@ const ConfigSchema = z.object({
 });
 
 type Config = z.infer<typeof ConfigSchema>;
-
-const PLACEHOLDER_API_KEYS = new Set(["", "your api key"]);
-
-const normalizeConfigValue = (value: string | undefined): string => {
-  return value?.trim().toLowerCase() ?? "";
-};
 
 export class Advisor extends TranslationAdvisor {
   private pool: Pool;
@@ -64,15 +58,7 @@ export class Advisor extends TranslationAdvisor {
   }
 
   getAvailability(): PluginServiceAvailability {
-    const apiKey = normalizeConfigValue(this.config.api.key);
-
-    return !PLACEHOLDER_API_KEYS.has(apiKey)
-      ? { available: true, reason: "ok" }
-      : {
-          available: false,
-          reason: "missing-config",
-          message: "LibreTranslate advisor requires a non-placeholder API key.",
-        };
+    return { available: true, reason: "ok" };
   }
 
   async advise({

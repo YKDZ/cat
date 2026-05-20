@@ -20,6 +20,8 @@ export interface AgentBlackboardData {
     content: string | null;
     toolCallId?: string;
     toolCalls?: Array<{ id: string; name: string; arguments: string }>;
+    /** Thinking-mode reasoning text (e.g. mimo, DeepSeek R1) — must be echoed back in subsequent requests */
+    reasoningContent?: string;
   }>;
   /** @zh LLM 最新一轮文本输出 @en Latest LLM text output */
   output_snapshot?: string;

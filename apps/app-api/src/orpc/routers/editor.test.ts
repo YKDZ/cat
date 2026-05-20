@@ -510,6 +510,7 @@ describe("editor router", () => {
       contentNodeIds: string[];
       invalidContentNodeIds: string[];
       contentNodeFilters: unknown[];
+      sortMode: "structure" | "reuse-first";
     }>(resolveScope, context, {
       projectId: fixture.project.id,
       languageToId: "zh-Hans",
@@ -520,6 +521,7 @@ describe("editor router", () => {
       ],
       searchQuery: "",
       statusFilter: "all",
+      sortMode: "reuse-first",
       page: 1,
       pageSize: 16,
     });
@@ -527,6 +529,7 @@ describe("editor router", () => {
     expect(result.contentNodeIds).toEqual([fixture.fileA.id]);
     expect(result.invalidContentNodeIds).toEqual([fixture.otherFile.id]);
     expect(result.contentNodeFilters).toHaveLength(1);
+    expect(result.sortMode).toBe("reuse-first");
   });
 
   test("listContentNodes returns branch-visible nodes, excludes project root, and includes path metadata", async () => {
@@ -576,6 +579,7 @@ describe("editor router", () => {
       contentNodeIds: [fixture.otherFile.id],
       searchQuery: "",
       statusFilter: "all",
+      sortMode: "reuse-first",
       page: 0,
       pageSize: 16,
     });

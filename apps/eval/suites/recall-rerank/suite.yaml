@@ -52,11 +52,11 @@ scenarios:
       timeoutMs: 60000
 
 thresholds:
-  # Baseline thresholds (keyed by scenario name)
-  baseline.precision: ">= 0.85"
-  baseline.recall: ">= 0.85"
-  baseline.f1: ">= 0.85"
+  # Baseline thresholds (keyed by scenario name + metric@k)
+  "baseline.precision@5": ">= 0.85"
+  "baseline.recall@5": ">= 0.85"
+  "baseline.f1@5": ">= 0.85"
   # Reranked must not regress below baseline floor
-  reranked.precision: ">= 0.85"
-  reranked.recall: ">= 0.85"
-  reranked.f1: ">= 0.85"
+  "reranked.precision@5": ">= 0.85"
+  "reranked.recall@5": ">= 0.85"
+  "reranked.f1@5": ">= 0.85"

@@ -210,6 +210,7 @@ export const onCreate = authed
       contentNodeIds: true,
       searchQuery: true,
       statusFilter: true,
+      sortMode: true,
       pageSize: true,
     }),
   )
@@ -239,6 +240,7 @@ export const onCreate = authed
             contentNodeIds: input.contentNodeIds,
             searchQuery: input.searchQuery,
             statusFilter: "all",
+            sortMode: input.sortMode,
             pageSize: input.pageSize,
             elementId,
           }),
@@ -567,6 +569,7 @@ export const autoTranslate = authed
           projectId: scope.projectId,
           languageId,
           contentNodeIds: scope.contentNodeIds,
+          sortMode: scope.sortMode,
         },
       },
     );

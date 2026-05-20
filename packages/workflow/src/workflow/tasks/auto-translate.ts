@@ -4,9 +4,12 @@ import {
   llmRefineTranslationOp,
   termRecallOp,
 } from "@cat/operations";
-import { safeZDotJson } from "@cat/shared";
-import { MemorySuggestionSchema } from "@cat/shared";
-import { TranslationAdviseSchema } from "@cat/shared";
+import {
+  MemorySuggestionSchema,
+  safeZDotJson,
+  ScopeTranslationSeedSchema,
+  TranslationAdviseSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "@/graph/dsl";
@@ -46,11 +49,13 @@ export const AutoTranslateInputSchema = z.object({
   text: z.string(),
   translationLanguageId: z.string(),
   sourceLanguageId: z.string(),
+  primaryContentNodeId: z.uuidv4().nullable().optional(),
   translatorId: z.uuidv4().nullable(),
   advisorId: z.int().optional(),
   memoryIds: z.array(z.uuidv4()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
   chunkIds: z.array(z.int()).default([]),
+  scopeTranslationSeeds: z.array(ScopeTranslationSeedSchema).default([]),
   minMemorySimilarity: z.number().min(0).max(1),
   maxMemoryAmount: z.int().min(0).default(3),
   memoryVectorStorageId: z.int(),
@@ -61,6 +66,7 @@ export const AutoTranslateInputSchema = z.object({
 
 export const AutoTranslateOutputSchema = z.object({
   translationIds: z.array(z.int()).optional(),
+  scopeTranslationSeed: ScopeTranslationSeedSchema.optional(),
 });
 
 export type AutoTranslateInput = z.infer<typeof AutoTranslateInputSchema>;
@@ -119,6 +125,7 @@ const MtAdviseNodeInputSchema = z.object({
   glossaryIds: z.array(z.uuidv4()),
   terms: z.array(TermContextItemSchema),
   memories: z.array(MemorySuggestionSchema),
+  scopeTranslationSeeds: z.array(ScopeTranslationSeedSchema).default([]),
 });
 
 const MtAdviseNodeOutputSchema = z.object({
@@ -142,6 +149,7 @@ const AggregateOutputSchema = z.object({
   ),
   topCandidateText: z.string().nullable(),
   topCandidateMeta: safeZDotJson,
+  topCandidateConfidence: z.number().min(0).max(1).nullable(),
   skipLlmRefine: z.boolean(),
 });
 
@@ -170,12 +178,22 @@ const CreateTranslationNodeInputSchema = z.object({
   fallbackText: z.string().nullable(),
   topCandidateMeta: safeZDotJson,
   translatableElementId: z.int(),
+  sourceText: z.string(),
+  sourceLanguageId: z.string(),
+  primaryContentNodeId: z.uuidv4().nullable().optional(),
+  topCandidateConfidence: z.number().min(0).max(1).nullable(),
+  refined: z.boolean(),
   translatorId: z.uuidv4().nullable(),
   translationLanguageId: z.string(),
   memoryIds: z.array(z.uuidv4()),
   vectorizerId: z.int(),
   translationVectorStorageId: z.int(),
 });
+
+const usableScopeSeeds = (
+  seeds: z.infer<typeof ScopeTranslationSeedSchema>[],
+) =>
+  seeds.filter((seed) => seed.confidence >= 0.85 && seed.trustLevel !== "LOW");
 
 // ─── 6 节点线性流水线 ─────────────────────────────────────────────────────────────
 
@@ -192,13 +210,19 @@ export const autoTranslateGraph = defineGraph({
       input: AutoTranslateInputSchema,
       output: GatherContextOutputSchema,
       handler: async (input, _ctx) => {
-        // 后续可在 config.gatherScopeContext === true 时查询邻近 element 已有翻译
-        // 需要新增 domain query listNeighborTranslations
+        const seeds = usableScopeSeeds(input.scopeTranslationSeeds);
+        const neighborTranslations = input.config?.gatherScopeContext
+          ? seeds.map((seed) => ({
+              source: seed.source,
+              translation: seed.translation,
+            }))
+          : [];
+
         return {
           text: input.text,
           sourceLanguageId: input.sourceLanguageId,
           translationLanguageId: input.translationLanguageId,
-          neighborTranslations: [],
+          neighborTranslations,
         };
       },
     }),
@@ -263,6 +287,7 @@ export const autoTranslateGraph = defineGraph({
         glossaryIds: "glossaryIds",
         terms: "recall.terms",
         memories: "recall.memories",
+        scopeTranslationSeeds: "scopeTranslationSeeds",
       },
       handler: async (input, ctx) => {
         return fetchAdviseOp(
@@ -274,11 +299,18 @@ export const autoTranslateGraph = defineGraph({
             glossaryIds: input.glossaryIds,
             memoryIds: [],
             preloadedTerms: input.terms,
-            preloadedMemories: input.memories.map((m) => ({
-              source: m.source,
-              translation: m.adaptedTranslation ?? m.translation,
-              confidence: m.confidence,
-            })),
+            preloadedMemories: [
+              ...input.memories.map((m) => ({
+                source: m.source,
+                translation: m.adaptedTranslation ?? m.translation,
+                confidence: m.confidence,
+              })),
+              ...usableScopeSeeds(input.scopeTranslationSeeds).map((seed) => ({
+                source: seed.source,
+                translation: seed.translation,
+                confidence: seed.confidence,
+              })),
+            ],
           },
           {
             traceId: ctx.runId,
@@ -338,6 +370,7 @@ export const autoTranslateGraph = defineGraph({
           candidates,
           topCandidateText: top?.text ?? null,
           topCandidateMeta: top?.meta ?? {},
+          topCandidateConfidence: top?.confidence ?? null,
           skipLlmRefine,
         };
       },
@@ -411,6 +444,11 @@ export const autoTranslateGraph = defineGraph({
         fallbackText: "aggregate.topCandidateText",
         topCandidateMeta: "aggregate.topCandidateMeta",
         translatableElementId: "translatableElementId",
+        sourceText: "gather-context.text",
+        sourceLanguageId: "gather-context.sourceLanguageId",
+        primaryContentNodeId: "primaryContentNodeId",
+        topCandidateConfidence: "aggregate.topCandidateConfidence",
+        refined: "llm-refine.refined",
         translatorId: "translatorId",
         translationLanguageId: "translationLanguageId",
         memoryIds: "memoryIds",
@@ -441,7 +479,25 @@ export const autoTranslateGraph = defineGraph({
           { signal: ctx.signal },
         );
 
-        return { translationIds };
+        return {
+          translationIds,
+          scopeTranslationSeed: {
+            elementId: input.translatableElementId,
+            source: input.sourceText,
+            translation: text,
+            sourceLanguageId: input.sourceLanguageId,
+            targetLanguageId: input.translationLanguageId,
+            primaryContentNodeId: input.primaryContentNodeId ?? null,
+            confidence: input.refined
+              ? Math.max(input.topCandidateConfidence ?? 0, 0.9)
+              : (input.topCandidateConfidence ?? 0),
+            trustLevel:
+              input.refined || (input.topCandidateConfidence ?? 0) >= 0.85
+                ? ("HIGH" as const)
+                : ("MEDIUM" as const),
+            reason: "batch-runtime" as const,
+          },
+        };
       },
     }),
   },

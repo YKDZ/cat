@@ -142,6 +142,8 @@ const seedFixture = async () => {
     { value: "Banana", languageId: "en" },
     { value: "Cherry", languageId: "en" },
     { value: "Durian", languageId: "en" },
+    { value: "Checkout", languageId: "en" },
+    { value: "Click Checkout to continue", languageId: "en" },
   ]);
   const sourceIdByValue = new Map(
     sourceStrings.map((item) => [item.value, item.id]),
@@ -192,6 +194,26 @@ const seedFixture = async () => {
           stringId: sourceIdByValue.get("Durian")!,
           localOrder: 0,
         },
+        {
+          projectId: project.id,
+          primaryContentNodeId: fileA.id,
+          importerId: "test-json",
+          sourceRootRef: "root",
+          sourceNodeRef: "a.json",
+          stableSourceRef: `checkout-long-${randomUUID()}`,
+          stringId: sourceIdByValue.get("Click Checkout to continue")!,
+          localOrder: 2,
+        },
+        {
+          projectId: project.id,
+          primaryContentNodeId: fileA.id,
+          importerId: "test-json",
+          sourceRootRef: "root",
+          sourceNodeRef: "a.json",
+          stableSourceRef: `checkout-seed-${randomUUID()}`,
+          stringId: sourceIdByValue.get("Checkout")!,
+          localOrder: 3,
+        },
       ],
     },
   );
@@ -233,6 +255,8 @@ const seedFixture = async () => {
       banana: elementIds[1],
       cherry: elementIds[2],
       durian: elementIds[3],
+      checkoutLong: elementIds[4],
+      checkoutSeed: elementIds[5],
     },
   };
 };
@@ -243,6 +267,7 @@ const baseQuery = (fixture: Fixture) => ({
   contentNodeIds: [] as string[],
   searchQuery: "",
   statusFilter: "all" as const,
+  sortMode: "structure" as const,
   page: 0,
   pageSize: 10,
 });
@@ -279,6 +304,8 @@ describe("editor scope elements", () => {
     expect(rows.map((row) => row.value)).toEqual([
       "Apple",
       "Banana",
+      "Click Checkout to continue",
+      "Checkout",
       "Cherry",
       "Durian",
     ]);
@@ -295,7 +322,13 @@ describe("editor scope elements", () => {
       },
     );
 
-    expect(rows.map((row) => row.value)).toEqual(["Apple", "Banana", "Cherry"]);
+    expect(rows.map((row) => row.value)).toEqual([
+      "Apple",
+      "Banana",
+      "Click Checkout to continue",
+      "Checkout",
+      "Cherry",
+    ]);
   });
 
   test("deduplicates overlapping multi-node filters", async () => {
@@ -310,7 +343,13 @@ describe("editor scope elements", () => {
     );
     const ids = rows.map((row) => row.id);
 
-    expect(rows.map((row) => row.value)).toEqual(["Apple", "Banana", "Cherry"]);
+    expect(rows.map((row) => row.value)).toEqual([
+      "Apple",
+      "Banana",
+      "Click Checkout to continue",
+      "Checkout",
+      "Cherry",
+    ]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
@@ -352,11 +391,14 @@ describe("editor scope elements", () => {
       { ...query, elementId: fixture.elementIds.durian },
     );
 
-    expect(total).toBe(3);
+    expect(total).toBe(5);
     expect(firstPage.map((row) => row.value)).toEqual(["Apple", "Banana"]);
-    expect(secondPage.map((row) => row.value)).toEqual(["Cherry"]);
-    expect(next?.id).toBe(fixture.elementIds.cherry);
-    expect(cherryPage).toBe(1);
+    expect(secondPage.map((row) => row.value)).toEqual([
+      "Click Checkout to continue",
+      "Checkout",
+    ]);
+    expect(next?.id).toBe(fixture.elementIds.checkoutLong);
+    expect(cherryPage).toBe(2);
     expect(outOfScopePage).toBeNull();
   });
 
@@ -378,13 +420,106 @@ describe("editor scope elements", () => {
     expect(await valuesForStatus("all")).toEqual([
       "Apple",
       "Banana",
+      "Click Checkout to continue",
+      "Checkout",
       "Cherry",
       "Durian",
     ]);
-    expect(await valuesForStatus("untranslated")).toEqual(["Apple", "Durian"]);
+    expect(await valuesForStatus("untranslated")).toEqual([
+      "Apple",
+      "Click Checkout to continue",
+      "Checkout",
+      "Durian",
+    ]);
     expect(await valuesForStatus("translated")).toEqual(["Banana", "Cherry"]);
     expect(await valuesForStatus("approved")).toEqual(["Cherry"]);
     expect(await valuesForStatus("unapproved")).toEqual(["Banana"]);
     expect(await valuesForStatus("all", "err")).toEqual(["Cherry"]);
+  });
+
+  test("reuse-first ordering is shared by list, first element, next untranslated, and page index", async () => {
+    const fixture = await seedFixture();
+    const query = {
+      ...baseQuery(fixture),
+      contentNodeIds: [fixture.nodes.fileA.id],
+      sortMode: "reuse-first" as const,
+      pageSize: 1,
+    };
+
+    const firstPage = await executeQuery(
+      { db: testDb.client },
+      listEditorScopeElements,
+      { ...query, page: 0 },
+    );
+    const secondPage = await executeQuery(
+      { db: testDb.client },
+      listEditorScopeElements,
+      { ...query, page: 1 },
+    );
+    const first = await executeQuery(
+      { db: testDb.client },
+      getEditorScopeFirstElement,
+      query,
+    );
+    const nextAfterSeed = await executeQuery(
+      { db: testDb.client },
+      getEditorScopeFirstElement,
+      {
+        ...query,
+        afterElementId: fixture.elementIds.checkoutSeed,
+      },
+    );
+    const seedPage = await executeQuery(
+      { db: testDb.client },
+      getEditorScopeElementPageIndex,
+      {
+        ...query,
+        elementId: fixture.elementIds.checkoutSeed,
+      },
+    );
+
+    expect(firstPage[0]?.id).toBe(fixture.elementIds.checkoutSeed);
+    expect(first?.id).toBe(fixture.elementIds.checkoutSeed);
+    expect(firstPage[0]?.priority?.reasonCodes).toContain("REUSE_SEED");
+    expect(seedPage).toBe(0);
+    expect(secondPage[0]?.id).toBe(nextAfterSeed?.id);
+  });
+
+  test("reuse-first next untranslated anchors on the unfiltered priority order", async () => {
+    const fixture = await seedFixture();
+    const query = {
+      ...baseQuery(fixture),
+      sortMode: "reuse-first" as const,
+      pageSize: 20,
+    };
+
+    const allRows = await executeQuery(
+      { db: testDb.client },
+      listEditorScopeElements,
+      query,
+    );
+    const untranslatedRows = await executeQuery(
+      { db: testDb.client },
+      listEditorScopeElements,
+      { ...query, statusFilter: "untranslated" },
+    );
+    const afterIndex = allRows.findIndex(
+      (row) => row.id === fixture.elementIds.banana,
+    );
+    const expected = allRows
+      .slice(afterIndex + 1)
+      .find((row) => untranslatedRows.some((item) => item.id === row.id));
+
+    const next = await executeQuery(
+      { db: testDb.client },
+      getEditorScopeFirstElement,
+      {
+        ...query,
+        statusFilter: "untranslated",
+        afterElementId: fixture.elementIds.banana,
+      },
+    );
+
+    expect(next?.id).toBe(expected?.id);
   });
 });

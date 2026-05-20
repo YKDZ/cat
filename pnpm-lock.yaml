@@ -921,6 +921,9 @@ importers:
       '@cat/operations':
         specifier: workspace:*
         version: link:../../packages/operations
+      '@cat/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
       '@cat/plugin-core':
         specifier: workspace:*
         version: link:../../packages/plugin-core

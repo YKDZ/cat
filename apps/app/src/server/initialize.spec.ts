@@ -110,6 +110,7 @@ const mocks = vi.hoisted(() => {
       public start = vi.fn();
     },
     pluginManagerGet: vi.fn(() => fakePluginManager),
+    pluginManagerClear: vi.fn(),
     pluginManagerInstallDefaults: vi.fn().mockResolvedValue(undefined),
     registerAuditHandler: vi.fn(),
     registerBuiltinAgents: vi.fn().mockResolvedValue(undefined),
@@ -172,6 +173,7 @@ vi.mock("@cat/permissions", () => ({
 
 vi.mock("@cat/plugin-core", () => ({
   PluginManager: {
+    clear: mocks.pluginManagerClear,
     get: mocks.pluginManagerGet,
     installDefaults: mocks.pluginManagerInstallDefaults,
   },

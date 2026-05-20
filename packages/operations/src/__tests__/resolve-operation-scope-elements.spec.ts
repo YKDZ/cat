@@ -114,6 +114,7 @@ type MockQueryInput = {
   page?: number;
   pageSize?: number;
   elementIds?: number[];
+  sortMode?: string;
 };
 
 const configureDomainMocks = ({
@@ -178,6 +179,7 @@ describe("resolveOperationScopeElementsOp", () => {
       projectId: PROJECT_ID,
       contentNodeIds: [],
       elementIds: [],
+      sortMode: "structure",
       languageToId: "zh-Hans",
       statusFilter: "all",
     });
@@ -195,6 +197,7 @@ describe("resolveOperationScopeElementsOp", () => {
       projectId: PROJECT_ID,
       contentNodeIds: [DIRECTORY_ID],
       elementIds: [],
+      sortMode: "structure",
       languageToId: "zh-Hans",
       statusFilter: "all",
     });
@@ -223,6 +226,7 @@ describe("resolveOperationScopeElementsOp", () => {
       projectId: PROJECT_ID,
       contentNodeIds: [DIRECTORY_ID, FILE_A_ID],
       elementIds: [],
+      sortMode: "structure",
       languageToId: "zh-Hans",
       statusFilter: "all",
     });
@@ -236,6 +240,7 @@ describe("resolveOperationScopeElementsOp", () => {
         projectId: PROJECT_ID,
         contentNodeIds: [UNKNOWN_NODE_ID],
         elementIds: [],
+        sortMode: "structure",
         languageToId: "zh-Hans",
         statusFilter: "all",
       }),
@@ -252,6 +257,7 @@ describe("resolveOperationScopeElementsOp", () => {
         projectId: PROJECT_ID,
         contentNodeIds: [OTHER_PROJECT_NODE_ID],
         elementIds: [],
+        sortMode: "structure",
         languageToId: "zh-Hans",
         statusFilter: "all",
       }),
@@ -271,6 +277,7 @@ describe("resolveOperationScopeElementsOp", () => {
         branchId: OTHER_BRANCH_ID,
         contentNodeIds: [],
         elementIds: [],
+        sortMode: "structure",
         languageToId: "zh-Hans",
         statusFilter: "all",
       }),
@@ -301,6 +308,7 @@ describe("resolveOperationScopeElementsOp", () => {
       branchId: BRANCH_ID,
       contentNodeIds: [BRANCH_FILE_ID],
       elementIds: [],
+      sortMode: "structure",
       languageToId: "zh-Hans",
       statusFilter: "all",
     });
@@ -325,6 +333,7 @@ describe("resolveOperationScopeElementsOp", () => {
         projectId: PROJECT_ID,
         contentNodeIds: [],
         elementIds: [999],
+        sortMode: "structure",
         languageToId: "zh-Hans",
         statusFilter: "all",
       }),
@@ -336,6 +345,7 @@ describe("resolveOperationScopeElementsOp", () => {
       projectId: PROJECT_ID,
       contentNodeIds: [],
       elementIds: [],
+      sortMode: "structure",
       languageToId: "zh-Hans",
       statusFilter: "all",
     });
@@ -346,5 +356,37 @@ describe("resolveOperationScopeElementsOp", () => {
       listElementsWithChunkIdsByIds,
       { elementIds: [1, 2, 3] },
     );
+  });
+
+  it("passes reuse-first sort mode to paged editor-scope queries", async () => {
+    await resolveOperationScopeElementsOp({
+      projectId: PROJECT_ID,
+      contentNodeIds: [],
+      elementIds: [],
+      languageToId: "zh-Hans",
+      statusFilter: "all",
+      sortMode: "reuse-first",
+    });
+
+    expect(domainMocks.executeQuery).toHaveBeenCalledWith(
+      { db: dbClient },
+      listEditorScopeElements,
+      expect.objectContaining({ sortMode: "reuse-first" }),
+    );
+  });
+
+  it("appends direct element ids in explicit input order", async () => {
+    configureDomainMocks({ resolvedScopeElements: [] });
+
+    const result = await resolveOperationScopeElementsOp({
+      projectId: PROJECT_ID,
+      contentNodeIds: [],
+      elementIds: [4, 2, 1],
+      languageToId: "zh-Hans",
+      statusFilter: "all",
+      sortMode: "structure",
+    });
+
+    expect(result.elements.map((element) => element.id)).toEqual([4, 2, 1]);
   });
 });

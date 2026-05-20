@@ -37,6 +37,97 @@ export type EditorTranslationStatusFilter = z.infer<
 >;
 
 /**
+ * @zh 编辑器与批量操作支持的元素排序模式。
+ * @en Supported element sort modes for editor and batch operations.
+ */
+export const ElementSortModeValues = ["structure", "reuse-first"] as const;
+
+/**
+ * @zh 元素排序模式 Schema。
+ * @en Element sort-mode schema.
+ */
+export const ElementSortModeSchema = z.enum(ElementSortModeValues);
+
+/**
+ * @zh 元素排序模式类型。
+ * @en Element sort-mode type.
+ */
+export type ElementSortMode = z.infer<typeof ElementSortModeSchema>;
+
+/**
+ * @zh 优先级排序理由代码，前端负责本地化展示。
+ * @en Priority reason codes; the frontend localizes display labels.
+ */
+export const ElementPriorityReasonCodeValues = [
+  "REUSE_SEED",
+  "TEMPLATE_MATCH",
+  "NEIGHBOR_CONTEXT",
+  "CLUSTER_CONTINUITY",
+  "FOUNDATION",
+  "STRUCTURE_FALLBACK",
+  "LOW_CONFIDENCE",
+] as const;
+
+/**
+ * @zh 优先级排序理由代码 Schema。
+ * @en Priority reason-code schema.
+ */
+export const ElementPriorityReasonCodeSchema = z.enum(
+  ElementPriorityReasonCodeValues,
+);
+
+/**
+ * @zh 优先级排序理由代码类型。
+ * @en Priority reason-code type.
+ */
+export type ElementPriorityReasonCode = z.infer<
+  typeof ElementPriorityReasonCodeSchema
+>;
+
+/**
+ * @zh 单个元素的轻量优先级摘要。
+ * @en Lightweight priority summary for one element.
+ */
+export const ElementPrioritySummarySchema = z.object({
+  mode: ElementSortModeSchema,
+  score: z.number().min(0).max(1),
+  confidence: z.number().min(0).max(1),
+  reasonCodes: z.array(ElementPriorityReasonCodeSchema).default([]),
+  structurePosition: z.int().min(0),
+  priorityPosition: z.int().min(0),
+});
+
+/**
+ * @zh 单个元素的轻量优先级摘要类型。
+ * @en Lightweight priority summary type for one element.
+ */
+export type ElementPrioritySummary = z.infer<
+  typeof ElementPrioritySummarySchema
+>;
+
+/**
+ * @zh 批量自动翻译运行期临时上下文种子；不会写入永久 TM。
+ * @en Runtime-only context seed for batch auto-translation; never persisted to TM.
+ */
+export const ScopeTranslationSeedSchema = z.object({
+  elementId: z.int().positive(),
+  source: z.string().min(1),
+  translation: z.string().min(1),
+  sourceLanguageId: z.string().min(1),
+  targetLanguageId: z.string().min(1),
+  primaryContentNodeId: z.uuidv4().nullable(),
+  confidence: z.number().min(0).max(1),
+  trustLevel: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  reason: z.literal("batch-runtime").default("batch-runtime"),
+});
+
+/**
+ * @zh 批量自动翻译运行期临时上下文种子类型。
+ * @en Runtime-only context seed type for batch auto-translation.
+ */
+export type ScopeTranslationSeed = z.infer<typeof ScopeTranslationSeedSchema>;
+
+/**
  * @zh URL 与 API 使用的编辑器作用域。
  * @en Editor scope used by URLs and API requests.
  */
@@ -47,6 +138,7 @@ export const EditorScopeSchema = z.object({
   contentNodeIds: z.array(z.uuidv4()).max(50).default([]),
   searchQuery: z.string().default(""),
   statusFilter: EditorTranslationStatusFilterSchema.default("all"),
+  sortMode: ElementSortModeSchema.default("structure"),
   page: z.int().min(1).default(1),
   pageSize: z.int().min(1).max(100).default(16),
 });
@@ -66,6 +158,7 @@ export const OperationScopeSchema = z.object({
   branchId: z.int().positive().optional(),
   contentNodeIds: z.array(z.uuidv4()).max(50).default([]),
   elementIds: z.array(z.int().positive()).max(1000).default([]),
+  sortMode: ElementSortModeSchema.default("structure"),
 });
 
 /**
@@ -198,6 +291,7 @@ export const EditorElementSchema = TranslatableElementSchema.extend({
   contentNodePath: z.array(EditorContentNodePathItemSchema),
   localOrder: z.int().nullable(),
   contentNodeSortKey: z.string(),
+  priority: ElementPrioritySummarySchema.optional(),
 });
 
 /**

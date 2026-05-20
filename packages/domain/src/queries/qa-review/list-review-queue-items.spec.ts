@@ -392,6 +392,7 @@ const baseQuery = (fixture: Fixture) => ({
   contentNodeIds: [] as string[],
   searchQuery: "",
   statusFilter: "all" as const,
+  sortMode: "structure" as const,
   page: 0,
   pageSize: 10,
   queueFilters: {

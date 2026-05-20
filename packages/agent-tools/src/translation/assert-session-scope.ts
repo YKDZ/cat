@@ -165,6 +165,7 @@ export const assertElementInSession = async (
         contentNodeIds: ctx.session.contentNodeIds,
         searchQuery: "",
         statusFilter: "all",
+        sortMode: "structure",
         pageSize: 1,
         elementId,
       },

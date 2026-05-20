@@ -24,22 +24,16 @@ describe("LibreTranslate advisor", () => {
     mocks.request.mockReset();
   });
 
-  it("falls back to placeholder defaults when config is missing", async () => {
+  it("is available even with empty config since LibreTranslate accepts keyless mode", async () => {
     const advisor = new Advisor({});
 
-    expect(advisor.getAvailability()).toMatchObject({
-      available: false,
-      reason: "missing-config",
+    expect(advisor.getAvailability()).toEqual({
+      available: true,
+      reason: "ok",
     });
-
-    const suggestions = await advisor.advise(buildContext());
-
-    expect(suggestions[0]?.confidence).toBe(0);
-    expect(suggestions[0]?.translation).toContain("requires");
-    expect(mocks.request).not.toHaveBeenCalled();
   });
 
-  it("treats placeholder keys as unavailable and avoids remote calls", async () => {
+  it("is available with any api key value including common placeholder strings", () => {
     const advisor = new Advisor({
       api: {
         url: "http://localhost:5000/",
@@ -49,16 +43,10 @@ describe("LibreTranslate advisor", () => {
       base: { "advisor-name": "LibreTranslate" },
     });
 
-    expect(advisor.getAvailability()).toMatchObject({
-      available: false,
-      reason: "missing-config",
+    expect(advisor.getAvailability()).toEqual({
+      available: true,
+      reason: "ok",
     });
-
-    const suggestions = await advisor.advise(buildContext());
-
-    expect(suggestions[0]?.confidence).toBe(0);
-    expect(suggestions[0]?.translation).toContain("requires");
-    expect(mocks.request).not.toHaveBeenCalled();
   });
 
   it("requests translations when configured", async () => {

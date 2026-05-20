@@ -31,6 +31,10 @@ export const generateReport = (
     for (const se of evaluation.scenarioEvaluations) {
       for (const [k, v] of Object.entries(se.aggregates)) {
         allAggregates.set(k, v);
+        if (se.scenarioName) {
+          allAggregates.set(`${se.scenarioName}.${k}`, v);
+        }
+        allAggregates.set(`${se.scenarioType}.${k}`, v);
       }
     }
 

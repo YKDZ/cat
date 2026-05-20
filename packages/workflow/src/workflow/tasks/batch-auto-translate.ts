@@ -1,3 +1,5 @@
+import type { ScopeTranslationSeed } from "@cat/shared";
+
 import { resolveOperationScopeElementsOp } from "@cat/operations";
 import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
@@ -6,9 +8,45 @@ import { defineNode, defineGraph } from "@/graph/dsl";
 import { runGraph } from "@/graph/dsl/run-graph";
 
 import {
+  type AutoTranslateOutput,
   AutoTranslateConfigSchema,
   autoTranslateGraph,
 } from "./auto-translate";
+
+const MAX_SCOPE_TRANSLATION_SEEDS = 8;
+
+const tokenizeSeedText = (value: string): Set<string> =>
+  new Set(
+    value
+      .normalize("NFKC")
+      .toLocaleLowerCase()
+      .match(/[\p{L}\p{N}]+/gu) ?? [],
+  );
+
+const isSeedApplicableToElement = (
+  seed: ScopeTranslationSeed,
+  element: { value: string; primaryContentNodeId: string | null },
+): boolean => {
+  if (seed.confidence < 0.85 || seed.trustLevel === "LOW") return false;
+  if (
+    seed.primaryContentNodeId !== null &&
+    seed.primaryContentNodeId === element.primaryContentNodeId
+  ) {
+    return true;
+  }
+
+  const seedTokens = tokenizeSeedText(seed.source);
+  const elementTokens = tokenizeSeedText(element.value);
+  if (seedTokens.size === 0 || elementTokens.size === 0) return false;
+
+  let overlap = 0;
+  for (const token of seedTokens) {
+    if (elementTokens.has(token)) {
+      overlap += 1;
+    }
+  }
+  return overlap / seedTokens.size >= 0.5;
+};
 
 // ─── Input / Output Schemas ───────────────────────────────────────────────────
 
@@ -46,6 +84,7 @@ const LoadElementsOutputSchema = z.object({
       id: z.int(),
       value: z.string(),
       languageId: z.string(),
+      primaryContentNodeId: z.uuidv4().nullable(),
       chunkIds: z.array(z.int()),
     }),
   ),
@@ -57,6 +96,7 @@ const TranslateAllNodeInputSchema = z.object({
       id: z.int(),
       value: z.string(),
       languageId: z.string(),
+      primaryContentNodeId: z.uuidv4().nullable(),
       chunkIds: z.array(z.int()),
     }),
   ),
@@ -90,6 +130,7 @@ export const batchAutoTranslateGraph = defineGraph({
         branchId: true,
         contentNodeIds: true,
         elementIds: true,
+        sortMode: true,
         languageId: true,
       }),
       output: LoadElementsOutputSchema,
@@ -98,6 +139,7 @@ export const batchAutoTranslateGraph = defineGraph({
         branchId: "branchId",
         contentNodeIds: "contentNodeIds",
         elementIds: "elementIds",
+        sortMode: "sortMode",
         languageId: "languageId",
       },
       handler: async (input, ctx) => {
@@ -107,6 +149,7 @@ export const batchAutoTranslateGraph = defineGraph({
             branchId: input.branchId,
             contentNodeIds: input.contentNodeIds,
             elementIds: input.elementIds,
+            sortMode: input.sortMode,
             languageToId: input.languageId,
             statusFilter: "untranslated",
           },
@@ -118,6 +161,7 @@ export const batchAutoTranslateGraph = defineGraph({
             id: element.id,
             value: element.value,
             languageId: element.languageId,
+            primaryContentNodeId: element.primaryContentNodeId,
             chunkIds: element.chunkIds,
           })),
         };
@@ -146,12 +190,13 @@ export const batchAutoTranslateGraph = defineGraph({
       },
       handler: async (input, ctx) => {
         const allTranslationIds: number[] = [];
+        const scopeTranslationSeeds: ScopeTranslationSeed[] = [];
 
         for (const element of input.elements) {
           // 尊重外部取消信号，提前退出
           if (ctx.signal?.aborted) break;
 
-          let result: { translationIds?: number[] };
+          let result: AutoTranslateOutput;
           try {
             // oxlint-disable-next-line no-await-in-loop
             result = await runGraph(
@@ -161,11 +206,15 @@ export const batchAutoTranslateGraph = defineGraph({
                 text: element.value,
                 translationLanguageId: input.languageId,
                 sourceLanguageId: element.languageId,
+                primaryContentNodeId: element.primaryContentNodeId,
                 translatorId: input.translatorId,
                 advisorId: input.advisorId,
                 memoryIds: input.memoryIds,
                 glossaryIds: input.glossaryIds,
                 chunkIds: element.chunkIds,
+                scopeTranslationSeeds: scopeTranslationSeeds
+                  .filter((seed) => isSeedApplicableToElement(seed, element))
+                  .slice(-MAX_SCOPE_TRANSLATION_SEEDS),
                 minMemorySimilarity: input.minMemorySimilarity,
                 maxMemoryAmount: input.maxMemoryAmount,
                 memoryVectorStorageId: input.memoryVectorStorageId,
@@ -185,6 +234,9 @@ export const batchAutoTranslateGraph = defineGraph({
 
           if (result.translationIds) {
             allTranslationIds.push(...result.translationIds);
+          }
+          if (result.scopeTranslationSeed) {
+            scopeTranslationSeeds.push(result.scopeTranslationSeed);
           }
         }
 

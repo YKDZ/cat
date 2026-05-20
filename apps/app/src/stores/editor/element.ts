@@ -56,6 +56,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
       contentNodeIds: context.contentNodeIds.value,
       searchQuery: context.searchQuery.value,
       statusFilter: context.statusFilter.value,
+      sortMode: context.scope.value.sortMode,
       page,
       pageSize: context.pageSize.value,
     });

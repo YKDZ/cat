@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { EditorElement } from "@cat/shared";
+import type { EditorElement, ElementPriorityReasonCode } from "@cat/shared";
 import type { ElementTranslationStatus } from "@cat/shared";
 
 import { SidebarMenuButton } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { useEditorContextStore } from "@/stores/editor/context.ts";
 import { useEditorElementStore } from "@/stores/editor/element.ts";
@@ -12,16 +14,32 @@ import { useEditorTableStore } from "@/stores/editor/table";
 
 import { buildEditorHref } from "./scope-url";
 
+const { t } = useI18n();
 const { scope } = storeToRefs(useEditorContextStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { pendingElements } = useEditorElementStore();
 
 const props = defineProps<{
-  element: Pick<EditorElement, "id"> & {
+  element: Pick<EditorElement, "id" | "priority"> & {
     status: ElementTranslationStatus;
     value: string;
   };
 }>();
+
+const priorityReasonLabels: Record<ElementPriorityReasonCode, string> = {
+  REUSE_SEED: "复用种子",
+  TEMPLATE_MATCH: "模板复用",
+  NEIGHBOR_CONTEXT: "邻近上下文",
+  CLUSTER_CONTINUITY: "同簇连续",
+  FOUNDATION: "基础短语",
+  STRUCTURE_FALLBACK: "结构回退",
+  LOW_CONFIDENCE: "低置信度",
+};
+
+const priorityReasonLabel = computed(() => {
+  const reason = props.element.priority?.reasonCodes[0];
+  return reason ? priorityReasonLabels[reason] : null;
+});
 
 const handleClick = async () => {
   if (!props.element || !scope.value) return;
@@ -51,6 +69,12 @@ const handleClick = async () => {
           !pendingElements.has(element.id) && element.status === 'APPROVED',
       }"
     />
-    <span class="min-w-0 truncate">{{ element.value }}</span></SidebarMenuButton
+    <span class="min-w-0 flex-1 truncate">{{ element.value }}</span>
+    <span
+      v-if="priorityReasonLabel"
+      class="rounded bg-muted px-1.5 py-0.5 text-[10px] leading-none text-muted-foreground"
+    >
+      {{ t(priorityReasonLabel) }}
+    </span></SidebarMenuButton
   >
 </template>

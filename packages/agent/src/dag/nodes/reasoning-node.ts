@@ -214,6 +214,9 @@ export const runReasoningNode = async (
             arguments: tc.arguments,
           })) as ToolCall[])
         : undefined,
+    // Echo reasoning content back so thinking-mode providers (e.g. mimo) can
+    // continue the conversation in subsequent turns.
+    reasoningContent: response.thinkingText || undefined,
   };
 
   const existingMessages = (data.messages ?? []) as ChatMessage[];

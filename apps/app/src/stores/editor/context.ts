@@ -15,6 +15,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   const contentNodeIds = ref<string[]>([]);
   const searchQuery = ref("");
   const statusFilter = ref<EditorScope["statusFilter"]>("all");
+  const sortMode = ref<EditorScope["sortMode"]>("structure");
   const pageSize = ref(16);
   const currentPage = ref(1);
   const currentElementContentNodeId = ref<string | undefined>();
@@ -32,6 +33,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
       contentNodeIds: contentNodeIds.value,
       searchQuery: searchQuery.value,
       statusFilter: statusFilter.value,
+      sortMode: sortMode.value,
       page: currentPage.value,
       pageSize: pageSize.value,
     });
@@ -83,6 +85,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
 
     searchQuery.value = next.searchQuery;
     statusFilter.value = next.statusFilter;
+    sortMode.value = next.sortMode;
     currentPage.value = next.page;
     pageSize.value = next.pageSize;
     currentElementContentNodeId.value = undefined;
@@ -106,6 +109,11 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     statusFilter.value = value;
   };
 
+  const setSortMode = (value: EditorScope["sortMode"]) => {
+    sortMode.value = value;
+    currentPage.value = 1;
+  };
+
   const setCurrentPage = (value: number) => {
     currentPage.value = value;
   };
@@ -126,6 +134,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     contentNodeIds,
     searchQuery,
     statusFilter,
+    sortMode,
     pageSize,
     currentPage,
     currentElementContentNodeId,
@@ -140,6 +149,7 @@ export const useEditorContextStore = defineStore("editorContext", () => {
     setContentNodeFilters,
     setSearchQuery,
     setStatusFilter,
+    setSortMode,
     setCurrentPage,
     setPageSize,
     refresh,

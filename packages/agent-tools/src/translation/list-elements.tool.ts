@@ -103,6 +103,7 @@ export const listElementsTool: AgentToolDefinition = {
         isTranslated: parsed.isTranslated,
         isApproved: parsed.isApproved,
       }),
+      sortMode: "structure",
     });
 
     return {

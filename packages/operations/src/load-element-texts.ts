@@ -49,6 +49,7 @@ export const loadElementTextsOp = async (
       branchId: data.branchId,
       contentNodeIds: data.contentNodeIds,
       elementIds: data.elementIds,
+      sortMode: data.sortMode,
       languageToId: data.sourceLanguageId,
       statusFilter: "all",
       sourceLanguageId: data.sourceLanguageId,

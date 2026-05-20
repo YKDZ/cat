@@ -27,7 +27,7 @@ plugins:
     - plugin: openai-llm-provider
       scope: GLOBAL
       config:
-        model-id: "${LLM_MODEL_ID:-gpt-5-mini}"
+        model: "${LLM_MODEL_ID:-gpt-4o}"
         baseURL: "${LLM_BASE_URL:-http://192.168.2.23:8317/v1}"
         apiKey: "${LLM_API_KEY:-sk-1256987qazA}"
 

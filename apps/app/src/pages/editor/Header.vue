@@ -6,6 +6,7 @@ import BranchCombobox from "@/components/shared/BranchCombobox.vue";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
 
 import EditorScopeBar from "./EditorScopeBar.vue";
+import EditorSortModeSelect from "./EditorSortModeSelect.vue";
 import EditorStatusFilter from "./EditorStatusFilter.vue";
 import ElementSearcher from "./ElementSearcher.vue";
 
@@ -21,6 +22,7 @@ const { projectId } = storeToRefs(useEditorContextStore());
       <div class="flex min-w-0 items-center gap-3">
         <EditorScopeBar />
         <ElementSearcher />
+        <EditorSortModeSelect />
         <EditorStatusFilter />
       </div>
       <div class="flex items-center gap-2">

@@ -14,6 +14,7 @@
     "@cat/db": "workspace:*",
     "@cat/domain": "workspace:*",
     "@cat/operations": "workspace:*",
+    "@cat/permissions": "workspace:*",
     "@cat/plugin-core": "workspace:*",
     "@cat/seed": "workspace:*",
     "@cat/server-shared": "workspace:*",

@@ -20,12 +20,14 @@ import {
   createUser,
   createVectorizedChunks,
   createVectorizedStrings,
+  ensureCoreRelationTypes,
   ensureLanguages,
   ensureVectorStorageSchema,
   executeCommand,
   executeQuery,
   findAgentDefinitionByDefinitionIdAndScope,
   installPlugin,
+  MemoryCacheStore,
   registerPluginDefinition,
   upsertPluginConfigInstance,
 } from "@cat/domain";
@@ -33,6 +35,7 @@ import {
   buildMemoryRecallVariantsOp,
   buildTermRecallVariantsOp,
 } from "@cat/operations";
+import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
@@ -68,6 +71,15 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   const redis = new RedisConnection();
   await redis.connect();
   globalThis["__REDIS__"] = redis;
+
+  // ── 2a. Permission engine setup ────────────────────────────────────
+  // Agent tools call getPermissionEngine() during translation; initialize
+  // a permissive in-memory-backed engine so eval runs without a full server.
+  initPermissionEngine({
+    db: testDb.client,
+    cache: new MemoryCacheStore("eval-perm"),
+    auditEnabled: false,
+  });
 
   // ── 3. Plugin manager setup ────────────────────────────────────────
   PluginManager.clear();
@@ -265,6 +277,10 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     }
   }
 
+  // ── 9b. Core relation types ──────────────────────────────────────
+  // createElements requires core:contains:1.0.0 to exist.
+  await executeCommand(execCtx, ensureCoreRelationTypes, {});
+
   // ── 10. Element seeding ────────────────────────────────────────────
   let contentNodeId: string | undefined = rootNode.id;
   if (elementsSeed) {
@@ -303,6 +319,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
 
   // ── 12. Agent definition registration ────────────────────────────
   let agentDefinitionId: string | undefined;
+  let agentDefinitionKey: string | undefined; // definitionId used as permission subject
   if (config.seed.agentDefinition) {
     const agentDefValue = config.seed.agentDefinition;
 
@@ -359,6 +376,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
         );
         agentDefinitionId = created.id;
       }
+      agentDefinitionKey = payload.definitionId;
       refs.set("agent-definition", agentDefinitionId);
     } else {
       // Builtin agent definition — register builtins and look up by ID
@@ -375,8 +393,24 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       );
       if (agentDef) {
         agentDefinitionId = agentDef.externalId;
+        agentDefinitionKey = agentDefValue;
         refs.set("agent-definition", agentDefinitionId);
       }
+    }
+
+    // Grant the agent editor + direct_editor access on the project so
+    // AgentRuntime.runLoop() can pass determineWriteMode() checks.
+    if (agentDefinitionKey) {
+      const engine = getPermissionEngine();
+      await engine.grant({ type: "agent", id: agentDefinitionKey }, "editor", {
+        type: "project",
+        id: project.id,
+      });
+      await engine.grant(
+        { type: "agent", id: agentDefinitionKey },
+        "direct_editor",
+        { type: "project", id: project.id },
+      );
     }
   }
 

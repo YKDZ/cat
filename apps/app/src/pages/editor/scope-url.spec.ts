@@ -20,6 +20,7 @@ describe("editor scope URLs", () => {
           contentNodeIds: [],
           searchQuery: "",
           statusFilter: "all",
+          sortMode: "structure",
           page: 1,
           pageSize: 16,
         },
@@ -33,18 +34,19 @@ describe("editor scope URLs", () => {
       projectId,
       languageToId: "fr",
       searchParams: new URLSearchParams(
-        `nodes=${nodeA},${nodeB}&q=hello&status=untranslated&page=3&pageSize=20&branchId=42`,
+        `nodes=${nodeA},${nodeB}&q=hello&status=untranslated&sort=reuse-first&page=3&pageSize=20&branchId=42`,
       ),
     });
 
     expect(scope.contentNodeIds).toEqual([nodeA, nodeB]);
     expect(scope.searchQuery).toBe("hello");
     expect(scope.statusFilter).toBe("untranslated");
+    expect(scope.sortMode).toBe("reuse-first");
     expect(scope.page).toBe(3);
     expect(scope.pageSize).toBe(20);
     expect(scope.branchId).toBe(42);
     expect(toEditorSearchParams(scope).toString()).toBe(
-      `nodes=${nodeA}%2C${nodeB}&q=hello&status=untranslated&page=3&pageSize=20&branchId=42`,
+      `nodes=${nodeA}%2C${nodeB}&q=hello&status=untranslated&sort=reuse-first&page=3&pageSize=20&branchId=42`,
     );
   });
 
@@ -56,6 +58,7 @@ describe("editor scope URLs", () => {
         contentNodeIds: [nodeA],
         searchQuery: "menu",
         statusFilter: "translated",
+        sortMode: "reuse-first",
         page: 2,
         pageSize: 16,
       },
@@ -63,7 +66,7 @@ describe("editor scope URLs", () => {
     );
 
     expect(href).toBe(
-      `/editor/project/${projectId}/de/123?nodes=${nodeA}&q=menu&status=translated&page=2`,
+      `/editor/project/${projectId}/de/123?nodes=${nodeA}&q=menu&status=translated&sort=reuse-first&page=2`,
     );
   });
 
@@ -79,6 +82,7 @@ describe("editor scope URLs", () => {
     expect(scope.contentNodeIds).toEqual([nodeA]);
     expect(scope.searchQuery).toBe("keep-me");
     expect(scope.statusFilter).toBe("all");
+    expect(scope.sortMode).toBe("structure");
     expect(scope.page).toBe(1);
     expect(scope.pageSize).toBe(16);
   });

@@ -225,6 +225,10 @@ const toOpenAIMessage = (
         type: "function" as const,
         function: { name: tc.name, arguments: tc.arguments },
       })),
+      // oxlint-disable-next-line no-unsafe-type-assertion -- reasoning_content is a provider extension not in official SDK types
+      ...(msg.reasoningContent
+        ? { reasoning_content: msg.reasoningContent as unknown }
+        : {}),
     };
   }
 

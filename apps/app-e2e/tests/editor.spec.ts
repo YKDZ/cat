@@ -40,6 +40,28 @@ test.describe("Editor - Element Loading (P0)", () => {
     // URL should contain the canonical project editor route.
     await expect(page).toHaveURL(/\/editor\/project\/[^/]+\/zh-Hans\/\d+/);
   });
+
+  test("can switch to reuse-first sort mode and preserve it in the URL", async ({
+    editorPage,
+    refs,
+    page,
+  }) => {
+    const projectId = refs["project"];
+    const contentNodeId = refs["content-node:elements"];
+    await editorPage.navigateToEditor({
+      projectId,
+      languageToId: "zh-Hans",
+      contentNodeId,
+    });
+
+    await page.getByRole("button", { name: "元素排序模式" }).click();
+    await page.getByRole("menuitem", { name: /复用优先/ }).click();
+
+    await expect(page).toHaveURL(/sort=reuse-first/);
+    await expect(
+      page.getByRole("button", { name: "元素排序模式" }),
+    ).toContainText("复用优先");
+  });
 });
 
 test.describe("Editor - Project Scope", () => {

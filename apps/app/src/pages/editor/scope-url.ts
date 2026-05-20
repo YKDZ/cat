@@ -1,4 +1,5 @@
 import {
+  ElementSortModeSchema,
   EditorScopeSchema,
   EditorTranslationStatusFilterSchema,
   type EditorScope,
@@ -38,6 +39,9 @@ const parseContentNodeIds = (value: string | null): string[] =>
 const parseStatus = (value: string | null): EditorScope["statusFilter"] =>
   EditorTranslationStatusFilterSchema.safeParse(value).data ?? "all";
 
+const parseSortMode = (value: string | null): EditorScope["sortMode"] =>
+  ElementSortModeSchema.safeParse(value).data ?? "structure";
+
 /**
  * @zh 从 canonical editor 路由参数与 query 中解析编辑器作用域。
  * @en Parse an editor scope from canonical editor route params and query params.
@@ -58,6 +62,7 @@ export const parseEditorScopeFromRoute = (input: {
     contentNodeIds: parseContentNodeIds(input.searchParams.get("nodes")),
     searchQuery: input.searchParams.get("q") ?? "",
     statusFilter: parseStatus(input.searchParams.get("status")),
+    sortMode: parseSortMode(input.searchParams.get("sort")),
     page: parsePositiveInt(input.searchParams.get("page")) ?? 1,
     pageSize: parsePageSize(input.searchParams.get("pageSize")) ?? 16,
   };
@@ -83,6 +88,9 @@ export const toEditorSearchParams = (scope: EditorScope): URLSearchParams => {
   }
   if (scope.statusFilter !== "all") {
     params.set("status", scope.statusFilter);
+  }
+  if (scope.sortMode !== "structure") {
+    params.set("sort", scope.sortMode);
   }
   if (scope.page !== 1) {
     params.set("page", String(scope.page));

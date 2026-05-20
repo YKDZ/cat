@@ -13,6 +13,7 @@ type MockScope = {
     | "translated"
     | "approved"
     | "unapproved";
+  sortMode: "structure" | "reuse-first";
   page: number;
   pageSize: number;
 };
@@ -162,6 +163,7 @@ describe("useEditorTableStore scope navigation", () => {
       contentNodeIds: [nodeId],
       searchQuery: "needle",
       statusFilter: "translated",
+      sortMode: "reuse-first",
       page: 2,
       pageSize: 16,
     };
@@ -188,7 +190,7 @@ describe("useEditorTableStore scope navigation", () => {
       statusFilter: "translated",
     });
     expect(mocks.navigate).toHaveBeenCalledWith(
-      `/editor/project/${projectId}/zh-Hans/99?nodes=${nodeId}&q=needle&status=translated&page=2&branchId=7`,
+      `/editor/project/${projectId}/zh-Hans/99?nodes=${nodeId}&q=needle&status=translated&sort=reuse-first&page=2&branchId=7`,
     );
     expect(mocks.currentElementContentNodeId).toBe(
       "33333333-3333-4333-8333-333333333333",
@@ -204,7 +206,7 @@ describe("useEditorTableStore scope navigation", () => {
 
     expect(mocks.getFirstElement).toHaveBeenCalledWith(mocks.scope);
     expect(mocks.navigate).toHaveBeenCalledWith(
-      `/editor/project/${projectId}/zh-Hans/empty?nodes=${nodeId}&q=needle&status=translated&page=2&branchId=7`,
+      `/editor/project/${projectId}/zh-Hans/empty?nodes=${nodeId}&q=needle&status=translated&sort=reuse-first&page=2&branchId=7`,
     );
     expect(store.elementId).toBeNull();
   });

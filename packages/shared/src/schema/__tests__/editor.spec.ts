@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   EditorElementQuerySchema,
   EditorScopeSchema,
+  ElementSortModeValues,
+  OperationScopeSchema,
   EditorTranslationStatusFilterValues,
 } from "../editor.ts";
 
@@ -22,6 +24,7 @@ describe("editor scope schemas", () => {
       contentNodeIds: [],
       searchQuery: "",
       statusFilter: "all",
+      sortMode: "structure",
       page: 1,
       pageSize: 16,
     });
@@ -39,6 +42,33 @@ describe("editor scope schemas", () => {
       expect(scope.statusFilter).toBe(statusFilter);
       expect(scope.contentNodeIds).toEqual([nodeId]);
     }
+  });
+
+  it("normalizes element sort mode across editor and operation scopes", () => {
+    for (const sortMode of ElementSortModeValues) {
+      const editorScope = EditorScopeSchema.parse({
+        projectId,
+        languageToId: "fr",
+        sortMode,
+      });
+      const operationScope = OperationScopeSchema.parse({
+        projectId,
+        sortMode,
+      });
+
+      expect(editorScope.sortMode).toBe(sortMode);
+      expect(operationScope.sortMode).toBe(sortMode);
+    }
+  });
+
+  it("rejects unknown element sort modes", () => {
+    expect(() =>
+      EditorScopeSchema.parse({
+        projectId,
+        languageToId: "ja",
+        sortMode: "nearest-first",
+      }),
+    ).toThrow();
   });
 
   it("uses zero-based pages for backend element queries", () => {

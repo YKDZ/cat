@@ -336,6 +336,7 @@ describe("translation tools", () => {
         pageSize: 2,
         searchQuery: "",
         statusFilter: "all",
+        sortMode: "structure",
       },
     );
     expect(result).toEqual({
@@ -442,6 +443,7 @@ describe("translation tools", () => {
         pageSize: 10,
         searchQuery: "",
         statusFilter: "all",
+        sortMode: "structure",
       },
     );
     expect(result).toEqual(

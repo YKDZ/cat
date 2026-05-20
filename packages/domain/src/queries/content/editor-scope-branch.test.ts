@@ -245,6 +245,7 @@ const baseQuery = (fixture: Fixture) => ({
   contentNodeIds: [] as string[],
   searchQuery: "",
   statusFilter: "all" as const,
+  sortMode: "structure" as const,
   page: 0,
   pageSize: 10,
 });
@@ -305,6 +306,7 @@ describe("editor scope branch overlays", () => {
       ...baseQuery(fixture),
       branchId: branch.id,
       contentNodeIds: [fixture.nodes.dirA.id],
+      sortMode: "reuse-first" as const,
       pageSize: 2,
     };
 

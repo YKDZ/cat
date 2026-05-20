@@ -13,7 +13,14 @@ import {
   EditorFirstElementQuerySchema,
 } from "@cat/shared";
 
-import type { Query } from "@/types";
+import type { DbContext, Query } from "@/types";
+
+import {
+  buildElementPriorityPlan,
+  MAX_REUSE_FIRST_SCOPE_ROWS,
+  orderRowsByPriorityPlan,
+  type PriorityRankableEditorElement,
+} from "./element-priority";
 
 /**
  * @zh 编辑器作用域分页元素查询 Schema。
@@ -74,9 +81,7 @@ export type GetEditorScopeElementPageIndexQuery = EditorElementPageIndexQuery;
 
 export type EditorScopeSqlInput = CountEditorScopeElementsQuery;
 
-type EditorScopeRow = EditorElement & {
-  position: number;
-};
+type EditorScopeRow = PriorityRankableEditorElement;
 
 const uuidListSql = (ids: string[]) =>
   ids.length === 0
@@ -477,14 +482,26 @@ export const buildEditorScopeElementFilterSql = (
   query: EditorScopeSqlInput,
 ): ReturnType<typeof orderedScopeSql> => orderedScopeSql(query);
 
-/**
- * @zh 按编辑器作用域分页列出元素；空 `contentNodeIds` 表示整个项目。
- * @en List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project.
- */
-export const listEditorScopeElements: Query<
-  ListEditorScopeElementsQuery,
-  EditorElement[]
-> = async (ctx, query) => {
+const listStructuralRows = async (
+  ctx: DbContext,
+  query: EditorScopeSqlInput,
+  limit?: number,
+): Promise<EditorScopeRow[]> => {
+  const result = await ctx.db.execute<EditorScopeRow>(sql`
+    ${orderedScopeSql(query)}
+    SELECT *
+    FROM ordered_rows
+    ORDER BY position ASC
+    ${limit === undefined ? sql`` : sql`LIMIT ${limit}`}
+  `);
+
+  return result.rows;
+};
+
+const listStructuralPageRows = async (
+  ctx: DbContext,
+  query: ListEditorScopeElementsQuery,
+): Promise<EditorScopeRow[]> => {
   const offset = query.page * query.pageSize;
   const result = await ctx.db.execute<EditorScopeRow>(sql`
     ${orderedScopeSql(query)}
@@ -496,6 +513,72 @@ export const listEditorScopeElements: Query<
   `);
 
   return result.rows;
+};
+
+const attachStructuralFallbackPriority = <T extends EditorScopeRow>(
+  rows: T[],
+): Array<T & { priority: NonNullable<EditorElement["priority"]> }> =>
+  rows.map((row) => ({
+    ...row,
+    priority: {
+      mode: "reuse-first",
+      score: 0,
+      confidence: 1,
+      reasonCodes: ["STRUCTURE_FALLBACK"],
+      structurePosition: row.position,
+      priorityPosition: row.position,
+    },
+  }));
+
+const listReuseFirstRowsOrFallback = async (
+  ctx: DbContext,
+  query: EditorScopeSqlInput,
+): Promise<{ rows: EditorScopeRow[]; fallback: boolean }> => {
+  const probedRows = await listStructuralRows(
+    ctx,
+    query,
+    MAX_REUSE_FIRST_SCOPE_ROWS + 1,
+  );
+  if (probedRows.length > MAX_REUSE_FIRST_SCOPE_ROWS) {
+    return {
+      rows: probedRows.slice(0, MAX_REUSE_FIRST_SCOPE_ROWS),
+      fallback: true,
+    };
+  }
+
+  try {
+    const plan = buildElementPriorityPlan(probedRows, "reuse-first");
+    return {
+      rows: orderRowsByPriorityPlan(probedRows, plan),
+      fallback: false,
+    };
+  } catch {
+    return { rows: probedRows, fallback: true };
+  }
+};
+
+/**
+ * @zh 按编辑器作用域分页列出元素；空 `contentNodeIds` 表示整个项目。
+ * @en List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project.
+ */
+export const listEditorScopeElements: Query<
+  ListEditorScopeElementsQuery,
+  EditorElement[]
+> = async (ctx, query) => {
+  const offset = query.page * query.pageSize;
+
+  if (query.sortMode === "structure") {
+    return await listStructuralPageRows(ctx, query);
+  }
+
+  const { rows, fallback } = await listReuseFirstRowsOrFallback(ctx, query);
+  if (fallback) {
+    return attachStructuralFallbackPriority(
+      await listStructuralPageRows(ctx, query),
+    );
+  }
+
+  return rows.slice(offset, offset + query.pageSize);
 };
 
 /**
@@ -523,6 +606,48 @@ export const getEditorScopeFirstElement: Query<
   GetEditorScopeFirstElementQuery,
   EditorElement | null
 > = async (ctx, query) => {
+  if (query.sortMode === "reuse-first") {
+    const currentPlan = await listReuseFirstRowsOrFallback(ctx, query);
+    if (!currentPlan.fallback) {
+      if (!query.afterElementId) {
+        return currentPlan.rows[0] ?? null;
+      }
+
+      const unfilteredPlan = await listReuseFirstRowsOrFallback(ctx, {
+        ...query,
+        statusFilter: "all",
+      });
+      if (!unfilteredPlan.fallback) {
+        const unfilteredPositionById = new Map(
+          unfilteredPlan.rows.map((row, index) => [row.id, index]),
+        );
+        const afterPosition = query.afterElementId
+          ? unfilteredPositionById.get(query.afterElementId)
+          : undefined;
+
+        if (afterPosition === undefined) {
+          return currentPlan.rows[0] ?? null;
+        }
+
+        let best: EditorScopeRow | null = null;
+        let bestPosition = Number.POSITIVE_INFINITY;
+        for (const row of currentPlan.rows) {
+          const position = unfilteredPositionById.get(row.id);
+          if (position === undefined || position <= afterPosition) continue;
+          if (position < bestPosition) {
+            best = row;
+            bestPosition = position;
+          }
+        }
+
+        return best;
+      }
+
+      // fall through to the existing structural SQL below when reuse-first is
+      // over the row budget or planner computation failed.
+    }
+  }
+
   // When afterElementId is given we look up its sort keys from the *unfiltered*
   // scope (statusFilter: "all") so that cross-filter navigation works correctly
   // even when the current element does not appear in the filtered result set
@@ -588,6 +713,14 @@ export const getEditorScopeElementPageIndex: Query<
   GetEditorScopeElementPageIndexQuery,
   number | null
 > = async (ctx, query) => {
+  if (query.sortMode === "reuse-first") {
+    const { rows, fallback } = await listReuseFirstRowsOrFallback(ctx, query);
+    if (!fallback) {
+      const index = rows.findIndex((row) => row.id === query.elementId);
+      return index === -1 ? null : Math.floor(index / query.pageSize);
+    }
+  }
+
   const result = await ctx.db.execute<{ pageIndex: number }>(sql`
     ${orderedScopeSql(query)}
     SELECT FLOOR(position / ${query.pageSize})::int AS "pageIndex"

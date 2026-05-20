@@ -22,6 +22,12 @@ export type ChatMessage = {
   toolCallId?: string;
   /** Used when role="assistant" and the model requests tool calls */
   toolCalls?: ToolCall[];
+  /**
+   * Reasoning/thinking text from the model (e.g. mimo, DeepSeek R1).
+   * Must be echoed back verbatim in subsequent requests when the model
+   * operates in thinking mode (e.g. mimo requires this).
+   */
+  reasoningContent?: string;
 };
 
 // ─── Tool Types ───

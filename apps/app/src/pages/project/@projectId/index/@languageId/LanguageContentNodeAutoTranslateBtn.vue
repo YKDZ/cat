@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { ContentNode } from "@cat/shared";
-import type { Language } from "@cat/shared";
+import type { ContentNode, ElementSortMode, Language } from "@cat/shared";
 
+import { ElementSortModeSchema, ElementSortModeValues } from "@cat/shared";
 import {
   Button,
   Dialog,
@@ -46,6 +46,7 @@ const schema = toTypedSchema(
       .array(z.number().min(0).max(1).default(0.72))
       .length(1),
     advisorId: z.int().optional(),
+    sortMode: ElementSortModeSchema.default("structure"),
     enableLlmRefine: z.boolean().default(false),
     llmProviderId: z.int().optional(),
     gatherScopeContext: z.boolean().default(false),
@@ -56,6 +57,7 @@ const { handleSubmit, values } = useForm({
   validationSchema: schema,
   initialValues: {
     minMemorySimilarity: [0.72],
+    sortMode: "structure",
     enableLlmRefine: false,
     gatherScopeContext: false,
   },
@@ -83,12 +85,25 @@ const llmProviderOptions = computed<PickerOption<number>[]>(() => {
   );
 });
 
+const sortModeLabels: Record<ElementSortMode, string> = {
+  structure: "结构顺序",
+  "reuse-first": "复用优先",
+};
+
+const sortModeOptions = computed<PickerOption<ElementSortMode>[]>(() =>
+  ElementSortModeValues.map((value) => ({
+    value,
+    content: t(sortModeLabels[value]),
+  })),
+);
+
 const onSubmit = handleSubmit(async (formValues) => {
   const { runId } = await orpc.translation.autoTranslate({
     scope: {
       projectId: props.contentNode.projectId,
       contentNodeIds: [props.contentNode.id],
       elementIds: [],
+      sortMode: formValues.sortMode,
     },
     languageId: props.language.id,
     advisorId: formValues.advisorId,
@@ -171,16 +186,32 @@ const { state: llmState } = useQuery({
             </FormControl>
           </FormItem>
         </FormField>
+        <FormField v-slot="{ setValue }" name="sortMode">
+          <FormItem>
+            <FormLabel>{{ t("元素排序模式") }}</FormLabel>
+            <FormControl>
+              <Picker
+                :placeholder="t('选择排序模式...')"
+                :options="sortModeOptions"
+                @update:model-value="(v) => v && setValue(v)"
+              />
+            </FormControl>
+            <FormDescription>
+              {{
+                t("复用优先会先翻译短语、模板和邻近上下文，便于后续元素复用。")
+              }}
+            </FormDescription>
+          </FormItem>
+        </FormField>
         <FormField v-slot="{ value, handleChange }" name="enableLlmRefine">
           <FormItem
             class="flex flex-row items-center justify-between rounded-lg border p-3"
           >
             <div class="space-y-0.5">
               <FormLabel>{{ t("启用 LLM 精修") }}</FormLabel>
-              <FormDescription
-                >{ { t("使用 LLM 对翻译结果进行术语一致性和风格精修") }
-                }</FormDescription
-              >
+              <FormDescription>
+                {{ t("使用 LLM 对翻译结果进行术语一致性和风格精修") }}
+              </FormDescription>
             </div>
             <FormControl>
               <Switch :checked="value" @update:checked="handleChange" />
@@ -209,10 +240,9 @@ const { state: llmState } = useQuery({
           >
             <div class="space-y-0.5">
               <FormLabel>{{ t("收集范围上下文") }}</FormLabel>
-              <FormDescription
-                >{ { t("收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性") }
-                }</FormDescription
-              >
+              <FormDescription>
+                {{ t("收集相邻已有翻译作为 LLM 精修上下文，提升译文连贯性") }}
+              </FormDescription>
             </div>
             <FormControl>
               <Switch :checked="value" @update:checked="handleChange" />
