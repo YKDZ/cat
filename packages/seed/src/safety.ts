@@ -11,7 +11,15 @@ export type DatabaseSafetyOptions = {
 
 const SAFE_DB_NAME_RE =
   /(^|[-_])(dev|test|local|e2e|ci)([-_]|$)|cat_dev|cat_test/i;
-const SAFE_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "postgres", "db"]);
+const SAFE_HOSTS = new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "postgres",
+  "db",
+  "172.17.0.1",
+  "host.docker.internal",
+]);
 
 /**
  * @zh 判断数据库 URL 是否明显指向开发/测试目标。

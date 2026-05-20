@@ -7,6 +7,7 @@ import {
 import {
   assertSafeDatabaseTarget,
   loadDevSeed,
+  loadSeedRuntimeEnv,
   runSeedPipeline,
   truncateAllTables,
 } from "@cat/seed";
@@ -46,6 +47,7 @@ const main = async (): Promise<void> => {
   const allowUnsafeReset =
     args.includes("--allow-unsafe-reset") ||
     args.includes("--yes-i-know-this-will-reset-db");
+  const respectProcessEnv = args.includes("--respect-process-env");
   const skipVectorization = args.includes("--skip-vectorization");
   const noLocalOverrides = args.includes("--no-local-overrides");
   const outputBindingsIdx = args.indexOf("--output-bindings");
@@ -61,7 +63,7 @@ const main = async (): Promise<void> => {
 
   if (!datasetDir) {
     console.error(
-      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>] [--local-overrides <path>] [--no-local-overrides]",
+      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>] [--local-overrides <path>] [--no-local-overrides] [--respect-process-env]",
     );
     console.error("Example: tsx main.ts datasets/default");
     process.exit(1);
@@ -75,11 +77,18 @@ const main = async (): Promise<void> => {
     new FileSystemPluginLoader(pluginsDir),
   ]);
 
-  // Load .env from apps/app
-  try {
-    process.loadEnvFile(resolve(import.meta.dirname, "../../apps/app/.env"));
-  } catch {
-    // ignored if absent
+  const runtimeEnv = loadSeedRuntimeEnv({
+    envFilePaths: [resolve(import.meta.dirname, "../../apps/app/.env")],
+    preferredKeys: respectProcessEnv ? [] : undefined,
+  });
+
+  if (runtimeEnv.loadedEnvFilePath) {
+    const envStrategy = respectProcessEnv
+      ? "missing keys only (--respect-process-env)"
+      : "DATABASE_URL / REDIS_URL prefer env file";
+    console.log(
+      `[seed] Runtime env loaded from: ${runtimeEnv.loadedEnvFilePath} (${envStrategy}).`,
+    );
   }
 
   console.log(`[seed] Loading dataset from: ${absoluteDir}`);

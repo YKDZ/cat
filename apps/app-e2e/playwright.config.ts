@@ -34,6 +34,7 @@ export default defineConfig({
   timeout: 90_000,
 
   globalSetup: "./global-setup.ts",
+  globalTeardown: "./global-teardown.ts",
 
   /* Ignore old spec files pending Phase 2 migration */
   testIgnore: ["**/project-crud.spec.ts", "**/agent-phase2.spec.ts"],

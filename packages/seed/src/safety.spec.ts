@@ -9,6 +9,14 @@ describe("assertSafeDatabaseTarget", () => {
     }).not.toThrow();
   });
 
+  it("allows the default dev-container bridge host used by local app env", () => {
+    expect(() => {
+      assertSafeDatabaseTarget(
+        "postgres://user:pass@172.17.0.1:25432/cat?schema=public",
+      );
+    }).not.toThrow();
+  });
+
   it("allows test-named remote databases", () => {
     expect(() => {
       assertSafeDatabaseTarget(

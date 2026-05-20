@@ -120,3 +120,5 @@ vitest.config.*.timestamp*
 .claude/worktrees
 
 test-results.json
+
+.tmp

@@ -1,5 +1,21 @@
-import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
+import { resolve } from "node:path";
+
+try {
+  if (!process.env.DATABASE_URL) {
+    process.loadEnvFile(resolve(import.meta.dirname, "../../apps/app/.env"));
+  }
+} catch {
+  // ignore — file absent in CI or fresh checkout
+}
+
+try {
+  if (!process.env.DATABASE_URL) {
+    process.loadEnvFile(resolve(import.meta.dirname, ".env"));
+  }
+} catch {
+  // ignore — file absent in CI or fresh checkout
+}
 
 // oxlint-disable-next-line no-unsafe-member-access
 if (!process.env.DATABASE_URL) {

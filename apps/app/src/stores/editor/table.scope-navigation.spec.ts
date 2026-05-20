@@ -30,6 +30,10 @@ const mocks = vi.hoisted(() => ({
   setCurrentPage: vi.fn(),
   currentElementContentNodeId: undefined as string | undefined,
   scope: null as MockScope | null,
+  loadedPages: new Map<
+    number,
+    Array<{ id: number; primaryContentNodeId?: string }>
+  >(),
 }));
 
 vi.mock("@pinia/colada", async () => {
@@ -111,7 +115,12 @@ vi.mock("@/stores/editor/element.ts", async () => {
 
   return {
     useEditorElementStore: defineStore("editorElementSpec", () => ({
-      storedElements: computed(() => []),
+      loadedPages: mocks.loadedPages,
+      storedElements: computed(() =>
+        [...mocks.loadedPages.entries()]
+          .sort((a, b) => a[0] - b[0])
+          .flatMap(([, elements]) => elements),
+      ),
       pendingElements: computed(() => new Set<number>()),
       async loadPage(page: number) {
         return await mocks.loadPage(page);
@@ -156,6 +165,7 @@ describe("useEditorTableStore scope navigation", () => {
     mocks.loadPage.mockReset();
     mocks.setCurrentPage.mockReset();
     mocks.currentElementContentNodeId = undefined;
+    mocks.loadedPages.clear();
     mocks.scope = {
       projectId,
       languageToId: "zh-Hans",
@@ -167,6 +177,25 @@ describe("useEditorTableStore scope navigation", () => {
       page: 2,
       pageSize: 16,
     };
+  });
+
+  it("selects an already-loaded element without resolving its page on the server", async () => {
+    const contentNodeId = "33333333-3333-4333-8333-333333333333";
+    mocks.loadedPages.set(1, [
+      {
+        id: 1234,
+        primaryContentNodeId: contentNodeId,
+      },
+    ]);
+
+    const store = useEditorTableStore();
+    await store.toElement(1234);
+
+    expect(mocks.getElementPageIndex).not.toHaveBeenCalled();
+    expect(mocks.loadPage).not.toHaveBeenCalled();
+    expect(mocks.setCurrentPage).toHaveBeenCalledWith(2);
+    expect(store.elementId).toBe(1234);
+    expect(mocks.currentElementContentNodeId).toBe(contentNodeId);
   });
 
   it("falls back to the first element without widening the active scope", async () => {

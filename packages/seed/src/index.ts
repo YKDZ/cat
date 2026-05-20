@@ -14,6 +14,11 @@ export {
 export { RefResolver } from "./ref-resolver";
 export { assertSafeDatabaseTarget } from "./safety";
 export type { DatabaseSafetyOptions } from "./safety";
+export {
+  loadSeedRuntimeEnv,
+  type SeedRuntimeEnvLoadResult,
+  type SeedRuntimeEnvOptions,
+} from "./runtime-env";
 export { truncateAllTables } from "./truncate";
 export { VectorCache } from "./vector-cache";
 export type { CachedChunk } from "./vector-cache";

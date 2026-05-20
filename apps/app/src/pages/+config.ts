@@ -15,4 +15,9 @@ export default {
   extends: [vikeVue],
 
   filesystemRoutingRoot: "/",
+
+  prefetch: {
+    staticAssets: "viewport",
+    pageContext: false,
+  },
 } as Config;
