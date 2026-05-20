@@ -239,7 +239,17 @@ jobs:
           DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
 
       - name: Install Playwright Browsers
-        run: pnpm exec playwright install --with-deps
+        run: |
+          for attempt in 1 2 3; do
+            pnpm exec playwright install --with-deps && exit 0
+            status=$?
+            if [ "$attempt" -eq 3 ]; then
+              exit "$status"
+            fi
+
+            echo "Playwright browser install failed on attempt $attempt; refreshing apt lists and retrying."
+            sudo rm -rf /var/lib/apt/lists/*
+          done
 
       - name: Build App
         run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app:build
