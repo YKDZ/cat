@@ -51,11 +51,22 @@ test.describe("CAT Lite smoke", () => {
         response.url().includes("/api/rpc/file/prepareCreateFromFile") &&
         response.request().method() === "POST",
     );
+    const finishCreateFromFile = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/file/finishCreateFromFile") &&
+        response.request().method() === "POST",
+    );
     await row.getByRole("button").last().click();
     const prepareResponse = await prepareCreateFromFile;
     if (!prepareResponse.ok()) {
       throw new Error(
         `prepareCreateFromFile failed with ${prepareResponse.status()}: ${await prepareResponse.text()}`,
+      );
+    }
+    const finishResponse = await finishCreateFromFile;
+    if (!finishResponse.ok()) {
+      throw new Error(
+        `finishCreateFromFile failed with ${finishResponse.status()}: ${await finishResponse.text()}`,
       );
     }
 

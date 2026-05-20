@@ -9,6 +9,7 @@ import { join } from "node:path";
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
+import { vPerm } from "@/directives/v-perm";
 import { i18n } from "@/utils/i18n";
 
 const getStringSetting = async (
@@ -29,6 +30,7 @@ export const onCreateApp = async (ctx: PageContextServer) => {
 
   await decorateI18nServer(ctx);
   app.use(i18n);
+  app.directive("perm", vPerm);
 };
 
 const loadLocaleMessagesInServerSide = async (
