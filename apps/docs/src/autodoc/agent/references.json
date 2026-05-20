@@ -13450,13 +13450,43 @@
     "line": 65
   },
   {
+    "id": "@cat/seed:packages/seed/src/runtime-env:loadSeedRuntimeEnv",
+    "stableKey": "@cat/seed:packages/seed/src/runtime-env:loadSeedRuntimeEnv",
+    "name": "loadSeedRuntimeEnv",
+    "kind": "function",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/runtime-env.ts",
+    "line": 55,
+    "description": "Load seeder runtime env from preferred env files and make database/cache addresses prefer file values by default."
+  },
+  {
+    "id": "@cat/seed:packages/seed/src/runtime-env:SeedRuntimeEnvLoadResult",
+    "stableKey": "@cat/seed:packages/seed/src/runtime-env:SeedRuntimeEnvLoadResult",
+    "name": "SeedRuntimeEnvLoadResult",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/runtime-env.ts",
+    "line": 34,
+    "description": "Result of loading seeder runtime environment variables."
+  },
+  {
+    "id": "@cat/seed:packages/seed/src/runtime-env:SeedRuntimeEnvOptions",
+    "stableKey": "@cat/seed:packages/seed/src/runtime-env:SeedRuntimeEnvOptions",
+    "name": "SeedRuntimeEnvOptions",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/runtime-env.ts",
+    "line": 10,
+    "description": "Options for loading seeder runtime environment variables."
+  },
+  {
     "id": "@cat/seed:packages/seed/src/safety:assertSafeDatabaseTarget",
     "stableKey": "@cat/seed:packages/seed/src/safety:assertSafeDatabaseTarget",
     "name": "assertSafeDatabaseTarget",
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/safety.ts",
-    "line": 24,
+    "line": 32,
     "description": "Determine whether a database URL clearly targets development/test."
   },
   {

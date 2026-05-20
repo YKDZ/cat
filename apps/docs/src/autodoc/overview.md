@@ -42,7 +42,7 @@
 
 * [**@cat/file-parsers**](./packages/file-parsers.md) (2 functions, 4 types)
 
-* [**@cat/seed**](./packages/seed.md) (10 functions, 27 types)
+* [**@cat/seed**](./packages/seed.md) (11 functions, 29 types)
 
 * [**@cat/source-collector**](./packages/source-collector.md) (8 functions, 8 types)
 

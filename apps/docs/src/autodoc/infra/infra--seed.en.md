@@ -27,6 +27,9 @@
 | `runSeedPipeline` | function |  |
 | `DevSeedResult` | type |  |
 | `SeedSummary` | type |  |
+| `loadSeedRuntimeEnv` | function | Load seeder runtime env from preferred env files and make database/cache address |
+| `SeedRuntimeEnvOptions` | type | Options for loading seeder runtime environment variables. |
+| `SeedRuntimeEnvLoadResult` | type | Result of loading seeder runtime environment variables. |
 | `assertSafeDatabaseTarget` | function | Determine whether a database URL clearly targets development/test. |
 | `DatabaseSafetyOptions` | type | Safety options for database reset. |
 | `PluginOverride` | type |  |

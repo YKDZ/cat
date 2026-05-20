@@ -2,11 +2,11 @@
 
 ## Overview
 
-* **Modules**: 10
+* **Modules**: 11
 
-* **Exported functions**: 10
+* **Exported functions**: 11
 
-* **Exported types**: 27
+* **Exported types**: 29
 
 ## Function Index
 
@@ -48,6 +48,19 @@ export const runSeedPipeline = async (execCtx: ExecutorContext, loadedSeed: Load
     skipVectorization?: boolean;
     skipPluginBootstrap?: boolean;
   }): Promise<DevSeedResult>
+```
+
+### `loadSeedRuntimeEnv`
+
+```ts
+/**
+ * Load seeder runtime env from preferred env files and make database/cache addresses prefer file values by default.
+ *
+ * @param options - Load options
+ *
+ * @returns Load result
+ */
+export const loadSeedRuntimeEnv = (options: SeedRuntimeEnvOptions): SeedRuntimeEnvLoadResult
 ```
 
 ### `assertSafeDatabaseTarget`
@@ -149,6 +162,10 @@ export const runBootstrapSourceGraph = async (input: RunBootstrapSourceGraphInpu
 * `DevSeedResult` (type)
 
 * `SeedSummary` (type)
+
+* `SeedRuntimeEnvOptions` (type) — Options for loading seeder runtime environment variables.
+
+* `SeedRuntimeEnvLoadResult` (type) — Result of loading seeder runtime environment variables.
 
 * `DatabaseSafetyOptions` (type) — Safety options for database reset.
 
