@@ -66,6 +66,17 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
     cleanupFallback = null;
   };
 
+  const getRemainingSuggestion = (input: string): string | null => {
+    if (suggestion.value === null) return null;
+    if (anchorPosition.value > input.length) return null;
+
+    const typedFromAnchor = input.slice(anchorPosition.value);
+    if (!suggestion.value.startsWith(typedFromAnchor)) return null;
+
+    const remaining = suggestion.value.slice(typedFromAnchor.length);
+    return remaining.length > 0 ? remaining : null;
+  };
+
   /**
    * Called by TranslationEditor when Ctrl-ArrowRight accepts one ghost text
    * word.  Updates the store to reflect the remaining suggestion so that the
@@ -85,10 +96,15 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
    */
   const acceptGhostText = () => {
     if (suggestion.value === null) return;
+    const remaining = getRemainingSuggestion(translationValue.value);
+    if (remaining === null) {
+      clearSuggestion();
+      return;
+    }
+
     suppressNextClearFlag = true;
-    translationValue.value = suggestion.value;
-    suggestion.value = null;
-    anchorPosition.value = 0;
+    translationValue.value = `${translationValue.value}${remaining}`;
+    clearSuggestion();
   };
 
   /**
@@ -96,9 +112,7 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
    * a prefix of the suggestion).
    */
   const showGhost = computed(
-    () =>
-      suggestion.value !== null &&
-      suggestion.value.startsWith(translationValue.value),
+    () => getRemainingSuggestion(translationValue.value) !== null,
   );
 
   // ── Fallback Chain ─────────────────────────────────────────────────────
@@ -378,6 +392,11 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
   watch(translationValue, () => {
     if (suppressNextClearFlag) {
       suppressNextClearFlag = false;
+      return;
+    }
+
+    if (suggestion.value !== null && !showGhost.value) {
+      clearSuggestion();
     }
   });
 

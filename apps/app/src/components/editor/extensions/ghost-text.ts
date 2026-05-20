@@ -18,6 +18,41 @@ type GhostTextState = {
   anchorPosition: number;
 };
 
+/**
+ * @zh 根据当前文档和光标计算仍应显示的 ghost text 后缀。
+ * @en Compute the remaining ghost text suffix for the current document and cursor.
+ *
+ * @param state - {@zh 当前 ghost text 状态} {@en Current ghost text state}
+ * @param doc - {@zh 当前编辑器文本} {@en Current editor document text}
+ * @param cursorPos - {@zh 当前光标位置} {@en Current cursor position}
+ * @returns - {@zh 可显示的剩余后缀，不匹配时为 null} {@en Remaining visible suffix, or null when it does not match}
+ */
+export const getGhostTextRemainder = (
+  state: GhostTextState,
+  doc: string,
+  cursorPos: number,
+): string | null => {
+  if (state.suggestion === null) return null;
+  if (cursorPos < state.anchorPosition) return null;
+
+  const typed = doc.slice(state.anchorPosition, cursorPos);
+  if (!state.suggestion.startsWith(typed)) return null;
+
+  const remaining = state.suggestion.slice(typed.length);
+  return remaining.length > 0 ? remaining : null;
+};
+
+/**
+ * @zh 判断 ghost text 快捷键是否应处理当前按键，输入法组合态中必须跳过。
+ * @en Determine whether ghost text shortcuts should handle the key, skipping IME composition.
+ *
+ * @param view - {@zh CodeMirror 视图的组合态信息} {@en Composition state from the CodeMirror view}
+ * @returns - {@zh 非组合态时返回 true} {@en True when the editor is not composing}
+ */
+export const shouldHandleGhostTextKey = (
+  view: Pick<EditorView, "composing">,
+): boolean => !view.composing;
+
 // ─── State Effects ───
 
 /** Set a new ghost text suggestion */
@@ -53,14 +88,13 @@ export const ghostTextStateField = StateField.define<GhostTextState>({
           return state;
         }
         const cursorPos = tr.state.selection.main.head;
-        const typed = tr.state.doc
-          .toString()
-          .slice(state.anchorPosition, cursorPos);
-        const remaining = state.suggestion.startsWith(typed)
-          ? state.suggestion.slice(typed.length)
-          : null;
+        const remaining = getGhostTextRemainder(
+          state,
+          tr.state.doc.toString(),
+          cursorPos,
+        );
 
-        if (!remaining) {
+        if (remaining === null) {
           return { suggestion: null, anchorPosition: 0 };
         }
 
@@ -69,9 +103,15 @@ export const ghostTextStateField = StateField.define<GhostTextState>({
       }
     }
 
-    // Document changes do not clear suggestion — buildDecorations controls
-    // visibility via prefix matching. This allows ghost text to reappear
-    // when the user deletes text to restore a prefix match.
+    if (tr.docChanged && state.suggestion !== null) {
+      const cursorPos = tr.state.selection.main.head;
+      const remaining = getGhostTextRemainder(
+        state,
+        tr.state.doc.toString(),
+        cursorPos,
+      );
+      if (remaining === null) return { suggestion: null, anchorPosition: 0 };
+    }
 
     return state;
   },
@@ -118,20 +158,16 @@ const ghostTextDecorations = ViewPlugin.fromClass(
     buildDecorations(view: EditorView): DecorationSet {
       const state = view.state.field(ghostTextStateField);
       if (!state.suggestion) return Decoration.none;
+      if (!view.state.selection.main.empty) return Decoration.none;
 
       const cursorPos = view.state.selection.main.head;
-      // Only show if cursor is at or past the anchor
-      if (cursorPos < state.anchorPosition) return Decoration.none;
+      const remaining = getGhostTextRemainder(
+        state,
+        view.state.doc.toString(),
+        cursorPos,
+      );
 
-      // Remaining suggestion = full suggestion minus what was already typed
-      const typed = view.state.doc
-        .toString()
-        .slice(state.anchorPosition, cursorPos);
-      const remaining = state.suggestion.startsWith(typed)
-        ? state.suggestion.slice(typed.length)
-        : null;
-
-      if (!remaining) return Decoration.none;
+      if (remaining === null) return Decoration.none;
 
       const deco = Decoration.widget({
         widget: new GhostTextWidget(remaining),
@@ -150,18 +186,19 @@ const ghostTextKeymap = keymap.of([
   {
     key: "Tab",
     run: (view) => {
+      if (!shouldHandleGhostTextKey(view)) return false;
+
       const state = view.state.field(ghostTextStateField);
       if (!state.suggestion) return false;
 
       const cursorPos = view.state.selection.main.head;
-      const typed = view.state.doc
-        .toString()
-        .slice(state.anchorPosition, cursorPos);
-      const remaining = state.suggestion.startsWith(typed)
-        ? state.suggestion.slice(typed.length)
-        : null;
+      const remaining = getGhostTextRemainder(
+        state,
+        view.state.doc.toString(),
+        cursorPos,
+      );
 
-      if (!remaining) {
+      if (remaining === null) {
         view.dispatch({ effects: clearGhostTextEffect.of(null) });
         return false;
       }
@@ -178,20 +215,21 @@ const ghostTextKeymap = keymap.of([
   {
     key: "Ctrl-ArrowRight",
     run: (view) => {
+      if (!shouldHandleGhostTextKey(view)) return false;
+
       // Accept one word from ghost text and move cursor
       const handled = (() => {
         const state = view.state.field(ghostTextStateField);
         if (!state.suggestion) return false;
 
         const cursorPos = view.state.selection.main.head;
-        const typed = view.state.doc
-          .toString()
-          .slice(state.anchorPosition, cursorPos);
-        const remaining = state.suggestion.startsWith(typed)
-          ? state.suggestion.slice(typed.length)
-          : null;
+        const remaining = getGhostTextRemainder(
+          state,
+          view.state.doc.toString(),
+          cursorPos,
+        );
 
-        if (!remaining) {
+        if (remaining === null) {
           view.dispatch({ effects: clearGhostTextEffect.of(null) });
           return false;
         }
@@ -218,6 +256,8 @@ const ghostTextKeymap = keymap.of([
   {
     key: "Escape",
     run: (view) => {
+      if (!shouldHandleGhostTextKey(view)) return false;
+
       const state = view.state.field(ghostTextStateField);
       if (!state.suggestion) return false;
       view.dispatch({ effects: clearGhostTextEffect.of(null) });

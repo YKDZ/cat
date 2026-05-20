@@ -231,6 +231,8 @@ describe("useEditorTableStore scope navigation", () => {
     mocks.getFirstElement.mockResolvedValueOnce(null);
 
     const store = useEditorTableStore();
+    store.elementId = 88;
+    store.translationValue = "待提交草稿";
     await store.toElement(1234);
 
     expect(mocks.getFirstElement).toHaveBeenCalledWith(mocks.scope);
@@ -238,5 +240,33 @@ describe("useEditorTableStore scope navigation", () => {
       `/editor/project/${projectId}/zh-Hans/empty?nodes=${nodeId}&q=needle&status=translated&sort=reuse-first&page=2&branchId=7`,
     );
     expect(store.elementId).toBeNull();
+    expect(store.translationValue).toBe("");
+  });
+
+  it("clears the draft when submit-and-continue selects the next untranslated element", async () => {
+    const nextContentNodeId = "44444444-4444-4444-8444-444444444444";
+    mocks.loadedPages.set(1, [
+      { id: 1, primaryContentNodeId: nodeId },
+      { id: 2, primaryContentNodeId: nextContentNodeId },
+    ]);
+    mocks.getFirstElement.mockResolvedValueOnce({
+      id: 2,
+      primaryContentNodeId: nextContentNodeId,
+    });
+
+    const store = useEditorTableStore();
+    store.elementId = 1;
+    store.translationValue = "刚刚提交的译文";
+
+    await store.toNextUntranslated();
+
+    expect(mocks.getFirstElement).toHaveBeenCalledWith({
+      ...mocks.scope,
+      statusFilter: "untranslated",
+      afterElementId: 1,
+    });
+    expect(store.elementId).toBe(2);
+    expect(store.translationValue).toBe("");
+    expect(mocks.currentElementContentNodeId).toBe(nextContentNodeId);
   });
 });
