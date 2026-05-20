@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 25
 
-* **Exported types**: 278
+* **Exported types**: 282
 
 ## Function Index
 
@@ -423,6 +423,14 @@ export const safeJoinURL = (base: string, path: string): string
 * `Vector` (type)
 
 * `EditorTranslationStatusFilter` (type) — Editor translation-status filter type.
+
+* `ElementSortMode` (type) — Element sort-mode type.
+
+* `ElementPriorityReasonCode` (type) — Priority reason-code type.
+
+* `ElementPrioritySummary` (type) — Lightweight priority summary type for one element.
+
+* `ScopeTranslationSeed` (type) — Runtime-only context seed type for batch auto-translation.
 
 * `EditorScope` (type) — Editor scope type.
 

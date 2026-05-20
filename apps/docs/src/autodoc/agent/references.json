@@ -26,7 +26,7 @@
     "kind": "function",
     "packageName": "@cat/agent-tools",
     "filePath": "packages/agent-tools/src/translation/assert-session-scope.ts",
-    "line": 189,
+    "line": 190,
     "description": "Verify the given project belongs to the current session's project scope."
   },
   {
@@ -66,7 +66,7 @@
     "kind": "interface",
     "packageName": "@cat/agent",
     "filePath": "packages/agent/src/dag/agent-dag-builder.ts",
-    "line": 55,
+    "line": 57,
     "description": "Shared execution context for all Agent DAG nodes."
   },
   {
@@ -76,7 +76,7 @@
     "kind": "function",
     "packageName": "@cat/agent",
     "filePath": "packages/agent/src/dag/agent-dag-builder.ts",
-    "line": 115,
+    "line": 117,
     "description": "Build the Agent DAG graph definition (PreCheck → Reasoning → Tool/Decision → loop).\n\nThis definition is used for schema validation and GraphRegistry.\nThe actual execution logic is implemented imperatively by AgentRuntime calling each node function."
   },
   {
@@ -5383,7 +5383,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 476,
+    "line": 481,
     "description": "Build the shared CTE/filter SQL used by editor-scope element queries."
   },
   {
@@ -5393,7 +5393,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 505,
+    "line": 588,
     "description": "Count the elements matching filters inside the editor scope."
   },
   {
@@ -5403,7 +5403,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 44,
+    "line": 51,
     "description": "Type for editor-scope element count queries."
   },
   {
@@ -5413,7 +5413,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 75
+    "line": 82
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/content/editor-scope-elements.query:getEditorScopeElementPageIndex",
@@ -5422,7 +5422,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 587,
+    "line": 712,
     "description": "Calculate the zero-based page index of an element under the same editor scope and filters; returns `null` if the element is out of scope."
   },
   {
@@ -5432,7 +5432,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 73,
+    "line": 80,
     "description": "Type for editor-scope element page-index queries."
   },
   {
@@ -5442,7 +5442,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 522,
+    "line": 605,
     "description": "Get the first matching element in the editor scope, or the first one after a given element."
   },
   {
@@ -5452,7 +5452,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 60,
+    "line": 67,
     "description": "Type for fetching the first matching element in an editor scope."
   },
   {
@@ -5462,7 +5462,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 484,
+    "line": 564,
     "description": "List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project."
   },
   {
@@ -5472,8 +5472,58 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/editor-scope-elements.query.ts",
-    "line": 28,
+    "line": 35,
     "description": "Type for paginated editor-scope element queries."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/element-priority:buildElementPriorityPlan",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/element-priority:buildElementPriorityPlan",
+    "name": "buildElementPriorityPlan",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/element-priority.ts",
+    "line": 275,
+    "description": "Build an ephemeral element-priority plan for the current editor scope."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/element-priority:ElementPriorityPlan",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/element-priority:ElementPriorityPlan",
+    "name": "ElementPriorityPlan",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/element-priority.ts",
+    "line": 38,
+    "description": "Ephemeral element-priority plan for the current scope."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/element-priority:ElementPriorityPlanItem",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/element-priority:ElementPriorityPlanItem",
+    "name": "ElementPriorityPlanItem",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/element-priority.ts",
+    "line": 29,
+    "description": "Ranked result for a single element inside the priority plan."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/element-priority:orderRowsByPriorityPlan",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/element-priority:orderRowsByPriorityPlan",
+    "name": "orderRowsByPriorityPlan",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/element-priority.ts",
+    "line": 359,
+    "description": "Reorder rows by a priority plan and attach lightweight priority summaries."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/element-priority:PriorityRankableEditorElement",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/element-priority:PriorityRankableEditorElement",
+    "name": "PriorityRankableEditorElement",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/element-priority.ts",
+    "line": 21,
+    "description": "Editor element row that can participate in priority ranking, including structural position."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/content/find-project-content-node-by-label.query:findProjectContentNodeByLabel",
@@ -9411,7 +9461,7 @@
     "kind": "function",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/seeder/seeder.ts",
-    "line": 54
+    "line": 57
   },
   {
     "id": "@cat/eval:apps/eval/src/seeder/seeder:SeedOptions",
@@ -9420,7 +9470,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/seeder/seeder.ts",
-    "line": 48
+    "line": 51
   },
   {
     "id": "@cat/eval:apps/eval/src/seeder/types:SeededContext",
@@ -11459,7 +11509,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/resolve-operation-scope-elements.ts",
-    "line": 122,
+    "line": 123,
     "description": "Resolve elements inside an operation scope with chunk metadata."
   },
   {
@@ -12646,7 +12696,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/llm-provider.ts",
-    "line": 76,
+    "line": 82,
     "description": "Finish reason for a chat completion."
   },
   {
@@ -12656,7 +12706,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/llm-provider.ts",
-    "line": 57,
+    "line": 63,
     "description": "Chat completion request parameters (pure AsyncIterable mode, no onChunk callback)."
   },
   {
@@ -12666,7 +12716,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/llm-provider.ts",
-    "line": 86,
+    "line": 92,
     "description": "Token usage for a chat completion."
   },
   {
@@ -12696,7 +12746,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/llm-provider.ts",
-    "line": 95,
+    "line": 101,
     "description": "Union type for a single chunk from LLM streaming output."
   },
   {
@@ -12706,7 +12756,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/llm-provider.ts",
-    "line": 44,
+    "line": 50,
     "description": "A tool call initiated by the LLM."
   },
   {
@@ -12716,7 +12766,7 @@
     "kind": "type",
     "packageName": "@cat/plugin-core",
     "filePath": "packages/plugin-core/src/services/llm-provider.ts",
-    "line": 33,
+    "line": 39,
     "description": "Tool definition with JSON Schema parameters."
   },
   {
@@ -14848,7 +14898,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 167,
+    "line": 260,
     "description": "Editor content-node filter type."
   },
   {
@@ -14858,7 +14908,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 144,
+    "line": 237,
     "description": "Editor content-node path-item type."
   },
   {
@@ -14868,7 +14918,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 207,
+    "line": 301,
     "description": "Editor element-row type."
   },
   {
@@ -14878,7 +14928,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 126,
+    "line": 219,
     "description": "Element page-index query type."
   },
   {
@@ -14888,7 +14938,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 91,
+    "line": 184,
     "description": "Paginated editor element-query type."
   },
   {
@@ -14898,7 +14948,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 108,
+    "line": 201,
     "description": "First-element query type."
   },
   {
@@ -14908,7 +14958,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 58,
+    "line": 150,
     "description": "Editor scope type."
   },
   {
@@ -14918,7 +14968,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 185,
+    "line": 278,
     "description": "Editor scope-view type."
   },
   {
@@ -14932,14 +14982,54 @@
     "description": "Editor translation-status filter type."
   },
   {
+    "id": "@cat/shared:packages/shared/src/schema/editor:ElementPriorityReasonCode",
+    "stableKey": "@cat/shared:packages/shared/src/schema/editor:ElementPriorityReasonCode",
+    "name": "ElementPriorityReasonCode",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/editor.ts",
+    "line": 83,
+    "description": "Priority reason-code type."
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/editor:ElementPrioritySummary",
+    "stableKey": "@cat/shared:packages/shared/src/schema/editor:ElementPrioritySummary",
+    "name": "ElementPrioritySummary",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/editor.ts",
+    "line": 104,
+    "description": "Lightweight priority summary type for one element."
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/editor:ElementSortMode",
+    "stableKey": "@cat/shared:packages/shared/src/schema/editor:ElementSortMode",
+    "name": "ElementSortMode",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/editor.ts",
+    "line": 55,
+    "description": "Element sort-mode type."
+  },
+  {
     "id": "@cat/shared:packages/shared/src/schema/editor:OperationScope",
     "stableKey": "@cat/shared:packages/shared/src/schema/editor:OperationScope",
     "name": "OperationScope",
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/editor.ts",
-    "line": 75,
+    "line": 168,
     "description": "Batch operation scope type."
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/editor:ScopeTranslationSeed",
+    "stableKey": "@cat/shared:packages/shared/src/schema/editor:ScopeTranslationSeed",
+    "name": "ScopeTranslationSeed",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/editor.ts",
+    "line": 128,
+    "description": "Runtime-only context seed type for batch auto-translation."
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/enum:AgentDefinitionType",
@@ -17746,7 +17836,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/auto-translate.ts",
-    "line": 40
+    "line": 43
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/auto-translate:AutoTranslateInput",
@@ -17755,7 +17845,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/auto-translate.ts",
-    "line": 66
+    "line": 72
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/auto-translate:AutoTranslateOutput",
@@ -17764,7 +17854,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/auto-translate.ts",
-    "line": 67
+    "line": 73
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/batch-auto-translate:BatchAutoTranslateInput",
@@ -17773,7 +17863,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/batch-auto-translate.ts",
-    "line": 34
+    "line": 72
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/batch-auto-translate:BatchAutoTranslateOutput",
@@ -17782,7 +17872,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/workflow/tasks/batch-auto-translate.ts",
-    "line": 37
+    "line": 75
   },
   {
     "id": "@cat/workflow:packages/workflow/src/workflow/tasks/create-translation:CreateTranslationPubPayload",

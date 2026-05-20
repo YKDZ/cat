@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 353
+* **Modules**: 354
 
-* **Exported functions**: 382
+* **Exported functions**: 384
 
-* **Exported types**: 491
+* **Exported types**: 494
 
 ## Function Index
 
@@ -2104,7 +2104,7 @@ export const buildEditorScopeElementFilterSql = (query: EditorScopeSqlInput): im
 export const listEditorScopeElements: Query<
   ListEditorScopeElementsQuery,
   EditorElement[]
-> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; pageSize: number; page: number; branchId?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; pageSize: number; page: number; branchId?: number | undefined; }) => {...}
 ```
 
 ### `countEditorScopeElements`
@@ -2128,7 +2128,7 @@ export const countEditorScopeElements: Query<
 export const getEditorScopeFirstElement: Query<
   GetEditorScopeFirstElementQuery,
   EditorElement | null
-> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; branchId?: number | undefined; afterElementId?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; branchId?: number | undefined; afterElementId?: number | undefined; }) => {...}
 ```
 
 ### `getEditorScopeElementPageIndex`
@@ -2140,7 +2140,35 @@ export const getEditorScopeFirstElement: Query<
 export const getEditorScopeElementPageIndex: Query<
   GetEditorScopeElementPageIndexQuery,
   number | null
-> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; pageSize: number; elementId: number; branchId?: number | undefined; }) => {...}
+> = async (ctx: DbContext, query: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; pageSize: number; elementId: number; branchId?: number | undefined; }) => {...}
+```
+
+### `buildElementPriorityPlan`
+
+```ts
+/**
+ * Build an ephemeral element-priority plan for the current editor scope.
+ *
+ * @param rows - Scope rows already sorted structurally and carrying positions
+ * @param sortMode - Requested sort mode
+ *
+ * @returns Priority plan for the scope
+ */
+export const buildElementPriorityPlan = (rows: PriorityRankableEditorElement[], sortMode: ElementSortMode): ElementPriorityPlan
+```
+
+### `orderRowsByPriorityPlan`
+
+```ts
+/**
+ * Reorder rows by a priority plan and attach lightweight priority summaries.
+ *
+ * @param rows - Original scope rows
+ * @param plan - Priority plan for the current scope
+ *
+ * @returns Reordered scope rows
+ */
+export const orderRowsByPriorityPlan = (rows: T[], plan: ElementPriorityPlan): (T & { priority?: ElementPrioritySummary; })[]
 ```
 
 ### `findProjectContentNodeByLabel`
@@ -3443,7 +3471,7 @@ export const listQaResultItems: Query<
 export const countQaReviewQueueItems: Query<
   CountQaReviewQueueItemsQuery,
   number
-> = async (ctx: DbContext, input: { projectId: string; contentNodeIds: string[]; searchQuery: string; languageToId: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
+> = async (ctx: DbContext, input: { projectId: string; contentNodeIds: string[]; searchQuery: string; languageToId: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
 ```
 
 ### `getQaReviewNotificationRecipient`
@@ -3557,7 +3585,7 @@ export const buildQaReviewQueueRowsSql = (input: ListQaReviewQueueItemsQuery): S
 export const listQaReviewQueueItems: Query<
   ListQaReviewQueueItemsQuery,
   QaReviewQueueListItem[]
-> = async (ctx: DbContext, input: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; pageSize: number; page: number; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
+> = async (ctx: DbContext, input: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; pageSize: number; page: number; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
 ```
 
 ### `resolveQaReviewProfile`
@@ -4388,6 +4416,12 @@ export const setupTestDB = async (): Promise<TestDB>
 * `GetEditorScopeElementPageIndexQuery` (type) — Type for editor-scope element page-index queries.
 
 * `EditorScopeSqlInput` (type)
+
+* `PriorityRankableEditorElement` (type) — Editor element row that can participate in priority ranking, including structural position.
+
+* `ElementPriorityPlanItem` (type) — Ranked result for a single element inside the priority plan.
+
+* `ElementPriorityPlan` (type) — Ephemeral element-priority plan for the current scope.
 
 * `FindProjectContentNodeByLabelQuery` (type)
 
