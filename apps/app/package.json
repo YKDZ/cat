@@ -105,10 +105,10 @@
   },
   "devDependencies": {
     "@cat/oxlint-plugin": "workspace:*",
-    "@iconify-json/codicon": "^1.2.56",
+    "@iconify-json/codicon": "^1.2.57",
     "@iconify-json/file-icons": "^1.2.2",
     "@iconify-json/flag": "^1.2.12",
-    "@iconify-json/fluent": "^1.2.47",
+    "@iconify-json/fluent": "^1.2.48",
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.2.3",
     "@pinia/colada-devtools": "^1.0.0",

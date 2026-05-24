@@ -688,8 +688,8 @@ importers:
         specifier: workspace:*
         version: link:../../packages/oxlint-plugin
       '@iconify-json/codicon':
-        specifier: ^1.2.56
-        version: 1.2.56
+        specifier: ^1.2.57
+        version: 1.2.57
       '@iconify-json/file-icons':
         specifier: ^1.2.2
         version: 1.2.2
@@ -697,8 +697,8 @@ importers:
         specifier: ^1.2.12
         version: 1.2.12
       '@iconify-json/fluent':
-        specifier: ^1.2.47
-        version: 1.2.47
+        specifier: ^1.2.48
+        version: 1.2.48
       '@iconify-json/mdi':
         specifier: ^1.2.3
         version: 1.2.3
@@ -2875,8 +2875,8 @@ packages:
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
 
-  '@iconify-json/codicon@1.2.56':
-    resolution: {integrity: sha512-lCtB4AqfvHkdmL6c2dFE0ubpLD36fVDmiyMq51oZaEm7oAJjcDrAoWe5EsyTLDtl0X43Epxa28JGNIZcjeUHvg==}
+  '@iconify-json/codicon@1.2.57':
+    resolution: {integrity: sha512-xtcw73V1uUTYbK3+4Yl7ABQbHM4eoPkW7NbQwvWi+0M8i0pZENG+ttIjyj3JfKv5N3iU1YvwrPk+AIinR94YVw==}
 
   '@iconify-json/file-icons@1.2.2':
     resolution: {integrity: sha512-ajk44wYGTiu79EAyrfNHNaxZ1/2Z1xuSOAvYUT/pAPWHc+P6n9TUZP/ccnPG18kx0WMBxmkHHQ9/zkm6ENhk+Q==}
@@ -2884,8 +2884,8 @@ packages:
   '@iconify-json/flag@1.2.12':
     resolution: {integrity: sha512-B5zphOSTn54UX9v1sKsR1atuhyuXExiAkjuLQA8aeDcB68+P6oiStEDeEEVkbHgwvFvklPM2G7GhqFw6VMnXhw==}
 
-  '@iconify-json/fluent@1.2.47':
-    resolution: {integrity: sha512-YA9pCYNW3bqXMD1rMIkK0vqLK90UyE63hfI1cB2sQwGAbEFhi+VUz5mvcXYfb7bl5R8N5sLZNI2Kr0Q3Yo9M4A==}
+  '@iconify-json/fluent@1.2.48':
+    resolution: {integrity: sha512-tSY++n/ORNg8navw+l//4r893HggokmIfirXUMEw2b0o6eFx0RfEbhnxmWZ3jmaUPnf19Ahcxlg7kS68AvumJA==}
 
   '@iconify-json/mdi@1.2.3':
     resolution: {integrity: sha512-O3cLwbDOK7NNDf2ihaQOH5F9JglnulNDFV7WprU2dSoZu3h3cWH//h74uQAB87brHmvFVxIOkuBX2sZSzYhScg==}
@@ -10124,7 +10124,7 @@ snapshots:
 
   '@humanwhocodes/retry@0.4.3': {}
 
-  '@iconify-json/codicon@1.2.56':
+  '@iconify-json/codicon@1.2.57':
     dependencies:
       '@iconify/types': 2.0.0
 
@@ -10136,7 +10136,7 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify-json/fluent@1.2.47':
+  '@iconify-json/fluent@1.2.48':
     dependencies:
       '@iconify/types': 2.0.0
 
