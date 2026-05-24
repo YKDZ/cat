@@ -16,7 +16,8 @@ import { buildEditorHref } from "./scope-url";
 
 const { t } = useI18n();
 const { scope } = storeToRefs(useEditorContextStore());
-const { elementId } = storeToRefs(useEditorTableStore());
+const tableStore = useEditorTableStore();
+const { elementId } = storeToRefs(tableStore);
 const { pendingElements } = useEditorElementStore();
 
 const props = defineProps<{
@@ -41,12 +42,14 @@ const priorityReasonLabel = computed(() => {
   return reason ? priorityReasonLabels[reason] : null;
 });
 
-const handleClick = async () => {
+const handleClick = () => {
   if (!props.element || !scope.value) return;
 
-  await navigate(buildEditorHref(scope.value, props.element.id), {
+  tableStore.selectLoadedElement(props.element.id);
+
+  void navigate(buildEditorHref(scope.value, props.element.id), {
     keepScrollPosition: true,
-  });
+  }).catch(() => undefined);
 };
 /* onMounted(() => updateElementStatus(props.element.id)); */
 </script>

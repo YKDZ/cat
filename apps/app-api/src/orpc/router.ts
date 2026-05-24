@@ -21,6 +21,7 @@ import * as projectFeatures from "./routers/project-features.ts";
 import * as projectSettings from "./routers/project-settings.ts";
 import * as project from "./routers/project.ts";
 import * as pullRequest from "./routers/pull-request.ts";
+import * as qaReview from "./routers/qa-review.ts";
 import * as qa from "./routers/qa.ts";
 import * as setting from "./routers/setting.ts";
 import * as suggestion from "./routers/suggestion.ts";
@@ -58,6 +59,7 @@ const router: AppRouter = {
   translation,
   tokenizer,
   qa,
+  qaReview,
   comment,
   notification,
 };
@@ -90,6 +92,7 @@ export type AppRouter = {
   translation: typeof translation;
   tokenizer: typeof tokenizer;
   qa: typeof qa;
+  qaReview: typeof qaReview;
   comment: typeof comment;
   permission: typeof permission;
   notification: typeof notification;

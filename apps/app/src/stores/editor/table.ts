@@ -92,8 +92,42 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       selectedElement?.primaryContentNodeId ?? undefined;
   };
 
+  const resetDraftForElementChange = (targetElementId: number | null) => {
+    if (elementId.value === targetElementId) return;
+
+    translationValue.value = "";
+    sourceTokens.value = [];
+    translationTokens.value = [];
+  };
+
+  /**
+   * @zh 如果目标元素已经在本地缓存页中，则立即选中它。
+   * @en Immediately select the target element if it is already cached locally.
+   *
+   * @param targetElementId - {@zh 目标元素 ID} {@en Target element ID}
+   * @returns - {@zh 是否命中了本地缓存} {@en Whether the local cache was hit}
+   */
+  const selectLoadedElement = (targetElementId: number): boolean => {
+    for (const [pageIndex, rows] of elementStore.loadedPages.entries()) {
+      const selected = rows.find((item) => item.id === targetElementId);
+
+      if (!selected) continue;
+
+      resetDraftForElementChange(targetElementId);
+      contextStore.setCurrentPage(pageIndex + 1);
+      setCurrentElementContext(selected);
+      elementId.value = targetElementId;
+
+      return true;
+    }
+
+    return false;
+  };
+
   const toElement = async (targetElementId: number) => {
     if (!context.scope.value) return;
+
+    if (selectLoadedElement(targetElementId)) return;
 
     const pageIndex = await orpc.editor.getElementPageIndex({
       ...context.scope.value,
@@ -105,12 +139,14 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       const first = await orpc.editor.getFirstElement(context.scope.value);
 
       if (!first) {
+        resetDraftForElementChange(null);
         elementId.value = null;
         setCurrentElementContext(null);
         await navigate(buildEditorHref(context.scope.value, "empty"));
         return;
       }
 
+      resetDraftForElementChange(first.id);
       elementId.value = first.id;
       setCurrentElementContext(first);
       await navigate(buildEditorHref(context.scope.value, first.id));
@@ -120,6 +156,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     contextStore.setCurrentPage(pageIndex + 1);
     const rows = await elementStore.loadPage(pageIndex);
     const selected = rows.find((item) => item.id === targetElementId) ?? null;
+    resetDraftForElementChange(targetElementId);
     setCurrentElementContext(selected);
     elementId.value = targetElementId;
   };
@@ -227,6 +264,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     elementTotalAmount,
     elementLanguageId,
     pageTotalAmount,
+    selectLoadedElement,
     toElement,
     toPage,
     toNextUntranslated,

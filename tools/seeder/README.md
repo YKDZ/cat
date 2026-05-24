@@ -2,6 +2,8 @@
 
 `tools/seeder/main.ts` loads a dataset directory, resets the configured development database, and runs the shared `@cat/seed` pipeline.
 
+By default it loads `apps/app/.env` and lets that file win for `DATABASE_URL` / `REDIS_URL`, which avoids accidentally seeding an old shell target such as `cat_e2e`. If you intentionally want to keep the current shell environment in control, pass `--respect-process-env`.
+
 ## Local plugin overrides
 
 Plugin service configuration is often stable on a local machine and may contain private API keys. Keep those values out of dataset files by placing them in an ignored local override file.
@@ -36,3 +38,4 @@ Useful flags:
 
 - `--local-overrides <path>`: load an additional local override file.
 - `--no-local-overrides`: disable automatic lookup of `tools/seeder/local/seed.yaml` and `<dataset>/seed.local.yaml`.
+- `--respect-process-env`: do not override existing `DATABASE_URL` / `REDIS_URL` from `apps/app/.env`; only fill missing keys from the file.

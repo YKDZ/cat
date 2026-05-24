@@ -20,7 +20,8 @@ import {
   ShieldCheck,
 } from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
-import { ref } from "vue";
+import { prefetch } from "vike/client/router";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import SidebarLogo from "@/components/SidebarLogo.vue";
@@ -69,6 +70,26 @@ const items = ref([
     title: t("通知设置"),
   },
 ]);
+
+const eagerPrefetchUrls = ["/projects"];
+
+const prefetchSidebarRoutes = (index = 0) => {
+  const url = eagerPrefetchUrls[index];
+
+  if (!url) {
+    return;
+  }
+
+  void prefetch(url)
+    .catch(() => undefined)
+    .finally(() => {
+      window.setTimeout(() => prefetchSidebarRoutes(index + 1), 1200);
+    });
+};
+
+onMounted(() => {
+  window.setTimeout(prefetchSidebarRoutes, 600);
+});
 </script>
 
 <template>
@@ -86,7 +107,11 @@ const items = ref([
           <SidebarMenu>
             <SidebarMenuItem v-for="item in items" :key="item.title">
               <SidebarMenuButton :sidebarId asChild>
-                <a :href="item.url" class="h-10">
+                <a
+                  :href="item.url"
+                  class="h-10"
+                  data-prefetch-static-assets="viewport"
+                >
                   <component :is="item.icon" />
                   <span>{{ item.title }}</span>
                 </a>

@@ -1,9 +1,15 @@
 # E2E test dependencies — start with:
 #   docker compose -f apps/app-e2e/docker-compose.yml up -d
+#
+# Override host ports if the defaults conflict with other local services:
+#   CAT_E2E_POSTGRES_HOST_PORT=35432
+#   CAT_E2E_REDIS_HOST_PORT=36379
+name: cat-e2e
+
 services:
   redis:
     image: redis
-    container_name: e2e_redis
+    container_name: cat_e2e_redis
     healthcheck:
       test:
         - CMD-SHELL
@@ -13,18 +19,18 @@ services:
       retries: 5
       timeout: 3s
     ports:
-      - 6379:6379
+      - "${CAT_E2E_REDIS_HOST_PORT:-6379}:6379"
 
   postgresql:
     build:
       context: ../postgres-search-runtime
-    container_name: e2e_postgresql
+    container_name: cat_e2e_postgresql
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: cat_e2e
     ports:
-      - 5432:5432
+      - "${CAT_E2E_POSTGRES_HOST_PORT:-5432}:5432"
     healthcheck:
       test:
         - CMD-SHELL

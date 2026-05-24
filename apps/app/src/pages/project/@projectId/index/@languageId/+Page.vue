@@ -34,6 +34,10 @@ const handleBack = async () => {
 const handleOpenWorkbench = async () => {
   await navigate(`/editor/project/${project.id}/${language.value.id}/auto`);
 };
+
+const handleOpenQaReviewWorkbench = async () => {
+  await navigate(`/qa-review/project/${project.id}/${language.value.id}/auto`);
+};
 </script>
 
 <template>
@@ -46,6 +50,14 @@ const handleOpenWorkbench = async () => {
         <h3 class="text-xl font-bold">{{ t(language.id) }}</h3>
       </div>
       <div class="flex items-center gap-2">
+        <Button
+          v-perm="{ object: 'project', id: project.id, relation: 'editor' }"
+          variant="outline"
+          @click="handleOpenQaReviewWorkbench"
+        >
+          <div class="icon-[mdi--clipboard-check-outline] size-4" />
+          {{ t("打开 QA 审校工作台") }}
+        </Button>
         <Button variant="outline" @click="handleOpenWorkbench">
           <div class="icon-[mdi--text-box-edit-outline] size-4" />
           {{ t("打开编辑工作台") }}

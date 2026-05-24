@@ -58,13 +58,18 @@ pnpm exec playwright test --ui --config=apps/app-e2e/playwright.config.ts
    - 清空 Redis 向量化队列键（`queue:vectorization:pending/processing`）以防止过时任务挂起
    - 将 ref→ID 映射写入 `apps/app-e2e/test-results/e2e-refs.json`
 
-2. **webServer**（`playwright.config.ts`）：
+2. **globalTeardown**（`apps/app-e2e/global-teardown.ts`）：
+   - 仅当 `E2E_COMPOSE_TEARDOWN=true` 时执行
+   - 运行 `docker compose -f apps/app-e2e/docker-compose.yml down` 停止 E2E 基础设施
+   - 本地迭代开发时**不设置**此变量，容器会保持运行以供下次复用
+
+3. **webServer**（`playwright.config.ts`）：
    - 运行 `pnpm moon run app:preview`（Moon 先自动构建应用），**仅当服务器未运行时**
    - 等待 3000 端口上的 `/_health` 端点
    - `reuseExistingServer: true` — 始终复用 3000 端口上已有的服务器；如果没有监听则通过 `pnpm moon run app:preview` 启动
    - **CI 注意**：moon 2.x 在 CI 环境中跳过 `persistent: true` 的任务，因此 CI 工作流会在 Playwright 运行前预先构建应用（`app:build`）并直接启动 `node dist/server/index.mjs`。Playwright 然后复用该已运行的服务器。
 
-3. **Fixtures**（`tests/fixtures.ts`）：
+4. **Fixtures**（`tests/fixtures.ts`）：
    - 从 `e2e-refs.json` 加载引用
    - 通过 UI 登录验证管理员用户（worker 作用域，已缓存）
    - 向测试提供 `refs`、`loginPage`、`editorPage`、`projectUrl`
@@ -75,6 +80,13 @@ pnpm exec playwright test --ui --config=apps/app-e2e/playwright.config.ts
 DATABASE_URL=postgresql://user:pass@localhost:5432/cat_e2e?schema=public
 REDIS_URL=redis://localhost:6379
 PORT=3000
+
+# 若默认端口 5432 / 6379 被占用，可覆盖 compose 绑定端口（同时需修改上方 URL）：
+# CAT_E2E_POSTGRES_HOST_PORT=35432
+# CAT_E2E_REDIS_HOST_PORT=36379
+
+# 测试结束后自动停止 docker compose 栈（CI 或一次性运行时使用）：
+# E2E_COMPOSE_TEARDOWN=true
 ```
 
 > **重要**：数据库名称必须包含 "e2e" 或 "test"。globalSetup 拒绝在其他数据库上运行，以防止意外数据丢失。
@@ -90,6 +102,7 @@ PORT=3000
 | webServer: 预览服务器超时                                | 应用构建失败或 3000 端口被错误的进程占用。检查构建日志。CI 失败时，检查工作流输出中打印的 `app.log`                                                                    |
 | 浏览器未安装                                             | 运行 `pnpm exec playwright install chromium firefox`                                                                                                                   |
 | Docker 服务未运行                                        | 运行 `docker compose -f apps/app-e2e/docker-compose.yml up -d`                                                                                                         |
+| 5432 / 6379 端口被占用（启动 compose 报错）              | 在 `.env` 中设置 `CAT_E2E_POSTGRES_HOST_PORT=35432` / `CAT_E2E_REDIS_HOST_PORT=36379`，并同步修改 `DATABASE_URL` / `REDIS_URL` 中的端口                                |
 | Auth fixture: 登录失败                                   | 认证流程 UI 可能已更改。检查 `tests/pages/login-page.ts` 选择器                                                                                                        |
 | 服务器启动时挂起（永远无法到达 `/_health`）              | 过时的 Redis 向量化任务——`global-setup.ts` 自动清除它们，但手动启动服务器时运行：`redis-cli del queue:vectorization:pending queue:vectorization:processing`            |
 | Firefox: 认证 500 错误 / `ENOENT locales/undefined.json` | Firefox 在无头模式下发送 `"undefined"` 作为 Accept-Language。已在 `+onCreateApp.server.ts`（stat try/catch）和 `fixtures.ts`（context 中的 `locale: "zh-Hans"`）中修复 |
@@ -128,7 +141,8 @@ pnpm exec playwright show-report apps/app-e2e/playwright-report
 ```
 apps/app-e2e/
 ├── global-setup.ts          # DB 填充 + Redis 队列清空 + refs 输出
-├── playwright.config.ts     # 带 globalSetup + webServer 的配置
+├── global-teardown.ts       # 可选：E2E_COMPOSE_TEARDOWN=true 时停止 compose 栈
+├── playwright.config.ts     # 带 globalSetup + globalTeardown + webServer 的配置
 ├── tests/
 │   ├── fixtures.ts          # Playwright fixtures（refs、认证、页面对象）
 │   ├── pages/
