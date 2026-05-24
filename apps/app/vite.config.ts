@@ -9,6 +9,10 @@ import vueDevTools from "vite-plugin-vue-devtools";
 export default defineConfig({
   ssr: {
     external: ["@cat/agent", "@cat/plugin-core", "@cat/permissions", "@cat/db"],
+    // vue-i18n and @intlify/* reference compile-time constants like
+    // __VUE_PROD_DEVTOOLS__ that must be replaced by Vite's `define` plugin.
+    // Forcing them to be bundled (not externalized) ensures the replacements apply.
+    noExternal: ["vue-i18n", /^@intlify\//],
   },
 
   define: {
