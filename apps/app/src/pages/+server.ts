@@ -4,6 +4,7 @@ import type { Server as VikeServer } from "vike/types";
 import app, { wsHelper } from "@cat/app-api/app";
 import { serverLogger as logger } from "@cat/server-shared";
 import vike from "@vikejs/hono";
+import http from "node:http";
 
 import { initializeApp } from "@/server/initialize.ts";
 import { createShutdownHandler } from "@/server/shutdown.ts";
@@ -28,7 +29,11 @@ export default {
     onCreate(server) {
       // Inject the underlying Node.js HTTP server into @hono/node-ws so that
       // WebSocket upgrade requests can be handled correctly.
-      const nodeServer = server.node?.server;
+      // Narrow to http.Server via instanceof so closeAllConnections is typed.
+      // Vike may expose http2.Http2Server too, but this app runs HTTP/1.1 only.
+      const rawServer = server.node?.server;
+      const nodeServer =
+        rawServer instanceof http.Server ? rawServer : undefined;
       if (!nodeServer) {
         logger
           .withSituation("SERVER")
@@ -39,7 +44,7 @@ export default {
       }
 
       wsHelper.injectWebSocket(nodeServer);
-      const shutdown = createShutdownHandler(server);
+      const shutdown = createShutdownHandler(server, nodeServer);
 
       process.on("SIGTERM", shutdown);
       process.on("SIGQUIT", shutdown);

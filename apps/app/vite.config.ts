@@ -1,4 +1,3 @@
-import VueI18nPlugin from "@intlify/unplugin-vue-i18n/vite";
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
@@ -29,12 +28,19 @@ export default defineConfig({
   },
 
   plugins: [
+    // @vueuse/core 14.x dist/index.js contains 2 invalid /* #__PURE__ */ annotations
+    // (with '#' instead of '@') placed in syntactically wrong positions that Rolldown
+    // rejects. Remove them; the correct /* @__PURE__ */ counterparts (57 of them) still
+    // handle tree-shaking correctly. Track: https://github.com/vueuse/vueuse/issues
+    {
+      name: "vite:fix-vueuse-pure-annotations",
+      transform: (code: string, id: string) => {
+        if (!id.includes("@vueuse/core")) return null;
+        return { code: code.replace(/\/\* #__PURE__ \*\/ ?/g, ""), map: null };
+      },
+    },
     telefunc(),
     vike(),
-    VueI18nPlugin({
-      ssr: true,
-      include: [resolve(import.meta.dirname, "./locales/**")],
-    }),
     vue({
       include: [/\.vue$/, /\.md$/],
     }),

@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import { SidebarProvider } from "@cat/ui";
 import { Toaster } from "@cat/ui";
-import { PiniaColadaDevtools } from "@pinia/colada-devtools";
 import { usePageContext } from "vike-vue/usePageContext";
-import { onMounted, onUnmounted } from "vue";
+import { defineAsyncComponent, onMounted, onUnmounted } from "vue";
+
+// Only load devtools in development — avoids bundling ~2 MB of devtools panel
+// into the production SSR and client builds. Dead code elimination removes the
+// dynamic import() branch when import.meta.env.DEV is false at build time.
+const PiniaColadaDevtools = import.meta.env.DEV
+  ? defineAsyncComponent(() =>
+      import("@pinia/colada-devtools").then((m) => ({
+        default: m.PiniaColadaDevtools,
+      })),
+    )
+  : null;
 
 import { useNotificationStore } from "@/stores/notification";
 import { useCookieBooleanRef } from "@/utils/cookie";
@@ -49,5 +59,5 @@ const adminSidebarOpen = useCookieBooleanRef(ctx, "adminSidebarOpen", true);
   ></SidebarProvider>
   <Toaster class="pointer-events-auto" />
 
-  <PiniaColadaDevtools />
+  <component :is="PiniaColadaDevtools" v-if="PiniaColadaDevtools" />
 </template>
