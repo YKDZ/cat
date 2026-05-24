@@ -11,6 +11,8 @@ export type QueueTask<T> = {
   retryCount: number;
   /** @zh 入队时间 @en Enqueue timestamp (ISO) */
   enqueuedAt: string;
+  /** @zh 当前处理租约截止时间，仅 processing 任务需要 @en Processing lease deadline, only required for processing tasks */
+  leasedUntil?: string;
 };
 
 /**
@@ -28,4 +30,29 @@ export type TaskQueue<T> = {
   nack: (taskId: string) => Promise<void>;
   /** @zh 获取队列中待处理任务数 @en Get pending task count */
   pendingCount: () => Promise<number>;
+};
+
+/**
+ * @zh 支持租约恢复的任务队列接口。
+ * @en Task queue interface that supports lease recovery.
+ */
+export type LeaseRecoverableTaskQueue<T> = TaskQueue<T> & {
+  /** @zh 将过期 processing 租约重新放回 pending @en Requeue expired processing leases back to pending */
+  requeueExpiredLeases: () => Promise<number>;
+};
+
+/**
+ * @zh 判断任务队列是否支持租约恢复。
+ * @en Check whether a task queue supports lease recovery.
+ *
+ * @param queue - {@zh 要检测的任务队列} {@en Task queue to inspect}
+ * @returns - {@zh 是否支持租约恢复} {@en Whether lease recovery is supported}
+ */
+export const isLeaseRecoverableTaskQueue = <T>(
+  queue: TaskQueue<T>,
+): queue is LeaseRecoverableTaskQueue<T> => {
+  return (
+    typeof (queue as Partial<LeaseRecoverableTaskQueue<T>>)
+      .requeueExpiredLeases === "function"
+  );
 };

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { InMemoryTaskQueue } from "../in-memory-task-queue.ts";
+import { isLeaseRecoverableTaskQueue } from "../task-queue.ts";
 
 describe("InMemoryTaskQueue", () => {
   let queue: InMemoryTaskQueue<{ value: string }>;
@@ -68,6 +69,10 @@ describe("InMemoryTaskQueue", () => {
 
     await queue.dequeue(1);
     expect(await queue.pendingCount()).toBe(1);
+  });
+
+  it("does not advertise lease recovery for the in-memory implementation", () => {
+    expect(isLeaseRecoverableTaskQueue(queue)).toBe(false);
   });
 
   it("empty queue dequeue returns empty array", async () => {

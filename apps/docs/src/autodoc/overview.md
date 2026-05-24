@@ -10,7 +10,7 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (384 functions, 494 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (386 functions, 496 types)
 
 * [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (110 functions, 127 types)
 
@@ -20,15 +20,15 @@
 
 * [**@cat/permissions**](./packages/permissions.md) — Permission system: ReBAC-based access control (10 functions, 11 types)
 
-* [**@cat/workflow**](./packages/workflow.md) — DAG-based workflow graph executor (25 functions, 66 types)
+* [**@cat/workflow**](./packages/workflow.md) — DAG-based workflow graph executor (26 functions, 66 types)
 
-* [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (22 functions, 4 types)
+* [**@cat/server-shared**](./packages/server-shared.md) — Shared server utilities (22 functions, 5 types)
 
 * [**@cat/plugin-core**](./packages/plugin-core.md) — Plugin system core: service registry, component registry, discovery (16 functions, 76 types)
 
 * [**@cat/auth**](./packages/auth.md) — DAG-based authentication flow engine (10 functions, 24 types)
 
-* [**@cat/core**](./packages/core.md) — Core infrastructure: generic event bus, typed pub/sub (1 functions, 9 types)
+* [**@cat/core**](./packages/core.md) — Core infrastructure: generic event bus, typed pub/sub (2 functions, 10 types)
 
 * [**@cat/message**](./packages/message.md) — Unified message gateway: in-app notifications and email dispatch (1 functions, 5 types)
 

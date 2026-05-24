@@ -44,6 +44,10 @@
 | `DeleteAgentDefinitionCommand` | type |  |
 | `finishAgentRun` | function | Update AgentRun status to a terminal state and record completion time. |
 | `FinishAgentRunCommand` | type |  |
+| `createCrashRecoveryEventId` | function | Generate a stable crash-recovery event ID for the given run. |
+| `recoverCrashedAgentRuns` | function | Converge persisted `running` runs not owned by the current process into `failed` |
+| `RecoverCrashedAgentRunsCommand` | type | Input type for the crashed workflow recovery command. |
+| `RecoverCrashedAgentRunsResult` | type | Result of crashed workflow recovery. |
 | `saveAgentEvent` | function |  |
 | `SaveAgentEventCommand` | type |  |
 | `saveAgentExternalOutput` | function |  |
@@ -55,8 +59,4 @@
 | `updateAgentDefinition` | function |  |
 | `UpdateAgentDefinitionCommand` | type |  |
 | `createApiKey` | function |  |
-| `CreateApiKeyCommand` | interface |  |
-| `revokeApiKey` | function |  |
-| `RevokeApiKeyCommand` | interface |  |
-| `updateApiKeyLastUsed` | function |  |
-| *(828 more)* | | |
+| *(832 more)* | | |

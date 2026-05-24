@@ -2,12 +2,14 @@ import { registerBuiltinAgents } from "@cat/agent";
 import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
 import {
+  executeCommand,
   executeQuery,
   getFirstRegisteredUser,
   getSetting,
   getDbHandle,
   getCurrentRedisHandle,
   initRuntimeState,
+  recoverCrashedAgentRuns,
   resolveRuntimeProfile,
   type DrizzleClient,
   initCacheStore,
@@ -31,7 +33,10 @@ import {
 } from "@cat/server-shared";
 import { assertPromise } from "@cat/shared";
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
-import { createDefaultGraphRuntime } from "@cat/workflow";
+import {
+  createDefaultGraphRuntime,
+  getGlobalGraphRuntimeOrNull,
+} from "@cat/workflow";
 import { access } from "fs/promises";
 import { join } from "path";
 
@@ -141,6 +146,23 @@ export const initializeApp = async (): Promise<void> => {
     });
 
     registerDomainEventHandlers(drizzleDB.client, { pluginManager });
+
+    const existingRuntime = getGlobalGraphRuntimeOrNull();
+    const activeRunIds = existingRuntime?.scheduler.getActiveRunIds() ?? [];
+    const crashRecovery = await executeCommand(
+      { db: drizzleDB.client },
+      recoverCrashedAgentRuns,
+      { activeRunIds },
+    );
+    if (crashRecovery.recoveredRunIds.length > 0) {
+      logger
+        .withSituation("SERVER")
+        .warn(
+          { recoveredRunIds: crashRecovery.recoveredRunIds },
+          "Recovered crashed workflow runs",
+        );
+    }
+
     await registerVectorizationConsumer(backends.vectorizationQueue);
 
     const messageGateway = new MessageGateway({

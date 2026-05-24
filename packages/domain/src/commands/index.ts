@@ -91,6 +91,7 @@ export * from "@/commands/file/manage-file-blob.cmd";
 export * from "@/commands/agent/save-agent-run-metadata.cmd";
 export * from "@/commands/agent/save-agent-run-snapshot.cmd";
 export * from "@/commands/agent/save-agent-event.cmd";
+export * from "@/commands/agent/recover-crashed-agent-runs.cmd";
 export * from "@/commands/agent/save-agent-external-output.cmd";
 export * from "@/commands/agent/complete-agent-session.cmd";
 export * from "@/commands/agent/create-agent-run.cmd";

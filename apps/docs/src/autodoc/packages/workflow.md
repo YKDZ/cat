@@ -6,7 +6,7 @@ DAG-based workflow graph executor
 
 * **Modules**: 35
 
-* **Exported functions**: 25
+* **Exported functions**: 26
 
 * **Exported types**: 66
 
@@ -54,6 +54,17 @@ export const storeGraphRuntime = (runtime: StoredGraphRuntime)
 
 ```ts
 export const getStoredGraphRuntime = (): StoredGraphRuntime
+```
+
+### `getStoredGraphRuntimeOrNull`
+
+```ts
+/**
+ * Get the global graph runtime, or return `null` when it has not been initialized yet.
+ *
+ * @returns Stored runtime or `null`
+ */
+export const getStoredGraphRuntimeOrNull = (): StoredGraphRuntime | null
 ```
 
 ### `executeWithVCS`

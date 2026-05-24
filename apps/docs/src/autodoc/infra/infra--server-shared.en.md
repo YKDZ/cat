@@ -29,6 +29,7 @@ a single |
 | `resolvePluginComponentPath` | function | 找到指定组件在本地插件目录中的位置 |
 | `initAllVectorStorage` | function |  |
 | `resolvePluginManager` | function |  |
+| `RedisTaskQueueOptions` | type | Optional configuration for the Redis task queue. |
 | `readableToBuffer` | function |  |
 | `readableToString` | function |  |
 | `hashFromReadable` | function |  |

@@ -20,6 +20,14 @@ services:
 
   redis:
     image: redis
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+    volumes:
+      - redis-data:/data
     healthcheck:
       test:
         - CMD-SHELL
@@ -89,3 +97,6 @@ services:
       resources:
         limits:
           memory: 2G
+
+volumes:
+  redis-data:

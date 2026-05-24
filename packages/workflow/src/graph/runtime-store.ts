@@ -11,7 +11,7 @@ import type { AgentEventBus } from "@/graph/event-bus";
 import type { Scheduler } from "@/graph/scheduler";
 
 export type StoredGraphRuntime = {
-  scheduler: Pick<Scheduler, "start">;
+  scheduler: Pick<Scheduler, "start" | "getActiveRunIds">;
   eventBus: AgentEventBus;
   checkpointer: Checkpointer;
 };
@@ -28,5 +28,15 @@ export const getStoredGraphRuntime = (): StoredGraphRuntime => {
       "Global graph runtime not initialized. Call storeGraphRuntime first.",
     );
   }
+  return storedRuntime;
+};
+
+/**
+ * @zh 获取全局 graph runtime；若尚未初始化则返回 `null`。
+ * @en Get the global graph runtime, or return `null` when it has not been initialized yet.
+ *
+ * @returns - {@zh 已存储的 runtime 或 `null`} {@en Stored runtime or `null`}
+ */
+export const getStoredGraphRuntimeOrNull = (): StoredGraphRuntime | null => {
   return storedRuntime;
 };

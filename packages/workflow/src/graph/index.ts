@@ -66,7 +66,10 @@ export * from "@/graph/event-store";
 export * from "@/graph/dsl";
 export * from "@/graph/distributed-extensions";
 export { executeWithVCS } from "@/graph/vcs-write-helper";
-export { getStoredGraphRuntime as getGlobalGraphRuntime } from "@/graph/runtime-store";
+export {
+  getStoredGraphRuntime as getGlobalGraphRuntime,
+  getStoredGraphRuntimeOrNull as getGlobalGraphRuntimeOrNull,
+} from "@/graph/runtime-store";
 
 export type DefaultGraphRuntime = {
   eventBus: InProcessEventBus;

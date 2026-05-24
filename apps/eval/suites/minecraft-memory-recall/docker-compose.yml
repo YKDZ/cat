@@ -1,6 +1,12 @@
 services:
   redis:
     image: redis
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
     healthcheck:
       test:
         - CMD-SHELL

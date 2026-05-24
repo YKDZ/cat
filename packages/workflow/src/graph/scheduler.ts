@@ -802,4 +802,14 @@ export class Scheduler {
   hasRun = (runId: RunId): boolean => {
     return this.activeRuns.has(runId) || this.pausedRuns.has(runId);
   };
+
+  /**
+   * @zh 返回当前进程正在活跃执行的 run ID 列表。
+   * @en Return the list of run IDs currently active in this process.
+   *
+   * @returns - {@zh 当前活跃 run ID 列表} {@en List of active run IDs}
+   */
+  getActiveRunIds = (): RunId[] => {
+    return [...this.activeRuns.keys()];
+  };
 }

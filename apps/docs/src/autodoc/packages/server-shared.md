@@ -4,11 +4,11 @@ Shared server utilities
 
 ## Overview
 
-* **Modules**: 10
+* **Modules**: 11
 
 * **Exported functions**: 22
 
-* **Exported types**: 4
+* **Exported types**: 5
 
 ## Function Index
 
@@ -176,5 +176,7 @@ export const getVectorizationQueue = (): TaskQueue<VectorizationTask>
 * `FileDownloadPayload` (type)
 
 * `CollectedLLMResponse` (interface) — The complete response collected from an LLM stream.
+
+* `RedisTaskQueueOptions` (type) — Optional configuration for the Redis task queue.
 
 * `VectorizationTask` (type) — Payload type for a vectorization task.

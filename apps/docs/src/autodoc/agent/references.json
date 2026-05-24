@@ -924,6 +924,26 @@
     "line": 21
   },
   {
+    "id": "@cat/core:packages/core/src/task-queue:isLeaseRecoverableTaskQueue",
+    "stableKey": "@cat/core:packages/core/src/task-queue:isLeaseRecoverableTaskQueue",
+    "name": "isLeaseRecoverableTaskQueue",
+    "kind": "function",
+    "packageName": "@cat/core",
+    "filePath": "packages/core/src/task-queue.ts",
+    "line": 51,
+    "description": "Check whether a task queue supports lease recovery."
+  },
+  {
+    "id": "@cat/core:packages/core/src/task-queue:LeaseRecoverableTaskQueue",
+    "stableKey": "@cat/core:packages/core/src/task-queue:LeaseRecoverableTaskQueue",
+    "name": "LeaseRecoverableTaskQueue",
+    "kind": "type",
+    "packageName": "@cat/core",
+    "filePath": "packages/core/src/task-queue.ts",
+    "line": 39,
+    "description": "Task queue interface that supports lease recovery."
+  },
+  {
     "id": "@cat/core:packages/core/src/task-queue:QueueTask",
     "stableKey": "@cat/core:packages/core/src/task-queue:QueueTask",
     "name": "QueueTask",
@@ -940,7 +960,7 @@
     "kind": "type",
     "packageName": "@cat/core",
     "filePath": "packages/core/src/task-queue.ts",
-    "line": 20,
+    "line": 22,
     "description": "Task queue interface — abstracts enqueue, dequeue, ack, and nack operations."
   },
   {
@@ -1407,6 +1427,46 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/agent/finish-agent-run.cmd.ts",
     "line": 19
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:createCrashRecoveryEventId",
+    "stableKey": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:createCrashRecoveryEventId",
+    "name": "createCrashRecoveryEventId",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd.ts",
+    "line": 56,
+    "description": "Generate a stable crash-recovery event ID for the given run."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:recoverCrashedAgentRuns",
+    "stableKey": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:recoverCrashedAgentRuns",
+    "name": "recoverCrashedAgentRuns",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd.ts",
+    "line": 81,
+    "description": "Converge persisted `running` runs not owned by the current process into `failed` and backfill a stable crash error event."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:RecoverCrashedAgentRunsCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:RecoverCrashedAgentRunsCommand",
+    "name": "RecoverCrashedAgentRunsCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd.ts",
+    "line": 36,
+    "description": "Input type for the crashed workflow recovery command."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:RecoverCrashedAgentRunsResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd:RecoverCrashedAgentRunsResult",
+    "name": "RecoverCrashedAgentRunsResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/agent/recover-crashed-agent-runs.cmd.ts",
+    "line": 44,
+    "description": "Result of crashed workflow recovery."
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/agent/save-agent-event.cmd:saveAgentEvent",
@@ -11421,8 +11481,8 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/register-vectorization-consumer.ts",
-    "line": 15,
-    "description": "Register the vectorization queue consumer. Event-driven + background startup recovery."
+    "line": 16,
+    "description": "Register the vectorization queue consumer and block on recoverable lease restoration before subscribing."
   },
   {
     "id": "@cat/operations:packages/operations/src/rerank/apply-band-order:applyBandOrder",
@@ -13824,6 +13884,16 @@
     "packageName": "@cat/server-shared",
     "filePath": "packages/server-shared/src/plugin.ts",
     "line": 106
+  },
+  {
+    "id": "@cat/server-shared:packages/server-shared/src/queue/redis-task-queue:RedisTaskQueueOptions",
+    "stableKey": "@cat/server-shared:packages/server-shared/src/queue/redis-task-queue:RedisTaskQueueOptions",
+    "name": "RedisTaskQueueOptions",
+    "kind": "type",
+    "packageName": "@cat/server-shared",
+    "filePath": "packages/server-shared/src/queue/redis-task-queue.ts",
+    "line": 17,
+    "description": "Optional configuration for the Redis task queue."
   },
   {
     "id": "@cat/server-shared:packages/server-shared/src/stream:hashFromReadable",
@@ -17694,7 +17764,7 @@
     "kind": "function",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/index.ts",
-    "line": 80
+    "line": 83
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/index:DefaultGraphRuntime",
@@ -17703,7 +17773,7 @@
     "kind": "type",
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/index.ts",
-    "line": 71
+    "line": 74
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/lease:LeaseManager",
@@ -17767,6 +17837,16 @@
     "packageName": "@cat/workflow",
     "filePath": "packages/workflow/src/graph/runtime-store.ts",
     "line": 25
+  },
+  {
+    "id": "@cat/workflow:packages/workflow/src/graph/runtime-store:getStoredGraphRuntimeOrNull",
+    "stableKey": "@cat/workflow:packages/workflow/src/graph/runtime-store:getStoredGraphRuntimeOrNull",
+    "name": "getStoredGraphRuntimeOrNull",
+    "kind": "function",
+    "packageName": "@cat/workflow",
+    "filePath": "packages/workflow/src/graph/runtime-store.ts",
+    "line": 40,
+    "description": "Get the global graph runtime, or return `null` when it has not been initialized yet."
   },
   {
     "id": "@cat/workflow:packages/workflow/src/graph/runtime-store:StoredGraphRuntime",

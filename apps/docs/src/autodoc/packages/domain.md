@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 354
+* **Modules**: 355
 
-* **Exported functions**: 384
+* **Exported functions**: 386
 
-* **Exported types**: 494
+* **Exported types**: 496
 
 ## Function Index
 
@@ -149,6 +149,36 @@ export const deleteAgentDefinition: Command<
  * Update AgentRun status to a terminal state and record completion time.
  */
 export const finishAgentRun: Command<FinishAgentRunCommand> = async (ctx: DbContext, command: { runId: string; status: "completed" | "failed" | "cancelled"; }) => {...}
+```
+
+### `createCrashRecoveryEventId`
+
+```ts
+/**
+ * Generate a stable crash-recovery event ID for the given run.
+ *
+ * @param runId - External ID of the agent run
+ *
+ * @returns Stable UUID v4 event ID
+ */
+export const createCrashRecoveryEventId = (runId: string): string
+```
+
+### `recoverCrashedAgentRuns`
+
+```ts
+/**
+ * Converge persisted `running` runs not owned by the current process into `failed` and backfill a stable crash error event.
+ *
+ * @param ctx - Command execution context
+ * @param command - Recovery input parameters
+ *
+ * @returns List of recovered run IDs
+ */
+export const recoverCrashedAgentRuns: Command<
+  RecoverCrashedAgentRunsCommand,
+  RecoverCrashedAgentRunsResult
+> = async (ctx: DbContext, command: { activeRunIds?: string[] | undefined; recoveredAt?: Date | undefined; reason?: string | undefined; }) => {...}
 ```
 
 ### `saveAgentEvent`
@@ -3936,6 +3966,10 @@ export const setupTestDB = async (): Promise<TestDB>
 * `DeleteAgentDefinitionCommand` (type)
 
 * `FinishAgentRunCommand` (type)
+
+* `RecoverCrashedAgentRunsCommand` (type) — Input type for the crashed workflow recovery command.
+
+* `RecoverCrashedAgentRunsResult` (type) — Result of crashed workflow recovery.
 
 * `SaveAgentEventCommand` (type)
 
