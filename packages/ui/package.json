@@ -24,15 +24,15 @@
     "clsx": "^2.1.1",
     "elkjs": "^0.11.1",
     "lucide-vue-next": "^1.0.0",
-    "tailwind-merge": "^3.5.0",
+    "tailwind-merge": "^3.6.0",
     "vee-validate": "^4.15.1"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.4",
+    "@tailwindcss/vite": "^4.3.0",
     "@tanstack/vue-table": "^8.21.3",
     "@types/node": "catalog:",
     "@vue/tsconfig": "^0.9.1",
-    "shadcn-vue": "^2.6.2",
+    "shadcn-vue": "^2.7.3",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
     "vue-tsc": "catalog:"

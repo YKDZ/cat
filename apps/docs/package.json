@@ -4,15 +4,15 @@
   "license": "GPL-3.0-only",
   "type": "module",
   "dependencies": {
-    "@tailwindcss/vite": "^4.2.4",
-    "tailwindcss": "^4.2.4"
+    "@tailwindcss/vite": "^4.3.0",
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.3",
     "@iconify/tailwind4": "^1.2.3",
-    "@mermaid-js/mermaid-zenuml": "^0.2.2",
+    "@mermaid-js/mermaid-zenuml": "^0.2.3",
     "@vueuse/core": "^14.3.0",
-    "mermaid": "^11.14.0",
+    "mermaid": "^11.15.0",
     "vitepress": "2.0.0-alpha.17",
     "vue": "catalog:",
     "vue-tsc": "catalog:"

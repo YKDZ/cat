@@ -35,4 +35,4 @@ catalog:
 
 linkWorkspacePackages: true
 
-syncInjectedDepsAfterScripts: [ "build" ]
+syncInjectedDepsAfterScripts: ["build"]

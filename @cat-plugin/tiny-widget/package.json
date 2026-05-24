@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "@cat/plugin-core": "workspace:*",
-    "@vitejs/plugin-vue": "^6.0.6",
+    "@vitejs/plugin-vue": "^6.0.7",
     "vite": "catalog:",
     "vue": "catalog:",
     "vue-tsc": "catalog:"

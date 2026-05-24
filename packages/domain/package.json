@@ -33,7 +33,7 @@
     "@types/pg": "^8.20.0",
     "drizzle-kit": "catalog:",
     "drizzle-orm": "catalog:",
-    "pg": "^8.20.0",
+    "pg": "^8.21.0",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
