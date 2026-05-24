@@ -12,7 +12,7 @@
     }
   },
   "dependencies": {
-    "pg": "^8.20.0"
+    "pg": "^8.21.0"
   },
   "devDependencies": {
     "@cat/domain": "workspace:*",
