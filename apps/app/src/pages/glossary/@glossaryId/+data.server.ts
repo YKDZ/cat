@@ -1,10 +1,6 @@
 import type { PageContextServer } from "vike/types";
 
-import {
-  executeQuery,
-  getGlossary,
-  listGlossaryProjectIds,
-} from "@cat/domain";
+import { executeQuery, getGlossary, listGlossaryProjectIds } from "@cat/domain";
 import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {

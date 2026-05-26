@@ -1,5 +1,4 @@
 import { createChangeset, executeCommand, type DbHandle } from "@cat/domain";
-
 import {
   ChangeSetService,
   getDefaultRegistries,
@@ -35,15 +34,12 @@ export const ensureBranchWriteContext = async (input: {
   branchId?: number;
   branchChangesetId?: number;
   branchProjectId?: string;
-}): Promise<
-  | {
-      mode: "isolation";
-      projectId: string;
-      branchId: number;
-      branchChangesetId: number;
-    }
-  | null
-> => {
+}): Promise<{
+  mode: "isolation";
+  projectId: string;
+  branchId: number;
+  branchChangesetId: number;
+} | null> => {
   if (input.branchId === undefined) {
     return null;
   }

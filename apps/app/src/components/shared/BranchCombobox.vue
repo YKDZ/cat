@@ -13,12 +13,15 @@ import {
 } from "@cat/ui";
 import { GitBranch } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
-import { navigate } from "vike/client/router";
 import { usePageContext } from "vike-vue/usePageContext";
+import { navigate } from "vike/client/router";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { buildEditorHref, parseEditorScopeFromRoute } from "@/pages/editor/scope-url";
+import {
+  buildEditorHref,
+  parseEditorScopeFromRoute,
+} from "@/pages/editor/scope-url";
 import {
   buildQaReviewHref,
   parseQaReviewScopeFromRoute,

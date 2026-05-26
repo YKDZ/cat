@@ -96,7 +96,8 @@ vi.mock("@/rpc/orpc", async () => {
   return {
     orpc: {
       memory: {
-        get: async (input: { memoryId: string }) => await mocks.getMemory(input),
+        get: async (input: { memoryId: string }) =>
+          await mocks.getMemory(input),
       },
       plugin: {
         getTranslationAdvisor: vi.fn(async () => ({ id: 1, name: "Advisor" })),

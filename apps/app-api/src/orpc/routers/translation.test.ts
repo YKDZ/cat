@@ -1,3 +1,5 @@
+import type { SerializableType } from "@cat/shared";
+
 import {
   addChangesetEntry,
   createChangeset,
@@ -13,7 +15,6 @@ import {
   executeCommand,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import type { SerializableType } from "@cat/shared";
 import {
   createAuthedTestContext,
   setupTestDB,
@@ -96,9 +97,9 @@ vi.mock("@cat/workflow/tasks", async () => {
 });
 
 vi.mock("@/utils/vcs-route-helper", async () => {
-  const actual = await vi.importActual<typeof import("@/utils/vcs-route-helper")>(
-    "@/utils/vcs-route-helper",
-  );
+  const actual = await vi.importActual<
+    typeof import("@/utils/vcs-route-helper")
+  >("@/utils/vcs-route-helper");
 
   return {
     ...actual,

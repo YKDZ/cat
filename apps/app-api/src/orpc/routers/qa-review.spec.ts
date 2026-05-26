@@ -43,9 +43,9 @@ vi.mock("@cat/shared", async () => {
 });
 
 vi.mock("@/utils/vcs-route-helper", async () => {
-  const actual = await vi.importActual<typeof import("@/utils/vcs-route-helper")>(
-    "@/utils/vcs-route-helper",
-  );
+  const actual = await vi.importActual<
+    typeof import("@/utils/vcs-route-helper")
+  >("@/utils/vcs-route-helper");
 
   return {
     ...actual,

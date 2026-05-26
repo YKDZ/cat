@@ -52,17 +52,21 @@ export type ProjectPageDataError = {
  * @zh 带项目 Shell 的项目子页 data 返回值。
  * @en Project child page data with project shell data attached.
  */
-export type ProjectShellPageData<T extends Record<string, unknown>> =
-  Partial<SanitizedProjectPageData<T>> & {
-    projectShell: ProjectShellData;
-    pageError: ProjectPageDataError | null;
-  };
+export type ProjectShellPageData<T extends Record<string, unknown>> = Partial<
+  SanitizedProjectPageData<T>
+> & {
+  projectShell: ProjectShellData;
+  pageError: ProjectPageDataError | null;
+};
 
 const sanitizeProjectPageData = <T extends Record<string, unknown>>(
   pageData: T,
 ): SanitizedProjectPageData<T> => {
-  const { projectShell: _projectShell, pageError: _pageError, ...rest } =
-    pageData;
+  const {
+    projectShell: _projectShell,
+    pageError: _pageError,
+    ...rest
+  } = pageData;
 
   return rest;
 };

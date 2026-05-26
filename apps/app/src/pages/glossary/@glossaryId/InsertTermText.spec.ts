@@ -16,7 +16,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@cat/ui", async () => {
   const button = defineComponent({
     inheritAttrs: false,
-    template: "<button v-bind=\"$attrs\"><slot /></button>",
+    template: '<button v-bind="$attrs"><slot /></button>',
   });
   const textarea = defineComponent({
     inheritAttrs: false,

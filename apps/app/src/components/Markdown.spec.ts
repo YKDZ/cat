@@ -1,6 +1,6 @@
-import { renderToString } from "vue/server-renderer";
 import { describe, expect, it } from "vitest";
 import { h } from "vue";
+import { renderToString } from "vue/server-renderer";
 
 import Markdown from "./Markdown.vue";
 
