@@ -88,6 +88,7 @@ export const useEditorElementStore = defineStore("editorElement", () => {
     return await orpc.element.getTranslationStatus({
       elementId,
       languageId: context.languageToId.value,
+      branchId: context.scope.value?.branchId,
     });
   };
 

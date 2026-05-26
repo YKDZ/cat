@@ -8,7 +8,7 @@ import type { Context } from "@/utils/context";
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 const opMocks = vi.hoisted(() => ({
-  collectMemoryRecallOp: vi.fn(),
+  collectEffectiveMemoryRecallOp: vi.fn(),
   termRecallOp: vi.fn(),
   llmTranslateOp: vi.fn(),
 }));
@@ -40,7 +40,7 @@ vi.mock("@cat/operations", async () => {
     await vi.importActual<typeof import("@cat/operations")>("@cat/operations");
   return {
     ...actual,
-    collectMemoryRecallOp: opMocks.collectMemoryRecallOp,
+    collectEffectiveMemoryRecallOp: opMocks.collectEffectiveMemoryRecallOp,
     termRecallOp: opMocks.termRecallOp,
     llmTranslateOp: opMocks.llmTranslateOp,
   };
@@ -75,7 +75,7 @@ import { executeQuery } from "@cat/domain";
 import {
   findOpenAutoTranslatePR,
   getElementWithChunkIds,
-  listMemoryIdsByProject,
+  listEffectiveMemoryIdsByProject,
   listProjectGlossaryIds,
 } from "@cat/domain";
 
@@ -161,11 +161,16 @@ describe("suggestion.onNew", () => {
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
       if (query === getElementWithChunkIds) return MOCK_ELEMENT;
       if (query === listProjectGlossaryIds) return [];
-      if (query === listMemoryIdsByProject) return [];
+      if (query === listEffectiveMemoryIdsByProject)
+        return {
+          projectMemoryIds: [],
+          personalMemoryIds: [],
+          allMemoryIds: [],
+        };
       return []; // listNeighborElements fallback
     });
 
-    opMocks.collectMemoryRecallOp.mockResolvedValue([]);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue([]);
     opMocks.termRecallOp.mockResolvedValue({ terms: [] });
     opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
   });
@@ -250,12 +255,16 @@ describe("suggestion.onNew", () => {
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
       if (query === getElementWithChunkIds) return MOCK_ELEMENT;
       if (query === listProjectGlossaryIds) return [];
-      if (query === listMemoryIdsByProject)
-        return ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"];
+      if (query === listEffectiveMemoryIdsByProject)
+        return {
+          projectMemoryIds: ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+          personalMemoryIds: [],
+          allMemoryIds: ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+        };
       return [];
     });
 
-    opMocks.collectMemoryRecallOp.mockResolvedValue([memory]);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue([memory]);
     opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
 
     const stream = await call(

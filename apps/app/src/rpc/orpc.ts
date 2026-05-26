@@ -4,7 +4,6 @@ import type { RouterClient } from "@orpc/server";
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 
-import { useBranchStore } from "@/stores/branch";
 import { clientLogger as logger } from "@/utils/logger";
 
 const getCsrfToken = (): string | undefined => {
@@ -21,12 +20,8 @@ const link = new RPCLink({
   url: new URL("/api/rpc", rpcOrigin),
   headers: () => {
     const csrfToken = getCsrfToken();
-    const branchStore = useBranchStore();
     const headers: Record<string, string> = {};
     if (csrfToken) headers["x-csrf-token"] = csrfToken;
-    if (branchStore.currentBranchId !== null) {
-      headers["x-branch-id"] = String(branchStore.currentBranchId);
-    }
     return headers;
   },
   interceptors: [

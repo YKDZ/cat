@@ -13,9 +13,16 @@ import {
 } from "@cat/ui";
 import { GitBranch } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
+import { navigate } from "vike/client/router";
+import { usePageContext } from "vike-vue/usePageContext";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { buildEditorHref, parseEditorScopeFromRoute } from "@/pages/editor/scope-url";
+import {
+  buildQaReviewHref,
+  parseQaReviewScopeFromRoute,
+} from "@/pages/qa-review/scope-url";
 import { orpc } from "@/rpc/orpc";
 import { useBranchStore } from "@/stores/branch";
 
@@ -24,9 +31,54 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const ctx = usePageContext();
 const branchStore = useBranchStore();
 
 const searchTerm = ref("");
+
+const resolveWorkbenchTarget = () => {
+  const value = ctx.routeParams.elementId;
+  if (value === "auto" || value === "empty") return value;
+
+  const parsed = Number.parseInt(String(value ?? "auto"), 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : null;
+};
+
+const syncBranchToWorkbenchRoute = async (branchId: number | undefined) => {
+  if (import.meta.env.SSR) return;
+  if (ctx.routeParams.projectId !== props.projectId) return;
+
+  const languageToId = ctx.routeParams.languageToId;
+  const target = resolveWorkbenchTarget();
+  if (typeof languageToId !== "string" || target === null) return;
+
+  const searchParams = new URLSearchParams(ctx.urlParsed.searchOriginal ?? "");
+
+  if (ctx.urlPathname.startsWith("/editor/project/")) {
+    const scope = parseEditorScopeFromRoute({
+      projectId: props.projectId,
+      languageToId,
+      searchParams,
+    });
+
+    if ((scope.branchId ?? undefined) === branchId) return;
+
+    await navigate(buildEditorHref({ ...scope, branchId }, target));
+    return;
+  }
+
+  if (ctx.urlPathname.startsWith("/qa-review/project/")) {
+    const scope = parseQaReviewScopeFromRoute({
+      projectId: props.projectId,
+      languageToId,
+      searchParams,
+    });
+
+    if ((scope.branchId ?? undefined) === branchId) return;
+
+    await navigate(buildQaReviewHref({ ...scope, branchId }, target));
+  }
+};
 
 // Fetch OPEN + DRAFT PRs for the branch list
 const { state: prsState } = useQuery({
@@ -60,46 +112,76 @@ const filteredPrs = computed(() => {
 });
 
 watch(
-  [() => branchStore.currentBranchId, prs],
-  ([branchId, availablePrs]) => {
-    if (branchId === null) return;
-
-    const matchedPr = availablePrs.find((pr) => pr.branchId === branchId);
-    if (!matchedPr) return;
-    if (
-      branchStore.currentPRId === matchedPr.id &&
-      branchStore.currentPRNumber === matchedPr.number &&
-      branchStore.currentBranchName
-    ) {
-      return;
-    }
-
-    branchStore.enterBranch(
-      matchedPr.branchId,
-      matchedPr.id,
-      matchedPr.number,
-      `pr-${matchedPr.number}`,
-    );
+  () => props.projectId,
+  (projectId) => {
+    if (branchStore.currentProjectId === projectId) return;
+    branchStore.restoreProjectBranch({ projectId, branchIdFromRoute: null });
   },
   { immediate: true },
 );
 
+const hasLoadedPrs = computed(() => prsState.value.status === "success");
+
+watch(
+  [
+    () => branchStore.currentProjectId,
+    () => branchStore.currentBranchId,
+    prs,
+    hasLoadedPrs,
+  ],
+  ([projectId, branchId, availablePrs, loaded]) => {
+    if (projectId !== props.projectId || branchId === null) return;
+
+    const matchedPr = availablePrs.find((pr) => pr.branchId === branchId);
+    if (matchedPr) {
+      branchStore.enterBranch({
+        projectId: props.projectId,
+        branchId: matchedPr.branchId,
+        prId: matchedPr.id,
+        prNumber: matchedPr.number,
+        branchName: `pr-${matchedPr.number}`,
+      });
+      return;
+    }
+
+    if (loaded) {
+      branchStore.markStale(props.projectId);
+    }
+  },
+  { immediate: true },
+);
+
+watch(
+  [() => branchStore.currentProjectId, () => branchStore.currentBranchId],
+  ([projectId, branchId]) => {
+    if (projectId !== props.projectId) return;
+    void syncBranchToWorkbenchRoute(branchId ?? undefined);
+  },
+);
+
 const displayName = computed(() => {
-  if (branchStore.isOnMainBranch) return "main";
+  if (branchStore.currentProjectId !== props.projectId) return t("main");
+  if (branchStore.isOnMainBranch) return t("main");
   return (
     branchStore.currentBranchName ??
     (branchStore.currentBranchId !== null
       ? `branch-${branchStore.currentBranchId}`
-      : "main")
+      : t("main"))
   );
 });
 
 const handleSelect = (pr: PullRequest) => {
-  branchStore.enterBranch(pr.branchId, pr.id, pr.number, `pr-${pr.number}`);
+  branchStore.enterBranch({
+    projectId: props.projectId,
+    branchId: pr.branchId,
+    prId: pr.id,
+    prNumber: pr.number,
+    branchName: `pr-${pr.number}`,
+  });
 };
 
 const handleSelectMain = () => {
-  branchStore.leaveBranch();
+  branchStore.leaveBranch(props.projectId);
 };
 </script>
 
@@ -109,8 +191,17 @@ const handleSelectMain = () => {
       <ComboboxTrigger as-child>
         <Button variant="outline" size="sm">
           <GitBranch class="size-3.5 text-muted-foreground" />
-          <span class="max-w-32 truncate">{{ displayName }}</span></Button
-        >
+          <span class="max-w-32 truncate">{{ displayName }}</span>
+          <span
+            v-if="
+              branchStore.currentProjectId === props.projectId &&
+              branchStore.validationStatus === 'pending'
+            "
+            class="text-xs text-muted-foreground"
+          >
+            {{ t("加载中") }}
+          </span>
+        </Button>
       </ComboboxTrigger>
     </ComboboxAnchor>
     <ComboboxList class="w-64">

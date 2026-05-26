@@ -1,26 +1,14 @@
 import type { PageContextServer } from "vike/types";
 
-import { render } from "vike/abort";
-
-import { ssc } from "@/server/ssc";
+import { loadProjectShell } from "./project-shell.server";
 
 export const data = async (ctx: PageContextServer) => {
-  const { projectId } = ctx.routeParams;
+  const projectShell = await loadProjectShell(ctx);
 
-  if (!projectId) throw render(`/`, `Project id is required`);
-
-  const project = await ssc(ctx).project.get({ projectId });
-  const targetLanguages = await ssc(ctx).project.getTargetLanguages({
-    projectId,
-  });
-  const contentNodes = await ssc(ctx).project.listContentNodes({
-    projectId,
-  });
-
-  if (!project)
-    throw render("/project", `Project ${projectId} does not exists`);
-
-  return { project, targetLanguages, contentNodes };
+  return {
+    ...projectShell,
+    projectShell,
+  };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

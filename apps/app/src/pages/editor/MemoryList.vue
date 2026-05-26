@@ -11,7 +11,7 @@ import MemoryListItem from "./MemoryListItem.vue";
 
 const { t } = useI18n();
 
-const { memories } = storeToRefs(useEditorMemoryStore());
+const { memories, error } = storeToRefs(useEditorMemoryStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subMemories, unsubscribe } = useEditorMemoryStore();
 const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
@@ -31,6 +31,9 @@ watchClientThrottled(editorMemoryMinConfidence, subMemories);
 </script>
 
 <template>
+  <div v-if="error" class="px-3 py-2 text-sm text-destructive">
+    {{ t("辅助信息加载失败") }}
+  </div>
   <MemoryListItem
     v-for="(memory, index) in memories"
     :key="memory.id"

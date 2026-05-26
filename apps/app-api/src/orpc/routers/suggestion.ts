@@ -1,12 +1,12 @@
 import {
   executeQuery,
   getElementWithChunkIds,
-  listMemoryIdsByProject,
+  listEffectiveMemoryIdsByProject,
   listMemoryItemIdsByElement,
   listProjectGlossaryIds,
 } from "@cat/domain";
 import {
-  collectMemoryRecallOp,
+  collectEffectiveMemoryRecallOp,
   createSuggestionCollector,
   llmTranslateOp,
   nlpSegmentOp,
@@ -30,6 +30,26 @@ import {
 import * as z from "zod";
 
 import { authed, checkElementPermission } from "@/orpc/server";
+
+type EffectiveMemoryIds = {
+  projectMemoryIds: string[];
+  personalMemoryIds: string[];
+  allMemoryIds: string[];
+};
+
+const normalizeEffectiveMemoryIds = (
+  input: EffectiveMemoryIds | string[],
+): EffectiveMemoryIds => {
+  if (Array.isArray(input)) {
+    return {
+      projectMemoryIds: input,
+      personalMemoryIds: [],
+      allMemoryIds: input,
+    };
+  }
+
+  return input;
+};
 
 export const onNew = authed
   .input(
@@ -74,14 +94,22 @@ export const onNew = authed
       throw new Error(`Element with ID ${elementId} not found`);
     }
 
-    const [glossaryIds, memoryIds] = await Promise.all([
+    const [glossaryIds, effectiveMemoryIdsRaw] = await Promise.all([
       executeQuery({ db: drizzle }, listProjectGlossaryIds, {
         projectId: element.projectId,
       }),
-      executeQuery({ db: drizzle }, listMemoryIdsByProject, {
+      executeQuery({ db: drizzle }, listEffectiveMemoryIdsByProject, {
         projectId: element.projectId,
+        userId: context.user.id,
       }),
     ]);
+
+    const effectiveMemoryIds = normalizeEffectiveMemoryIds(
+      effectiveMemoryIdsRaw,
+    );
+
+    const { projectMemoryIds, personalMemoryIds, allMemoryIds } =
+      effectiveMemoryIds;
 
     // ── Query memory item IDs for self-exclusion ──────────────────────
     const excludeMemoryItemIds = await executeQuery(
@@ -115,13 +143,14 @@ export const onNew = authed
 
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
     const [recalledMemories, termContext] = await Promise.all([
-      memoryIds.length > 0
-        ? collectMemoryRecallOp(
+      allMemoryIds.length > 0
+        ? collectEffectiveMemoryRecallOp(
             {
               text: element.value,
               sourceLanguageId: element.languageId,
               translationLanguageId: languageId,
-              memoryIds,
+              projectMemoryIds,
+              personalMemoryIds,
               chunkIds: element.chunkIds,
               excludeMemoryItemIds,
               sourceNlpTokens,
@@ -252,7 +281,7 @@ export const onNew = authed
         {
           text: element.value,
           glossaryIds,
-          memoryIds,
+          memoryIds: allMemoryIds,
           advisorId: advisor.dbId,
           sourceLanguageId: element.languageId,
           translationLanguageId: languageId,

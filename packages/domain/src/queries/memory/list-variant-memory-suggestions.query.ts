@@ -67,6 +67,7 @@ export const listVariantMemorySuggestions: Query<
 
   const baseSelection = {
     id: memoryItem.id,
+    translationId: memoryItem.translationId,
     memoryId: memoryItem.memoryId,
     creatorId: memoryItem.creatorId,
     createdAt: memoryItem.createdAt,

@@ -7,15 +7,29 @@ import IndexSidebar from "@/components/IndexSidebar.vue";
 import { useInjectionKey } from "@/utils/provide.ts";
 
 import type { Data } from "./+data.server.ts";
+import type {
+  ProjectShellData,
+  ProjectShellPageData,
+} from "./project-shell.server";
 
 import Header from "./Header.vue";
 import Navbar from "./Navbar.vue";
 
-const { project, targetLanguages, contentNodes } = useData<Data>();
+type ProjectLayoutData =
+  | Data
+  | ProjectShellPageData<Record<string, unknown>>
+  | ProjectShellData;
 
-provide(useInjectionKey<Data>()("project"), project);
-provide(useInjectionKey<Data>()("targetLanguages"), targetLanguages);
-provide(useInjectionKey<Data>()("contentNodes"), contentNodes);
+const data = useData<ProjectLayoutData>();
+const projectShell = "projectShell" in data ? data.projectShell : data;
+const { project, targetLanguages, contentNodes } = projectShell;
+
+provide(useInjectionKey<ProjectShellData>()("project"), project);
+provide(
+  useInjectionKey<ProjectShellData>()("targetLanguages"),
+  targetLanguages,
+);
+provide(useInjectionKey<ProjectShellData>()("contentNodes"), contentNodes);
 </script>
 
 <template>

@@ -26,8 +26,11 @@ export type ListMemorySuggestionsByChunkIdsQuery = z.infer<
 
 export type MemorySuggestionCandidateRow = {
   id: number;
+  translationId: number | null;
   source: string;
   translation: string;
+  sourceTemplate: string | null;
+  translationTemplate: string | null;
   sourceChunkSetId: number | null;
   translationChunkSetId: number | null;
   memoryId: string;
@@ -58,8 +61,11 @@ export const listMemorySuggestionsByChunkIds: Query<
   const sourceItemsQuery = ctx.db
     .select({
       id: memoryItem.id,
+      translationId: memoryItem.translationId,
       source: sourceString.value,
       translation: translationString.value,
+      sourceTemplate: memoryItem.sourceTemplate,
+      translationTemplate: memoryItem.translationTemplate,
       sourceChunkSetId: sourceString.chunkSetId,
       translationChunkSetId: translationString.chunkSetId,
       memoryId: memoryItem.memoryId,
@@ -91,8 +97,11 @@ export const listMemorySuggestionsByChunkIds: Query<
   const translationItemsQuery = ctx.db
     .select({
       id: memoryItem.id,
+      translationId: memoryItem.translationId,
       source: sourceString.value,
       translation: translationString.value,
+      sourceTemplate: memoryItem.sourceTemplate,
+      translationTemplate: memoryItem.translationTemplate,
       sourceChunkSetId: sourceString.chunkSetId,
       translationChunkSetId: translationString.chunkSetId,
       memoryId: memoryItem.memoryId,
@@ -127,8 +136,11 @@ export const listMemorySuggestionsByChunkIds: Query<
   const reversedSourceItemsQuery = ctx.db
     .select({
       id: memoryItem.id,
+      translationId: memoryItem.translationId,
       source: translationString.value,
       translation: sourceString.value,
+      sourceTemplate: memoryItem.sourceTemplate,
+      translationTemplate: memoryItem.translationTemplate,
       sourceChunkSetId: translationString.chunkSetId,
       translationChunkSetId: sourceString.chunkSetId,
       memoryId: memoryItem.memoryId,
@@ -160,8 +172,11 @@ export const listMemorySuggestionsByChunkIds: Query<
   const reversedTranslationItemsQuery = ctx.db
     .select({
       id: memoryItem.id,
+      translationId: memoryItem.translationId,
       source: translationString.value,
       translation: sourceString.value,
+      sourceTemplate: memoryItem.sourceTemplate,
+      translationTemplate: memoryItem.translationTemplate,
       sourceChunkSetId: translationString.chunkSetId,
       translationChunkSetId: sourceString.chunkSetId,
       memoryId: memoryItem.memoryId,

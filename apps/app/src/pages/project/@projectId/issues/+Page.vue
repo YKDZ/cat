@@ -14,8 +14,15 @@ import { orpc } from "@/rpc/orpc";
 
 import type { Data } from "./+data.ts";
 
+import ProjectPageDataError from "../ProjectPageDataError.vue";
+
 const { t } = useI18n();
-const { projectId } = useData<Data>();
+const data = useData<Data>();
+const pageError = computed(() => data.pageError);
+const projectId = computed(
+  () => data.projectId ?? data.projectShell.project.id,
+);
+const initialIssues = computed(() => data.issues ?? []);
 
 const PAGE_SIZE = 30;
 const activeTab = ref<IssueStatus | "">("");
@@ -23,7 +30,7 @@ const searchQuery = ref("");
 const page = ref(0);
 
 const queryParams = computed(() => ({
-  projectId,
+  projectId: projectId.value,
   status: (activeTab.value || undefined) as IssueStatus | undefined,
   search: searchQuery.value || undefined,
   limit: PAGE_SIZE,
@@ -33,7 +40,7 @@ const queryParams = computed(() => ({
 const { state } = useQuery({
   key: () => [
     "issues",
-    projectId,
+    projectId.value,
     activeTab.value,
     searchQuery.value,
     page.value,
@@ -43,7 +50,7 @@ const { state } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-const issues = computed(() => state.value.data ?? []);
+const issues = computed(() => state.value.data ?? initialIssues.value);
 const hasMore = computed(() => issues.value.length >= PAGE_SIZE);
 
 const setTab = (tab: IssueStatus | "") => {
@@ -58,7 +65,8 @@ const debouncedSearch = useDebounceFn((val: string) => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <ProjectPageDataError v-if="pageError" :message="pageError.message" />
+  <div v-else class="space-y-4">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h1 class="text-lg font-semibold">{{ t("议题") }}</h1>

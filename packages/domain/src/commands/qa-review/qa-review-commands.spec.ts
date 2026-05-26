@@ -26,6 +26,7 @@ import {
   markQaReviewSuggestionApplied,
   materializeQaReviewQueueItem,
   rejectQaReviewSuggestion,
+  submitQaReviewAction,
   submitQaReviewDecision,
   transitionQaReviewAnnotation,
 } from "@/commands";
@@ -226,7 +227,7 @@ afterAll(async () => {
 });
 
 describe("qa review commands", () => {
-  it("keeps claimed queue items claimed across re-materialization and supersedes older translations", async () => {
+  it("keeps claimed queue items claimed across re-materialization without superseding sibling candidates", async () => {
     const target = await seedReviewTarget("claim-supersede");
     const firstQueue = await createQueue({
       projectId: target.project.id,
@@ -288,10 +289,149 @@ describe("qa review commands", () => {
     const oldQueue = await getQueueItem(firstQueue.queueItemId);
     const newQueue = await getQueueItem(secondQueue.queueItemId);
 
-    expect(oldQueue.status).toBe("SUPERSEDED");
-    expect(oldQueue.supersededByTranslationId).toBe(replacementTranslationId);
+    expect(oldQueue.status).not.toBe("SUPERSEDED");
+    expect(oldQueue.supersededByTranslationId).toBeNull();
     expect(newQueue.id).not.toBe(oldQueue.id);
     expect(newQueue.translationId).toBe(replacementTranslationId);
+    expect(newQueue.status).not.toBe("SUPERSEDED");
+  });
+
+  it("keeps sibling candidates visible until one candidate is approved", async () => {
+    const target = await seedReviewTarget("element-candidates");
+    const firstQueue = await createQueue({
+      projectId: target.project.id,
+      elementId: target.elementId,
+      translationId: target.translationId,
+      findings: [buildFinding({ riskScore: 45 })],
+    });
+    const replacementStringId = await insertString(
+      "element-candidates 替换译文",
+      "zh-Hans",
+    );
+    const [replacementTranslationId] = await executeCommand(
+      { db: testDb.client },
+      createTranslations,
+      {
+        data: [
+          {
+            translatableElementId: target.elementId,
+            translatorId: creatorId,
+            stringId: replacementStringId,
+          },
+        ],
+      },
+    );
+    const secondQueue = await createQueue({
+      projectId: target.project.id,
+      elementId: target.elementId,
+      translationId: replacementTranslationId,
+      findings: [buildFinding({ riskScore: 70 })],
+    });
+
+    expect((await getQueueItem(firstQueue.queueItemId)).status).not.toBe(
+      "SUPERSEDED",
+    );
+    expect((await getQueueItem(secondQueue.queueItemId)).status).not.toBe(
+      "SUPERSEDED",
+    );
+
+    const secondQueueRow = await getQueueItem(secondQueue.queueItemId);
+    const result = await executeCommand(
+      { db: testDb.client },
+      submitQaReviewAction,
+      {
+        projectId: target.project.id,
+        languageId: "zh-Hans",
+        elementId: target.elementId,
+        translationId: replacementTranslationId,
+        queueItemId: secondQueue.queueItemId,
+        action: "APPROVE",
+        expectedVersion: secondQueueRow.optimisticVersion,
+        noteBody: "Approve replacement",
+        overrideBlocking: false,
+        reviewerId: reviewerAId,
+      },
+    );
+
+    expect(result.queueStatus).toBe("RESOLVED");
+    expect(result.annotationId).toEqual(expect.any(Number));
+    expect(result.approvedTranslationId).toBe(replacementTranslationId);
+    expect(result.affectedSiblingQueueItemIds).toContain(
+      firstQueue.queueItemId,
+    );
+    expect((await getQueueItem(firstQueue.queueItemId)).status).toBe(
+      "SUPERSEDED",
+    );
+  });
+
+  it("rejects and defers without changing the approved translation", async () => {
+    const target = await seedReviewTarget("reject-defer");
+    const rejectedQueue = await createQueue({
+      projectId: target.project.id,
+      elementId: target.elementId,
+      translationId: target.translationId,
+      findings: [buildFinding()],
+    });
+    const initial = await getQueueItem(rejectedQueue.queueItemId);
+
+    const rejected = await executeCommand(
+      { db: testDb.client },
+      submitQaReviewAction,
+      {
+        projectId: target.project.id,
+        languageId: "zh-Hans",
+        elementId: target.elementId,
+        translationId: target.translationId,
+        queueItemId: rejectedQueue.queueItemId,
+        action: "REJECT_CANDIDATE",
+        expectedVersion: initial.optimisticVersion,
+        overrideBlocking: false,
+        reviewerId: reviewerAId,
+      },
+    );
+    expect(rejected.approvedTranslationId).toBeNull();
+    expect((await getQueueItem(rejectedQueue.queueItemId)).status).toBe(
+      "RESOLVED",
+    );
+
+    const deferredStringId = await insertString(
+      "reject-defer 延后译文",
+      "zh-Hans",
+    );
+    const [deferredTranslationId] = await executeCommand(
+      { db: testDb.client },
+      createTranslations,
+      {
+        data: [
+          {
+            translatableElementId: target.elementId,
+            translatorId: creatorId,
+            stringId: deferredStringId,
+          },
+        ],
+      },
+    );
+    const deferredQueue = await createQueue({
+      projectId: target.project.id,
+      elementId: target.elementId,
+      translationId: deferredTranslationId,
+      findings: [buildFinding({ riskScore: 55, message: "defer candidate" })],
+    });
+    const refreshed = await getQueueItem(deferredQueue.queueItemId);
+    await executeCommand({ db: testDb.client }, submitQaReviewAction, {
+      projectId: target.project.id,
+      languageId: "zh-Hans",
+      elementId: target.elementId,
+      translationId: deferredTranslationId,
+      queueItemId: deferredQueue.queueItemId,
+      action: "DEFER",
+      expectedVersion: refreshed.optimisticVersion,
+      overrideBlocking: false,
+      reviewerId: reviewerAId,
+    });
+    expect((await getQueueItem(deferredQueue.queueItemId)).status).not.toBe(
+      "SUPERSEDED",
+    );
   });
 
   it("transitions annotations and enforces suggestion lifecycle conflicts", async () => {

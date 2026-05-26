@@ -52,6 +52,18 @@ export const createMemoryItems: Command<
         slotMapping: item.slotMapping,
       })),
     )
+    .onConflictDoUpdate({
+      target: [memoryItem.memoryId, memoryItem.translationId],
+      set: {
+        translationStringId: memoryItem.translationStringId,
+        sourceStringId: memoryItem.sourceStringId,
+        creatorId: memoryItem.creatorId,
+        sourceTemplate: memoryItem.sourceTemplate,
+        translationTemplate: memoryItem.translationTemplate,
+        slotMapping: memoryItem.slotMapping,
+        updatedAt: new Date(),
+      },
+    })
     .returning({
       id: memoryItem.id,
       translationId: memoryItem.translationId,

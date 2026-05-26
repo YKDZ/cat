@@ -701,3 +701,20 @@ export type RecallVariantType = (typeof RecallVariantTypeValues)[number];
 export const RecallQuerySideValues = ["SOURCE", "TRANSLATION"] as const;
 export const RecallQuerySideSchema = z.enum(RecallQuerySideValues);
 export type RecallQuerySide = (typeof RecallQuerySideValues)[number];
+
+export const MemoryScopeValues = ["PROJECT", "PERSONAL"] as const;
+export const MemoryScopeSchema = z.enum(MemoryScopeValues);
+export type MemoryScope = (typeof MemoryScopeValues)[number];
+
+export const MemoryPromotionStatusValues = [
+  "PENDING",
+  "PROMOTED",
+  "NO_PROJECT_MEMORY_TARGET",
+] as const;
+export const MemoryPromotionStatusSchema = z.enum(MemoryPromotionStatusValues);
+export type MemoryPromotionStatus =
+  (typeof MemoryPromotionStatusValues)[number];
+
+export const MemoryDeletionScopeValues = ["PROJECT", "PERSONAL"] as const;
+export const MemoryDeletionScopeSchema = z.enum(MemoryDeletionScopeValues);
+export type MemoryDeletionScope = (typeof MemoryDeletionScopeValues)[number];

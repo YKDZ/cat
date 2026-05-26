@@ -82,6 +82,7 @@
     "dompurify": "^3.4.5",
     "dotenv": "^17.4.2",
     "hono": "^4.12.22",
+    "isomorphic-dompurify": "^3.14.0",
     "marked": "^18.0.4",
     "partysocket": "^1.1.19",
     "pinia": "^3.0.4",

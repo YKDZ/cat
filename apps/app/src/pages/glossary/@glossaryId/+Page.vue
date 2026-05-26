@@ -16,6 +16,7 @@ import PairTable from "./PairTable.vue";
 
 const { t } = useI18n();
 const glossary = inject(useInjectionKey<Data>()("glossary"))!;
+const glossaryProjectIds = inject(useInjectionKey<Data>()("glossaryProjectIds"))!;
 const currentView = ref<"pairs" | "concepts">("pairs"); // 默认显示pair模式
 </script>
 
@@ -40,7 +41,7 @@ const currentView = ref<"pairs" | "concepts">("pairs"); // 默认显示pair模�
       </div>
       <div class="flex gap-2">
         <InsertConceptSubjectBtn :glossary-id="glossary.id" />
-        <InsertTermBtn :glossary-id="glossary.id" />
+        <InsertTermBtn :glossary-id="glossary.id" :glossary-project-ids="glossaryProjectIds" />
         <InsertConceptBtn :glossary-id="glossary.id" />
       </div>
     </div>

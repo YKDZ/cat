@@ -39,7 +39,10 @@ import {
   checkContentNodePermission,
   checkPermission,
 } from "@/orpc/server";
-import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
+import {
+  createVCSRouteHelper,
+  ensureBranchWriteContext,
+} from "@/utils/vcs-route-helper";
 
 const toJSONType = (value: unknown): JSONType =>
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- VCS payloads must cross a JSON serialization boundary before being stored in changesets
@@ -190,16 +193,7 @@ export const finishCreateFromFile = authed
     }
 
     // Isolation write: record file content-node creation in branch changeset
-    if (
-      context.branchId !== undefined &&
-      context.branchChangesetId !== undefined
-    ) {
-      if (context.branchProjectId === undefined) {
-        throw new Error(
-          "branchProjectId missing when branch context is active",
-        );
-      }
-
+    if (context.branchId !== undefined) {
       const rootNode = await executeQuery(
         { db: drizzle },
         getProjectRootContentNode,
@@ -225,18 +219,24 @@ export const finishCreateFromFile = authed
         });
       }
 
+      const branchWriteContext = await ensureBranchWriteContext({
+        drizzle,
+        branchId: context.branchId,
+        branchChangesetId: context.branchChangesetId,
+        branchProjectId: context.branchProjectId,
+      });
+
+      if (!branchWriteContext) {
+        throw new Error("branch write context missing for file import");
+      }
+
       const { middleware } = createVCSRouteHelper(drizzle);
       const timestamp = new Date().toISOString();
       const entityId = randomUUID();
       const relationId = randomUUID();
 
       await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
+        branchWriteContext,
         "content_node",
         entityId,
         "CREATE",
@@ -270,12 +270,7 @@ export const finishCreateFromFile = authed
       );
 
       await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
+        branchWriteContext,
         "content_relation",
         relationId,
         "CREATE",

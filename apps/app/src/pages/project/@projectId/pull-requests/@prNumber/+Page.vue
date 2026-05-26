@@ -20,7 +20,7 @@ import {
 } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
 import { useData } from "vike-vue/useData";
-import { computed, onBeforeUnmount, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -36,44 +36,56 @@ import { useBranchStore } from "@/stores/branch";
 
 import type { Data } from "./+data.ts";
 
+import ProjectPageDataError from "../../ProjectPageDataError.vue";
+
 const { t } = useI18n();
 const data = useData<Data>();
-const { projectId } = data;
+const pageError = computed(() => data.pageError);
+const projectId = computed(
+  () => data.projectId ?? data.projectShell.project.id,
+);
 
 // ─── PR State ───
 
-const prData = ref(data.pr);
+const prData = ref(data.pr ?? null);
 const branchStore = useBranchStore();
+const currentPrId = computed(() => prData.value?.id ?? null);
 
 watch(
   () => data.pr,
   (currentPr) => {
+    if (!currentPr) return;
+
     prData.value = currentPr;
     if (
       currentPr &&
       !["MERGED", "CLOSED"].includes(currentPr.status) &&
       currentPr.branchId !== null
     ) {
-      branchStore.enterBranch(
-        currentPr.branchId,
-        currentPr.id,
-        currentPr.number,
-        `pr-${currentPr.number}`,
-      );
+      branchStore.enterBranch({
+        projectId: projectId.value,
+        branchId: currentPr.branchId,
+        prId: currentPr.id,
+        prNumber: currentPr.number,
+        branchName: `pr-${currentPr.number}`,
+      });
     }
   },
   { immediate: true },
 );
-
-onBeforeUnmount(() => {
-  branchStore.leaveBranch();
-});
 
 const activeTab = ref("conversation");
 
 // ─── Status helpers ───
 
 const statusBadge = computed(() => {
+  if (!prData.value) {
+    return {
+      label: "",
+      variant: "outline" as const,
+    };
+  }
+
   const map: Record<
     string,
     {
@@ -100,7 +112,7 @@ const statusBadge = computed(() => {
 });
 
 const isTerminal = computed(() =>
-  ["MERGED", "CLOSED"].includes(prData.value.status),
+  prData.value ? ["MERGED", "CLOSED"].includes(prData.value.status) : true,
 );
 
 // ─── Threads ───
@@ -108,14 +120,16 @@ const isTerminal = computed(() =>
 type ThreadWithComments = IssueCommentThread & { comments: IssueComment[] };
 
 const { state: threadsState, refresh: refreshThreads } = useQuery({
-  key: () => ["pr-threads", prData.value.id],
+  key: () => ["pr-threads", currentPrId.value],
   query: () =>
-    orpc.issueComment.listIssueThreads({
-      targetType: "pr",
-      targetId: prData.value.id,
-    }),
+    !currentPrId.value
+      ? Promise.resolve([] as ThreadWithComments[])
+      : orpc.issueComment.listIssueThreads({
+          targetType: "pr",
+          targetId: currentPrId.value,
+        }),
   placeholderData: [] as ThreadWithComments[],
-  enabled: !import.meta.env.SSR,
+  enabled: () => !import.meta.env.SSR && currentPrId.value !== null,
 });
 
 const threads = computed(
@@ -125,26 +139,30 @@ const threads = computed(
 // ─── Cross References ───
 
 const { state: refsState } = useQuery({
-  key: () => ["pr-refs", prData.value.id],
+  key: () => ["pr-refs", currentPrId.value],
   query: () =>
-    orpc.issueComment.getCrossReferences({
-      targetType: "pr",
-      targetId: prData.value.id,
-    }),
+    !currentPrId.value
+      ? Promise.resolve([] as CrossReference[])
+      : orpc.issueComment.getCrossReferences({
+          targetType: "pr",
+          targetId: currentPrId.value,
+        }),
   placeholderData: [] as CrossReference[],
-  enabled: !import.meta.env.SSR,
+  enabled: () => !import.meta.env.SSR && currentPrId.value !== null,
 });
 
 // ─── Diff ───
 
 const { state: diffState } = useQuery({
-  key: () => ["pr-diff", prData.value.id],
+  key: () => ["pr-diff", currentPrId.value],
   query: () =>
-    orpc.pullRequest.getProjectPRDiff({
-      prId: prData.value.id,
-    }),
+    !currentPrId.value
+      ? Promise.resolve([])
+      : orpc.pullRequest.getProjectPRDiff({
+          prId: currentPrId.value,
+        }),
   placeholderData: [],
-  enabled: !import.meta.env.SSR,
+  enabled: () => !import.meta.env.SSR && currentPrId.value !== null,
 });
 
 const diffEntries = computed(
@@ -175,6 +193,10 @@ const groupedDiff = computed(() => {
 // ─── Sidebar Sections ───
 
 const sidebarSections = computed<MetadataSection[]>(() => {
+  if (!prData.value) {
+    return [];
+  }
+
   const reviewers =
     (prData.value.reviewers as { type: string; id: string }[]) ?? [];
   const refs = refsState.value.data ?? [];
@@ -202,6 +224,8 @@ const sidebarSections = computed<MetadataSection[]>(() => {
 // ─── Actions ───
 
 const handleUpdateBody = async (newBody: string) => {
+  if (!prData.value) return;
+
   try {
     prData.value = await orpc.pullRequest.updateProjectPR({
       prId: prData.value.id,
@@ -213,17 +237,21 @@ const handleUpdateBody = async (newBody: string) => {
 };
 
 const handleClose = async () => {
+  if (!prData.value) return;
+
   try {
     prData.value = await orpc.pullRequest.closeProjectPR({
       prId: prData.value.id,
     });
-    branchStore.leaveBranch();
+    branchStore.leaveBranch(projectId.value);
   } catch {
     toast.error(t("关闭 PR 失败"));
   }
 };
 
 const handleReopen = async () => {
+  if (!prData.value) return;
+
   try {
     prData.value = await orpc.pullRequest.updateProjectPRStatus({
       prId: prData.value.id,
@@ -239,6 +267,8 @@ const handleReopen = async () => {
 const merging = ref(false);
 
 const handleMerge = async () => {
+  if (!prData.value) return;
+
   merging.value = true;
   try {
     const result = await orpc.pullRequest.mergeProjectPR({
@@ -249,7 +279,7 @@ const handleMerge = async () => {
       toast.error(t("合并存在冲突，请先 Rebase"));
     } else {
       toast.success(t("PR 已成功合并"));
-      branchStore.leaveBranch();
+      branchStore.leaveBranch(projectId.value);
       // Reload PR data to reflect merged status
       prData.value = { ...prData.value, status: "MERGED" };
     }
@@ -261,6 +291,8 @@ const handleMerge = async () => {
 };
 
 const handleRebase = async () => {
+  if (!prData.value) return;
+
   try {
     const result = await orpc.pullRequest.rebaseProjectPR({
       prExternalId: prData.value.externalId,
@@ -280,7 +312,8 @@ const handleRebase = async () => {
 const newCommentBody = ref("");
 
 const handlePostComment = async () => {
-  if (!newCommentBody.value.trim()) return;
+  if (!newCommentBody.value.trim() || !prData.value) return;
+
   try {
     const thread = await orpc.issueComment.createIssueCommentThread({
       targetType: "pr",
@@ -319,7 +352,8 @@ const handleDeleteComment = async (commentId: number) => {
 </script>
 
 <template>
-  <div class="flex gap-6">
+  <ProjectPageDataError v-if="pageError" :message="pageError.message" />
+  <div v-else-if="prData" class="flex gap-6">
     <!-- Main content area -->
     <div class="min-w-0 flex-1 space-y-4">
       <!-- Back link -->

@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 import { EditorPage } from "@/pages/editor-page";
 import { LoginPage } from "@/pages/login-page";
+import { QaReviewPage } from "@/pages/qa-review-page";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -16,6 +17,8 @@ interface E2EFixtures {
   loginPage: LoginPage;
   /** EditorPage Page Object for the current page */
   editorPage: EditorPage;
+  /** QaReviewPage Page Object for QA review workbench */
+  qaReviewPage: QaReviewPage;
   /** Pre-built URL to the seeded project dashboard */
   projectUrl: string;
 }
@@ -112,6 +115,10 @@ export const test = baseTest.extend<E2EFixtures, E2EWorkerFixtures>({
 
   editorPage: async ({ page }, use) => {
     await use(new EditorPage(page));
+  },
+
+  qaReviewPage: async ({ page }, use) => {
+    await use(new QaReviewPage(page));
   },
 
   projectUrl: async ({ refs }, use) => {

@@ -28,11 +28,13 @@ const panelOpen = useCookieStringRef(
 
 const { elementId } = storeToRefs(useEditorTableStore());
 
-const id = "editor-context-panel";
+const props = withDefaults(defineProps<{ id?: string }>(), {
+  id: "editor-context-panel",
+});
 </script>
 
 <template>
-  <Sidebar :id>
+  <Sidebar :id="props.id">
     <SidebarHeader>
       <Tabs v-model="panelOpen">
         <TabsList class="grid w-full grid-cols-3">
@@ -49,6 +51,6 @@ const id = "editor-context-panel";
       :targetType="'ELEMENT'"
       :targetId="elementId!"
     />
-    <SidebarRail :sidebarId="id" />
+    <SidebarRail :sidebar-id="props.id" />
   </Sidebar>
 </template>

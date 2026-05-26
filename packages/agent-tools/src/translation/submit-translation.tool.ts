@@ -5,7 +5,6 @@ import {
   getDbHandle,
   getLanguage,
   getProjectTargetLanguages,
-  listMemoryIdsByProject,
 } from "@cat/domain";
 import { createTranslationOp } from "@cat/operations";
 import {
@@ -32,14 +31,16 @@ const submitTranslationArgs = z
     createMemory: z
       .boolean()
       .default(true)
-      .describe("Whether to save this translation to translation memory"),
+      .describe(
+        "Whether to attempt memory write; agent context never writes project memory",
+      ),
   })
   .strict();
 
 export const submitTranslationTool: AgentToolDefinition = {
   name: "submit_translation",
   description:
-    "Submit a new translation for a translatable element. The translation is created immediately, automatically QA-checked, and vectorized when compatible services are available. Optionally saves to translation memory for future reuse.",
+    "Submit a new translation for a translatable element. The translation is created immediately, automatically QA-checked, and vectorized when compatible services are available. Agent context does not create project translation memory.",
   parameters: submitTranslationArgs,
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
@@ -85,13 +86,6 @@ export const submitTranslationTool: AgentToolDefinition = {
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
     const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
 
-    let memoryIds: string[] = [];
-    if (parsed.createMemory) {
-      memoryIds = await executeQuery({ db }, listMemoryIdsByProject, {
-        projectId: element.projectId,
-      });
-    }
-
     const result = await createTranslationOp({
       data: [
         {
@@ -101,7 +95,7 @@ export const submitTranslationTool: AgentToolDefinition = {
         },
       ],
       translatorId: null,
-      memoryIds,
+      memoryIds: [],
       vectorizerId: vectorizer?.id,
       vectorStorageId: vectorStorage?.id,
     });

@@ -14,7 +14,8 @@ import * as z from "zod";
 
 import type { Query } from "@/types";
 
-export type RawMemorySuggestion = MemorySuggestion & {
+export type RawMemorySuggestion = Omit<MemorySuggestion, "sourceScope"> & {
+  sourceScope?: "PROJECT" | "PERSONAL";
   sourceTemplate: string | null;
   translationTemplate: string | null;
   slotMapping: SlotMappingEntry[] | null;
@@ -51,6 +52,7 @@ export const listExactMemorySuggestions: Query<
 
   const baseSelection = {
     id: memoryItem.id,
+    translationId: memoryItem.translationId,
     translationChunkSetId: translationString.chunkSetId,
     memoryId: memoryItem.memoryId,
     creatorId: memoryItem.creatorId,
@@ -160,6 +162,7 @@ export const listTrgmMemorySuggestions: Query<
 
   const baseSelection = {
     id: memoryItem.id,
+    translationId: memoryItem.translationId,
     memoryId: memoryItem.memoryId,
     creatorId: memoryItem.creatorId,
     createdAt: memoryItem.createdAt,

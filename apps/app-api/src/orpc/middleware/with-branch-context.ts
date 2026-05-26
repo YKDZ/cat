@@ -17,11 +17,14 @@ type BranchAwareContext = {
  * @zh 提取并验证 branchId，将分支上下文注入到 context 中。
  * branchId 存在时验证 branch 状态和权限，并注入 branchId/branchChangesetId/branchProjectId。
  * branchId 不存在时，若 projectId 有 isolation_forced 则返回 403。
- * 当 input 中未提供 branchId 时，会尝试从 x-branch-id 请求头读取。
+ * 当 input 中未提供 branchId 时，会尝试从请求头读取成对的
+ * x-branch-id / x-branch-project-id，并校验分支与项目归属一致。
  * @en Extracts and validates branchId, injecting branch context into the handler context.
  * When branchId is present, validates branch status and permissions.
  * When absent, returns 403 if the project has isolation_forced.
- * Falls back to reading x-branch-id request header when branchId is not in input.
+ * When branchId is not in input, it can fall back to paired
+ * x-branch-id / x-branch-project-id request headers and validates that the
+ * branch belongs to the resolved project.
  */
 export const withBranchContext = os
   .$context<BranchAwareContext>()
@@ -30,16 +33,43 @@ export const withBranchContext = os
       { context, next },
       input: { branchId?: number; projectId?: string },
     ) => {
-      // Resolve branchId: prefer input, fall back to x-branch-id header
+      // Resolve branchId: prefer input, fall back to scoped branch headers
       const headerBranchId = context.helpers.getReqHeader("x-branch-id");
+      const headerBranchProjectId = context.helpers.getReqHeader(
+        "x-branch-project-id",
+      );
       const parsedHeader =
         headerBranchId !== undefined ? Number(headerBranchId) : undefined;
-      const branchId =
-        input.branchId ??
-        (parsedHeader !== undefined && Number.isFinite(parsedHeader)
+      const parsedHeaderBranchId =
+        parsedHeader !== undefined && Number.isFinite(parsedHeader)
           ? parsedHeader
-          : undefined);
-      const { projectId } = input;
+          : undefined;
+      const branchIdSource: "input" | "header" | "none" =
+        input.branchId !== undefined
+          ? "input"
+          : parsedHeaderBranchId !== undefined
+            ? "header"
+            : "none";
+      const branchId =
+        branchIdSource === "input" ? input.branchId : parsedHeaderBranchId;
+
+      if (branchIdSource === "header" && headerBranchProjectId === undefined) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "x-branch-id requires x-branch-project-id",
+        });
+      }
+
+      if (
+        branchIdSource === "header" &&
+        input.projectId !== undefined &&
+        headerBranchProjectId !== input.projectId
+      ) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "x-branch-project-id does not match request projectId",
+        });
+      }
+
+      const projectId = input.projectId ?? headerBranchProjectId;
       const {
         drizzleDB: { client: db },
         auth,
@@ -58,6 +88,12 @@ export const withBranchContext = os
         if (branch.status !== "ACTIVE") {
           throw new ORPCError("CONFLICT", {
             message: `Branch ${branchId} is not ACTIVE (status: ${branch.status})`,
+          });
+        }
+
+        if (projectId !== undefined && branch.projectId !== projectId) {
+          throw new ORPCError("BAD_REQUEST", {
+            message: `Branch ${branchId} does not belong to project ${projectId}`,
           });
         }
 

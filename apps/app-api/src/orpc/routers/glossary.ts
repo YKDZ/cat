@@ -42,7 +42,10 @@ import * as z from "zod";
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import { authed, checkPermission } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
-import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
+import {
+  createVCSRouteHelper,
+  ensureBranchWriteContext,
+} from "@/utils/vcs-route-helper";
 
 export const deleteTerm = authed
   .input(
@@ -56,30 +59,39 @@ export const deleteTerm = authed
   .use(checkPermission("glossary", "editor"), (input) =>
     input.termId.toString(),
   )
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
 
-    if (
-      context.branchId !== undefined &&
-      context.branchChangesetId !== undefined
-    ) {
-      if (context.branchProjectId === undefined) {
-        throw new Error(
-          "branchProjectId missing when branch context is active",
-        );
+    if (context.branchId !== undefined && input.projectId === undefined) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "projectId is required when branchId is provided",
+      });
+    }
+
+    if (context.branchId !== undefined) {
+      const branchWriteContext = await ensureBranchWriteContext({
+        drizzle,
+        branchId: context.branchId,
+        branchChangesetId: context.branchChangesetId,
+        branchProjectId: context.branchProjectId,
+      });
+
+      if (!branchWriteContext) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Invalid branch context for glossary term deletion",
+        });
       }
+
       const { middleware } = createVCSRouteHelper(drizzle);
       await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
+        branchWriteContext,
         "term",
         String(input.termId),
         "DELETE",
@@ -232,33 +244,42 @@ export const insertTerm = authed
       projectId: z.uuidv4().optional(),
     }),
   )
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const { pluginManager, user } = context;
     const { termsData, glossaryId } = input;
 
-    if (
-      context.branchId !== undefined &&
-      context.branchChangesetId !== undefined
-    ) {
-      if (context.branchProjectId === undefined) {
-        throw new Error(
-          "branchProjectId missing when branch context is active",
-        );
-      }
+    if (context.branchId !== undefined && input.projectId === undefined) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "projectId is required when branchId is provided",
+      });
+    }
+
+    if (context.branchId !== undefined) {
       const {
         drizzleDB: { client: drizzle },
       } = context;
+      const branchWriteContext = await ensureBranchWriteContext({
+        drizzle,
+        branchId: context.branchId,
+        branchChangesetId: context.branchChangesetId,
+        branchProjectId: context.branchProjectId,
+      });
+
+      if (!branchWriteContext) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Invalid branch context for glossary term creation",
+        });
+      }
+
       const { middleware } = createVCSRouteHelper(drizzle);
       const entityId = crypto.randomUUID();
       await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
+        branchWriteContext,
         "term",
         entityId,
         "CREATE",
@@ -511,14 +532,24 @@ export const getConceptSubjects = authed
     z.object({
       glossaryId: z.string(),
       branchId: z.int().optional(),
+      projectId: z.uuidv4().optional(),
     }),
   )
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .output(z.array(z.object({ id: z.int(), subject: z.string() })))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
+
+    if (context.branchId !== undefined && input.projectId === undefined) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "projectId is required when branchId is provided",
+      });
+    }
 
     const mainItems = await executeQuery(
       { db: drizzle },

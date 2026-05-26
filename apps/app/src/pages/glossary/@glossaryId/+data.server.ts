@@ -1,6 +1,10 @@
 import type { PageContextServer } from "vike/types";
 
-import { executeQuery, getGlossary } from "@cat/domain";
+import {
+  executeQuery,
+  getGlossary,
+  listGlossaryProjectIds,
+} from "@cat/domain";
 import { render } from "vike/abort";
 
 export const data = async (ctx: PageContextServer) => {
@@ -16,8 +20,15 @@ export const data = async (ctx: PageContextServer) => {
   if (!glossary)
     throw render(`/glossaries/`, `Glossary ${glossaryId} does not exists`);
 
+  const glossaryProjectIds = await executeQuery(
+    { db: drizzle },
+    listGlossaryProjectIds,
+    { glossaryId },
+  );
+
   return {
     glossary,
+    glossaryProjectIds,
   };
 };
 

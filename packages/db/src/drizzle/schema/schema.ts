@@ -78,6 +78,9 @@ import {
   QaReviewAnnotationStatusValues,
   QaReviewDecisionTypeValues,
   QaReviewSuggestionStatusValues,
+  MemoryScopeValues,
+  MemoryPromotionStatusValues,
+  MemoryDeletionScopeValues,
   type ContentRelationAllowedEndpointPair,
   type ContextProfilePayload,
   type SemanticDiffEntryPayload,
@@ -291,6 +294,16 @@ export const vectorInvalidationReason = pgEnum(
 export const contentIdentityStatus = pgEnum(
   "ContentIdentityStatus",
   ContentIdentityStatusValues,
+);
+
+export const memoryScope = pgEnum("MemoryScope", MemoryScopeValues);
+export const memoryPromotionStatus = pgEnum(
+  "MemoryPromotionStatus",
+  MemoryPromotionStatusValues,
+);
+export const memoryDeletionScope = pgEnum(
+  "MemoryDeletionScope",
+  MemoryDeletionScopeValues,
 );
 
 const timestamps = {
@@ -633,49 +646,60 @@ export const memory = snakeCase.table("Memory", {
   id: uuid().defaultRandom().primaryKey(),
   name: text().notNull(),
   description: text(),
+  scope: memoryScope().notNull().default("PROJECT"),
   creatorId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "restrict", onUpdate: "cascade" }),
   ...timestamps,
 });
 
-export const memoryItem = snakeCase.table("MemoryItem", {
-  id: serial().primaryKey(),
-  creatorId: uuid().references(() => user.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
-  memoryId: uuid()
-    .notNull()
-    .references(() => memory.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  sourceElementId: integer().references(() => translatableElement.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
-  translationId: integer().references(() => translation.id, {
-    onDelete: "set null",
-    onUpdate: "cascade",
-  }),
-  sourceStringId: integer()
-    .notNull()
-    .references(() => vectorizedString.id, {
-      onDelete: "restrict",
+export const memoryItem = snakeCase.table(
+  "MemoryItem",
+  {
+    id: serial().primaryKey(),
+    creatorId: uuid().references(() => user.id, {
+      onDelete: "set null",
       onUpdate: "cascade",
     }),
-  translationStringId: integer()
-    .notNull()
-    .references(() => vectorizedString.id, {
-      onDelete: "restrict",
+    memoryId: uuid()
+      .notNull()
+      .references(() => memory.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    sourceElementId: integer().references(() => translatableElement.id, {
+      onDelete: "set null",
       onUpdate: "cascade",
     }),
-  /** Placeholderized source text template, e.g. "Error Code: {NUM_0}" */
-  sourceTemplate: text(),
-  /** Placeholderized translation text template */
-  translationTemplate: text(),
-  /** JSON mapping of placeholder → original value + token type */
-  slotMapping: jsonb().$type<JSONType>(),
-  ...timestamps,
-});
+    translationId: integer().references(() => translation.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    sourceStringId: integer()
+      .notNull()
+      .references(() => vectorizedString.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    translationStringId: integer()
+      .notNull()
+      .references(() => vectorizedString.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    /** Placeholderized source text template, e.g. "Error Code: {NUM_0}" */
+    sourceTemplate: text(),
+    /** Placeholderized translation text template */
+    translationTemplate: text(),
+    /** JSON mapping of placeholder → original value + token type */
+    slotMapping: jsonb().$type<JSONType>(),
+    ...timestamps,
+  },
+  (table) => [
+    index().using("btree", table.memoryId.asc().nullsLast()),
+    uniqueIndex().on(table.memoryId, table.translationId),
+  ],
+);
 
 export const memoryToProject = snakeCase.table(
   "MemoryToProject",
@@ -697,6 +721,99 @@ export const memoryToProject = snakeCase.table(
     primaryKey({
       columns: [table.memoryId, table.projectId],
     }),
+    index().using("btree", table.projectId.asc().nullsLast()),
+  ],
+);
+
+export const personalMemoryBinding = snakeCase.table(
+  "PersonalMemoryBinding",
+  {
+    memoryId: uuid()
+      .primaryKey()
+      .references(() => memory.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: uuid()
+      .notNull()
+      .references(() => user.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex().on(table.userId, table.projectId),
+    index().using("btree", table.projectId.asc().nullsLast()),
+  ],
+);
+
+export const memoryPromotionRecord = snakeCase.table(
+  "MemoryPromotionRecord",
+  {
+    id: serial().primaryKey(),
+    projectId: uuid()
+      .notNull()
+      .references(() => project.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    sourceTranslationId: integer()
+      .notNull()
+      .references(() => translation.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    sourcePersonalMemoryItemId: integer().references(() => memoryItem.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    targetMemoryId: uuid().references(() => memory.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    targetMemoryItemId: integer().references(() => memoryItem.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    approvedById: uuid().references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    status: memoryPromotionStatus().notNull(),
+    idempotencyKey: text().notNull().unique(),
+    ...timestamps,
+  },
+  (table) => [
+    index().using("btree", table.projectId.asc().nullsLast()),
+    index().using("btree", table.sourceTranslationId.asc().nullsLast()),
+  ],
+);
+
+export const memoryItemDeletion = snakeCase.table(
+  "MemoryItemDeletion",
+  {
+    id: serial().primaryKey(),
+    deletedMemoryItemId: integer().notNull(),
+    memoryId: uuid(),
+    projectId: uuid(),
+    deletedById: uuid().references(() => user.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    scope: memoryDeletionScope().notNull(),
+    reason: text(),
+    deletedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    index().using("btree", table.deletedMemoryItemId.asc().nullsLast()),
+    index().using("btree", table.memoryId.asc().nullsLast()),
     index().using("btree", table.projectId.asc().nullsLast()),
   ],
 );

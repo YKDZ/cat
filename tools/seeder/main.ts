@@ -191,7 +191,14 @@ const main = async (): Promise<void> => {
   console.log(`[seed] Users created: ${result.summary.users}`);
   console.log(`[seed] Projects created: ${result.summary.projects}`);
   console.log(`[seed] Glossary concepts: ${result.summary.glossaryConcepts}`);
+  console.log(`[seed] Memory containers: ${result.summary.memoryContainers}`);
   console.log(`[seed] Memory items: ${result.summary.memoryItems}`);
+  console.log(
+    `[seed] Project memory items: ${result.summary.projectMemoryItems}`,
+  );
+  console.log(
+    `[seed] Personal memory items: ${result.summary.personalMemoryItems}`,
+  );
   console.log(`[seed] Elements: ${result.summary.elements}`);
   console.log(`[seed] Bootstrap elements: ${result.summary.bootstrapElements}`);
   console.log(

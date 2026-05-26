@@ -23,6 +23,11 @@ export type AutoApproveOperationScopeTranslationsCommand = z.infer<
   typeof AutoApproveOperationScopeTranslationsCommandSchema
 >;
 
+export type AutoApproveOperationScopeTranslationsResult = {
+  count: number;
+  approvedTranslationIds: number[];
+};
+
 /**
  * @zh 自动批准指定元素集合在目标语言中的最新翻译。
  * @en Auto-approve the latest translation for the provided element set in the target language.
@@ -30,10 +35,10 @@ export type AutoApproveOperationScopeTranslationsCommand = z.infer<
  */
 export const autoApproveOperationScopeTranslations: Command<
   AutoApproveOperationScopeTranslationsCommand,
-  number
+  AutoApproveOperationScopeTranslationsResult
 > = async (ctx, command) => {
   if (command.elementIds.length === 0) {
-    return { result: 0, events: [] };
+    return { result: { count: 0, approvedTranslationIds: [] }, events: [] };
   }
 
   const translations = await ctx.db
@@ -60,7 +65,7 @@ export const autoApproveOperationScopeTranslations: Command<
   }
 
   if (byElement.size === 0) {
-    return { result: 0, events: [] };
+    return { result: { count: 0, approvedTranslationIds: [] }, events: [] };
   }
 
   const approvedTranslationIds: number[] = [];
@@ -85,7 +90,10 @@ export const autoApproveOperationScopeTranslations: Command<
   );
 
   return {
-    result: approvedTranslationIds.length,
+    result: {
+      count: approvedTranslationIds.length,
+      approvedTranslationIds,
+    },
     events:
       approvedTranslationIds.length > 0
         ? [

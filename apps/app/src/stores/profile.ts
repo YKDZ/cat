@@ -1,6 +1,19 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
+/**
+ * @zh 按项目持久化的分支选择。
+ * @en Persisted branch selection scoped by project.
+ */
+export type PersistedBranchSelection = {
+  projectId: string;
+  branchId: number;
+  prId?: number | null;
+  prNumber?: number | null;
+  label?: string | null;
+  updatedAt: string;
+};
+
 export const useProfileStore = defineStore(
   "profile",
   () => {
@@ -20,6 +33,21 @@ export const useProfileStore = defineStore(
     >("first-memory");
 
     const editorTermMinConfidence = ref([0.6]);
+    const projectBranchSelections = ref<
+      Record<string, PersistedBranchSelection>
+    >({});
+
+    const setProjectBranchSelection = (selection: PersistedBranchSelection) => {
+      projectBranchSelections.value = {
+        ...projectBranchSelections.value,
+        [selection.projectId]: selection,
+      };
+    };
+
+    const clearProjectBranchSelection = (projectId: string) => {
+      const { [projectId]: _removed, ...rest } = projectBranchSelections.value;
+      projectBranchSelections.value = rest;
+    };
 
     return {
       showBtnMagicKey,
@@ -28,6 +56,9 @@ export const useProfileStore = defineStore(
       ghostTextEnabled,
       ghostTextFallbackStrategy,
       editorTermMinConfidence,
+      projectBranchSelections,
+      setProjectBranchSelection,
+      clearProjectBranchSelection,
     };
   },
   {

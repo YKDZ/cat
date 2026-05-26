@@ -15,7 +15,8 @@ import {
   getProjectTargetLanguages,
   getSelfTranslationVote,
   getTranslationVoteTotal,
-  listMemoryIdsByProject,
+  listBranchChangesetEntries,
+  listEffectiveMemoryIdsByProject,
   listProjectGlossaryIds,
   listQaResultItems,
   listQaResultsByTranslation,
@@ -24,7 +25,12 @@ import {
   unapproveTranslation,
   upsertTranslationVote,
 } from "@cat/domain";
-import { resolveOperationScopeElementsOp } from "@cat/operations";
+import {
+  promoteApprovedTranslationMemoryOp,
+  resolveOperationScopeElementsOp,
+  writePersonalTranslationMemoryOp,
+} from "@cat/operations";
+import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 import { AsyncMessageQueue, firstOrGivenService } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import {
@@ -35,7 +41,7 @@ import {
 } from "@cat/shared";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
 import { JSONObjectSchema } from "@cat/shared";
-import { EditorOverlayTranslationStateSchema, listWithOverlay } from "@cat/vcs";
+import { EditorOverlayTranslationStateSchema } from "@cat/vcs";
 import {
   CreateTranslationPubPayloadSchema,
   batchAutoTranslateGraph,
@@ -48,13 +54,20 @@ import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import {
+  BranchAwareTranslationDataSchema,
+  type BranchAwareTranslationData,
+} from "@/orpc/routers/translation.schemas";
+import {
   authed,
   checkElementPermission,
   checkPermission,
   checkTranslationPermission,
 } from "@/orpc/server";
 import { getGraphRuntime } from "@/utils/graph-runtime";
-import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
+import {
+  createVCSRouteHelper,
+  ensureBranchWriteContext,
+} from "@/utils/vcs-route-helper";
 
 const TranslationDataSchema = TranslationSchema.omit({
   updatedAt: true,
@@ -68,6 +81,29 @@ type TranslationData = z.infer<typeof TranslationDataSchema>;
 type CreateTranslationPubPayload = z.infer<
   typeof CreateTranslationPubPayloadSchema
 >;
+
+const toMainTranslationData = (
+  item: TranslationData,
+): BranchAwareTranslationData => ({
+  kind: "main",
+  ...item,
+});
+
+const toBranchOverlayTranslationData = (
+  overlayEntityId: string,
+  overlay: z.infer<typeof EditorOverlayTranslationStateSchema>,
+): BranchAwareTranslationData => ({
+  kind: "branch-overlay",
+  overlayEntityId,
+  translatableElementId: overlay.translatableElementId,
+  languageId: overlay.languageId,
+  text: overlay.text,
+  translatorId: overlay.translatorId ?? null,
+  approved: overlay.approved ?? false,
+  vote: 0,
+  createdAt: new Date(overlay.createdAt),
+  updatedAt: new Date(overlay.updatedAt),
+});
 
 export const translationRouter = authed
   .input(
@@ -88,6 +124,7 @@ export const translationRouter = authed
 export const create = authed
   .input(
     z.object({
+      projectId: z.uuidv4(),
       elementId: z.int(),
       languageId: z.string(),
       text: z.string(),
@@ -96,7 +133,10 @@ export const create = authed
     }),
   )
   .use(checkElementPermission("editor"), (i) => i.elementId)
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .output(z.void())
   .handler(async ({ context, input }) => {
     const {
@@ -106,26 +146,49 @@ export const create = authed
     } = context;
     const { elementId, languageId, text, createMemory } = input;
 
-    // Isolation write: record translation in branch changeset
+    const element = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      {
+        elementId,
+      },
+    );
+
+    if (!element) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Element ${elementId} not found`,
+      });
+    }
+
+    if (element.projectId !== input.projectId) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: `Element ${elementId} does not belong to project ${input.projectId}`,
+      });
+    }
+
     if (
-      context.branchId !== undefined &&
-      context.branchChangesetId !== undefined
+      context.branchProjectId !== undefined &&
+      context.branchProjectId !== element.projectId
     ) {
-      if (context.branchProjectId === undefined) {
-        throw new Error(
-          "branchProjectId missing when branch context is active",
-        );
-      }
+      throw new ORPCError("BAD_REQUEST", {
+        message: `Branch ${context.branchId} does not belong to element project ${element.projectId}`,
+      });
+    }
+
+    // Isolation write: record translation in branch changeset
+    const branchWriteContext = await ensureBranchWriteContext({
+      drizzle,
+      branchId: context.branchId,
+      branchChangesetId: context.branchChangesetId,
+      branchProjectId: context.branchProjectId,
+    });
+
+    if (branchWriteContext) {
       const { middleware } = createVCSRouteHelper(drizzle);
       const entityId = crypto.randomUUID();
       const timestamp = new Date().toISOString();
       await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
+        branchWriteContext,
         "translation",
         entityId,
         "CREATE",
@@ -144,6 +207,17 @@ export const create = authed
       return;
     }
 
+    const writeMode = await determineWriteMode(
+      getPermissionEngine(),
+      context.auth,
+      element.projectId,
+    );
+    if (writeMode !== "direct") {
+      throw new ORPCError("FORBIDDEN", {
+        message: "isolation_forced: branchId is required for writes",
+      });
+    }
+
     const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
     const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
 
@@ -153,27 +227,7 @@ export const create = authed
       });
     }
 
-    const element = await executeQuery(
-      { db: drizzle },
-      getElementWithChunkIds,
-      {
-        elementId,
-      },
-    );
-
-    if (!element) {
-      throw new ORPCError("NOT_FOUND", {
-        message: `Element ${elementId} not found`,
-      });
-    }
-
-    const memoryIds = await executeQuery(
-      { db: drizzle },
-      listMemoryIdsByProject,
-      { projectId: element.projectId },
-    );
-
-    await runGraph(
+    const result = await runGraph(
       createTranslationGraph,
       {
         data: [
@@ -184,7 +238,7 @@ export const create = authed
             translatorId: user.id,
           },
         ],
-        memoryIds: createMemory ? memoryIds : [],
+        memoryIds: [],
         vectorStorageId: storage.id,
         vectorizerId: vectorizer.id,
         translatorId: user.id,
@@ -199,6 +253,20 @@ export const create = authed
         vcsMiddleware: createVCSRouteHelper(drizzle).middleware,
       },
     );
+
+    if (createMemory && result.translationIds.length > 0) {
+      try {
+        await writePersonalTranslationMemoryOp({
+          translationIds: result.translationIds,
+          userId: user.id,
+          projectId: element.projectId,
+        });
+      } catch (error) {
+        logger
+          .withSituation("RPC")
+          .error(error, "personal memory write failed");
+      }
+    }
   });
 
 export const onCreate = authed
@@ -296,12 +364,35 @@ export const getAll = authed
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
   .use(withBranchContext, (i) => ({ branchId: i.branchId }))
-  .output(z.array(TranslationDataSchema))
+  .output(z.array(BranchAwareTranslationDataSchema))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
     const { elementId, languageId } = input;
+
+    const element = await executeQuery(
+      { db: drizzle },
+      getElementWithChunkIds,
+      {
+        elementId,
+      },
+    );
+
+    if (!element) {
+      throw new ORPCError("NOT_FOUND", {
+        message: `Element ${elementId} not found`,
+      });
+    }
+
+    if (
+      context.branchProjectId !== undefined &&
+      context.branchProjectId !== element.projectId
+    ) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: `Branch ${context.branchId} does not belong to element project ${element.projectId}`,
+      });
+    }
 
     const mainItems = await executeQuery(
       { db: drizzle },
@@ -312,17 +403,86 @@ export const getAll = authed
       },
     );
 
-    if (context.branchId !== undefined) {
-      return await listWithOverlay(
-        drizzle,
-        context.branchId,
-        "translation",
-        mainItems,
-        (item) => String(item.id),
-      );
+    if (context.branchId === undefined) {
+      return mainItems.map(toMainTranslationData);
     }
 
-    return mainItems;
+    const branchEntries = await executeQuery(
+      { db: drizzle },
+      listBranchChangesetEntries,
+      {
+        branchId: context.branchId,
+        entityType: "translation",
+      },
+    );
+
+    const latestEntries = new Map<
+      string,
+      {
+        action: string;
+        after: unknown;
+      }
+    >();
+
+    for (const entry of branchEntries) {
+      if (latestEntries.has(entry.entityId)) continue;
+      latestEntries.set(entry.entityId, {
+        action: entry.action,
+        after: entry.after,
+      });
+    }
+
+    const result: BranchAwareTranslationData[] = [];
+
+    for (const item of mainItems) {
+      const entityId = String(item.id);
+      const branchEntry = latestEntries.get(entityId);
+
+      if (!branchEntry) {
+        result.push(toMainTranslationData(item));
+        continue;
+      }
+
+      latestEntries.delete(entityId);
+
+      if (branchEntry.action === "DELETE") {
+        continue;
+      }
+
+      const parsedMain = TranslationDataSchema.safeParse(branchEntry.after);
+      if (parsedMain.success) {
+        result.push(toMainTranslationData(parsedMain.data));
+        continue;
+      }
+
+      const overlay = EditorOverlayTranslationStateSchema.parse(
+        branchEntry.after,
+      );
+      result.push(toBranchOverlayTranslationData(entityId, overlay));
+    }
+
+    for (const [entityId, branchEntry] of latestEntries.entries()) {
+      if (
+        branchEntry.action !== "CREATE" ||
+        branchEntry.after === null ||
+        branchEntry.after === undefined
+      ) {
+        continue;
+      }
+
+      const parsedMain = TranslationDataSchema.safeParse(branchEntry.after);
+      if (parsedMain.success) {
+        result.push(toMainTranslationData(parsedMain.data));
+        continue;
+      }
+
+      const overlay = EditorOverlayTranslationStateSchema.parse(
+        branchEntry.after,
+      );
+      result.push(toBranchOverlayTranslationData(entityId, overlay));
+    }
+
+    return result;
   });
 
 export const vote = authed
@@ -397,6 +557,7 @@ export const autoApprove = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      user,
     } = context;
 
     const { elements } = await resolveOperationScopeElementsOp({
@@ -407,7 +568,7 @@ export const autoApprove = authed
 
     if (elements.length === 0) return 0;
 
-    return await executeCommand(
+    const result = await executeCommand(
       { db: drizzle },
       autoApproveOperationScopeTranslations,
       {
@@ -415,6 +576,26 @@ export const autoApprove = authed
         languageId: input.languageId,
       },
     );
+
+    await Promise.allSettled(
+      result.approvedTranslationIds.map(async (translationId) => {
+        try {
+          await promoteApprovedTranslationMemoryOp({
+            translationId,
+            approvedById: user.id,
+          });
+        } catch (error) {
+          logger
+            .withSituation("RPC")
+            .error(
+              error,
+              `approved translation memory promotion failed: ${translationId}`,
+            );
+        }
+      }),
+    );
+
+    return result.count;
   });
 
 export const approve = authed
@@ -428,8 +609,23 @@ export const approve = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
+      user,
     } = context;
     await executeCommand({ db: drizzle }, approveTranslation, input);
+
+    try {
+      await promoteApprovedTranslationMemoryOp({
+        translationId: input.translationId,
+        approvedById: user.id,
+      });
+    } catch (error) {
+      logger
+        .withSituation("RPC")
+        .error(
+          error,
+          `approved translation memory promotion failed: ${input.translationId}`,
+        );
+    }
   });
 
 export const unapprove = authed
@@ -506,14 +702,19 @@ export const autoTranslate = authed
       });
     }
 
-    const [memoryIds, glossaryIds] = await Promise.all([
-      executeQuery({ db: drizzle }, listMemoryIdsByProject, {
+    const [effectiveMemoryIds, glossaryIds] = await Promise.all([
+      executeQuery({ db: drizzle }, listEffectiveMemoryIdsByProject, {
         projectId: scope.projectId,
+        userId: user.id,
       }),
       executeQuery({ db: drizzle }, listProjectGlossaryIds, {
         projectId: scope.projectId,
       }),
     ]);
+
+    const memoryIds = Array.isArray(effectiveMemoryIds)
+      ? effectiveMemoryIds
+      : effectiveMemoryIds.allMemoryIds;
 
     // 查找或创建 auto-translate AgentDefinition
     let existingDef = await executeQuery(

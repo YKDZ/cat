@@ -56,7 +56,7 @@ const handleOpenQaReviewWorkbench = async () => {
           @click="handleOpenQaReviewWorkbench"
         >
           <div class="icon-[mdi--clipboard-check-outline] size-4" />
-          {{ t("打开 QA 审校工作台") }}
+          {{ t("打开审校工作台") }}
         </Button>
         <Button variant="outline" @click="handleOpenWorkbench">
           <div class="icon-[mdi--text-box-edit-outline] size-4" />

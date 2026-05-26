@@ -5,7 +5,6 @@ import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
 import { WebSocket } from "partysocket";
 
-import { useBranchStore } from "@/stores/branch";
 import { clientLogger as logger } from "@/utils/logger";
 
 const wsOrigin =
@@ -23,14 +22,7 @@ const link = new RPCLink({
     globalThis.WebSocket,
     "addEventListener" | "send" | "readyState"
   >,
-  headers: () => {
-    const branchStore = useBranchStore();
-    const headers: Record<string, string> = {};
-    if (branchStore.currentBranchId !== null) {
-      headers["x-branch-id"] = String(branchStore.currentBranchId);
-    }
-    return headers;
-  },
+  headers: () => ({}),
   interceptors: [
     onError((error) => {
       logger.withSituation("WEB").error(error, "Error when orpc");

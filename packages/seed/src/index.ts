@@ -7,6 +7,7 @@ export {
   readYamlWithEnv,
 } from "./loader";
 export {
+  normalizeMemorySeed,
   runSeedPipeline,
   type DevSeedResult,
   type SeedSummary,
@@ -49,6 +50,7 @@ export type {
   GlossarySeed,
   GlossaryConceptSeed,
   MemorySeed,
+  MemoryContainerSeed,
   MemoryItemSeed,
   ElementsSeed,
   ElementSeed,
@@ -65,9 +67,11 @@ export {
   SeedConfigSchema,
   PluginOverrideSchema,
   ProjectSeedSchema,
+  ProjectMemberSeedSchema,
   GlossaryConceptSeedSchema,
   GlossarySeedSchema,
   MemoryItemSeedSchema,
+  MemoryContainerSeedSchema,
   MemorySeedSchema,
   ElementSeedSchema,
   ElementsSeedSchema,

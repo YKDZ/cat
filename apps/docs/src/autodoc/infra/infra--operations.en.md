@@ -26,6 +26,8 @@ SOURCE side va |
 
 Variant types produced: |
 | `BuildTermRecallVariantsInput` | type |  |
+| `collectEffectiveMemoryRecallOp` | function | Recall effective project+personal memories and dedupe with project-first precede |
+| `CollectEffectiveMemoryRecallInput` | type | Effective memory recall input. |
 | `collectMemoryRecallOp` | function | Aggregated memory recall — multi-channel evidence merge.
 
 Channels (in order of  |
@@ -85,9 +87,7 @@ Queries the TRANSLATION_ADVISOR plugin s |
 | `FetchAdviseOutput` | type |  |
 | `fetchBestTranslationCandidateOp` | function | Fetch the best translation candidate by running advisor + memory recall
 in paral |
-| `FetchBestTranslationCandidateInput` | type |  |
-| `FetchBestTranslationCandidateOutput` | type |  |
-| *(187 more)* | | |
+| *(195 more)* | | |
 
 ## Related Topics
 

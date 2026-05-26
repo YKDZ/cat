@@ -33,9 +33,12 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
+  const error = ref<string | null>(null);
   let abortController: AbortController | null = null;
 
   const updateTerms = async () => {
+    error.value = null;
+
     if (abortController) {
       abortController.abort();
     }
@@ -62,7 +65,8 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
       if (err instanceof Error && err.name === "AbortError") {
         return;
       }
-      throw err;
+      terms.value = [];
+      error.value = err instanceof Error ? err.message : "unknown-error";
     }
   };
 
@@ -124,6 +128,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
   return {
     terms,
+    error,
     searchQuery,
     termDataList,
     updateTerms,

@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import { Textarea } from "@cat/ui";
 import { Button } from "@cat/ui";
+import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import LanguagePicker from "@/components/LanguagePicker.vue";
 import { orpc } from "@/rpc/orpc";
+import { useBranchStore } from "@/stores/branch";
 import { useToastStore } from "@/stores/toast.ts";
 
 const { t } = useI18n();
 
 const props = defineProps<{
   glossaryId: string;
+  glossaryProjectIds: string[];
 }>();
 
 const { info, warn, rpcWarn } = useToastStore();
+const branchStore = storeToRefs(useBranchStore());
 
 const termLanguageId = ref("");
 const termsText = ref("");
@@ -35,6 +39,20 @@ const translations = computed(() => {
     .split(/\r?\n/)
     .filter((line: string) => line.length > 0);
   return arr;
+});
+
+const scopedProjectId = computed(() => {
+  const currentProjectId = branchStore.currentProjectId.value;
+  if (!currentProjectId) return undefined;
+
+  return props.glossaryProjectIds.includes(currentProjectId)
+    ? currentProjectId
+    : undefined;
+});
+
+const scopedBranchId = computed(() => {
+  if (!scopedProjectId.value) return undefined;
+  return branchStore.currentBranchId.value ?? undefined;
 });
 
 const handleInsert = async () => {
@@ -73,6 +91,12 @@ const handleInsert = async () => {
     .insertTerm({
       glossaryId: props.glossaryId,
       termsData: termsData,
+      ...(scopedProjectId.value !== undefined
+        ? { projectId: scopedProjectId.value }
+        : {}),
+      ...(scopedBranchId.value !== undefined
+        ? { branchId: scopedBranchId.value }
+        : {}),
     })
     .then(() => {
       info(t("成功插入所有术语"));

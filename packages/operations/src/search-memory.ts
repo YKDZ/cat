@@ -148,6 +148,7 @@ const searchMemory = async (
   const result = rows
     .map((row) => ({
       ...row,
+      sourceScope: "PROJECT" as const,
       confidence: searchResult.get(row.chunkId) ?? 0,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),

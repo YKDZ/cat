@@ -1,8 +1,27 @@
 import type { FullConfig } from "@playwright/test";
 // oxlint-disable no-console -- intentional diagnostic logging in globalSetup
 
-import { DrizzleDB, ensureDB, RedisConnection, sql } from "@cat/db";
-import { loadDevSeed, runSeedPipeline, truncateAllTables } from "@cat/seed";
+import {
+  DrizzleDB,
+  ensureDB,
+  RedisConnection,
+  sql,
+  vectorizedString,
+} from "@cat/db";
+import {
+  createPR,
+  createQaReviewRunWithFindings,
+  createTranslations,
+  executeCommand,
+  materializeQaReviewQueueItem,
+  updatePRStatus,
+} from "@cat/domain";
+import {
+  type RefResolver,
+  loadDevSeed,
+  runSeedPipeline,
+  truncateAllTables,
+} from "@cat/seed";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -48,6 +67,140 @@ const validateDatabaseUrl = (): string => {
   }
 
   return url;
+};
+
+const insertString = async (
+  db: DrizzleDB["client"],
+  value: string,
+  languageId: string,
+) => {
+  const [row] = await db
+    .insert(vectorizedString)
+    .values({ value, languageId })
+    .returning({ id: vectorizedString.id });
+
+  return row.id;
+};
+
+const seedQaReviewWorkbench = async (
+  execCtx: { db: DrizzleDB["client"] },
+  refs: RefResolver,
+) => {
+  const projectId = refs.getStringId("project");
+  const adminId = refs.getStringId("user:admin");
+  const firstElementId = refs.getNumericId("el:001");
+  const secondElementId = refs.getNumericId("el:002");
+
+  const [firstStringId, secondStringId] = await Promise.all([
+    insertString(execCtx.db, "QA approved candidate", "zh-Hans"),
+    insertString(execCtx.db, "QA rejected candidate", "zh-Hans"),
+  ]);
+
+  const [firstTranslationId, secondTranslationId] = await executeCommand(
+    execCtx,
+    createTranslations,
+    {
+      data: [
+        {
+          translatableElementId: firstElementId,
+          translatorId: adminId,
+          stringId: firstStringId,
+        },
+        {
+          translatableElementId: secondElementId,
+          translatorId: adminId,
+          stringId: secondStringId,
+        },
+      ],
+    },
+  );
+
+  await Promise.all(
+    [
+      {
+        elementId: firstElementId,
+        translationId: firstTranslationId,
+        message: "Missing placeholder",
+        action: "BLOCK_APPROVAL" as const,
+        riskScore: 100,
+      },
+      {
+        elementId: secondElementId,
+        translationId: secondTranslationId,
+        message: "Needs style review",
+        action: "NEEDS_REVIEW" as const,
+        riskScore: 60,
+      },
+    ].map(async (item) => {
+      await executeCommand(execCtx, createQaReviewRunWithFindings, {
+        projectId,
+        elementId: item.elementId,
+        translationId: item.translationId,
+        branchId: null,
+        layer: "DETERMINISTIC",
+        status: "COMPLETED",
+        riskScore: item.riskScore,
+        summary: item.message,
+        findings: [
+          {
+            layer: "DETERMINISTIC",
+            checkerServiceId: null,
+            qaResultItemId: null,
+            ruleId: "e2e.qa",
+            ruleFamily: "e2e",
+            severity: item.action === "BLOCK_APPROVAL" ? "error" : "warning",
+            action: item.action,
+            disposition: "OPEN",
+            confidenceBasisPoints: 10000,
+            riskScore: item.riskScore,
+            message: item.message,
+            explanation: null,
+            sourceSpan: null,
+            targetSpan: null,
+            suggestedText: null,
+            meta: null,
+          },
+        ],
+      });
+
+      await executeCommand(execCtx, materializeQaReviewQueueItem, {
+        projectId,
+        languageId: "zh-Hans",
+        elementId: item.elementId,
+        translationId: item.translationId,
+        branchId: null,
+      });
+    }),
+  );
+
+  refs.set("qa:element:approve", firstElementId);
+  refs.set("qa:element:reject", secondElementId);
+};
+
+const seedBranchWorkspace = async (
+  execCtx: { db: DrizzleDB["client"] },
+  refs: RefResolver,
+) => {
+  const projectId = refs.getStringId("project");
+  const adminId = refs.getStringId("user:admin");
+
+  const pr = await executeCommand(execCtx, createPR, {
+    projectId,
+    title: "E2E branch workspace",
+    body: "Branch workspace E2E fixture",
+    authorId: adminId,
+    reviewers: [],
+    branchName: "e2e/branch-workspace",
+  });
+
+  const opened = await executeCommand(execCtx, updatePRStatus, {
+    prId: pr.id,
+    status: "OPEN",
+  });
+
+  refs.set("pr:branch-workspace", opened.id);
+  refs.set("pr:branch-workspace:number", opened.number);
+  refs.set("branch:workspace", opened.branchId);
 };
 
 /**
@@ -138,6 +291,9 @@ const globalSetup = async (_config: FullConfig): Promise<void> => {
         `${result.summary.elements} elements, ${result.summary.glossaryConcepts} glossary concepts, ` +
         `${result.summary.memoryItems} memory items.`,
     );
+
+    await seedQaReviewWorkbench(execCtx, result.refs);
+    await seedBranchWorkspace(execCtx, result.refs);
 
     // 7. Write refs JSON
     const refs: Record<string, string> = {};

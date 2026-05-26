@@ -28,9 +28,21 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       accounts: r.many.account(),
       glossaries: r.many.glossary(),
       memories: r.many.memory(),
+      personalMemoryBindings: r.many.personalMemoryBinding({
+        from: r.user.id,
+        to: r.personalMemoryBinding.userId,
+      }),
       memoryItems: r.many.memoryItem({
         from: r.user.id,
         to: r.memoryItem.creatorId,
+      }),
+      approvedMemoryPromotions: r.many.memoryPromotionRecord({
+        from: r.user.id,
+        to: r.memoryPromotionRecord.approvedById,
+      }),
+      memoryItemDeletions: r.many.memoryItemDeletion({
+        from: r.user.id,
+        to: r.memoryItemDeletion.deletedById,
       }),
       pluginConfigInstances: r.many.pluginConfigInstance(),
       projects: r.many.project(),
@@ -111,6 +123,8 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       scopeBindings: r.many.scopeBinding(),
       glossaries: r.many.glossary(),
       memories: r.many.memory(),
+      personalMemoryBindings: r.many.personalMemoryBinding(),
+      memoryPromotionRecords: r.many.memoryPromotionRecord(),
       user: r.one.user({
         from: r.project.creatorId,
         to: r.user.id,
@@ -155,6 +169,18 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.memory.id.through(r.memoryToProject.memoryId),
         to: r.project.id.through(r.memoryToProject.projectId),
       }),
+      personalBinding: r.one.personalMemoryBinding({
+        from: r.memory.id,
+        to: r.personalMemoryBinding.memoryId,
+      }),
+      sourcePromotionRecords: r.many.memoryPromotionRecord({
+        from: r.memory.id,
+        to: r.memoryPromotionRecord.targetMemoryId,
+      }),
+      deletedItems: r.many.memoryItemDeletion({
+        from: r.memory.id,
+        to: r.memoryItemDeletion.memoryId,
+      }),
     },
     memoryItem: {
       user: r.one.user({
@@ -180,6 +206,68 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       vectorizedStringTranslationStringId: r.one.vectorizedString({
         from: r.memoryItem.translationStringId,
         to: r.vectorizedString.id,
+      }),
+      sourcePromotionRecords: r.many.memoryPromotionRecord({
+        from: r.memoryItem.id,
+        to: r.memoryPromotionRecord.sourcePersonalMemoryItemId,
+      }),
+      targetPromotionRecords: r.many.memoryPromotionRecord({
+        from: r.memoryItem.id,
+        to: r.memoryPromotionRecord.targetMemoryItemId,
+      }),
+    },
+    personalMemoryBinding: {
+      memory: r.one.memory({
+        from: r.personalMemoryBinding.memoryId,
+        to: r.memory.id,
+      }),
+      project: r.one.project({
+        from: r.personalMemoryBinding.projectId,
+        to: r.project.id,
+      }),
+      user: r.one.user({
+        from: r.personalMemoryBinding.userId,
+        to: r.user.id,
+      }),
+    },
+    memoryPromotionRecord: {
+      project: r.one.project({
+        from: r.memoryPromotionRecord.projectId,
+        to: r.project.id,
+      }),
+      sourceTranslation: r.one.translation({
+        from: r.memoryPromotionRecord.sourceTranslationId,
+        to: r.translation.id,
+      }),
+      sourcePersonalMemoryItem: r.one.memoryItem({
+        from: r.memoryPromotionRecord.sourcePersonalMemoryItemId,
+        to: r.memoryItem.id,
+      }),
+      targetMemory: r.one.memory({
+        from: r.memoryPromotionRecord.targetMemoryId,
+        to: r.memory.id,
+      }),
+      targetMemoryItem: r.one.memoryItem({
+        from: r.memoryPromotionRecord.targetMemoryItemId,
+        to: r.memoryItem.id,
+      }),
+      approvedBy: r.one.user({
+        from: r.memoryPromotionRecord.approvedById,
+        to: r.user.id,
+      }),
+    },
+    memoryItemDeletion: {
+      memory: r.one.memory({
+        from: r.memoryItemDeletion.memoryId,
+        to: r.memory.id,
+      }),
+      project: r.one.project({
+        from: r.memoryItemDeletion.projectId,
+        to: r.project.id,
+      }),
+      deletedBy: r.one.user({
+        from: r.memoryItemDeletion.deletedById,
+        to: r.user.id,
       }),
     },
     translatableElement: {

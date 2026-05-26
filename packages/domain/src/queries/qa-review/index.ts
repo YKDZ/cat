@@ -7,3 +7,7 @@ export * from "./resolve-review-profile.query.ts";
 export * from "./list-review-queue-items.query.ts";
 export * from "./count-review-queue-items.query.ts";
 export * from "./get-review-queue-item-detail.query.ts";
+export * from "./list-reviewable-elements.query.ts";
+export * from "./count-reviewable-elements.query.ts";
+export * from "./get-first-reviewable-element.query.ts";
+export * from "./get-reviewable-element-detail.query.ts";

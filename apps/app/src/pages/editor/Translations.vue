@@ -29,7 +29,15 @@ watchClient(
     <div v-if="state.data.length === 0" class="px-3 py-2 select-none">
       {{ t("还没有任何翻译或翻译仍在处理") }}
     </div>
-    <div v-else v-for="translation in state.data" :key="translation.id">
+    <div
+      v-else
+      v-for="translation in state.data"
+      :key="
+        translation.kind === 'main'
+          ? `main:${translation.id}`
+          : `branch-overlay:${translation.overlayEntityId}`
+      "
+    >
       <Translation :translation="translation" />
     </div>
   </div>

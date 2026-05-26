@@ -14,8 +14,15 @@ import { orpc } from "@/rpc/orpc";
 
 import type { Data } from "./+data.ts";
 
+import ProjectPageDataError from "../ProjectPageDataError.vue";
+
 const { t } = useI18n();
-const { projectId } = useData<Data>();
+const data = useData<Data>();
+const pageError = computed(() => data.pageError);
+const projectId = computed(
+  () => data.projectId ?? data.projectShell.project.id,
+);
+const initialPullRequests = computed(() => data.pullRequests ?? []);
 
 const PAGE_SIZE = 30;
 const activeTab = ref<PullRequestStatus | "">("");
@@ -23,7 +30,7 @@ const searchQuery = ref("");
 const page = ref(0);
 
 const queryParams = computed(() => ({
-  projectId,
+  projectId: projectId.value,
   status: (activeTab.value || undefined) as PullRequestStatus | undefined,
   search: searchQuery.value || undefined,
   limit: PAGE_SIZE,
@@ -33,7 +40,7 @@ const queryParams = computed(() => ({
 const { state } = useQuery({
   key: () => [
     "pull-requests",
-    projectId,
+    projectId.value,
     activeTab.value,
     searchQuery.value,
     page.value,
@@ -43,7 +50,7 @@ const { state } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-const prs = computed(() => state.value.data ?? []);
+const prs = computed(() => state.value.data ?? initialPullRequests.value);
 const hasMore = computed(() => prs.value.length >= PAGE_SIZE);
 
 const setTab = (tab: PullRequestStatus | "") => {
@@ -69,7 +76,8 @@ const statusIcon = (status: string) => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <ProjectPageDataError v-if="pageError" :message="pageError.message" />
+  <div v-else class="space-y-4">
     <!-- Header -->
     <div class="flex items-center justify-between">
       <h1 class="text-lg font-semibold">{{ t("拉取请求") }}</h1>

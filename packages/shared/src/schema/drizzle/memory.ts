@@ -16,6 +16,7 @@ export const MemorySchema = z.object({
   id: z.uuidv4(),
   name: z.string(),
   description: z.string().nullable(),
+  scope: z.enum(["PROJECT", "PERSONAL"]),
   creatorId: z.uuidv4(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
@@ -46,6 +47,45 @@ export const MemoryToProjectSchema = z.object({
 });
 
 export type MemoryToProject = z.infer<typeof MemoryToProjectSchema>;
+
+export const PersonalMemoryBindingSchema = z.object({
+  memoryId: z.uuidv4(),
+  projectId: z.uuidv4(),
+  userId: z.uuidv4(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type PersonalMemoryBinding = z.infer<typeof PersonalMemoryBindingSchema>;
+
+export const MemoryPromotionRecordSchema = z.object({
+  id: z.int(),
+  projectId: z.uuidv4(),
+  sourceTranslationId: z.int(),
+  sourcePersonalMemoryItemId: z.int().nullable(),
+  targetMemoryId: z.uuidv4().nullable(),
+  targetMemoryItemId: z.int().nullable(),
+  approvedById: z.uuidv4().nullable(),
+  status: z.enum(["PENDING", "PROMOTED", "NO_PROJECT_MEMORY_TARGET"]),
+  idempotencyKey: z.string(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type MemoryPromotionRecord = z.infer<typeof MemoryPromotionRecordSchema>;
+
+export const MemoryItemDeletionSchema = z.object({
+  id: z.int(),
+  deletedMemoryItemId: z.int(),
+  memoryId: z.uuidv4().nullable(),
+  projectId: z.uuidv4().nullable(),
+  deletedById: z.uuidv4().nullable(),
+  scope: z.enum(["PROJECT", "PERSONAL"]),
+  reason: z.string().nullable(),
+  deletedAt: DrizzleDateTimeSchema,
+});
+
+export type MemoryItemDeletion = z.infer<typeof MemoryItemDeletionSchema>;
 
 export const MemoryRecallVariantSchema = z.object({
   id: z.int(),

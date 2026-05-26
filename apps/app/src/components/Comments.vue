@@ -19,6 +19,7 @@ import { useI18n } from "vue-i18n";
 import MarkdownEditor from "@/components/editor/MarkdownEditor.vue";
 import TextTooltip from "@/components/tooltip/TextTooltip.vue";
 import { orpc } from "@/rpc/orpc";
+import { useEditorContextStore } from "@/stores/editor/context";
 import { useEditorTableStore } from "@/stores/editor/table";
 
 import Comment from "./Comment.vue";
@@ -31,18 +32,33 @@ const props = defineProps<{
 const { t } = useI18n();
 
 const { elementId } = storeToRefs(useEditorTableStore());
+const { scope } = storeToRefs(useEditorContextStore());
 
 const { state, refetch } = useQuery({
-  key: ["rootComments", elementId.value, 10, 0],
+  key: () => [
+    "rootComments",
+    props.targetType,
+    props.targetId,
+    scope.value?.projectId ?? null,
+    scope.value?.branchId ?? null,
+    10,
+    0,
+  ],
   placeholderData: [],
-  query: () =>
-    orpc.comment.getRootComments({
+  query: async () => {
+    const currentScope = scope.value;
+    if (!currentScope) return [];
+
+    return await orpc.comment.getRootComments({
       targetType: props.targetType,
       targetId: props.targetId,
       pageIndex: 0,
       pageSize: 10,
-    }),
-  enabled: !import.meta.env.SSR,
+      projectId: currentScope.projectId,
+      branchId: currentScope.branchId,
+    });
+  },
+  enabled: () => !import.meta.env.SSR && scope.value !== null,
 });
 
 const openEditor = defineModel<boolean>("openEditor", { default: false });
@@ -50,19 +66,23 @@ const openEditor = defineModel<boolean>("openEditor", { default: false });
 const content = ref("");
 
 const comment = async () => {
-  if (!elementId.value) return;
+  const currentScope = scope.value;
+  if (!elementId.value || !currentScope) return;
 
   await orpc.comment.comment({
     targetType: props.targetType,
     targetId: props.targetId,
     content: content.value,
     languageId: "en",
+    projectId: currentScope.projectId,
+    branchId: currentScope.branchId,
   });
 
+  content.value = "";
   refetch();
 };
 
-const handleDelete = (commentId: number) => {
+const handleDelete = () => {
   refetch();
 };
 </script>

@@ -5,13 +5,17 @@ import { useQuery, useQueryCache } from "@pinia/colada";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { ref, computed } from "vue";
+import { computed, reactive, ref } from "vue";
 
 import { buildEditorHref } from "@/pages/editor/scope-url";
 import { orpc } from "@/rpc/orpc";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorElementStore } from "@/stores/editor/element.ts";
+import {
+  useEditorElementStore,
+  type TranslatableElementWithDetails,
+} from "@/stores/editor/element.ts";
 import { useProfileStore } from "@/stores/profile.ts";
+import { useProjectWriteCapabilityStore } from "@/stores/write-capability.ts";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const contextStore = useEditorContextStore();
@@ -19,6 +23,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const elementStore = useEditorElementStore();
   const elementRefStore = storeToRefs(elementStore);
   const profile = storeToRefs(useProfileStore());
+  const writeCapability = useProjectWriteCapabilityStore();
+  const writeCapabilityRefs = storeToRefs(writeCapability);
   const queryCache = useQueryCache();
 
   const inputDivEl = ref<HTMLDivElement>();
@@ -29,9 +35,14 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   const editorView = ref<EditorView | null>(null);
 
   const elementId = ref<number | null>(null);
+  const selectedElementSnapshot = ref<TranslatableElementWithDetails | null>(
+    null,
+  );
+  const externalElementLanguageId = ref<string | null>(null);
   const translationValue = ref("");
   const sourceTokens = ref<Token[]>([]);
   const translationTokens = ref<Token[]>([]);
+  const draftCache = reactive(new Map<string, string>());
 
   const { undo, redo } = useRefHistory(translationValue);
 
@@ -57,14 +68,32 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
   const element = computed(() => {
     if (!elementId.value) return null;
-    return elementRefStore.storedElements.value.find(
+
+    const loadedElement = elementRefStore.storedElements.value.find(
       (el) => el.id === elementId.value,
     );
+    if (loadedElement) {
+      return loadedElement;
+    }
+
+    if (selectedElementSnapshot.value?.id === elementId.value) {
+      return selectedElementSnapshot.value;
+    }
+
+    return null;
   });
 
   const elementLanguageId = computed(() => {
     if (!element.value) return null;
     return element.value.languageId;
+  });
+
+  const resolvedElementLanguageId = computed(() => {
+    if (elementLanguageId.value) {
+      return elementLanguageId.value;
+    }
+
+    return externalElementLanguageId.value;
   });
 
   const { state: elementTotalAmountState } = useQuery({
@@ -85,6 +114,31 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     Math.ceil((elementTotalAmount.value ?? 0) / context.pageSize.value),
   );
 
+  const draftKey = computed(() => {
+    if (!context.scope.value || elementId.value === null) return null;
+
+    return [
+      context.scope.value.projectId,
+      context.scope.value.languageToId,
+      context.scope.value.branchId ?? "main",
+      elementId.value,
+    ].join(":");
+  });
+
+  const stashDraftForCurrentScope = () => {
+    if (!draftKey.value) return;
+    draftCache.set(draftKey.value, translationValue.value);
+  };
+
+  const restoreDraftForCurrentScope = () => {
+    if (!draftKey.value) {
+      translationValue.value = "";
+      return;
+    }
+
+    translationValue.value = draftCache.get(draftKey.value) ?? "";
+  };
+
   const setCurrentElementContext = (
     selectedElement: typeof element.value | null,
   ) => {
@@ -93,11 +147,26 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   };
 
   const resetDraftForElementChange = (targetElementId: number | null) => {
+    stashDraftForCurrentScope();
+
     if (elementId.value === targetElementId) return;
 
     translationValue.value = "";
     sourceTokens.value = [];
     translationTokens.value = [];
+  };
+
+  const setElementContextForExternalWorkbench = (input: {
+    elementId: number | null;
+    primaryContentNodeId?: string | null;
+    sourceLanguageId?: string | null;
+  }) => {
+    resetDraftForElementChange(input.elementId);
+    elementId.value = input.elementId;
+    selectedElementSnapshot.value = null;
+    externalElementLanguageId.value = input.sourceLanguageId ?? null;
+    contextStore.currentElementContentNodeId =
+      input.primaryContentNodeId ?? undefined;
   };
 
   /**
@@ -117,6 +186,9 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       contextStore.setCurrentPage(pageIndex + 1);
       setCurrentElementContext(selected);
       elementId.value = targetElementId;
+      selectedElementSnapshot.value = selected;
+      externalElementLanguageId.value = null;
+      restoreDraftForCurrentScope();
 
       return true;
     }
@@ -141,6 +213,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
       if (!first) {
         resetDraftForElementChange(null);
         elementId.value = null;
+        selectedElementSnapshot.value = null;
+        externalElementLanguageId.value = null;
         setCurrentElementContext(null);
         await navigate(buildEditorHref(context.scope.value, "empty"));
         return;
@@ -148,7 +222,10 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
       resetDraftForElementChange(first.id);
       elementId.value = first.id;
+      selectedElementSnapshot.value = first;
+      externalElementLanguageId.value = null;
       setCurrentElementContext(first);
+      restoreDraftForCurrentScope();
       await navigate(buildEditorHref(context.scope.value, first.id));
       return;
     }
@@ -159,22 +236,28 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     resetDraftForElementChange(targetElementId);
     setCurrentElementContext(selected);
     elementId.value = targetElementId;
+    selectedElementSnapshot.value = selected;
+    externalElementLanguageId.value = null;
+    restoreDraftForCurrentScope();
   };
 
   const toPage = async (page: number) => {
     if (!context.scope.value) return;
 
     contextStore.setCurrentPage(page);
-    const rows = await elementStore.loadPage(page - 1);
+    await elementStore.loadPage(page - 1);
 
-    // Navigate to the first element on the new page (not the previously
-    // selected element). This ensures that on a hard refresh the URL encodes
-    // an element that actually belongs to this page, so toElement() confirms
-    // currentPage == page instead of overriding it back to page 1.
-    const target = rows[0]?.id ?? "auto";
+    // Keep the current selection stable across page changes.
+    // Pagination should only affect the sidebar list window.
+    const target = elementId.value ?? "auto";
 
-    if (contextStore.scope) {
-      await navigate(buildEditorHref(contextStore.scope, target));
+    if (context.scope.value) {
+      const nextScope = {
+        ...context.scope.value,
+        page,
+      };
+
+      await navigate(buildEditorHref(nextScope, target));
     }
   };
 
@@ -201,7 +284,14 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   };
 
   const translate = async () => {
-    if (!elementId.value || !context.languageToId.value) return;
+    if (
+      !elementId.value ||
+      !context.languageToId.value ||
+      !context.scope.value ||
+      !writeCapabilityRefs.canWrite.value
+    ) {
+      return;
+    }
 
     const currentElementId = elementId.value;
     const currentLanguageId = context.languageToId.value;
@@ -210,6 +300,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
     try {
       await orpc.translation.create({
+        projectId: context.scope.value.projectId,
+        branchId: context.scope.value.branchId,
         elementId: currentElementId,
         languageId: currentLanguageId,
         text: translationValue.value,
@@ -218,7 +310,12 @@ export const useEditorTableStore = defineStore("editorTable", () => {
 
       // Ensure the translation list updates even if the SSE event races.
       void queryCache.invalidateQueries({
-        key: ["translations", currentElementId, currentLanguageId],
+        key: [
+          "translations",
+          currentElementId,
+          currentLanguageId,
+          context.scope.value.branchId ?? null,
+        ],
         exact: true,
       });
     } catch (error) {
@@ -262,8 +359,9 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     searchQuery,
     element,
     elementTotalAmount,
-    elementLanguageId,
+    elementLanguageId: resolvedElementLanguageId,
     pageTotalAmount,
+    setElementContextForExternalWorkbench,
     selectLoadedElement,
     toElement,
     toPage,
@@ -272,6 +370,8 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     replace,
     clear,
     insert,
+    stashDraftForCurrentScope,
+    restoreDraftForCurrentScope,
     redo,
     undo,
   };

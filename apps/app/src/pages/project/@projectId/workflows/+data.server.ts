@@ -4,18 +4,22 @@ import { render } from "vike/abort";
 
 import { ssc } from "@/server/ssc";
 
+import { withProjectShell } from "../project-shell.server";
+
 export const data = async (ctx: PageContextServer) => {
   const { projectId } = ctx.routeParams;
 
   if (!projectId) throw render(`/`, `Project id is required`);
 
-  const runs = await ssc(ctx).agent.listProjectRuns({
-    projectId,
-    limit: 20,
-    offset: 0,
-  });
+  return await withProjectShell(ctx, async () => {
+    const runs = await ssc(ctx).agent.listProjectRuns({
+      projectId,
+      limit: 20,
+      offset: 0,
+    });
 
-  return { runs, projectId };
+    return { runs, projectId };
+  });
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

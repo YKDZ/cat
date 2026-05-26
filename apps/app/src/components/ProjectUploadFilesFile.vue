@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { TableCell, TableRow } from "@cat/ui";
 import { Button } from "@cat/ui";
+import { storeToRefs } from "pinia";
+import { computed } from "vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import LanguagePicker from "@/components/LanguagePicker.vue";
 import { orpc } from "@/rpc/orpc";
+import { useBranchStore } from "@/stores/branch";
 import { useToastStore } from "@/stores/toast.ts";
 import { formatSize, uploadFileToS3PresignedURL } from "@/utils/file.ts";
 
@@ -18,8 +21,17 @@ const props = defineProps<{
   file: File;
 }>();
 
+const branchStore = useBranchStore();
+const { currentBranchId, currentProjectId } = storeToRefs(branchStore);
+
 const isProcessing = ref<boolean>(false);
 const languageId = ref<string>("en");
+
+const activeBranchId = computed(() =>
+  currentProjectId.value === props.projectId
+    ? (currentBranchId.value ?? undefined)
+    : undefined,
+);
 
 const upload = async () => {
   if (isProcessing.value) return;
@@ -45,6 +57,7 @@ const upload = async () => {
       projectId: props.projectId,
       languageId: languageId.value,
       putSessionId,
+      branchId: activeBranchId.value,
     })
     .then(() => {
       info(

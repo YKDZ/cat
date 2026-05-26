@@ -6,10 +6,10 @@ import {
 } from "@/pages/editor/scope-url";
 
 /**
- * @zh QA 审校路由中的队列项目标标识。
- * @en Queue item target token used in QA review routes.
+ * @zh QA 审校路由中的元素目标标识。
+ * @en Element target token used in QA review routes.
  */
-export type QaReviewQueueRouteTarget = number | "auto" | "empty";
+export type QaReviewElementRouteTarget = number | "auto" | "empty";
 
 export { parseEditorScopeFromRoute as parseQaReviewScopeFromRoute };
 
@@ -18,12 +18,12 @@ export { parseEditorScopeFromRoute as parseQaReviewScopeFromRoute };
  * @en Build a QA review workbench href while reusing editor-scope query params.
  *
  * @param scope - {@zh 编辑器作用域} {@en Editor scope}
- * @param target - {@zh 队列项目标标识} {@en Queue item target token}
+ * @param target - {@zh 元素目标标识} {@en Element target token}
  * @returns - {@zh 可导航的 QA 审校链接} {@en Navigable QA review href}
  */
 export const buildQaReviewHref = (
   scope: EditorScope,
-  target: QaReviewQueueRouteTarget,
+  target: QaReviewElementRouteTarget,
 ): string => {
   const params = toEditorSearchParams(scope);
   const suffix = params.toString();

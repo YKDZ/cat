@@ -56,6 +56,7 @@ export const listTemplateMemorySuggestions: Query<
   const rows = await ctx.db
     .select({
       id: memoryItem.id,
+      translationId: memoryItem.translationId,
       memoryId: memoryItem.memoryId,
       creatorId: memoryItem.creatorId,
       createdAt: memoryItem.createdAt,

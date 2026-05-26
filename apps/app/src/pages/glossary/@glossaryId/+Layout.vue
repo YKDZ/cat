@@ -9,9 +9,10 @@ import type { Data } from "./+data.server.ts";
 
 import Header from "./Header.vue";
 
-const { glossary } = useData<Data>();
+const { glossary, glossaryProjectIds } = useData<Data>();
 
 provide(useInjectionKey<Data>()("glossary"), glossary);
+provide(useInjectionKey<Data>()("glossaryProjectIds"), glossaryProjectIds);
 </script>
 
 <template>

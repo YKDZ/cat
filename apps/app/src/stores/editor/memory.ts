@@ -16,8 +16,11 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
   let abortController: AbortController | null = null;
 
   const memories = ref<MemorySuggestion[]>([]);
+  const error = ref<string | null>(null);
 
   const subMemories = async () => {
+    error.value = null;
+
     if (abortController) {
       abortController.abort();
     }
@@ -47,15 +50,15 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
           memories.value.splice(existingIndex, 1, memory);
         }
       }
-    } catch (error) {
+    } catch (err) {
       if (
-        error instanceof Error &&
-        (error.message === "Stream was cancelled" ||
-          error.name === "AbortError")
+        err instanceof Error &&
+        (err.message === "Stream was cancelled" || err.name === "AbortError")
       ) {
         return;
       }
-      throw error;
+      memories.value = [];
+      error.value = err instanceof Error ? err.message : "unknown-error";
     }
   };
 
@@ -67,5 +70,5 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
     onNew.value = undefined;
   };
 
-  return { memories, subMemories, unsubscribe };
+  return { memories, error, subMemories, unsubscribe };
 });

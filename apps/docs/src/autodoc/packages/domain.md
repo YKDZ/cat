@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 355
+* **Modules**: 368
 
-* **Exported functions**: 386
+* **Exported functions**: 401
 
-* **Exported types**: 496
+* **Exported types**: 522
 
 ## Function Index
 
@@ -876,7 +876,34 @@ export const createMemoryItems: Command<
 export const createMemory: Command<
   CreateMemoryCommand,
   typeof memory.$inferSelect
-> = async (ctx: DbContext, command: { name: string; creatorId: string; description?: string | undefined; projectIds?: string[] | undefined; }) => {...}
+> = async (ctx: DbContext, command: { name: string; creatorId: string; description?: string | undefined; scope?: "PROJECT" | "PERSONAL" | undefined; projectIds?: string[] | undefined; }) => {...}
+```
+
+### `deleteMemoryItem`
+
+```ts
+export const deleteMemoryItem: Command<
+  DeleteMemoryItemCommand,
+  DeleteMemoryItemResult
+> = async (ctx: DbContext, command: { memoryItemId: number; scope: "PROJECT" | "PERSONAL"; deletedById?: string | null | undefined; projectId?: string | null | undefined; reason?: string | undefined; }) => {...}
+```
+
+### `ensurePersonalProjectMemory`
+
+```ts
+export const ensurePersonalProjectMemory: Command<
+  EnsurePersonalProjectMemoryCommand,
+  EnsurePersonalProjectMemoryResult
+> = async (ctx: DbContext, command: { userId: string; projectId: string; name?: string | undefined; description?: string | undefined; }) => {...}
+```
+
+### `recordMemoryPromotion`
+
+```ts
+export const recordMemoryPromotion: Command<
+  RecordMemoryPromotionCommand,
+  RecordMemoryPromotionResult
+> = async (ctx: DbContext, command: { projectId: string; sourceTranslationId: number; status: "PENDING" | "PROMOTED" | "NO_PROJECT_MEMORY_TARGET"; idempotencyKey: string; sourcePersonalMemoryItemId?: number | null | undefined; targetMemoryId?: string | null | undefined; targetMemoryItemId?: number | null | undefined; approvedById?: string | null | undefined; }) => {...}
 ```
 
 ### `replaceMemoryRecallVariants`
@@ -1358,6 +1385,23 @@ export const submitQaReviewDecision: Command<
 > = async (ctx: DbContext, input: { queueItemId: number; decision: "REQUEST_CHANGES" | "PRAISE" | "APPROVE" | "REJECT_CANDIDATE" | "CLOSE_FINDING" | "DEFER"; reason: string; expectedVersion: number; overrideBlocking: boolean; reviewerId: string; findingId?: number | undefined; findingDisposition?: "SUPPRESSED" | "FALSE_POSITIVE" | "ACCEPTED" | undefined; annotationId?: number | undefined; }) => {...}
 ```
 
+### `submitQaReviewAction`
+
+```ts
+/**
+ * Submit an atomic QA workbench review action.
+ *
+ * @param ctx - Command context
+ * @param input - Command input
+ *
+ * @returns Review action result
+ */
+export const submitQaReviewAction: Command<
+  z.infer<typeof SubmitQaReviewActionCommandSchema>,
+  SubmitQaReviewActionCommandResult
+> = async (ctx: DbContext, input: { projectId: string; languageId: string; elementId: number; translationId: number; queueItemId: number; action: "APPROVE" | "REJECT_CANDIDATE" | "DEFER"; expectedVersion: number; overrideBlocking: boolean; reviewerId: string; branchId?: number | null | undefined; noteBody?: string | undefined; overrideReason?: string | undefined; navigation?: { pageSize: number; afterElementId?: number | undefined; } | undefined; }) => {...}
+```
+
 ### `transitionQaReviewAnnotation`
 
 ```ts
@@ -1478,7 +1522,7 @@ export const autoApproveContentNodeTranslations: Command<
  */
 export const autoApproveOperationScopeTranslations: Command<
   AutoApproveOperationScopeTranslationsCommand,
-  number
+  AutoApproveOperationScopeTranslationsResult
 > = async (ctx: DbContext, command: { elementIds: number[]; languageId: string; }) => {...}
 ```
 
@@ -2959,6 +3003,24 @@ export const fetchTranslationsForMemory: Query<
 > = async (ctx: DbContext, query: { translationIds: number[]; }) => {...}
 ```
 
+### `findPersonalMemoryItemForTranslation`
+
+```ts
+export const findPersonalMemoryItemForTranslation: Query<
+  FindPersonalMemoryItemForTranslationQuery,
+  PersonalMemoryItemForTranslation | null
+> = async (ctx: DbContext, query: { translationId: number; projectId: string; userId: string; }) => {...}
+```
+
+### `getMemoryAccessContext`
+
+```ts
+export const getMemoryAccessContext: Query<
+  GetMemoryAccessContextQuery,
+  MemoryAccessContext | null
+> = async (ctx: DbContext, query: { memoryId: string; }) => {...}
+```
+
 ### `getMemory`
 
 ```ts
@@ -2977,6 +3039,15 @@ export const getSearchMemoryChunkRange: Query<
 > = async (ctx: DbContext, query: { memoryIds: string[]; sourceLanguageId: string; translationLanguageId: string; }) => {...}
 ```
 
+### `getTranslationMemoryPromotionContext`
+
+```ts
+export const getTranslationMemoryPromotionContext: Query<
+  GetTranslationMemoryPromotionContextQuery,
+  TranslationMemoryPromotionContext | null
+> = async (ctx: DbContext, query: { translationId: number; }) => {...}
+```
+
 ### `listAllMemories`
 
 ```ts
@@ -2993,6 +3064,15 @@ export const listBm25MemorySuggestions: Query<
   ListBm25MemorySuggestionsQuery,
   RawBm25MemorySuggestion[]
 > = async (ctx: DbContext, query: { text: string; sourceLanguageId: string; translationLanguageId: string; memoryIds: string[]; maxAmount: number; }) => {...}
+```
+
+### `listEffectiveMemoryIdsByProject`
+
+```ts
+export const listEffectiveMemoryIdsByProject: Query<
+  ListEffectiveMemoryIdsByProjectQuery,
+  EffectiveMemoryIds
+> = async (ctx: DbContext, query: { projectId: string; userId?: string | undefined; }) => {...}
 ```
 
 ### `listExactMemorySuggestions`
@@ -3046,6 +3126,15 @@ export const listMemoryItemIdsByElement: Query<
   ListMemoryItemIdsByElementQuery,
   string[]
 > = async (ctx: DbContext, query: { elementId: number; }) => {...}
+```
+
+### `listMemoryItems`
+
+```ts
+export const listMemoryItems: Query<
+  ListMemoryItemsQuery,
+  MemoryItemListPage
+> = async (ctx: DbContext, query: { memoryId: string; pageIndex: number; pageSize: number; searchText?: string | undefined; }) => {...}
 ```
 
 ### `listMemorySuggestionsByChunkIds`
@@ -3504,6 +3593,40 @@ export const countQaReviewQueueItems: Query<
 > = async (ctx: DbContext, input: { projectId: string; contentNodeIds: string[]; searchQuery: string; languageToId: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
 ```
 
+### `countQaReviewableElements`
+
+```ts
+/**
+ * Count reviewable QA elements under current filters.
+ *
+ * @param ctx - Query context
+ * @param input - Query input
+ *
+ * @returns Total element count
+ */
+export const countQaReviewableElements: Query<
+  CountQaReviewableElementsQuery,
+  number
+> = async (ctx: DbContext, input: { projectId: string; contentNodeIds: string[]; searchQuery: string; languageToId: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
+```
+
+### `getFirstQaReviewableElement`
+
+```ts
+/**
+ * Get the first (or next after afterElementId) reviewable element.
+ *
+ * @param ctx - Query context
+ * @param input - Query input
+ *
+ * @returns First reviewable element or null
+ */
+export const getFirstQaReviewableElement: Query<
+  GetFirstQaReviewableElementQuery,
+  QaReviewableElement | null
+> = async (ctx: DbContext, input: { projectId: string; contentNodeIds: string[]; pageSize: number; searchQuery: string; languageToId: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; afterElementId?: number | undefined; }) => {...}
+```
+
 ### `getQaReviewNotificationRecipient`
 
 ```ts
@@ -3576,6 +3699,23 @@ export const getQaReviewSuggestion: Query<
 > = async (ctx: DbContext, input: { suggestionId: number; }) => {...}
 ```
 
+### `getQaReviewableElementDetail`
+
+```ts
+/**
+ * Get QA reviewable element detail including all pending candidates and approval state.
+ *
+ * @param ctx - Query context
+ * @param input - Query input
+ *
+ * @returns Element detail or null
+ */
+export const getQaReviewableElementDetail: Query<
+  GetQaReviewableElementDetailQuery,
+  QaReviewableElementDetail | null
+> = async (ctx: DbContext, input: { projectId: string; languageId: string; elementId: number; branchId?: number | null | undefined; }) => {...}
+```
+
 ### `listQaReviewAnnotations`
 
 ```ts
@@ -3600,6 +3740,12 @@ export const listQaReviewFindings: Query<
 > = async (ctx: DbContext, input: { queueItemId: number; includeSuppressed: boolean; }) => {...}
 ```
 
+### `buildQaReviewQueueFiltersSql`
+
+```ts
+export const buildQaReviewQueueFiltersSql = (queueFilters: z.infer<typeof QaReviewQueueFiltersSchema>): SQL<unknown>
+```
+
 ### `buildQaReviewQueueRowsSql`
 
 ```ts
@@ -3615,6 +3761,36 @@ export const buildQaReviewQueueRowsSql = (input: ListQaReviewQueueItemsQuery): S
 export const listQaReviewQueueItems: Query<
   ListQaReviewQueueItemsQuery,
   QaReviewQueueListItem[]
+> = async (ctx: DbContext, input: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; pageSize: number; page: number; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
+```
+
+### `buildQaReviewableElementsSql`
+
+```ts
+/**
+ * Build SQL for QA reviewable elements aggregated by element.
+ *
+ * @param input - Query input
+ *
+ * @returns Aggregated query SQL
+ */
+export const buildQaReviewableElementsSql = (input: ListQaReviewableElementsQuery): SQL<unknown>
+```
+
+### `listQaReviewableElements`
+
+```ts
+/**
+ * List reviewable QA elements paginated by element.
+ *
+ * @param ctx - Query context
+ * @param input - Query input
+ *
+ * @returns Aggregated reviewable elements
+ */
+export const listQaReviewableElements: Query<
+  ListQaReviewableElementsQuery,
+  QaReviewableElement[]
 > = async (ctx: DbContext, input: { projectId: string; languageToId: string; contentNodeIds: string[]; searchQuery: string; statusFilter: "all" | "untranslated" | "translated" | "approved" | "unapproved"; sortMode: "structure" | "reuse-first"; pageSize: number; page: number; queueFilters: { queueStatus: ("OPEN" | "SUPERSEDED" | "CLAIMED" | "BLOCKED" | "REQUEST_CHANGES" | "APPROVABLE" | "RESOLVED")[]; riskBucket: ("LOW" | "MEDIUM" | "HIGH" | "BLOCKING" | "INFO")[]; findingAction: ("BLOCK_APPROVAL" | "NEEDS_REVIEW" | "INFORMATIONAL" | "PASS" | "SUPPRESSED")[]; includeResolved: boolean; claimedBy?: string | undefined; }; branchId?: number | undefined; }) => {...}
 ```
 
@@ -4155,6 +4331,18 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `CreateMemoryCommand` (type)
 
+* `DeleteMemoryItemCommand` (type)
+
+* `DeleteMemoryItemResult` (type)
+
+* `EnsurePersonalProjectMemoryCommand` (type)
+
+* `EnsurePersonalProjectMemoryResult` (type)
+
+* `RecordMemoryPromotionCommand` (type)
+
+* `RecordMemoryPromotionResult` (type)
+
 * `ReplaceMemoryRecallVariantsCommand` (type)
 
 * `CreateNotificationCommand` (type)
@@ -4247,6 +4435,10 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `SubmitQaReviewDecisionCommandInput` (type)
 
+* `BranchApprovalOverlayMutation` (type)
+
+* `SubmitQaReviewActionCommandResult` (type)
+
 * `TransitionQaReviewAnnotationCommand` (type)
 
 * `CreateQaResultItemsCommand` (type)
@@ -4278,6 +4470,8 @@ export const setupTestDB = async (): Promise<TestDB>
 * `AutoApproveContentNodeTranslationsCommand` (type)
 
 * `AutoApproveOperationScopeTranslationsCommand` (type)
+
+* `AutoApproveOperationScopeTranslationsResult` (type)
 
 * `CreateProjectTranslationSnapshotCommand` (type)
 
@@ -4663,15 +4857,31 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `TranslationForMemoryRow` (type)
 
+* `FindPersonalMemoryItemForTranslationQuery` (type)
+
+* `PersonalMemoryItemForTranslation` (type)
+
+* `GetMemoryAccessContextQuery` (type)
+
+* `MemoryAccessContext` (type)
+
 * `GetMemoryQuery` (type)
 
 * `GetSearchMemoryChunkRangeQuery` (type)
+
+* `GetTranslationMemoryPromotionContextQuery` (type)
+
+* `TranslationMemoryPromotionContext` (type)
 
 * `ListAllMemoriesQuery` (type)
 
 * `ListBm25MemorySuggestionsQuery` (type)
 
 * `RawBm25MemorySuggestion` (type)
+
+* `ListEffectiveMemoryIdsByProjectQuery` (type)
+
+* `EffectiveMemoryIds` (type)
 
 * `RawMemorySuggestion` (type)
 
@@ -4686,6 +4896,10 @@ export const setupTestDB = async (): Promise<TestDB>
 * `ListMemoryIdsByProjectQuery` (type)
 
 * `ListMemoryItemIdsByElementQuery` (type)
+
+* `ListMemoryItemsQuery` (type)
+
+* `MemoryItemListPage` (type)
 
 * `ListMemorySuggestionsByChunkIdsQuery` (type)
 
@@ -4797,6 +5011,10 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `CountQaReviewQueueItemsQuery` (type)
 
+* `CountQaReviewableElementsQuery` (type)
+
+* `GetFirstQaReviewableElementQuery` (type)
+
 * `GetQaReviewNotificationRecipientQuery` (type)
 
 * `GetQaReviewNotificationRecipientResult` (type)
@@ -4809,6 +5027,12 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `GetQaReviewSuggestionQuery` (type)
 
+* `GetQaReviewableElementDetailQuery` (type)
+
+* `QaReviewCandidateDetail` (type)
+
+* `QaReviewableElementDetail` (type)
+
 * `ListQaReviewAnnotationsQuery` (type)
 
 * `ListQaReviewFindingsQuery` (type)
@@ -4816,6 +5040,10 @@ export const setupTestDB = async (): Promise<TestDB>
 * `ListQaReviewQueueItemsQuery` (type)
 
 * `QaReviewQueueListItem` (type)
+
+* `ListQaReviewableElementsQuery` (type)
+
+* `QaReviewableElement` (type)
 
 * `ResolveQaReviewProfileQuery` (type)
 

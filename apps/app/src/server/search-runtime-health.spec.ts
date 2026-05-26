@@ -6,13 +6,13 @@ import {
 } from "./search-runtime-health";
 
 type QueryRows = Array<Record<string, string>>;
+type SearchRuntimeDb = Parameters<typeof detectSearchRuntimeHealth>[0];
 
-type FakeDb = {
-  execute: ReturnType<typeof vi.fn>;
-};
-
-const createFakeDb = (responses: QueryRows[]): FakeDb => ({
-  execute: vi.fn(async () => ({ rows: responses.shift() ?? [] })),
+const createFakeDb = (responses: QueryRows[]): SearchRuntimeDb => ({
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+  execute: vi.fn(async () => ({
+    rows: responses.shift() ?? [],
+  })) as unknown as SearchRuntimeDb["execute"],
 });
 
 describe("search runtime health", () => {

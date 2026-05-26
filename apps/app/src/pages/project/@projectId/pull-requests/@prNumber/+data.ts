@@ -4,6 +4,8 @@ import { render } from "vike/abort";
 
 import { ssc } from "@/server/ssc";
 
+import { withProjectShell } from "../../project-shell.server";
+
 export const data = async (ctx: PageContextServer) => {
   const { projectId, prNumber } = ctx.routeParams;
 
@@ -14,18 +16,20 @@ export const data = async (ctx: PageContextServer) => {
       "PR number is required",
     );
 
-  const pr = await ssc(ctx).pullRequest.getProjectPRByNumber({
-    projectId,
-    number: parseInt(prNumber, 10),
+  return await withProjectShell(ctx, async () => {
+    const pr = await ssc(ctx).pullRequest.getProjectPRByNumber({
+      projectId,
+      number: parseInt(prNumber, 10),
+    });
+
+    if (!pr)
+      throw render(
+        `/project/${projectId}/pull-requests`,
+        `PR #${prNumber} does not exist`,
+      );
+
+    return { projectId, pr };
   });
-
-  if (!pr)
-    throw render(
-      `/project/${projectId}/pull-requests`,
-      `PR #${prNumber} does not exist`,
-    );
-
-  return { projectId, pr };
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

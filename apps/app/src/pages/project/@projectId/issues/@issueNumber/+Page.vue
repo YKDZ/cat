@@ -20,28 +20,38 @@ import { orpc } from "@/rpc/orpc";
 
 import type { Data } from "./+data.ts";
 
+import ProjectPageDataError from "../../ProjectPageDataError.vue";
+
 const { t } = useI18n();
-const { issue: initialIssue, projectId } = useData<Data>();
+const data = useData<Data>();
+const pageError = computed(() => data.pageError);
+const projectId = computed(
+  () => data.projectId ?? data.projectShell.project.id,
+);
+const initialIssue = data.issue ?? null;
 
 // ─── Issue State ───
 
 const issueData = ref(initialIssue);
+const currentIssueId = computed(() => issueData.value?.id ?? null);
 
-const isOpen = computed(() => issueData.value.status === "OPEN");
+const isOpen = computed(() => issueData.value?.status === "OPEN");
 
 // ─── Threads ───
 
 type ThreadWithComments = IssueCommentThread & { comments: IssueComment[] };
 
 const { state: threadsState, refresh: refreshThreads } = useQuery({
-  key: () => ["issue-threads", issueData.value.id],
+  key: () => ["issue-threads", currentIssueId.value],
   query: () =>
-    orpc.issueComment.listIssueThreads({
-      targetType: "issue",
-      targetId: issueData.value.id,
-    }),
+    !currentIssueId.value
+      ? Promise.resolve([] as ThreadWithComments[])
+      : orpc.issueComment.listIssueThreads({
+          targetType: "issue",
+          targetId: currentIssueId.value,
+        }),
   placeholderData: [] as ThreadWithComments[],
-  enabled: !import.meta.env.SSR,
+  enabled: () => !import.meta.env.SSR && currentIssueId.value !== null,
 });
 
 const threads = computed(
@@ -51,19 +61,25 @@ const threads = computed(
 // ─── Cross References ───
 
 const { state: refsState } = useQuery({
-  key: () => ["issue-refs", issueData.value.id],
+  key: () => ["issue-refs", currentIssueId.value],
   query: () =>
-    orpc.issueComment.getCrossReferences({
-      targetType: "issue",
-      targetId: issueData.value.id,
-    }),
+    !currentIssueId.value
+      ? Promise.resolve([] as CrossReference[])
+      : orpc.issueComment.getCrossReferences({
+          targetType: "issue",
+          targetId: currentIssueId.value,
+        }),
   placeholderData: [] as CrossReference[],
-  enabled: !import.meta.env.SSR,
+  enabled: () => !import.meta.env.SSR && currentIssueId.value !== null,
 });
 
 // ─── Sidebar Sections ───
 
 const sidebarSections = computed<MetadataSection[]>(() => {
+  if (!issueData.value) {
+    return [];
+  }
+
   const assignees =
     (issueData.value.assignees as { type: string; id: string }[]) ?? [];
   const refs = refsState.value.data ?? [];
@@ -92,6 +108,8 @@ const sidebarSections = computed<MetadataSection[]>(() => {
 // ─── Actions ───
 
 const handleUpdateTitle = async (newTitle: string) => {
+  if (!issueData.value) return;
+
   try {
     issueData.value = await orpc.issue.updateProjectIssue({
       issueId: issueData.value.id,
@@ -103,6 +121,8 @@ const handleUpdateTitle = async (newTitle: string) => {
 };
 
 const handleUpdateBody = async (newBody: string) => {
+  if (!issueData.value) return;
+
   try {
     issueData.value = await orpc.issue.updateProjectIssue({
       issueId: issueData.value.id,
@@ -114,6 +134,8 @@ const handleUpdateBody = async (newBody: string) => {
 };
 
 const handleClose = async () => {
+  if (!issueData.value) return;
+
   try {
     issueData.value = await orpc.issue.closeProjectIssue({
       issueId: issueData.value.id,
@@ -124,6 +146,8 @@ const handleClose = async () => {
 };
 
 const handleReopen = async () => {
+  if (!issueData.value) return;
+
   try {
     issueData.value = await orpc.issue.reopenProjectIssue({
       issueId: issueData.value.id,
@@ -138,7 +162,8 @@ const handleReopen = async () => {
 const newCommentBody = ref("");
 
 const handlePostComment = async () => {
-  if (!newCommentBody.value.trim()) return;
+  if (!newCommentBody.value.trim() || !issueData.value) return;
+
   try {
     const thread = await orpc.issueComment.createIssueCommentThread({
       targetType: "issue",
@@ -178,9 +203,11 @@ const handleDeleteComment = async (commentId: number) => {
 // ─── Inline Title Edit ───
 
 const isEditingTitle = ref(false);
-const editTitleValue = ref(issueData.value.title);
+const editTitleValue = ref(issueData.value?.title ?? "");
 
 const startEditTitle = () => {
+  if (!issueData.value) return;
+
   editTitleValue.value = issueData.value.title;
   isEditingTitle.value = true;
 };
@@ -196,7 +223,8 @@ const cancelEditTitle = () => {
 </script>
 
 <template>
-  <div class="flex gap-6">
+  <ProjectPageDataError v-if="pageError" :message="pageError.message" />
+  <div v-else-if="issueData" class="flex gap-6">
     <!-- Main content area -->
     <div class="min-w-0 flex-1 space-y-4">
       <!-- Back link -->

@@ -22,6 +22,7 @@ import {
   createVectorizedStrings,
   ensureCoreRelationTypes,
   ensureLanguages,
+  ensurePersonalProjectMemory,
   ensureVectorStorageSchema,
   executeCommand,
   executeQuery,
@@ -37,6 +38,7 @@ import {
 } from "@cat/operations";
 import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
+import { normalizeMemorySeed } from "@cat/seed";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
 
@@ -58,6 +60,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   const { suite, cacheDir, pluginsDir } = opts;
   const { config, projectSeed, glossarySeed, memorySeed, elementsSeed } = suite;
   const refs = new RefResolver();
+  const memoryContainers = memorySeed ? normalizeMemorySeed(memorySeed) : [];
 
   // ── 1. Database setup ──────────────────────────────────────────────
   const testDb = await setupTestDB();
@@ -146,8 +149,8 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     allLanguages.add(glossarySeed.glossary.sourceLanguage);
     allLanguages.add(glossarySeed.glossary.translationLanguage);
   }
-  if (memorySeed) {
-    for (const item of memorySeed.memory.items) {
+  for (const memoryContainer of memoryContainers) {
+    for (const item of memoryContainer.items) {
       allLanguages.add(item.sourceLanguage);
       allLanguages.add(item.translationLanguage);
     }
@@ -214,17 +217,53 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
 
   // ── 9. Memory seeding ──────────────────────────────────────────────
   let memoryId: string | undefined;
-  if (memorySeed) {
-    const m = memorySeed.memory;
-    const memory = await executeCommand(execCtx, createMemory, {
-      name: m.name,
-      creatorId: userId,
-      projectIds: [project.id],
-    });
-    memoryId = memory.id;
-    refs.set("memory", memoryId);
+  let defaultMemoryRefBound = false;
+  for (const memoryContainer of memoryContainers) {
+    let containerMemoryId: string;
 
-    for (const itemSeed of m.items) {
+    if (memoryContainer.scope === "PERSONAL") {
+      const ownerRef = memoryContainer.ownerRef;
+      if (!ownerRef) {
+        throw new Error("personal memory container requires ownerRef");
+      }
+
+      const personalMemory = await executeCommand(
+        execCtx,
+        ensurePersonalProjectMemory,
+        {
+          userId: refs.resolve(ownerRef),
+          projectId: project.id,
+          name: memoryContainer.name,
+        },
+      );
+
+      containerMemoryId = personalMemory.memoryId;
+    } else {
+      const createdMemory = await executeCommand(execCtx, createMemory, {
+        name: memoryContainer.name,
+        creatorId: userId,
+        projectIds: [project.id],
+      });
+
+      containerMemoryId = createdMemory.id;
+    }
+
+    if (!memoryId || memoryContainer.scope === "PROJECT") {
+      memoryId = containerMemoryId;
+    }
+
+    if (memoryContainer.ref) {
+      refs.set(memoryContainer.ref, containerMemoryId);
+    }
+
+    if (!defaultMemoryRefBound && memoryContainer.ref !== "memory") {
+      refs.set("memory", containerMemoryId);
+      defaultMemoryRefBound = true;
+    } else if (memoryContainer.ref === "memory") {
+      defaultMemoryRefBound = true;
+    }
+
+    for (const itemSeed of memoryContainer.items) {
       const sourceStringIds = await executeCommand(
         execCtx,
         createVectorizedStrings,
@@ -248,7 +287,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       );
 
       const items = await executeCommand(execCtx, createMemoryItems, {
-        memoryId,
+        memoryId: containerMemoryId,
         items: [
           {
             translationId: null,
@@ -266,7 +305,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       await buildMemoryRecallVariantsOp(
         {
           memoryItemId: items[0].id,
-          memoryId,
+          memoryId: containerMemoryId,
           sourceText: itemSeed.source,
           translationText: itemSeed.translation,
           sourceLanguageId: itemSeed.sourceLanguage,

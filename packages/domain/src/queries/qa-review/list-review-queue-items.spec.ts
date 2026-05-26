@@ -19,7 +19,13 @@ import {
   materializeQaReviewQueueItem,
 } from "@/commands";
 import { executeCommand, executeQuery } from "@/executor";
-import { countQaReviewQueueItems, listQaReviewQueueItems } from "@/queries";
+import {
+  countQaReviewQueueItems,
+  countQaReviewableElements,
+  getQaReviewableElementDetail,
+  listQaReviewQueueItems,
+  listQaReviewableElements,
+} from "@/queries";
 import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
 
 let testDb: TestDB;
@@ -499,5 +505,69 @@ describe("listQaReviewQueueItems", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.sourceText).toBe("Cherry");
     expect(rows[0]?.queueItem.status).toBe("BLOCKED");
+  });
+
+  it("groups multiple open queue items for the same element into one reviewable element", async () => {
+    const fixture = await seedFixture();
+    const rows = await executeQuery(
+      { db: testDb.client },
+      listQaReviewableElements,
+      {
+        ...baseQuery(fixture),
+        contentNodeIds: [fixture.nodes.dirA.id],
+        pageSize: 10,
+      },
+    );
+
+    const apple = rows.find((row) => row.sourceText === "Apple");
+    expect(apple).toMatchObject({
+      candidateCount: 1,
+      elementId: expect.any(Number),
+      primaryContentNodeId: fixture.nodes.fileA.id,
+    });
+    expect(new Set(rows.map((row) => row.elementId)).size).toBe(rows.length);
+
+    const count = await executeQuery(
+      { db: testDb.client },
+      countQaReviewableElements,
+      {
+        ...baseQuery(fixture),
+      },
+    );
+    expect(count).toBeGreaterThan(0);
+  });
+
+  it("returns all pending candidates for the selected element detail", async () => {
+    const fixture = await seedFixture();
+    const [apple] = await executeQuery(
+      { db: testDb.client },
+      listQaReviewableElements,
+      {
+        ...baseQuery(fixture),
+        searchQuery: "Apple",
+      },
+    );
+    expect(apple).toBeDefined();
+    if (!apple) {
+      throw new Error("Expected Apple reviewable element to exist");
+    }
+    const detail = await executeQuery(
+      { db: testDb.client },
+      getQaReviewableElementDetail,
+      {
+        projectId: fixture.project.id,
+        languageId: "zh-Hans",
+        branchId: null,
+        elementId: apple.elementId,
+      },
+    );
+
+    expect(detail?.sourceText).toBe("Apple");
+    expect(
+      detail?.candidates.every(
+        (candidate) => candidate.queueItem.status !== "RESOLVED",
+      ),
+    ).toBe(true);
+    expect(detail?.candidates[0]?.findings).toEqual(expect.any(Array));
   });
 });

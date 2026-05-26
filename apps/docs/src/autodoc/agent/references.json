@@ -1090,7 +1090,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 172
+    "line": 178
   },
   {
     "id": "@cat/db:packages/db/src/zod/generators:GeneratedFileSpec",
@@ -1099,7 +1099,7 @@
     "kind": "type",
     "packageName": "@cat/db",
     "filePath": "packages/db/src/zod/generators.ts",
-    "line": 174
+    "line": 180
   },
   {
     "id": "@cat/domain:packages/domain/src/cache/cache-decorator:generateCacheKey",
@@ -2973,7 +2973,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/memory/create-memory.cmd.ts",
-    "line": 18
+    "line": 23
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/memory/create-memory.cmd:CreateMemoryCommand",
@@ -2982,7 +2982,88 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/memory/create-memory.cmd.ts",
+    "line": 21
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/delete-memory-item.cmd:deleteMemoryItem",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/delete-memory-item.cmd:deleteMemoryItem",
+    "name": "deleteMemoryItem",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/delete-memory-item.cmd.ts",
+    "line": 24
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/delete-memory-item.cmd:DeleteMemoryItemCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/delete-memory-item.cmd:DeleteMemoryItemCommand",
+    "name": "DeleteMemoryItemCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/delete-memory-item.cmd.ts",
     "line": 16
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/delete-memory-item.cmd:DeleteMemoryItemResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/delete-memory-item.cmd:DeleteMemoryItemResult",
+    "name": "DeleteMemoryItemResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/delete-memory-item.cmd.ts",
+    "line": 20
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/ensure-personal-project-memory.cmd:ensurePersonalProjectMemory",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/ensure-personal-project-memory.cmd:ensurePersonalProjectMemory",
+    "name": "ensurePersonalProjectMemory",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/ensure-personal-project-memory.cmd.ts",
+    "line": 22
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/ensure-personal-project-memory.cmd:EnsurePersonalProjectMemoryCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/ensure-personal-project-memory.cmd:EnsurePersonalProjectMemoryCommand",
+    "name": "EnsurePersonalProjectMemoryCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/ensure-personal-project-memory.cmd.ts",
+    "line": 14
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/ensure-personal-project-memory.cmd:EnsurePersonalProjectMemoryResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/ensure-personal-project-memory.cmd:EnsurePersonalProjectMemoryResult",
+    "name": "EnsurePersonalProjectMemoryResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/ensure-personal-project-memory.cmd.ts",
+    "line": 18
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/record-memory-promotion.cmd:recordMemoryPromotion",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/record-memory-promotion.cmd:recordMemoryPromotion",
+    "name": "recordMemoryPromotion",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/record-memory-promotion.cmd.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/record-memory-promotion.cmd:RecordMemoryPromotionCommand",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/record-memory-promotion.cmd:RecordMemoryPromotionCommand",
+    "name": "RecordMemoryPromotionCommand",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/record-memory-promotion.cmd.ts",
+    "line": 18
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/memory/record-memory-promotion.cmd:RecordMemoryPromotionResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/memory/record-memory-promotion.cmd:RecordMemoryPromotionResult",
+    "name": "RecordMemoryPromotionResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/memory/record-memory-promotion.cmd.ts",
+    "line": 22
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/memory/replace-memory-recall-variants.cmd:replaceMemoryRecallVariants",
@@ -3744,7 +3825,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/qa-review/materialize-queue-item.cmd.ts",
-    "line": 267,
+    "line": 246,
     "description": "Materialize or update a QA review queue item from the current translation findings."
   },
   {
@@ -3802,6 +3883,34 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/qa-review/submit-decision.cmd.ts",
     "line": 51
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/submit-review-action.cmd:BranchApprovalOverlayMutation",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/submit-review-action.cmd:BranchApprovalOverlayMutation",
+    "name": "BranchApprovalOverlayMutation",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/submit-review-action.cmd.ts",
+    "line": 43
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/submit-review-action.cmd:submitQaReviewAction",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/submit-review-action.cmd:submitQaReviewAction",
+    "name": "submitQaReviewAction",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/submit-review-action.cmd.ts",
+    "line": 278,
+    "description": "Submit an atomic QA workbench review action."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/qa-review/submit-review-action.cmd:SubmitQaReviewActionCommandResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/qa-review/submit-review-action.cmd:SubmitQaReviewActionCommandResult",
+    "name": "SubmitQaReviewActionCommandResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/qa-review/submit-review-action.cmd.ts",
+    "line": 48
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/qa-review/transition-annotation.cmd:transitionQaReviewAnnotation",
@@ -4076,7 +4185,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/translation/auto-approve-operation-scope-translations.cmd.ts",
-    "line": 31,
+    "line": 36,
     "description": "Auto-approve the latest translation for the provided element set in the target language."
   },
   {
@@ -4087,6 +4196,15 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/commands/translation/auto-approve-operation-scope-translations.cmd.ts",
     "line": 22
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/commands/translation/auto-approve-operation-scope-translations.cmd:AutoApproveOperationScopeTranslationsResult",
+    "stableKey": "@cat/domain:packages/domain/src/commands/translation/auto-approve-operation-scope-translations.cmd:AutoApproveOperationScopeTranslationsResult",
+    "name": "AutoApproveOperationScopeTranslationsResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/commands/translation/auto-approve-operation-scope-translations.cmd.ts",
+    "line": 26
   },
   {
     "id": "@cat/domain:packages/domain/src/commands/translation/create-project-translation-snapshot.cmd:createProjectTranslationSnapshot",
@@ -7175,6 +7293,60 @@
     "line": 21
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query:findPersonalMemoryItemForTranslation",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query:findPersonalMemoryItemForTranslation",
+    "name": "findPersonalMemoryItemForTranslation",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query.ts",
+    "line": 22
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query:FindPersonalMemoryItemForTranslationQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query:FindPersonalMemoryItemForTranslationQuery",
+    "name": "FindPersonalMemoryItemForTranslationQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query.ts",
+    "line": 13
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query:PersonalMemoryItemForTranslation",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query:PersonalMemoryItemForTranslation",
+    "name": "PersonalMemoryItemForTranslation",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/find-personal-memory-item-for-translation.query.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/get-memory-access-context.query:getMemoryAccessContext",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-memory-access-context.query:getMemoryAccessContext",
+    "name": "getMemoryAccessContext",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/get-memory-access-context.query.ts",
+    "line": 23
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/get-memory-access-context.query:GetMemoryAccessContextQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-memory-access-context.query:GetMemoryAccessContextQuery",
+    "name": "GetMemoryAccessContextQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/get-memory-access-context.query.ts",
+    "line": 11
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/get-memory-access-context.query:MemoryAccessContext",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-memory-access-context.query:MemoryAccessContext",
+    "name": "MemoryAccessContext",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/get-memory-access-context.query.ts",
+    "line": 15
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/memory/get-memory.query:getMemory",
     "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-memory.query:getMemory",
     "name": "getMemory",
@@ -7209,6 +7381,33 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/get-search-memory-chunk-range.query.ts",
     "line": 20
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/get-translation-memory-promotion-context.query:getTranslationMemoryPromotionContext",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-translation-memory-promotion-context.query:getTranslationMemoryPromotionContext",
+    "name": "getTranslationMemoryPromotionContext",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/get-translation-memory-promotion-context.query.ts",
+    "line": 34
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/get-translation-memory-promotion-context.query:GetTranslationMemoryPromotionContextQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-translation-memory-promotion-context.query:GetTranslationMemoryPromotionContextQuery",
+    "name": "GetTranslationMemoryPromotionContextQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/get-translation-memory-promotion-context.query.ts",
+    "line": 17
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/get-translation-memory-promotion-context.query:TranslationMemoryPromotionContext",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/get-translation-memory-promotion-context.query:TranslationMemoryPromotionContext",
+    "name": "TranslationMemoryPromotionContext",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/get-translation-memory-promotion-context.query.ts",
+    "line": 21
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-all-memories.query:listAllMemories",
@@ -7256,13 +7455,40 @@
     "line": 28
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query:EffectiveMemoryIds",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query:EffectiveMemoryIds",
+    "name": "EffectiveMemoryIds",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query.ts",
+    "line": 21
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query:listEffectiveMemoryIdsByProject",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query:listEffectiveMemoryIdsByProject",
+    "name": "listEffectiveMemoryIdsByProject",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query.ts",
+    "line": 27
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query:ListEffectiveMemoryIdsByProjectQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query:ListEffectiveMemoryIdsByProjectQuery",
+    "name": "ListEffectiveMemoryIdsByProjectQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-effective-memory-ids-by-project.query.ts",
+    "line": 17
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:listExactMemorySuggestions",
     "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:listExactMemorySuggestions",
     "name": "listExactMemorySuggestions",
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 40
+    "line": 41
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:ListExactMemorySuggestionsQuery",
@@ -7271,7 +7497,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 36
+    "line": 37
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:listTrgmMemorySuggestions",
@@ -7280,7 +7506,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 149
+    "line": 151
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:ListTrgmMemorySuggestionsQuery",
@@ -7289,7 +7515,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-lexical-memory-suggestions.query.ts",
-    "line": 145
+    "line": 147
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-lexical-memory-suggestions.query:RawMemorySuggestion",
@@ -7365,13 +7591,40 @@
     "line": 10
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-items.query:listMemoryItems",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-items.query:listMemoryItems",
+    "name": "listMemoryItems",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-memory-items.query.ts",
+    "line": 47
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-items.query:ListMemoryItemsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-items.query:ListMemoryItemsQuery",
+    "name": "ListMemoryItemsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-memory-items.query.ts",
+    "line": 26
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-items.query:MemoryItemListPage",
+    "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-items.query:MemoryItemListPage",
+    "name": "MemoryItemListPage",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/memory/list-memory-items.query.ts",
+    "line": 28
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-suggestions-by-chunk-ids.query:listMemorySuggestionsByChunkIds",
     "stableKey": "@cat/domain:packages/domain/src/queries/memory/list-memory-suggestions-by-chunk-ids.query:listMemorySuggestionsByChunkIds",
     "name": "listMemorySuggestionsByChunkIds",
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/memory/list-memory-suggestions-by-chunk-ids.query.ts",
-    "line": 40
+    "line": 43
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/memory/list-memory-suggestions-by-chunk-ids.query:ListMemorySuggestionsByChunkIdsQuery",
@@ -8263,6 +8516,44 @@
     "line": 17
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/count-reviewable-elements.query:countQaReviewableElements",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/count-reviewable-elements.query:countQaReviewableElements",
+    "name": "countQaReviewableElements",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/count-reviewable-elements.query.ts",
+    "line": 26,
+    "description": "Count reviewable QA elements under current filters."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/count-reviewable-elements.query:CountQaReviewableElementsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/count-reviewable-elements.query:CountQaReviewableElementsQuery",
+    "name": "CountQaReviewableElementsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/count-reviewable-elements.query.ts",
+    "line": 14
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-first-reviewable-element.query:getFirstQaReviewableElement",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-first-reviewable-element.query:getFirstQaReviewableElement",
+    "name": "getFirstQaReviewableElement",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-first-reviewable-element.query.ts",
+    "line": 28,
+    "description": "Get the first (or next after afterElementId) reviewable element."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-first-reviewable-element.query:GetFirstQaReviewableElementQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-first-reviewable-element.query:GetFirstQaReviewableElementQuery",
+    "name": "GetFirstQaReviewableElementQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-first-reviewable-element.query.ts",
+    "line": 16
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:getQaReviewNotificationRecipient",
     "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-review-notification-recipient.query:getQaReviewNotificationRecipient",
     "name": "getQaReviewNotificationRecipient",
@@ -8377,6 +8668,43 @@
     "line": 10
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:getQaReviewableElementDetail",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:getQaReviewableElementDetail",
+    "name": "getQaReviewableElementDetail",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-reviewable-element-detail.query.ts",
+    "line": 154,
+    "description": "Get QA reviewable element detail including all pending candidates and approval state."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:GetQaReviewableElementDetailQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:GetQaReviewableElementDetailQuery",
+    "name": "GetQaReviewableElementDetailQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-reviewable-element-detail.query.ts",
+    "line": 40
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:QaReviewableElementDetail",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:QaReviewableElementDetail",
+    "name": "QaReviewableElementDetail",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-reviewable-element-detail.query.ts",
+    "line": 59
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:QaReviewCandidateDetail",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/get-reviewable-element-detail.query:QaReviewCandidateDetail",
+    "name": "QaReviewCandidateDetail",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/get-reviewable-element-detail.query.ts",
+    "line": 44
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-annotations.query:listQaReviewAnnotations",
     "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-annotations.query:listQaReviewAnnotations",
     "name": "listQaReviewAnnotations",
@@ -8415,6 +8743,15 @@
     "line": 27
   },
   {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:buildQaReviewQueueFiltersSql",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:buildQaReviewQueueFiltersSql",
+    "name": "buildQaReviewQueueFiltersSql",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-review-queue-items.query.ts",
+    "line": 23
+  },
+  {
     "id": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:buildQaReviewQueueRowsSql",
     "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-review-queue-items.query:buildQaReviewQueueRowsSql",
     "name": "buildQaReviewQueueRowsSql",
@@ -8450,6 +8787,44 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/qa-review/list-review-queue-items.query.ts",
     "line": 75
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:buildQaReviewableElementsSql",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:buildQaReviewableElementsSql",
+    "name": "buildQaReviewableElementsSql",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-reviewable-elements.query.ts",
+    "line": 58,
+    "description": "Build SQL for QA reviewable elements aggregated by element."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:listQaReviewableElements",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:listQaReviewableElements",
+    "name": "listQaReviewableElements",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-reviewable-elements.query.ts",
+    "line": 124,
+    "description": "List reviewable QA elements paginated by element."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:ListQaReviewableElementsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:ListQaReviewableElementsQuery",
+    "name": "ListQaReviewableElementsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-reviewable-elements.query.ts",
+    "line": 25
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:QaReviewableElement",
+    "stableKey": "@cat/domain:packages/domain/src/queries/qa-review/list-reviewable-elements.query:QaReviewableElement",
+    "name": "QaReviewableElement",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/qa-review/list-reviewable-elements.query.ts",
+    "line": 29
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/qa-review/resolve-review-profile.query:resolveQaReviewProfile",
@@ -9521,7 +9896,7 @@
     "kind": "function",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/seeder/seeder.ts",
-    "line": 57
+    "line": 59
   },
   {
     "id": "@cat/eval:apps/eval/src/seeder/seeder:SeedOptions",
@@ -9530,7 +9905,7 @@
     "kind": "type",
     "packageName": "@cat/eval",
     "filePath": "apps/eval/src/seeder/seeder.ts",
-    "line": 51
+    "line": 53
   },
   {
     "id": "@cat/eval:apps/eval/src/seeder/types:SeededContext",
@@ -9938,13 +10313,33 @@
     "description": "Build and persist recall variants for a single concept.\n\nVariant types produced:\n- SURFACE: exact original text\n- CASE_FOLDED: lowercased text\n- LEMMA: joined lemmas (when NLP tokens provided)\n\nFor multi-word terms a limited lemma window is also stored (windowSize in meta)."
   },
   {
+    "id": "@cat/operations:packages/operations/src/collect-effective-memory-recall:CollectEffectiveMemoryRecallInput",
+    "stableKey": "@cat/operations:packages/operations/src/collect-effective-memory-recall:CollectEffectiveMemoryRecallInput",
+    "name": "CollectEffectiveMemoryRecallInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/collect-effective-memory-recall.ts",
+    "line": 26,
+    "description": "Effective memory recall input."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/collect-effective-memory-recall:collectEffectiveMemoryRecallOp",
+    "stableKey": "@cat/operations:packages/operations/src/collect-effective-memory-recall:collectEffectiveMemoryRecallOp",
+    "name": "collectEffectiveMemoryRecallOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/collect-effective-memory-recall.ts",
+    "line": 47,
+    "description": "Recall effective project+personal memories and dedupe with project-first precedence."
+  },
+  {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:CollectMemoryRecallInput",
     "stableKey": "@cat/operations:packages/operations/src/collect-memory-recall:CollectMemoryRecallInput",
     "name": "CollectMemoryRecallInput",
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 75
+    "line": 76
   },
   {
     "id": "@cat/operations:packages/operations/src/collect-memory-recall:collectMemoryRecallOp",
@@ -9953,7 +10348,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/collect-memory-recall.ts",
-    "line": 91,
+    "line": 92,
     "description": "Aggregated memory recall — multi-channel evidence merge.\n\nChannels (in order of speed):\n1. Exact match (fastest)\n2. trgm similarity\n3. Variant-based (morphological / template / fragment)\n\nAll results are globally deduplicated by `memoryItem.id`, keeping the\nhighest confidence across all channels. Evidence from multiple channels\nis merged onto the winning result."
   },
   {
@@ -11169,7 +11564,7 @@
     "kind": "function",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 72,
+    "line": 76,
     "description": "Stable identity key for a candidate (uniquely distinguishes term/memory)."
   },
   {
@@ -11179,7 +11574,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 77,
+    "line": 81,
     "description": "LookedUpTerm extended with optional pipeline decision trace (for regression testing)."
   },
   {
@@ -11189,7 +11584,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 82,
+    "line": 86,
     "description": "MemorySuggestion extended with optional pipeline decision trace (for regression testing)."
   },
   {
@@ -11199,7 +11594,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 63
+    "line": 67
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:RawMemoryResult",
@@ -11217,7 +11612,7 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 47
+    "line": 51
   },
   {
     "id": "@cat/operations:packages/operations/src/precision/types:RawTermResult",
@@ -11235,7 +11630,37 @@
     "kind": "type",
     "packageName": "@cat/operations",
     "filePath": "packages/operations/src/precision/types.ts",
-    "line": 50
+    "line": 54
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/promote-approved-translation-memory:PromoteApprovedTranslationMemoryInput",
+    "stableKey": "@cat/operations:packages/operations/src/promote-approved-translation-memory:PromoteApprovedTranslationMemoryInput",
+    "name": "PromoteApprovedTranslationMemoryInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/promote-approved-translation-memory.ts",
+    "line": 27,
+    "description": "Input for promoting an approved translation into project memories."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/promote-approved-translation-memory:promoteApprovedTranslationMemoryOp",
+    "stableKey": "@cat/operations:packages/operations/src/promote-approved-translation-memory:promoteApprovedTranslationMemoryOp",
+    "name": "promoteApprovedTranslationMemoryOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/promote-approved-translation-memory.ts",
+    "line": 48,
+    "description": "Promote an approved translation into project memories (idempotent and retry-safe)."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/promote-approved-translation-memory:PromoteApprovedTranslationMemoryOutput",
+    "stableKey": "@cat/operations:packages/operations/src/promote-approved-translation-memory:PromoteApprovedTranslationMemoryOutput",
+    "name": "PromoteApprovedTranslationMemoryOutput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/promote-approved-translation-memory.ts",
+    "line": 35,
+    "description": "Result of approved-translation promotion."
   },
   {
     "id": "@cat/operations:packages/operations/src/qa-review/normalize:normalizeQaResultItems",
@@ -12088,6 +12513,33 @@
     "filePath": "packages/operations/src/vectorize.ts",
     "line": 45,
     "description": "Vectorize texts and store as ChunkSets.\n\nUses the TEXT_VECTORIZER plugin to convert texts into embedding vectors,\ncreates ChunkSet/Chunk rows, and persists the vectors via the\nVECTOR_STORAGE plugin."
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/write-personal-translation-memory:WritePersonalTranslationMemoryInput",
+    "stableKey": "@cat/operations:packages/operations/src/write-personal-translation-memory:WritePersonalTranslationMemoryInput",
+    "name": "WritePersonalTranslationMemoryInput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/write-personal-translation-memory.ts",
+    "line": 16
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/write-personal-translation-memory:writePersonalTranslationMemoryOp",
+    "stableKey": "@cat/operations:packages/operations/src/write-personal-translation-memory:writePersonalTranslationMemoryOp",
+    "name": "writePersonalTranslationMemoryOp",
+    "kind": "function",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/write-personal-translation-memory.ts",
+    "line": 25
+  },
+  {
+    "id": "@cat/operations:packages/operations/src/write-personal-translation-memory:WritePersonalTranslationMemoryOutput",
+    "stableKey": "@cat/operations:packages/operations/src/write-personal-translation-memory:WritePersonalTranslationMemoryOutput",
+    "name": "WritePersonalTranslationMemoryOutput",
+    "kind": "type",
+    "packageName": "@cat/operations",
+    "filePath": "packages/operations/src/write-personal-translation-memory.ts",
+    "line": 20
   },
   {
     "id": "@cat/permissions:packages/permissions/src/audit:AuditEvent",
@@ -13489,7 +13941,16 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 50
+    "line": 55
+  },
+  {
+    "id": "@cat/seed:packages/seed/src/pipeline:normalizeMemorySeed",
+    "stableKey": "@cat/seed:packages/seed/src/pipeline:normalizeMemorySeed",
+    "name": "normalizeMemorySeed",
+    "kind": "function",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/pipeline.ts",
+    "line": 730
   },
   {
     "id": "@cat/seed:packages/seed/src/pipeline:runSeedPipeline",
@@ -13498,7 +13959,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 77
+    "line": 85
   },
   {
     "id": "@cat/seed:packages/seed/src/pipeline:SeedSummary",
@@ -13507,7 +13968,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 65
+    "line": 70
   },
   {
     "id": "@cat/seed:packages/seed/src/runtime-env:loadSeedRuntimeEnv",
@@ -13566,7 +14027,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 212,
+    "line": 246,
     "description": "Bootstrap locale catalog type."
   },
   {
@@ -13576,7 +14037,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 220,
+    "line": 254,
     "description": "Bootstrap profile type."
   },
   {
@@ -13586,7 +14047,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 235
+    "line": 269
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementSeed",
@@ -13595,7 +14056,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 121
+    "line": 155
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementsSeed",
@@ -13604,7 +14065,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 120
+    "line": 154
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:GlossaryConceptSeed",
@@ -13635,13 +14096,22 @@
     "description": "Local seed override config type."
   },
   {
+    "id": "@cat/seed:packages/seed/src/schemas:MemoryContainerSeed",
+    "stableKey": "@cat/seed:packages/seed/src/schemas:MemoryContainerSeed",
+    "name": "MemoryContainerSeed",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/schemas.ts",
+    "line": 137
+  },
+  {
     "id": "@cat/seed:packages/seed/src/schemas:MemoryItemSeed",
     "stableKey": "@cat/seed:packages/seed/src/schemas:MemoryItemSeed",
     "name": "MemoryItemSeed",
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 104
+    "line": 138
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:MemorySeed",
@@ -13650,7 +14120,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 103
+    "line": 136
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:PluginOverride",
@@ -13686,7 +14156,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 148
+    "line": 182
   },
   {
     "id": "@cat/seed:packages/seed/src/truncate:truncateAllTables",
@@ -14629,7 +15099,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/drizzle/memory.ts",
-    "line": 24
+    "line": 25
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryItem",
@@ -14638,7 +15108,25 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/drizzle/memory.ts",
-    "line": 41
+    "line": 42
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryItemDeletion",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryItemDeletion",
+    "name": "MemoryItemDeletion",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/memory.ts",
+    "line": 88
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryPromotionRecord",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryPromotionRecord",
+    "name": "MemoryPromotionRecord",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/memory.ts",
+    "line": 75
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryRecallVariant",
@@ -14647,7 +15135,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/drizzle/memory.ts",
-    "line": 64
+    "line": 104
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:MemoryToProject",
@@ -14656,7 +15144,16 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/drizzle/memory.ts",
-    "line": 48
+    "line": 49
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:PersonalMemoryBinding",
+    "stableKey": "@cat/shared:packages/shared/src/schema/drizzle/memory:PersonalMemoryBinding",
+    "name": "PersonalMemoryBinding",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/drizzle/memory.ts",
+    "line": 59
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/drizzle/memory:SlotMappingEntry",
@@ -15384,6 +15881,33 @@
     "line": 435
   },
   {
+    "id": "@cat/shared:packages/shared/src/schema/enum:MemoryDeletionScope",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:MemoryDeletionScope",
+    "name": "MemoryDeletionScope",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 720
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:MemoryPromotionStatus",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:MemoryPromotionStatus",
+    "name": "MemoryPromotionStatus",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 715
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/enum:MemoryScope",
+    "stableKey": "@cat/shared:packages/shared/src/schema/enum:MemoryScope",
+    "name": "MemoryScope",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/enum.ts",
+    "line": 707
+  },
+  {
     "id": "@cat/shared:packages/shared/src/schema/enum:MessageCategory",
     "stableKey": "@cat/shared:packages/shared/src/schema/enum:MessageCategory",
     "name": "MessageCategory",
@@ -15913,7 +16437,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 101
+    "line": 105
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:AuthMethod",
@@ -15922,7 +16446,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 108
+    "line": 112
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:ElementTranslationStatus",
@@ -15931,7 +16455,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 97
+    "line": 101
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:FileMeta",
@@ -15940,7 +16464,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 93
+    "line": 97
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:MemorySuggestion",
@@ -15949,7 +16473,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 100
+    "line": 104
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:TermData",
@@ -15958,7 +16482,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 107
+    "line": 111
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:TranslatableElementData",
@@ -15967,7 +16491,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 94
+    "line": 98
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:TranslationAdvisorData",
@@ -15976,7 +16500,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 109
+    "line": 113
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:TranslationSuggestionStatus",
@@ -15985,7 +16509,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 102
+    "line": 106
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:UnvectorizedTextData",
@@ -15994,7 +16518,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 105
+    "line": 109
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/misc:VectorizedTextData",
@@ -16003,7 +16527,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/misc.ts",
-    "line": 106
+    "line": 110
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/nlp:NlpBatchSegmentResult",
@@ -16228,7 +16752,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/qa-review.ts",
-    "line": 150
+    "line": 237
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/qa-review:CreateQaReviewAnnotationInput",
@@ -16237,7 +16761,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/qa-review.ts",
-    "line": 133
+    "line": 220
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/qa-review:CreateQaReviewSuggestionInput",
@@ -16246,7 +16770,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/qa-review.ts",
-    "line": 142
+    "line": 229
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/qa-review:NormalizedQaFinding",
@@ -16256,6 +16780,16 @@
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/qa-review.ts",
     "line": 80
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewActionResult",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewActionResult",
+    "name": "QaReviewActionResult",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 208,
+    "description": "Result payload for a QA workbench action."
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewNotificationData",
@@ -16300,7 +16834,7 @@
     "kind": "type",
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/qa-review.ts",
-    "line": 160
+    "line": 247
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewSpan",
@@ -16319,6 +16853,26 @@
     "packageName": "@cat/shared",
     "filePath": "packages/shared/src/schema/qa-review.ts",
     "line": 24
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewWorkbenchAction",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:QaReviewWorkbenchAction",
+    "name": "QaReviewWorkbenchAction",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 137,
+    "description": "Action types for the QA review workbench."
+  },
+  {
+    "id": "@cat/shared:packages/shared/src/schema/qa-review:SubmitQaReviewActionInput",
+    "stableKey": "@cat/shared:packages/shared/src/schema/qa-review:SubmitQaReviewActionInput",
+    "name": "SubmitQaReviewActionInput",
+    "kind": "type",
+    "packageName": "@cat/shared",
+    "filePath": "packages/shared/src/schema/qa-review.ts",
+    "line": 183,
+    "description": "Input payload for submitting a QA workbench action."
   },
   {
     "id": "@cat/shared:packages/shared/src/schema/qa-review:SubmitQaReviewDecisionInput",

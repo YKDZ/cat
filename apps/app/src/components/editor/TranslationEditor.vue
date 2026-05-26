@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { history, historyKeymap } from "@codemirror/commands";
-import { EditorState } from "@codemirror/state";
+import { Compartment, EditorState } from "@codemirror/state";
 import {
   Decoration,
   EditorView,
@@ -12,13 +12,14 @@ import { keymap, drawSelection } from "@codemirror/view";
 import { useDebounceFn } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { onMounted, onUnmounted, watch } from "vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { ws } from "@/rpc/ws";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
 import { useEditorGhostTextStore } from "@/stores/editor/ghost-text.ts";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
 
 import {
   ghostTextExtension,
@@ -52,10 +53,15 @@ const ghostTextStore = useEditorGhostTextStore();
 const { suggestion, anchorPosition } = storeToRefs(ghostTextStore);
 const { advanceSuggestion } = ghostTextStore;
 
+const writeCapability = useProjectWriteCapabilityStore();
+const { canWrite, disabledReason } = storeToRefs(writeCapability);
+const isReadOnly = computed(() => !canWrite.value);
+
 // ─── Editor Setup ───
 
 const containerEl = ref<HTMLDivElement | null>(null);
 let editorView: EditorView | null = null;
+const editableCompartment = new Compartment();
 
 /** Prevent circular update loops: true when a change originates from the store */
 let suppressCMUpdate = false;
@@ -129,6 +135,10 @@ const createEditor = () => {
       keymap.of(historyKeymap),
       drawSelection(),
       EditorView.lineWrapping,
+      editableCompartment.of([
+        EditorState.readOnly.of(isReadOnly.value),
+        EditorView.editable.of(!isReadOnly.value),
+      ]),
       EditorView.updateListener.of((update) => {
         // When Ctrl-ArrowRight accepts a ghost text word, keep remaining text
         // in the store so that the translationValue watcher does not clear it.
@@ -243,9 +253,20 @@ watch([suggestion, anchorPosition], ([newSuggestion, newAnchor]) => {
 onMounted(() => {
   createEditor();
   // 初始化时触发一次 tokenize
-  if (translationValue.value) {
+  if (!isReadOnly.value && translationValue.value) {
     debouncedTokenize(translationValue.value);
   }
+});
+
+watch(isReadOnly, (value) => {
+  if (!editorView) return;
+
+  editorView.dispatch({
+    effects: editableCompartment.reconfigure([
+      EditorState.readOnly.of(value),
+      EditorView.editable.of(!value),
+    ]),
+  });
 });
 
 onUnmounted(() => {
@@ -256,10 +277,20 @@ onUnmounted(() => {
 
 // ─── Public API (exposed for parent components) ───
 
+/**
+ * @zh 聚焦编辑器。
+ * @en Focus the editor.
+ */
 const focus = () => {
   editorView?.focus();
 };
 
+/**
+ * @zh 获取当前光标位置。
+ * @en Get the current cursor position.
+ *
+ * @returns - {@zh 当前光标位置} {@en Current cursor position}
+ */
 const getCursorPosition = () => {
   return editorView?.state.selection.main.head ?? 0;
 };
@@ -268,7 +299,12 @@ defineExpose({ focus, getCursorPosition });
 </script>
 
 <template>
-  <div ref="containerEl" class="translation-editor min-h-32 w-full" />
+  <div
+    ref="containerEl"
+    class="translation-editor min-h-32 w-full"
+    :aria-disabled="isReadOnly"
+    :title="disabledReason ? t(disabledReason) : undefined"
+  />
 </template>
 
 <style scoped>

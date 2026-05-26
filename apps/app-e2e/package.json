@@ -5,6 +5,7 @@
   "type": "module",
   "devDependencies": {
     "@cat/db": "workspace:*",
+    "@cat/domain": "workspace:*",
     "@cat/seed": "workspace:*",
     "@playwright/test": "^1.60.0",
     "@types/node": "catalog:",

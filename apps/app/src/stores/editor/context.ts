@@ -2,11 +2,10 @@ import type { EditorScope, EditorScopeView } from "@cat/shared";
 
 import { EditorScopeSchema } from "@cat/shared";
 import { useQuery } from "@pinia/colada";
-import { defineStore, storeToRefs } from "pinia";
+import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
 import { orpc } from "@/rpc/orpc";
-import { useBranchStore } from "@/stores/branch";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
   const projectId = ref<string | undefined>();
@@ -20,16 +19,13 @@ export const useEditorContextStore = defineStore("editorContext", () => {
   const currentPage = ref(1);
   const currentElementContentNodeId = ref<string | undefined>();
 
-  const branchStore = useBranchStore();
-  const { currentBranchId } = storeToRefs(branchStore);
-
   const scope = computed<EditorScope | null>(() => {
     if (!projectId.value || !languageToId.value) return null;
 
     return EditorScopeSchema.parse({
       projectId: projectId.value,
       languageToId: languageToId.value,
-      branchId: branchId.value ?? currentBranchId.value ?? undefined,
+      branchId: branchId.value,
       contentNodeIds: contentNodeIds.value,
       searchQuery: searchQuery.value,
       statusFilter: statusFilter.value,

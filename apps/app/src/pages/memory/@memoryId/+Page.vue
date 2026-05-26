@@ -1,3 +1,13 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { useData } from "vike-vue/useData";
 
-<template>记忆库</template>
+import type { Data } from "./+data.server";
+
+import MemoryItemTable from "./MemoryItemTable.vue";
+
+const { memory } = useData<Data>();
+</script>
+
+<template>
+  <MemoryItemTable :memory-id="memory.id" />
+</template>

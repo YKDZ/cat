@@ -8,7 +8,7 @@ Shared Zod schemas, type definitions, and utility functions
 
 * **Exported functions**: 25
 
-* **Exported types**: 282
+* **Exported types**: 291
 
 ## Function Index
 
@@ -348,6 +348,12 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `MemoryToProject` (type)
 
+* `PersonalMemoryBinding` (type)
+
+* `MemoryPromotionRecord` (type)
+
+* `MemoryItemDeletion` (type)
+
 * `MemoryRecallVariant` (type)
 
 * `Language` (type)
@@ -582,6 +588,12 @@ export const safeJoinURL = (base: string, path: string): string
 
 * `RecallQuerySide` (type)
 
+* `MemoryScope` (type)
+
+* `MemoryPromotionStatus` (type)
+
+* `MemoryDeletionScope` (type)
+
 * `ExtractionResult` (type)
 
 * `ExtractionMetadata` (type)
@@ -708,6 +720,12 @@ export const safeJoinURL = (base: string, path: string): string
 * `QaReviewQueueFilters` (type)
 
 * `SubmitQaReviewDecisionInput` (type)
+
+* `QaReviewWorkbenchAction` (type) — Action types for the QA review workbench.
+
+* `SubmitQaReviewActionInput` (type) — Input payload for submitting a QA workbench action.
+
+* `QaReviewActionResult` (type) — Result payload for a QA workbench action.
 
 * `CreateQaReviewAnnotationInput` (type)
 

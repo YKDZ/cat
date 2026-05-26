@@ -1,4 +1,4 @@
-import { getPermissionEngine } from "@cat/permissions";
+import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 import {
   ObjectTypeSchema,
   PermissionCheckSchema,
@@ -49,6 +49,18 @@ export const listMyPermissionsOn = authed
           s.id === context.auth.subjectId,
       )
       .map((s) => s.relation);
+  });
+
+/**
+ * @zh 查询当前用户对项目的写入模式。
+ * @en Query the current user's write mode on a project.
+ */
+export const getProjectWriteMode = authed
+  .input(z.object({ projectId: z.uuidv4() }))
+  .output(z.enum(["direct", "isolation", "no_access"]))
+  .handler(async ({ context, input }) => {
+    const engine = getPermissionEngine();
+    return await determineWriteMode(engine, context.auth, input.projectId);
   });
 
 /**

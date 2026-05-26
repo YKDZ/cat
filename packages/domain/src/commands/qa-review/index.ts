@@ -5,5 +5,6 @@ export * from "./create-annotation.cmd.ts";
 export * from "./create-suggestion.cmd.ts";
 export * from "./transition-annotation.cmd.ts";
 export * from "./submit-decision.cmd.ts";
+export * from "./submit-review-action.cmd.ts";
 export * from "./mark-suggestion-applied.cmd.ts";
 export * from "./reject-suggestion.cmd.ts";

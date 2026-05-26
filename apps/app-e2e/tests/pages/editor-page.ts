@@ -63,6 +63,10 @@ export class EditorPage {
     await this.getElementItems()
       .first()
       .waitFor({ state: "visible", timeout: 30_000 });
+
+    await expect
+      .poll(() => this.page.url(), { timeout: 30_000 })
+      .toMatch(/\/editor\/project\/[^/]+\/[^/]+\/(?:empty|\d+)(?:\?.*)?$/);
   }
 
   /**
@@ -92,19 +96,26 @@ export class EditorPage {
 
   /**
    * Click an element in the sidebar by its index (0-based).
-   * After the URL updates, waits for the translate button to be enabled,
-   * confirming the element store has settled before the caller starts typing.
+   * After the URL updates, waits for the editor toolbar to render. Callers
+   * that plan to type can additionally require writable mode.
    */
-  async selectElement(index: number): Promise<void> {
+  async selectElement(
+    index: number,
+    options?: { waitForWritable?: boolean },
+  ): Promise<void> {
     const items = this.getElementItems();
     await items.nth(index).click();
     // Wait for the element to be selected (URL should update)
     await this.page.waitForURL(/\/editor\/project\/[^/]+\/[^/]+\/\d+/);
-    // Wait for the translate button — confirms toElement() completed and
-    // elementId/context are stable before typing starts.
-    await this.page
-      .getByRole("button", { name: "提交", exact: true })
-      .waitFor({ state: "visible", timeout: 5_000 });
+    const submitButton = this.page.getByRole("button", {
+      name: "提交",
+      exact: true,
+    });
+    await submitButton.waitFor({ state: "visible", timeout: 5_000 });
+
+    if (options?.waitForWritable) {
+      await expect(submitButton).toBeEnabled({ timeout: 15_000 });
+    }
   }
 
   /**
@@ -112,6 +123,12 @@ export class EditorPage {
    * CodeMirror uses a contenteditable div with role="textbox".
    */
   async inputTranslation(text: string): Promise<void> {
+    await expect(this.page.locator(".translation-editor")).toHaveAttribute(
+      "aria-disabled",
+      "false",
+      { timeout: 15_000 },
+    );
+
     // Narrow to the editable CodeMirror editor (contenteditable="true"),
     // as the page may also contain readonly source/suggestion editors.
     const editor = this.page.locator(

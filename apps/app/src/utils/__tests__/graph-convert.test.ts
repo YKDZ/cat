@@ -1,18 +1,35 @@
+import type { GraphDefinition } from "@cat/workflow";
+
 import { describe, expect, it } from "vitest";
 
 import { convertGraphDefinition } from "@/utils/graph-convert";
 
-// Minimal valid GraphDefinition objects (matching @cat/workflow types)
-const makeNode = (id: string, type: string) => ({
+type GraphNodeType = GraphDefinition["nodes"][string]["type"];
+
+const makeNode = (id: string, type: GraphNodeType) => ({
   id,
   type,
   timeoutMs: 120_000,
 });
 
+const makeDefinition = (input: {
+  nodes: GraphDefinition["nodes"];
+  edges: GraphDefinition["edges"];
+  entry: GraphDefinition["entry"];
+  exit?: GraphDefinition["exit"];
+}) =>
+  ({
+    id: "test-graph",
+    version: "1.0.0",
+    nodes: input.nodes,
+    edges: input.edges,
+    entry: input.entry,
+    exit: input.exit,
+  }) satisfies GraphDefinition;
+
 describe("convertGraphDefinition", () => {
   it("converts nodes with correct fields", () => {
-    const def = {
-      id: "test-graph",
+    const def = makeDefinition({
       nodes: {
         n1: makeNode("n1", "llm"),
         n2: makeNode("n2", "router"),
@@ -20,7 +37,7 @@ describe("convertGraphDefinition", () => {
       edges: [{ from: "n1", to: "n2" }],
       entry: "n1",
       exit: ["n2"],
-    };
+    });
 
     const result = convertGraphDefinition(def);
 
@@ -39,8 +56,7 @@ describe("convertGraphDefinition", () => {
   });
 
   it("converts edges with source/target", () => {
-    const def = {
-      id: "test-graph",
+    const def = makeDefinition({
       nodes: {
         a: makeNode("a", "tool"),
         b: makeNode("b", "tool"),
@@ -50,14 +66,15 @@ describe("convertGraphDefinition", () => {
           from: "a",
           to: "b",
           condition: {
-            type: "expression" as const,
-            value: "result == true",
+            field: "result",
+            operator: "eq",
+            value: true,
             description: "if success",
           },
         },
       ],
       entry: "a",
-    };
+    });
 
     const result = convertGraphDefinition(def);
     expect(result.edges).toHaveLength(1);
@@ -67,12 +84,11 @@ describe("convertGraphDefinition", () => {
   });
 
   it("handles empty edges", () => {
-    const def = {
-      id: "test-graph",
+    const def = makeDefinition({
       nodes: { only: makeNode("only", "llm") },
       edges: [],
       entry: "only",
-    };
+    });
     const result = convertGraphDefinition(def);
     expect(result.edges).toHaveLength(0);
   });
@@ -85,6 +101,7 @@ describe("convertGraphDefinition", () => {
     };
     const def = {
       id: "test-graph",
+      version: "1.0.0",
       nodes: { x: unknownTypeNode },
       edges: [],
       entry: "x",
@@ -97,8 +114,7 @@ describe("convertGraphDefinition", () => {
   });
 
   it("generates unique edge ids for multiple edges", () => {
-    const def = {
-      id: "test-graph",
+    const def = makeDefinition({
       nodes: {
         a: makeNode("a", "router"),
         b: makeNode("b", "tool"),
@@ -109,7 +125,7 @@ describe("convertGraphDefinition", () => {
         { from: "a", to: "c" },
       ],
       entry: "a",
-    };
+    });
     const result = convertGraphDefinition(def);
     const ids = result.edges.map((e) => e.id);
     expect(new Set(ids).size).toBe(2);

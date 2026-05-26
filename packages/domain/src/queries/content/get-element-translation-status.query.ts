@@ -16,10 +16,12 @@ import {
   ElementTranslationStatusSchema,
   type ElementTranslationStatus,
 } from "@/queries/content/get-content-node-elements.query";
+import { hasBranchTranslationOverlayQuery } from "@/queries/content/has-branch-translation-overlay.query";
 
 export const GetElementTranslationStatusQuerySchema = z.object({
   elementId: z.int(),
   languageId: z.string(),
+  branchId: z.int().positive().optional(),
 });
 export type GetElementTranslationStatusQuery = z.infer<
   typeof GetElementTranslationStatusQuerySchema
@@ -34,6 +36,19 @@ export const getElementTranslationStatus: Query<
   ElementTranslationStatus
 > = async (ctx, query) => {
   const { elementId, languageId } = query;
+
+  const branchTranslatedExists =
+    query.branchId === undefined
+      ? false
+      : await hasBranchTranslationOverlayQuery(ctx, {
+          branchId: query.branchId,
+          elementId: query.elementId,
+          languageId: query.languageId,
+        });
+
+  if (branchTranslatedExists) {
+    return ElementTranslationStatusSchema.enum.TRANSLATED;
+  }
 
   const rows = await ctx.db
     .select({

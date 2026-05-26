@@ -3,11 +3,14 @@ import type { ContentNode } from "@cat/shared";
 import type { Project } from "@cat/shared";
 
 import { Button } from "@cat/ui";
+import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import ContentNodeTree from "@/components/ContentNodeTree.vue";
 import { orpc } from "@/rpc/orpc";
+import { useBranchStore } from "@/stores/branch";
 import { useToastStore } from "@/stores/toast";
 
 const props = defineProps<{
@@ -18,8 +21,17 @@ const props = defineProps<{
   })[];
 }>();
 
+const branchStore = useBranchStore();
+const { currentBranchId, currentProjectId } = storeToRefs(branchStore);
+
 const { info } = useToastStore();
 const { t } = useI18n();
+
+const activeBranchId = computed(() =>
+  currentProjectId.value === props.project.id
+    ? (currentBranchId.value ?? undefined)
+    : undefined,
+);
 
 const handleClick = async (
   node: Pick<
@@ -33,7 +45,10 @@ const handleClick = async (
 };
 
 const handleDelete = async (node: Pick<ContentNode, "id" | "displayLabel">) => {
-  await orpc.contentNode.del({ contentNodeId: node.id });
+  await orpc.contentNode.del({
+    contentNodeId: node.id,
+    branchId: activeBranchId.value,
+  });
   info(t("成功删除内容节点 {name}", { name: node.displayLabel }));
 };
 </script>

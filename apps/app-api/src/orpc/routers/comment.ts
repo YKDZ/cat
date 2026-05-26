@@ -17,11 +17,15 @@ import {
   CommentTargetTypeSchema,
 } from "@cat/shared";
 import { listWithOverlay } from "@cat/vcs";
+import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 
 import { withBranchContext } from "@/orpc/middleware/with-branch-context";
 import { authed } from "@/orpc/server";
-import { createVCSRouteHelper } from "@/utils/vcs-route-helper";
+import {
+  createVCSRouteHelper,
+  ensureBranchWriteContext,
+} from "@/utils/vcs-route-helper";
 
 export const comment = authed
   .input(
@@ -36,7 +40,10 @@ export const comment = authed
       projectId: z.uuid().optional(),
     }),
   )
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .output(CommentSchema)
   .handler(async ({ context, input }) => {
     const {
@@ -44,15 +51,26 @@ export const comment = authed
       user,
     } = context;
 
-    if (
-      context.branchId !== undefined &&
-      context.branchChangesetId !== undefined
-    ) {
-      if (context.branchProjectId === undefined) {
-        throw new Error(
-          "branchProjectId missing when branch context is active",
-        );
+    if (context.branchId !== undefined && input.projectId === undefined) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "projectId is required when branchId is provided",
+      });
+    }
+
+    if (context.branchId !== undefined) {
+      const branchWriteContext = await ensureBranchWriteContext({
+        drizzle,
+        branchId: context.branchId,
+        branchChangesetId: context.branchChangesetId,
+        branchProjectId: context.branchProjectId,
+      });
+
+      if (!branchWriteContext) {
+        throw new ORPCError("BAD_REQUEST", {
+          message: "Invalid branch context for comment creation",
+        });
       }
+
       const { middleware } = createVCSRouteHelper(drizzle);
       const entityId = crypto.randomUUID();
       const commentData = {
@@ -63,12 +81,7 @@ export const comment = authed
         userId: user.id,
       };
       return await middleware.interceptWrite(
-        {
-          mode: "isolation",
-          projectId: context.branchProjectId,
-          branchId: context.branchId,
-          branchChangesetId: context.branchChangesetId,
-        },
+        branchWriteContext,
         "comment",
         entityId,
         "CREATE",
@@ -128,14 +141,24 @@ export const getRootComments = authed
       pageIndex: z.int().nonnegative(),
       pageSize: z.int().positive(),
       branchId: z.int().optional(),
+      projectId: z.uuidv4().optional(),
     }),
   )
-  .use(withBranchContext, (i) => ({ branchId: i.branchId }))
+  .use(withBranchContext, (i) => ({
+    branchId: i.branchId,
+    projectId: i.projectId,
+  }))
   .output(z.array(CommentSchema))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
     } = context;
+
+    if (context.branchId !== undefined && input.projectId === undefined) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "projectId is required when branchId is provided",
+      });
+    }
 
     const mainItems = await executeQuery(
       { db: drizzle },

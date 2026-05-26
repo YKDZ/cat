@@ -11,20 +11,34 @@ import TextTooltip from "@/components/tooltip/TextTooltip.vue";
 import UserAvatar from "@/components/UserAvatar.vue";
 import { useEditorTableStore } from "@/stores/editor/table";
 
-import TranslationApprovalBtn from "./TranslationApprovalBtn.vue";
 import TranslationQaResult from "./TranslationQaResult.vue";
 import TranslationVote from "./TranslationVote.vue";
 
 const { t } = useI18n();
 
+/**
+ * @zh 翻译列表项组件属性。
+ * @en Props for the translation list item component.
+ */
 const props = defineProps<{
+  /**
+   * @zh 当前要渲染的翻译条目。
+   * @en Translation entry to render.
+   */
   translation: TranslationWithStatus;
 }>();
 
 const { element } = storeToRefs(useEditorTableStore());
 
+const mainTranslation = computed(() =>
+  props.translation.kind === "main" ? props.translation : null,
+);
+
 const isApproved = computed<boolean>(() => {
-  return element.value?.approvedTranslationId === props.translation.id;
+  return (
+    props.translation.kind === "main" &&
+    element.value?.approvedTranslationId === props.translation.id
+  );
 });
 </script>
 
@@ -43,15 +57,26 @@ const isApproved = computed<boolean>(() => {
             <TokenViewer :text="translation.text" />
           </div>
           <div class="flex items-center gap-2">
-            <TranslationApprovalBtn :translation="translation" />
-            <TranslationVote class="ml-auto" :translation />
-          </div></div
-      ></CollapsibleTrigger>
+            <TranslationVote
+              v-if="mainTranslation"
+              class="ml-auto"
+              :translation="mainTranslation"
+            />
+            <span v-else class="text-xs text-muted-foreground">
+              {{ t("分支草稿翻译暂不支持投票") }}
+            </span>
+          </div>
+        </div></CollapsibleTrigger
+      >
       <CollapsibleContent class="CollapsibleContent">
         <TranslationQaResult
-          :translation-id="translation.id"
+          v-if="mainTranslation"
+          :translation-id="mainTranslation.id"
           class="border-t p-2"
         />
+        <div v-else class="border-t p-2 text-xs text-muted-foreground">
+          {{ t("分支草稿翻译暂不支持 QA 元数据") }}
+        </div>
       </CollapsibleContent>
     </Collapsible>
   </TextTooltip>

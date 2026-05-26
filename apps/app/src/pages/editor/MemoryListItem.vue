@@ -4,19 +4,36 @@ import type { MemorySuggestion } from "@cat/shared";
 
 import { toShortFixed } from "@cat/shared";
 import { Badge } from "@cat/ui";
+import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TokenViewer from "@/components/editor/TokenViewer.vue";
 import { orpc } from "@/rpc/orpc";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
 import { useHotKeys } from "@/utils/magic-keys.ts";
 
 const { replace } = useEditorTableStore();
 const { t } = useI18n();
+const writeCapability = useProjectWriteCapabilityStore();
+const { canWrite, disabledReason } = storeToRefs(writeCapability);
 
+/**
+ * @zh 记忆建议列表项属性。
+ * @en Props for a memory suggestion list item.
+ */
 const props = defineProps<{
+  /**
+   * @zh 当前记忆建议。
+   * @en Current memory suggestion.
+   */
   memorySuggestion: MemorySuggestion;
+
+  /**
+   * @zh 当前建议在列表中的索引。
+   * @en Zero-based index of the current suggestion in the list.
+   */
   index: number;
 }>();
 
@@ -48,12 +65,13 @@ const debugNotes = computed(() => [
 ]);
 
 const handleCopy = () => {
+  if (!canWrite.value) return;
   replace(displayTranslation.value);
 };
 
 const memory = ref<Memory | null>(null);
 
-useHotKeys(`M+${props.index + 1}`, handleCopy);
+useHotKeys(`M+${props.index + 1}`, handleCopy, { enabled: canWrite });
 
 onMounted(async () => {
   memory.value = await orpc.memory.get({
@@ -64,7 +82,12 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col gap-1 px-3 py-2 hover:bg-background">
-    <button class="cursor-pointer text-start text-wrap" @click="handleCopy">
+    <button
+      class="cursor-pointer text-start text-wrap disabled:cursor-not-allowed disabled:opacity-60"
+      :disabled="!canWrite"
+      :title="disabledReason ? t(disabledReason) : undefined"
+      @click="handleCopy"
+    >
       <TokenViewer :text="displayTranslation" />
     </button>
     <div class="flex items-center gap-2 text-sm text-foreground">

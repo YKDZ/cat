@@ -8,6 +8,18 @@ export type {
 // === Memory utilities ===
 export { insertMemory } from "./memory";
 export {
+  writePersonalTranslationMemoryOp,
+  WritePersonalTranslationMemoryInputSchema,
+  type WritePersonalTranslationMemoryInput,
+  type WritePersonalTranslationMemoryOutput,
+} from "./write-personal-translation-memory";
+export {
+  promoteApprovedTranslationMemoryOp,
+  PromoteApprovedTranslationMemoryInputSchema,
+  type PromoteApprovedTranslationMemoryInput,
+  type PromoteApprovedTranslationMemoryOutput,
+} from "./promote-approved-translation-memory";
+export {
   placeholderize,
   fillTemplate,
   slotsToMapping,
@@ -186,6 +198,11 @@ export {
   CollectMemoryRecallInputSchema,
   type CollectMemoryRecallInput,
 } from "./collect-memory-recall";
+export {
+  collectEffectiveMemoryRecallOp,
+  CollectEffectiveMemoryRecallInputSchema,
+  type CollectEffectiveMemoryRecallInput,
+} from "./collect-effective-memory-recall";
 export {
   BM25_DISABLED_REASON,
   buildMemoryRecallBm25Capabilities,

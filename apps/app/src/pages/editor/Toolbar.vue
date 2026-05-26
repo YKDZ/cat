@@ -8,6 +8,7 @@ import { useI18n } from "vue-i18n";
 import TextTooltip from "@/components/tooltip/TextTooltip.vue";
 import { useEditorContextStore } from "@/stores/editor/context";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
 
 import CurrentTranslationQaResult from "./CurrentTranslationQaResult.vue";
 
@@ -20,12 +21,39 @@ const { element, translationValue, sourceTokens, translationTokens } =
 const context = useEditorContextStore();
 const { activeContentNodeId, currentElementContentNodeId } =
   storeToRefs(context);
+const writeCapability = useProjectWriteCapabilityStore();
+const { canWrite, disabledReason } = storeToRefs(writeCapability);
 
 const qaContentNodeId = computed(
   () => currentElementContentNodeId.value ?? activeContentNodeId.value,
 );
 
+const disabledTooltip = computed(() =>
+  disabledReason.value ? t(disabledReason.value) : null,
+);
+
+const handleReplaceSource = () => {
+  if (!canWrite.value) return;
+  replace(element.value?.value ?? "");
+};
+
+const handleClear = () => {
+  if (!canWrite.value) return;
+  clear();
+};
+
+const handleUndo = () => {
+  if (!canWrite.value) return;
+  undo();
+};
+
+const handleRedo = () => {
+  if (!canWrite.value) return;
+  redo();
+};
+
 const handleTranslate = async (toNext: boolean) => {
+  if (!canWrite.value) return;
   await translate();
   if (toNext) await toNextUntranslated();
 };
@@ -34,37 +62,49 @@ const handleTranslate = async (toNext: boolean) => {
 <template>
   <div class="flex w-full items-center justify-between p-2">
     <div class="flex items-center gap-1">
-      <TextTooltip :tooltip="t('复制原文')">
+      <TextTooltip :tooltip="disabledTooltip ?? t('复制原文')">
         <Button
           size="icon"
           variant="ghost"
-          @click="replace(element?.value ?? ``)"
+          :disabled="!canWrite"
+          :title="disabledTooltip ?? t('复制原文')"
+          @click="handleReplaceSource"
           ><Copy
         /></Button>
       </TextTooltip>
-      <TextTooltip :tooltip="t('清空译文')">
-        <Button variant="ghost" size="icon" @click="clear">
+      <TextTooltip :tooltip="disabledTooltip ?? t('清空译文')">
+        <Button
+          variant="ghost"
+          size="icon"
+          :disabled="!canWrite"
+          :title="disabledTooltip ?? t('清空译文')"
+          @click="handleClear"
+        >
           <Trash class="text-destructive" />
         </Button>
       </TextTooltip>
-      <TextTooltip :tooltip="t('撤销')">
+      <TextTooltip :tooltip="disabledTooltip ?? t('撤销')">
         <Button
           size="icon"
           variant="ghost"
           magic-key="Control+Z"
-          @click="undo"
-          @magic-click="undo"
+          :disabled="!canWrite"
+          :title="disabledTooltip ?? t('撤销')"
+          @click="handleUndo"
+          @magic-click="handleUndo"
         >
           <Undo />
         </Button>
       </TextTooltip>
-      <TextTooltip :tooltip="t('重做')">
+      <TextTooltip :tooltip="disabledTooltip ?? t('重做')">
         <Button
           variant="ghost"
           size="icon"
           magic-key="Control+Shift+Z"
-          @click="redo"
-          @magic-click="redo"
+          :disabled="!canWrite"
+          :title="disabledTooltip ?? t('重做')"
+          @click="handleRedo"
+          @magic-click="handleRedo"
         >
           <Redo />
         </Button>
@@ -90,6 +130,8 @@ const handleTranslate = async (toNext: boolean) => {
       <Button
         variant="ghost"
         magic-key="Control+Shift+Enter"
+        :disabled="!canWrite"
+        :title="disabledTooltip ?? t('提交')"
         @click="handleTranslate(false)"
         @magic-click="handleTranslate(false)"
       >
@@ -99,6 +141,8 @@ const handleTranslate = async (toNext: boolean) => {
       <Button
         variant="ghost"
         magic-key="Control+Enter"
+        :disabled="!canWrite"
+        :title="disabledTooltip ?? t('提交并继续')"
         @click="handleTranslate(true)"
         @magic-click="handleTranslate(true)"
       >

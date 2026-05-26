@@ -31,6 +31,10 @@ export type RawMemoryResult = {
   surface: "memory";
   id: number;
   memoryId: string;
+  sourceScope?: "PROJECT" | "PERSONAL";
+  translationId?: number | null;
+  sourceTemplate?: string | null;
+  translationTemplate?: string | null;
   source: string;
   translation: string;
   confidence: number;

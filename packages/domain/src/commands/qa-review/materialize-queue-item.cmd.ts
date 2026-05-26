@@ -157,29 +157,8 @@ const persistQueueItem = async (
         .limit(1)
     )[0] ?? null;
 
-  if (cmd.translationId !== null && cmd.translationId !== undefined) {
-    await db
-      .update(qaReviewQueueItem)
-      .set({
-        status: "SUPERSEDED",
-        supersededByTranslationId: cmd.translationId,
-        resolvedAt: now,
-        lastActivityAt: now,
-        optimisticVersion: sql`${qaReviewQueueItem.optimisticVersion} + 1`,
-        updatedAt: now,
-      })
-      .where(
-        and(
-          eq(qaReviewQueueItem.projectId, cmd.projectId),
-          eq(qaReviewQueueItem.languageId, cmd.languageId),
-          eq(qaReviewQueueItem.elementId, cmd.elementId),
-          eq(qaReviewQueueItem.scopeKey, scopeKey),
-          notInArray(qaReviewQueueItem.status, ["RESOLVED", "SUPERSEDED"]),
-          sql`${qaReviewQueueItem.translationId} IS DISTINCT FROM ${cmd.translationId}`,
-        ),
-      );
-  }
-
+  // Keep sibling candidates visible during materialization.
+  // They are superseded only after an explicit APPROVE action.
   const nextStatus =
     existing?.status === "CLAIMED" && computedStatus === "OPEN"
       ? "CLAIMED"

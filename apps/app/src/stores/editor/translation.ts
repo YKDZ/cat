@@ -11,7 +11,8 @@ import { useEditorElementStore } from "@/stores/editor/element.ts";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
 import { clientLogger as logger } from "@/utils/logger";
 
-const TranslationWithStatusSchema = z.object({
+const MainTranslationWithStatusSchema = z.object({
+  kind: z.literal("main").default("main"),
   id: z.int(),
   text: z.string(),
   vote: z.int(),
@@ -20,6 +21,24 @@ const TranslationWithStatusSchema = z.object({
   translatableElementId: z.int(),
   createdAt: DrizzleDateTimeSchema,
 });
+
+const BranchOverlayTranslationWithStatusSchema = z.object({
+  kind: z.literal("branch-overlay"),
+  overlayEntityId: z.string(),
+  translatableElementId: z.int(),
+  languageId: z.string(),
+  text: z.string(),
+  translatorId: z.uuidv4().nullable(),
+  approved: z.boolean().default(false),
+  vote: z.literal(0),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+const TranslationWithStatusSchema = z.discriminatedUnion("kind", [
+  MainTranslationWithStatusSchema,
+  BranchOverlayTranslationWithStatusSchema,
+]);
 
 export type TranslationWithStatus = z.infer<typeof TranslationWithStatusSchema>;
 
@@ -36,11 +55,13 @@ export const useEditorTranslationStore = defineStore(
         "translations",
         table.elementId.value,
         context.languageToId.value!,
+        context.scope.value?.branchId ?? null,
       ],
       query: async () =>
         orpc.translation.getAll({
           elementId: table.elementId.value!,
           languageId: context.languageToId.value!,
+          branchId: context.scope.value?.branchId,
         }),
       enabled: () =>
         !import.meta.env.SSR &&
@@ -67,6 +88,11 @@ export const useEditorTranslationStore = defineStore(
           });
 
           for await (const translation of stream) {
+            const nextTranslation = MainTranslationWithStatusSchema.parse({
+              kind: "main",
+              ...translation,
+            });
+
             elementStore.setElementPending(
               translation.translatableElementId,
               false,
@@ -79,15 +105,23 @@ export const useEditorTranslationStore = defineStore(
             const queryKey = [
               "translations",
               translation.translatableElementId,
-              context.languageToId.value!,
+              scope.languageToId,
+              scope.branchId ?? null,
             ];
 
             queryCache.setQueryData(
               queryKey,
               (old: TranslationWithStatus[] | undefined) => {
-                if (!old) return [translation];
-                if (old.some((t) => t.id === translation.id)) return old;
-                return [...old, translation];
+                if (!old) return [nextTranslation];
+                if (
+                  old.some(
+                    (item) =>
+                      item.kind === "main" && item.id === nextTranslation.id,
+                  )
+                ) {
+                  return old;
+                }
+                return [...old, nextTranslation];
               },
             );
           }

@@ -1,6 +1,7 @@
 import type { Project } from "@cat/shared";
 
-import { listProjectsByCreator } from "@cat/domain";
+import { listAccessibleProjects } from "@cat/domain";
+import { getPermissionEngine } from "@cat/permissions";
 
 import { runAppQuery } from "@/server/domain";
 import { requireTelefuncAuth } from "@/server/telefunc-auth";
@@ -20,8 +21,15 @@ export const onRequestProjects = async (
   pageSize: number,
 ): Promise<PagedResult<ProjectListItem>> => {
   const { auth } = requireTelefuncAuth();
-  return runAppQuery(listProjectsByCreator, {
-    creatorId: auth.subjectId,
+  const engine = getPermissionEngine();
+  const accessible = await engine.listObjects(
+    { type: auth.subjectType, id: auth.subjectId },
+    "project",
+    "viewer",
+  );
+  const projectIds = accessible.map((o) => o.id);
+  return runAppQuery(listAccessibleProjects, {
+    projectIds,
     pageIndex,
     pageSize,
   });

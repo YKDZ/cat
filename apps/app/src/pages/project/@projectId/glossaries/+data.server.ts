@@ -4,16 +4,20 @@ import { render } from "vike/abort";
 
 import { ssc } from "@/server/ssc";
 
+import { withProjectShell } from "../project-shell.server";
+
 export const data = async (ctx: PageContextServer) => {
   const { projectId } = ctx.routeParams;
 
   if (!projectId) throw render(`/`, `Project id is required`);
 
-  const glossaries = await ssc(ctx).glossary.getProjectOwned({
-    projectId,
-  });
+  return await withProjectShell(ctx, async () => {
+    const glossaries = await ssc(ctx).glossary.getProjectOwned({
+      projectId,
+    });
 
-  return { glossaries };
+    return { glossaries };
+  });
 };
 
 export type Data = Awaited<ReturnType<typeof data>>;

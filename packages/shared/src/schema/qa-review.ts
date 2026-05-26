@@ -120,6 +120,93 @@ export type SubmitQaReviewDecisionInput = z.infer<
   typeof SubmitQaReviewDecisionInputSchema
 >;
 
+/**
+ * @zh QA 审校工作台动作类型。
+ * @en Action types for the QA review workbench.
+ */
+export const QaReviewWorkbenchActionSchema = z.enum([
+  "APPROVE",
+  "REJECT_CANDIDATE",
+  "DEFER",
+]);
+
+/**
+ * @zh QA 审校工作台动作类型。
+ * @en Action types for the QA review workbench.
+ */
+export type QaReviewWorkbenchAction = z.infer<
+  typeof QaReviewWorkbenchActionSchema
+>;
+
+/**
+ * @zh QA 审校工作台提交动作输入。
+ * @en Input payload for submitting a QA workbench action.
+ */
+export const SubmitQaReviewActionInputSchema = z
+  .object({
+    projectId: z.uuidv4(),
+    languageId: z.string().min(1),
+    branchId: z.int().positive().nullable().optional(),
+    elementId: z.int().positive(),
+    translationId: z.int().positive(),
+    queueItemId: z.int().positive(),
+    action: QaReviewWorkbenchActionSchema,
+    expectedVersion: z.int().positive(),
+    noteBody: z.string().trim().max(10000).optional(),
+    overrideBlocking: z.boolean().default(false),
+    overrideReason: z.string().trim().max(4000).optional(),
+    navigation: z
+      .object({
+        afterElementId: z.int().positive().optional(),
+        pageSize: z.int().positive().default(16),
+      })
+      .optional(),
+  })
+  .superRefine((input, ctx) => {
+    if (
+      input.action === "APPROVE" &&
+      input.overrideBlocking &&
+      !input.overrideReason?.trim()
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["overrideReason"],
+        message: "overrideReason is required when overriding blocking findings",
+      });
+    }
+  });
+
+/**
+ * @zh QA 审校工作台提交动作输入。
+ * @en Input payload for submitting a QA workbench action.
+ */
+export type SubmitQaReviewActionInput = z.infer<
+  typeof SubmitQaReviewActionInputSchema
+>;
+
+/**
+ * @zh QA 审校工作台动作执行结果。
+ * @en Result payload for a QA workbench action.
+ */
+export const QaReviewActionResultSchema = z.object({
+  decisionId: z.int().positive(),
+  annotationId: z.int().positive().nullable(),
+  queueItemId: z.int().positive(),
+  queueStatus: QaReviewQueueStatusSchema,
+  approvedTranslationId: z.int().positive().nullable(),
+  affectedSiblingQueueItemIds: z.array(z.int().positive()),
+  nextTarget: z.union([
+    z.object({ kind: z.literal("element"), elementId: z.int().positive() }),
+    z.object({ kind: z.literal("empty") }),
+  ]),
+});
+
+/**
+ * @zh QA 审校工作台动作执行结果。
+ * @en Result payload for a QA workbench action.
+ */
+export type QaReviewActionResult = z.infer<typeof QaReviewActionResultSchema>;
+
 export const CreateQaReviewAnnotationInputSchema = z.object({
   queueItemId: z.int().positive(),
   findingId: z.int().positive().optional(),

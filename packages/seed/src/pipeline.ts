@@ -22,6 +22,7 @@ import {
   createUser,
   createVectorizedChunks,
   createVectorizedStrings,
+  ensurePersonalProjectMemory,
   ensureCoreRelationTypes,
   ensureLanguages,
   ensureVectorStorageSchema,
@@ -41,7 +42,11 @@ import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 
 import type { LoadedDevSeed } from "./loader";
-import type { PluginOverride } from "./schemas";
+import type {
+  MemoryContainerSeed,
+  MemorySeed,
+  PluginOverride,
+} from "./schemas";
 
 import { runBootstrapSourceGraph } from "./bootstrap/source-bootstrap";
 import { RefResolver } from "./ref-resolver";
@@ -66,7 +71,10 @@ export type SeedSummary = {
   users: number;
   projects: number;
   glossaryConcepts: number;
+  memoryContainers: number;
   memoryItems: number;
+  projectMemoryItems: number;
+  personalMemoryItems: number;
   elements: number;
   plugins: number;
   bootstrapElements: number;
@@ -100,7 +108,10 @@ export const runSeedPipeline = async (
     users: 0,
     projects: 0,
     glossaryConcepts: 0,
+    memoryContainers: 0,
     memoryItems: 0,
+    projectMemoryItems: 0,
+    personalMemoryItems: 0,
     elements: 0,
     plugins: 0,
     bootstrapElements: 0,
@@ -265,9 +276,11 @@ export const runSeedPipeline = async (
     allLanguages.add(glossarySeed.glossary.translationLanguage);
   }
   if (memorySeed) {
-    for (const item of memorySeed.memory.items) {
-      allLanguages.add(item.sourceLanguage);
-      allLanguages.add(item.translationLanguage);
+    for (const container of normalizeMemorySeed(memorySeed)) {
+      for (const item of container.items) {
+        allLanguages.add(item.sourceLanguage);
+        allLanguages.add(item.translationLanguage);
+      }
     }
   }
   if (config.bootstrap?.enabled) {
@@ -340,6 +353,21 @@ export const runSeedPipeline = async (
     objectType: "project",
     objectId: project.id,
   });
+
+  // Grant additional project members defined in the seed
+  if (projectSeed.members) {
+    for (const member of projectSeed.members) {
+      const memberId = refs.resolve(member.userRef);
+      await executeCommand(execCtx, grantPermissionTuple, {
+        subjectType: "user",
+        subjectId: memberId,
+        relation: member.relation,
+        objectType: "project",
+        objectId: project.id,
+      });
+    }
+  }
+
   refs.set("project", project.id);
   summary.projects += 1;
 
@@ -494,70 +522,120 @@ export const runSeedPipeline = async (
   // ── 10. Memory seeding ─────────────────────────────────────────────
   let memoryId: string | undefined;
   if (memorySeed) {
-    const m = memorySeed.memory;
-    const memory = await executeCommand(execCtx, createMemory, {
-      name: m.name,
-      creatorId,
-      projectIds: [project.id],
-    });
-    await executeCommand(execCtx, grantPermissionTuple, {
-      subjectType: "user",
-      subjectId: creatorId,
-      relation: "owner",
-      objectType: "memory",
-      objectId: memory.id,
-    });
-    memoryId = memory.id;
-    refs.set("memory", memoryId);
+    let defaultMemoryRefBound = false;
 
-    for (const itemSeed of m.items) {
-      const sourceStringIds = await executeCommand(
-        execCtx,
-        createVectorizedStrings,
-        {
-          data: [
-            { text: itemSeed.source, languageId: itemSeed.sourceLanguage },
-          ],
-        },
-      );
-      const translationStringIds = await executeCommand(
-        execCtx,
-        createVectorizedStrings,
-        {
-          data: [
+    for (const memorySeedContainer of normalizeMemorySeed(memorySeed)) {
+      summary.memoryContainers += 1;
+
+      const containerScope = memorySeedContainer.scope;
+      let containerMemoryId: string;
+
+      if (containerScope === "PROJECT") {
+        const memory = await executeCommand(execCtx, createMemory, {
+          name: memorySeedContainer.name,
+          creatorId,
+          scope: "PROJECT",
+          projectIds: [project.id],
+        });
+
+        await executeCommand(execCtx, grantPermissionTuple, {
+          subjectType: "user",
+          subjectId: creatorId,
+          relation: "owner",
+          objectType: "memory",
+          objectId: memory.id,
+        });
+
+        containerMemoryId = memory.id;
+      } else {
+        const ownerRef = memorySeedContainer.ownerRef;
+        if (!ownerRef) {
+          throw new Error("personal memory container requires ownerRef");
+        }
+
+        const ownerId = refs.resolve(ownerRef);
+        const personalMemory = await executeCommand(
+          execCtx,
+          ensurePersonalProjectMemory,
+          {
+            userId: ownerId,
+            projectId: project.id,
+            name: memorySeedContainer.name,
+          },
+        );
+
+        containerMemoryId = personalMemory.memoryId;
+      }
+
+      if (!memoryId || containerScope === "PROJECT") {
+        memoryId = containerMemoryId;
+      }
+
+      if (memorySeedContainer.ref) {
+        refs.set(memorySeedContainer.ref, containerMemoryId);
+      }
+
+      if (!defaultMemoryRefBound && memorySeedContainer.ref !== "memory") {
+        refs.set("memory", containerMemoryId);
+        defaultMemoryRefBound = true;
+      } else if (memorySeedContainer.ref === "memory") {
+        defaultMemoryRefBound = true;
+      }
+
+      for (const itemSeed of memorySeedContainer.items) {
+        const sourceStringIds = await executeCommand(
+          execCtx,
+          createVectorizedStrings,
+          {
+            data: [
+              { text: itemSeed.source, languageId: itemSeed.sourceLanguage },
+            ],
+          },
+        );
+        const translationStringIds = await executeCommand(
+          execCtx,
+          createVectorizedStrings,
+          {
+            data: [
+              {
+                text: itemSeed.translation,
+                languageId: itemSeed.translationLanguage,
+              },
+            ],
+          },
+        );
+
+        const items = await executeCommand(execCtx, createMemoryItems, {
+          memoryId: containerMemoryId,
+          items: [
             {
-              text: itemSeed.translation,
-              languageId: itemSeed.translationLanguage,
+              translationId: null,
+              translationStringId: translationStringIds[0],
+              sourceStringId: sourceStringIds[0],
+              creatorId,
+              sourceTemplate: null,
+              translationTemplate: null,
+              slotMapping: null,
             },
           ],
-        },
-      );
+        });
+        refs.set(itemSeed.ref, items[0].id);
+        summary.memoryItems += 1;
+        if (containerScope === "PROJECT") {
+          summary.projectMemoryItems += 1;
+        } else {
+          summary.personalMemoryItems += 1;
+        }
 
-      const items = await executeCommand(execCtx, createMemoryItems, {
-        memoryId,
-        items: [
-          {
-            translationId: null,
-            translationStringId: translationStringIds[0],
-            sourceStringId: sourceStringIds[0],
-            creatorId,
-            sourceTemplate: null,
-            translationTemplate: null,
-            slotMapping: null,
-          },
-        ],
-      });
-      refs.set(itemSeed.ref, items[0].id);
-      summary.memoryItems += 1;
-
-      await buildMemoryRecallVariantsOp({
-        memoryItemId: items[0].id,
-        memoryId,
-        sourceText: itemSeed.source,
-        translationText: itemSeed.translation,
-        sourceLanguageId: itemSeed.sourceLanguage,
-        translationLanguageId: itemSeed.translationLanguage,
-      });
+        await buildMemoryRecallVariantsOp({
+          memoryItemId: items[0].id,
+          memoryId: containerMemoryId,
+          sourceText: itemSeed.source,
+          translationText: itemSeed.translation,
+          sourceLanguageId: itemSeed.sourceLanguage,
+          translationLanguageId: itemSeed.translationLanguage,
+        });
+      }
     }
   }
 
@@ -662,6 +740,22 @@ const isRecordConfig = (
   return (
     typeof config === "object" && config !== null && !Array.isArray(config)
   );
+};
+
+export const normalizeMemorySeed = (
+  memorySeed: MemorySeed,
+): MemoryContainerSeed[] => {
+  const containers: MemoryContainerSeed[] = [];
+
+  if (memorySeed.memory) {
+    containers.push(memorySeed.memory);
+  }
+
+  if (memorySeed.memories?.length) {
+    containers.push(...memorySeed.memories);
+  }
+
+  return containers;
 };
 
 const getVectorizerModelName = (

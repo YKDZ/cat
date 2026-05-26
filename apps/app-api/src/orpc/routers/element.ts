@@ -97,6 +97,7 @@ export const getTranslationStatus = authed
     z.object({
       elementId: z.int(),
       languageId: z.string(),
+      branchId: z.int().optional(),
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)

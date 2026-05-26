@@ -50,12 +50,20 @@ export type SeedConfig = z.infer<typeof SeedConfigSchema>;
 
 // ── Seed data schemas ────────────────────────────────────────────────
 
+export const ProjectMemberSeedSchema = z.object({
+  /** ref pointing to a user defined in users.json */
+  userRef: z.string(),
+  relation: RelationSchema,
+});
+
 export const ProjectSeedSchema = z.object({
   name: z.string().min(1),
   sourceLanguage: z.string(),
   translationLanguages: z.array(z.string()).min(1),
+  members: z.array(ProjectMemberSeedSchema).optional(),
 });
 
+export type ProjectMemberSeed = z.infer<typeof ProjectMemberSeedSchema>;
 export type ProjectSeed = z.infer<typeof ProjectSeedSchema>;
 
 export const GlossaryConceptSeedSchema = z.object({
@@ -93,14 +101,48 @@ export const MemoryItemSeedSchema = z.object({
   translationLanguage: z.string(),
 });
 
-export const MemorySeedSchema = z.object({
-  memory: z.object({
+export const MemoryContainerSeedSchema = z
+  .object({
+    ref: z.string().optional(),
     name: z.string(),
+    scope: z.enum(["PROJECT", "PERSONAL"]).default("PROJECT"),
+    ownerRef: z.string().optional(),
     items: z.array(MemoryItemSeedSchema).min(1),
-  }),
-});
+  })
+  .superRefine((container, ctx) => {
+    if (container.scope === "PERSONAL" && !container.ownerRef) {
+      ctx.addIssue({
+        code: "custom",
+        message: "personal memory container requires ownerRef",
+        path: ["ownerRef"],
+      });
+    }
+
+    if (container.scope === "PROJECT" && container.ownerRef !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        message: "project memory container must not set ownerRef",
+        path: ["ownerRef"],
+      });
+    }
+  });
+
+export const MemorySeedSchema = z
+  .object({
+    memory: MemoryContainerSeedSchema.optional(),
+    memories: z.array(MemoryContainerSeedSchema).optional(),
+  })
+  .superRefine((seed, ctx) => {
+    if (!seed.memory && (!seed.memories || seed.memories.length === 0)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "memory seed requires memory or memories",
+      });
+    }
+  });
 
 export type MemorySeed = z.infer<typeof MemorySeedSchema>;
+export type MemoryContainerSeed = z.infer<typeof MemoryContainerSeedSchema>;
 export type MemoryItemSeed = z.infer<typeof MemoryItemSeedSchema>;
 
 export const ElementSeedSchema = z.object({

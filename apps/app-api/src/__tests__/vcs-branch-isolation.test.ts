@@ -141,7 +141,6 @@ function makeTestAuthContext(userId: string, db: typeof testDb.client) {
 }
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
-
 describe("VCS branch isolation — integration", () => {
   test("interceptWrite in isolation mode records to branch changeset without calling writeFn", async () => {
     const { projectId, userId } = await seedProject();
@@ -329,6 +328,112 @@ describe("VCS branch isolation — integration", () => {
       expect(err).toBeInstanceOf(ORPCError);
       if (err instanceof ORPCError) {
         expect(err.code).toBe("CONFLICT");
+      }
+    }
+  });
+
+  test("withBranchContext: branch from another project → BAD_REQUEST", async () => {
+    const { projectId, userId } = await seedProject();
+    const other = await seedProject();
+
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId,
+      title: "Cross Project Branch Context Test PR",
+      body: "",
+      reviewers: [],
+      authorId: userId,
+    });
+
+    const ctx = makeTestAuthContext(userId, testDb.client);
+    const next = vi.fn().mockResolvedValue({ output: undefined, context: {} });
+
+    try {
+      await invokeWithBranchContext(
+        { context: ctx, next, errors: {}, path: [], signal: undefined },
+        { projectId: other.projectId, branchId: pr.branchId },
+        vi.fn(),
+      );
+      expect.fail("Expected ORPCError BAD_REQUEST");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ORPCError);
+      if (err instanceof ORPCError) {
+        expect(err.code).toBe("BAD_REQUEST");
+      }
+    }
+  });
+
+  test("withBranchContext: header branch without project header → BAD_REQUEST", async () => {
+    const { projectId, userId } = await seedProject();
+
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId,
+      title: "Header Branch Context Test PR",
+      body: "",
+      reviewers: [],
+      authorId: userId,
+    });
+
+    const ctx = {
+      ...makeTestAuthContext(userId, testDb.client),
+      helpers: {
+        getReqHeader: (name: string) => {
+          if (name === "x-branch-id") return String(pr.branchId);
+          return undefined;
+        },
+      },
+    };
+    const next = vi.fn().mockResolvedValue({ output: undefined, context: {} });
+
+    try {
+      await invokeWithBranchContext(
+        { context: ctx, next, errors: {}, path: [], signal: undefined },
+        {},
+        vi.fn(),
+      );
+      expect.fail("Expected ORPCError BAD_REQUEST");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ORPCError);
+      if (err instanceof ORPCError) {
+        expect(err.code).toBe("BAD_REQUEST");
+      }
+    }
+  });
+
+  test("withBranchContext: header project mismatch → BAD_REQUEST", async () => {
+    const { projectId, userId } = await seedProject();
+    const other = await seedProject();
+
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId,
+      title: "Header Branch Project Mismatch Test PR",
+      body: "",
+      reviewers: [],
+      authorId: userId,
+    });
+
+    const ctx = {
+      ...makeTestAuthContext(userId, testDb.client),
+      helpers: {
+        getReqHeader: (name: string) => {
+          if (name === "x-branch-id") return String(pr.branchId);
+          if (name === "x-branch-project-id") return other.projectId;
+          return undefined;
+        },
+      },
+    };
+    const next = vi.fn().mockResolvedValue({ output: undefined, context: {} });
+
+    try {
+      await invokeWithBranchContext(
+        { context: ctx, next, errors: {}, path: [], signal: undefined },
+        { projectId },
+        vi.fn(),
+      );
+      expect.fail("Expected ORPCError BAD_REQUEST");
+    } catch (err) {
+      expect(err).toBeInstanceOf(ORPCError);
+      if (err instanceof ORPCError) {
+        expect(err.code).toBe("BAD_REQUEST");
       }
     }
   });

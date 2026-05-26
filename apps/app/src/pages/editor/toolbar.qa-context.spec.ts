@@ -10,6 +10,8 @@ import Toolbar from "./Toolbar.vue";
 const mocks = vi.hoisted(() => ({
   activeContentNodeId: undefined as string | undefined,
   currentElementContentNodeId: undefined as string | undefined,
+  canWrite: true,
+  disabledReason: null as string | null,
   element: null as null | {
     id: number;
     value: string;
@@ -116,6 +118,21 @@ vi.mock("@/stores/editor/table.ts", async () => {
   };
 });
 
+vi.mock("@/stores/write-capability", async () => {
+  const { defineStore } = await import("pinia");
+  const { computed } = await import("vue");
+
+  return {
+    useProjectWriteCapabilityStore: defineStore(
+      "editorToolbarWriteCapabilitySpec",
+      () => ({
+        canWrite: computed(() => mocks.canWrite),
+        disabledReason: computed(() => mocks.disabledReason),
+      }),
+    ),
+  };
+});
+
 describe("Toolbar QA context", () => {
   beforeEach(() => {
     mocks.element = {
@@ -128,6 +145,8 @@ describe("Toolbar QA context", () => {
     mocks.translationTokens = [];
     mocks.activeContentNodeId = undefined;
     mocks.currentElementContentNodeId = undefined;
+    mocks.canWrite = true;
+    mocks.disabledReason = null;
   });
 
   it("uses the current element primary content node in a full-project scope", () => {
@@ -157,5 +176,27 @@ describe("Toolbar QA context", () => {
     expect(wrapper.get('[data-testid="qa-content-node-id"]').text()).toBe(
       "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
     );
+  });
+
+  it("keeps QA context visible while disabling editor actions when write is blocked", () => {
+    mocks.currentElementContentNodeId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
+    mocks.canWrite = false;
+    mocks.disabledReason =
+      "当前选择 main，但你的写入需要通过分支完成。请选择一个可写分支。";
+
+    const wrapper = mount(Toolbar, {
+      global: {
+        plugins: [createPinia(), i18n],
+      },
+    });
+
+    expect(wrapper.get('[data-testid="qa-content-node-id"]').text()).toBe(
+      "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+    );
+    expect(
+      wrapper
+        .findAll("button")
+        .every((button) => button.attributes("disabled") !== undefined),
+    ).toBe(true);
   });
 });

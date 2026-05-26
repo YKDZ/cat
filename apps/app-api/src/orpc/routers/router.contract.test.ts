@@ -198,6 +198,14 @@ describe("app router contract", () => {
     expect(legacyListAlias in router.project).toBe(false);
   });
 
+  test("qaReview exposes workbench APIs", () => {
+    expect(router.qaReview).toHaveProperty("listReviewableElements");
+    expect(router.qaReview).toHaveProperty("countReviewableElements");
+    expect(router.qaReview).toHaveProperty("getReviewableElement");
+    expect(router.qaReview).toHaveProperty("getFirstReviewableElement");
+    expect(router.qaReview).toHaveProperty("submitAction");
+  });
+
   test("translation.onCreate accepts editor scope input and checks project viewer permission", async () => {
     const context = createMockContext();
 

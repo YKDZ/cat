@@ -4,9 +4,9 @@
 
 * **Modules**: 11
 
-* **Exported functions**: 11
+* **Exported functions**: 12
 
-* **Exported types**: 29
+* **Exported types**: 30
 
 ## Function Index
 
@@ -48,6 +48,12 @@ export const runSeedPipeline = async (execCtx: ExecutorContext, loadedSeed: Load
     skipVectorization?: boolean;
     skipPluginBootstrap?: boolean;
   }): Promise<DevSeedResult>
+```
+
+### `normalizeMemorySeed`
+
+```ts
+export const normalizeMemorySeed = (memorySeed: MemorySeed): { name: string; scope: "PROJECT" | "PERSONAL"; items: { ref: string; source: string; translation: string; sourceLanguage: string; translationLanguage: string; }[]; ref?: string | undefined; ownerRef?: string | undefined; }[]
 ```
 
 ### `loadSeedRuntimeEnv`
@@ -182,6 +188,8 @@ export const runBootstrapSourceGraph = async (input: RunBootstrapSourceGraphInpu
 * `GlossaryConceptSeed` (type)
 
 * `MemorySeed` (type)
+
+* `MemoryContainerSeed` (type)
 
 * `MemoryItemSeed` (type)
 

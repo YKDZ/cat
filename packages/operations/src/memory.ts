@@ -37,9 +37,12 @@ export const insertMemory = async (
   tx: DbHandle,
   memoryIds: string[],
   translationIds: number[],
-): Promise<{ memoryItemIds: number[] }> => {
+): Promise<{
+  memoryItemIds: number[];
+  itemsByMemoryId: Array<{ memoryId: string; memoryItemId: number }>;
+}> => {
   if (translationIds.length === 0 || memoryIds.length === 0) {
-    return { memoryItemIds: [] };
+    return { memoryItemIds: [], itemsByMemoryId: [] };
   }
 
   const translations = await executeQuery(
@@ -135,6 +138,7 @@ export const insertMemory = async (
   );
 
   const ids: number[] = [];
+  const itemsByMemoryId: Array<{ memoryId: string; memoryItemId: number }> = [];
 
   await Promise.all(
     memoryIds.map(async (memoryId) => {
@@ -186,10 +190,16 @@ export const insertMemory = async (
       );
 
       ids.push(...result.map((item) => item.id));
+      itemsByMemoryId.push(
+        ...result.map((item) => ({
+          memoryId,
+          memoryItemId: item.id,
+        })),
+      );
     }),
   );
 
-  return { memoryItemIds: ids };
+  return { memoryItemIds: ids, itemsByMemoryId };
 };
 
 type BuildMemoryRecallTokens = NonNullable<

@@ -42,7 +42,7 @@
   "未找到内容节点": "No content nodes found",
   "移除内容节点过滤器": "Remove content node filter",
   "打开编辑工作台": "Open editor workbench",
-  "打开 QA 审校工作台": "Open QA Review Workbench",
+  "打开审校工作台": "Open Review Workbench",
   "QA 审校工作台": "QA Review Workbench",
   "按风险优先处理机器 QA 与人工审校队列": "Prioritize machine QA and human review queues by risk",
   "{count} 个待审校项": "{count} review items",

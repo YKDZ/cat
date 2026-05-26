@@ -11,7 +11,7 @@ import TermListItem from "./TermListItem.vue";
 const { t } = useI18n();
 
 const { elementId } = storeToRefs(useEditorTableStore());
-const { terms } = storeToRefs(useEditorTermStore());
+const { terms, error } = storeToRefs(useEditorTermStore());
 const { updateTerms } = useEditorTermStore();
 
 watchClient(elementId, updateTerms, { immediate: true });
@@ -19,6 +19,9 @@ watchClient(elementId, updateTerms, { immediate: true });
 
 <template>
   <div class="flex flex-col gap-1">
+    <div v-if="error" class="px-3 py-2 text-sm text-destructive">
+      {{ t("辅助信息加载失败") }}
+    </div>
     <TermListItem
       v-for="(term, index) in terms"
       :key="term.conceptId ?? `${term.term}:${term.translation}`"

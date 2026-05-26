@@ -4,11 +4,11 @@ Operations layer: business workflows composing domain operations
 
 ## Overview
 
-* **Modules**: 92
+* **Modules**: 95
 
-* **Exported functions**: 110
+* **Exported functions**: 113
 
-* **Exported types**: 127
+* **Exported types**: 132
 
 ## Function Index
 
@@ -84,6 +84,20 @@ export const buildMemoryRecallVariantsOp = async (data: BuildMemoryRecallVariant
  * For multi-word terms a limited lemma window is also stored (windowSize in meta).
  */
 export const buildTermRecallVariantsOp = async (data: BuildTermRecallVariantsInput, ctx?: OperationContext): Promise<void>
+```
+
+### `collectEffectiveMemoryRecallOp`
+
+```ts
+/**
+ * Recall effective project+personal memories and dedupe with project-first precedence.
+ *
+ * @param input - Recall input
+ * @param ctx - Operation context
+ *
+ * @returns Merged memory candidates
+ */
+export const collectEffectiveMemoryRecallOp = async (input: CollectEffectiveMemoryRecallInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; sourceScope: "PROJECT" | "PERSONAL"; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; translationId?: number | null | undefined; sourceTemplate?: string | null | undefined; translationTemplate?: string | null | undefined; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `collectMemoryRecallOp`
@@ -513,7 +527,7 @@ export const mappingToSlots = (mapping: SlotMappingEntry[]): PlaceholderSlot[]
  *
  * @returns List of created memory item IDs
  */
-export const insertMemory = async (tx: DbHandle, memoryIds: string[], translationIds: number[]): Promise<{ memoryItemIds: number[]; }>
+export const insertMemory = async (tx: DbHandle, memoryIds: string[], translationIds: number[]): Promise<{ memoryItemIds: number[]; itemsByMemoryId: Array<{ memoryId: string; memoryItemId: number; }>; }>
 ```
 
 ### `mergeAlignmentOp`
@@ -641,6 +655,19 @@ export const nlpSegmentOp = async (data: NlpSegmentInput, ctx?: OperationContext
 export const parseFileOp = async (data: ParseFileInput, _ctx?: OperationContext): Promise<{ payload: { payloadVersion: "content-graph/v1"; projectId: string; sourceLanguageId: string; importerId: string; sourceRootRef: string; relationTypes: { namespace: string; name: string; version: string; semanticFamily: "SEMANTIC" | "CUSTOM" | "CONTAINMENT" | "ORDERING" | "SOURCE_REFERENCE" | "SCOPE" | "DEPENDENCY" | "VERSIONING" | "EVIDENCE" | "DISCUSSION" | "DUPLICATE"; allowedEndpointPairs: { source: "ELEMENT" | "NODE"; target: "ELEMENT" | "NODE"; }[]; directionality: "DIRECTED" | "UNDIRECTED"; participatesInContainment: boolean; participatesInExport: boolean; supportsOrdering: boolean; weightingEligible: boolean; defaultTrustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ownerPluginId?: string | null | undefined; deprecation?: any; migration?: any; metadata?: any; }[]; nodes: { ref: string; kind: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "MARKDOWN_SECTION" | "SOURCE_COMPONENT" | "UI_ROUTE" | "MODULE" | "MOD" | "VERSION" | "NAMESPACE" | "CHAPTER" | "PACKAGE" | "SCREENSHOT_TARGET" | "CUSTOM"; displayLabel: string; importerId: string; sourceRootRef: string; stableSourceNodeRef: string; exportRole: "FILE" | "PROJECT_ROOT" | "DIRECTORY" | "NONE" | "SECTION"; boundaryType: "PROJECT" | "FILE" | "DIRECTORY" | "MODULE" | "MOD" | "NAMESPACE" | "NONE" | "SOURCE_ROOT"; parentRef?: string | null | undefined; sourceUri?: string | null | undefined; sourcePath?: string | null | undefined; sourceType?: string | null | undefined; languageId?: string | null | undefined; file?: { fileId: number; fileHandlerId?: number | null | undefined; } | null | undefined; metadata?: any; provenance?: any; }[]; elements: { ref: string; stableSourceRef: string; sourceNodeRef: string; text: string; languageId: string; localOrder?: number | undefined; meta?: any; location?: { startLine?: number | undefined; endLine?: number | undefined; custom?: any; } | undefined; }[]; relations: { type: { namespace: string; name: string; version: string; }; source: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; target: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; }; isPrimary: boolean; confidenceBasisPoints: number; localOrder?: number | null | undefined; provenance?: any; metadata?: any; }[]; evidence: { attachedTo: { kind: "NODE"; nodeRef: string; } | { kind: "ELEMENT"; elementRef: string; } | { kind: "RELATION"; relationRef: string; }; kind: "TEXT" | "JSON" | "FILE" | "MARKDOWN" | "URL" | "IMAGE" | "COMMENT" | "SOURCE_LOCATION" | "SCREENSHOT" | "GENERATED_ANALYSIS" | "EXTERNAL_REFERENCE"; trustLevel: "UNTRUSTED" | "COLLECTED" | "VERIFIED" | "REVIEW_APPROVED"; ref?: string | undefined; textData?: string | null | undefined; jsonData?: any; fileId?: number | null | undefined; storageProviderId?: number | null | undefined; displayLabel?: string | null | undefined; freshness?: string | null | undefined; provenance?: any; }[]; options?: { branchId?: number | undefined; } | undefined; }; }>
 ```
 
+### `promoteApprovedTranslationMemoryOp`
+
+```ts
+/**
+ * Promote an approved translation into project memories (idempotent and retry-safe).
+ *
+ * @param input - Promotion input
+ *
+ * @returns Promotion result
+ */
+export const promoteApprovedTranslationMemoryOp = async (input: PromoteApprovedTranslationMemoryInput): Promise<PromoteApprovedTranslationMemoryOutput>
+```
+
 ### `qaTranslationOp`
 
 ```ts
@@ -724,7 +751,7 @@ export const rebasePRFull = async (ctx: DbContext, input: RebasePRFullInput): Pr
 ### `recallContextRerankOp`
 
 ```ts
-export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
+export const recallContextRerankOp = async (data: RecallContextRerankInput, ctx?: OperationContext): Promise<{ id: number; translationChunkSetId: number | null; source: string; translation: string; sourceScope: "PROJECT" | "PERSONAL"; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; translationId?: number | null | undefined; sourceTemplate?: string | null | undefined; translationTemplate?: string | null | undefined; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]>
 ```
 
 ### `rerankTermRecallOp`
@@ -873,7 +900,7 @@ export const searchChunkOp = async (payload: SearchChunkInput, ctx?: OperationCo
  *
  * @returns List of matching memory entries (sorted by confidence descending)
  */
-export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
+export const searchMemoryOp = async (data: SearchMemoryInput, ctx?: OperationContext): Promise<{ memories: { id: number; translationChunkSetId: number | null; source: string; translation: string; sourceScope: "PROJECT" | "PERSONAL"; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; translationId?: number | null | undefined; sourceTemplate?: string | null | undefined; translationTemplate?: string | null | undefined; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }[]; }>
 ```
 
 ### `applySelfExclusion`
@@ -953,7 +980,7 @@ export const statisticalTermExtractOp = async (data: StatisticalTermExtractInput
 /**
  * Streaming memory search backed by the aggregated recall helper.
  */
-export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
+export const streamSearchMemoryOp = (data: StreamSearchMemoryInput, ctx?: OperationContext): AsyncIterable<{ id: number; translationChunkSetId: number | null; source: string; translation: string; sourceScope: "PROJECT" | "PERSONAL"; memoryId: string; creatorId: string | null; confidence: number; createdAt: Date; updatedAt: Date; evidences: { channel: "exact" | "template" | "trgm" | "lexical" | "morphological" | "sparse" | "fragment" | "bm25" | "semantic" | "multi"; confidence: number; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; note?: string | undefined; }[]; translationId?: number | null | undefined; sourceTemplate?: string | null | undefined; translationTemplate?: string | null | undefined; adaptedTranslation?: string | undefined; adaptationMethod?: "exact" | "token-replaced" | "llm-adapted" | undefined; matchedText?: string | undefined; matchedVariantText?: string | undefined; matchedVariantType?: string | undefined; }>
 ```
 
 ### `streamSearchTermsOp`
@@ -1133,6 +1160,12 @@ export const processVectorizationBatch = async (queue: TaskQueue<VectorizationTa
  * @returns List of ChunkSet IDs, one per input text
  */
 export const vectorizeToChunkSetOp = async ({ data, vectorStorageId, vectorizerId }: VectorizeInput, ctx?: OperationContext): Promise<{ chunkSetIds: number[]; }>
+```
+
+### `writePersonalTranslationMemoryOp`
+
+```ts
+export const writePersonalTranslationMemoryOp = async (input: WritePersonalTranslationMemoryInput): Promise<WritePersonalTranslationMemoryOutput>
 ```
 
 ### packages/operations/src/confidence-calibrator
@@ -1642,6 +1675,8 @@ export const orchestrateRerank = async ({
 
 * `BuildTermRecallVariantsInput` (type)
 
+* `CollectEffectiveMemoryRecallInput` (type) — Effective memory recall input.
+
 * `CollectMemoryRecallInput` (type)
 
 * `CollectTermRecallInput` (type)
@@ -1788,6 +1823,10 @@ export const orchestrateRerank = async ({
 
 * `MemorySuggestionWithPrecision` (type) — MemorySuggestion extended with optional pipeline decision trace (for regression testing).
 
+* `PromoteApprovedTranslationMemoryInput` (type) — Input for promoting an approved translation into project memories.
+
+* `PromoteApprovedTranslationMemoryOutput` (type) — Result of approved-translation promotion.
+
 * `RunQaReviewForTranslationInput` (type)
 
 * `RunSemanticQaReviewInput` (type)
@@ -1883,3 +1922,7 @@ export const orchestrateRerank = async ({
 * `VectorizeInput` (type)
 
 * `VectorizeOutput` (type)
+
+* `WritePersonalTranslationMemoryInput` (type)
+
+* `WritePersonalTranslationMemoryOutput` (type)

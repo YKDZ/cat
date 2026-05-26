@@ -7,7 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Context } from "@/utils/context";
 
 const opMocks = vi.hoisted(() => ({
-  collectMemoryRecallOp: vi.fn(),
+  collectEffectiveMemoryRecallOp: vi.fn(),
   recallContextRerankOp: vi.fn(),
   rerankTermRecallOp: vi.fn(),
   termRecallOp: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock("@cat/operations", async () => {
 
   return {
     ...actual,
-    collectMemoryRecallOp: opMocks.collectMemoryRecallOp,
+    collectEffectiveMemoryRecallOp: opMocks.collectEffectiveMemoryRecallOp,
     recallContextRerankOp: opMocks.recallContextRerankOp,
     rerankTermRecallOp: opMocks.rerankTermRecallOp,
     termRecallOp: opMocks.termRecallOp,
@@ -59,8 +59,8 @@ vi.mock("@cat/permissions", async () => {
 
 import {
   getElementWithChunkIds,
+  listEffectiveMemoryIdsByProject,
   listAllLanguages,
-  listMemoryIdsByProject,
   listProjectGlossaryIds,
 } from "@cat/domain";
 
@@ -193,8 +193,12 @@ describe("recall routes", () => {
     domainMocks.getElementWithChunkIds.mockResolvedValue(element);
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
       if (query === getElementWithChunkIds) return element;
-      if (query === listMemoryIdsByProject)
-        return ["22222222-2222-4222-8222-222222222222"];
+      if (query === listEffectiveMemoryIdsByProject)
+        return {
+          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          personalMemoryIds: [],
+          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+        };
       return [];
     });
 
@@ -225,7 +229,7 @@ describe("recall routes", () => {
       },
     ];
 
-    opMocks.collectMemoryRecallOp.mockResolvedValue(memories);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(memories);
     opMocks.recallContextRerankOp.mockResolvedValue(memories);
 
     const stream = await call(
@@ -260,8 +264,12 @@ describe("recall routes", () => {
     domainMocks.getElementWithChunkIds.mockResolvedValue(element);
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
       if (query === getElementWithChunkIds) return element;
-      if (query === listMemoryIdsByProject)
-        return ["22222222-2222-4222-8222-222222222222"];
+      if (query === listEffectiveMemoryIdsByProject)
+        return {
+          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          personalMemoryIds: [],
+          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+        };
       return [];
     });
 
@@ -279,7 +287,7 @@ describe("recall routes", () => {
       evidences: [],
     };
 
-    opMocks.collectMemoryRecallOp.mockResolvedValue([exactMemory]);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue([exactMemory]);
     opMocks.recallContextRerankOp.mockResolvedValue([exactMemory]);
 
     const stream = await call(

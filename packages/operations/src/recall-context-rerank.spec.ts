@@ -30,6 +30,7 @@ const makeMemory = (
   translationChunkSetId: null,
   source,
   translation,
+  sourceScope: "PROJECT",
   memoryId: MEMORY_UUID,
   creatorId: null,
   confidence,

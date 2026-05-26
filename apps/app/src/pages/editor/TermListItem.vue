@@ -13,9 +13,18 @@ import TokenViewer from "@/components/editor/TokenViewer.vue";
 import TextTooltip from "@/components/tooltip/TextTooltip.vue";
 import { useEditorContextStore } from "@/stores/editor/context.ts";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
 import { useHotKeys } from "@/utils/magic-keys.ts";
 
+/**
+ * @zh 术语建议列表项属性。
+ * @en Props for a term suggestion list item.
+ */
 const props = defineProps<{
+  /**
+   * @zh 当前术语建议。
+   * @en Current term suggestion.
+   */
   term: {
     term: string;
     translation: string;
@@ -31,14 +40,22 @@ const props = defineProps<{
       definition?: string | null;
     };
   };
+
+  /**
+   * @zh 当前建议在列表中的索引。
+   * @en Zero-based index of the current term in the list.
+   */
   index: number;
 }>();
 
 const { t } = useI18n();
 const { insert } = useEditorTableStore();
 const { project } = storeToRefs(useEditorContextStore());
+const writeCapability = useProjectWriteCapabilityStore();
+const { canWrite, disabledReason } = storeToRefs(writeCapability);
 
 const handleInsert = () => {
+  if (!canWrite.value) return;
   insert(props.term.translation);
 };
 
@@ -71,13 +88,19 @@ const debugNotes = computed(() => [
   ),
 ]);
 
-useHotKeys(`T+${props.index + 1}`, handleInsert);
+useHotKeys(`T+${props.index + 1}`, handleInsert, { enabled: canWrite });
 </script>
 
 <template>
   <TextTooltip :tooltip="term.definition || t('无显式定义')">
     <div
-      class="group flex cursor-pointer flex-col gap-1.5 border-b border-border px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/50"
+      class="group flex flex-col gap-1.5 border-b border-border px-3 py-2 transition-colors last:border-b-0 hover:bg-muted/50"
+      :class="{
+        'cursor-not-allowed opacity-60': !canWrite,
+        'cursor-pointer': canWrite,
+      }"
+      :aria-disabled="!canWrite"
+      :title="disabledReason ? t(disabledReason) : undefined"
       @click="handleInsert"
     >
       <div class="flex items-center gap-2">

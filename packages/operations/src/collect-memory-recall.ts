@@ -45,6 +45,7 @@ export const CollectMemoryRecallInputSchema = z.object({
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
   memoryIds: z.array(z.uuid()),
+  memoryScope: z.enum(["PROJECT", "PERSONAL"]).default("PROJECT"),
   minSimilarity: z.number().min(0).max(1).default(0.72),
   minVariantSimilarity: z.number().min(0).max(1).default(0.7),
   maxAmount: z.int().min(1).default(5),
@@ -238,6 +239,7 @@ export const collectMemoryRecallOp = async (
       updatedAt: Date;
       sourceTemplate?: string | null;
       translationTemplate?: string | null;
+      translationId?: number | null;
       slotMapping?: SlotMappingEntry[] | null;
       matchedVariantText?: string;
       matchedVariantType?: string;
@@ -250,6 +252,10 @@ export const collectMemoryRecallOp = async (
       source: raw.source,
       translation: raw.translation,
       translationChunkSetId: raw.translationChunkSetId,
+      sourceScope: input.memoryScope,
+      translationId: raw.translationId,
+      sourceTemplate: raw.sourceTemplate,
+      translationTemplate: raw.translationTemplate,
       memoryId: raw.memoryId,
       creatorId: raw.creatorId,
       confidence: raw.confidence,

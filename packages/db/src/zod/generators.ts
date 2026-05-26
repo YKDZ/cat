@@ -24,9 +24,12 @@ import {
   glossaryToProject,
   language,
   memory,
+  memoryItemDeletion,
   memoryItem,
+  memoryPromotionRecord,
   memoryRecallVariant,
   memoryToProject,
+  personalMemoryBinding,
   mfaProvider,
   plugin,
   pluginComponent,
@@ -103,9 +106,12 @@ type SelectSchemaTable =
   | typeof glossaryToProject
   | typeof language
   | typeof memory
+  | typeof memoryItemDeletion
   | typeof memoryItem
+  | typeof memoryPromotionRecord
   | typeof memoryRecallVariant
   | typeof memoryToProject
+  | typeof personalMemoryBinding
   | typeof mfaProvider
   | typeof plugin
   | typeof pluginComponent
@@ -454,6 +460,24 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "MemoryToProjectSchema",
         typeExportName: "MemoryToProject",
         buildShape: buildSelectShape(memoryToProject),
+      },
+      {
+        kind: "table",
+        schemaExportName: "PersonalMemoryBindingSchema",
+        typeExportName: "PersonalMemoryBinding",
+        buildShape: buildSelectShape(personalMemoryBinding),
+      },
+      {
+        kind: "table",
+        schemaExportName: "MemoryPromotionRecordSchema",
+        typeExportName: "MemoryPromotionRecord",
+        buildShape: buildSelectShape(memoryPromotionRecord),
+      },
+      {
+        kind: "table",
+        schemaExportName: "MemoryItemDeletionSchema",
+        typeExportName: "MemoryItemDeletion",
+        buildShape: buildSelectShape(memoryItemDeletion),
       },
       {
         kind: "table",

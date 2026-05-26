@@ -16,6 +16,7 @@ const { t } = useI18n();
 
 defineProps<{
   glossaryId: string;
+  glossaryProjectIds: string[];
 }>();
 </script>
 
@@ -37,7 +38,7 @@ defineProps<{
           <TabsTrigger value="json"> {{ t("JSON") }} </TabsTrigger>
         </TabsList>
         <TabsContent value="string">
-          <InsertTermText :glossary-id />
+          <InsertTermText :glossary-id :glossary-project-ids />
         </TabsContent>
         <TabsContent value="json"> 占位 </TabsContent>
       </Tabs>

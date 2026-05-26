@@ -25,6 +25,7 @@
 | `LoadDevSeedOptions` | type | Optional local override settings for loading a development seed. |
 | `LoadedDevSeed` | type |  |
 | `runSeedPipeline` | function |  |
+| `normalizeMemorySeed` | function |  |
 | `DevSeedResult` | type |  |
 | `SeedSummary` | type |  |
 | `loadSeedRuntimeEnv` | function | Load seeder runtime env from preferred env files and make database/cache address |
@@ -39,6 +40,7 @@
 | `GlossarySeed` | type |  |
 | `GlossaryConceptSeed` | type |  |
 | `MemorySeed` | type |  |
+| `MemoryContainerSeed` | type |  |
 | `MemoryItemSeed` | type |  |
 | `ElementsSeed` | type |  |
 | `ElementSeed` | type |  |

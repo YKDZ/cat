@@ -20,9 +20,9 @@ const enumListSql = (values: string[]) =>
         sql`, `,
       );
 
-const buildQueueFiltersSql = (
+export const buildQaReviewQueueFiltersSql = (
   queueFilters: z.infer<typeof QaReviewQueueFiltersSchema>,
-) => sql`
+): SQL => sql`
   ${
     queueFilters.includeResolved
       ? sql`TRUE`
@@ -187,7 +187,7 @@ export const buildQaReviewQueueRowsSql = (
     WHERE qi."project_id" = ${query.projectId}::uuid
       AND qi."language_id" = ${query.languageToId}
       AND qi."scope_key" = ${scopeKey}
-      AND ${buildQueueFiltersSql(query.queueFilters)}
+      AND ${buildQaReviewQueueFiltersSql(query.queueFilters)}
     ORDER BY
       qi."risk_score" DESC,
       qi."hard_finding_count" DESC,

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ScrollArea } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
@@ -11,10 +10,9 @@ import { useEditorElementStore } from "@/stores/editor/element";
 import { useEditorTableStore } from "@/stores/editor/table.ts";
 import { watchClient } from "@/utils/vue.ts";
 
-import ContextPanel from "./ContextPanel.vue";
-import Header from "./Header.vue";
 import { buildEditorHref, parseEditorScopeFromRoute } from "./scope-url";
 import Sidebar from "./Sidebar.vue";
+import WorkbenchShell from "./WorkbenchShell.vue";
 
 const ctx = usePageContext();
 
@@ -25,6 +23,14 @@ const branchStore = useBranchStore();
 
 const { scope } = storeToRefs(contextStore);
 const { currentBranchId } = storeToRefs(branchStore);
+
+const routeElementTarget = () => {
+  const value = ctx.routeParams.elementId;
+  if (value === "empty" || value === "auto") return value;
+
+  const parsed = Number.parseInt(String(value ?? "auto"), 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : "auto";
+};
 
 watch(
   () => [
@@ -41,27 +47,33 @@ watch(
       searchParams: new URLSearchParams(ctx.urlParsed.searchOriginal ?? ""),
     });
 
-    contextStore.setScope(nextScope);
-    branchStore.setBranchIdFromRoute(nextScope.branchId ?? null);
+    const routeBranchId = nextScope.branchId ?? null;
+    branchStore.restoreProjectBranch({
+      projectId: nextScope.projectId,
+      branchIdFromRoute: routeBranchId,
+    });
+
+    const restoredScope = {
+      ...nextScope,
+      branchId: branchStore.currentBranchId ?? undefined,
+    };
+    contextStore.setScope(restoredScope);
   },
   { immediate: true },
 );
 
 watchClient(
-  () => ctx.routeParams.elementId,
+  () => routeElementTarget(),
   async (value) => {
     if (value === "auto" || value === "empty") return;
 
-    const parsed = Number.parseInt(String(value ?? ""), 10);
-    if (!Number.isInteger(parsed)) return;
-
-    if (tableStore.elementId && parsed !== tableStore.elementId) {
+    if (tableStore.elementId && value !== tableStore.elementId) {
       tableStore.clear();
     }
 
-    if (tableStore.elementId === parsed) return;
+    if (tableStore.elementId === value) return;
 
-    await tableStore.toElement(parsed);
+    await tableStore.toElement(value);
   },
   { immediate: true },
 );
@@ -80,36 +92,19 @@ watchClient(currentBranchId, async (value) => {
   if (!scope.value) return;
   if ((scope.value.branchId ?? null) === (value ?? null)) return;
 
+  tableStore.stashDraftForCurrentScope();
   const next = { ...scope.value, branchId: value ?? undefined };
   contextStore.setScope(next);
   await navigate(buildEditorHref(next, tableStore.elementId ?? "auto"));
+  tableStore.restoreDraftForCurrentScope();
 });
 </script>
 
 <template>
-  <div
-    class="flex h-full max-h-full w-full flex-col overflow-hidden md:flex-row"
-  >
-    <div class="h-full shrink-0">
+  <WorkbenchShell>
+    <template #sidebar>
       <Sidebar />
-    </div>
-
-    <div class="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-      <div class="sticky top-0 z-10 border-b bg-background">
-        <Header />
-      </div>
-
-      <div class="min-h-0 w-full flex-1">
-        <ScrollArea class="h-full w-full">
-          <slot />
-        </ScrollArea>
-      </div>
-    </div>
-
-    <div
-      class="flex h-full w-full shrink-0 flex-col overflow-hidden border-t md:w-auto md:border-t-0 md:border-l"
-    >
-      <ContextPanel />
-    </div>
-  </div>
+    </template>
+    <slot />
+  </WorkbenchShell>
 </template>

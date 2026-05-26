@@ -664,11 +664,7 @@ describe("translation tools", () => {
       })
       .mockResolvedValueOnce({
         id: "zh-CN",
-      })
-      .mockResolvedValueOnce([
-        "66666666-6666-4666-8666-666666666666",
-        "77777777-7777-4777-8777-777777777777",
-      ]);
+      });
     mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
     mocked.firstOrGivenService
       .mockReturnValueOnce({ id: 101, service: { tag: "vectorizer" } })
@@ -695,12 +691,7 @@ describe("translation tools", () => {
       mocked.getLanguage,
       { languageId: "zh-CN" },
     );
-    expect(mocked.executeQuery).toHaveBeenNthCalledWith(
-      3,
-      { db: { tag: "db" } },
-      mocked.listMemoryIdsByProject,
-      { projectId: "project-1" },
-    );
+    expect(mocked.executeQuery).toHaveBeenCalledTimes(2);
     expect(mocked.resolvePluginManager).toHaveBeenCalledWith(undefined); // ctx.pluginManager is undefined in createCtx()
     expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
       1,
@@ -721,10 +712,7 @@ describe("translation tools", () => {
         },
       ],
       translatorId: null,
-      memoryIds: [
-        "66666666-6666-4666-8666-666666666666",
-        "77777777-7777-4777-8777-777777777777",
-      ],
+      memoryIds: [],
       vectorizerId: 101,
       vectorStorageId: 202,
     });
@@ -745,11 +733,7 @@ describe("translation tools", () => {
       })
       .mockResolvedValueOnce({
         id: "zh-CN",
-      })
-      .mockResolvedValueOnce([
-        "66666666-6666-4666-8666-666666666666",
-        "77777777-7777-4777-8777-777777777777",
-      ]);
+      });
     mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
     mocked.firstOrGivenService.mockReturnValue(undefined);
     mocked.createTranslationOp.mockResolvedValue({
@@ -771,10 +755,7 @@ describe("translation tools", () => {
         },
       ],
       translatorId: null,
-      memoryIds: [
-        "66666666-6666-4666-8666-666666666666",
-        "77777777-7777-4777-8777-777777777777",
-      ],
+      memoryIds: [],
       vectorizerId: undefined,
       vectorStorageId: undefined,
     });

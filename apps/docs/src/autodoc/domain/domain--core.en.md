@@ -59,4 +59,4 @@
 | `updateAgentDefinition` | function |  |
 | `UpdateAgentDefinitionCommand` | type |  |
 | `createApiKey` | function |  |
-| *(832 more)* | | |
+| *(873 more)* | | |
