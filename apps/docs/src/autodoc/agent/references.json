@@ -5887,7 +5887,7 @@
     "kind": "function",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/get-element-translation-status.query.ts",
-    "line": 32,
+    "line": 34,
     "description": "Get the translation status for a single translatable element."
   },
   {
@@ -5897,7 +5897,7 @@
     "kind": "type",
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/get-element-translation-status.query.ts",
-    "line": 24
+    "line": 26
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/content/get-project-root-content-node.query:getProjectRootContentNode",
@@ -5917,6 +5917,26 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/content/get-project-root-content-node.query.ts",
     "line": 9
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/has-branch-translation-overlay.query:hasBranchTranslationOverlayQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/has-branch-translation-overlay.query:hasBranchTranslationOverlayQuery",
+    "name": "hasBranchTranslationOverlayQuery",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/has-branch-translation-overlay.query.ts",
+    "line": 28,
+    "description": "Determine whether a translation overlay exists for the given element and language in a branch."
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/content/has-branch-translation-overlay.query:HasBranchTranslationOverlayQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/content/has-branch-translation-overlay.query:HasBranchTranslationOverlayQuery",
+    "name": "HasBranchTranslationOverlayQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/content/has-branch-translation-overlay.query.ts",
+    "line": 20,
+    "description": "Input type for checking whether a branch translation overlay exists."
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/content/list-content-node-element-ids.query:listContentNodeElementIds",
@@ -6865,6 +6885,24 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/glossary/list-glossary-concepts.query.ts",
     "line": 36
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/glossary/list-glossary-project-ids.query:listGlossaryProjectIds",
+    "stableKey": "@cat/domain:packages/domain/src/queries/glossary/list-glossary-project-ids.query:listGlossaryProjectIds",
+    "name": "listGlossaryProjectIds",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/glossary/list-glossary-project-ids.query.ts",
+    "line": 14
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/glossary/list-glossary-project-ids.query:ListGlossaryProjectIdsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/glossary/list-glossary-project-ids.query:ListGlossaryProjectIdsQuery",
+    "name": "ListGlossaryProjectIdsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/glossary/list-glossary-project-ids.query.ts",
+    "line": 10
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/glossary/list-glossary-term-pairs.query:GlossaryTermPairData",
@@ -8346,6 +8384,33 @@
     "packageName": "@cat/domain",
     "filePath": "packages/domain/src/queries/project/get-project.query.ts",
     "line": 11
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/project/list-accessible-projects.query:listAccessibleProjects",
+    "stableKey": "@cat/domain:packages/domain/src/queries/project/list-accessible-projects.query:listAccessibleProjects",
+    "name": "listAccessibleProjects",
+    "kind": "function",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/project/list-accessible-projects.query.ts",
+    "line": 26
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/project/list-accessible-projects.query:ListAccessibleProjectsQuery",
+    "stableKey": "@cat/domain:packages/domain/src/queries/project/list-accessible-projects.query:ListAccessibleProjectsQuery",
+    "name": "ListAccessibleProjectsQuery",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/project/list-accessible-projects.query.ts",
+    "line": 12
+  },
+  {
+    "id": "@cat/domain:packages/domain/src/queries/project/list-accessible-projects.query:ListAccessibleProjectsResult",
+    "stableKey": "@cat/domain:packages/domain/src/queries/project/list-accessible-projects.query:ListAccessibleProjectsResult",
+    "name": "ListAccessibleProjectsResult",
+    "kind": "type",
+    "packageName": "@cat/domain",
+    "filePath": "packages/domain/src/queries/project/list-accessible-projects.query.ts",
+    "line": 16
   },
   {
     "id": "@cat/domain:packages/domain/src/queries/project/list-owned-projects.query:listOwnedProjects",
@@ -13950,7 +14015,7 @@
     "kind": "function",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/pipeline.ts",
-    "line": 730
+    "line": 745
   },
   {
     "id": "@cat/seed:packages/seed/src/pipeline:runSeedPipeline",
@@ -14027,7 +14092,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 246,
+    "line": 254,
     "description": "Bootstrap locale catalog type."
   },
   {
@@ -14037,7 +14102,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 254,
+    "line": 262,
     "description": "Bootstrap profile type."
   },
   {
@@ -14047,7 +14112,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 269
+    "line": 277
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementSeed",
@@ -14056,7 +14121,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 155
+    "line": 163
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:ElementsSeed",
@@ -14065,7 +14130,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 154
+    "line": 162
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:GlossaryConceptSeed",
@@ -14074,7 +14139,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 86
+    "line": 94
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:GlossarySeed",
@@ -14083,7 +14148,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 85
+    "line": 93
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:LocalSeedConfig",
@@ -14102,7 +14167,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 137
+    "line": 145
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:MemoryItemSeed",
@@ -14111,7 +14176,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 138
+    "line": 146
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:MemorySeed",
@@ -14120,7 +14185,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 136
+    "line": 144
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:PluginOverride",
@@ -14132,13 +14197,22 @@
     "line": 17
   },
   {
+    "id": "@cat/seed:packages/seed/src/schemas:ProjectMemberSeed",
+    "stableKey": "@cat/seed:packages/seed/src/schemas:ProjectMemberSeed",
+    "name": "ProjectMemberSeed",
+    "kind": "type",
+    "packageName": "@cat/seed",
+    "filePath": "packages/seed/src/schemas.ts",
+    "line": 66
+  },
+  {
     "id": "@cat/seed:packages/seed/src/schemas:ProjectSeed",
     "stableKey": "@cat/seed:packages/seed/src/schemas:ProjectSeed",
     "name": "ProjectSeed",
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 59
+    "line": 67
   },
   {
     "id": "@cat/seed:packages/seed/src/schemas:SeedConfig",
@@ -14156,7 +14230,7 @@
     "kind": "type",
     "packageName": "@cat/seed",
     "filePath": "packages/seed/src/schemas.ts",
-    "line": 182
+    "line": 190
   },
   {
     "id": "@cat/seed:packages/seed/src/truncate:truncateAllTables",

@@ -36,6 +36,7 @@
 | `PluginOverride` | type |  |
 | `LocalSeedConfig` | type | Local seed override config type. |
 | `SeedConfig` | type |  |
+| `ProjectMemberSeed` | type |  |
 | `ProjectSeed` | type |  |
 | `GlossarySeed` | type |  |
 | `GlossaryConceptSeed` | type |  |

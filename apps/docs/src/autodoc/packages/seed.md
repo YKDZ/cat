@@ -6,7 +6,7 @@
 
 * **Exported functions**: 12
 
-* **Exported types**: 30
+* **Exported types**: 31
 
 ## Function Index
 
@@ -180,6 +180,8 @@ export const runBootstrapSourceGraph = async (input: RunBootstrapSourceGraphInpu
 * `LocalSeedConfig` (type) — Local seed override config type.
 
 * `SeedConfig` (type)
+
+* `ProjectMemberSeed` (type)
 
 * `ProjectSeed` (type)
 

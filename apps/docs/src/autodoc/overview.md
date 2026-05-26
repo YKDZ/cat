@@ -10,7 +10,7 @@
 
 ## Core Packages
 
-* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (401 functions, 522 types)
+* [**@cat/domain**](./packages/domain.md) — Domain layer: CQRS Commands and Queries, core business logic (404 functions, 526 types)
 
 * [**@cat/operations**](./packages/operations.md) — Operations layer: business workflows composing domain operations (113 functions, 132 types)
 
@@ -42,7 +42,7 @@
 
 * [**@cat/file-parsers**](./packages/file-parsers.md) (2 functions, 4 types)
 
-* [**@cat/seed**](./packages/seed.md) (12 functions, 30 types)
+* [**@cat/seed**](./packages/seed.md) (12 functions, 31 types)
 
 * [**@cat/source-collector**](./packages/source-collector.md) (8 functions, 8 types)
 

@@ -4,11 +4,11 @@ Domain layer: CQRS Commands and Queries, core business logic
 
 ## Overview
 
-* **Modules**: 368
+* **Modules**: 371
 
-* **Exported functions**: 401
+* **Exported functions**: 404
 
-* **Exported types**: 522
+* **Exported types**: 526
 
 ## Function Index
 
@@ -2344,7 +2344,7 @@ export const getContextEvidence: Query<
 export const getElementTranslationStatus: Query<
   GetElementTranslationStatusQuery,
   ElementTranslationStatus
-> = async (ctx: DbContext, query: { elementId: number; languageId: string; }) => {...}
+> = async (ctx: DbContext, query: { elementId: number; languageId: string; branchId?: number | undefined; }) => {...}
 ```
 
 ### `getProjectRootContentNode`
@@ -2357,6 +2357,18 @@ export const getProjectRootContentNode: Query<
   GetProjectRootContentNodeQuery,
   typeof contentNode.$inferSelect | null
 > = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `hasBranchTranslationOverlayQuery`
+
+```ts
+/**
+ * Determine whether a translation overlay exists for the given element and language in a branch.
+ */
+export const hasBranchTranslationOverlayQuery: Query<
+  HasBranchTranslationOverlayQuery,
+  boolean
+> = async (ctx: DbContext, query: { branchId: number; elementId: number; languageId: string; }) => {...}
 ```
 
 ### `listContentNodeElementIds`
@@ -2787,6 +2799,15 @@ export const listGlossaryConcepts: Query<
   ListGlossaryConceptsQuery,
   ListGlossaryConceptsResult
 > = async (ctx: DbContext, query: { glossaryId: string; pageIndex: number; pageSize: number; }) => {...}
+```
+
+### `listGlossaryProjectIds`
+
+```ts
+export const listGlossaryProjectIds: Query<
+  ListGlossaryProjectIdsQuery,
+  string[]
+> = async (ctx: DbContext, query: { glossaryId: string; }) => {...}
 ```
 
 ### `listGlossaryTermPairs`
@@ -3475,6 +3496,15 @@ export const getProject: Query<
   GetProjectQuery,
   typeof project.$inferSelect | null
 > = async (ctx: DbContext, query: { projectId: string; }) => {...}
+```
+
+### `listAccessibleProjects`
+
+```ts
+export const listAccessibleProjects: Query<
+  ListAccessibleProjectsQuery,
+  ListAccessibleProjectsResult
+> = async (ctx: DbContext, query: { projectIds: string[]; pageIndex?: number | undefined; pageSize?: number | undefined; }) => {...}
 ```
 
 ### `listOwnedProjects`
@@ -4677,6 +4707,8 @@ export const setupTestDB = async (): Promise<TestDB>
 
 * `GetProjectRootContentNodeQuery` (type)
 
+* `HasBranchTranslationOverlayQuery` (type) — Input type for checking whether a branch translation overlay exists.
+
 * `ListContentNodeElementIdsQuery` (type)
 
 * `ListContentNodeElementsWithChunkIdsQuery` (type)
@@ -4804,6 +4836,8 @@ export const setupTestDB = async (): Promise<TestDB>
 * `GlossaryConceptData` (type)
 
 * `ListGlossaryConceptsResult` (type)
+
+* `ListGlossaryProjectIdsQuery` (type)
 
 * `ListGlossaryTermPairsQuery` (type)
 
@@ -4990,6 +5024,10 @@ export const setupTestDB = async (): Promise<TestDB>
 * `GetProjectTargetLanguagesQuery` (type)
 
 * `GetProjectQuery` (type)
+
+* `ListAccessibleProjectsQuery` (type)
+
+* `ListAccessibleProjectsResult` (type)
 
 * `ListOwnedProjectsQuery` (type)
 
