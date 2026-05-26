@@ -1,0 +1,1209 @@
+{
+  "glossary": {
+    "name": "Minecraft",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:term:creeper",
+        "definition": "Minecraft term: Creeper",
+        "terms": [
+          {
+            "term": "Creeper",
+            "termLanguageId": "en",
+            "translation": "苦力怕",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:zombie",
+        "definition": "Minecraft term: Zombie",
+        "terms": [
+          {
+            "term": "Zombie",
+            "termLanguageId": "en",
+            "translation": "僵尸",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:skeleton",
+        "definition": "Minecraft term: Skeleton",
+        "terms": [
+          {
+            "term": "Skeleton",
+            "termLanguageId": "en",
+            "translation": "骷髅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:enderman",
+        "definition": "Minecraft term: Enderman",
+        "terms": [
+          {
+            "term": "Enderman",
+            "termLanguageId": "en",
+            "translation": "末影人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:spider",
+        "definition": "Minecraft term: Spider",
+        "terms": [
+          {
+            "term": "Spider",
+            "termLanguageId": "en",
+            "translation": "蜘蛛",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:blaze",
+        "definition": "Minecraft term: Blaze",
+        "terms": [
+          {
+            "term": "Blaze",
+            "termLanguageId": "en",
+            "translation": "烈焰人",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:ghast",
+        "definition": "Minecraft term: Ghast",
+        "terms": [
+          {
+            "term": "Ghast",
+            "termLanguageId": "en",
+            "translation": "恶魂",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:slime",
+        "definition": "Minecraft term: Slime",
+        "terms": [
+          {
+            "term": "Slime",
+            "termLanguageId": "en",
+            "translation": "史莱姆",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:witch",
+        "definition": "Minecraft term: Witch",
+        "terms": [
+          {
+            "term": "Witch",
+            "termLanguageId": "en",
+            "translation": "女巫",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:wither",
+        "definition": "Minecraft term: Wither",
+        "terms": [
+          {
+            "term": "Wither",
+            "termLanguageId": "en",
+            "translation": "凋灵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:ender_dragon",
+        "definition": "Minecraft term: Ender Dragon",
+        "terms": [
+          {
+            "term": "Ender Dragon",
+            "termLanguageId": "en",
+            "translation": "末影龙",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:iron_golem",
+        "definition": "Minecraft term: Iron Golem",
+        "terms": [
+          {
+            "term": "Iron Golem",
+            "termLanguageId": "en",
+            "translation": "铁傀儡",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:villager",
+        "definition": "Minecraft term: Villager",
+        "terms": [
+          {
+            "term": "Villager",
+            "termLanguageId": "en",
+            "translation": "村民",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:pillager",
+        "definition": "Minecraft term: Pillager",
+        "terms": [
+          {
+            "term": "Pillager",
+            "termLanguageId": "en",
+            "translation": "掠夺者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:ravager",
+        "definition": "Minecraft term: Ravager",
+        "terms": [
+          {
+            "term": "Ravager",
+            "termLanguageId": "en",
+            "translation": "劫掠兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:warden",
+        "definition": "Minecraft term: Warden",
+        "terms": [
+          {
+            "term": "Warden",
+            "termLanguageId": "en",
+            "translation": "监守者",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:allay",
+        "definition": "Minecraft term: Allay",
+        "terms": [
+          {
+            "term": "Allay",
+            "termLanguageId": "en",
+            "translation": "悦灵",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:sniffer",
+        "definition": "Minecraft term: Sniffer",
+        "terms": [
+          {
+            "term": "Sniffer",
+            "termLanguageId": "en",
+            "translation": "嗅探兽",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:axolotl",
+        "definition": "Minecraft term: Axolotl",
+        "terms": [
+          {
+            "term": "Axolotl",
+            "termLanguageId": "en",
+            "translation": "美西螈",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:phantom",
+        "definition": "Minecraft term: Phantom",
+        "terms": [
+          {
+            "term": "Phantom",
+            "termLanguageId": "en",
+            "translation": "幻翼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:diamond",
+        "definition": "Minecraft term: Diamond",
+        "terms": [
+          {
+            "term": "Diamond",
+            "termLanguageId": "en",
+            "translation": "钻石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:emerald",
+        "definition": "Minecraft term: Emerald",
+        "terms": [
+          {
+            "term": "Emerald",
+            "termLanguageId": "en",
+            "translation": "绿宝石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:redstone",
+        "definition": "Minecraft term: Redstone",
+        "terms": [
+          {
+            "term": "Redstone",
+            "termLanguageId": "en",
+            "translation": "红石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:obsidian",
+        "definition": "Minecraft term: Obsidian",
+        "terms": [
+          {
+            "term": "Obsidian",
+            "termLanguageId": "en",
+            "translation": "黑曜石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:netherite",
+        "definition": "Minecraft term: Netherite",
+        "terms": [
+          {
+            "term": "Netherite",
+            "termLanguageId": "en",
+            "translation": "下界合金",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:amethyst",
+        "definition": "Minecraft term: Amethyst",
+        "terms": [
+          {
+            "term": "Amethyst",
+            "termLanguageId": "en",
+            "translation": "紫水晶",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:lapis_lazuli",
+        "definition": "Minecraft term: Lapis Lazuli",
+        "terms": [
+          {
+            "term": "Lapis Lazuli",
+            "termLanguageId": "en",
+            "translation": "青金石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:glowstone",
+        "definition": "Minecraft term: Glowstone",
+        "terms": [
+          {
+            "term": "Glowstone",
+            "termLanguageId": "en",
+            "translation": "荧石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:prismarine",
+        "definition": "Minecraft term: Prismarine",
+        "terms": [
+          {
+            "term": "Prismarine",
+            "termLanguageId": "en",
+            "translation": "海晶石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:quartz",
+        "definition": "Minecraft term: Quartz",
+        "terms": [
+          {
+            "term": "Quartz",
+            "termLanguageId": "en",
+            "translation": "石英",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:copper",
+        "definition": "Minecraft term: Copper",
+        "terms": [
+          {
+            "term": "Copper",
+            "termLanguageId": "en",
+            "translation": "铜",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:gold",
+        "definition": "Minecraft term: Gold",
+        "terms": [
+          {
+            "term": "Gold",
+            "termLanguageId": "en",
+            "translation": "金",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:iron",
+        "definition": "Minecraft term: Iron",
+        "terms": [
+          {
+            "term": "Iron",
+            "termLanguageId": "en",
+            "translation": "铁",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:coal",
+        "definition": "Minecraft term: Coal",
+        "terms": [
+          {
+            "term": "Coal",
+            "termLanguageId": "en",
+            "translation": "煤炭",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:flint",
+        "definition": "Minecraft term: Flint",
+        "terms": [
+          {
+            "term": "Flint",
+            "termLanguageId": "en",
+            "translation": "燧石",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:nether",
+        "definition": "Minecraft term: Nether",
+        "terms": [
+          {
+            "term": "Nether",
+            "termLanguageId": "en",
+            "translation": "下界",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:end",
+        "definition": "Minecraft term: End",
+        "terms": [
+          {
+            "term": "End",
+            "termLanguageId": "en",
+            "translation": "末地",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:overworld",
+        "definition": "Minecraft term: Overworld",
+        "terms": [
+          {
+            "term": "Overworld",
+            "termLanguageId": "en",
+            "translation": "主世界",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:biome",
+        "definition": "Minecraft term: Biome",
+        "terms": [
+          {
+            "term": "Biome",
+            "termLanguageId": "en",
+            "translation": "生物群系",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:chunk",
+        "definition": "Minecraft term: Chunk",
+        "terms": [
+          {
+            "term": "Chunk",
+            "termLanguageId": "en",
+            "translation": "区块",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:spawn",
+        "definition": "Minecraft term: Spawn",
+        "terms": [
+          {
+            "term": "Spawn",
+            "termLanguageId": "en",
+            "translation": "生成",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:crafting_table",
+        "definition": "Minecraft term: Crafting Table",
+        "terms": [
+          {
+            "term": "Crafting Table",
+            "termLanguageId": "en",
+            "translation": "工作台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:furnace",
+        "definition": "Minecraft term: Furnace",
+        "terms": [
+          {
+            "term": "Furnace",
+            "termLanguageId": "en",
+            "translation": "熔炉",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:anvil",
+        "definition": "Minecraft term: Anvil",
+        "terms": [
+          {
+            "term": "Anvil",
+            "termLanguageId": "en",
+            "translation": "铁砧",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:enchanting_table",
+        "definition": "Minecraft term: Enchanting Table",
+        "terms": [
+          {
+            "term": "Enchanting Table",
+            "termLanguageId": "en",
+            "translation": "附魔台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:brewing_stand",
+        "definition": "Minecraft term: Brewing Stand",
+        "terms": [
+          {
+            "term": "Brewing Stand",
+            "termLanguageId": "en",
+            "translation": "酿造台",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:chest",
+        "definition": "Minecraft term: Chest",
+        "terms": [
+          {
+            "term": "Chest",
+            "termLanguageId": "en",
+            "translation": "箱子",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:barrel",
+        "definition": "Minecraft term: Barrel",
+        "terms": [
+          {
+            "term": "Barrel",
+            "termLanguageId": "en",
+            "translation": "木桶",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:hopper",
+        "definition": "Minecraft term: Hopper",
+        "terms": [
+          {
+            "term": "Hopper",
+            "termLanguageId": "en",
+            "translation": "漏斗",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:piston",
+        "definition": "Minecraft term: Piston",
+        "terms": [
+          {
+            "term": "Piston",
+            "termLanguageId": "en",
+            "translation": "活塞",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:dispenser",
+        "definition": "Minecraft term: Dispenser",
+        "terms": [
+          {
+            "term": "Dispenser",
+            "termLanguageId": "en",
+            "translation": "发射器",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:pickaxe",
+        "definition": "Minecraft term: Pickaxe",
+        "terms": [
+          {
+            "term": "Pickaxe",
+            "termLanguageId": "en",
+            "translation": "镐",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:sword",
+        "definition": "Minecraft term: Sword",
+        "terms": [
+          {
+            "term": "Sword",
+            "termLanguageId": "en",
+            "translation": "剑",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:axe",
+        "definition": "Minecraft term: Axe",
+        "terms": [
+          {
+            "term": "Axe",
+            "termLanguageId": "en",
+            "translation": "斧",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:shovel",
+        "definition": "Minecraft term: Shovel",
+        "terms": [
+          {
+            "term": "Shovel",
+            "termLanguageId": "en",
+            "translation": "锹",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:hoe",
+        "definition": "Minecraft term: Hoe",
+        "terms": [
+          {
+            "term": "Hoe",
+            "termLanguageId": "en",
+            "translation": "锄",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:bow",
+        "definition": "Minecraft term: Bow",
+        "terms": [
+          {
+            "term": "Bow",
+            "termLanguageId": "en",
+            "translation": "弓",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:crossbow",
+        "definition": "Minecraft term: Crossbow",
+        "terms": [
+          {
+            "term": "Crossbow",
+            "termLanguageId": "en",
+            "translation": "弩",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:trident",
+        "definition": "Minecraft term: Trident",
+        "terms": [
+          {
+            "term": "Trident",
+            "termLanguageId": "en",
+            "translation": "三叉戟",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:shield",
+        "definition": "Minecraft term: Shield",
+        "terms": [
+          {
+            "term": "Shield",
+            "termLanguageId": "en",
+            "translation": "盾牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:elytra",
+        "definition": "Minecraft term: Elytra",
+        "terms": [
+          {
+            "term": "Elytra",
+            "termLanguageId": "en",
+            "translation": "鞘翅",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:enchantment",
+        "definition": "Minecraft term: Enchantment",
+        "terms": [
+          {
+            "term": "Enchantment",
+            "termLanguageId": "en",
+            "translation": "附魔",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:potion",
+        "definition": "Minecraft term: Potion",
+        "terms": [
+          {
+            "term": "Potion",
+            "termLanguageId": "en",
+            "translation": "药水",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:experience",
+        "definition": "Minecraft term: Experience",
+        "terms": [
+          {
+            "term": "Experience",
+            "termLanguageId": "en",
+            "translation": "经验",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:health",
+        "definition": "Minecraft term: Health",
+        "terms": [
+          {
+            "term": "Health",
+            "termLanguageId": "en",
+            "translation": "生命值",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:hunger",
+        "definition": "Minecraft term: Hunger",
+        "terms": [
+          {
+            "term": "Hunger",
+            "termLanguageId": "en",
+            "translation": "饥饿值",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:armor",
+        "definition": "Minecraft term: Armor",
+        "terms": [
+          {
+            "term": "Armor",
+            "termLanguageId": "en",
+            "translation": "护甲",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:durability",
+        "definition": "Minecraft term: Durability",
+        "terms": [
+          {
+            "term": "Durability",
+            "termLanguageId": "en",
+            "translation": "耐久度",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:saturation",
+        "definition": "Minecraft term: Saturation",
+        "terms": [
+          {
+            "term": "Saturation",
+            "termLanguageId": "en",
+            "translation": "饱和度",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:beacon",
+        "definition": "Minecraft term: Beacon",
+        "terms": [
+          {
+            "term": "Beacon",
+            "termLanguageId": "en",
+            "translation": "信标",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:conduit",
+        "definition": "Minecraft term: Conduit",
+        "terms": [
+          {
+            "term": "Conduit",
+            "termLanguageId": "en",
+            "translation": "潮涌核心",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:shulker_box",
+        "definition": "Minecraft term: Shulker Box",
+        "terms": [
+          {
+            "term": "Shulker Box",
+            "termLanguageId": "en",
+            "translation": "潜影盒",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:ender_chest",
+        "definition": "Minecraft term: Ender Chest",
+        "terms": [
+          {
+            "term": "Ender Chest",
+            "termLanguageId": "en",
+            "translation": "末影箱",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:minecart",
+        "definition": "Minecraft term: Minecart",
+        "terms": [
+          {
+            "term": "Minecart",
+            "termLanguageId": "en",
+            "translation": "矿车",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:saddle",
+        "definition": "Minecraft term: Saddle",
+        "terms": [
+          {
+            "term": "Saddle",
+            "termLanguageId": "en",
+            "translation": "鞍",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:lead",
+        "definition": "Minecraft term: Lead",
+        "terms": [
+          {
+            "term": "Lead",
+            "termLanguageId": "en",
+            "translation": "拴绳",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:name_tag",
+        "definition": "Minecraft term: Name Tag",
+        "terms": [
+          {
+            "term": "Name Tag",
+            "termLanguageId": "en",
+            "translation": "命名牌",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:compass",
+        "definition": "Minecraft term: Compass",
+        "terms": [
+          {
+            "term": "Compass",
+            "termLanguageId": "en",
+            "translation": "指南针",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:clock",
+        "definition": "Minecraft term: Clock",
+        "terms": [
+          {
+            "term": "Clock",
+            "termLanguageId": "en",
+            "translation": "时钟",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:map",
+        "definition": "Minecraft term: Map",
+        "terms": [
+          {
+            "term": "Map",
+            "termLanguageId": "en",
+            "translation": "地图",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:spyglass",
+        "definition": "Minecraft term: Spyglass",
+        "terms": [
+          {
+            "term": "Spyglass",
+            "termLanguageId": "en",
+            "translation": "望远镜",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:concrete",
+        "definition": "Minecraft term: Concrete",
+        "terms": [
+          {
+            "term": "Concrete",
+            "termLanguageId": "en",
+            "translation": "混凝土",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:terracotta",
+        "definition": "Minecraft term: Terracotta",
+        "terms": [
+          {
+            "term": "Terracotta",
+            "termLanguageId": "en",
+            "translation": "陶瓦",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:glazed_terracotta",
+        "definition": "Minecraft term: Glazed Terracotta",
+        "terms": [
+          {
+            "term": "Glazed Terracotta",
+            "termLanguageId": "en",
+            "translation": "带釉陶瓦",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:wool",
+        "definition": "Minecraft term: Wool",
+        "terms": [
+          {
+            "term": "Wool",
+            "termLanguageId": "en",
+            "translation": "羊毛",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:carpet",
+        "definition": "Minecraft term: Carpet",
+        "terms": [
+          {
+            "term": "Carpet",
+            "termLanguageId": "en",
+            "translation": "地毯",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:banner",
+        "definition": "Minecraft term: Banner",
+        "terms": [
+          {
+            "term": "Banner",
+            "termLanguageId": "en",
+            "translation": "旗帜",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:candle",
+        "definition": "Minecraft term: Candle",
+        "terms": [
+          {
+            "term": "Candle",
+            "termLanguageId": "en",
+            "translation": "蜡烛",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:lantern",
+        "definition": "Minecraft term: Lantern",
+        "terms": [
+          {
+            "term": "Lantern",
+            "termLanguageId": "en",
+            "translation": "灯笼",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:campfire",
+        "definition": "Minecraft term: Campfire",
+        "terms": [
+          {
+            "term": "Campfire",
+            "termLanguageId": "en",
+            "translation": "营火",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:torch",
+        "definition": "Minecraft term: Torch",
+        "terms": [
+          {
+            "term": "Torch",
+            "termLanguageId": "en",
+            "translation": "火把",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:soul_torch",
+        "definition": "Minecraft term: Soul Torch",
+        "terms": [
+          {
+            "term": "Soul Torch",
+            "termLanguageId": "en",
+            "translation": "灵魂火把",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:bamboo",
+        "definition": "Minecraft term: Bamboo",
+        "terms": [
+          {
+            "term": "Bamboo",
+            "termLanguageId": "en",
+            "translation": "竹子",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:cherry_blossom",
+        "definition": "Minecraft term: Cherry Blossom",
+        "terms": [
+          {
+            "term": "Cherry Blossom",
+            "termLanguageId": "en",
+            "translation": "樱花",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:mangrove",
+        "definition": "Minecraft term: Mangrove",
+        "terms": [
+          {
+            "term": "Mangrove",
+            "termLanguageId": "en",
+            "translation": "红树林",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:azalea",
+        "definition": "Minecraft term: Azalea",
+        "terms": [
+          {
+            "term": "Azalea",
+            "termLanguageId": "en",
+            "translation": "杜鹃花",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:moss",
+        "definition": "Minecraft term: Moss",
+        "terms": [
+          {
+            "term": "Moss",
+            "termLanguageId": "en",
+            "translation": "苔藓",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:dripleaf",
+        "definition": "Minecraft term: Dripleaf",
+        "terms": [
+          {
+            "term": "Dripleaf",
+            "termLanguageId": "en",
+            "translation": "垂滴叶",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:sculk",
+        "definition": "Minecraft term: Sculk",
+        "terms": [
+          {
+            "term": "Sculk",
+            "termLanguageId": "en",
+            "translation": "幽匿",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      },
+      {
+        "ref": "concept:term:sculk_sensor",
+        "definition": "Minecraft term: Sculk Sensor",
+        "terms": [
+          {
+            "term": "Sculk Sensor",
+            "termLanguageId": "en",
+            "translation": "幽匿感测体",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}

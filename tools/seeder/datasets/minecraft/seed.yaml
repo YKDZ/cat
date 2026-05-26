@@ -1,0 +1,49 @@
+name: "minecraft"
+description: "Minecraft en→zh-Hans 翻译数据集 — 1000 条游戏文本、100 条术语，含项目批准记忆与 user:translator 个人草稿记忆对照"
+
+seed:
+  project: seed/project.json
+  users: seed/users.json
+  glossary: seed/glossary.json
+  memory: seed/memory.json
+  elements: seed/elements.json
+
+plugins:
+  loader: real
+  overrides:
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: "${VECTORIZER_MODEL:-qwen3-embedding:8b}"
+        baseURL: "${VECTORIZER_URL:-http://192.168.2.22:11434/v1}"
+        apiKey: "${VECTORIZER_API_KEY:-dummy-key}"
+    - plugin: system-pgvector-storage
+      scope: GLOBAL
+      config: {}
+    - plugin: spacy-segmenter
+      scope: GLOBAL
+      config:
+        serverUrl: "${SPACY_URL:-http://172.17.0.1:28000}"
+    - plugin: libretranslate-advisor
+      scope: GLOBAL
+      config:
+        api:
+          url: "${LIBRETRANSLATE_URL:-http://172.17.0.1:25000/}"
+          key: "${LIBRETRANSLATE_KEY:-your api key}"
+          alternatives-amount: 2
+        base:
+          advisor-name: "LibreTranslate"
+    - plugin: openai-llm-provider
+      scope: GLOBAL
+      config:
+        baseURL: "${LLM_BASE_URL:-http://192.168.2.23:8317/v1}"
+        apiKey: "${LLM_API_KEY}"
+        model-id: "${LLM_MODEL:-gpt-4o}"
+    - plugin: tei-rerank-provider
+      scope: GLOBAL
+      config:
+        baseURL: "${RERANK_BASE_URL:-http://192.168.2.22:7005}"
+    - plugin: local-storage-provider
+      scope: GLOBAL
+      config:
+        root-path: "./storage"

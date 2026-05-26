@@ -1,0 +1,12 @@
+# Screenshot route manifest for the minecraft seed dataset.
+# Placeholders use $ref:<name> syntax, resolved by seeder bindings.
+routes:
+  - template: "/"
+    auth: false
+
+  - template: "/project/$ref:project"
+    waitAfterLoad: 2000
+
+  - template: "/editor/project/$ref:project/zh-Hans/auto?nodes=$ref:content-node:elements"
+    waitUntil: load
+    waitAfterLoad: 4000

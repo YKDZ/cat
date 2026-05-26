@@ -1,0 +1,7005 @@
+{
+  "contentNodeLabel": "en_us.json",
+  "elements": [
+    {
+      "ref": "el:0001",
+      "text": "Brown Glazed Terracotta",
+      "meta": {
+        "key": "block.minecraft.brown_glazed_terracotta"
+      }
+    },
+    {
+      "ref": "el:0002",
+      "text": "Brown Mushroom",
+      "meta": {
+        "key": "block.minecraft.brown_mushroom"
+      }
+    },
+    {
+      "ref": "el:0003",
+      "text": "Brown Mushroom Block",
+      "meta": {
+        "key": "block.minecraft.brown_mushroom_block"
+      }
+    },
+    {
+      "ref": "el:0004",
+      "text": "Brown Shulker Box",
+      "meta": {
+        "key": "block.minecraft.brown_shulker_box"
+      }
+    },
+    {
+      "ref": "el:0005",
+      "text": "Brown Stained Glass",
+      "meta": {
+        "key": "block.minecraft.brown_stained_glass"
+      }
+    },
+    {
+      "ref": "el:0006",
+      "text": "Brown Stained Glass Pane",
+      "meta": {
+        "key": "block.minecraft.brown_stained_glass_pane"
+      }
+    },
+    {
+      "ref": "el:0007",
+      "text": "Brown Terracotta",
+      "meta": {
+        "key": "block.minecraft.brown_terracotta"
+      }
+    },
+    {
+      "ref": "el:0008",
+      "text": "Brown Wool",
+      "meta": {
+        "key": "block.minecraft.brown_wool"
+      }
+    },
+    {
+      "ref": "el:0009",
+      "text": "Bubble Column",
+      "meta": {
+        "key": "block.minecraft.bubble_column"
+      }
+    },
+    {
+      "ref": "el:0010",
+      "text": "Bubble Coral",
+      "meta": {
+        "key": "block.minecraft.bubble_coral"
+      }
+    },
+    {
+      "ref": "el:0011",
+      "text": "Allay Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.allay_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0012",
+      "text": "Amethyst Shard",
+      "meta": {
+        "key": "item.minecraft.amethyst_shard"
+      }
+    },
+    {
+      "ref": "el:0013",
+      "text": "Angler Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.angler_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0014",
+      "text": "Angler Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.angler_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0015",
+      "text": "Apple",
+      "meta": {
+        "key": "item.minecraft.apple"
+      }
+    },
+    {
+      "ref": "el:0016",
+      "text": "Archer Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.archer_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0017",
+      "text": "Archer Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.archer_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0018",
+      "text": "Armadillo Scute",
+      "meta": {
+        "key": "item.minecraft.armadillo_scute"
+      }
+    },
+    {
+      "ref": "el:0019",
+      "text": "Armadillo Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.armadillo_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0020",
+      "text": "Armor Stand",
+      "meta": {
+        "key": "item.minecraft.armor_stand"
+      }
+    },
+    {
+      "ref": "el:0021",
+      "text": "Arms Up Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.arms_up_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0022",
+      "text": "Arms Up Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.arms_up_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0023",
+      "text": "Arrow",
+      "meta": {
+        "key": "item.minecraft.arrow"
+      }
+    },
+    {
+      "ref": "el:0024",
+      "text": "Bucket of Axolotl",
+      "meta": {
+        "key": "item.minecraft.axolotl_bucket"
+      }
+    },
+    {
+      "ref": "el:0025",
+      "text": "Axolotl Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.axolotl_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0026",
+      "text": "Baked Potato",
+      "meta": {
+        "key": "item.minecraft.baked_potato"
+      }
+    },
+    {
+      "ref": "el:0027",
+      "text": "Bamboo Raft with Chest",
+      "meta": {
+        "key": "item.minecraft.bamboo_chest_raft"
+      }
+    },
+    {
+      "ref": "el:0028",
+      "text": "Bamboo Raft",
+      "meta": {
+        "key": "item.minecraft.bamboo_raft"
+      }
+    },
+    {
+      "ref": "el:0029",
+      "text": "Bat Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.bat_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0030",
+      "text": "Bee Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.bee_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0031",
+      "text": "Raw Beef",
+      "meta": {
+        "key": "item.minecraft.beef"
+      }
+    },
+    {
+      "ref": "el:0032",
+      "text": "Beetroot",
+      "meta": {
+        "key": "item.minecraft.beetroot"
+      }
+    },
+    {
+      "ref": "el:0033",
+      "text": "Beetroot Seeds",
+      "meta": {
+        "key": "item.minecraft.beetroot_seeds"
+      }
+    },
+    {
+      "ref": "el:0034",
+      "text": "Beetroot Soup",
+      "meta": {
+        "key": "item.minecraft.beetroot_soup"
+      }
+    },
+    {
+      "ref": "el:0035",
+      "text": "Birch Boat",
+      "meta": {
+        "key": "item.minecraft.birch_boat"
+      }
+    },
+    {
+      "ref": "el:0036",
+      "text": "Birch Boat with Chest",
+      "meta": {
+        "key": "item.minecraft.birch_chest_boat"
+      }
+    },
+    {
+      "ref": "el:0037",
+      "text": "Black Bundle",
+      "meta": {
+        "key": "item.minecraft.black_bundle"
+      }
+    },
+    {
+      "ref": "el:0038",
+      "text": "Black Dye",
+      "meta": {
+        "key": "item.minecraft.black_dye"
+      }
+    },
+    {
+      "ref": "el:0039",
+      "text": "Black Harness",
+      "meta": {
+        "key": "item.minecraft.black_harness"
+      }
+    },
+    {
+      "ref": "el:0040",
+      "text": "Blade Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.blade_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0041",
+      "text": "A team already exists by that name",
+      "meta": {
+        "key": "commands.team.add.duplicate"
+      }
+    },
+    {
+      "ref": "el:0042",
+      "text": "Created team %s",
+      "meta": {
+        "key": "commands.team.add.success"
+      }
+    },
+    {
+      "ref": "el:0043",
+      "text": "Removed %s member(s) from team %s",
+      "meta": {
+        "key": "commands.team.empty.success"
+      }
+    },
+    {
+      "ref": "el:0044",
+      "text": "Nothing changed. That team is already empty",
+      "meta": {
+        "key": "commands.team.empty.unchanged"
+      }
+    },
+    {
+      "ref": "el:0045",
+      "text": "Added %s members to team %s",
+      "meta": {
+        "key": "commands.team.join.success.multiple"
+      }
+    },
+    {
+      "ref": "el:0046",
+      "text": "Added %s to team %s",
+      "meta": {
+        "key": "commands.team.join.success.single"
+      }
+    },
+    {
+      "ref": "el:0047",
+      "text": "Removed %s members from any team",
+      "meta": {
+        "key": "commands.team.leave.success.multiple"
+      }
+    },
+    {
+      "ref": "el:0048",
+      "text": "Removed %s from any team",
+      "meta": {
+        "key": "commands.team.leave.success.single"
+      }
+    },
+    {
+      "ref": "el:0049",
+      "text": "There are no members on team %s",
+      "meta": {
+        "key": "commands.team.list.members.empty"
+      }
+    },
+    {
+      "ref": "el:0050",
+      "text": "Team %s has %s member(s): %s",
+      "meta": {
+        "key": "commands.team.list.members.success"
+      }
+    },
+    {
+      "ref": "el:0051",
+      "text": "There are no teams",
+      "meta": {
+        "key": "commands.team.list.teams.empty"
+      }
+    },
+    {
+      "ref": "el:0052",
+      "text": "There are %s team(s): %s",
+      "meta": {
+        "key": "commands.team.list.teams.success"
+      }
+    },
+    {
+      "ref": "el:0053",
+      "text": "Collision rule for team %s is now \"%s\"",
+      "meta": {
+        "key": "commands.team.option.collisionRule.success"
+      }
+    },
+    {
+      "ref": "el:0054",
+      "text": "Nothing changed. Collision rule is already that value",
+      "meta": {
+        "key": "commands.team.option.collisionRule.unchanged"
+      }
+    },
+    {
+      "ref": "el:0055",
+      "text": "Updated the color for team %s to %s",
+      "meta": {
+        "key": "commands.team.option.color.success"
+      }
+    },
+    {
+      "ref": "el:0056",
+      "text": "Nothing changed. That team already has that color",
+      "meta": {
+        "key": "commands.team.option.color.unchanged"
+      }
+    },
+    {
+      "ref": "el:0057",
+      "text": "Death message visibility for team %s is now \"%s\"",
+      "meta": {
+        "key": "commands.team.option.deathMessageVisibility.success"
+      }
+    },
+    {
+      "ref": "el:0058",
+      "text": "Nothing changed. Death message visibility is already that value",
+      "meta": {
+        "key": "commands.team.option.deathMessageVisibility.unchanged"
+      }
+    },
+    {
+      "ref": "el:0059",
+      "text": "Nothing changed. Friendly fire is already disabled for that team",
+      "meta": {
+        "key": "commands.team.option.friendlyfire.alreadyDisabled"
+      }
+    },
+    {
+      "ref": "el:0060",
+      "text": "Nothing changed. Friendly fire is already enabled for that team",
+      "meta": {
+        "key": "commands.team.option.friendlyfire.alreadyEnabled"
+      }
+    },
+    {
+      "ref": "el:0061",
+      "text": "Disabled friendly fire for team %s",
+      "meta": {
+        "key": "commands.team.option.friendlyfire.disabled"
+      }
+    },
+    {
+      "ref": "el:0062",
+      "text": "Enabled friendly fire for team %s",
+      "meta": {
+        "key": "commands.team.option.friendlyfire.enabled"
+      }
+    },
+    {
+      "ref": "el:0063",
+      "text": "Updated the name of team %s",
+      "meta": {
+        "key": "commands.team.option.name.success"
+      }
+    },
+    {
+      "ref": "el:0064",
+      "text": "F3 + G = Show chunk boundaries",
+      "meta": {
+        "key": "debug.chunk_boundaries.help"
+      }
+    },
+    {
+      "ref": "el:0065",
+      "text": "Chunk borders: hidden",
+      "meta": {
+        "key": "debug.chunk_boundaries.off"
+      }
+    },
+    {
+      "ref": "el:0066",
+      "text": "Chunk borders: shown",
+      "meta": {
+        "key": "debug.chunk_boundaries.on"
+      }
+    },
+    {
+      "ref": "el:0067",
+      "text": "F3 + D = Clear chat",
+      "meta": {
+        "key": "debug.clear_chat.help"
+      }
+    },
+    {
+      "ref": "el:0068",
+      "text": "F3 + C = Copy location as /tp command, or hold for 10 seconds to crash the game",
+      "meta": {
+        "key": "debug.copy_location.help"
+      }
+    },
+    {
+      "ref": "el:0069",
+      "text": "Copied location to clipboard",
+      "meta": {
+        "key": "debug.copy_location.message"
+      }
+    },
+    {
+      "ref": "el:0070",
+      "text": "F3 + C is held down. This will crash the game unless released.",
+      "meta": {
+        "key": "debug.crash.message"
+      }
+    },
+    {
+      "ref": "el:0071",
+      "text": "Crashing in %s...",
+      "meta": {
+        "key": "debug.crash.warning"
+      }
+    },
+    {
+      "ref": "el:0072",
+      "text": "Unable to switch game mode; no permission",
+      "meta": {
+        "key": "debug.creative_spectator.error"
+      }
+    },
+    {
+      "ref": "el:0073",
+      "text": "F3 + N = Cycle previous game mode <-> spectator",
+      "meta": {
+        "key": "debug.creative_spectator.help"
+      }
+    },
+    {
+      "ref": "el:0074",
+      "text": "Saved dynamic textures to %s",
+      "meta": {
+        "key": "debug.dump_dynamic_textures"
+      }
+    },
+    {
+      "ref": "el:0075",
+      "text": "F3 + S = Dump dynamic textures",
+      "meta": {
+        "key": "debug.dump_dynamic_textures.help"
+      }
+    },
+    {
+      "ref": "el:0076",
+      "text": "Always",
+      "meta": {
+        "key": "debug.entry.always"
+      }
+    },
+    {
+      "ref": "el:0077",
+      "text": "Magenta Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.magenta"
+      }
+    },
+    {
+      "ref": "el:0078",
+      "text": "Orange Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.orange"
+      }
+    },
+    {
+      "ref": "el:0079",
+      "text": "Pink Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.pink"
+      }
+    },
+    {
+      "ref": "el:0080",
+      "text": "Purple Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.purple"
+      }
+    },
+    {
+      "ref": "el:0081",
+      "text": "Red Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.red"
+      }
+    },
+    {
+      "ref": "el:0082",
+      "text": "White Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.white"
+      }
+    },
+    {
+      "ref": "el:0083",
+      "text": "Yellow Pale Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_right.yellow"
+      }
+    },
+    {
+      "ref": "el:0084",
+      "text": "Black Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.black"
+      }
+    },
+    {
+      "ref": "el:0085",
+      "text": "Blue Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.blue"
+      }
+    },
+    {
+      "ref": "el:0086",
+      "text": "Brown Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.brown"
+      }
+    },
+    {
+      "ref": "el:0087",
+      "text": "Cyan Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.cyan"
+      }
+    },
+    {
+      "ref": "el:0088",
+      "text": "Gray Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.gray"
+      }
+    },
+    {
+      "ref": "el:0089",
+      "text": "Green Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.green"
+      }
+    },
+    {
+      "ref": "el:0090",
+      "text": "Light Blue Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.light_blue"
+      }
+    },
+    {
+      "ref": "el:0091",
+      "text": "Light Gray Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.light_gray"
+      }
+    },
+    {
+      "ref": "el:0092",
+      "text": "Lime Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.lime"
+      }
+    },
+    {
+      "ref": "el:0093",
+      "text": "Magenta Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.magenta"
+      }
+    },
+    {
+      "ref": "el:0094",
+      "text": "Orange Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.orange"
+      }
+    },
+    {
+      "ref": "el:0095",
+      "text": "Pink Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.pink"
+      }
+    },
+    {
+      "ref": "el:0096",
+      "text": "Purple Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.purple"
+      }
+    },
+    {
+      "ref": "el:0097",
+      "text": "Red Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.red"
+      }
+    },
+    {
+      "ref": "el:0098",
+      "text": "White Chief",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_top.white"
+      }
+    },
+    {
+      "ref": "el:0099",
+      "text": "C418 - Mutation",
+      "meta": {
+        "key": "music.menu.mutation"
+      }
+    },
+    {
+      "ref": "el:0100",
+      "text": "Button: %s",
+      "meta": {
+        "key": "narration.button"
+      }
+    },
+    {
+      "ref": "el:0101",
+      "text": "Press Enter to activate",
+      "meta": {
+        "key": "narration.button.usage.focused"
+      }
+    },
+    {
+      "ref": "el:0102",
+      "text": "Left click to activate",
+      "meta": {
+        "key": "narration.button.usage.hovered"
+      }
+    },
+    {
+      "ref": "el:0103",
+      "text": "Checkbox: %s",
+      "meta": {
+        "key": "narration.checkbox"
+      }
+    },
+    {
+      "ref": "el:0104",
+      "text": "Press Enter to toggle",
+      "meta": {
+        "key": "narration.checkbox.usage.focused"
+      }
+    },
+    {
+      "ref": "el:0105",
+      "text": "Left click to toggle",
+      "meta": {
+        "key": "narration.checkbox.usage.hovered"
+      }
+    },
+    {
+      "ref": "el:0106",
+      "text": "Press Tab to navigate to the next element",
+      "meta": {
+        "key": "narration.component_list.usage"
+      }
+    },
+    {
+      "ref": "el:0107",
+      "text": "Press Enter to switch to %s",
+      "meta": {
+        "key": "narration.cycle_button.usage.focused"
+      }
+    },
+    {
+      "ref": "el:0108",
+      "text": "Left click to switch to %s",
+      "meta": {
+        "key": "narration.cycle_button.usage.hovered"
+      }
+    },
+    {
+      "ref": "el:0109",
+      "text": "Edit box: %s",
+      "meta": {
+        "key": "narration.edit_box"
+      }
+    },
+    {
+      "ref": "el:0110",
+      "text": "Item: %s",
+      "meta": {
+        "key": "narration.item"
+      }
+    },
+    {
+      "ref": "el:0111",
+      "text": "Recipe for %s",
+      "meta": {
+        "key": "narration.recipe"
+      }
+    },
+    {
+      "ref": "el:0112",
+      "text": "Left click to select",
+      "meta": {
+        "key": "narration.recipe.usage"
+      }
+    },
+    {
+      "ref": "el:0113",
+      "text": "Right click to show more recipes",
+      "meta": {
+        "key": "narration.recipe.usage.more"
+      }
+    },
+    {
+      "ref": "el:0114",
+      "text": "Press the up and down buttons to move to another entry",
+      "meta": {
+        "key": "narration.selection.usage"
+      }
+    },
+    {
+      "ref": "el:0115",
+      "text": "Press the left or right keyboard buttons to change the value",
+      "meta": {
+        "key": "narration.slider.usage.focused"
+      }
+    },
+    {
+      "ref": "el:0116",
+      "text": "Press Enter to start changing the slider value",
+      "meta": {
+        "key": "narration.slider.usage.focused.keyboard_cannot_change_value"
+      }
+    },
+    {
+      "ref": "el:0117",
+      "text": "Drag the slider to change its value",
+      "meta": {
+        "key": "narration.slider.usage.hovered"
+      }
+    },
+    {
+      "ref": "el:0118",
+      "text": "Selected suggestion %s out of %s: %s",
+      "meta": {
+        "key": "narration.suggestion"
+      }
+    },
+    {
+      "ref": "el:0119",
+      "text": "Selected suggestion %s out of %s: %s (%s)",
+      "meta": {
+        "key": "narration.suggestion.tooltip"
+      }
+    },
+    {
+      "ref": "el:0120",
+      "text": "Press Tab to cycle to the next suggestion",
+      "meta": {
+        "key": "narration.suggestion.usage.cycle.fixed"
+      }
+    },
+    {
+      "ref": "el:0121",
+      "text": "Press Tab to cycle to the next suggestion, or Escape to leave suggestions",
+      "meta": {
+        "key": "narration.suggestion.usage.cycle.hidable"
+      }
+    },
+    {
+      "ref": "el:0122",
+      "text": "Press Tab to use the suggestion",
+      "meta": {
+        "key": "narration.suggestion.usage.fill.fixed"
+      }
+    },
+    {
+      "ref": "el:0123",
+      "text": "Press Tab to use the suggestion, or Escape to leave suggestions",
+      "meta": {
+        "key": "narration.suggestion.usage.fill.hidable"
+      }
+    },
+    {
+      "ref": "el:0124",
+      "text": "Pale Oak Fence",
+      "meta": {
+        "key": "block.minecraft.pale_oak_fence"
+      }
+    },
+    {
+      "ref": "el:0125",
+      "text": "Pale Oak Fence Gate",
+      "meta": {
+        "key": "block.minecraft.pale_oak_fence_gate"
+      }
+    },
+    {
+      "ref": "el:0126",
+      "text": "Pale Oak Hanging Sign",
+      "meta": {
+        "key": "block.minecraft.pale_oak_hanging_sign"
+      }
+    },
+    {
+      "ref": "el:0127",
+      "text": "Pale Oak Leaves",
+      "meta": {
+        "key": "block.minecraft.pale_oak_leaves"
+      }
+    },
+    {
+      "ref": "el:0128",
+      "text": "Pale Oak Log",
+      "meta": {
+        "key": "block.minecraft.pale_oak_log"
+      }
+    },
+    {
+      "ref": "el:0129",
+      "text": "Pale Oak Planks",
+      "meta": {
+        "key": "block.minecraft.pale_oak_planks"
+      }
+    },
+    {
+      "ref": "el:0130",
+      "text": "Pale Oak Pressure Plate",
+      "meta": {
+        "key": "block.minecraft.pale_oak_pressure_plate"
+      }
+    },
+    {
+      "ref": "el:0131",
+      "text": "Pale Oak Sapling",
+      "meta": {
+        "key": "block.minecraft.pale_oak_sapling"
+      }
+    },
+    {
+      "ref": "el:0132",
+      "text": "Pale Oak Shelf",
+      "meta": {
+        "key": "block.minecraft.pale_oak_shelf"
+      }
+    },
+    {
+      "ref": "el:0133",
+      "text": "Pale Oak Sign",
+      "meta": {
+        "key": "block.minecraft.pale_oak_sign"
+      }
+    },
+    {
+      "ref": "el:0134",
+      "text": "Pale Oak Slab",
+      "meta": {
+        "key": "block.minecraft.pale_oak_slab"
+      }
+    },
+    {
+      "ref": "el:0135",
+      "text": "Pale Oak Stairs",
+      "meta": {
+        "key": "block.minecraft.pale_oak_stairs"
+      }
+    },
+    {
+      "ref": "el:0136",
+      "text": "Pale Oak Trapdoor",
+      "meta": {
+        "key": "block.minecraft.pale_oak_trapdoor"
+      }
+    },
+    {
+      "ref": "el:0137",
+      "text": "Pale Oak Wall Hanging Sign",
+      "meta": {
+        "key": "block.minecraft.pale_oak_wall_hanging_sign"
+      }
+    },
+    {
+      "ref": "el:0138",
+      "text": "Pale Oak Wall Sign",
+      "meta": {
+        "key": "block.minecraft.pale_oak_wall_sign"
+      }
+    },
+    {
+      "ref": "el:0139",
+      "text": "Pale Oak Wood",
+      "meta": {
+        "key": "block.minecraft.pale_oak_wood"
+      }
+    },
+    {
+      "ref": "el:0140",
+      "text": "Pearlescent Froglight",
+      "meta": {
+        "key": "block.minecraft.pearlescent_froglight"
+      }
+    },
+    {
+      "ref": "el:0141",
+      "text": "Peony",
+      "meta": {
+        "key": "block.minecraft.peony"
+      }
+    },
+    {
+      "ref": "el:0142",
+      "text": "Petrified Oak Slab",
+      "meta": {
+        "key": "block.minecraft.petrified_oak_slab"
+      }
+    },
+    {
+      "ref": "el:0143",
+      "text": "Piglin Head",
+      "meta": {
+        "key": "block.minecraft.piglin_head"
+      }
+    },
+    {
+      "ref": "el:0144",
+      "text": "Piglin Wall Head",
+      "meta": {
+        "key": "block.minecraft.piglin_wall_head"
+      }
+    },
+    {
+      "ref": "el:0145",
+      "text": "Improved movement for Minecarts",
+      "meta": {
+        "key": "dataPack.minecart_improvements.description"
+      }
+    },
+    {
+      "ref": "el:0146",
+      "text": "Minecart Improvements",
+      "meta": {
+        "key": "dataPack.minecart_improvements.name"
+      }
+    },
+    {
+      "ref": "el:0147",
+      "text": "Experimental Redstone changes",
+      "meta": {
+        "key": "dataPack.redstone_experiments.description"
+      }
+    },
+    {
+      "ref": "el:0148",
+      "text": "Redstone Experiments",
+      "meta": {
+        "key": "dataPack.redstone_experiments.name"
+      }
+    },
+    {
+      "ref": "el:0149",
+      "text": "Select Data Packs",
+      "meta": {
+        "key": "dataPack.title"
+      }
+    },
+    {
+      "ref": "el:0150",
+      "text": "Updated trades for Villagers",
+      "meta": {
+        "key": "dataPack.trade_rebalance.description"
+      }
+    },
+    {
+      "ref": "el:0151",
+      "text": "Villager Trade Rebalance",
+      "meta": {
+        "key": "dataPack.trade_rebalance.name"
+      }
+    },
+    {
+      "ref": "el:0152",
+      "text": "New features and content for Minecraft 1.20",
+      "meta": {
+        "key": "dataPack.update_1_20.description"
+      }
+    },
+    {
+      "ref": "el:0153",
+      "text": "Update 1.20",
+      "meta": {
+        "key": "dataPack.update_1_20.name"
+      }
+    },
+    {
+      "ref": "el:0154",
+      "text": "New features and content for Minecraft 1.21",
+      "meta": {
+        "key": "dataPack.update_1_21.description"
+      }
+    },
+    {
+      "ref": "el:0155",
+      "text": "Update 1.21",
+      "meta": {
+        "key": "dataPack.update_1_21.name"
+      }
+    },
+    {
+      "ref": "el:0156",
+      "text": "Go Back",
+      "meta": {
+        "key": "dataPack.validation.back"
+      }
+    },
+    {
+      "ref": "el:0157",
+      "text": "Data pack validation failed!",
+      "meta": {
+        "key": "dataPack.validation.failed"
+      }
+    },
+    {
+      "ref": "el:0158",
+      "text": "Reset to Default",
+      "meta": {
+        "key": "dataPack.validation.reset"
+      }
+    },
+    {
+      "ref": "el:0159",
+      "text": "Validating selected data packs...",
+      "meta": {
+        "key": "dataPack.validation.working"
+      }
+    },
+    {
+      "ref": "el:0160",
+      "text": "The default data for Minecraft",
+      "meta": {
+        "key": "dataPack.vanilla.description"
+      }
+    },
+    {
+      "ref": "el:0161",
+      "text": "Default",
+      "meta": {
+        "key": "dataPack.vanilla.name"
+      }
+    },
+    {
+      "ref": "el:0162",
+      "text": "New features and content for the Winter Drop",
+      "meta": {
+        "key": "dataPack.winter_drop.description"
+      }
+    },
+    {
+      "ref": "el:0163",
+      "text": "Winter Drop",
+      "meta": {
+        "key": "dataPack.winter_drop.name"
+      }
+    },
+    {
+      "ref": "el:0164",
+      "text": "Safe Mode",
+      "meta": {
+        "key": "datapackFailure.safeMode"
+      }
+    },
+    {
+      "ref": "el:0165",
+      "text": "This world contains invalid or corrupted save data.",
+      "meta": {
+        "key": "datapackFailure.safeMode.failed.description"
+      }
+    },
+    {
+      "ref": "el:0166",
+      "text": "Acacia Pressure Plate",
+      "meta": {
+        "key": "block.minecraft.acacia_pressure_plate"
+      }
+    },
+    {
+      "ref": "el:0167",
+      "text": "Acacia Sapling",
+      "meta": {
+        "key": "block.minecraft.acacia_sapling"
+      }
+    },
+    {
+      "ref": "el:0168",
+      "text": "Acacia Shelf",
+      "meta": {
+        "key": "block.minecraft.acacia_shelf"
+      }
+    },
+    {
+      "ref": "el:0169",
+      "text": "Acacia Sign",
+      "meta": {
+        "key": "block.minecraft.acacia_sign"
+      }
+    },
+    {
+      "ref": "el:0170",
+      "text": "Acacia Slab",
+      "meta": {
+        "key": "block.minecraft.acacia_slab"
+      }
+    },
+    {
+      "ref": "el:0171",
+      "text": "Acacia Stairs",
+      "meta": {
+        "key": "block.minecraft.acacia_stairs"
+      }
+    },
+    {
+      "ref": "el:0172",
+      "text": "Acacia Trapdoor",
+      "meta": {
+        "key": "block.minecraft.acacia_trapdoor"
+      }
+    },
+    {
+      "ref": "el:0173",
+      "text": "Acacia Wall Hanging Sign",
+      "meta": {
+        "key": "block.minecraft.acacia_wall_hanging_sign"
+      }
+    },
+    {
+      "ref": "el:0174",
+      "text": "Acacia Wall Sign",
+      "meta": {
+        "key": "block.minecraft.acacia_wall_sign"
+      }
+    },
+    {
+      "ref": "el:0175",
+      "text": "Acacia Wood",
+      "meta": {
+        "key": "block.minecraft.acacia_wood"
+      }
+    },
+    {
+      "ref": "el:0176",
+      "text": "Activator Rail",
+      "meta": {
+        "key": "block.minecraft.activator_rail"
+      }
+    },
+    {
+      "ref": "el:0177",
+      "text": "Air",
+      "meta": {
+        "key": "block.minecraft.air"
+      }
+    },
+    {
+      "ref": "el:0178",
+      "text": "Allium",
+      "meta": {
+        "key": "block.minecraft.allium"
+      }
+    },
+    {
+      "ref": "el:0179",
+      "text": "Block of Amethyst",
+      "meta": {
+        "key": "block.minecraft.amethyst_block"
+      }
+    },
+    {
+      "ref": "el:0180",
+      "text": "Amethyst Cluster",
+      "meta": {
+        "key": "block.minecraft.amethyst_cluster"
+      }
+    },
+    {
+      "ref": "el:0181",
+      "text": "Ancient Debris",
+      "meta": {
+        "key": "block.minecraft.ancient_debris"
+      }
+    },
+    {
+      "ref": "el:0182",
+      "text": "Andesite",
+      "meta": {
+        "key": "block.minecraft.andesite"
+      }
+    },
+    {
+      "ref": "el:0183",
+      "text": "Andesite Slab",
+      "meta": {
+        "key": "block.minecraft.andesite_slab"
+      }
+    },
+    {
+      "ref": "el:0184",
+      "text": "Andesite Stairs",
+      "meta": {
+        "key": "block.minecraft.andesite_stairs"
+      }
+    },
+    {
+      "ref": "el:0185",
+      "text": "Andesite Wall",
+      "meta": {
+        "key": "block.minecraft.andesite_wall"
+      }
+    },
+    {
+      "ref": "el:0186",
+      "text": "Anvil",
+      "meta": {
+        "key": "block.minecraft.anvil"
+      }
+    },
+    {
+      "ref": "el:0187",
+      "text": "Invalid NBT path element",
+      "meta": {
+        "key": "arguments.nbtpath.node.invalid"
+      }
+    },
+    {
+      "ref": "el:0188",
+      "text": "Found no elements matching %s",
+      "meta": {
+        "key": "arguments.nbtpath.nothing_found"
+      }
+    },
+    {
+      "ref": "el:0189",
+      "text": "Resulting NBT too deeply nested",
+      "meta": {
+        "key": "arguments.nbtpath.too_deep"
+      }
+    },
+    {
+      "ref": "el:0190",
+      "text": "Resulting NBT too large",
+      "meta": {
+        "key": "arguments.nbtpath.too_large"
+      }
+    },
+    {
+      "ref": "el:0191",
+      "text": "Unknown scoreboard objective '%s'",
+      "meta": {
+        "key": "arguments.objective.notFound"
+      }
+    },
+    {
+      "ref": "el:0192",
+      "text": "Scoreboard objective '%s' is read-only",
+      "meta": {
+        "key": "arguments.objective.readonly"
+      }
+    },
+    {
+      "ref": "el:0193",
+      "text": "Cannot divide by zero",
+      "meta": {
+        "key": "arguments.operation.div0"
+      }
+    },
+    {
+      "ref": "el:0194",
+      "text": "Invalid operation",
+      "meta": {
+        "key": "arguments.operation.invalid"
+      }
+    },
+    {
+      "ref": "el:0195",
+      "text": "Invalid swizzle: expected combination of 'x', 'y' and 'z'",
+      "meta": {
+        "key": "arguments.swizzle.invalid"
+      }
+    },
+    {
+      "ref": "el:0196",
+      "text": "%s %s",
+      "meta": {
+        "key": "attribute.modifier.equals.0"
+      }
+    },
+    {
+      "ref": "el:0197",
+      "text": "%s%% %s",
+      "meta": {
+        "key": "attribute.modifier.equals.1"
+      }
+    },
+    {
+      "ref": "el:0198",
+      "text": "%s%% %s",
+      "meta": {
+        "key": "attribute.modifier.equals.2"
+      }
+    },
+    {
+      "ref": "el:0199",
+      "text": "+%s %s",
+      "meta": {
+        "key": "attribute.modifier.plus.0"
+      }
+    },
+    {
+      "ref": "el:0200",
+      "text": "+%s%% %s",
+      "meta": {
+        "key": "attribute.modifier.plus.1"
+      }
+    },
+    {
+      "ref": "el:0201",
+      "text": "+%s%% %s",
+      "meta": {
+        "key": "attribute.modifier.plus.2"
+      }
+    },
+    {
+      "ref": "el:0202",
+      "text": "-%s %s",
+      "meta": {
+        "key": "attribute.modifier.take.0"
+      }
+    },
+    {
+      "ref": "el:0203",
+      "text": "-%s%% %s",
+      "meta": {
+        "key": "attribute.modifier.take.1"
+      }
+    },
+    {
+      "ref": "el:0204",
+      "text": "-%s%% %s",
+      "meta": {
+        "key": "attribute.modifier.take.2"
+      }
+    },
+    {
+      "ref": "el:0205",
+      "text": "Armor",
+      "meta": {
+        "key": "attribute.name.armor"
+      }
+    },
+    {
+      "ref": "el:0206",
+      "text": "Armor Toughness",
+      "meta": {
+        "key": "attribute.name.armor_toughness"
+      }
+    },
+    {
+      "ref": "el:0207",
+      "text": "Attack Damage",
+      "meta": {
+        "key": "attribute.name.attack_damage"
+      }
+    },
+    {
+      "ref": "el:0208",
+      "text": "Attack Knockback",
+      "meta": {
+        "key": "attribute.name.attack_knockback"
+      }
+    },
+    {
+      "ref": "el:0209",
+      "text": "Attack Speed",
+      "meta": {
+        "key": "attribute.name.attack_speed"
+      }
+    },
+    {
+      "ref": "el:0210",
+      "text": "Block Break Speed",
+      "meta": {
+        "key": "attribute.name.block_break_speed"
+      }
+    },
+    {
+      "ref": "el:0211",
+      "text": "Block Interaction Range",
+      "meta": {
+        "key": "attribute.name.block_interaction_range"
+      }
+    },
+    {
+      "ref": "el:0212",
+      "text": "Use the %1$s, %2$s, %3$s, %4$s keys and the mouse to move around",
+      "meta": {
+        "key": "demo.help.movement"
+      }
+    },
+    {
+      "ref": "el:0213",
+      "text": "Look around using the mouse",
+      "meta": {
+        "key": "demo.help.movementMouse"
+      }
+    },
+    {
+      "ref": "el:0214",
+      "text": "Move by pressing the %1$s, %2$s, %3$s, %4$s keys",
+      "meta": {
+        "key": "demo.help.movementShort"
+      }
+    },
+    {
+      "ref": "el:0215",
+      "text": "Minecraft Demo Mode",
+      "meta": {
+        "key": "demo.help.title"
+      }
+    },
+    {
+      "ref": "el:0216",
+      "text": "Remaining time: %s",
+      "meta": {
+        "key": "demo.remainingTime"
+      }
+    },
+    {
+      "ref": "el:0217",
+      "text": "The demo time has expired. Buy the game to continue or start a new world!",
+      "meta": {
+        "key": "demo.reminder"
+      }
+    },
+    {
+      "ref": "el:0218",
+      "text": "Are you sure you want to lock the difficulty of this world? This will set this world to always be %1$s, and you will never be able to change that again.",
+      "meta": {
+        "key": "difficulty.lock.question"
+      }
+    },
+    {
+      "ref": "el:0219",
+      "text": "Lock World Difficulty",
+      "meta": {
+        "key": "difficulty.lock.title"
+      }
+    },
+    {
+      "ref": "el:0220",
+      "text": "End of stream",
+      "meta": {
+        "key": "disconnect.endOfStream"
+      }
+    },
+    {
+      "ref": "el:0221",
+      "text": "Kicked for exceeding packet rate limit",
+      "meta": {
+        "key": "disconnect.exceeded_packet_rate"
+      }
+    },
+    {
+      "ref": "el:0222",
+      "text": "%s",
+      "meta": {
+        "key": "disconnect.genericReason"
+      }
+    },
+    {
+      "ref": "el:0223",
+      "text": "Ignoring status request",
+      "meta": {
+        "key": "disconnect.ignoring_status_request"
+      }
+    },
+    {
+      "ref": "el:0224",
+      "text": "Failed to log in: %s",
+      "meta": {
+        "key": "disconnect.loginFailedInfo"
+      }
+    },
+    {
+      "ref": "el:0225",
+      "text": "Multiplayer is disabled. Please check your Microsoft account settings.",
+      "meta": {
+        "key": "disconnect.loginFailedInfo.insufficientPrivileges"
+      }
+    },
+    {
+      "ref": "el:0226",
+      "text": "Invalid session (Try restarting your game and the launcher)",
+      "meta": {
+        "key": "disconnect.loginFailedInfo.invalidSession"
+      }
+    },
+    {
+      "ref": "el:0227",
+      "text": "The authentication servers are currently not reachable. Please try again.",
+      "meta": {
+        "key": "disconnect.loginFailedInfo.serversUnavailable"
+      }
+    },
+    {
+      "ref": "el:0228",
+      "text": "You are banned from playing online",
+      "meta": {
+        "key": "disconnect.loginFailedInfo.userBanned"
+      }
+    },
+    {
+      "ref": "el:0229",
+      "text": "Connection Lost",
+      "meta": {
+        "key": "disconnect.lost"
+      }
+    },
+    {
+      "ref": "el:0230",
+      "text": "Network Protocol Error",
+      "meta": {
+        "key": "disconnect.packetError"
+      }
+    },
+    {
+      "ref": "el:0231",
+      "text": "Kicked for spamming",
+      "meta": {
+        "key": "disconnect.spam"
+      }
+    },
+    {
+      "ref": "el:0232",
+      "text": "Timed out",
+      "meta": {
+        "key": "disconnect.timeout"
+      }
+    },
+    {
+      "ref": "el:0233",
+      "text": "Transferred to another server",
+      "meta": {
+        "key": "disconnect.transfer"
+      }
+    },
+    {
+      "ref": "el:0234",
+      "text": "Unknown host",
+      "meta": {
+        "key": "disconnect.unknownHost"
+      }
+    },
+    {
+      "ref": "el:0235",
+      "text": "%s out of %s pack(s) failed to download",
+      "meta": {
+        "key": "download.pack.failed"
+      }
+    },
+    {
+      "ref": "el:0236",
+      "text": "Progress: %s (total size unknown)",
+      "meta": {
+        "key": "download.pack.progress.bytes"
+      }
+    },
+    {
+      "ref": "el:0237",
+      "text": "Progress: %s%%",
+      "meta": {
+        "key": "download.pack.progress.percent"
+      }
+    },
+    {
+      "ref": "el:0238",
+      "text": "Villagers restock up to two times per day.",
+      "meta": {
+        "key": "merchant.deprecated"
+      }
+    },
+    {
+      "ref": "el:0239",
+      "text": "Novice",
+      "meta": {
+        "key": "merchant.level.1"
+      }
+    },
+    {
+      "ref": "el:0240",
+      "text": "Apprentice",
+      "meta": {
+        "key": "merchant.level.2"
+      }
+    },
+    {
+      "ref": "el:0241",
+      "text": "Journeyman",
+      "meta": {
+        "key": "merchant.level.3"
+      }
+    },
+    {
+      "ref": "el:0242",
+      "text": "Expert",
+      "meta": {
+        "key": "merchant.level.4"
+      }
+    },
+    {
+      "ref": "el:0243",
+      "text": "Master",
+      "meta": {
+        "key": "merchant.level.5"
+      }
+    },
+    {
+      "ref": "el:0244",
+      "text": "%s - %s",
+      "meta": {
+        "key": "merchant.title"
+      }
+    },
+    {
+      "ref": "el:0245",
+      "text": "Trades",
+      "meta": {
+        "key": "merchant.trades"
+      }
+    },
+    {
+      "ref": "el:0246",
+      "text": "↑ ↓",
+      "meta": {
+        "key": "mirror.front_back"
+      }
+    },
+    {
+      "ref": "el:0247",
+      "text": "← →",
+      "meta": {
+        "key": "mirror.left_right"
+      }
+    },
+    {
+      "ref": "el:0248",
+      "text": "|",
+      "meta": {
+        "key": "mirror.none"
+      }
+    },
+    {
+      "ref": "el:0249",
+      "text": "Press %1$s to Dismount",
+      "meta": {
+        "key": "mount.onboard"
+      }
+    },
+    {
+      "ref": "el:0250",
+      "text": "Applying resource pack",
+      "meta": {
+        "key": "multiplayer.applyingPack"
+      }
+    },
+    {
+      "ref": "el:0251",
+      "text": "Do not notify again for this Code of Conduct",
+      "meta": {
+        "key": "multiplayer.codeOfConduct.check"
+      }
+    },
+    {
+      "ref": "el:0252",
+      "text": "Server Code of Conduct",
+      "meta": {
+        "key": "multiplayer.codeOfConduct.title"
+      }
+    },
+    {
+      "ref": "el:0253",
+      "text": "You are trying to execute an unrecognized or invalid command.\nAre you sure?\nCommand: %s",
+      "meta": {
+        "key": "multiplayer.confirm_command.parse_errors"
+      }
+    },
+    {
+      "ref": "el:0254",
+      "text": "You are trying to execute a command that requires elevated permissions.\nThis might negatively affect your game.\nAre you sure?\nCommand: %s",
+      "meta": {
+        "key": "multiplayer.confirm_command.permissions_required"
+      }
+    },
+    {
+      "ref": "el:0255",
+      "text": "Run Command",
+      "meta": {
+        "key": "multiplayer.confirm_command.run_command"
+      }
+    },
+    {
+      "ref": "el:0256",
+      "text": "You are trying to execute a command that will send chat messages using your name.\nIt can only be run from the chat screen\nCommand: %s",
+      "meta": {
+        "key": "multiplayer.confirm_command.signature_required"
+      }
+    },
+    {
+      "ref": "el:0257",
+      "text": "Copy to Chat Screen",
+      "meta": {
+        "key": "multiplayer.confirm_command.suggest_command"
+      }
+    },
+    {
+      "ref": "el:0258",
+      "text": "Confirm Command Execution",
+      "meta": {
+        "key": "multiplayer.confirm_command.title"
+      }
+    },
+    {
+      "ref": "el:0259",
+      "text": "Authentication servers are down. Please try again later. Sorry!",
+      "meta": {
+        "key": "multiplayer.disconnect.authservers_down"
+      }
+    },
+    {
+      "ref": "el:0260",
+      "text": "Detected a missed or reordered chat message from the server",
+      "meta": {
+        "key": "multiplayer.disconnect.bad_chat_index"
+      }
+    },
+    {
+      "ref": "el:0261",
+      "text": "Search...",
+      "meta": {
+        "key": "gui.socialInteractions.search_hint"
+      }
+    },
+    {
+      "ref": "el:0262",
+      "text": "%s - %s players",
+      "meta": {
+        "key": "gui.socialInteractions.server_label.multiple"
+      }
+    },
+    {
+      "ref": "el:0263",
+      "text": "%s - %s player",
+      "meta": {
+        "key": "gui.socialInteractions.server_label.single"
+      }
+    },
+    {
+      "ref": "el:0264",
+      "text": "Show in Chat",
+      "meta": {
+        "key": "gui.socialInteractions.show"
+      }
+    },
+    {
+      "ref": "el:0265",
+      "text": "Chat messages from %s will be shown",
+      "meta": {
+        "key": "gui.socialInteractions.shown_in_chat"
+      }
+    },
+    {
+      "ref": "el:0266",
+      "text": "Blocked",
+      "meta": {
+        "key": "gui.socialInteractions.status_blocked"
+      }
+    },
+    {
+      "ref": "el:0267",
+      "text": "Blocked - Offline",
+      "meta": {
+        "key": "gui.socialInteractions.status_blocked_offline"
+      }
+    },
+    {
+      "ref": "el:0268",
+      "text": "Hidden",
+      "meta": {
+        "key": "gui.socialInteractions.status_hidden"
+      }
+    },
+    {
+      "ref": "el:0269",
+      "text": "Hidden - Offline",
+      "meta": {
+        "key": "gui.socialInteractions.status_hidden_offline"
+      }
+    },
+    {
+      "ref": "el:0270",
+      "text": "Offline",
+      "meta": {
+        "key": "gui.socialInteractions.status_offline"
+      }
+    },
+    {
+      "ref": "el:0271",
+      "text": "All",
+      "meta": {
+        "key": "gui.socialInteractions.tab_all"
+      }
+    },
+    {
+      "ref": "el:0272",
+      "text": "Blocked",
+      "meta": {
+        "key": "gui.socialInteractions.tab_blocked"
+      }
+    },
+    {
+      "ref": "el:0273",
+      "text": "Hidden",
+      "meta": {
+        "key": "gui.socialInteractions.tab_hidden"
+      }
+    },
+    {
+      "ref": "el:0274",
+      "text": "Social Interactions",
+      "meta": {
+        "key": "gui.socialInteractions.title"
+      }
+    },
+    {
+      "ref": "el:0275",
+      "text": "Hide messages",
+      "meta": {
+        "key": "gui.socialInteractions.tooltip.hide"
+      }
+    },
+    {
+      "ref": "el:0276",
+      "text": "Report player",
+      "meta": {
+        "key": "gui.socialInteractions.tooltip.report"
+      }
+    },
+    {
+      "ref": "el:0277",
+      "text": "The reporting service is unavailable",
+      "meta": {
+        "key": "gui.socialInteractions.tooltip.report.disabled"
+      }
+    },
+    {
+      "ref": "el:0278",
+      "text": "Mushroom Fields",
+      "meta": {
+        "key": "biome.minecraft.mushroom_fields"
+      }
+    },
+    {
+      "ref": "el:0279",
+      "text": "Nether Wastes",
+      "meta": {
+        "key": "biome.minecraft.nether_wastes"
+      }
+    },
+    {
+      "ref": "el:0280",
+      "text": "Ocean",
+      "meta": {
+        "key": "biome.minecraft.ocean"
+      }
+    },
+    {
+      "ref": "el:0281",
+      "text": "Old Growth Birch Forest",
+      "meta": {
+        "key": "biome.minecraft.old_growth_birch_forest"
+      }
+    },
+    {
+      "ref": "el:0282",
+      "text": "Old Growth Pine Taiga",
+      "meta": {
+        "key": "biome.minecraft.old_growth_pine_taiga"
+      }
+    },
+    {
+      "ref": "el:0283",
+      "text": "Old Growth Spruce Taiga",
+      "meta": {
+        "key": "biome.minecraft.old_growth_spruce_taiga"
+      }
+    },
+    {
+      "ref": "el:0284",
+      "text": "Pale Garden",
+      "meta": {
+        "key": "biome.minecraft.pale_garden"
+      }
+    },
+    {
+      "ref": "el:0285",
+      "text": "Plains",
+      "meta": {
+        "key": "biome.minecraft.plains"
+      }
+    },
+    {
+      "ref": "el:0286",
+      "text": "River",
+      "meta": {
+        "key": "biome.minecraft.river"
+      }
+    },
+    {
+      "ref": "el:0287",
+      "text": "Savanna",
+      "meta": {
+        "key": "biome.minecraft.savanna"
+      }
+    },
+    {
+      "ref": "el:0288",
+      "text": "Savanna Plateau",
+      "meta": {
+        "key": "biome.minecraft.savanna_plateau"
+      }
+    },
+    {
+      "ref": "el:0289",
+      "text": "Small End Islands",
+      "meta": {
+        "key": "biome.minecraft.small_end_islands"
+      }
+    },
+    {
+      "ref": "el:0290",
+      "text": "Snowy Beach",
+      "meta": {
+        "key": "biome.minecraft.snowy_beach"
+      }
+    },
+    {
+      "ref": "el:0291",
+      "text": "Snowy Plains",
+      "meta": {
+        "key": "biome.minecraft.snowy_plains"
+      }
+    },
+    {
+      "ref": "el:0292",
+      "text": "Snowy Slopes",
+      "meta": {
+        "key": "biome.minecraft.snowy_slopes"
+      }
+    },
+    {
+      "ref": "el:0293",
+      "text": "Snowy Taiga",
+      "meta": {
+        "key": "biome.minecraft.snowy_taiga"
+      }
+    },
+    {
+      "ref": "el:0294",
+      "text": "Soul Sand Valley",
+      "meta": {
+        "key": "biome.minecraft.soul_sand_valley"
+      }
+    },
+    {
+      "ref": "el:0295",
+      "text": "Sparse Jungle",
+      "meta": {
+        "key": "biome.minecraft.sparse_jungle"
+      }
+    },
+    {
+      "ref": "el:0296",
+      "text": "Stony Peaks",
+      "meta": {
+        "key": "biome.minecraft.stony_peaks"
+      }
+    },
+    {
+      "ref": "el:0297",
+      "text": "Stony Shore",
+      "meta": {
+        "key": "biome.minecraft.stony_shore"
+      }
+    },
+    {
+      "ref": "el:0298",
+      "text": "Sunflower Plains",
+      "meta": {
+        "key": "biome.minecraft.sunflower_plains"
+      }
+    },
+    {
+      "ref": "el:0299",
+      "text": "Swamp",
+      "meta": {
+        "key": "biome.minecraft.swamp"
+      }
+    },
+    {
+      "ref": "el:0300",
+      "text": "Taiga",
+      "meta": {
+        "key": "biome.minecraft.taiga"
+      }
+    },
+    {
+      "ref": "el:0301",
+      "text": "The End",
+      "meta": {
+        "key": "biome.minecraft.the_end"
+      }
+    },
+    {
+      "ref": "el:0302",
+      "text": "The Void",
+      "meta": {
+        "key": "biome.minecraft.the_void"
+      }
+    },
+    {
+      "ref": "el:0303",
+      "text": "Warm Ocean",
+      "meta": {
+        "key": "biome.minecraft.warm_ocean"
+      }
+    },
+    {
+      "ref": "el:0304",
+      "text": "Warped Forest",
+      "meta": {
+        "key": "biome.minecraft.warped_forest"
+      }
+    },
+    {
+      "ref": "el:0305",
+      "text": "Windswept Forest",
+      "meta": {
+        "key": "biome.minecraft.windswept_forest"
+      }
+    },
+    {
+      "ref": "el:0306",
+      "text": "Windswept Gravelly Hills",
+      "meta": {
+        "key": "biome.minecraft.windswept_gravelly_hills"
+      }
+    },
+    {
+      "ref": "el:0307",
+      "text": "Bottom - %s",
+      "meta": {
+        "key": "createWorld.customize.flat.layer.bottom"
+      }
+    },
+    {
+      "ref": "el:0308",
+      "text": "Top - %s",
+      "meta": {
+        "key": "createWorld.customize.flat.layer.top"
+      }
+    },
+    {
+      "ref": "el:0309",
+      "text": "Remove Layer",
+      "meta": {
+        "key": "createWorld.customize.flat.removeLayer"
+      }
+    },
+    {
+      "ref": "el:0310",
+      "text": "Layer Material",
+      "meta": {
+        "key": "createWorld.customize.flat.tile"
+      }
+    },
+    {
+      "ref": "el:0311",
+      "text": "Superflat Customization",
+      "meta": {
+        "key": "createWorld.customize.flat.title"
+      }
+    },
+    {
+      "ref": "el:0312",
+      "text": "Presets",
+      "meta": {
+        "key": "createWorld.customize.presets"
+      }
+    },
+    {
+      "ref": "el:0313",
+      "text": "Alternatively, here are some we made earlier!",
+      "meta": {
+        "key": "createWorld.customize.presets.list"
+      }
+    },
+    {
+      "ref": "el:0314",
+      "text": "Use Preset",
+      "meta": {
+        "key": "createWorld.customize.presets.select"
+      }
+    },
+    {
+      "ref": "el:0315",
+      "text": "Want to share your preset with someone? Use the box below!",
+      "meta": {
+        "key": "createWorld.customize.presets.share"
+      }
+    },
+    {
+      "ref": "el:0316",
+      "text": "Select a Preset",
+      "meta": {
+        "key": "createWorld.customize.presets.title"
+      }
+    },
+    {
+      "ref": "el:0317",
+      "text": "Preparing for world creation...",
+      "meta": {
+        "key": "createWorld.preparing"
+      }
+    },
+    {
+      "ref": "el:0318",
+      "text": "Game",
+      "meta": {
+        "key": "createWorld.tab.game.title"
+      }
+    },
+    {
+      "ref": "el:0319",
+      "text": "More",
+      "meta": {
+        "key": "createWorld.tab.more.title"
+      }
+    },
+    {
+      "ref": "el:0320",
+      "text": "World",
+      "meta": {
+        "key": "createWorld.tab.world.title"
+      }
+    },
+    {
+      "ref": "el:0321",
+      "text": "Attribution",
+      "meta": {
+        "key": "credits_and_attribution.button.attribution"
+      }
+    },
+    {
+      "ref": "el:0322",
+      "text": "Credits",
+      "meta": {
+        "key": "credits_and_attribution.button.credits"
+      }
+    },
+    {
+      "ref": "el:0323",
+      "text": "Licenses",
+      "meta": {
+        "key": "credits_and_attribution.button.licenses"
+      }
+    },
+    {
+      "ref": "el:0324",
+      "text": "Credits and Attribution",
+      "meta": {
+        "key": "credits_and_attribution.screen.title"
+      }
+    },
+    {
+      "ref": "el:0325",
+      "text": "Distance Swum",
+      "meta": {
+        "key": "stat.minecraft.swim_one_cm"
+      }
+    },
+    {
+      "ref": "el:0326",
+      "text": "Talked to Villagers",
+      "meta": {
+        "key": "stat.minecraft.talked_to_villager"
+      }
+    },
+    {
+      "ref": "el:0327",
+      "text": "Targets Hit",
+      "meta": {
+        "key": "stat.minecraft.target_hit"
+      }
+    },
+    {
+      "ref": "el:0328",
+      "text": "Time Since Last Death",
+      "meta": {
+        "key": "stat.minecraft.time_since_death"
+      }
+    },
+    {
+      "ref": "el:0329",
+      "text": "Time Since Last Rest",
+      "meta": {
+        "key": "stat.minecraft.time_since_rest"
+      }
+    },
+    {
+      "ref": "el:0330",
+      "text": "Time with World Open",
+      "meta": {
+        "key": "stat.minecraft.total_world_time"
+      }
+    },
+    {
+      "ref": "el:0331",
+      "text": "Traded with Villagers",
+      "meta": {
+        "key": "stat.minecraft.traded_with_villager"
+      }
+    },
+    {
+      "ref": "el:0332",
+      "text": "Trapped Chests Triggered",
+      "meta": {
+        "key": "stat.minecraft.trigger_trapped_chest"
+      }
+    },
+    {
+      "ref": "el:0333",
+      "text": "Note Blocks Tuned",
+      "meta": {
+        "key": "stat.minecraft.tune_noteblock"
+      }
+    },
+    {
+      "ref": "el:0334",
+      "text": "Water Taken from Cauldron",
+      "meta": {
+        "key": "stat.minecraft.use_cauldron"
+      }
+    },
+    {
+      "ref": "el:0335",
+      "text": "Distance Walked on Water",
+      "meta": {
+        "key": "stat.minecraft.walk_on_water_one_cm"
+      }
+    },
+    {
+      "ref": "el:0336",
+      "text": "Distance Walked",
+      "meta": {
+        "key": "stat.minecraft.walk_one_cm"
+      }
+    },
+    {
+      "ref": "el:0337",
+      "text": "Distance Walked under Water",
+      "meta": {
+        "key": "stat.minecraft.walk_under_water_one_cm"
+      }
+    },
+    {
+      "ref": "el:0338",
+      "text": "Hot Stuff",
+      "meta": {
+        "key": "advancements.story.lava_bucket.title"
+      }
+    },
+    {
+      "ref": "el:0339",
+      "text": "Acquire diamonds",
+      "meta": {
+        "key": "advancements.story.mine_diamond.description"
+      }
+    },
+    {
+      "ref": "el:0340",
+      "text": "Diamonds!",
+      "meta": {
+        "key": "advancements.story.mine_diamond.title"
+      }
+    },
+    {
+      "ref": "el:0341",
+      "text": "Mine Stone with your new Pickaxe",
+      "meta": {
+        "key": "advancements.story.mine_stone.description"
+      }
+    },
+    {
+      "ref": "el:0342",
+      "text": "Stone Age",
+      "meta": {
+        "key": "advancements.story.mine_stone.title"
+      }
+    },
+    {
+      "ref": "el:0343",
+      "text": "Protect yourself with a piece of iron armor",
+      "meta": {
+        "key": "advancements.story.obtain_armor.description"
+      }
+    },
+    {
+      "ref": "el:0344",
+      "text": "Suit Up",
+      "meta": {
+        "key": "advancements.story.obtain_armor.title"
+      }
+    },
+    {
+      "ref": "el:0345",
+      "text": "The heart and story of the game",
+      "meta": {
+        "key": "advancements.story.root.description"
+      }
+    },
+    {
+      "ref": "el:0346",
+      "text": "Minecraft",
+      "meta": {
+        "key": "advancements.story.root.title"
+      }
+    },
+    {
+      "ref": "el:0347",
+      "text": "Diamond armor saves lives",
+      "meta": {
+        "key": "advancements.story.shiny_gear.description"
+      }
+    },
+    {
+      "ref": "el:0348",
+      "text": "Cover Me with Diamonds",
+      "meta": {
+        "key": "advancements.story.shiny_gear.title"
+      }
+    },
+    {
+      "ref": "el:0349",
+      "text": "Smelt an Iron Ingot",
+      "meta": {
+        "key": "advancements.story.smelt_iron.description"
+      }
+    },
+    {
+      "ref": "el:0350",
+      "text": "Acquire Hardware",
+      "meta": {
+        "key": "advancements.story.smelt_iron.title"
+      }
+    },
+    {
+      "ref": "el:0351",
+      "text": "Construct a better Pickaxe",
+      "meta": {
+        "key": "advancements.story.upgrade_tools.description"
+      }
+    },
+    {
+      "ref": "el:0352",
+      "text": "Getting an Upgrade",
+      "meta": {
+        "key": "advancements.story.upgrade_tools.title"
+      }
+    },
+    {
+      "ref": "el:0353",
+      "text": "Challenge Complete!",
+      "meta": {
+        "key": "advancements.toast.challenge"
+      }
+    },
+    {
+      "ref": "el:0354",
+      "text": "Goal Reached!",
+      "meta": {
+        "key": "advancements.toast.goal"
+      }
+    },
+    {
+      "ref": "el:0355",
+      "text": "Advancement Made!",
+      "meta": {
+        "key": "advancements.toast.task"
+      }
+    },
+    {
+      "ref": "el:0356",
+      "text": "Console Command",
+      "meta": {
+        "key": "advMode.command"
+      }
+    },
+    {
+      "ref": "el:0357",
+      "text": "Mode",
+      "meta": {
+        "key": "advMode.mode"
+      }
+    },
+    {
+      "ref": "el:0358",
+      "text": "Repeat",
+      "meta": {
+        "key": "advMode.mode.auto"
+      }
+    },
+    {
+      "ref": "el:0359",
+      "text": "Always Active",
+      "meta": {
+        "key": "advMode.mode.autoexec.bat"
+      }
+    },
+    {
+      "ref": "el:0360",
+      "text": "Conditional",
+      "meta": {
+        "key": "advMode.mode.conditional"
+      }
+    },
+    {
+      "ref": "el:0361",
+      "text": "Impulse",
+      "meta": {
+        "key": "advMode.mode.redstone"
+      }
+    },
+    {
+      "ref": "el:0362",
+      "text": "Needs Redstone",
+      "meta": {
+        "key": "advMode.mode.redstoneTriggered"
+      }
+    },
+    {
+      "ref": "el:0363",
+      "text": "Chain",
+      "meta": {
+        "key": "advMode.mode.sequence"
+      }
+    },
+    {
+      "ref": "el:0364",
+      "text": "Unconditional",
+      "meta": {
+        "key": "advMode.mode.unconditional"
+      }
+    },
+    {
+      "ref": "el:0365",
+      "text": "White Stained Glass Pane",
+      "meta": {
+        "key": "block.minecraft.white_stained_glass_pane"
+      }
+    },
+    {
+      "ref": "el:0366",
+      "text": "White Terracotta",
+      "meta": {
+        "key": "block.minecraft.white_terracotta"
+      }
+    },
+    {
+      "ref": "el:0367",
+      "text": "White Tulip",
+      "meta": {
+        "key": "block.minecraft.white_tulip"
+      }
+    },
+    {
+      "ref": "el:0368",
+      "text": "White Wool",
+      "meta": {
+        "key": "block.minecraft.white_wool"
+      }
+    },
+    {
+      "ref": "el:0369",
+      "text": "Wildflowers",
+      "meta": {
+        "key": "block.minecraft.wildflowers"
+      }
+    },
+    {
+      "ref": "el:0370",
+      "text": "Wither Rose",
+      "meta": {
+        "key": "block.minecraft.wither_rose"
+      }
+    },
+    {
+      "ref": "el:0371",
+      "text": "Wither Skeleton Skull",
+      "meta": {
+        "key": "block.minecraft.wither_skeleton_skull"
+      }
+    },
+    {
+      "ref": "el:0372",
+      "text": "Wither Skeleton Wall Skull",
+      "meta": {
+        "key": "block.minecraft.wither_skeleton_wall_skull"
+      }
+    },
+    {
+      "ref": "el:0373",
+      "text": "Yellow Banner",
+      "meta": {
+        "key": "block.minecraft.yellow_banner"
+      }
+    },
+    {
+      "ref": "el:0374",
+      "text": "Yellow Bed",
+      "meta": {
+        "key": "block.minecraft.yellow_bed"
+      }
+    },
+    {
+      "ref": "el:0375",
+      "text": "Yellow Candle",
+      "meta": {
+        "key": "block.minecraft.yellow_candle"
+      }
+    },
+    {
+      "ref": "el:0376",
+      "text": "Cake with Yellow Candle",
+      "meta": {
+        "key": "block.minecraft.yellow_candle_cake"
+      }
+    },
+    {
+      "ref": "el:0377",
+      "text": "Yellow Carpet",
+      "meta": {
+        "key": "block.minecraft.yellow_carpet"
+      }
+    },
+    {
+      "ref": "el:0378",
+      "text": "Yellow Concrete",
+      "meta": {
+        "key": "block.minecraft.yellow_concrete"
+      }
+    },
+    {
+      "ref": "el:0379",
+      "text": "Yellow Concrete Powder",
+      "meta": {
+        "key": "block.minecraft.yellow_concrete_powder"
+      }
+    },
+    {
+      "ref": "el:0380",
+      "text": "Yellow Glazed Terracotta",
+      "meta": {
+        "key": "block.minecraft.yellow_glazed_terracotta"
+      }
+    },
+    {
+      "ref": "el:0381",
+      "text": "Yellow Shulker Box",
+      "meta": {
+        "key": "block.minecraft.yellow_shulker_box"
+      }
+    },
+    {
+      "ref": "el:0382",
+      "text": "Yellow Stained Glass",
+      "meta": {
+        "key": "block.minecraft.yellow_stained_glass"
+      }
+    },
+    {
+      "ref": "el:0383",
+      "text": "Yellow Stained Glass Pane",
+      "meta": {
+        "key": "block.minecraft.yellow_stained_glass_pane"
+      }
+    },
+    {
+      "ref": "el:0384",
+      "text": "Yellow Terracotta",
+      "meta": {
+        "key": "block.minecraft.yellow_terracotta"
+      }
+    },
+    {
+      "ref": "el:0385",
+      "text": "Yellow Wool",
+      "meta": {
+        "key": "block.minecraft.yellow_wool"
+      }
+    },
+    {
+      "ref": "el:0386",
+      "text": "Zombie Head",
+      "meta": {
+        "key": "block.minecraft.zombie_head"
+      }
+    },
+    {
+      "ref": "el:0387",
+      "text": "Zombie Wall Head",
+      "meta": {
+        "key": "block.minecraft.zombie_wall_head"
+      }
+    },
+    {
+      "ref": "el:0388",
+      "text": "Status",
+      "meta": {
+        "key": "known_server_link.status"
+      }
+    },
+    {
+      "ref": "el:0389",
+      "text": "Support",
+      "meta": {
+        "key": "known_server_link.support"
+      }
+    },
+    {
+      "ref": "el:0390",
+      "text": "Website",
+      "meta": {
+        "key": "known_server_link.website"
+      }
+    },
+    {
+      "ref": "el:0391",
+      "text": "en_us",
+      "meta": {
+        "key": "language.code"
+      }
+    },
+    {
+      "ref": "el:0392",
+      "text": "English",
+      "meta": {
+        "key": "language.name"
+      }
+    },
+    {
+      "ref": "el:0393",
+      "text": "United States",
+      "meta": {
+        "key": "language.region"
+      }
+    },
+    {
+      "ref": "el:0394",
+      "text": "Settings for Other Players",
+      "meta": {
+        "key": "lanServer.otherPlayers"
+      }
+    },
+    {
+      "ref": "el:0395",
+      "text": "Port Number",
+      "meta": {
+        "key": "lanServer.port"
+      }
+    },
+    {
+      "ref": "el:0396",
+      "text": "Not a valid port.\nLeave the edit box empty or enter a number between 1024 and 65535.",
+      "meta": {
+        "key": "lanServer.port.invalid"
+      }
+    },
+    {
+      "ref": "el:0397",
+      "text": "Not a valid port.\nLeave the edit box empty or enter a number between %s and %s.",
+      "meta": {
+        "key": "lanServer.port.invalid.new"
+      }
+    },
+    {
+      "ref": "el:0398",
+      "text": "Port not available.\nLeave the edit box empty or enter a different number between 1024 and 65535.",
+      "meta": {
+        "key": "lanServer.port.unavailable"
+      }
+    },
+    {
+      "ref": "el:0399",
+      "text": "Port not available.\nLeave the edit box empty or enter a different number between %s and %s.",
+      "meta": {
+        "key": "lanServer.port.unavailable.new"
+      }
+    },
+    {
+      "ref": "el:0400",
+      "text": "Scanning for games on your local network",
+      "meta": {
+        "key": "lanServer.scanning"
+      }
+    },
+    {
+      "ref": "el:0401",
+      "text": "Start LAN World",
+      "meta": {
+        "key": "lanServer.start"
+      }
+    },
+    {
+      "ref": "el:0402",
+      "text": "LAN World",
+      "meta": {
+        "key": "lanServer.title"
+      }
+    },
+    {
+      "ref": "el:0403",
+      "text": "Take Book",
+      "meta": {
+        "key": "lectern.take_book"
+      }
+    },
+    {
+      "ref": "el:0404",
+      "text": "%s%%",
+      "meta": {
+        "key": "loading.progress"
+      }
+    },
+    {
+      "ref": "el:0405",
+      "text": "Add Server",
+      "meta": {
+        "key": "manageServer.add.title"
+      }
+    },
+    {
+      "ref": "el:0406",
+      "text": "Edit Server Info",
+      "meta": {
+        "key": "manageServer.edit.title"
+      }
+    },
+    {
+      "ref": "el:0407",
+      "text": "Server Address",
+      "meta": {
+        "key": "manageServer.enterIp"
+      }
+    },
+    {
+      "ref": "el:0408",
+      "text": "Server Name",
+      "meta": {
+        "key": "manageServer.enterName"
+      }
+    },
+    {
+      "ref": "el:0409",
+      "text": "Server Resource Packs",
+      "meta": {
+        "key": "manageServer.resourcePack"
+      }
+    },
+    {
+      "ref": "el:0410",
+      "text": "Disabled",
+      "meta": {
+        "key": "manageServer.resourcePack.disabled"
+      }
+    },
+    {
+      "ref": "el:0411",
+      "text": "Enabled",
+      "meta": {
+        "key": "manageServer.resourcePack.enabled"
+      }
+    },
+    {
+      "ref": "el:0412",
+      "text": "Prompt",
+      "meta": {
+        "key": "manageServer.resourcePack.prompt"
+      }
+    },
+    {
+      "ref": "el:0413",
+      "text": "Read more about Mojang and privacy laws",
+      "meta": {
+        "key": "mco.account.privacy.info"
+      }
+    },
+    {
+      "ref": "el:0414",
+      "text": "Read more about GDPR",
+      "meta": {
+        "key": "mco.account.privacy.info.button"
+      }
+    },
+    {
+      "ref": "el:0415",
+      "text": "Mojang implements certain procedures to help protect children and their privacy including complying with the Children's Online Privacy Protection Act (COPPA) and General Data Protection Regulation (GDPR).\n\nYou may need to obtain parental consent before accessing your Realms account.",
+      "meta": {
+        "key": "mco.account.privacy.information"
+      }
+    },
+    {
+      "ref": "el:0416",
+      "text": "Mojang implements certain procedures to help protect children and their privacy including complying with the Children's Online Privacy Protection Act (COPPA) and General Data Protection Regulation (GDPR).\n\nYou may need to obtain parental consent before accessing your Realms account.\n\nIf you have an older Minecraft account (you log in with your username), you need to migrate the account to a Mojang account in order to access Realms.",
+      "meta": {
+        "key": "mco.account.privacyinfo"
+      }
+    },
+    {
+      "ref": "el:0417",
+      "text": "C418 - Oxygène",
+      "meta": {
+        "key": "music.game.oxygene"
+      }
+    },
+    {
+      "ref": "el:0418",
+      "text": "Kumi Tanioka - pokopoko",
+      "meta": {
+        "key": "music.game.pokopoko"
+      }
+    },
+    {
+      "ref": "el:0419",
+      "text": "Aaron Cherof - Puzzlebox",
+      "meta": {
+        "key": "music.game.puzzlebox"
+      }
+    },
+    {
+      "ref": "el:0420",
+      "text": "Lena Raine - Stand Tall",
+      "meta": {
+        "key": "music.game.stand_tall"
+      }
+    },
+    {
+      "ref": "el:0421",
+      "text": "C418 - Subwoofer Lullaby",
+      "meta": {
+        "key": "music.game.subwoofer_lullaby"
+      }
+    },
+    {
+      "ref": "el:0422",
+      "text": "Lena Raine - Aerie",
+      "meta": {
+        "key": "music.game.swamp.aerie"
+      }
+    },
+    {
+      "ref": "el:0423",
+      "text": "Lena Raine - Firebugs",
+      "meta": {
+        "key": "music.game.swamp.firebugs"
+      }
+    },
+    {
+      "ref": "el:0424",
+      "text": "Lena Raine - Labyrinthine",
+      "meta": {
+        "key": "music.game.swamp.labyrinthine"
+      }
+    },
+    {
+      "ref": "el:0425",
+      "text": "C418 - Sweden",
+      "meta": {
+        "key": "music.game.sweden"
+      }
+    },
+    {
+      "ref": "el:0426",
+      "text": "Aaron Cherof - Watcher",
+      "meta": {
+        "key": "music.game.watcher"
+      }
+    },
+    {
+      "ref": "el:0427",
+      "text": "C418 - Axolotl",
+      "meta": {
+        "key": "music.game.water.axolotl"
+      }
+    },
+    {
+      "ref": "el:0428",
+      "text": "C418 - Dragon Fish",
+      "meta": {
+        "key": "music.game.water.dragon_fish"
+      }
+    },
+    {
+      "ref": "el:0429",
+      "text": "C418 - Shuniji",
+      "meta": {
+        "key": "music.game.water.shuniji"
+      }
+    },
+    {
+      "ref": "el:0430",
+      "text": "Lena Raine - Wending",
+      "meta": {
+        "key": "music.game.wending"
+      }
+    },
+    {
+      "ref": "el:0431",
+      "text": "C418 - Wet Hands",
+      "meta": {
+        "key": "music.game.wet_hands"
+      }
+    },
+    {
+      "ref": "el:0432",
+      "text": "Kumi Tanioka - yakusoku",
+      "meta": {
+        "key": "music.game.yakusoku"
+      }
+    },
+    {
+      "ref": "el:0433",
+      "text": "Soul Speed",
+      "meta": {
+        "key": "enchantment.minecraft.soul_speed"
+      }
+    },
+    {
+      "ref": "el:0434",
+      "text": "Sweeping Edge",
+      "meta": {
+        "key": "enchantment.minecraft.sweeping"
+      }
+    },
+    {
+      "ref": "el:0435",
+      "text": "Sweeping Edge",
+      "meta": {
+        "key": "enchantment.minecraft.sweeping_edge"
+      }
+    },
+    {
+      "ref": "el:0436",
+      "text": "Swift Sneak",
+      "meta": {
+        "key": "enchantment.minecraft.swift_sneak"
+      }
+    },
+    {
+      "ref": "el:0437",
+      "text": "Thorns",
+      "meta": {
+        "key": "enchantment.minecraft.thorns"
+      }
+    },
+    {
+      "ref": "el:0438",
+      "text": "Unbreaking",
+      "meta": {
+        "key": "enchantment.minecraft.unbreaking"
+      }
+    },
+    {
+      "ref": "el:0439",
+      "text": "Curse of Vanishing",
+      "meta": {
+        "key": "enchantment.minecraft.vanishing_curse"
+      }
+    },
+    {
+      "ref": "el:0440",
+      "text": "Wind Burst",
+      "meta": {
+        "key": "enchantment.minecraft.wind_burst"
+      }
+    },
+    {
+      "ref": "el:0441",
+      "text": "Acacia Boat",
+      "meta": {
+        "key": "entity.minecraft.acacia_boat"
+      }
+    },
+    {
+      "ref": "el:0442",
+      "text": "Acacia Boat with Chest",
+      "meta": {
+        "key": "entity.minecraft.acacia_chest_boat"
+      }
+    },
+    {
+      "ref": "el:0443",
+      "text": "Allay",
+      "meta": {
+        "key": "entity.minecraft.allay"
+      }
+    },
+    {
+      "ref": "el:0444",
+      "text": "Area Effect Cloud",
+      "meta": {
+        "key": "entity.minecraft.area_effect_cloud"
+      }
+    },
+    {
+      "ref": "el:0445",
+      "text": "Armadillo",
+      "meta": {
+        "key": "entity.minecraft.armadillo"
+      }
+    },
+    {
+      "ref": "el:0446",
+      "text": "Shulker Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.shulker_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0447",
+      "text": "Sign",
+      "meta": {
+        "key": "item.minecraft.sign"
+      }
+    },
+    {
+      "ref": "el:0448",
+      "text": "Smithing Template",
+      "meta": {
+        "key": "item.minecraft.silence_armor_trim_smithing_template"
+      }
+    },
+    {
+      "ref": "el:0449",
+      "text": "Silence Armor Trim",
+      "meta": {
+        "key": "item.minecraft.silence_armor_trim_smithing_template.new"
+      }
+    },
+    {
+      "ref": "el:0450",
+      "text": "Silverfish Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.silverfish_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0451",
+      "text": "Skeleton Horse Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.skeleton_horse_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0452",
+      "text": "Skeleton Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.skeleton_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0453",
+      "text": "Banner Pattern",
+      "meta": {
+        "key": "item.minecraft.skull_banner_pattern"
+      }
+    },
+    {
+      "ref": "el:0454",
+      "text": "Skull Charge",
+      "meta": {
+        "key": "item.minecraft.skull_banner_pattern.desc"
+      }
+    },
+    {
+      "ref": "el:0455",
+      "text": "Skull Charge Banner Pattern",
+      "meta": {
+        "key": "item.minecraft.skull_banner_pattern.new"
+      }
+    },
+    {
+      "ref": "el:0456",
+      "text": "Skull Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.skull_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0457",
+      "text": "Skull Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.skull_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0458",
+      "text": "Slimeball",
+      "meta": {
+        "key": "item.minecraft.slime_ball"
+      }
+    },
+    {
+      "ref": "el:0459",
+      "text": "Slime Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.slime_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0460",
+      "text": "Smithing Template",
+      "meta": {
+        "key": "item.minecraft.smithing_template"
+      }
+    },
+    {
+      "ref": "el:0461",
+      "text": "Applies to:",
+      "meta": {
+        "key": "item.minecraft.smithing_template.applies_to"
+      }
+    },
+    {
+      "ref": "el:0462",
+      "text": "Add ingot or crystal",
+      "meta": {
+        "key": "item.minecraft.smithing_template.armor_trim.additions_slot_description"
+      }
+    },
+    {
+      "ref": "el:0463",
+      "text": "Armor",
+      "meta": {
+        "key": "item.minecraft.smithing_template.armor_trim.applies_to"
+      }
+    },
+    {
+      "ref": "el:0464",
+      "text": "Add a piece of armor",
+      "meta": {
+        "key": "item.minecraft.smithing_template.armor_trim.base_slot_description"
+      }
+    },
+    {
+      "ref": "el:0465",
+      "text": "Ingots & Crystals",
+      "meta": {
+        "key": "item.minecraft.smithing_template.armor_trim.ingredients"
+      }
+    },
+    {
+      "ref": "el:0466",
+      "text": "Ingredients:",
+      "meta": {
+        "key": "item.minecraft.smithing_template.ingredients"
+      }
+    },
+    {
+      "ref": "el:0467",
+      "text": "Add Netherite Ingot",
+      "meta": {
+        "key": "item.minecraft.smithing_template.netherite_upgrade.additions_slot_description"
+      }
+    },
+    {
+      "ref": "el:0468",
+      "text": "Diamond Equipment",
+      "meta": {
+        "key": "item.minecraft.smithing_template.netherite_upgrade.applies_to"
+      }
+    },
+    {
+      "ref": "el:0469",
+      "text": "Add diamond armor, weapon, or tool",
+      "meta": {
+        "key": "item.minecraft.smithing_template.netherite_upgrade.base_slot_description"
+      }
+    },
+    {
+      "ref": "el:0470",
+      "text": "Netherite Ingot",
+      "meta": {
+        "key": "item.minecraft.smithing_template.netherite_upgrade.ingredients"
+      }
+    },
+    {
+      "ref": "el:0471",
+      "text": "Upgrade: ",
+      "meta": {
+        "key": "item.minecraft.smithing_template.upgrade"
+      }
+    },
+    {
+      "ref": "el:0472",
+      "text": "Sniffer Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.sniffer_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0473",
+      "text": "Snort Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.snort_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0474",
+      "text": "C418 - mellohi",
+      "meta": {
+        "key": "jukebox_song.minecraft.mellohi"
+      }
+    },
+    {
+      "ref": "el:0475",
+      "text": "Lena Raine - otherside",
+      "meta": {
+        "key": "jukebox_song.minecraft.otherside"
+      }
+    },
+    {
+      "ref": "el:0476",
+      "text": "Lena Raine - Pigstep",
+      "meta": {
+        "key": "jukebox_song.minecraft.pigstep"
+      }
+    },
+    {
+      "ref": "el:0477",
+      "text": "Aaron Cherof - Precipice",
+      "meta": {
+        "key": "jukebox_song.minecraft.precipice"
+      }
+    },
+    {
+      "ref": "el:0478",
+      "text": "Aaron Cherof - Relic",
+      "meta": {
+        "key": "jukebox_song.minecraft.relic"
+      }
+    },
+    {
+      "ref": "el:0479",
+      "text": "C418 - stal",
+      "meta": {
+        "key": "jukebox_song.minecraft.stal"
+      }
+    },
+    {
+      "ref": "el:0480",
+      "text": "C418 - strad",
+      "meta": {
+        "key": "jukebox_song.minecraft.strad"
+      }
+    },
+    {
+      "ref": "el:0481",
+      "text": "Amos Roddy - Tears",
+      "meta": {
+        "key": "jukebox_song.minecraft.tears"
+      }
+    },
+    {
+      "ref": "el:0482",
+      "text": "C418 - wait",
+      "meta": {
+        "key": "jukebox_song.minecraft.wait"
+      }
+    },
+    {
+      "ref": "el:0483",
+      "text": "C418 - ward",
+      "meta": {
+        "key": "jukebox_song.minecraft.ward"
+      }
+    },
+    {
+      "ref": "el:0484",
+      "text": "Advancements",
+      "meta": {
+        "key": "key.advancements"
+      }
+    },
+    {
+      "ref": "el:0485",
+      "text": "Attack/Destroy",
+      "meta": {
+        "key": "key.attack"
+      }
+    },
+    {
+      "ref": "el:0486",
+      "text": "Walk Backward",
+      "meta": {
+        "key": "key.back"
+      }
+    },
+    {
+      "ref": "el:0487",
+      "text": "Creative Mode",
+      "meta": {
+        "key": "key.categories.creative"
+      }
+    },
+    {
+      "ref": "el:0488",
+      "text": "Gameplay",
+      "meta": {
+        "key": "key.categories.gameplay"
+      }
+    },
+    {
+      "ref": "el:0489",
+      "text": "Inventory",
+      "meta": {
+        "key": "key.categories.inventory"
+      }
+    },
+    {
+      "ref": "el:0490",
+      "text": "Miscellaneous",
+      "meta": {
+        "key": "key.categories.misc"
+      }
+    },
+    {
+      "ref": "el:0491",
+      "text": "Movement",
+      "meta": {
+        "key": "key.categories.movement"
+      }
+    },
+    {
+      "ref": "el:0492",
+      "text": "Multiplayer",
+      "meta": {
+        "key": "key.categories.multiplayer"
+      }
+    },
+    {
+      "ref": "el:0493",
+      "text": "Spectator",
+      "meta": {
+        "key": "key.categories.spectator"
+      }
+    },
+    {
+      "ref": "el:0494",
+      "text": "Game Interface",
+      "meta": {
+        "key": "key.categories.ui"
+      }
+    },
+    {
+      "ref": "el:0495",
+      "text": "Creative Mode",
+      "meta": {
+        "key": "key.category.minecraft.creative"
+      }
+    },
+    {
+      "ref": "el:0496",
+      "text": "Gameplay",
+      "meta": {
+        "key": "key.category.minecraft.gameplay"
+      }
+    },
+    {
+      "ref": "el:0497",
+      "text": "Inventory",
+      "meta": {
+        "key": "key.category.minecraft.inventory"
+      }
+    },
+    {
+      "ref": "el:0498",
+      "text": "Miscellaneous",
+      "meta": {
+        "key": "key.category.minecraft.misc"
+      }
+    },
+    {
+      "ref": "el:0499",
+      "text": "Movement",
+      "meta": {
+        "key": "key.category.minecraft.movement"
+      }
+    },
+    {
+      "ref": "el:0500",
+      "text": "Echo Shard",
+      "meta": {
+        "key": "item.minecraft.echo_shard"
+      }
+    },
+    {
+      "ref": "el:0501",
+      "text": "Egg",
+      "meta": {
+        "key": "item.minecraft.egg"
+      }
+    },
+    {
+      "ref": "el:0502",
+      "text": "Elder Guardian Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.elder_guardian_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0503",
+      "text": "Elytra",
+      "meta": {
+        "key": "item.minecraft.elytra"
+      }
+    },
+    {
+      "ref": "el:0504",
+      "text": "Emerald",
+      "meta": {
+        "key": "item.minecraft.emerald"
+      }
+    },
+    {
+      "ref": "el:0505",
+      "text": "Enchanted Book",
+      "meta": {
+        "key": "item.minecraft.enchanted_book"
+      }
+    },
+    {
+      "ref": "el:0506",
+      "text": "Enchanted Golden Apple",
+      "meta": {
+        "key": "item.minecraft.enchanted_golden_apple"
+      }
+    },
+    {
+      "ref": "el:0507",
+      "text": "End Crystal",
+      "meta": {
+        "key": "item.minecraft.end_crystal"
+      }
+    },
+    {
+      "ref": "el:0508",
+      "text": "Ender Dragon Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.ender_dragon_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0509",
+      "text": "Eye of Ender",
+      "meta": {
+        "key": "item.minecraft.ender_eye"
+      }
+    },
+    {
+      "ref": "el:0510",
+      "text": "Ender Pearl",
+      "meta": {
+        "key": "item.minecraft.ender_pearl"
+      }
+    },
+    {
+      "ref": "el:0511",
+      "text": "Enderman Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.enderman_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0512",
+      "text": "Endermite Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.endermite_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0513",
+      "text": "Evoker Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.evoker_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0514",
+      "text": "Bottle o' Enchanting",
+      "meta": {
+        "key": "item.minecraft.experience_bottle"
+      }
+    },
+    {
+      "ref": "el:0515",
+      "text": "Explorer Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.explorer_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0516",
+      "text": "Explorer Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.explorer_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0517",
+      "text": "Smithing Template",
+      "meta": {
+        "key": "item.minecraft.eye_armor_trim_smithing_template"
+      }
+    },
+    {
+      "ref": "el:0518",
+      "text": "Eye Armor Trim",
+      "meta": {
+        "key": "item.minecraft.eye_armor_trim_smithing_template.new"
+      }
+    },
+    {
+      "ref": "el:0519",
+      "text": "Feather",
+      "meta": {
+        "key": "item.minecraft.feather"
+      }
+    },
+    {
+      "ref": "el:0520",
+      "text": "Fermented Spider Eye",
+      "meta": {
+        "key": "item.minecraft.fermented_spider_eye"
+      }
+    },
+    {
+      "ref": "el:0521",
+      "text": "Field Masoned Banner Pattern",
+      "meta": {
+        "key": "item.minecraft.field_masoned_banner_pattern"
+      }
+    },
+    {
+      "ref": "el:0522",
+      "text": "Map",
+      "meta": {
+        "key": "item.minecraft.filled_map"
+      }
+    },
+    {
+      "ref": "el:0523",
+      "text": "Fire Charge",
+      "meta": {
+        "key": "item.minecraft.fire_charge"
+      }
+    },
+    {
+      "ref": "el:0524",
+      "text": "Firework Rocket",
+      "meta": {
+        "key": "item.minecraft.firework_rocket"
+      }
+    },
+    {
+      "ref": "el:0525",
+      "text": "Flight Duration:",
+      "meta": {
+        "key": "item.minecraft.firework_rocket.flight"
+      }
+    },
+    {
+      "ref": "el:0526",
+      "text": "%s x %s",
+      "meta": {
+        "key": "item.minecraft.firework_rocket.multiple_stars"
+      }
+    },
+    {
+      "ref": "el:0527",
+      "text": "%s",
+      "meta": {
+        "key": "item.minecraft.firework_rocket.single_star"
+      }
+    },
+    {
+      "ref": "el:0528",
+      "text": "Light Gray Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.light_gray"
+      }
+    },
+    {
+      "ref": "el:0529",
+      "text": "Lime Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.lime"
+      }
+    },
+    {
+      "ref": "el:0530",
+      "text": "Magenta Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.magenta"
+      }
+    },
+    {
+      "ref": "el:0531",
+      "text": "Orange Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.orange"
+      }
+    },
+    {
+      "ref": "el:0532",
+      "text": "Pink Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.pink"
+      }
+    },
+    {
+      "ref": "el:0533",
+      "text": "Purple Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.purple"
+      }
+    },
+    {
+      "ref": "el:0534",
+      "text": "Red Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.red"
+      }
+    },
+    {
+      "ref": "el:0535",
+      "text": "White Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.white"
+      }
+    },
+    {
+      "ref": "el:0536",
+      "text": "Yellow Gradient",
+      "meta": {
+        "key": "block.minecraft.banner.gradient.yellow"
+      }
+    },
+    {
+      "ref": "el:0537",
+      "text": "Black Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.black"
+      }
+    },
+    {
+      "ref": "el:0538",
+      "text": "Blue Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.blue"
+      }
+    },
+    {
+      "ref": "el:0539",
+      "text": "Brown Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.brown"
+      }
+    },
+    {
+      "ref": "el:0540",
+      "text": "Cyan Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.cyan"
+      }
+    },
+    {
+      "ref": "el:0541",
+      "text": "Gray Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.gray"
+      }
+    },
+    {
+      "ref": "el:0542",
+      "text": "Green Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.green"
+      }
+    },
+    {
+      "ref": "el:0543",
+      "text": "Light Blue Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.light_blue"
+      }
+    },
+    {
+      "ref": "el:0544",
+      "text": "Light Gray Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.light_gray"
+      }
+    },
+    {
+      "ref": "el:0545",
+      "text": "Lime Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.lime"
+      }
+    },
+    {
+      "ref": "el:0546",
+      "text": "Magenta Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.magenta"
+      }
+    },
+    {
+      "ref": "el:0547",
+      "text": "Orange Guster",
+      "meta": {
+        "key": "block.minecraft.banner.guster.orange"
+      }
+    },
+    {
+      "ref": "el:0548",
+      "text": "Leather armor rustles",
+      "meta": {
+        "key": "subtitles.item.armor.equip_leather"
+      }
+    },
+    {
+      "ref": "el:0549",
+      "text": "Netherite armor clanks",
+      "meta": {
+        "key": "subtitles.item.armor.equip_netherite"
+      }
+    },
+    {
+      "ref": "el:0550",
+      "text": "Turtle Shell thunks",
+      "meta": {
+        "key": "subtitles.item.armor.equip_turtle"
+      }
+    },
+    {
+      "ref": "el:0551",
+      "text": "Wolf Armor is fastened",
+      "meta": {
+        "key": "subtitles.item.armor.equip_wolf"
+      }
+    },
+    {
+      "ref": "el:0552",
+      "text": "Wolf Armor snips away",
+      "meta": {
+        "key": "subtitles.item.armor.unequip_wolf"
+      }
+    },
+    {
+      "ref": "el:0553",
+      "text": "Axe scrapes",
+      "meta": {
+        "key": "subtitles.item.axe.scrape"
+      }
+    },
+    {
+      "ref": "el:0554",
+      "text": "Axe strips",
+      "meta": {
+        "key": "subtitles.item.axe.strip"
+      }
+    },
+    {
+      "ref": "el:0555",
+      "text": "Wax off",
+      "meta": {
+        "key": "subtitles.item.axe.wax_off"
+      }
+    },
+    {
+      "ref": "el:0556",
+      "text": "Bone Meal crinkles",
+      "meta": {
+        "key": "subtitles.item.bone_meal.use"
+      }
+    },
+    {
+      "ref": "el:0557",
+      "text": "Page rustles",
+      "meta": {
+        "key": "subtitles.item.book.page_turn"
+      }
+    },
+    {
+      "ref": "el:0558",
+      "text": "Export World Generation Settings",
+      "meta": {
+        "key": "selectWorld.edit.export_worldgen_settings"
+      }
+    },
+    {
+      "ref": "el:0559",
+      "text": "Export failed",
+      "meta": {
+        "key": "selectWorld.edit.export_worldgen_settings.failure"
+      }
+    },
+    {
+      "ref": "el:0560",
+      "text": "Exported",
+      "meta": {
+        "key": "selectWorld.edit.export_worldgen_settings.success"
+      }
+    },
+    {
+      "ref": "el:0561",
+      "text": "Open World Folder",
+      "meta": {
+        "key": "selectWorld.edit.openFolder"
+      }
+    },
+    {
+      "ref": "el:0562",
+      "text": "Optimize World",
+      "meta": {
+        "key": "selectWorld.edit.optimize"
+      }
+    },
+    {
+      "ref": "el:0563",
+      "text": "Reset Icon",
+      "meta": {
+        "key": "selectWorld.edit.resetIcon"
+      }
+    },
+    {
+      "ref": "el:0564",
+      "text": "Save",
+      "meta": {
+        "key": "selectWorld.edit.save"
+      }
+    },
+    {
+      "ref": "el:0565",
+      "text": "Edit World",
+      "meta": {
+        "key": "selectWorld.edit.title"
+      }
+    },
+    {
+      "ref": "el:0566",
+      "text": "World Name",
+      "meta": {
+        "key": "selectWorld.enterName"
+      }
+    },
+    {
+      "ref": "el:0567",
+      "text": "Seed for the world generator",
+      "meta": {
+        "key": "selectWorld.enterSeed"
+      }
+    },
+    {
+      "ref": "el:0568",
+      "text": "Experimental",
+      "meta": {
+        "key": "selectWorld.experimental"
+      }
+    },
+    {
+      "ref": "el:0569",
+      "text": "Details",
+      "meta": {
+        "key": "selectWorld.experimental.details"
+      }
+    },
+    {
+      "ref": "el:0570",
+      "text": "Required experimental features: %s",
+      "meta": {
+        "key": "selectWorld.experimental.details.entry"
+      }
+    },
+    {
+      "ref": "el:0571",
+      "text": "Experimental Feature Requirements",
+      "meta": {
+        "key": "selectWorld.experimental.details.title"
+      }
+    },
+    {
+      "ref": "el:0572",
+      "text": "Be careful!\nThis configuration requires features that are still under development. Your world might crash, break, or not work with future updates.",
+      "meta": {
+        "key": "selectWorld.experimental.message"
+      }
+    },
+    {
+      "ref": "el:0573",
+      "text": "Experimental Features Warning",
+      "meta": {
+        "key": "selectWorld.experimental.title"
+      }
+    },
+    {
+      "ref": "el:0574",
+      "text": "Experiments",
+      "meta": {
+        "key": "selectWorld.experiments"
+      }
+    },
+    {
+      "ref": "el:0575",
+      "text": "Experiments are potential new features. Be careful as things might break. Experiments can't be turned off after world creation.",
+      "meta": {
+        "key": "selectWorld.experiments.info"
+      }
+    },
+    {
+      "ref": "el:0576",
+      "text": "Something went wrong while trying to load a world from a future version. This was a risky operation to begin with; sorry it didn't work.",
+      "meta": {
+        "key": "selectWorld.futureworld.error.text"
+      }
+    },
+    {
+      "ref": "el:0577",
+      "text": "An error occurred!",
+      "meta": {
+        "key": "selectWorld.futureworld.error.title"
+      }
+    },
+    {
+      "ref": "el:0578",
+      "text": "Game Mode",
+      "meta": {
+        "key": "selectWorld.gameMode"
+      }
+    },
+    {
+      "ref": "el:0579",
+      "text": "Adventure",
+      "meta": {
+        "key": "selectWorld.gameMode.adventure"
+      }
+    },
+    {
+      "ref": "el:0580",
+      "text": "Performance Metrics",
+      "meta": {
+        "key": "telemetry.event.performance_metrics.title"
+      }
+    },
+    {
+      "ref": "el:0581",
+      "text": "%s (Required)",
+      "meta": {
+        "key": "telemetry.event.required"
+      }
+    },
+    {
+      "ref": "el:0582",
+      "text": "It's important for us to understand how long it takes to join a world, and how that changes over time. For example, when we add new features or do larger technical changes, we need to see what impact that had on load times.",
+      "meta": {
+        "key": "telemetry.event.world_load_times.description"
+      }
+    },
+    {
+      "ref": "el:0583",
+      "text": "World Load Times",
+      "meta": {
+        "key": "telemetry.event.world_load_times.title"
+      }
+    },
+    {
+      "ref": "el:0584",
+      "text": "Knowing how players play Minecraft (such as Game Mode, client or server modded, and game version) allows us to focus game updates to improve the areas that players care about most.\nThe World Loaded event is paired with the World Unloaded event to calculate how long the play session has lasted.",
+      "meta": {
+        "key": "telemetry.event.world_loaded.description"
+      }
+    },
+    {
+      "ref": "el:0585",
+      "text": "World Loaded",
+      "meta": {
+        "key": "telemetry.event.world_loaded.title"
+      }
+    },
+    {
+      "ref": "el:0586",
+      "text": "This event is paired with the World Loaded event to calculate how long the world session has lasted.\nThe duration (in seconds and ticks) is measured when a world session has ended (quitting to title, disconnecting from a server).",
+      "meta": {
+        "key": "telemetry.event.world_unloaded.description"
+      }
+    },
+    {
+      "ref": "el:0587",
+      "text": "World Unloaded",
+      "meta": {
+        "key": "telemetry.event.world_unloaded.title"
+      }
+    },
+    {
+      "ref": "el:0588",
+      "text": "Game Time (Ticks)",
+      "meta": {
+        "key": "telemetry.property.advancement_game_time.title"
+      }
+    },
+    {
+      "ref": "el:0589",
+      "text": "Advancement ID",
+      "meta": {
+        "key": "telemetry.property.advancement_id.title"
+      }
+    },
+    {
+      "ref": "el:0590",
+      "text": "Yellow Pale",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_center.yellow"
+      }
+    },
+    {
+      "ref": "el:0591",
+      "text": "Black Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.black"
+      }
+    },
+    {
+      "ref": "el:0592",
+      "text": "Blue Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.blue"
+      }
+    },
+    {
+      "ref": "el:0593",
+      "text": "Brown Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.brown"
+      }
+    },
+    {
+      "ref": "el:0594",
+      "text": "Cyan Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.cyan"
+      }
+    },
+    {
+      "ref": "el:0595",
+      "text": "Gray Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.gray"
+      }
+    },
+    {
+      "ref": "el:0596",
+      "text": "Green Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.green"
+      }
+    },
+    {
+      "ref": "el:0597",
+      "text": "Light Blue Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.light_blue"
+      }
+    },
+    {
+      "ref": "el:0598",
+      "text": "Light Gray Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.light_gray"
+      }
+    },
+    {
+      "ref": "el:0599",
+      "text": "Lime Bend Sinister",
+      "meta": {
+        "key": "block.minecraft.banner.stripe_downleft.lime"
+      }
+    },
+    {
+      "ref": "el:0600",
+      "text": "Client Modded",
+      "meta": {
+        "key": "telemetry.property.client_modded.title"
+      }
+    },
+    {
+      "ref": "el:0601",
+      "text": "Dedicated Memory (kB)",
+      "meta": {
+        "key": "telemetry.property.dedicated_memory_kb.title"
+      }
+    },
+    {
+      "ref": "el:0602",
+      "text": "Event Timestamp (UTC)",
+      "meta": {
+        "key": "telemetry.property.event_timestamp_utc.title"
+      }
+    },
+    {
+      "ref": "el:0603",
+      "text": "Frame Rate Samples (FPS)",
+      "meta": {
+        "key": "telemetry.property.frame_rate_samples.title"
+      }
+    },
+    {
+      "ref": "el:0604",
+      "text": "Game Mode",
+      "meta": {
+        "key": "telemetry.property.game_mode.title"
+      }
+    },
+    {
+      "ref": "el:0605",
+      "text": "Game Version",
+      "meta": {
+        "key": "telemetry.property.game_version.title"
+      }
+    },
+    {
+      "ref": "el:0606",
+      "text": "Launcher Name",
+      "meta": {
+        "key": "telemetry.property.launcher_name.title"
+      }
+    },
+    {
+      "ref": "el:0607",
+      "text": "Bootstrap Time (Milliseconds)",
+      "meta": {
+        "key": "telemetry.property.load_time_bootstrap_ms.title"
+      }
+    },
+    {
+      "ref": "el:0608",
+      "text": "Time in Loading Screen (Milliseconds)",
+      "meta": {
+        "key": "telemetry.property.load_time_loading_overlay_ms.title"
+      }
+    },
+    {
+      "ref": "el:0609",
+      "text": "Time Before Window Opens (Milliseconds)",
+      "meta": {
+        "key": "telemetry.property.load_time_pre_window_ms.title"
+      }
+    },
+    {
+      "ref": "el:0610",
+      "text": "Total Load Time (Milliseconds)",
+      "meta": {
+        "key": "telemetry.property.load_time_total_time_ms.title"
+      }
+    },
+    {
+      "ref": "el:0611",
+      "text": "Minecraft Session ID",
+      "meta": {
+        "key": "telemetry.property.minecraft_session_id.title"
+      }
+    },
+    {
+      "ref": "el:0612",
+      "text": "New World",
+      "meta": {
+        "key": "telemetry.property.new_world.title"
+      }
+    },
+    {
+      "ref": "el:0613",
+      "text": "Sample Count",
+      "meta": {
+        "key": "telemetry.property.number_of_samples.title"
+      }
+    },
+    {
+      "ref": "el:0614",
+      "text": "Operating System",
+      "meta": {
+        "key": "telemetry.property.operating_system.title"
+      }
+    },
+    {
+      "ref": "el:0615",
+      "text": "Opt-In",
+      "meta": {
+        "key": "telemetry.property.opt_in.title"
+      }
+    },
+    {
+      "ref": "el:0616",
+      "text": "Platform",
+      "meta": {
+        "key": "telemetry.property.platform.title"
+      }
+    },
+    {
+      "ref": "el:0617",
+      "text": "Realms Map Content (Minigame Name)",
+      "meta": {
+        "key": "telemetry.property.realms_map_content.title"
+      }
+    },
+    {
+      "ref": "el:0618",
+      "text": "Render Distance",
+      "meta": {
+        "key": "telemetry.property.render_distance.title"
+      }
+    },
+    {
+      "ref": "el:0619",
+      "text": "Brown Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.brown"
+      }
+    },
+    {
+      "ref": "el:0620",
+      "text": "Cyan Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.cyan"
+      }
+    },
+    {
+      "ref": "el:0621",
+      "text": "Gray Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.gray"
+      }
+    },
+    {
+      "ref": "el:0622",
+      "text": "Green Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.green"
+      }
+    },
+    {
+      "ref": "el:0623",
+      "text": "Light Blue Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.light_blue"
+      }
+    },
+    {
+      "ref": "el:0624",
+      "text": "Light Gray Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.light_gray"
+      }
+    },
+    {
+      "ref": "el:0625",
+      "text": "Lime Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.lime"
+      }
+    },
+    {
+      "ref": "el:0626",
+      "text": "Magenta Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.magenta"
+      }
+    },
+    {
+      "ref": "el:0627",
+      "text": "Orange Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.orange"
+      }
+    },
+    {
+      "ref": "el:0628",
+      "text": "Pink Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.pink"
+      }
+    },
+    {
+      "ref": "el:0629",
+      "text": "Purple Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.purple"
+      }
+    },
+    {
+      "ref": "el:0630",
+      "text": "Red Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.red"
+      }
+    },
+    {
+      "ref": "el:0631",
+      "text": "White Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.white"
+      }
+    },
+    {
+      "ref": "el:0632",
+      "text": "Yellow Per Bend Sinister Inverted",
+      "meta": {
+        "key": "block.minecraft.banner.diagonal_up_right.yellow"
+      }
+    },
+    {
+      "ref": "el:0633",
+      "text": "Black Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.black"
+      }
+    },
+    {
+      "ref": "el:0634",
+      "text": "Blue Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.blue"
+      }
+    },
+    {
+      "ref": "el:0635",
+      "text": "Brown Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.brown"
+      }
+    },
+    {
+      "ref": "el:0636",
+      "text": "Cyan Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.cyan"
+      }
+    },
+    {
+      "ref": "el:0637",
+      "text": "Gray Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.gray"
+      }
+    },
+    {
+      "ref": "el:0638",
+      "text": "Green Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.green"
+      }
+    },
+    {
+      "ref": "el:0639",
+      "text": "Light Blue Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.light_blue"
+      }
+    },
+    {
+      "ref": "el:0640",
+      "text": "Light Gray Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.light_gray"
+      }
+    },
+    {
+      "ref": "el:0641",
+      "text": "Lime Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.lime"
+      }
+    },
+    {
+      "ref": "el:0642",
+      "text": "Magenta Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.magenta"
+      }
+    },
+    {
+      "ref": "el:0643",
+      "text": "Orange Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.orange"
+      }
+    },
+    {
+      "ref": "el:0644",
+      "text": "Pink Flow",
+      "meta": {
+        "key": "block.minecraft.banner.flow.pink"
+      }
+    },
+    {
+      "ref": "el:0645",
+      "text": "32-bit system detected",
+      "meta": {
+        "key": "title.32bit.deprecation.realms.header"
+      }
+    },
+    {
+      "ref": "el:0646",
+      "text": "Copyright Mojang AB. Do not distribute!",
+      "meta": {
+        "key": "title.credits"
+      }
+    },
+    {
+      "ref": "el:0647",
+      "text": "Multiplayer is disabled. Please check your Microsoft account settings.",
+      "meta": {
+        "key": "title.multiplayer.disabled"
+      }
+    },
+    {
+      "ref": "el:0648",
+      "text": "You must change your name before you can play online",
+      "meta": {
+        "key": "title.multiplayer.disabled.banned.name"
+      }
+    },
+    {
+      "ref": "el:0649",
+      "text": "Your account is permanently suspended from online play",
+      "meta": {
+        "key": "title.multiplayer.disabled.banned.permanent"
+      }
+    },
+    {
+      "ref": "el:0650",
+      "text": "Your account is temporarily suspended from online play",
+      "meta": {
+        "key": "title.multiplayer.disabled.banned.temporary"
+      }
+    },
+    {
+      "ref": "el:0651",
+      "text": "Multiplayer (LAN)",
+      "meta": {
+        "key": "title.multiplayer.lan"
+      }
+    },
+    {
+      "ref": "el:0652",
+      "text": "Multiplayer (3rd-party Server)",
+      "meta": {
+        "key": "title.multiplayer.other"
+      }
+    },
+    {
+      "ref": "el:0653",
+      "text": "Multiplayer (Realms)",
+      "meta": {
+        "key": "title.multiplayer.realms"
+      }
+    },
+    {
+      "ref": "el:0654",
+      "text": "Singleplayer",
+      "meta": {
+        "key": "title.singleplayer"
+      }
+    },
+    {
+      "ref": "el:0655",
+      "text": "%s %s",
+      "meta": {
+        "key": "translation.test.args"
+      }
+    },
+    {
+      "ref": "el:0656",
+      "text": "Prefix, %s%2$s again %s and %1$s lastly %s and also %1$s again!",
+      "meta": {
+        "key": "translation.test.complex"
+      }
+    },
+    {
+      "ref": "el:0657",
+      "text": "%%s %%%s %%%%s %%%%%s",
+      "meta": {
+        "key": "translation.test.escape"
+      }
+    },
+    {
+      "ref": "el:0658",
+      "text": "hi %",
+      "meta": {
+        "key": "translation.test.invalid"
+      }
+    },
+    {
+      "ref": "el:0659",
+      "text": "hi %  s",
+      "meta": {
+        "key": "translation.test.invalid2"
+      }
+    },
+    {
+      "ref": "el:0660",
+      "text": "Hello, world!",
+      "meta": {
+        "key": "translation.test.none"
+      }
+    },
+    {
+      "ref": "el:0661",
+      "text": "world",
+      "meta": {
+        "key": "translation.test.world"
+      }
+    },
+    {
+      "ref": "el:0662",
+      "text": "Amethyst Material",
+      "meta": {
+        "key": "trim_material.minecraft.amethyst"
+      }
+    },
+    {
+      "ref": "el:0663",
+      "text": "Copper Material",
+      "meta": {
+        "key": "trim_material.minecraft.copper"
+      }
+    },
+    {
+      "ref": "el:0664",
+      "text": "Diamond Material",
+      "meta": {
+        "key": "trim_material.minecraft.diamond"
+      }
+    },
+    {
+      "ref": "el:0665",
+      "text": "Emerald Material",
+      "meta": {
+        "key": "trim_material.minecraft.emerald"
+      }
+    },
+    {
+      "ref": "el:0666",
+      "text": "Gold Material",
+      "meta": {
+        "key": "trim_material.minecraft.gold"
+      }
+    },
+    {
+      "ref": "el:0667",
+      "text": "Iron Material",
+      "meta": {
+        "key": "trim_material.minecraft.iron"
+      }
+    },
+    {
+      "ref": "el:0668",
+      "text": "Lapis Material",
+      "meta": {
+        "key": "trim_material.minecraft.lapis"
+      }
+    },
+    {
+      "ref": "el:0669",
+      "text": "Lingering Potion of Weaving",
+      "meta": {
+        "key": "item.minecraft.lingering_potion.effect.weaving"
+      }
+    },
+    {
+      "ref": "el:0670",
+      "text": "Lingering Potion of Wind Charging",
+      "meta": {
+        "key": "item.minecraft.lingering_potion.effect.wind_charged"
+      }
+    },
+    {
+      "ref": "el:0671",
+      "text": "Llama Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.llama_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0672",
+      "text": "Lodestone Compass",
+      "meta": {
+        "key": "item.minecraft.lodestone_compass"
+      }
+    },
+    {
+      "ref": "el:0673",
+      "text": "Mace",
+      "meta": {
+        "key": "item.minecraft.mace"
+      }
+    },
+    {
+      "ref": "el:0674",
+      "text": "Magenta Bundle",
+      "meta": {
+        "key": "item.minecraft.magenta_bundle"
+      }
+    },
+    {
+      "ref": "el:0675",
+      "text": "Magenta Dye",
+      "meta": {
+        "key": "item.minecraft.magenta_dye"
+      }
+    },
+    {
+      "ref": "el:0676",
+      "text": "Magenta Harness",
+      "meta": {
+        "key": "item.minecraft.magenta_harness"
+      }
+    },
+    {
+      "ref": "el:0677",
+      "text": "Magma Cream",
+      "meta": {
+        "key": "item.minecraft.magma_cream"
+      }
+    },
+    {
+      "ref": "el:0678",
+      "text": "Magma Cube Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.magma_cube_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0679",
+      "text": "Mangrove Boat",
+      "meta": {
+        "key": "item.minecraft.mangrove_boat"
+      }
+    },
+    {
+      "ref": "el:0680",
+      "text": "Mangrove Boat with Chest",
+      "meta": {
+        "key": "item.minecraft.mangrove_chest_boat"
+      }
+    },
+    {
+      "ref": "el:0681",
+      "text": "Empty Map",
+      "meta": {
+        "key": "item.minecraft.map"
+      }
+    },
+    {
+      "ref": "el:0682",
+      "text": "Melon Seeds",
+      "meta": {
+        "key": "item.minecraft.melon_seeds"
+      }
+    },
+    {
+      "ref": "el:0683",
+      "text": "Melon Slice",
+      "meta": {
+        "key": "item.minecraft.melon_slice"
+      }
+    },
+    {
+      "ref": "el:0684",
+      "text": "Milk Bucket",
+      "meta": {
+        "key": "item.minecraft.milk_bucket"
+      }
+    },
+    {
+      "ref": "el:0685",
+      "text": "Minecart",
+      "meta": {
+        "key": "item.minecraft.minecart"
+      }
+    },
+    {
+      "ref": "el:0686",
+      "text": "Miner Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.miner_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0687",
+      "text": "Miner Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.miner_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0688",
+      "text": "Bamboo Fence Gate",
+      "meta": {
+        "key": "block.minecraft.bamboo_fence_gate"
+      }
+    },
+    {
+      "ref": "el:0689",
+      "text": "Bamboo Hanging Sign",
+      "meta": {
+        "key": "block.minecraft.bamboo_hanging_sign"
+      }
+    },
+    {
+      "ref": "el:0690",
+      "text": "Bamboo Mosaic",
+      "meta": {
+        "key": "block.minecraft.bamboo_mosaic"
+      }
+    },
+    {
+      "ref": "el:0691",
+      "text": "Bamboo Mosaic Slab",
+      "meta": {
+        "key": "block.minecraft.bamboo_mosaic_slab"
+      }
+    },
+    {
+      "ref": "el:0692",
+      "text": "Bamboo Mosaic Stairs",
+      "meta": {
+        "key": "block.minecraft.bamboo_mosaic_stairs"
+      }
+    },
+    {
+      "ref": "el:0693",
+      "text": "Bamboo Planks",
+      "meta": {
+        "key": "block.minecraft.bamboo_planks"
+      }
+    },
+    {
+      "ref": "el:0694",
+      "text": "Bamboo Pressure Plate",
+      "meta": {
+        "key": "block.minecraft.bamboo_pressure_plate"
+      }
+    },
+    {
+      "ref": "el:0695",
+      "text": "Bamboo Shoot",
+      "meta": {
+        "key": "block.minecraft.bamboo_sapling"
+      }
+    },
+    {
+      "ref": "el:0696",
+      "text": "Bamboo Shelf",
+      "meta": {
+        "key": "block.minecraft.bamboo_shelf"
+      }
+    },
+    {
+      "ref": "el:0697",
+      "text": "Bamboo Sign",
+      "meta": {
+        "key": "block.minecraft.bamboo_sign"
+      }
+    },
+    {
+      "ref": "el:0698",
+      "text": "Bamboo Slab",
+      "meta": {
+        "key": "block.minecraft.bamboo_slab"
+      }
+    },
+    {
+      "ref": "el:0699",
+      "text": "Bamboo Stairs",
+      "meta": {
+        "key": "block.minecraft.bamboo_stairs"
+      }
+    },
+    {
+      "ref": "el:0700",
+      "text": "Bamboo Trapdoor",
+      "meta": {
+        "key": "block.minecraft.bamboo_trapdoor"
+      }
+    },
+    {
+      "ref": "el:0701",
+      "text": "Bamboo Wall Hanging Sign",
+      "meta": {
+        "key": "block.minecraft.bamboo_wall_hanging_sign"
+      }
+    },
+    {
+      "ref": "el:0702",
+      "text": "Bamboo Wall Sign",
+      "meta": {
+        "key": "block.minecraft.bamboo_wall_sign"
+      }
+    },
+    {
+      "ref": "el:0703",
+      "text": "Fully Black Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.black"
+      }
+    },
+    {
+      "ref": "el:0704",
+      "text": "Fully Blue Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.blue"
+      }
+    },
+    {
+      "ref": "el:0705",
+      "text": "Fully Brown Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.brown"
+      }
+    },
+    {
+      "ref": "el:0706",
+      "text": "Fully Cyan Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.cyan"
+      }
+    },
+    {
+      "ref": "el:0707",
+      "text": "Fully Gray Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.gray"
+      }
+    },
+    {
+      "ref": "el:0708",
+      "text": "Fully Green Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.green"
+      }
+    },
+    {
+      "ref": "el:0709",
+      "text": "Fully Light Blue Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.light_blue"
+      }
+    },
+    {
+      "ref": "el:0710",
+      "text": "Fully Light Gray Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.light_gray"
+      }
+    },
+    {
+      "ref": "el:0711",
+      "text": "Fully Lime Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.lime"
+      }
+    },
+    {
+      "ref": "el:0712",
+      "text": "Fully Magenta Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.magenta"
+      }
+    },
+    {
+      "ref": "el:0713",
+      "text": "Fully Orange Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.orange"
+      }
+    },
+    {
+      "ref": "el:0714",
+      "text": "Fully Pink Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.pink"
+      }
+    },
+    {
+      "ref": "el:0715",
+      "text": "Fully Purple Field",
+      "meta": {
+        "key": "block.minecraft.banner.base.purple"
+      }
+    },
+    {
+      "ref": "el:0716",
+      "text": "Orange Wool",
+      "meta": {
+        "key": "block.minecraft.orange_wool"
+      }
+    },
+    {
+      "ref": "el:0717",
+      "text": "Oxeye Daisy",
+      "meta": {
+        "key": "block.minecraft.oxeye_daisy"
+      }
+    },
+    {
+      "ref": "el:0718",
+      "text": "Oxidized Chiseled Copper",
+      "meta": {
+        "key": "block.minecraft.oxidized_chiseled_copper"
+      }
+    },
+    {
+      "ref": "el:0719",
+      "text": "Oxidized Copper",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper"
+      }
+    },
+    {
+      "ref": "el:0720",
+      "text": "Oxidized Copper Bars",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper_bars"
+      }
+    },
+    {
+      "ref": "el:0721",
+      "text": "Oxidized Copper Bulb",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper_bulb"
+      }
+    },
+    {
+      "ref": "el:0722",
+      "text": "Oxidized Copper Chain",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper_chain"
+      }
+    },
+    {
+      "ref": "el:0723",
+      "text": "Oxidized Copper Chest",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper_chest"
+      }
+    },
+    {
+      "ref": "el:0724",
+      "text": "Oxidized Copper Door",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper_door"
+      }
+    },
+    {
+      "ref": "el:0725",
+      "text": "Oxidized Copper Golem Statue",
+      "meta": {
+        "key": "block.minecraft.oxidized_copper_golem_statue"
+      }
+    },
+    {
+      "ref": "el:0726",
+      "text": "%s is already riding %s",
+      "meta": {
+        "key": "commands.ride.already_riding"
+      }
+    },
+    {
+      "ref": "el:0727",
+      "text": "%s stopped riding %s",
+      "meta": {
+        "key": "commands.ride.dismount.success"
+      }
+    },
+    {
+      "ref": "el:0728",
+      "text": "Players can't be ridden",
+      "meta": {
+        "key": "commands.ride.mount.failure.cant_ride_players"
+      }
+    },
+    {
+      "ref": "el:0729",
+      "text": "%s couldn't start riding %s",
+      "meta": {
+        "key": "commands.ride.mount.failure.generic"
+      }
+    },
+    {
+      "ref": "el:0730",
+      "text": "Can't mount entity on itself or any of its passengers",
+      "meta": {
+        "key": "commands.ride.mount.failure.loop"
+      }
+    },
+    {
+      "ref": "el:0731",
+      "text": "Can't mount entity in different dimension",
+      "meta": {
+        "key": "commands.ride.mount.failure.wrong_dimension"
+      }
+    },
+    {
+      "ref": "el:0732",
+      "text": "%s started riding %s",
+      "meta": {
+        "key": "commands.ride.mount.success"
+      }
+    },
+    {
+      "ref": "el:0733",
+      "text": "%s is not riding any vehicle",
+      "meta": {
+        "key": "commands.ride.not_riding"
+      }
+    },
+    {
+      "ref": "el:0734",
+      "text": "Rotated %s",
+      "meta": {
+        "key": "commands.rotate.success"
+      }
+    },
+    {
+      "ref": "el:0735",
+      "text": "Saving is already turned off",
+      "meta": {
+        "key": "commands.save.alreadyOff"
+      }
+    },
+    {
+      "ref": "el:0736",
+      "text": "Saving is already turned on",
+      "meta": {
+        "key": "commands.save.alreadyOn"
+      }
+    },
+    {
+      "ref": "el:0737",
+      "text": "Automatic saving is now disabled",
+      "meta": {
+        "key": "commands.save.disabled"
+      }
+    },
+    {
+      "ref": "el:0738",
+      "text": "Automatic saving is now enabled",
+      "meta": {
+        "key": "commands.save.enabled"
+      }
+    },
+    {
+      "ref": "el:0739",
+      "text": "Unable to save the game (is there enough disk space?)",
+      "meta": {
+        "key": "commands.save.failed"
+      }
+    },
+    {
+      "ref": "el:0740",
+      "text": "Saving the game (this may take a moment!)",
+      "meta": {
+        "key": "commands.save.saving"
+      }
+    },
+    {
+      "ref": "el:0741",
+      "text": "Saved the game",
+      "meta": {
+        "key": "commands.save.success"
+      }
+    },
+    {
+      "ref": "el:0742",
+      "text": "No schedules with id %s",
+      "meta": {
+        "key": "commands.schedule.cleared.failure"
+      }
+    },
+    {
+      "ref": "el:0743",
+      "text": "Removed %s schedule(s) with id %s",
+      "meta": {
+        "key": "commands.schedule.cleared.success"
+      }
+    },
+    {
+      "ref": "el:0744",
+      "text": "Scheduled function '%s' in %s tick(s) at gametime %s",
+      "meta": {
+        "key": "commands.schedule.created.function"
+      }
+    },
+    {
+      "ref": "el:0745",
+      "text": "Scheduled tag '%s' in %s tick(s) at gametime %s",
+      "meta": {
+        "key": "commands.schedule.created.tag"
+      }
+    },
+    {
+      "ref": "el:0746",
+      "text": "Can't schedule a macro",
+      "meta": {
+        "key": "commands.schedule.macro"
+      }
+    },
+    {
+      "ref": "el:0747",
+      "text": "Can't schedule for current tick",
+      "meta": {
+        "key": "commands.schedule.same_tick"
+      }
+    },
+    {
+      "ref": "el:0748",
+      "text": "An objective already exists by that name",
+      "meta": {
+        "key": "commands.scoreboard.objectives.add.duplicate"
+      }
+    },
+    {
+      "ref": "el:0749",
+      "text": "Created new objective %s",
+      "meta": {
+        "key": "commands.scoreboard.objectives.add.success"
+      }
+    },
+    {
+      "ref": "el:0750",
+      "text": "Nothing changed. That display slot is already empty",
+      "meta": {
+        "key": "commands.scoreboard.objectives.display.alreadyEmpty"
+      }
+    },
+    {
+      "ref": "el:0751",
+      "text": "Nothing changed. That display slot is already showing that objective",
+      "meta": {
+        "key": "commands.scoreboard.objectives.display.alreadySet"
+      }
+    },
+    {
+      "ref": "el:0752",
+      "text": "Cleared any objectives in display slot %s",
+      "meta": {
+        "key": "commands.scoreboard.objectives.display.cleared"
+      }
+    },
+    {
+      "ref": "el:0753",
+      "text": "Set display slot %s to show objective %s",
+      "meta": {
+        "key": "commands.scoreboard.objectives.display.set"
+      }
+    },
+    {
+      "ref": "el:0754",
+      "text": "Sleeping through this night",
+      "meta": {
+        "key": "sleep.skipping_night"
+      }
+    },
+    {
+      "ref": "el:0755",
+      "text": "Only single slots allowed: got '%s'",
+      "meta": {
+        "key": "slot.only_single_allowed"
+      }
+    },
+    {
+      "ref": "el:0756",
+      "text": "Unknown slot '%s'",
+      "meta": {
+        "key": "slot.unknown"
+      }
+    },
+    {
+      "ref": "el:0757",
+      "text": "Key cannot be empty",
+      "meta": {
+        "key": "snbt.parser.empty_key"
+      }
+    },
+    {
+      "ref": "el:0758",
+      "text": "Expected a binary number",
+      "meta": {
+        "key": "snbt.parser.expected_binary_numeral"
+      }
+    },
+    {
+      "ref": "el:0759",
+      "text": "Expected a decimal number",
+      "meta": {
+        "key": "snbt.parser.expected_decimal_numeral"
+      }
+    },
+    {
+      "ref": "el:0760",
+      "text": "Expected a floating point number",
+      "meta": {
+        "key": "snbt.parser.expected_float_type"
+      }
+    },
+    {
+      "ref": "el:0761",
+      "text": "Expected a character literal of length %s",
+      "meta": {
+        "key": "snbt.parser.expected_hex_escape"
+      }
+    },
+    {
+      "ref": "el:0762",
+      "text": "Expected a hexadecimal number",
+      "meta": {
+        "key": "snbt.parser.expected_hex_numeral"
+      }
+    },
+    {
+      "ref": "el:0763",
+      "text": "Expected an integer number",
+      "meta": {
+        "key": "snbt.parser.expected_integer_type"
+      }
+    },
+    {
+      "ref": "el:0764",
+      "text": "Expected a non-negative number",
+      "meta": {
+        "key": "snbt.parser.expected_non_negative_number"
+      }
+    },
+    {
+      "ref": "el:0765",
+      "text": "Expected a number or a boolean",
+      "meta": {
+        "key": "snbt.parser.expected_number_or_boolean"
+      }
+    },
+    {
+      "ref": "el:0766",
+      "text": "Expected a string representing a valid UUID",
+      "meta": {
+        "key": "snbt.parser.expected_string_uuid"
+      }
+    },
+    {
+      "ref": "el:0767",
+      "text": "Expected a valid unquoted string",
+      "meta": {
+        "key": "snbt.parser.expected_unquoted_string"
+      }
+    },
+    {
+      "ref": "el:0768",
+      "text": "Non-finite numbers are not allowed",
+      "meta": {
+        "key": "snbt.parser.infinity_not_allowed"
+      }
+    },
+    {
+      "ref": "el:0769",
+      "text": "Invalid array element type",
+      "meta": {
+        "key": "snbt.parser.invalid_array_element_type"
+      }
+    },
+    {
+      "ref": "el:0770",
+      "text": "Invalid Unicode character name",
+      "meta": {
+        "key": "snbt.parser.invalid_character_name"
+      }
+    },
+    {
+      "ref": "el:0771",
+      "text": "No tests found",
+      "meta": {
+        "key": "commands.test.run.no_tests"
+      }
+    },
+    {
+      "ref": "el:0772",
+      "text": "Running %s test(s)...",
+      "meta": {
+        "key": "commands.test.run.running"
+      }
+    },
+    {
+      "ref": "el:0773",
+      "text": "Game Test complete! %s test(s) were run",
+      "meta": {
+        "key": "commands.test.summary"
+      }
+    },
+    {
+      "ref": "el:0774",
+      "text": "All required tests passed :)",
+      "meta": {
+        "key": "commands.test.summary.all_required_passed"
+      }
+    },
+    {
+      "ref": "el:0775",
+      "text": "%s required test(s) failed :(",
+      "meta": {
+        "key": "commands.test.summary.failed"
+      }
+    },
+    {
+      "ref": "el:0776",
+      "text": "%s optional test(s) failed",
+      "meta": {
+        "key": "commands.test.summary.optional_failed"
+      }
+    },
+    {
+      "ref": "el:0777",
+      "text": "Percentiles: P50: %sms P95: %sms P99: %sms. Sample: %s",
+      "meta": {
+        "key": "commands.tick.query.percentiles"
+      }
+    },
+    {
+      "ref": "el:0778",
+      "text": "Target tick rate: %s per second.\nAverage time per tick: %sms (Target: %sms)",
+      "meta": {
+        "key": "commands.tick.query.rate.running"
+      }
+    },
+    {
+      "ref": "el:0779",
+      "text": "Target tick rate: %s per second (ignored, reference only).\nAverage time per tick: %sms",
+      "meta": {
+        "key": "commands.tick.query.rate.sprinting"
+      }
+    },
+    {
+      "ref": "el:0780",
+      "text": "Set the target tick rate to %s per second",
+      "meta": {
+        "key": "commands.tick.rate.success"
+      }
+    },
+    {
+      "ref": "el:0781",
+      "text": "Sprint completed with %s ticks per second, or %s ms per tick",
+      "meta": {
+        "key": "commands.tick.sprint.report"
+      }
+    },
+    {
+      "ref": "el:0782",
+      "text": "No tick sprint in progress",
+      "meta": {
+        "key": "commands.tick.sprint.stop.fail"
+      }
+    },
+    {
+      "ref": "el:0783",
+      "text": "Interrupted the current tick sprint",
+      "meta": {
+        "key": "commands.tick.sprint.stop.success"
+      }
+    },
+    {
+      "ref": "el:0784",
+      "text": "The game is frozen",
+      "meta": {
+        "key": "commands.tick.status.frozen"
+      }
+    },
+    {
+      "ref": "el:0785",
+      "text": "The game is running, but can't keep up with the target tick rate",
+      "meta": {
+        "key": "commands.tick.status.lagging"
+      }
+    },
+    {
+      "ref": "el:0786",
+      "text": "The game is running normally",
+      "meta": {
+        "key": "commands.tick.status.running"
+      }
+    },
+    {
+      "ref": "el:0787",
+      "text": "The game is sprinting",
+      "meta": {
+        "key": "commands.tick.status.sprinting"
+      }
+    },
+    {
+      "ref": "el:0788",
+      "text": "Unable to step the game - the game must be frozen first",
+      "meta": {
+        "key": "commands.tick.step.fail"
+      }
+    },
+    {
+      "ref": "el:0789",
+      "text": "No tick step in progress",
+      "meta": {
+        "key": "commands.tick.step.stop.fail"
+      }
+    },
+    {
+      "ref": "el:0790",
+      "text": "Interrupted the current tick step",
+      "meta": {
+        "key": "commands.tick.step.stop.success"
+      }
+    },
+    {
+      "ref": "el:0791",
+      "text": "Stepping %s tick(s)",
+      "meta": {
+        "key": "commands.tick.step.success"
+      }
+    },
+    {
+      "ref": "el:0792",
+      "text": "The time is %s",
+      "meta": {
+        "key": "commands.time.query"
+      }
+    },
+    {
+      "ref": "el:0793",
+      "text": "Set the time to %s",
+      "meta": {
+        "key": "commands.time.set"
+      }
+    },
+    {
+      "ref": "el:0794",
+      "text": "Cleared titles for %s players",
+      "meta": {
+        "key": "commands.title.cleared.multiple"
+      }
+    },
+    {
+      "ref": "el:0795",
+      "text": "Cleared titles for %s",
+      "meta": {
+        "key": "commands.title.cleared.single"
+      }
+    },
+    {
+      "ref": "el:0796",
+      "text": "Reset title options for %s players",
+      "meta": {
+        "key": "commands.title.reset.multiple"
+      }
+    },
+    {
+      "ref": "el:0797",
+      "text": "Reset title options for %s",
+      "meta": {
+        "key": "commands.title.reset.single"
+      }
+    },
+    {
+      "ref": "el:0798",
+      "text": "End Portal opens",
+      "meta": {
+        "key": "subtitles.block.end_portal.spawn"
+      }
+    },
+    {
+      "ref": "el:0799",
+      "text": "Eyeblossom closes",
+      "meta": {
+        "key": "subtitles.block.eyeblossom.close"
+      }
+    },
+    {
+      "ref": "el:0800",
+      "text": "Eyeblossom whispers",
+      "meta": {
+        "key": "subtitles.block.eyeblossom.idle"
+      }
+    },
+    {
+      "ref": "el:0801",
+      "text": "Eyeblossom opens",
+      "meta": {
+        "key": "subtitles.block.eyeblossom.open"
+      }
+    },
+    {
+      "ref": "el:0802",
+      "text": "Fence Gate creaks",
+      "meta": {
+        "key": "subtitles.block.fence_gate.toggle"
+      }
+    },
+    {
+      "ref": "el:0803",
+      "text": "Fire crackles",
+      "meta": {
+        "key": "subtitles.block.fire.ambient"
+      }
+    },
+    {
+      "ref": "el:0804",
+      "text": "Fire extinguished",
+      "meta": {
+        "key": "subtitles.block.fire.extinguish"
+      }
+    },
+    {
+      "ref": "el:0805",
+      "text": "Fireflies buzz",
+      "meta": {
+        "key": "subtitles.block.firefly_bush.idle"
+      }
+    },
+    {
+      "ref": "el:0806",
+      "text": "Tadpole hatches",
+      "meta": {
+        "key": "subtitles.block.frogspawn.hatch"
+      }
+    },
+    {
+      "ref": "el:0807",
+      "text": "Furnace crackles",
+      "meta": {
+        "key": "subtitles.block.furnace.fire_crackle"
+      }
+    },
+    {
+      "ref": "el:0808",
+      "text": "Block broken",
+      "meta": {
+        "key": "subtitles.block.generic.break"
+      }
+    },
+    {
+      "ref": "el:0809",
+      "text": "Something falls on a block",
+      "meta": {
+        "key": "subtitles.block.generic.fall"
+      }
+    },
+    {
+      "ref": "el:0810",
+      "text": "Footsteps",
+      "meta": {
+        "key": "subtitles.block.generic.footsteps"
+      }
+    },
+    {
+      "ref": "el:0811",
+      "text": "Block breaking",
+      "meta": {
+        "key": "subtitles.block.generic.hit"
+      }
+    },
+    {
+      "ref": "el:0812",
+      "text": "Chiseled Tuff",
+      "meta": {
+        "key": "block.minecraft.chiseled_tuff"
+      }
+    },
+    {
+      "ref": "el:0813",
+      "text": "Chiseled Tuff Bricks",
+      "meta": {
+        "key": "block.minecraft.chiseled_tuff_bricks"
+      }
+    },
+    {
+      "ref": "el:0814",
+      "text": "Chorus Flower",
+      "meta": {
+        "key": "block.minecraft.chorus_flower"
+      }
+    },
+    {
+      "ref": "el:0815",
+      "text": "Chorus Plant",
+      "meta": {
+        "key": "block.minecraft.chorus_plant"
+      }
+    },
+    {
+      "ref": "el:0816",
+      "text": "Clay",
+      "meta": {
+        "key": "block.minecraft.clay"
+      }
+    },
+    {
+      "ref": "el:0817",
+      "text": "Closed Eyeblossom",
+      "meta": {
+        "key": "block.minecraft.closed_eyeblossom"
+      }
+    },
+    {
+      "ref": "el:0818",
+      "text": "Block of Coal",
+      "meta": {
+        "key": "block.minecraft.coal_block"
+      }
+    },
+    {
+      "ref": "el:0819",
+      "text": "Coal Ore",
+      "meta": {
+        "key": "block.minecraft.coal_ore"
+      }
+    },
+    {
+      "ref": "el:0820",
+      "text": "Coarse Dirt",
+      "meta": {
+        "key": "block.minecraft.coarse_dirt"
+      }
+    },
+    {
+      "ref": "el:0821",
+      "text": "Cobbled Deepslate",
+      "meta": {
+        "key": "block.minecraft.cobbled_deepslate"
+      }
+    },
+    {
+      "ref": "el:0822",
+      "text": "Cobbled Deepslate Slab",
+      "meta": {
+        "key": "block.minecraft.cobbled_deepslate_slab"
+      }
+    },
+    {
+      "ref": "el:0823",
+      "text": "Cobbled Deepslate Stairs",
+      "meta": {
+        "key": "block.minecraft.cobbled_deepslate_stairs"
+      }
+    },
+    {
+      "ref": "el:0824",
+      "text": "Cobbled Deepslate Wall",
+      "meta": {
+        "key": "block.minecraft.cobbled_deepslate_wall"
+      }
+    },
+    {
+      "ref": "el:0825",
+      "text": "Cobblestone",
+      "meta": {
+        "key": "block.minecraft.cobblestone"
+      }
+    },
+    {
+      "ref": "el:0826",
+      "text": "Cobblestone Slab",
+      "meta": {
+        "key": "block.minecraft.cobblestone_slab"
+      }
+    },
+    {
+      "ref": "el:0827",
+      "text": "Cobblestone Stairs",
+      "meta": {
+        "key": "block.minecraft.cobblestone_stairs"
+      }
+    },
+    {
+      "ref": "el:0828",
+      "text": "Cobblestone Wall",
+      "meta": {
+        "key": "block.minecraft.cobblestone_wall"
+      }
+    },
+    {
+      "ref": "el:0829",
+      "text": "Cobweb",
+      "meta": {
+        "key": "block.minecraft.cobweb"
+      }
+    },
+    {
+      "ref": "el:0830",
+      "text": "Cyan",
+      "meta": {
+        "key": "color.minecraft.cyan"
+      }
+    },
+    {
+      "ref": "el:0831",
+      "text": "Gray",
+      "meta": {
+        "key": "color.minecraft.gray"
+      }
+    },
+    {
+      "ref": "el:0832",
+      "text": "Green",
+      "meta": {
+        "key": "color.minecraft.green"
+      }
+    },
+    {
+      "ref": "el:0833",
+      "text": "Light Blue",
+      "meta": {
+        "key": "color.minecraft.light_blue"
+      }
+    },
+    {
+      "ref": "el:0834",
+      "text": "Light Gray",
+      "meta": {
+        "key": "color.minecraft.light_gray"
+      }
+    },
+    {
+      "ref": "el:0835",
+      "text": "Lime",
+      "meta": {
+        "key": "color.minecraft.lime"
+      }
+    },
+    {
+      "ref": "el:0836",
+      "text": "Magenta",
+      "meta": {
+        "key": "color.minecraft.magenta"
+      }
+    },
+    {
+      "ref": "el:0837",
+      "text": "Orange",
+      "meta": {
+        "key": "color.minecraft.orange"
+      }
+    },
+    {
+      "ref": "el:0838",
+      "text": "Pink",
+      "meta": {
+        "key": "color.minecraft.pink"
+      }
+    },
+    {
+      "ref": "el:0839",
+      "text": "Purple",
+      "meta": {
+        "key": "color.minecraft.purple"
+      }
+    },
+    {
+      "ref": "el:0840",
+      "text": "Red",
+      "meta": {
+        "key": "color.minecraft.red"
+      }
+    },
+    {
+      "ref": "el:0841",
+      "text": "White",
+      "meta": {
+        "key": "color.minecraft.white"
+      }
+    },
+    {
+      "ref": "el:0842",
+      "text": "Yellow",
+      "meta": {
+        "key": "color.minecraft.yellow"
+      }
+    },
+    {
+      "ref": "el:0843",
+      "text": "<--[HERE]",
+      "meta": {
+        "key": "command.context.here"
+      }
+    },
+    {
+      "ref": "el:0844",
+      "text": "%s at position %s: %s",
+      "meta": {
+        "key": "command.context.parse_error"
+      }
+    },
+    {
+      "ref": "el:0845",
+      "text": "Could not parse command: %s",
+      "meta": {
+        "key": "command.exception"
+      }
+    },
+    {
+      "ref": "el:0846",
+      "text": "Expected whitespace to end one argument, but found trailing data",
+      "meta": {
+        "key": "command.expected.separator"
+      }
+    },
+    {
+      "ref": "el:0847",
+      "text": "An unexpected error occurred trying to execute that command",
+      "meta": {
+        "key": "command.failed"
+      }
+    },
+    {
+      "ref": "el:0848",
+      "text": "Black Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.black"
+      }
+    },
+    {
+      "ref": "el:0849",
+      "text": "Blue Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.blue"
+      }
+    },
+    {
+      "ref": "el:0850",
+      "text": "Brown Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.brown"
+      }
+    },
+    {
+      "ref": "el:0851",
+      "text": "Cyan Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.cyan"
+      }
+    },
+    {
+      "ref": "el:0852",
+      "text": "Gray Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.gray"
+      }
+    },
+    {
+      "ref": "el:0853",
+      "text": "Green Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.green"
+      }
+    },
+    {
+      "ref": "el:0854",
+      "text": "Light Blue Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.light_blue"
+      }
+    },
+    {
+      "ref": "el:0855",
+      "text": "Light Gray Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.light_gray"
+      }
+    },
+    {
+      "ref": "el:0856",
+      "text": "Lime Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.lime"
+      }
+    },
+    {
+      "ref": "el:0857",
+      "text": "Magenta Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.magenta"
+      }
+    },
+    {
+      "ref": "el:0858",
+      "text": "Orange Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.orange"
+      }
+    },
+    {
+      "ref": "el:0859",
+      "text": "Pink Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.pink"
+      }
+    },
+    {
+      "ref": "el:0860",
+      "text": "Purple Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.purple"
+      }
+    },
+    {
+      "ref": "el:0861",
+      "text": "Red Inverted Chevron",
+      "meta": {
+        "key": "block.minecraft.banner.triangle_top.red"
+      }
+    },
+    {
+      "ref": "el:0862",
+      "text": "Hostile mobs spawn and deal standard damage. Hunger bar depletes and drains health down to half a heart.",
+      "meta": {
+        "key": "options.difficulty.normal.info"
+      }
+    },
+    {
+      "ref": "el:0863",
+      "text": "Server Difficulty",
+      "meta": {
+        "key": "options.difficulty.online"
+      }
+    },
+    {
+      "ref": "el:0864",
+      "text": "Peaceful",
+      "meta": {
+        "key": "options.difficulty.peaceful"
+      }
+    },
+    {
+      "ref": "el:0865",
+      "text": "No hostile mobs and only some neutral mobs spawn. Hunger bar doesn't deplete and health replenishes over time.",
+      "meta": {
+        "key": "options.difficulty.peaceful.info"
+      }
+    },
+    {
+      "ref": "el:0866",
+      "text": "Directional Audio",
+      "meta": {
+        "key": "options.directionalAudio"
+      }
+    },
+    {
+      "ref": "el:0867",
+      "text": "Classic Stereo sound.",
+      "meta": {
+        "key": "options.directionalAudio.off.tooltip"
+      }
+    },
+    {
+      "ref": "el:0868",
+      "text": "Uses HRTF-based directional audio to improve the simulation of 3D sound. Requires HRTF compatible audio hardware, and is best experienced with headphones.",
+      "meta": {
+        "key": "options.directionalAudio.on.tooltip"
+      }
+    },
+    {
+      "ref": "el:0869",
+      "text": "Discrete Scrolling",
+      "meta": {
+        "key": "options.discrete_mouse_scroll"
+      }
+    },
+    {
+      "ref": "el:0870",
+      "text": "Entity Distance",
+      "meta": {
+        "key": "options.entityDistanceScaling"
+      }
+    },
+    {
+      "ref": "el:0871",
+      "text": "Entity Shadows",
+      "meta": {
+        "key": "options.entityShadows"
+      }
+    },
+    {
+      "ref": "el:0872",
+      "text": "Font Settings...",
+      "meta": {
+        "key": "options.font"
+      }
+    },
+    {
+      "ref": "el:0873",
+      "text": "Font Settings",
+      "meta": {
+        "key": "options.font.title"
+      }
+    },
+    {
+      "ref": "el:0874",
+      "text": "Force Unicode Font",
+      "meta": {
+        "key": "options.forceUnicodeFont"
+      }
+    },
+    {
+      "ref": "el:0875",
+      "text": "FOV",
+      "meta": {
+        "key": "options.fov"
+      }
+    },
+    {
+      "ref": "el:0876",
+      "text": "Quake Pro",
+      "meta": {
+        "key": "options.fov.max"
+      }
+    },
+    {
+      "ref": "el:0877",
+      "text": "Normal",
+      "meta": {
+        "key": "options.fov.min"
+      }
+    },
+    {
+      "ref": "el:0878",
+      "text": "FOV Effects",
+      "meta": {
+        "key": "options.fovEffectScale"
+      }
+    },
+    {
+      "ref": "el:0879",
+      "text": "Controls how much the field of view can change with gameplay effects.",
+      "meta": {
+        "key": "options.fovEffectScale.tooltip"
+      }
+    },
+    {
+      "ref": "el:0880",
+      "text": "%s fps",
+      "meta": {
+        "key": "options.framerate"
+      }
+    },
+    {
+      "ref": "el:0881",
+      "text": "Max Framerate",
+      "meta": {
+        "key": "options.framerateLimit"
+      }
+    },
+    {
+      "ref": "el:0882",
+      "text": "Unlimited",
+      "meta": {
+        "key": "options.framerateLimit.max"
+      }
+    },
+    {
+      "ref": "el:0883",
+      "text": "Fullscreen",
+      "meta": {
+        "key": "options.fullscreen"
+      }
+    },
+    {
+      "ref": "el:0884",
+      "text": "Current",
+      "meta": {
+        "key": "options.fullscreen.current"
+      }
+    },
+    {
+      "ref": "el:0885",
+      "text": "%sx%s@%s (%sbit)",
+      "meta": {
+        "key": "options.fullscreen.entry"
+      }
+    },
+    {
+      "ref": "el:0886",
+      "text": "Potion of Strength",
+      "meta": {
+        "key": "item.minecraft.potion.effect.strength"
+      }
+    },
+    {
+      "ref": "el:0887",
+      "text": "Potion of Swiftness",
+      "meta": {
+        "key": "item.minecraft.potion.effect.swiftness"
+      }
+    },
+    {
+      "ref": "el:0888",
+      "text": "Thick Potion",
+      "meta": {
+        "key": "item.minecraft.potion.effect.thick"
+      }
+    },
+    {
+      "ref": "el:0889",
+      "text": "Potion of the Turtle Master",
+      "meta": {
+        "key": "item.minecraft.potion.effect.turtle_master"
+      }
+    },
+    {
+      "ref": "el:0890",
+      "text": "Water Bottle",
+      "meta": {
+        "key": "item.minecraft.potion.effect.water"
+      }
+    },
+    {
+      "ref": "el:0891",
+      "text": "Potion of Water Breathing",
+      "meta": {
+        "key": "item.minecraft.potion.effect.water_breathing"
+      }
+    },
+    {
+      "ref": "el:0892",
+      "text": "Potion of Weakness",
+      "meta": {
+        "key": "item.minecraft.potion.effect.weakness"
+      }
+    },
+    {
+      "ref": "el:0893",
+      "text": "Potion of Weaving",
+      "meta": {
+        "key": "item.minecraft.potion.effect.weaving"
+      }
+    },
+    {
+      "ref": "el:0894",
+      "text": "Potion of Wind Charging",
+      "meta": {
+        "key": "item.minecraft.potion.effect.wind_charged"
+      }
+    },
+    {
+      "ref": "el:0895",
+      "text": "Archer Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.pottery_shard_archer"
+      }
+    },
+    {
+      "ref": "el:0896",
+      "text": "Arms Up Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.pottery_shard_arms_up"
+      }
+    },
+    {
+      "ref": "el:0897",
+      "text": "Prize Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.pottery_shard_prize"
+      }
+    },
+    {
+      "ref": "el:0898",
+      "text": "Skull Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.pottery_shard_skull"
+      }
+    },
+    {
+      "ref": "el:0899",
+      "text": "Powder Snow Bucket",
+      "meta": {
+        "key": "item.minecraft.powder_snow_bucket"
+      }
+    },
+    {
+      "ref": "el:0900",
+      "text": "Prismarine Crystals",
+      "meta": {
+        "key": "item.minecraft.prismarine_crystals"
+      }
+    },
+    {
+      "ref": "el:0901",
+      "text": "Prismarine Shard",
+      "meta": {
+        "key": "item.minecraft.prismarine_shard"
+      }
+    },
+    {
+      "ref": "el:0902",
+      "text": "Prize Pottery Shard",
+      "meta": {
+        "key": "item.minecraft.prize_pottery_shard"
+      }
+    },
+    {
+      "ref": "el:0903",
+      "text": "Prize Pottery Sherd",
+      "meta": {
+        "key": "item.minecraft.prize_pottery_sherd"
+      }
+    },
+    {
+      "ref": "el:0904",
+      "text": "Pufferfish",
+      "meta": {
+        "key": "item.minecraft.pufferfish"
+      }
+    },
+    {
+      "ref": "el:0905",
+      "text": "Bucket of Pufferfish",
+      "meta": {
+        "key": "item.minecraft.pufferfish_bucket"
+      }
+    },
+    {
+      "ref": "el:0906",
+      "text": "Pufferfish Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.pufferfish_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0907",
+      "text": "C418 - strad",
+      "meta": {
+        "key": "item.minecraft.music_disc_strad.desc"
+      }
+    },
+    {
+      "ref": "el:0908",
+      "text": "Music Disc",
+      "meta": {
+        "key": "item.minecraft.music_disc_tears"
+      }
+    },
+    {
+      "ref": "el:0909",
+      "text": "Amos Roddy - Tears",
+      "meta": {
+        "key": "item.minecraft.music_disc_tears.desc"
+      }
+    },
+    {
+      "ref": "el:0910",
+      "text": "Music Disc",
+      "meta": {
+        "key": "item.minecraft.music_disc_wait"
+      }
+    },
+    {
+      "ref": "el:0911",
+      "text": "C418 - wait",
+      "meta": {
+        "key": "item.minecraft.music_disc_wait.desc"
+      }
+    },
+    {
+      "ref": "el:0912",
+      "text": "Music Disc",
+      "meta": {
+        "key": "item.minecraft.music_disc_ward"
+      }
+    },
+    {
+      "ref": "el:0913",
+      "text": "C418 - ward",
+      "meta": {
+        "key": "item.minecraft.music_disc_ward.desc"
+      }
+    },
+    {
+      "ref": "el:0914",
+      "text": "Raw Mutton",
+      "meta": {
+        "key": "item.minecraft.mutton"
+      }
+    },
+    {
+      "ref": "el:0915",
+      "text": "Name Tag",
+      "meta": {
+        "key": "item.minecraft.name_tag"
+      }
+    },
+    {
+      "ref": "el:0916",
+      "text": "Nautilus Shell",
+      "meta": {
+        "key": "item.minecraft.nautilus_shell"
+      }
+    },
+    {
+      "ref": "el:0917",
+      "text": "Nether Brick",
+      "meta": {
+        "key": "item.minecraft.nether_brick"
+      }
+    },
+    {
+      "ref": "el:0918",
+      "text": "Nether Star",
+      "meta": {
+        "key": "item.minecraft.nether_star"
+      }
+    },
+    {
+      "ref": "el:0919",
+      "text": "Nether Wart",
+      "meta": {
+        "key": "item.minecraft.nether_wart"
+      }
+    },
+    {
+      "ref": "el:0920",
+      "text": "Netherite Axe",
+      "meta": {
+        "key": "item.minecraft.netherite_axe"
+      }
+    },
+    {
+      "ref": "el:0921",
+      "text": "Netherite Boots",
+      "meta": {
+        "key": "item.minecraft.netherite_boots"
+      }
+    },
+    {
+      "ref": "el:0922",
+      "text": "Netherite Chestplate",
+      "meta": {
+        "key": "item.minecraft.netherite_chestplate"
+      }
+    },
+    {
+      "ref": "el:0923",
+      "text": "Netherite Helmet",
+      "meta": {
+        "key": "item.minecraft.netherite_helmet"
+      }
+    },
+    {
+      "ref": "el:0924",
+      "text": "There are %s of a max of %s players online: %s",
+      "meta": {
+        "key": "commands.list.players"
+      }
+    },
+    {
+      "ref": "el:0925",
+      "text": "Could not find a biome of type \"%s\" within reasonable distance",
+      "meta": {
+        "key": "commands.locate.biome.not_found"
+      }
+    },
+    {
+      "ref": "el:0926",
+      "text": "The nearest %s is at %s (%s blocks away)",
+      "meta": {
+        "key": "commands.locate.biome.success"
+      }
+    },
+    {
+      "ref": "el:0927",
+      "text": "Could not find a point of interest of type \"%s\" within reasonable distance",
+      "meta": {
+        "key": "commands.locate.poi.not_found"
+      }
+    },
+    {
+      "ref": "el:0928",
+      "text": "The nearest %s is at %s (%s blocks away)",
+      "meta": {
+        "key": "commands.locate.poi.success"
+      }
+    },
+    {
+      "ref": "el:0929",
+      "text": "There is no structure with type \"%s\"",
+      "meta": {
+        "key": "commands.locate.structure.invalid"
+      }
+    },
+    {
+      "ref": "el:0930",
+      "text": "Could not find a structure of type \"%s\" nearby",
+      "meta": {
+        "key": "commands.locate.structure.not_found"
+      }
+    },
+    {
+      "ref": "el:0931",
+      "text": "The nearest %s is at %s (%s blocks away)",
+      "meta": {
+        "key": "commands.locate.structure.success"
+      }
+    },
+    {
+      "ref": "el:0932",
+      "text": "%s whispers to you: %s",
+      "meta": {
+        "key": "commands.message.display.incoming"
+      }
+    },
+    {
+      "ref": "el:0933",
+      "text": "You whisper to %s: %s",
+      "meta": {
+        "key": "commands.message.display.outgoing"
+      }
+    },
+    {
+      "ref": "el:0934",
+      "text": "Nothing changed. The player already is an operator",
+      "meta": {
+        "key": "commands.op.failed"
+      }
+    },
+    {
+      "ref": "el:0935",
+      "text": "Made %s a server operator",
+      "meta": {
+        "key": "commands.op.success"
+      }
+    },
+    {
+      "ref": "el:0936",
+      "text": "Nothing changed. The player isn't banned",
+      "meta": {
+        "key": "commands.pardon.failed"
+      }
+    },
+    {
+      "ref": "el:0937",
+      "text": "Unbanned %s",
+      "meta": {
+        "key": "commands.pardon.success"
+      }
+    },
+    {
+      "ref": "el:0938",
+      "text": "Nothing changed. That IP isn't banned",
+      "meta": {
+        "key": "commands.pardonip.failed"
+      }
+    },
+    {
+      "ref": "el:0939",
+      "text": "Invalid IP address",
+      "meta": {
+        "key": "commands.pardonip.invalid"
+      }
+    },
+    {
+      "ref": "el:0940",
+      "text": "Unbanned IP %s",
+      "meta": {
+        "key": "commands.pardonip.success"
+      }
+    },
+    {
+      "ref": "el:0941",
+      "text": "The particle was not visible for anybody",
+      "meta": {
+        "key": "commands.particle.failed"
+      }
+    },
+    {
+      "ref": "el:0942",
+      "text": "Displaying particle %s",
+      "meta": {
+        "key": "commands.particle.success"
+      }
+    },
+    {
+      "ref": "el:0943",
+      "text": "The performance profiler is already started",
+      "meta": {
+        "key": "commands.perf.alreadyRunning"
+      }
+    },
+    {
+      "ref": "el:0944",
+      "text": "The performance profiler hasn't started",
+      "meta": {
+        "key": "commands.perf.notRunning"
+      }
+    },
+    {
+      "ref": "el:0945",
+      "text": "Failed to create debug report",
+      "meta": {
+        "key": "commands.perf.reportFailed"
+      }
+    },
+    {
+      "ref": "el:0946",
+      "text": "Created debug report in %s",
+      "meta": {
+        "key": "commands.perf.reportSaved"
+      }
+    },
+    {
+      "ref": "el:0947",
+      "text": "Started 10 second performance profiling run (use '/perf stop' to stop early)",
+      "meta": {
+        "key": "commands.perf.started"
+      }
+    },
+    {
+      "ref": "el:0948",
+      "text": "Stopped performance profiling after %s second(s) and %s tick(s) (%s tick(s) per second)",
+      "meta": {
+        "key": "commands.perf.stopped"
+      }
+    },
+    {
+      "ref": "el:0949",
+      "text": "Print Screen",
+      "meta": {
+        "key": "key.keyboard.print.screen"
+      }
+    },
+    {
+      "ref": "el:0950",
+      "text": "Right Arrow",
+      "meta": {
+        "key": "key.keyboard.right"
+      }
+    },
+    {
+      "ref": "el:0951",
+      "text": "Right Alt",
+      "meta": {
+        "key": "key.keyboard.right.alt"
+      }
+    },
+    {
+      "ref": "el:0952",
+      "text": "]",
+      "meta": {
+        "key": "key.keyboard.right.bracket"
+      }
+    },
+    {
+      "ref": "el:0953",
+      "text": "Right Control",
+      "meta": {
+        "key": "key.keyboard.right.control"
+      }
+    },
+    {
+      "ref": "el:0954",
+      "text": "Right Shift",
+      "meta": {
+        "key": "key.keyboard.right.shift"
+      }
+    },
+    {
+      "ref": "el:0955",
+      "text": "Right Win",
+      "meta": {
+        "key": "key.keyboard.right.win"
+      }
+    },
+    {
+      "ref": "el:0956",
+      "text": "Scroll Lock",
+      "meta": {
+        "key": "key.keyboard.scroll.lock"
+      }
+    },
+    {
+      "ref": "el:0957",
+      "text": ";",
+      "meta": {
+        "key": "key.keyboard.semicolon"
+      }
+    },
+    {
+      "ref": "el:0958",
+      "text": "/",
+      "meta": {
+        "key": "key.keyboard.slash"
+      }
+    },
+    {
+      "ref": "el:0959",
+      "text": "Space",
+      "meta": {
+        "key": "key.keyboard.space"
+      }
+    },
+    {
+      "ref": "el:0960",
+      "text": "Tab",
+      "meta": {
+        "key": "key.keyboard.tab"
+      }
+    },
+    {
+      "ref": "el:0961",
+      "text": "Not Bound",
+      "meta": {
+        "key": "key.keyboard.unknown"
+      }
+    },
+    {
+      "ref": "el:0962",
+      "text": "Up Arrow",
+      "meta": {
+        "key": "key.keyboard.up"
+      }
+    },
+    {
+      "ref": "el:0963",
+      "text": "World 1",
+      "meta": {
+        "key": "key.keyboard.world.1"
+      }
+    },
+    {
+      "ref": "el:0964",
+      "text": "Melon Stem",
+      "meta": {
+        "key": "block.minecraft.melon_stem"
+      }
+    },
+    {
+      "ref": "el:0965",
+      "text": "Moss Block",
+      "meta": {
+        "key": "block.minecraft.moss_block"
+      }
+    },
+    {
+      "ref": "el:0966",
+      "text": "Moss Carpet",
+      "meta": {
+        "key": "block.minecraft.moss_carpet"
+      }
+    },
+    {
+      "ref": "el:0967",
+      "text": "Mossy Cobblestone",
+      "meta": {
+        "key": "block.minecraft.mossy_cobblestone"
+      }
+    },
+    {
+      "ref": "el:0968",
+      "text": "Mossy Cobblestone Slab",
+      "meta": {
+        "key": "block.minecraft.mossy_cobblestone_slab"
+      }
+    },
+    {
+      "ref": "el:0969",
+      "text": "Mossy Cobblestone Stairs",
+      "meta": {
+        "key": "block.minecraft.mossy_cobblestone_stairs"
+      }
+    },
+    {
+      "ref": "el:0970",
+      "text": "Mossy Cobblestone Wall",
+      "meta": {
+        "key": "block.minecraft.mossy_cobblestone_wall"
+      }
+    },
+    {
+      "ref": "el:0971",
+      "text": "Mossy Stone Brick Slab",
+      "meta": {
+        "key": "block.minecraft.mossy_stone_brick_slab"
+      }
+    },
+    {
+      "ref": "el:0972",
+      "text": "Mossy Stone Brick Stairs",
+      "meta": {
+        "key": "block.minecraft.mossy_stone_brick_stairs"
+      }
+    },
+    {
+      "ref": "el:0973",
+      "text": "Mossy Stone Brick Wall",
+      "meta": {
+        "key": "block.minecraft.mossy_stone_brick_wall"
+      }
+    },
+    {
+      "ref": "el:0974",
+      "text": "Mossy Stone Bricks",
+      "meta": {
+        "key": "block.minecraft.mossy_stone_bricks"
+      }
+    },
+    {
+      "ref": "el:0975",
+      "text": "Moving Piston",
+      "meta": {
+        "key": "block.minecraft.moving_piston"
+      }
+    },
+    {
+      "ref": "el:0976",
+      "text": "Mud",
+      "meta": {
+        "key": "block.minecraft.mud"
+      }
+    },
+    {
+      "ref": "el:0977",
+      "text": "Mud Brick Slab",
+      "meta": {
+        "key": "block.minecraft.mud_brick_slab"
+      }
+    },
+    {
+      "ref": "el:0978",
+      "text": "Mud Brick Stairs",
+      "meta": {
+        "key": "block.minecraft.mud_brick_stairs"
+      }
+    },
+    {
+      "ref": "el:0979",
+      "text": "Mud Brick Wall",
+      "meta": {
+        "key": "block.minecraft.mud_brick_wall"
+      }
+    },
+    {
+      "ref": "el:0980",
+      "text": "Mud Bricks",
+      "meta": {
+        "key": "block.minecraft.mud_bricks"
+      }
+    },
+    {
+      "ref": "el:0981",
+      "text": "Muddy Mangrove Roots",
+      "meta": {
+        "key": "block.minecraft.muddy_mangrove_roots"
+      }
+    },
+    {
+      "ref": "el:0982",
+      "text": "Mushroom Stem",
+      "meta": {
+        "key": "block.minecraft.mushroom_stem"
+      }
+    },
+    {
+      "ref": "el:0983",
+      "text": "Mycelium",
+      "meta": {
+        "key": "block.minecraft.mycelium"
+      }
+    },
+    {
+      "ref": "el:0984",
+      "text": "Nether Brick Fence",
+      "meta": {
+        "key": "block.minecraft.nether_brick_fence"
+      }
+    },
+    {
+      "ref": "el:0985",
+      "text": "Nether Brick Slab",
+      "meta": {
+        "key": "block.minecraft.nether_brick_slab"
+      }
+    },
+    {
+      "ref": "el:0986",
+      "text": "Nether Brick Stairs",
+      "meta": {
+        "key": "block.minecraft.nether_brick_stairs"
+      }
+    },
+    {
+      "ref": "el:0987",
+      "text": "Nether Brick Wall",
+      "meta": {
+        "key": "block.minecraft.nether_brick_wall"
+      }
+    },
+    {
+      "ref": "el:0988",
+      "text": "Nether Bricks",
+      "meta": {
+        "key": "block.minecraft.nether_bricks"
+      }
+    },
+    {
+      "ref": "el:0989",
+      "text": "Nether Gold Ore",
+      "meta": {
+        "key": "block.minecraft.nether_gold_ore"
+      }
+    },
+    {
+      "ref": "el:0990",
+      "text": "Nether Portal",
+      "meta": {
+        "key": "block.minecraft.nether_portal"
+      }
+    },
+    {
+      "ref": "el:0991",
+      "text": "Nether Quartz Ore",
+      "meta": {
+        "key": "block.minecraft.nether_quartz_ore"
+      }
+    },
+    {
+      "ref": "el:0992",
+      "text": "Nether Sprouts",
+      "meta": {
+        "key": "block.minecraft.nether_sprouts"
+      }
+    },
+    {
+      "ref": "el:0993",
+      "text": "Nether Wart",
+      "meta": {
+        "key": "block.minecraft.nether_wart"
+      }
+    },
+    {
+      "ref": "el:0994",
+      "text": "Glow Berries",
+      "meta": {
+        "key": "item.minecraft.glow_berries"
+      }
+    },
+    {
+      "ref": "el:0995",
+      "text": "Glow Ink Sac",
+      "meta": {
+        "key": "item.minecraft.glow_ink_sac"
+      }
+    },
+    {
+      "ref": "el:0996",
+      "text": "Glow Item Frame",
+      "meta": {
+        "key": "item.minecraft.glow_item_frame"
+      }
+    },
+    {
+      "ref": "el:0997",
+      "text": "Glow Squid Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.glow_squid_spawn_egg"
+      }
+    },
+    {
+      "ref": "el:0998",
+      "text": "Glowstone Dust",
+      "meta": {
+        "key": "item.minecraft.glowstone_dust"
+      }
+    },
+    {
+      "ref": "el:0999",
+      "text": "Goat Horn",
+      "meta": {
+        "key": "item.minecraft.goat_horn"
+      }
+    },
+    {
+      "ref": "el:1000",
+      "text": "Goat Spawn Egg",
+      "meta": {
+        "key": "item.minecraft.goat_spawn_egg"
+      }
+    }
+  ]
+}

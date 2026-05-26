@@ -1,0 +1,1727 @@
+{
+  "memories": [
+    {
+      "ref": "memory:project:minecraft",
+      "name": "Minecraft Project Approved",
+      "scope": "PROJECT",
+      "items": [
+        {
+          "ref": "mem:ui:play",
+          "source": "Play",
+          "translation": "开始游戏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:singleplayer",
+          "source": "Singleplayer",
+          "translation": "单人游戏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:multiplayer",
+          "source": "Multiplayer",
+          "translation": "多人游戏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:settings",
+          "source": "Settings",
+          "translation": "设置",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:quit_game",
+          "source": "Quit Game",
+          "translation": "退出游戏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:back",
+          "source": "Back",
+          "translation": "返回",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:done",
+          "source": "Done",
+          "translation": "完成",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:cancel",
+          "source": "Cancel",
+          "translation": "取消",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:create_world",
+          "source": "Create New World",
+          "translation": "创建新的世界",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:ui:world_name",
+          "source": "World Name",
+          "translation": "世界名称",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:survival",
+          "source": "Survival Mode",
+          "translation": "生存模式",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:creative",
+          "source": "Creative Mode",
+          "translation": "创造模式",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:adventure",
+          "source": "Adventure Mode",
+          "translation": "冒险模式",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:spectator",
+          "source": "Spectator Mode",
+          "translation": "旁观模式",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:hardcore",
+          "source": "Hardcore Mode!",
+          "translation": "极限模式！",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:difficulty_peaceful",
+          "source": "Peaceful",
+          "translation": "和平",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:difficulty_easy",
+          "source": "Easy",
+          "translation": "简单",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:difficulty_normal",
+          "source": "Normal",
+          "translation": "普通",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:game:difficulty_hard",
+          "source": "Hard",
+          "translation": "困难",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:msg:death_attack",
+          "source": "%1$s was slain by %2$s",
+          "translation": "%1$s被%2$s杀死了",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:msg:death_fell",
+          "source": "%1$s fell from a high place",
+          "translation": "%1$s从高处摔了下来",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:msg:death_drowned",
+          "source": "%1$s drowned",
+          "translation": "%1$s淹死了",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:msg:death_lava",
+          "source": "%1$s tried to swim in lava",
+          "translation": "%1$s试图在熔岩中游泳",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:msg:death_explosion",
+          "source": "%1$s was blown up by %2$s",
+          "translation": "%1$s被%2$s炸死了",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:msg:respawn",
+          "source": "You died!",
+          "translation": "你死了！",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:cmd:give",
+          "source": "Given %s to %s",
+          "translation": "已将%s给予%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:cmd:tp",
+          "source": "Teleported %s to %s",
+          "translation": "已将%s传送至%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:cmd:gamemode",
+          "source": "Set own game mode to %s",
+          "translation": "已将自身的游戏模式设为%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:cmd:time_set",
+          "source": "Set the time to %s",
+          "translation": "已将时间设为%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:cmd:weather_clear",
+          "source": "Set the weather to clear",
+          "translation": "已将天气设为晴天",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_sharpness",
+          "source": "Sharpness",
+          "translation": "锋利",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_protection",
+          "source": "Protection",
+          "translation": "保护",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_efficiency",
+          "source": "Efficiency",
+          "translation": "效率",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_fortune",
+          "source": "Fortune",
+          "translation": "时运",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_silk_touch",
+          "source": "Silk Touch",
+          "translation": "精准采集",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_unbreaking",
+          "source": "Unbreaking",
+          "translation": "耐久",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_mending",
+          "source": "Mending",
+          "translation": "经验修补",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_infinity",
+          "source": "Infinity",
+          "translation": "无限",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_looting",
+          "source": "Looting",
+          "translation": "抢夺",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tooltip:enchantment_fire_aspect",
+          "source": "Fire Aspect",
+          "translation": "火焰附加",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:accessibility:accessibility_button",
+          "source": "Accessibility Settings...",
+          "translation": "辅助功能设置…",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:addServer:addServer_enterIp",
+          "source": "Server Address",
+          "translation": "服务器地址",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advMode:advMode_notAllowed",
+          "source": "Must be an opped player in creative mode",
+          "translation": "必须是处于创造模式的管理员",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advancement:advancement_advancementNotFound",
+          "source": "Unknown advancement: %s",
+          "translation": "未知的进度：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advancements:adventuring_time_description",
+          "source": "Discover every biome",
+          "translation": "发现所有的生物群系",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:argument:anchor_invalid",
+          "source": "Invalid entity anchor position %s",
+          "translation": "无效的实体锚点%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:arguments:tag_unknown",
+          "source": "Unknown block tag '%s'",
+          "translation": "未知的方块标签“%s”",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:attribute:name_burning_time",
+          "source": "Burning Time",
+          "translation": "着火时间",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:biome:minecraft_badlands",
+          "source": "Badlands",
+          "translation": "恶地",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:block:minecraft_acacia_button",
+          "source": "Acacia Button",
+          "translation": "金合欢木按钮",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:book:book_byAuthor",
+          "source": "by %1$s",
+          "translation": "%1$s 著",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:build:build_tooHigh",
+          "source": "Height limit for building is %s",
+          "translation": "建筑高度限制是%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:chat:chat_cannotSend",
+          "source": "Cannot send chat message",
+          "translation": "无法发送聊天消息",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:chat_screen:chat_screen_message",
+          "source": "Message to send: %s",
+          "translation": "要发送的消息：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:chunk:toast_checkLog",
+          "source": "See log for more details",
+          "translation": "查看日志获取详情",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:clear:failed_multiple",
+          "source": "No items were found on %s players",
+          "translation": "未能从%s名玩家找到任何物品",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:color:minecraft_black",
+          "source": "Black",
+          "translation": "黑色",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:command:command_forkLimit",
+          "source": "Maximum number of contexts (%s) reached",
+          "translation": "上下文数量已达上限值（%s）",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:commands:advancement_criterionNotFound",
+          "source": "The advancement %1$s does not contain the criterion '%2$s'",
+          "translation": "进度%1$s并不包含条件“%2$s”",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:compliance:playtime_greaterThan24Hours",
+          "source": "You've been playing for greater than 24 hours",
+          "translation": "你的游戏时长已超过24小时",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:component:profile_dynamic",
+          "source": "Dynamic",
+          "translation": "实时更新",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:connect:connect_aborted",
+          "source": "Aborted",
+          "translation": "连接中断",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:container:container_barrel",
+          "source": "Barrel",
+          "translation": "木桶",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:controls:controls_keybinds",
+          "source": "Key Binds...",
+          "translation": "按键绑定…",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:createWorld:buffet_biome",
+          "source": "Please select a biome",
+          "translation": "请选择一种生物群系",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:dataPack:bundle_description",
+          "source": "Enables experimental Bundle item",
+          "translation": "启用实验性收纳袋物品",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:datapackFailure:failed_title",
+          "source": "Failed to load world in Safe Mode.",
+          "translation": "无法在安全模式下加载世界。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:death:attack_anvil",
+          "source": "%1$s was squashed by a falling anvil",
+          "translation": "%1$s被下落的铁砧压扁了",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:deathScreen:quit_confirm",
+          "source": "Are you sure you want to quit?",
+          "translation": "你确定要退出吗？",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:demo:day_1",
+          "source": "This demo will last five game days. Do your best!",
+          "translation": "此试玩版会在5个游戏日后结束，尽力而为吧！",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:download:pack_title",
+          "source": "Downloading resource pack %s/%s",
+          "translation": "正在下载资源包%s/%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:editGamerule:editGamerule_default",
+          "source": "Default: %s",
+          "translation": "默认：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:effect:duration_infinite",
+          "source": "∞",
+          "translation": "∞",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:enchantment:level_1",
+          "source": "I",
+          "translation": "I",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:entity:minecraft_armor_stand",
+          "source": "Armor Stand",
+          "translation": "盔甲架",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:event:minecraft_raid",
+          "source": "Raid",
+          "translation": "袭击",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:filled_map:filled_map_buried_treasure",
+          "source": "Buried Treasure Map",
+          "translation": "藏宝图",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:flat_world_preset:minecraft_bottomless_pit",
+          "source": "Bottomless Pit",
+          "translation": "无底深渊",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:gameMode:gameMode_changed",
+          "source": "Your game mode has been updated to %s",
+          "translation": "你的游戏模式已被更新为%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:gamerule:gamerule_allowEnteringNetherUsingPortals",
+          "source": "Allow Nether",
+          "translation": "允许进入下界",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:generator:generator_custom",
+          "source": "Custom",
+          "translation": "自定义",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:gui:abuseReport_attestation",
+          "source": "By submitting this report, you confirm that the information you have provided is accurate and complete to the best of your knowledge.",
+          "translation": "提交此举报，即代表你确认你提供的信息已尽可能准确和完整。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:hanging_sign:hanging_sign_edit",
+          "source": "Edit Hanging Sign Message",
+          "translation": "编辑悬挂式告示牌消息",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:instrument:minecraft_admire_goat_horn",
+          "source": "Admire",
+          "translation": "仰慕",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:item:item_canBreak",
+          "source": "Can break:",
+          "translation": "能破坏：",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:itemGroup:itemGroup_buildingBlocks",
+          "source": "Building Blocks",
+          "translation": "建筑方块",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:item_modifier:item_modifier_unknown",
+          "source": "Unknown item modifier: %s",
+          "translation": "未知的物品修饰器：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:jigsaw_block:jigsaw_block_final_state",
+          "source": "Turns into:",
+          "translation": "转变为：",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:jukebox_song:minecraft_5",
+          "source": "Samuel Åberg - 5",
+          "translation": "Samuel Åberg - 5",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:key:minecraft_spectator",
+          "source": "Spectator",
+          "translation": "旁观",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:known_server_link:known_server_link_announcements",
+          "source": "Announcements",
+          "translation": "公告",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:mco:account_update",
+          "source": "Update account",
+          "translation": "更新账户",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:menu:menu_custom_options",
+          "source": "Custom Options...",
+          "translation": "自定义选项…",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:multiplayer:disconnect_banned",
+          "source": "You are banned from this server",
+          "translation": "你已被此服务器封禁",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:multiplayerWarning:multiplayerWarning_check",
+          "source": "Do not show this screen again",
+          "translation": "不再显示此屏幕",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:music:game_a_familiar_room",
+          "source": "Aaron Cherof - A Familiar Room",
+          "translation": "Aaron Cherof - A Familiar Room",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:narration:tab_navigation_usage",
+          "source": "Press Ctrl and Tab to switch between tabs",
+          "translation": "按下Ctrl键和Tab键切换标签页",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:narrator:button_accessibility",
+          "source": "Accessibility",
+          "translation": "辅助功能",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:optimizeWorld:confirm_description",
+          "source": "This will attempt to optimize your world by making sure all data is stored in the most recent game format. This can take a very long time, depending on your world. Once done, your world may play faster but will no longer be compatible with older versions of the game. Are you sure you wish to proceed?",
+          "translation": "这将尝试用最新的游戏格式储存所有数据来达到优化世界的效果。取决于世界的状况，这可能会花费不少时间。一旦完成，进行游戏时可能会更流畅，但你的世界将不再与旧版游戏兼容。你确定要继续吗？",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:options:options_accessibility",
+          "source": "Accessibility Settings...",
+          "translation": "辅助功能设置…",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:outOfMemory:outOfMemory_message",
+          "source": "Minecraft has run out of memory.\n\nThis could be caused by a bug in the game or by the Java Virtual Machine not being allocated enough memory.\n\nTo prevent world corruption, the current game has quit. We've tried to free up enough memory to let you go back to the main menu and back to playing, but this may not have worked.\n\nPlease restart the game if you see this message again.",
+          "translation": "Minecraft已耗尽内存。\n\n原因可能是游戏存在漏洞，或分配给Java虚拟机的内存过少。\n\n为避免世界损坏，当前游戏已退出。我们已尝试腾出内存，让你可以回到主菜单并继续游戏，但这不一定奏效。\n\n如果你再次看见此消息，请重启游戏。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:pack:available_title",
+          "source": "Available",
+          "translation": "可用",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:painting:painting_dimensions",
+          "source": "%sx%s",
+          "translation": "%s×%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:parsing:bool_expected",
+          "source": "Expected boolean",
+          "translation": "应为布尔型",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:particle:particle_invalidOptions",
+          "source": "Can't parse particle options: %s",
+          "translation": "无法解析粒子选项：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:permissions:requires_entity",
+          "source": "An entity is required to run this command here",
+          "translation": "需要一个实体来执行此命令",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:potion:potency_1",
+          "source": "II",
+          "translation": "II",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:predicate:predicate_unknown",
+          "source": "Unknown predicate: %s",
+          "translation": "未知的谓词：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:quickplay:error_invalid_identifier",
+          "source": "Could not find world with the provided identifier",
+          "translation": "无法找到具有指定标识符的世界",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:realms:region_preference_automatic_owner",
+          "source": "Automatic (Realm owner ping)",
+          "translation": "自动（取决于Realm所有者的延迟）",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:recipe:recipe_notFound",
+          "source": "Unknown recipe: %s",
+          "translation": "未知的配方：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:record:record_nowPlaying",
+          "source": "Now Playing: %s",
+          "translation": "正在播放：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:recover_world:recover_world_bug_tracker",
+          "source": "Report a Bug",
+          "translation": "报告漏洞",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:resourcePack:resourcePack_broken_assets",
+          "source": "BROKEN ASSETS DETECTED",
+          "translation": "检测到损坏的资产",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:resourcepack:resourcepack_downloading",
+          "source": "Downloading Resource Pack",
+          "translation": "正在下载资源包",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:screenshot:screenshot_failure",
+          "source": "Couldn't save screenshot: %s",
+          "translation": "无法保存截图：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:selectServer:selectServer_add",
+          "source": "Add Server",
+          "translation": "添加服务器",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:selectWorld:selectWorld_access_failure",
+          "source": "Failed to access world",
+          "translation": "进入世界失败",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:sleep:sleep_not_possible",
+          "source": "No amount of rest can pass this night",
+          "translation": "已入睡玩家的数量不足以跳过夜晚",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:snbt:parser_invalid_codepoint",
+          "source": "Invalid Unicode character value: %s",
+          "translation": "无效的Unicode字符码位：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:soundCategory:soundCategory_ambient",
+          "source": "Ambient/Environment",
+          "translation": "环境",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:spectatorMenu:spectatorMenu_close",
+          "source": "Close Menu",
+          "translation": "关闭菜单",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:stat:stat_generalButton",
+          "source": "General",
+          "translation": "通用",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:stat_type:minecraft_broken",
+          "source": "Times Broken",
+          "translation": "损坏次数",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:stats:stats_none",
+          "source": "-",
+          "translation": "-",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:structure_block:button_detect_size",
+          "source": "DETECT",
+          "translation": "探测",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:subtitles:ambient_cave",
+          "source": "Eerie noise",
+          "translation": "怪异的噪声",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:symlink_warning:symlink_warning_message",
+          "source": "Loading worlds from folders with symbolic links can be unsafe if you don't know exactly what you are doing. Please visit %s to learn more.",
+          "translation": "从含有符号链接的文件夹中加载世界可能导致风险，尤其是在你不清楚链接目标内容时。请访问%s了解更多信息。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:team:collision_always",
+          "source": "Always",
+          "translation": "总是碰撞",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:telemetry:advancement_made_description",
+          "source": "Understanding the context behind receiving an advancement can help us better understand and improve the progression of the game.",
+          "translation": "了解达成进度前后发生的事情有助于我们更好了解及改进游戏流程。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:telemetry_info:button_give_feedback",
+          "source": "Give Feedback",
+          "translation": "提供反馈",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test:error_block_property_mismatch",
+          "source": "Expected property %s to be %s: was %s",
+          "translation": "属性%s应为%s：实际为%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test_block:error_missing",
+          "source": "Test structure missing %s block",
+          "translation": "测试结构缺少%s方块",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test_instance:action_reset",
+          "source": "Reset and Load",
+          "translation": "重置并加载",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test_instance_block:test_instance_block_entities",
+          "source": "Entities:",
+          "translation": "实体：",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:title:32bit_deprecation",
+          "source": "32-bit system detected: this may prevent you from playing in the future as a 64-bit system will be required!",
+          "translation": "检测到32位系统：未来将需要64位系统，使用32位系统可能将无法进行游戏！",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:trim_material:minecraft_netherite",
+          "source": "Netherite Material",
+          "translation": "下界合金质",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:trim_pattern:minecraft_bolt",
+          "source": "Bolt Armor Trim",
+          "translation": "镶铆盔甲纹饰",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tutorial:bundleInsert_description",
+          "source": "Right Click to add items",
+          "translation": "单击鼠标右键收纳物品",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:upgrade:minecraft_netherite_upgrade",
+          "source": "Netherite Upgrade",
+          "translation": "下界合金升级",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:accessibility:screen_narrator",
+          "source": "Press enter to enable the narrator",
+          "translation": "按下Enter键启用复述功能",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:addServer:addServer_enterName",
+          "source": "Server Name",
+          "translation": "服务器名称",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advMode:advMode_notEnabled",
+          "source": "Command blocks are not enabled",
+          "translation": "命令方块未启用",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advancements:adventuring_time_title",
+          "source": "Adventuring Time",
+          "translation": "探索的时光",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:argument:angle_incomplete",
+          "source": "Incomplete (expected 1 angle)",
+          "translation": "不完整（应有1个角度）",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:arguments:tag_unknown_1",
+          "source": "Unknown function tag '%s'",
+          "translation": "未知的函数标签“%s”",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:attribute:name_camera_distance",
+          "source": "Camera Distance",
+          "translation": "镜头距离",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:biome:minecraft_bamboo_jungle",
+          "source": "Bamboo Jungle",
+          "translation": "竹林",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:block:minecraft_acacia_door",
+          "source": "Acacia Door",
+          "translation": "金合欢木门",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:book:edit_title",
+          "source": "Book Edit Screen",
+          "translation": "书本编辑屏幕",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:chat:chat_coordinates",
+          "source": "%s, %s, %s",
+          "translation": "%s, %s, %s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:chat_screen:chat_screen_title",
+          "source": "Chat screen",
+          "translation": "聊天屏幕",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:chunk:toast_loadFailure",
+          "source": "Failed to load chunk at %s",
+          "translation": "无法加载%s处的区块",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:clear:failed_single",
+          "source": "No items were found on player %s",
+          "translation": "未能从玩家%s找到任何物品",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:color:minecraft_blue",
+          "source": "Blue",
+          "translation": "蓝色",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:command:unknown_argument",
+          "source": "Incorrect argument for command",
+          "translation": "错误的命令参数",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:commands:many_failure",
+          "source": "Couldn't grant criterion '%s' of advancement %s to %s players as they already have it",
+          "translation": "无法将进度%2$s的达成条件“%1$s”赋予%3$s名玩家，因为他们已达成此条件",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:compliance:playtime_hours",
+          "source": "You've been playing for %s hour(s)",
+          "translation": "你的游戏时长已达%s小时",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:connect:connect_authorizing",
+          "source": "Logging in...",
+          "translation": "登录中…",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:container:container_beacon",
+          "source": "Beacon",
+          "translation": "信标",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:controls:keybinds_duplicateKeybinds",
+          "source": "This key is also used for:\n%s",
+          "translation": "该按键也用于：\n%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:createWorld:buffet_title",
+          "source": "Single Biome Customization",
+          "translation": "自定义单一生物群系",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:dataPack:bundle_name",
+          "source": "Bundles",
+          "translation": "收纳袋",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:datapackFailure:datapackFailure_title",
+          "source": "Errors in currently selected data packs prevented the world from loading.\nYou can either try to load it with only the vanilla data pack (\"safe mode\"), or go back to the title screen and fix it manually.",
+          "translation": "当前选中的数据包中出现了错误，导致世界无法加载。\n你可以尝试仅加载原版数据包（“安全模式”）或回到标题屏幕手动修复该问题。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:death:anvil_player",
+          "source": "%1$s was squashed by a falling anvil while fighting %2$s",
+          "translation": "%1$s在与%2$s战斗时被下落的铁砧压扁了",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:deathScreen:deathScreen_respawn",
+          "source": "Respawn",
+          "translation": "重生",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:debug:advanced_tooltips_off",
+          "source": "Advanced tooltips: hidden",
+          "translation": "高级提示框：隐藏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:demo:day_2",
+          "source": "Day Two",
+          "translation": "第二天",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:editGamerule:editGamerule_title",
+          "source": "Edit Game Rules",
+          "translation": "编辑游戏规则",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:effect:minecraft_absorption",
+          "source": "Absorption",
+          "translation": "伤害吸收",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:enchantment:level_2",
+          "source": "II",
+          "translation": "II",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:entity:minecraft_arrow",
+          "source": "Arrow",
+          "translation": "箭",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:event:raid_defeat",
+          "source": "Defeat",
+          "translation": "失败",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:filled_map:filled_map_explorer_jungle",
+          "source": "Jungle Explorer Map",
+          "translation": "丛林探险家地图",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:flat_world_preset:minecraft_classic_flat",
+          "source": "Classic Flat",
+          "translation": "经典平坦",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:gameMode:gameMode_hardcore",
+          "source": "Hardcore Mode",
+          "translation": "极限模式",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:gamerule:allowEnteringNetherUsingPortals_descript",
+          "source": "Controls whether players are allowed to enter the Nether.",
+          "translation": "控制玩家能否进入下界。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:generator:generator_customized",
+          "source": "Old Customized",
+          "translation": "旧版自定义",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:gui:abuseReport_comments",
+          "source": "Comments",
+          "translation": "留言",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:instrument:minecraft_call_goat_horn",
+          "source": "Call",
+          "translation": "呼唤",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:inventory:inventory_hotbarInfo",
+          "source": "Save hotbar with %1$s + %2$s",
+          "translation": "用%1$s+%2$s来保存快捷栏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:item:item_canPlace",
+          "source": "Can be placed on:",
+          "translation": "可以放在：",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:itemGroup:itemGroup_coloredBlocks",
+          "source": "Colored Blocks",
+          "translation": "染色方块",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:jigsaw_block:jigsaw_block_generate",
+          "source": "Generate",
+          "translation": "生成",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:jukebox_song:minecraft_11",
+          "source": "C418 - 11",
+          "translation": "C418 - 11",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:key:key_chat",
+          "source": "Open Chat",
+          "translation": "打开聊天栏",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:known_server_link:known_server_link_community",
+          "source": "Community",
+          "translation": "社区",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:mco:activity_noactivity",
+          "source": "No activity for the past %s day(s)",
+          "translation": "过去%s天无动态",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:menu:custom_options_title",
+          "source": "Custom Options",
+          "translation": "自定义选项",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:multiplayer:banned_ip_expiration",
+          "source": "\nYour ban will be removed on %s",
+          "translation": "\n你的封禁将于%s解除",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:multiplayerWarning:multiplayerWarning_header",
+          "source": "Caution: Third-Party Online Play",
+          "translation": "警告：在线游戏由第三方提供",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:music:game_an_ordinary_day",
+          "source": "Kumi Tanioka - An Ordinary Day",
+          "translation": "谷冈久美 - An Ordinary Day",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:narrator:button_difficulty_lock",
+          "source": "Difficulty lock",
+          "translation": "难度锁定",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:optimizeWorld:confirm_proceed",
+          "source": "Create Backup and Optimize",
+          "translation": "创建备份并优化",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:options:accessibility_high_contrast",
+          "source": "High Contrast",
+          "translation": "高对比度",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:outOfMemory:outOfMemory_title",
+          "source": "Out of memory!",
+          "translation": "内存溢出！",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:pack:pack_copyFailure",
+          "source": "Failed to copy packs",
+          "translation": "复制包失败",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:painting:alban_author",
+          "source": "Kristoffer Zetterstrand",
+          "translation": "Kristoffer Zetterstrand",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:parsing:bool_invalid",
+          "source": "Invalid boolean: expected 'true' or 'false' but found '%s'",
+          "translation": "无效的布尔型数据：应为“true”或“false”，实际为“%s”",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:particle:particle_notFound",
+          "source": "Unknown particle: %s",
+          "translation": "未知的粒子：%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:permissions:requires_player",
+          "source": "A player is required to run this command here",
+          "translation": "需要一名玩家来执行此命令",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:potion:potency_2",
+          "source": "III",
+          "translation": "III",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:quickplay:error_realm_connect",
+          "source": "Could not connect to Realm",
+          "translation": "无法连接至Realm",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:realms:region_preference_automatic_player",
+          "source": "Automatic (first to join session)",
+          "translation": "自动（取决于首个加入会话的玩家）",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:recipe:toast_description",
+          "source": "Check your recipe book",
+          "translation": "请检查你的配方书",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:recover_world:recover_world_button",
+          "source": "Attempt to Recover",
+          "translation": "尝试恢复",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:resourcePack:high_contrast_name",
+          "source": "High Contrast",
+          "translation": "高对比度",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:resourcepack:resourcepack_progress",
+          "source": "Downloading file (%s MB)...",
+          "translation": "下载文件中（%s MB）…",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:screenshot:screenshot_success",
+          "source": "Saved screenshot as %s",
+          "translation": "已将截图保存为%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:selectServer:selectServer_defaultName",
+          "source": "Minecraft Server",
+          "translation": "Minecraft服务器",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:selectWorld:selectWorld_allowCommands",
+          "source": "Allow Cheats",
+          "translation": "允许作弊",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:sleep:sleep_players_sleeping",
+          "source": "%s/%s players sleeping",
+          "translation": "%s/%s名玩家已入睡",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:snbt:parser_invalid_string_contents",
+          "source": "Invalid string contents",
+          "translation": "无效的字符串内容",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:soundCategory:soundCategory_block",
+          "source": "Blocks",
+          "translation": "方块",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:spectatorMenu:spectatorMenu_next_page",
+          "source": "Next Page",
+          "translation": "下一页",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:stat:stat_itemsButton",
+          "source": "Items",
+          "translation": "物品",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:stat_type:minecraft_crafted",
+          "source": "Times Crafted",
+          "translation": "合成次数",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:structure_block:button_load",
+          "source": "LOAD",
+          "translation": "加载",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:subtitles:ambient_sound",
+          "source": "Eerie noise",
+          "translation": "怪异的噪声",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:symlink_warning:message_pack",
+          "source": "Loading packs with symbolic links can be unsafe if you don't know exactly what you are doing. Please visit %s to learn more.",
+          "translation": "继续操作前请知晓，加载含有符号链接的包可能会有风险。请访问%s了解更多信息。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:team:collision_never",
+          "source": "Never",
+          "translation": "禁用碰撞",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:telemetry:advancement_made_title",
+          "source": "Advancement Made",
+          "translation": "达成进度",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:telemetry_info:button_privacy_statement",
+          "source": "Privacy Statement",
+          "translation": "隐私声明",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test:error_block_property_missing",
+          "source": "Block property missing. Expected property %s to be %s",
+          "translation": "缺少方块属性。属性%s应为%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test_block:error_too_many",
+          "source": "Too many %s blocks",
+          "translation": "%s方块过多",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test_instance:action_run",
+          "source": "Load and Run",
+          "translation": "加载并运行",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:test_instance_block:error_no_test",
+          "source": "Unable to run test instance at %s, %s, %s since it has an undefined test",
+          "translation": "存在未定义的测试，无法在%s, %s, %s处运行测试实例",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:title:deprecation_realms",
+          "source": "Minecraft will soon require a 64-bit system, which will prevent you from playing or using Realms on this device. You will need to manually cancel any Realms subscription.",
+          "translation": "Minecraft不久后需要64位系统才能运行，届时你将无法使用该设备进行游戏或使用Realms服务。你需要自行取消所有Realms订阅。",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:trim_material:minecraft_quartz",
+          "source": "Quartz Material",
+          "translation": "石英质",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:trim_pattern:minecraft_coast",
+          "source": "Coast Armor Trim",
+          "translation": "海岸盔甲纹饰",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:tutorial:bundleInsert_title",
+          "source": "Use a Bundle",
+          "translation": "使用收纳袋",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:accessibility:screen_title",
+          "source": "Welcome to Minecraft!\n\nWould you like to enable the Narrator or visit the Accessibility Settings?",
+          "translation": "欢迎进入Minecraft！\n\n需要启用复述功能或访问辅助功能设置吗？",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:addServer:addServer_resourcePack",
+          "source": "Server Resource Packs",
+          "translation": "服务器资源包",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advMode:notEnabled_spawner",
+          "source": "Spawner blocks are not enabled",
+          "translation": "刷怪笼方块未启用",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:advancements:arbalistic_description",
+          "source": "Kill five unique mobs with one crossbow shot",
+          "translation": "用弩一发击杀五种生物",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:argument:angle_invalid",
+          "source": "Invalid angle",
+          "translation": "无效的角度",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:arguments:function_unknown",
+          "source": "Unknown function %s",
+          "translation": "未知的函数%s",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        }
+      ]
+    },
+    {
+      "ref": "memory:personal:translator",
+      "name": "Minecraft Translator Draft",
+      "scope": "PERSONAL",
+      "ownerRef": "user:translator",
+      "items": [
+        {
+          "ref": "mem:debug:advanced_tooltips_help",
+          "source": "F3 + H = Advanced tooltips",
+          "translation": "F3 + H = 显示高级提示框",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:inventory:inventory_binSlot",
+          "source": "Destroy Item",
+          "translation": "摧毁物品",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:sign:sign_edit",
+          "source": "Edit Sign Message",
+          "translation": "编辑告示牌消息",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:personal:addServer_enterIp",
+          "source": "Server Address",
+          "translation": "服务器 IP 地址",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:personal:create_world",
+          "source": "Create New World",
+          "translation": "新建世界",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:personal:hardcore",
+          "source": "Hardcore Mode!",
+          "translation": "硬核模式！",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        },
+        {
+          "ref": "mem:personal:building_blocks",
+          "source": "Building Blocks",
+          "translation": "建材方块",
+          "sourceLanguage": "en",
+          "translationLanguage": "zh-Hans"
+        }
+      ]
+    }
+  ]
+}

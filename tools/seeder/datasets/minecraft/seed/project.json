@@ -1,0 +1,6 @@
+{
+  "name": "Minecraft",
+  "sourceLanguage": "en",
+  "translationLanguages": ["zh-Hans"],
+  "members": [{ "userRef": "user:translator", "relation": "editor" }]
+}
