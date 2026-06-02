@@ -13,12 +13,12 @@
     "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-cli --include='**/*.spec.ts'"
   },
   "dependencies": {
-    "@orpc/client": "^1.14.3",
-    "@orpc/server": "^1.14.3"
+    "@orpc/client": "^1.14.4",
+    "@orpc/server": "^1.14.4"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "typescript": "beta",
+    "typescript": "6.0.3",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

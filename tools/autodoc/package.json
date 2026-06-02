@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@types/mdast": "catalog:",
-    "typescript": "beta",
+    "typescript": "6.0.3",
     "unplugin-dts": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

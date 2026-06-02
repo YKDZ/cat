@@ -6,7 +6,7 @@ import type {
 import type { HTMLAttributes } from "vue";
 
 import { reactiveOmit } from "@vueuse/core";
-import { Circle } from "lucide-vue-next";
+import { Circle } from "@lucide/vue";
 import {
   DropdownMenuItemIndicator,
   DropdownMenuRadioItem,
