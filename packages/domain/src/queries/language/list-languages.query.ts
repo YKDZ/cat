@@ -20,18 +20,17 @@ export const listLanguages: Query<
   ListLanguagesQuery,
   ListLanguagesResult
 > = async (ctx, query) => {
-  const dataQuery = ctx.db
+  const languages = await ctx.db
     .select()
     .from(language)
+    .where(
+      query.searchQuery.length > 0
+        ? ilike(language.id, `%${query.searchQuery}%`)
+        : undefined,
+    )
     .orderBy(asc(language.id))
     .limit(query.pageSize + 1)
     .offset(query.page * query.pageSize);
-
-  if (query.searchQuery.length > 0) {
-    dataQuery.where(ilike(language.id, `%${query.searchQuery}%`));
-  }
-
-  const languages = await dataQuery;
   const hasMore = languages.length > query.pageSize;
 
   if (hasMore) {

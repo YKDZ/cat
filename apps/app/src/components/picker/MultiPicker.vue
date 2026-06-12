@@ -1,4 +1,6 @@
 <script setup lang="ts" generic="T extends AcceptableInputValue">
+import type { AcceptableInputValue } from "reka-ui";
+
 import {
   Combobox,
   ComboboxAnchor,
@@ -16,7 +18,6 @@ import {
   Button,
 } from "@cat/ui";
 import { Plus, Search, Check } from "@lucide/vue";
-import { ComboboxVirtualizer, type AcceptableInputValue } from "reka-ui";
 import { shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -144,24 +145,19 @@ const onScroll = (e: Event) => {
 
       <ComboboxViewport @scroll="onScroll">
         <ComboboxGroup v-if="options.length > 0">
-          <ComboboxVirtualizer
-            v-slot="{ option }"
-            :options
-            :text-content="(x) => x.content"
-            :estimate-size="40"
+          <ComboboxItem
+            v-for="option in options"
+            :key="String(option.value)"
+            class="w-full"
+            @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
+            :value="option"
           >
-            <ComboboxItem
-              class="w-full"
-              @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
-              :value="option"
-            >
-              {{ option.content }}
+            {{ option.content }}
 
-              <ComboboxItemIndicator>
-                <Check />
-              </ComboboxItemIndicator>
-            </ComboboxItem>
-          </ComboboxVirtualizer>
+            <ComboboxItemIndicator>
+              <Check />
+            </ComboboxItemIndicator>
+          </ComboboxItem>
         </ComboboxGroup>
       </ComboboxViewport>
     </ComboboxList>
