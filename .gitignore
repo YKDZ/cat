@@ -119,13 +119,9 @@ vitest.config.*.timestamp*
 .claude/
 AGENTS.md
 CLAUDE.md
-.mcp.json
 
 .github/prompts
-
 
 test-results.json
 
 .tmp
-
-.scratch

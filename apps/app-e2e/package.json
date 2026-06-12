@@ -9,6 +9,6 @@
     "@cat/seed": "workspace:*",
     "@playwright/test": "^1.60.0",
     "@types/node": "catalog:",
-    "dotenv": "^16.6.1"
+    "dotenv": "^17.4.2"
   }
 }

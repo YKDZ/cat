@@ -13,7 +13,6 @@ import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
 import PluginComponentSlot from "@/components/plugin/PluginComponentSlot.vue";
-import UserUploadAvatarBtn from "@/components/UserUploadAvatarBtn.vue";
 
 const { t } = useI18n();
 </script>
@@ -44,7 +43,6 @@ const { t } = useI18n();
         </Button>
       </CardFooter>
     </Card>
-    <UserUploadAvatarBtn />
     <PluginComponentSlot id="test" />
   </div>
 </template>
