@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue";
 
-import { PanelLeft } from "lucide-vue-next";
+import { PanelLeft } from "@lucide/vue";
 import { computed } from "vue";
 
 import { Button } from "@/components/button";

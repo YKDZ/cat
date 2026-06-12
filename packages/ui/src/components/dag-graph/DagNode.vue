@@ -15,7 +15,7 @@ import {
   Repeat,
   UserRound,
   Wrench,
-} from "lucide-vue-next";
+} from "@lucide/vue";
 import { computed } from "vue";
 
 import { Badge } from "@/components/badge";

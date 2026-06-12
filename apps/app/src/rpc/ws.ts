@@ -20,7 +20,7 @@ const link = new RPCLink({
   // oxlint-disable-next-line no-unsafe-type-assertion -- partysocket types readyState as number instead of 0|1|2|3
   websocket: socket as unknown as Pick<
     globalThis.WebSocket,
-    "addEventListener" | "send" | "readyState"
+    "addEventListener" | "removeEventListener" | "send" | "readyState"
   >,
   headers: () => ({}),
   interceptors: [

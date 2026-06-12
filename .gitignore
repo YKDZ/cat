@@ -114,12 +114,13 @@ vitest.config.*.timestamp*
 
 /docs/
 
-.github/prompts
+# Local AI/agent assistant files
+.agents/
+.claude/
+AGENTS.md
+CLAUDE.md
 
-.claude/*.local.*
-.claude/skills/l-*
-.claude/.gitignore
-.claude/worktrees
+.github/prompts
 
 test-results.json
 
