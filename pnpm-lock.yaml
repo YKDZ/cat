@@ -76,7 +76,7 @@ importers:
         version: 0.4.5
       '@moonrepo/cli':
         specifier: ^2.2.5
-        version: 2.2.5
+        version: 2.3.3
       '@playwright/test':
         specifier: ^1.60.0
         version: 1.60.0
@@ -3089,46 +3089,46 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@moonrepo/cli@2.2.5':
-    resolution: {integrity: sha512-MZPXJ7pvfcC77jedFPxwW4Z4XCPzeuBMmbVjRDFXq13bnyAYcaH5kdxkvyxX4WHeEHWyWuustOaJowZo3Q/SxA==}
+  '@moonrepo/cli@2.3.3':
+    resolution: {integrity: sha512-TmHbQFJH1+vqIsXn7WpPXQtPlgwgyfWUjUBWWQCR2dj3UHg/0IGD4KDlqNg1VPmcyXnuDmlcHtqZ2bkxZx+RhQ==}
     hasBin: true
 
-  '@moonrepo/core-linux-arm64-gnu@2.2.5':
-    resolution: {integrity: sha512-61ajwr3oxCAC0vp879LgKzml3pu+kJ0xMd2Tr1fFMuqp+Xp9k+41VOaTlW7m3vhNQCTVuFFGKxh8KUeAtJk//w==}
+  '@moonrepo/core-linux-arm64-gnu@2.3.3':
+    resolution: {integrity: sha512-AzovoQPizmwGe5nLd9s0UnN/IUnol81la2vNH+U7vSyh24NzVirT1iOLEcajwtbNvJpl3aXzbhbjrXp35fKVWg==}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@moonrepo/core-linux-arm64-musl@2.2.5':
-    resolution: {integrity: sha512-8gcRf1B+jxbdy4rdQzfXSg37ECsiThCKYHYYXfe4etzcC6CQjmmYeC7OxF+gxWK0mL6UbpuKso8zOcqSbYzjYw==}
+  '@moonrepo/core-linux-arm64-musl@2.3.3':
+    resolution: {integrity: sha512-2jJLXAIUiqdFdw3hxuMefGB3DenQN/CC2mbqL44jC4uZNH6pX1mvjlguubBwUvGHfGbACjh9W9JjavpSMKY9cw==}
     cpu: [arm64]
     os: [linux]
     libc: [musl]
 
-  '@moonrepo/core-linux-x64-gnu@2.2.5':
-    resolution: {integrity: sha512-kqZppmKKzdStXbOpWUS+rQlJiowO0ItwWP74oqJVpwUewAjqB2WLwG6IvhSAVHrVhC+9OCGm0g4iAESQBAEh2w==}
+  '@moonrepo/core-linux-x64-gnu@2.3.3':
+    resolution: {integrity: sha512-17WZG59QUJhw8wepo1Oe5lmh/q0ax0EQzVk7/EbRe2uBRFsN24oR+R6MyVvuEqmG71x5EFwfPbuH/R48dcRROQ==}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@moonrepo/core-linux-x64-musl@2.2.5':
-    resolution: {integrity: sha512-UxyYR+SJ7er7Skb60saphEWsPN+oecqDIrNxdAYy+3Li7G9jzBK0j59Jj7j2c0pjlBSKao06DGmfM6WuBlE8eg==}
+  '@moonrepo/core-linux-x64-musl@2.3.3':
+    resolution: {integrity: sha512-IaE5qN/QOi85SMdhpTtwrDVmIu1MHKznQZxB+jl8dUbQj5iWKyY/DusXXNs9zRR45jBNUlyE4FhrY9rwf2SqtQ==}
     cpu: [x64]
     os: [linux]
     libc: [musl]
 
-  '@moonrepo/core-macos-arm64@2.2.5':
-    resolution: {integrity: sha512-DpvFXa/N4rc/vJygE6JBL1pW0DtX00h07xruWQYjdeOuv3RQClRQSwZJNJmGZKhZus4g/LccHgEGvRdu9IMC4w==}
+  '@moonrepo/core-macos-arm64@2.3.3':
+    resolution: {integrity: sha512-UiO8QuICnxD1XglNDCjkTBwL0YOHvfcj37m5yeIrBjyvkytlWNek4Us7jqr15gbYT+z9pU02Um8k+S1p7y+BkA==}
     cpu: [arm64]
     os: [darwin]
 
-  '@moonrepo/core-macos-x64@2.2.5':
-    resolution: {integrity: sha512-J4udAbRTnK+EarHu7nIKm2j5t4CY0I9hfoyGOSU9bsC3n91//YNrixPnCe34IA4irArNzqPnoDXlQv/v5mG8Pg==}
+  '@moonrepo/core-macos-x64@2.3.3':
+    resolution: {integrity: sha512-FteLklMxJ4cUuZnhrt5lFsYnQMqdzMiAaTFOQDVpUkd6llgrwxIJbUMnPOFHZe4jVJCjpmacEsG7j9/Oxg7HqQ==}
     cpu: [x64]
     os: [darwin]
 
-  '@moonrepo/core-windows-x64-msvc@2.2.5':
-    resolution: {integrity: sha512-yYPMsOHL5daEPSTMp2JP+YrwmGjeu+Kp25UmRnllGDmofkCu4Gcv3ct6ljK+u1+W6q2Jc2ooY7eZ14dnKJnlug==}
+  '@moonrepo/core-windows-x64-msvc@2.3.3':
+    resolution: {integrity: sha512-qxXvgnqkE4yu6m0vcgDNmRBLnxfAVXq7F7ebaHAOmj7cK0DNnQpZBaxNB3LrIuxhyFdviKVTsUT7F7CpLsVjlw==}
     cpu: [x64]
     os: [win32]
 
@@ -5319,6 +5319,11 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  acorn@8.17.0:
+    resolution: {integrity: sha512-xRQbDb9BnwDafYNn6Vwl839DYVjqXYb1XVGtWAZ1kcDc6iwAL4hg3B1dZlRiuENFeO2H53gFG3in621AdERVAg==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
   agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
@@ -6940,6 +6945,10 @@ packages:
 
   js-yaml@4.1.1:
     resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
+    hasBin: true
+
+  js-yaml@4.2.0:
+    resolution: {integrity: sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==}
     hasBin: true
 
   jsbi@4.3.2:
@@ -10145,7 +10154,7 @@ snapshots:
       globals: 14.0.0
       ignore: 5.3.2
       import-fresh: 3.3.1
-      js-yaml: 4.1.1
+      js-yaml: 4.2.0
       minimatch: 3.1.5
       strip-json-comments: 3.1.1
     transitivePeerDependencies:
@@ -10545,37 +10554,37 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@moonrepo/cli@2.2.5':
+  '@moonrepo/cli@2.3.3':
     dependencies:
       detect-libc: 2.1.2
     optionalDependencies:
-      '@moonrepo/core-linux-arm64-gnu': 2.2.5
-      '@moonrepo/core-linux-arm64-musl': 2.2.5
-      '@moonrepo/core-linux-x64-gnu': 2.2.5
-      '@moonrepo/core-linux-x64-musl': 2.2.5
-      '@moonrepo/core-macos-arm64': 2.2.5
-      '@moonrepo/core-macos-x64': 2.2.5
-      '@moonrepo/core-windows-x64-msvc': 2.2.5
+      '@moonrepo/core-linux-arm64-gnu': 2.3.3
+      '@moonrepo/core-linux-arm64-musl': 2.3.3
+      '@moonrepo/core-linux-x64-gnu': 2.3.3
+      '@moonrepo/core-linux-x64-musl': 2.3.3
+      '@moonrepo/core-macos-arm64': 2.3.3
+      '@moonrepo/core-macos-x64': 2.3.3
+      '@moonrepo/core-windows-x64-msvc': 2.3.3
 
-  '@moonrepo/core-linux-arm64-gnu@2.2.5':
+  '@moonrepo/core-linux-arm64-gnu@2.3.3':
     optional: true
 
-  '@moonrepo/core-linux-arm64-musl@2.2.5':
+  '@moonrepo/core-linux-arm64-musl@2.3.3':
     optional: true
 
-  '@moonrepo/core-linux-x64-gnu@2.2.5':
+  '@moonrepo/core-linux-x64-gnu@2.3.3':
     optional: true
 
-  '@moonrepo/core-linux-x64-musl@2.2.5':
+  '@moonrepo/core-linux-x64-musl@2.3.3':
     optional: true
 
-  '@moonrepo/core-macos-arm64@2.2.5':
+  '@moonrepo/core-macos-arm64@2.3.3':
     optional: true
 
-  '@moonrepo/core-macos-x64@2.2.5':
+  '@moonrepo/core-macos-x64@2.3.3':
     optional: true
 
-  '@moonrepo/core-windows-x64-msvc@2.2.5':
+  '@moonrepo/core-windows-x64-msvc@2.3.3':
     optional: true
 
   '@napi-rs/canvas-android-arm64@0.1.100':
@@ -12922,7 +12931,13 @@ snapshots:
     dependencies:
       acorn: 8.16.0
 
+  acorn-jsx@5.3.2(acorn@8.17.0):
+    dependencies:
+      acorn: 8.17.0
+
   acorn@8.16.0: {}
+
+  acorn@8.17.0: {}
 
   agent-base@7.1.4: {}
 
@@ -13874,8 +13889,8 @@ snapshots:
 
   espree@10.4.0:
     dependencies:
-      acorn: 8.16.0
-      acorn-jsx: 5.3.2(acorn@8.16.0)
+      acorn: 8.17.0
+      acorn-jsx: 5.3.2(acorn@8.17.0)
       eslint-visitor-keys: 4.2.1
 
   espree@11.2.0:
@@ -14455,6 +14470,10 @@ snapshots:
   js-tokens@4.0.0: {}
 
   js-yaml@4.1.1:
+    dependencies:
+      argparse: 2.0.1
+
+  js-yaml@4.2.0:
     dependencies:
       argparse: 2.0.1
 
@@ -16590,25 +16609,6 @@ snapshots:
       rolldown: 1.0.2
       rollup: 4.60.4
       vite: 8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.3)(yaml@2.9.0)
-    transitivePeerDependencies:
-      - supports-color
-
-  unplugin-dts@1.0.1(esbuild@0.28.0)(rolldown@1.0.2)(rollup@4.60.4)(typescript@6.0.0-beta)(vite@8.0.14(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.3)(yaml@2.9.0)):
-    dependencies:
-      '@rollup/pluginutils': 5.3.0(rollup@4.60.4)
-      '@volar/typescript': 2.4.28
-      compare-versions: 6.1.1
-      debug: 4.4.3
-      kolorist: 1.8.0
-      local-pkg: 1.2.1
-      magic-string: 0.30.21
-      typescript: 6.0.0-beta
-      unplugin: 2.3.11
-    optionalDependencies:
-      esbuild: 0.28.0
-      rolldown: 1.0.2
-      rollup: 4.60.4
-      vite: 8.0.14(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.3)(yaml@2.9.0)
     transitivePeerDependencies:
       - supports-color
 
