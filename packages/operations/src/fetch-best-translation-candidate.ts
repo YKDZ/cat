@@ -36,10 +36,9 @@ export type FetchBestTranslationCandidateOutput = z.infer<
 >;
 
 /**
- * @zh 获取最佳翻译候选：并行调用 fetchAdviseOp + collectMemoryRecallOp，
  * 按 confidence 排序选出最优候选。memory > advisor。
  * 单个 provider 失败时静默降级，不影响另一方结果。
- * @en Fetch the best translation candidate by running advisor + memory recall
+ * Fetch the best translation candidate by running advisor + memory recall
  * in parallel and picking the highest-confidence result. Memory > advisor.
  * Individual provider failures are silently suppressed.
  */

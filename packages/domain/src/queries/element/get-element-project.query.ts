@@ -11,8 +11,7 @@ export type GetElementProjectQuery = z.infer<
 >;
 
 /**
- * @zh 获取元素所属的 projectId（直接从 translatableElement 表读取）。
- * @en Get the projectId the element belongs to (directly from translatableElement table).
+ * Get the projectId the element belongs to (directly from translatableElement table).
  */
 export const getElementProject: Query<
   GetElementProjectQuery,

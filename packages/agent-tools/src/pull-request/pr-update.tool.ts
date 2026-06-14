@@ -5,16 +5,14 @@ import * as z from "zod";
 
 const prUpdateArgs = z.object({
   /**
-   * @zh PR 内部 ID
-   * @en Internal PR ID
+   * Internal PR ID
    */
   prId: z
     .int()
     .positive()
     .describe("The internal integer ID of the pull request to update"),
   /**
-   * @zh 目标 PR 状态
-   * @en Target PR status
+   * Target PR status
    */
   status: z
     .enum(["DRAFT", "OPEN", "REVIEW", "CHANGES_REQUESTED", "MERGED", "CLOSED"])
@@ -22,8 +20,7 @@ const prUpdateArgs = z.object({
 });
 
 /**
- * @zh pr_update 工具: 更新 PR 状态（DRAFT / OPEN / REVIEW / CHANGES_REQUESTED / MERGED / CLOSED）。
- * @en pr_update tool: update the status of a pull request.
+ * pr_update tool: update the status of a pull request.
  */
 export const prUpdateTool: AgentToolDefinition = {
   name: "pr_update",

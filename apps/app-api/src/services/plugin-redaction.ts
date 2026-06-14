@@ -11,11 +11,10 @@ const BEARER_TOKEN_PATTERN = /\b(Bearer\s+)([^\s,;"']+)/gi;
 const REDACTED = "[REDACTED]";
 
 /**
- * @zh 对消息文本中的常见密钥和值进行脱敏。
- * @en Redact common secret keys and values from a message string.
+ * Redact common secret keys and values from a message string.
  *
- * @param message - {@zh 待脱敏的消息文本} {@en Message text to redact}
- * @returns - {@zh 已脱敏的消息文本} {@en Redacted message text}
+ * @param message - Message text to redact
+ * @returns - Redacted message text
  */
 export const redactMessage = (message: string): string => {
   return message
@@ -28,11 +27,10 @@ export const redactMessage = (message: string): string => {
 };
 
 /**
- * @zh 递归脱敏任意 JSON 兼容对象中的敏感字段和值。
- * @en Recursively redact sensitive keys and values from any JSON-compatible object.
+ * Recursively redact sensitive keys and values from any JSON-compatible object.
  *
- * @param value - {@zh 待脱敏的值} {@en Value to redact}
- * @returns - {@zh 已脱敏的 JSON 值} {@en Redacted JSON value}
+ * @param value - Value to redact
+ * @returns - Redacted JSON value
  */
 export const redactJson = (value: unknown): NonNullJSONType => {
   if (value === null || value === undefined) return {};
@@ -52,11 +50,10 @@ export const redactJson = (value: unknown): NonNullJSONType => {
 };
 
 /**
- * @zh 提取并脱敏错误对象中的可展示消息。
- * @en Extract and redact a display-safe message from an error value.
+ * Extract and redact a display-safe message from an error value.
  *
- * @param error - {@zh 原始错误对象} {@en Original error value}
- * @returns - {@zh 可安全展示的错误消息} {@en Safe error message for display}
+ * @param error - Original error value
+ * @returns - Safe error message for display
  */
 export const errorMessage = (error: unknown): string => {
   if (error instanceof Error) return redactMessage(error.message);

@@ -13,8 +13,7 @@ export type UpdateVectorizedStringStatusCommand = z.infer<
 >;
 
 /**
- * @zh 批量更新 VectorizedString 的状态（用于状态机转换，如标记为 VECTORIZE_FAILED）。
- * @en Batch-update the status of VectorizedString rows (for state machine transitions such as marking VECTORIZE_FAILED).
+ * Batch-update the status of VectorizedString rows (for state machine transitions such as marking VECTORIZE_FAILED).
  */
 export const updateVectorizedStringStatus: Command<
   UpdateVectorizedStringStatusCommand

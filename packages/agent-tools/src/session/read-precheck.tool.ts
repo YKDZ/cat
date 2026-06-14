@@ -5,8 +5,7 @@ import * as z from "zod";
 
 const readPrecheckArgs = z.object({
   /**
-   * @zh 当前 AgentRun 的外部 UUID（由 AgentRuntime 注入上下文中使用）
-   * @en External UUID of the current AgentRun (injected by AgentRuntime as context)
+   * External UUID of the current AgentRun (injected by AgentRuntime as context)
    */
   runId: z.uuid().optional().describe("External UUID of the current AgentRun"),
 });
@@ -16,8 +15,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 };
 
 /**
- * @zh read_precheck 工具: 读取 PreCheckNode 在本轮写入的检查笔记。
- * @en read_precheck tool: read the precheck notes written by PreCheckNode in this turn.
+ * read_precheck tool: read the precheck notes written by PreCheckNode in this turn.
  */
 export const readPrecheckTool: AgentToolDefinition = {
   name: "read_precheck",

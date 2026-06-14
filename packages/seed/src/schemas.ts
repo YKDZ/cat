@@ -17,8 +17,7 @@ export const PluginOverrideSchema = z.object({
 export type PluginOverride = z.infer<typeof PluginOverrideSchema>;
 
 /**
- * @zh 本地 seed 覆盖配置，仅承载不应提交到版本控制的插件配置。
- * @en Local seed override config, intended only for plugin config that should not be committed.
+ * Local seed override config, intended only for plugin config that should not be committed.
  */
 export const LocalSeedConfigSchema = z.object({
   plugins: z
@@ -29,8 +28,7 @@ export const LocalSeedConfigSchema = z.object({
 });
 
 /**
- * @zh 本地 seed 覆盖配置类型。
- * @en Local seed override config type.
+ * Local seed override config type.
  */
 export type LocalSeedConfig = z.infer<typeof LocalSeedConfigSchema>;
 
@@ -190,8 +188,7 @@ export const UserSeedSchema = z.object({
 export type UserSeed = z.infer<typeof UserSeedSchema>;
 
 /**
- * @zh Bootstrap locale catalog 文件映射。
- * @en Bootstrap locale catalog file mapping.
+ * Bootstrap locale catalog file mapping.
  */
 export const BootstrapLocaleCatalogSchema = z.object({
   path: z.string().min(1),
@@ -200,8 +197,7 @@ export const BootstrapLocaleCatalogSchema = z.object({
 });
 
 /**
- * @zh Bootstrap 源采集配置。
- * @en Bootstrap source collection configuration.
+ * Bootstrap source collection configuration.
  */
 export const BootstrapSourceProfileSchema = z.object({
   baseDir: z.string().min(1),
@@ -211,8 +207,7 @@ export const BootstrapSourceProfileSchema = z.object({
 });
 
 /**
- * @zh Bootstrap 截图配置。
- * @en Bootstrap screenshot configuration.
+ * Bootstrap screenshot configuration.
  */
 export const BootstrapScreenshotProfileSchema = z.object({
   routes: z.string().min(1),
@@ -221,16 +216,14 @@ export const BootstrapScreenshotProfileSchema = z.object({
 });
 
 /**
- * @zh Bootstrap 报告输出配置。
- * @en Bootstrap report output configuration.
+ * Bootstrap report output configuration.
  */
 export const BootstrapReportProfileSchema = z.object({
   output: z.string().min(1).default("artifacts/bootstrap-report.json"),
 });
 
 /**
- * @zh Bootstrap profile schema。
- * @en Bootstrap profile schema.
+ * Bootstrap profile schema.
  */
 export const BootstrapProfileSchema = z.object({
   enabled: z.boolean().default(false),
@@ -248,16 +241,14 @@ export const BootstrapProfileSchema = z.object({
 });
 
 /**
- * @zh Bootstrap locale catalog 类型。
- * @en Bootstrap locale catalog type.
+ * Bootstrap locale catalog type.
  */
 export type BootstrapLocaleCatalog = z.infer<
   typeof BootstrapLocaleCatalogSchema
 >;
 
 /**
- * @zh Bootstrap profile 类型。
- * @en Bootstrap profile type.
+ * Bootstrap profile type.
  */
 export type BootstrapProfile = z.infer<typeof BootstrapProfileSchema>;
 

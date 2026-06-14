@@ -2,8 +2,7 @@ import type { PermissionEngine } from "./engine.ts";
 import type { AuthContext, ObjectRef } from "./types.ts";
 
 /**
- * @zh 判定 Subject 对 Project 的写入模式（Direct / Isolation）。
- * @en Determine the write mode (Direct / Isolation) for a subject on a project.
+ * Determine the write mode (Direct / Isolation) for a subject on a project.
  *
  * @returns "direct" | "isolation" | "no_access"
  */

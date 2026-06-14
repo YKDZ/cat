@@ -8,13 +8,11 @@ import { useI18n } from "vue-i18n";
 import JSONForm from "@/components/json-form/JsonForm.vue";
 
 /**
- * @zh JsonFormFallback 的 props。
- * @en Props for the JsonFormFallback node component.
+ * Props for the JsonFormFallback node component.
  */
 const props = defineProps<{
   /**
-   * @zh 来自认证流节点的客户端提示信息（含 formSchema）。
-   * @en Client hint from the auth flow node (may contain formSchema).
+   * Client hint from the auth flow node (may contain formSchema).
    */
   hint?: {
     displayInfo?: {
@@ -26,8 +24,7 @@ const props = defineProps<{
 }>();
 
 /**
- * @zh 用户提交表单数据时触发。
- * @en Emitted when user submits the form data.
+ * Emitted when user submits the form data.
  */
 const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;

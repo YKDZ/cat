@@ -19,13 +19,12 @@ type GhostTextState = {
 };
 
 /**
- * @zh 根据当前文档和光标计算仍应显示的 ghost text 后缀。
- * @en Compute the remaining ghost text suffix for the current document and cursor.
+ * Compute the remaining ghost text suffix for the current document and cursor.
  *
- * @param state - {@zh 当前 ghost text 状态} {@en Current ghost text state}
- * @param doc - {@zh 当前编辑器文本} {@en Current editor document text}
- * @param cursorPos - {@zh 当前光标位置} {@en Current cursor position}
- * @returns - {@zh 可显示的剩余后缀，不匹配时为 null} {@en Remaining visible suffix, or null when it does not match}
+ * @param state - Current ghost text state
+ * @param doc - Current editor document text
+ * @param cursorPos - Current cursor position
+ * @returns - Remaining visible suffix, or null when it does not match
  */
 export const getGhostTextRemainder = (
   state: GhostTextState,
@@ -43,11 +42,10 @@ export const getGhostTextRemainder = (
 };
 
 /**
- * @zh 判断 ghost text 快捷键是否应处理当前按键，输入法组合态中必须跳过。
- * @en Determine whether ghost text shortcuts should handle the key, skipping IME composition.
+ * Determine whether ghost text shortcuts should handle the key, skipping IME composition.
  *
- * @param view - {@zh CodeMirror 视图的组合态信息} {@en Composition state from the CodeMirror view}
- * @returns - {@zh 非组合态时返回 true} {@en True when the editor is not composing}
+ * @param view - Composition state from the CodeMirror view
+ * @returns - True when the editor is not composing
  */
 export const shouldHandleGhostTextKey = (
   view: Pick<EditorView, "composing">,

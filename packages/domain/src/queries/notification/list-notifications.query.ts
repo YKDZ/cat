@@ -14,7 +14,7 @@ export type ListNotificationsQuery = z.infer<
   typeof ListNotificationsQuerySchema
 >;
 
-/** @zh 分页查询通知列表。 @en Query paginated notifications. */
+/** Query paginated notifications. */
 export const listNotifications: Query<
   ListNotificationsQuery,
   (typeof notification.$inferSelect)[]

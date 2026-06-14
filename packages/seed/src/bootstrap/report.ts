@@ -6,8 +6,7 @@ import { dirname, resolve } from "node:path";
 import type { LocaleBridgeDiagnostic } from "./locale-bridge";
 
 /**
- * @zh Bootstrap 运行报告。
- * @en Bootstrap run report.
+ * Bootstrap run report.
  */
 export type BootstrapRunReport = {
   profileName: string;
@@ -53,13 +52,12 @@ export type BootstrapRunReport = {
 };
 
 /**
- * @zh 写入自举运行报告。
- * @en Write a bootstrap run report.
+ * Write a bootstrap run report.
  *
- * @param seedDir - {@zh seed 数据集目录} {@en Seed dataset directory}
- * @param outputPath - {@zh 相对或绝对输出路径} {@en Relative or absolute output path}
- * @param report - {@zh 报告内容} {@en Report payload}
- * @returns - {@zh 报告绝对路径} {@en Absolute report path}
+ * @param seedDir - Seed dataset directory
+ * @param outputPath - Relative or absolute output path
+ * @param report - Report payload
+ * @returns - Absolute report path
  */
 export const writeBootstrapRunReport = async (
   seedDir: string,

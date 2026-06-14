@@ -52,8 +52,7 @@ export const listMyPermissionsOn = authed
   });
 
 /**
- * @zh 查询当前用户对项目的写入模式。
- * @en Query the current user's write mode on a project.
+ * Query the current user's write mode on a project.
  */
 export const getProjectWriteMode = authed
   .input(z.object({ projectId: z.uuidv4() }))

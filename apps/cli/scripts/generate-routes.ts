@@ -1,7 +1,6 @@
 #!/usr/bin/env -S node --import=tsx/esm
 /**
- * @zh 静态分析 app-api 的 oRPC 路由器源文件，生成 CLI 可用的路由路径清单。
- * @en Statically analyze app-api oRPC router source files to generate a route path manifest for the CLI.
+ * Statically analyze app-api oRPC router source files to generate a route path manifest for the CLI.
  *
  * 运行方式: node --import=tsx/esm apps/cli/scripts/generate-routes.ts
  * 或通过 moon: pnpm moon run cli:generate-routes
@@ -169,14 +168,12 @@ const output = `\
 // Re-generate with: pnpm moon run cli:generate-routes
 
 /**
- * @zh 所有可调用的 oRPC 端点路径（含嵌套路由器的子路径）。
- * @en All callable oRPC endpoint paths (including nested router sub-paths).
+ * All callable oRPC endpoint paths (including nested router sub-paths).
  */
 export const ALL_ROUTES = ${JSON.stringify(allPaths, null, 2)} as const;
 
 /**
- * @zh 直接导出的端点路径（排除通过嵌套路由器对象访问的重复路径）。
- * @en Directly exported endpoint paths (excluding duplicates accessible via nested router objects).
+ * Directly exported endpoint paths (excluding duplicates accessible via nested router objects).
  */
 export const ROUTES = ${JSON.stringify(directPaths, null, 2)} as const;
 

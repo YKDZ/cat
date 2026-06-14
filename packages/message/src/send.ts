@@ -4,8 +4,7 @@ import type { JSONType } from "@cat/shared";
 import { domainEvent, domainEventBus } from "@cat/domain/events";
 
 /**
- * @zh 从任意后端位置发送消息，发布 message:send-requested 域事件。
- * @en Send a message from anywhere in the backend by publishing message:send-requested.
+ * Send a message from anywhere in the backend by publishing message:send-requested.
  */
 export const sendMessage = async (options: {
   recipientId: string;

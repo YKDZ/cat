@@ -6,31 +6,27 @@ import type {
 // ─── Result ───────────────────────────────────────────────────────────────────
 
 /**
- * @zh PreCheckNode 执行结果。
- * @en PreCheckNode execution result.
+ * PreCheckNode execution result.
  */
 export interface PreCheckResult {
   /**
-   * @zh 是否需要强制终止（步数或超时超限）
-   * @en Whether to force abort (step count or timeout exceeded)
+   * Whether to force abort (step count or timeout exceeded)
    */
   shouldAbort: boolean;
-  /** @zh 终止原因 @en Abort reason */
+  /** Abort reason */
   abortReason?: "maxTurns" | "timeout";
   /**
-   * @zh 写入 Blackboard 的提示信息
-   * @en Notes to write to Blackboard
+   * Notes to write to Blackboard
    */
   precheckNotes: string;
-  /** @zh 写入 Blackboard data 的更新 @en Updates to write to Blackboard data */
+  /** Updates to write to Blackboard data */
   updates: Partial<AgentBlackboardData>;
 }
 
 // ─── Services ─────────────────────────────────────────────────────────────────
 
 /**
- * @zh PreCheckNode 可选服务接口。
- * @en Optional services available to PreCheckNode.
+ * Optional services available to PreCheckNode.
  */
 export type PreCheckServices = Record<string, never>;
 
@@ -44,8 +40,7 @@ export type PreCheckContext = Pick<
 // ─── PreCheckNode ─────────────────────────────────────────────────────────────
 
 /**
- * @zh PreCheckNode（Phase 0b）：步数/超时检查 + Blackboard 更新。
- * @en PreCheckNode (Phase 0b): step/timeout check + Blackboard update.
+ * PreCheckNode (Phase 0b): step/timeout check + Blackboard update.
  */
 export const runPreCheckNode = async (
   data: AgentBlackboardData,

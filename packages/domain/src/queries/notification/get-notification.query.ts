@@ -11,8 +11,7 @@ export const GetNotificationQuerySchema = z.object({
 export type GetNotificationQuery = z.infer<typeof GetNotificationQuerySchema>;
 
 /**
- * @zh 按 ID 查询单条通知（只允许查询自己的通知）。
- * @en Get a single notification by ID (restricted to the owner).
+ * Get a single notification by ID (restricted to the owner).
  */
 export const getNotification: Query<
   GetNotificationQuery,

@@ -30,11 +30,10 @@ const normalizeSessionContext = (
 };
 
 /**
- * @zh 从黑板快照中提取可供前端直接渲染的消息列表。
- * @en Extract a message list from a blackboard snapshot for direct frontend rendering.
+ * Extract a message list from a blackboard snapshot for direct frontend rendering.
  *
- * @param blackboard - {@zh 会话黑板快照} {@en Session blackboard snapshot}
- * @returns - {@zh 过滤并标准化后的消息列表} {@en Filtered and normalized message list}
+ * @param blackboard - Session blackboard snapshot
+ * @returns - Filtered and normalized message list
  */
 export const hydrateMessagesFromBlackboard = (
   blackboard: Record<string, unknown> | null,
@@ -64,11 +63,10 @@ export const hydrateMessagesFromBlackboard = (
 };
 
 /**
- * @zh 将会话状态接口返回值转换为 store 可直接消费的 hydration 结果。
- * @en Convert the session-state response into a store-ready hydration result.
+ * Convert the session-state response into a store-ready hydration result.
  *
- * @param state - {@zh 会话状态接口返回值} {@en Session-state API payload}
- * @returns - {@zh 归一化后的会话 hydration 状态} {@en Normalized hydrated session state}
+ * @param state - Session-state API payload
+ * @returns - Normalized hydrated session state
  */
 export const hydrateSessionState = (state: {
   sessionId: string;

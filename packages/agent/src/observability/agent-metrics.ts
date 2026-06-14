@@ -1,8 +1,7 @@
 // ─── Metrics Snapshot ─────────────────────────────────────────────────────────
 
 /**
- * @zh Agent 指标快照，包含各项计数器和分布数据。
- * @en Agent metrics snapshot with counters and distribution data.
+ * Agent metrics snapshot with counters and distribution data.
  */
 export interface AgentMetricsSnapshot {
   /** M01: agent.tokens.total */
@@ -24,8 +23,7 @@ export interface AgentMetricsSnapshot {
 // ─── AgentMetrics ─────────────────────────────────────────────────────────────
 
 /**
- * @zh Agent 基础指标收集器（纯内存实现，Phase 0a 版）。
- * @en Agent basic metrics collector (in-memory implementation, Phase 0a).
+ * Agent basic metrics collector (in-memory implementation, Phase 0a).
  */
 export class AgentMetrics {
   private promptTokens = 0;
@@ -38,8 +36,7 @@ export class AgentMetrics {
   private occConflictCount = 0;
 
   /**
-   * @zh 记录 token 用量（M01）。
-   * @en Record token usage (M01).
+   * Record token usage (M01).
    */
   recordTokens(prompt: number, completion: number): void {
     this.promptTokens += prompt;
@@ -47,11 +44,10 @@ export class AgentMetrics {
   }
 
   /**
-   * @zh 记录 DAG 节点执行耗时（M02）。
-   * @en Record DAG node execution duration (M02).
+   * Record DAG node execution duration (M02).
    *
-   * @param nodeType - {@zh 节点类型} {@en Node type}
-   * @param durationMs - {@zh 执行耗时（ms）} {@en Execution duration (ms)}
+   * @param nodeType - Node type
+   * @param durationMs - Execution duration (ms)
    */
   recordNodeDuration(nodeType: string, durationMs: number): void {
     if (!this.nodeDurations[nodeType]) {
@@ -61,38 +57,34 @@ export class AgentMetrics {
   }
 
   /**
-   * @zh 记录工具调用次数（M03）。
-   * @en Record tool call count (M03).
+   * Record tool call count (M03).
    *
-   * @param toolName - {@zh 工具名称} {@en Tool name}
+   * @param toolName - Tool name
    */
   recordToolCall(toolName: string): void {
     this.toolCalls[toolName] = (this.toolCalls[toolName] ?? 0) + 1;
   }
 
   /**
-   * @zh 记录错误次数（M04）。
-   * @en Record error count (M04).
+   * Record error count (M04).
    *
-   * @param category - {@zh 错误类别} {@en Error category}
+   * @param category - Error category
    */
   recordError(category: string): void {
     this.errors[category] = (this.errors[category] ?? 0) + 1;
   }
 
   /**
-   * @zh 记录 ChangeSet 创建（M05）。
-   * @en Record ChangeSet creation (M05).
+   * Record ChangeSet creation (M05).
    */
   recordChangesetCreated(): void {
     this.changesetCreatedCount += 1;
   }
 
   /**
-   * @zh 记录 ChangeSet entry 按 entityType 计数（M06）。
-   * @en Record ChangeSet entry count by entityType (M06).
+   * Record ChangeSet entry count by entityType (M06).
    *
-   * @param entityType - {@zh 实体类型} {@en Entity type}
+   * @param entityType - Entity type
    */
   recordChangesetEntry(entityType: string): void {
     this.changesetEntryByType[entityType] =
@@ -100,16 +92,14 @@ export class AgentMetrics {
   }
 
   /**
-   * @zh 记录 OCC 冲突次数（M07）。
-   * @en Record OCC conflict count (M07).
+   * Record OCC conflict count (M07).
    */
   recordOCCConflict(): void {
     this.occConflictCount += 1;
   }
 
   /**
-   * @zh 获取当前指标快照。
-   * @en Get current metrics snapshot.
+   * Get current metrics snapshot.
    */
   snapshot(): AgentMetricsSnapshot {
     return {

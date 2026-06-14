@@ -648,8 +648,7 @@ export const countItem = authed
   });
 
 /**
- * @zh 基于文本的记忆回射。接受原始文本而非 elementId。
- * @en Text-based memory recall. Accepts raw text instead of an element ID.
+ * Text-based memory recall. Accepts raw text instead of an element ID.
  */
 export const searchByText = authed
   .input(

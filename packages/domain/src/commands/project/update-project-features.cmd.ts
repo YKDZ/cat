@@ -27,9 +27,8 @@ const ACTIVE_PR_STATUSES = [
 ] as const;
 
 /**
- * @zh 更新项目 feature flags。如果 pullRequests 从 true 变为 false，先检查是否存在活跃 PR，
  * 若存在则拒绝；否则在同一事务内批量 revoke 该项目所有 isolation_forced tuple。
- * @en Update project feature flags. When pullRequests toggles from true to false,
+ * Update project feature flags. When pullRequests toggles from true to false,
  * first checks for active PRs (rejects if any exist), then revokes all isolation_forced tuples in the same transaction.
  */
 export const updateProjectFeatures: Command<

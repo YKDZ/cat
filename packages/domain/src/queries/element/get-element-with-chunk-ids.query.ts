@@ -27,8 +27,7 @@ export type ElementWithChunkIds = {
 };
 
 /**
- * @zh 获取单个 element 的源文本及其 chunk IDs（用于向量召回）。
- * @en Get a single element's source text and its chunk IDs (for vector recall).
+ * Get a single element's source text and its chunk IDs (for vector recall).
  */
 export const getElementWithChunkIds: Query<
   GetElementWithChunkIdsQuery,

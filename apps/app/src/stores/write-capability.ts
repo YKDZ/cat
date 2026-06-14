@@ -7,14 +7,12 @@ import { type BranchValidationStatus, useBranchStore } from "@/stores/branch";
 import { useEditorContextStore } from "@/stores/editor/context";
 
 /**
- * @zh 项目写入模式。
- * @en Project write mode.
+ * Project write mode.
  */
 export type ProjectWriteMode = "direct" | "isolation" | "no_access";
 
 /**
- * @zh 项目写入能力状态。
- * @en Project write capability state.
+ * Project write capability state.
  */
 export type WriteCapabilityState =
   | "branch-write"
@@ -25,8 +23,7 @@ export type WriteCapabilityState =
   | "no-access";
 
 /**
- * @zh 项目写入能力视图。
- * @en Project write capability view.
+ * Project write capability view.
  */
 export type ProjectWriteCapability = {
   projectId: string;
@@ -40,11 +37,10 @@ export type ProjectWriteCapability = {
 };
 
 /**
- * @zh 根据项目写入模式与分支状态解析当前写入能力。
- * @en Resolve the current write capability from project write mode and branch state.
+ * Resolve the current write capability from project write mode and branch state.
  *
- * @param input - {@zh 写入能力解析输入} {@en Write capability resolution input}
- * @returns - {@zh 解析后的写入能力} {@en Resolved write capability}
+ * @param input - Write capability resolution input
+ * @returns - Resolved write capability
  */
 export const resolveProjectWriteCapability = (input: {
   projectId: string;
@@ -140,8 +136,7 @@ export const resolveProjectWriteCapability = (input: {
 };
 
 /**
- * @zh 项目写入能力 store。
- * @en Project write capability store.
+ * Project write capability store.
  */
 export const useProjectWriteCapabilityStore = defineStore(
   "projectWriteCapability",

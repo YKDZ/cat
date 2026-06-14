@@ -1,8 +1,7 @@
 import type { HnfCandidate, HardNegativeRemoval } from "./types";
 
 /**
- * @zh 从源 NLP tokens 提取内容词（非停用词、非标点的 lemma 小写形式）。
- * @en Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased).
+ * Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased).
  */
 export const extractContentWordsFromTokens = (
   tokens: Array<{
@@ -27,8 +26,7 @@ export const extractContentWordsFromTokens = (
 };
 
 /**
- * @zh 计算内容词交集大小。
- * @en Compute content word intersection size.
+ * Compute content word intersection size.
  */
 const computeContentWordIntersection = (
   queryContentWords: string[],
@@ -44,18 +42,17 @@ const computeContentWordIntersection = (
 };
 
 /**
- * @zh 应用 HNF 预管道规则（1, 2, 3）。
  *
  * 规则 1：孤立语义候选抑制
  * 规则 2：Sparse 反证折减
  * 规则 3：Content-Word Intersection Gate
- * @en Apply HNF pre-pipeline rules (1, 2, 3).
+ * Apply HNF pre-pipeline rules (1, 2, 3).
  *
- * @param candidates - {@zh 候选列表} {@en Candidate list}
- * @param queryContentWords - {@zh 查询的内容词} {@en Query content words}
- * @param queryKeyNouns - {@zh 查询的关键名词（NOUN/PROPN）} {@en Query key nouns (NOUN/PROPN pos)}
- * @param queryTextLength - {@zh 查询文本长度} {@en Query text character length}
- * @returns - {@zh 过滤后保留的候选和移除记录} {@en Kept candidates and removal records}
+ * @param candidates - Candidate list
+ * @param queryContentWords - Query content words
+ * @param queryKeyNouns - Query key nouns (NOUN/PROPN pos)
+ * @param queryTextLength - Query text character length
+ * @returns - Kept candidates and removal records
  */
 export const applyHnfPreRules = (
   candidates: HnfCandidate[],
@@ -153,12 +150,11 @@ export const applyHnfPreRules = (
 };
 
 /**
- * @zh 应用 HNF 后管道规则（规则 4：Tier-3 孤立语义判定）。
- * @en Apply HNF post-pipeline rules (rule 4: Tier-3 isolated semantic judgment).
+ * Apply HNF post-pipeline rules (rule 4: Tier-3 isolated semantic judgment).
  *
- * @param candidates - {@zh 精排后的候选列表（含 tier 信息）} {@en Ranked candidates with tier info}
- * @param queryContentWords - {@zh 查询的内容词} {@en Query content words}
- * @returns - {@zh 过滤后保留的候选和移除记录} {@en Kept candidates and removal records}
+ * @param candidates - Ranked candidates with tier info
+ * @param queryContentWords - Query content words
+ * @returns - Kept candidates and removal records
  */
 export const applyHnfPostRules = (
   candidates: Array<

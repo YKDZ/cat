@@ -43,11 +43,10 @@ const adaptPluginTool = (
 };
 
 /**
- * @zh 创建服务端 Agent 工具注册表，包含内置工具与插件提供的工具。
- * @en Create the server-side agent tool registry with builtin and plugin-provided tools.
+ * Create the server-side agent tool registry with builtin and plugin-provided tools.
  *
- * @param pluginManager - {@zh 当前作用域的插件管理器} {@en Plugin manager for the current scope}
- * @returns - {@zh 已注册所有服务端工具的注册表} {@en Tool registry with all server-side tools registered}
+ * @param pluginManager - Plugin manager for the current scope
+ * @returns - Tool registry with all server-side tools registered
  */
 export const createAgentToolRegistry = (
   pluginManager: PluginManager,

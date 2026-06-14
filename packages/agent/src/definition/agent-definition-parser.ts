@@ -10,14 +10,13 @@ import { unified } from "unified";
 import { parse as parseYaml } from "yaml";
 
 /**
- * @zh 使用 remark 管线解析 Agent MD 定义文件，提取 frontmatter 元数据和正文内容。
- * @en Parse an agent MD definition file using the remark pipeline, extracting
+ * Parse an agent MD definition file using the remark pipeline, extracting
  *   frontmatter metadata and body content.
  *
- * @param markdown - {@zh 完整的 Markdown 文本（含 YAML frontmatter）} {@en Full Markdown text including YAML frontmatter}
- * @returns - {@zh 包含已校验元数据和正文内容的 ParsedAgentDefinition} {@en ParsedAgentDefinition with validated metadata and body content}
- * @throws {Error} {@zh 若没有 frontmatter 则抛出} {@en Thrown when frontmatter is missing}
- * @throws {ZodError} {@zh frontmatter 校验失败时抛出} {@en Thrown when frontmatter validation fails}
+ * @param markdown - Full Markdown text including YAML frontmatter
+ * @returns - ParsedAgentDefinition with validated metadata and body content
+ * @throws {Error} Thrown when frontmatter is missing
+ * @throws {ZodError} Thrown when frontmatter validation fails
  */
 export const parseAgentDefinition = (
   markdown: string,

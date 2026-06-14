@@ -1,6 +1,5 @@
 /**
- * @zh entity_branch 分支隔离集成测试。
- * @en entity_branch isolation integration tests.
+ * entity_branch isolation integration tests.
  *
  * Tests cover:
  * - Write isolation: branch writes not visible to main

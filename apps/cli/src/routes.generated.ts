@@ -2,8 +2,7 @@
 // Re-generate with: pnpm moon run cli:generate-routes
 
 /**
- * @zh 所有可调用的 oRPC 端点路径（含嵌套路由器的子路径）。
- * @en All callable oRPC endpoint paths (including nested router sub-paths).
+ * All callable oRPC endpoint paths (including nested router sub-paths).
  */
 export const ALL_ROUTES = [
   "agent.create",
@@ -222,8 +221,7 @@ export const ALL_ROUTES = [
 ] as const;
 
 /**
- * @zh 直接导出的端点路径（排除通过嵌套路由器对象访问的重复路径）。
- * @en Directly exported endpoint paths (excluding duplicates accessible via nested router objects).
+ * Directly exported endpoint paths (excluding duplicates accessible via nested router objects).
  */
 export const ROUTES = [
   "agent.create",

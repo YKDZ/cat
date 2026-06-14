@@ -121,8 +121,7 @@ export type SubmitQaReviewDecisionInput = z.infer<
 >;
 
 /**
- * @zh QA 审校工作台动作类型。
- * @en Action types for the QA review workbench.
+ * Action types for the QA review workbench.
  */
 export const QaReviewWorkbenchActionSchema = z.enum([
   "APPROVE",
@@ -131,16 +130,14 @@ export const QaReviewWorkbenchActionSchema = z.enum([
 ]);
 
 /**
- * @zh QA 审校工作台动作类型。
- * @en Action types for the QA review workbench.
+ * Action types for the QA review workbench.
  */
 export type QaReviewWorkbenchAction = z.infer<
   typeof QaReviewWorkbenchActionSchema
 >;
 
 /**
- * @zh QA 审校工作台提交动作输入。
- * @en Input payload for submitting a QA workbench action.
+ * Input payload for submitting a QA workbench action.
  */
 export const SubmitQaReviewActionInputSchema = z
   .object({
@@ -177,16 +174,14 @@ export const SubmitQaReviewActionInputSchema = z
   });
 
 /**
- * @zh QA 审校工作台提交动作输入。
- * @en Input payload for submitting a QA workbench action.
+ * Input payload for submitting a QA workbench action.
  */
 export type SubmitQaReviewActionInput = z.infer<
   typeof SubmitQaReviewActionInputSchema
 >;
 
 /**
- * @zh QA 审校工作台动作执行结果。
- * @en Result payload for a QA workbench action.
+ * Result payload for a QA workbench action.
  */
 export const QaReviewActionResultSchema = z.object({
   decisionId: z.int().positive(),
@@ -202,8 +197,7 @@ export const QaReviewActionResultSchema = z.object({
 });
 
 /**
- * @zh QA 审校工作台动作执行结果。
- * @en Result payload for a QA workbench action.
+ * Result payload for a QA workbench action.
  */
 export type QaReviewActionResult = z.infer<typeof QaReviewActionResultSchema>;
 

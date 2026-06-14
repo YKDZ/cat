@@ -156,19 +156,18 @@ export type StatisticalTermExtractOutput = z.infer<
 // ─── Core Operation ───
 
 /**
- * @zh 统计学术语提取。
  *
  * 内部调用 {@link nlpBatchSegmentOp} 进行 NLP 分词，然后通过 POS 过滤 + N-gram 生成
  * + TF-IDF + C-value 算法提取高置信度术语候选。
- * @en Statistical term extraction.
+ * Statistical term extraction.
  *
  * Internally calls {@link nlpBatchSegmentOp} for NLP segmentation, then
  * extracts high-confidence term candidates via POS filtering, N-gram
  * generation, TF-IDF weighting, and the C-value algorithm.
  *
- * @param data - {@zh 统计提取输入参数} {@en Statistical extraction input parameters}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 提取的术语候选列表及所用分词器类型} {@en Extracted term candidates and the segmenter type used}
+ * @param data - Statistical extraction input parameters
+ * @param ctx - Operation context
+ * @returns - Extracted term candidates and the segmenter type used
  */
 export const statisticalTermExtractOp = async (
   data: StatisticalTermExtractInput,

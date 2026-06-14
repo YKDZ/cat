@@ -32,17 +32,16 @@ export type UpsertContentNodeFromFileOutput = z.infer<
 >;
 
 /**
- * @zh 通过文件解析和稳定身份差分，将文件内容同步到指定内容节点下的可翻译元素。
  *
  * 1. 调用 parseFileOp 解析文件为结构化内容图载荷
  * 2. 调用 diffStructuredContentOp 执行差分并持久化
  *
- * @en Synchronize file content to translatable elements under a content node
+ * Synchronize file content to translatable elements under a content node
  * via file parsing and stable-identity diff.
  *
- * @param data - {@zh 同步输入参数} {@en Synchronization input parameters}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 同步结果统计} {@en Sync result statistics}
+ * @param data - Synchronization input parameters
+ * @param ctx - Operation context
+ * @returns - Sync result statistics
  */
 export const upsertContentNodeFromFileOp = async (
   data: UpsertContentNodeFromFileInput,

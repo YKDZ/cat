@@ -22,73 +22,68 @@ import { buildAgentDAG } from "../dag/agent-dag-builder.ts";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 /**
- * @zh SessionManager 创建会话的参数。
- * @en Parameters for SessionManager.createSession().
+ * Parameters for SessionManager.createSession().
  */
 export interface CreateSessionParams {
-  /** @zh Agent 定义外部 UUID @en Agent definition external UUID */
+  /** Agent definition external UUID */
   agentDefinitionId: string;
-  /** @zh 用户外部 UUID @en User external UUID */
+  /** User external UUID */
   userId: string;
-  /** @zh 项目外部 UUID（可选）@en Project external UUID (optional) */
+  /** Project external UUID (optional) */
   projectId?: string;
-  /** @zh 会话级业务上下文元数据 @en Session-scoped business context metadata */
+  /** Session-scoped business context metadata */
   metadata?: AgentSessionMetadata;
-  /** @zh 初始用户消息（可选）@en Initial user message (optional) */
+  /** Initial user message (optional) */
   initialMessage?: string;
-  /** @zh 去重键（用于幂等性）@en Deduplication key (for idempotency) */
+  /** Deduplication key (for idempotency) */
   deduplicationKey?: string;
 }
 
 /**
- * @zh SessionManager.createSession() 的返回值。
- * @en Return value of SessionManager.createSession().
+ * Return value of SessionManager.createSession().
  */
 export interface CreateSessionResult {
-  /** @zh 新创建的 agentSession 外部 UUID @en External UUID of the new agentSession */
+  /** External UUID of the new agentSession */
   sessionId: string;
-  /** @zh 新创建的 agentRun 外部 UUID @en External UUID of the new agentRun */
+  /** External UUID of the new agentRun */
   runId: string;
 }
 
 /**
- * @zh 已加载的 Session 状态，供 AgentRuntime 使用。
- * @en Loaded session state for use by AgentRuntime.
+ * Loaded session state for use by AgentRuntime.
  */
 export interface SessionState {
-  /** @zh agentSession 外部 UUID @en agentSession external UUID */
+  /** agentSession external UUID */
   sessionId: string;
-  /** @zh agentSession 内部 ID @en agentSession internal ID */
+  /** agentSession internal ID */
   sessionDbId: number;
-  /** @zh agentDefinition 内部 ID @en agentDefinition internal ID */
+  /** agentDefinition internal ID */
   agentDefinitionDbId: number;
-  /** @zh 已解析的 Agent 定义 @en Parsed agent definition */
+  /** Parsed agent definition */
   agentDefinition: ParsedAgentDefinition;
-  /** @zh 当前 agentRun 外部 UUID @en Current agentRun external UUID */
+  /** Current agentRun external UUID */
   runId: string;
-  /** @zh 当前会话关联的项目外部 UUID @en Project external UUID linked to the current session */
+  /** Project external UUID linked to the current session */
   projectId: string | null;
-  /** @zh 解析后的会话元数据 @en Parsed session metadata */
+  /** Parsed session metadata */
   sessionMetadata: AgentSessionMetadata | null;
-  /** @zh 当前运行内部 ID @en Current run internal ID */
+  /** Current run internal ID */
   currentRunId: number | null;
-  /** @zh Blackboard 快照（若已有）@en Blackboard snapshot (if any) */
+  /** Blackboard snapshot (if any) */
   blackboardSnapshot: BlackboardSnapshot | null;
 }
 
 // ─── SessionManager ───────────────────────────────────────────────────────────
 
 /**
- * @zh Session 生命周期管理器：封装 Agent Session 和 Run 的创建、加载、持久化和完成操作。
- * @en Session lifecycle manager: encapsulates create, load, persist, and complete operations for Agent Sessions and Runs.
+ * Session lifecycle manager: encapsulates create, load, persist, and complete operations for Agent Sessions and Runs.
  */
 export class SessionManager {
   /**
-   * @zh 创建新的 AgentSession 和 AgentRun，并初始化 Blackboard。
-   * @en Create a new AgentSession and AgentRun, and initialize the Blackboard.
+   * Create a new AgentSession and AgentRun, and initialize the Blackboard.
    *
-   * @param params - {@zh 创建会话参数} {@en Create session parameters}
-   * @returns - {@zh 会话 ID 和运行 ID} {@en Session ID and run ID}
+   * @param params - Create session parameters
+   * @returns - Session ID and run ID
    */
   async createSession(
     params: CreateSessionParams,
@@ -134,12 +129,11 @@ export class SessionManager {
   }
 
   /**
-   * @zh 加载 Session 状态（含 Agent 定义和当前 Blackboard 快照）。
-   * @en Load session state (including agent definition and current Blackboard snapshot).
+   * Load session state (including agent definition and current Blackboard snapshot).
    *
-   * @param sessionId - {@zh agentSession 外部 UUID} {@en agentSession external UUID}
-   * @param runId - {@zh agentRun 外部 UUID} {@en agentRun external UUID}
-   * @returns - {@zh 已加载的 SessionState} {@en Loaded SessionState}
+   * @param sessionId - agentSession external UUID
+   * @param runId - agentRun external UUID
+   * @returns - Loaded SessionState
    */
   async loadSession(sessionId: string, runId: string): Promise<SessionState> {
     const { client: db } = await getDbHandle();
@@ -220,11 +214,10 @@ export class SessionManager {
   }
 
   /**
-   * @zh 将 Blackboard 快照持久化到数据库。
-   * @en Persist Blackboard snapshot to the database.
+   * Persist Blackboard snapshot to the database.
    *
-   * @param runId - {@zh agentRun 外部 UUID} {@en agentRun external UUID}
-   * @param snapshot - {@zh Blackboard 数据快照} {@en Blackboard data snapshot}
+   * @param runId - agentRun external UUID
+   * @param snapshot - Blackboard data snapshot
    */
   async saveSnapshot(
     runId: string,
@@ -238,12 +231,11 @@ export class SessionManager {
   }
 
   /**
-   * @zh 将 AgentSession 和 AgentRun 标记为终止态。
-   * @en Mark AgentSession and AgentRun as terminal state.
+   * Mark AgentSession and AgentRun as terminal state.
    *
-   * @param sessionId - {@zh agentSession 外部 UUID} {@en agentSession external UUID}
-   * @param runId - {@zh agentRun 外部 UUID} {@en agentRun external UUID}
-   * @param status - {@zh 最终状态} {@en Final status}
+   * @param sessionId - agentSession external UUID
+   * @param runId - agentRun external UUID
+   * @param status - Final status
    */
   async completeSession(
     sessionId: string,

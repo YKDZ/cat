@@ -27,8 +27,7 @@ export type ContentNodeElementWithChunkIds = {
 };
 
 /**
- * @zh 获取内容节点下所有元素及其 chunk ID 列表（用于批量自动翻译）。
- * @en Get all elements under a content node along with their chunk IDs (for batch auto-translation).
+ * Get all elements under a content node along with their chunk IDs (for batch auto-translation).
  */
 export const listContentNodeElementsWithChunkIds: Query<
   ListContentNodeElementsWithChunkIdsQuery,

@@ -3,8 +3,7 @@ import type { Logger } from "@cat/shared";
 // ─── Log Event Types ──────────────────────────────────────────────────────────
 
 /**
- * @zh L01: Agent 运行级别日志事件（run 开始/结束）。
- * @en L01: Agent run-level log event (run start/end).
+ * L01: Agent run-level log event (run start/end).
  */
 export interface AgentRunLogEvent {
   runId: string;
@@ -16,8 +15,7 @@ export interface AgentRunLogEvent {
 }
 
 /**
- * @zh L02: DAG 节点日志事件（每个节点进入/退出）。
- * @en L02: DAG node log event (each node enter/exit).
+ * L02: DAG node log event (each node enter/exit).
  */
 export interface AgentDAGNodeLogEvent {
   nodeType: "precheck" | "reasoning" | "tool" | "decision";
@@ -29,8 +27,7 @@ export interface AgentDAGNodeLogEvent {
 }
 
 /**
- * @zh L03: LLM 调用日志事件。
- * @en L03: LLM call log event.
+ * L03: LLM call log event.
  */
 export interface AgentLLMCallLogEvent {
   providerId: string;
@@ -43,8 +40,7 @@ export interface AgentLLMCallLogEvent {
 }
 
 /**
- * @zh L04: 工具执行日志事件。
- * @en L04: Tool execution log event.
+ * L04: Tool execution log event.
  */
 export interface AgentToolExecuteLogEvent {
   toolName: string;
@@ -54,8 +50,7 @@ export interface AgentToolExecuteLogEvent {
 }
 
 /**
- * @zh L05: Agent 错误日志事件。
- * @en L05: Agent error log event.
+ * L05: Agent error log event.
  */
 export interface AgentErrorLogEvent {
   error: Error;
@@ -64,8 +59,7 @@ export interface AgentErrorLogEvent {
 }
 
 /**
- * @zh L06: ChangeSet 事件日志（创建、审核、应用、回滚）。
- * @en L06: ChangeSet event log (created, reviewed, applied, rolled_back).
+ * L06: ChangeSet event log (created, reviewed, applied, rolled_back).
  */
 export interface AgentChangeSetLogEvent {
   type:
@@ -83,8 +77,7 @@ export interface AgentChangeSetLogEvent {
 // ─── AgentLogger ──────────────────────────────────────────────────────────────────
 
 /**
- * @zh Agent 结构化日志接口。
- * @en Agent structured logger interface.
+ * Agent structured logger interface.
  */
 export interface AgentLogger {
   /** L01 */
@@ -104,11 +97,10 @@ export interface AgentLogger {
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
 /**
- * @zh 从基础 Logger 创建 AgentLogger 实例。
- * @en Create an AgentLogger instance from a base Logger.
+ * Create an AgentLogger instance from a base Logger.
  *
- * @param baseLogger - {@zh 基础日志记录器} {@en Base logger}
- * @returns - {@zh AgentLogger 实例} {@en AgentLogger instance}
+ * @param baseLogger - Base logger
+ * @returns - AgentLogger instance
  */
 export const createAgentLogger = (baseLogger: Logger): AgentLogger => {
   const logger = baseLogger.withSituation("agent");
@@ -144,8 +136,7 @@ export const createAgentLogger = (baseLogger: Logger): AgentLogger => {
 };
 
 /**
- * @zh 创建一个无操作的 AgentLogger（用于测试和占位）。
- * @en Create a no-op AgentLogger (for testing and placeholders).
+ * Create a no-op AgentLogger (for testing and placeholders).
  */
 export const createNoopAgentLogger = (): AgentLogger => ({
   // oxlint-disable-next-line no-empty-function -- intentional noop for testing/placeholder

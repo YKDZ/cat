@@ -52,17 +52,16 @@ import { PluginDiscoveryService } from "./plugin-discovery";
 export type DefaultPluginSource = string | string[];
 
 /**
- * @zh 单个插件在内存运行时中的观察快照。
- * @en Observation snapshot for a single plugin in the in-memory runtime.
+ * Observation snapshot for a single plugin in the in-memory runtime.
  */
 export type PluginRuntimeSnapshot = {
-  /** @zh 插件是否已激活。 @en Whether the plugin is active. */
+  /** Whether the plugin is active. */
   isActive: boolean;
-  /** @zh 当前注册到内存中的服务。 @en Services currently registered in memory. */
+  /** Services currently registered in memory. */
   services: RegisteredService[];
-  /** @zh 当前注册到内存中的组件。 @en Components currently registered in memory. */
+  /** Components currently registered in memory. */
   components: ComponentRecord[];
-  /** @zh 当前是否挂载了插件路由。 @en Whether a plugin route is currently mounted. */
+  /** Whether a plugin route is currently mounted. */
   hasRoute: boolean;
 };
 
@@ -350,22 +349,20 @@ export class PluginManager {
   }
 
   /**
-   * @zh 判断插件当前是否已在此作用域运行时中激活。
-   * @en Return whether the plugin is currently active in this scoped runtime.
+   * Return whether the plugin is currently active in this scoped runtime.
    *
-   * @param pluginId - {@zh 插件 ID} {@en Plugin ID}
-   * @returns - {@zh 已激活时为 true} {@en True when active}
+   * @param pluginId - Plugin ID
+   * @returns - True when active
    */
   public isActive(pluginId: string): boolean {
     return this.activePlugins.has(pluginId);
   }
 
   /**
-   * @zh 获取插件在当前运行时中的服务、组件和路由快照。
-   * @en Get the plugin's current service, component, and route snapshot.
+   * Get the plugin's current service, component, and route snapshot.
    *
-   * @param pluginId - {@zh 插件 ID} {@en Plugin ID}
-   * @returns - {@zh 运行时观察快照} {@en Runtime observation snapshot}
+   * @param pluginId - Plugin ID
+   * @returns - Runtime observation snapshot
    */
   public getRuntimeSnapshot(pluginId: string): PluginRuntimeSnapshot {
     return {
@@ -379,13 +376,12 @@ export class PluginManager {
   }
 
   /**
-   * @zh 使用候选配置创建临时服务实例，不注册服务、组件或路由。
-   * @en Create transient service instances with candidate config without registering services, components, or routes.
+   * Create transient service instances with candidate config without registering services, components, or routes.
    *
-   * @param drizzle - {@zh 长期有效数据库句柄} {@en Long-lived database handle}
-   * @param pluginId - {@zh 插件 ID} {@en Plugin ID}
-   * @param configOverride - {@zh 候选配置值} {@en Candidate config value}
-   * @returns - {@zh 临时服务实例列表} {@en Transient service instances}
+   * @param drizzle - Long-lived database handle
+   * @param pluginId - Plugin ID
+   * @param configOverride - Candidate config value
+   * @returns - Transient service instances
    */
   public async createTransientServices(
     drizzle: DbHandle,

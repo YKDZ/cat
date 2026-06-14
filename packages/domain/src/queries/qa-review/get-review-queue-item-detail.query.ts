@@ -61,8 +61,7 @@ export type QaReviewQueueItemDetail = {
 };
 
 /**
- * @zh 获取单个审校队列项的详情，包括 source/candidate/approved/findings/annotations/suggestions/decisions。
- * @en Get a single QA review queue item detail including source/candidate/approved translations and related findings/annotations/suggestions/decisions.
+ * Get a single QA review queue item detail including source/candidate/approved translations and related findings/annotations/suggestions/decisions.
  */
 export const getQaReviewQueueItemDetail: Query<
   GetQaReviewQueueItemDetailQuery,

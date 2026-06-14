@@ -34,8 +34,7 @@ cat-cli — CAT 平台命令行控制面
 `;
 
 /**
- * @zh 从文件读取 JSON 输入。
- * @en Read JSON input from a file path.
+ * Read JSON input from a file path.
  */
 const readInputFile = (filePath: string): unknown => {
   try {

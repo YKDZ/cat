@@ -5,8 +5,7 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 
 /**
- * @zh 创建 oRPC 客户端（API Key Bearer 认证）。
- * @en Create an oRPC client authenticated via API Key Bearer token.
+ * Create an oRPC client authenticated via API Key Bearer token.
  */
 export const createClient = (
   baseUrl: string,
@@ -23,13 +22,12 @@ export const createClient = (
 };
 
 /**
- * @zh 通过点分路径动态调用任意 oRPC handler。
- * @en Dynamically call any oRPC handler by dot-separated path.
+ * Dynamically call any oRPC handler by dot-separated path.
  *
- * @param client - {@zh oRPC 客户端} {@en oRPC client}
- * @param path - {@zh 点分路径，如 "memory.searchByText"} {@en Dot-separated path, e.g. "memory.searchByText"}
- * @param input - {@zh JSON 输入参数} {@en JSON input parameters}
- * @returns - {@zh handler 返回值（可能是 AsyncIterable）} {@en Handler return value (may be AsyncIterable)}
+ * @param client - oRPC client
+ * @param path - Dot-separated path, e.g. "memory.searchByText"
+ * @param input - JSON input parameters
+ * @returns - Handler return value (may be AsyncIterable)
  */
 export const callByPath = (
   client: RouterClient<AppRouter>,

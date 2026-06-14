@@ -125,8 +125,7 @@ const getQueueFindingStats = async (
 };
 
 /**
- * @zh 提交审校决策，并在需要时执行 finding 关闭和乐观并发检查。
- * @en Submit a QA review decision and perform finding closure plus optimistic concurrency checks when needed.
+ * Submit a QA review decision and perform finding closure plus optimistic concurrency checks when needed.
  */
 export const submitQaReviewDecision: Command<
   SubmitQaReviewDecisionCommandInput,

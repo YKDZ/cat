@@ -2,23 +2,20 @@ import type { PluginManager } from "@cat/plugin-core";
 import type { ZodObject } from "zod";
 
 /**
- * @zh 工具的副作用类型
- * @en The side-effect type of a tool
+ * The side-effect type of a tool
  */
 export type SideEffectType = "none" | "internal" | "external" | "mixed";
 
 /**
- * @zh 工具的安全级别
- * @en Security level required to execute a tool
+ * Security level required to execute a tool
  */
 export type ToolSecurityLevel = "standard" | "privileged" | "administrative";
 
 /**
- * @zh 工具执行上下文：提供 Session、权限检查、成本状态和 VCS 模式信息。
- * @en Tool execution context: provides session, permission checks, cost status, and VCS mode.
+ * Tool execution context: provides session, permission checks, cost status, and VCS mode.
  */
 export interface ToolExecutionContext {
-  /** @zh 当前 Agent 会话标识 @en Current agent session identifiers */
+  /** Current agent session identifiers */
   session: {
     sessionId: string;
     agentId: string;
@@ -34,52 +31,48 @@ export interface ToolExecutionContext {
     issueId?: number;
     pullRequestId?: number;
   };
-  /** @zh 权限检查接口 @en Permission checking interface */
+  /** Permission checking interface */
   permissions: {
     checkPermission: (action: string, resource: string) => Promise<boolean>;
   };
-  /** @zh 成本/配额预算信息 @en Cost/quota budget information */
+  /** Cost/quota budget information */
   cost: {
     budgetId: string;
     remainingTokens: number;
   };
   /**
-   * @zh VCS 模式
    * - `direct`: 直接写入并记录变更（Direct 模式）
    * - `isolation`: 写入沙盒，不影响主干
-   * @en VCS mode
+   * VCS mode
    */
   vcsMode: "direct" | "isolation";
   /**
-   * @zh 当前作用域的插件管理器（可选，未提供时工具应按自身逻辑降级）
-   * @en Scoped plugin manager (optional; tools should degrade gracefully when absent)
+   * Scoped plugin manager (optional; tools should degrade gracefully when absent)
    */
   pluginManager?: PluginManager;
 }
 
 /**
- * @zh Agent 工具定义。每个工具声明名称、描述、参数 Schema、副作用类型、安全级别和执行函数。
- * @en Agent tool definition. Each tool declares its name, description, parameter schema, side-effect type, security level, and execution function.
+ * Agent tool definition. Each tool declares its name, description, parameter schema, side-effect type, security level, and execution function.
  */
 export interface AgentToolDefinition {
-  /** @zh 工具唯一名称（用作 LLM function name）@en Unique tool name (used as LLM function name) */
+  /** Unique tool name (used as LLM function name) */
   name: string;
-  /** @zh 工具描述（用于 LLM 上下文）@en Tool description (used for LLM context) */
+  /** Tool description (used for LLM context) */
   description: string;
-  /** @zh 参数 Zod Schema（自动转换为 JSON Schema 传给 LLM）@en Parameter Zod schema (auto-converted to JSON Schema for LLM) */
+  /** Parameter Zod schema (auto-converted to JSON Schema for LLM) */
   parameters: ZodObject;
-  /** @zh 副作用类型 @en Side-effect type */
+  /** Side-effect type */
   sideEffectType: SideEffectType;
-  /** @zh 安全级别 @en Security level */
+  /** Security level */
   toolSecurityLevel: ToolSecurityLevel;
-  /** @zh 工具执行函数 @en Tool execution function */
+  /** Tool execution function */
   execute: (
     args: Record<string, unknown>,
     ctx: ToolExecutionContext,
   ) => Promise<unknown>;
   /**
-   * @zh 批量执行提示：声明该工具通常与哪些其他工具同时调用。
-   * @en Batch execution hint: declares which other tools are commonly called alongside this one.
+   * Batch execution hint: declares which other tools are commonly called alongside this one.
    */
   batchHint?: {
     commonCompanions: string[];

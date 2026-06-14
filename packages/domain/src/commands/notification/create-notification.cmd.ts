@@ -21,8 +21,7 @@ export type CreateNotificationCommand = z.infer<
 >;
 
 /**
- * @zh 创建站内通知记录并发布 notification:created 域事件。
- * @en Create an in-app notification record and publish notification:created event.
+ * Create an in-app notification record and publish notification:created event.
  */
 export const createNotification: Command<
   CreateNotificationCommand,

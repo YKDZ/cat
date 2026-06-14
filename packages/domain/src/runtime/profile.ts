@@ -70,11 +70,10 @@ const assertSafeProductionBackends = (
 };
 
 /**
- * @zh 从环境变量解析 CAT 运行时配置档。
- * @en Resolve the CAT runtime profile from environment variables.
+ * Resolve the CAT runtime profile from environment variables.
  *
- * @param env - {@zh 用于解析的环境变量对象} {@en Environment variables to resolve from}
- * @returns - {@zh 解析后的运行时配置档} {@en The resolved runtime profile}
+ * @param env - Environment variables to resolve from
+ * @returns - The resolved runtime profile
  */
 export const resolveRuntimeProfile = (
   env: NodeJS.ProcessEnv = process.env,

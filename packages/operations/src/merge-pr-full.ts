@@ -13,34 +13,31 @@ import {
 import { ChangeSetService, getDefaultRegistries, mergeBranch } from "@cat/vcs";
 
 /**
- * @zh mergePRFull 的输入参数。
- * @en Input parameters for mergePRFull.
+ * Input parameters for mergePRFull.
  */
 export interface MergePRFullInput {
-  /** @zh PR 的 externalId (UUID) @en PR externalId (UUID) */
+  /** PR externalId (UUID) */
   prExternalId: string;
   mergedBy: string;
 }
 
 /**
- * @zh mergePRFull 的返回结果。
- * @en Result of mergePRFull.
+ * Result of mergePRFull.
  */
 export interface MergePRFullResult {
   success: boolean;
   hasConflicts: boolean;
   conflicts: ConflictInfo[];
   prId: number;
-  /** @zh 若成功，为 main changeset ID @en If successful, the main changeset ID */
+  /** If successful, the main changeset ID */
   mainChangesetId?: number;
-  /** @zh 若失败（非冲突），错误消息 @en If failed (not conflict), error message */
+  /** If failed (not conflict), error message */
   errorMessage?: string;
 }
 
 /**
- * @zh 完整 PR 合并操作：冲突检测 → entry 复制到 main → 实体变更应用（全量回滚）→ 状态更新。
  * 在单个数据库事务中执行，任何步骤失败则全量回滚。
- * @en Full PR merge operation: conflict detection → entry copy to main → entity changes (full rollback) → status update.
+ * Full PR merge operation: conflict detection → entry copy to main → entity changes (full rollback) → status update.
  * Executed in a single database transaction; any step failure triggers full rollback.
  */
 export const mergePRFull = async (

@@ -34,11 +34,10 @@ const hasFileExtractionResult = (
 };
 
 /**
- * @zh 从源文件中纯粹提取可翻译元素，返回图结构结果（不含平台参数）。
- * @en Extract translatable elements from source files, returning graph-structured result (no platform params).
+ * Extract translatable elements from source files, returning graph-structured result (no platform params).
  *
- * @param options - {@zh 纯提取选项} {@en Pure extraction options}
- * @returns - {@zh 图结构提取结果} {@en Graph-structured extraction result}
+ * @param options - Pure extraction options
+ * @returns - Graph-structured extraction result
  */
 export async function extract(
   options: SourceExtractOptions,

@@ -1,6 +1,5 @@
 /**
- * @zh VCS 分支隔离集成测试 — 真实数据库。
- * @en VCS branch isolation integration tests with a real database.
+ * VCS branch isolation integration tests with a real database.
  *
  * Validates:
  * - VCSMiddleware.interceptWrite in isolation mode records to branch changeset without executing writeFn

@@ -70,10 +70,9 @@ import { SimpleApplicationMethod } from "./methods/simple-application-method.ts"
 import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
 /**
- * @zh 创建并返回预注册所有默认策略和应用方法的注册表。
  * 向量化实体（translation、element、term_concept、memory_item）使用
  * VectorizedStringApplicationMethod；其余实体使用 SimpleApplicationMethod。
- * @en Create and return registries pre-populated with all default strategies
+ * Create and return registries pre-populated with all default strategies
  * and application methods.
  * Vectorized entities (translation, element, term_concept, memory_item) use
  * VectorizedStringApplicationMethod; others use SimpleApplicationMethod.

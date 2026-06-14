@@ -19,14 +19,13 @@ export type AppliedGraphEnvelope = {
 };
 
 /**
- * @zh 持久化结构化内容图的关系类型和节点。
  *
  * 合并 CoreRelationTypeDefinitions 和 payload.relationTypes，按
  * (namespace, name, version) upsert 所有关系类型。
  * 按 (projectId, importerId, sourceRootRef, stableSourceNodeRef) upsert 所有节点。
  * 返回节点引用映射，供后续 diff 使用。
  *
- * @en Persist relation types and nodes for a structured content graph payload.
+ * Persist relation types and nodes for a structured content graph payload.
  *
  * Merges CoreRelationTypeDefinitions with payload.relationTypes and upserts
  * all relation types by (namespace, name, version). Upserts nodes by

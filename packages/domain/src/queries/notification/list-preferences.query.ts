@@ -7,7 +7,7 @@ import type { Query } from "@/types";
 export const ListPreferencesQuerySchema = z.object({ userId: z.uuidv4() });
 export type ListPreferencesQuery = z.infer<typeof ListPreferencesQuerySchema>;
 
-/** @zh 查询用户全部消息偏好。 @en List all message preferences for a user. */
+/** List all message preferences for a user. */
 export const listPreferences: Query<
   ListPreferencesQuery,
   (typeof userMessagePreference.$inferSelect)[]

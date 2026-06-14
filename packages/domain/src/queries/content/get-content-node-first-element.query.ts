@@ -35,8 +35,7 @@ export type GetContentNodeFirstElementQuery = z.infer<
 >;
 
 /**
- * @zh 获取内容节点下满足条件的第一个可翻译元素。
- * @en Get the first translatable element under a content node matching the given filters.
+ * Get the first translatable element under a content node matching the given filters.
  */
 export const getContentNodeFirstElement: Query<
   GetContentNodeFirstElementQuery,

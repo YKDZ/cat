@@ -18,8 +18,7 @@ export type ContentNodeBlobInfo = {
 };
 
 /**
- * @zh 获取内容节点关联的文件存储信息（key、storageProviderId、fileName）。
- * @en Get the blob storage info (key, storageProviderId, fileName) for the content node's file.
+ * Get the blob storage info (key, storageProviderId, fileName) for the content node's file.
  */
 export const getContentNodeBlobInfo: Query<
   GetContentNodeBlobInfoQuery,

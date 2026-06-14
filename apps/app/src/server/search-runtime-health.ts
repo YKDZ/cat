@@ -40,11 +40,10 @@ const classifySearchLevel = (
 };
 
 /**
- * @zh 探测当前数据库可提供的搜索运行时能力摘要。
- * @en Detect the current database search runtime capability summary.
+ * Detect the current database search runtime capability summary.
  *
- * @param db - {@zh 用于执行探测查询的数据库句柄} {@en Database handle used to execute capability probes}
- * @returns - {@zh 数据库运行时能力摘要} {@en Database runtime capability summary}
+ * @param db - Database handle used to execute capability probes
+ * @returns - Database runtime capability summary
  */
 export const detectSearchRuntimeHealth = async (
   db: SearchRuntimeDb,
@@ -106,12 +105,11 @@ export const detectSearchRuntimeHealth = async (
 type SearchRuntimeRequirement = Pick<RuntimeProfile, "requiredSearchLevel">;
 
 /**
- * @zh 断言当前数据库满足运行时配置档要求的最低搜索能力。
- * @en Assert that the current database satisfies the minimum required search capability.
+ * Assert that the current database satisfies the minimum required search capability.
  *
- * @param db - {@zh 用于执行探测查询的数据库句柄} {@en Database handle used to execute capability probes}
- * @param profile - {@zh 可选的运行时要求摘要} {@en Optional runtime requirement summary}
- * @returns - {@zh 数据库运行时能力摘要} {@en Database runtime capability summary}
+ * @param db - Database handle used to execute capability probes
+ * @param profile - Optional runtime requirement summary
+ * @returns - Database runtime capability summary
  */
 export const assertSearchRuntimeHealth = async (
   db: SearchRuntimeDb,

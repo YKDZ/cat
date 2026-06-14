@@ -5,34 +5,29 @@ import * as z from "zod";
 
 const qaCheckArgs = z.object({
   /**
-   * @zh 源文本
-   * @en Source text
+   * Source text
    */
   sourceText: z.string().describe("Original source text"),
   /**
-   * @zh 源语言 ID（BCP-47）
-   * @en Source language ID (BCP-47)
+   * Source language ID (BCP-47)
    */
   sourceLanguageId: z
     .string()
     .optional()
     .describe("Source language ID (BCP-47)"),
   /**
-   * @zh 已翻译文本
-   * @en Translated text to check
+   * Translated text to check
    */
   translatedText: z.string().describe("Translated text to QA-check"),
   /**
-   * @zh 目标语言 ID（BCP-47）
-   * @en Target language ID (BCP-47)
+   * Target language ID (BCP-47)
    */
   targetLanguageId: z
     .string()
     .optional()
     .describe("Target language ID (BCP-47)"),
   /**
-   * @zh 术语表 UUID 列表（用于术语一致性检查）
-   * @en Glossary UUIDs for terminology consistency check
+   * Glossary UUIDs for terminology consistency check
    */
   glossaryIds: z
     .array(z.uuid())
@@ -41,8 +36,7 @@ const qaCheckArgs = z.object({
 });
 
 /**
- * @zh qa_check 工具: 对翻译文本运行 QA 检查。
- * @en qa_check tool: run QA checks on the translated text.
+ * qa_check tool: run QA checks on the translated text.
  */
 export const qaCheckTool: AgentToolDefinition = {
   name: "qa_check",

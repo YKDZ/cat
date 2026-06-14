@@ -5,37 +5,32 @@ import * as z from "zod";
 
 const searchTermbaseArgs = z.object({
   /**
-   * @zh 源文本（用于术语识别）
-   * @en Source text (used for term matching)
+   * Source text (used for term matching)
    */
   text: z.string().describe("Source text to search termbase for"),
   /**
-   * @zh 源语言 ID（BCP-47）
-   * @en Source language ID (BCP-47)
+   * Source language ID (BCP-47)
    */
   sourceLanguageId: z
     .string()
     .optional()
     .describe("Source language ID (BCP-47)"),
   /**
-   * @zh 目标语言 ID（BCP-47）
-   * @en Target language ID (BCP-47)
+   * Target language ID (BCP-47)
    */
   translationLanguageId: z
     .string()
     .optional()
     .describe("Target language ID (BCP-47)"),
   /**
-   * @zh 术语表 UUID 列表
-   * @en Glossary UUIDs to search
+   * Glossary UUIDs to search
    */
   glossaryIds: z
     .array(z.uuid())
     .default([])
     .describe("Glossary UUIDs to search"),
   /**
-   * @zh 词语相似度阈值（0-1，默认 0.3）
-   * @en Word similarity threshold (0–1, default 0.3)
+   * Word similarity threshold (0–1, default 0.3)
    */
   wordSimilarityThreshold: z
     .number()
@@ -46,8 +41,7 @@ const searchTermbaseArgs = z.object({
 });
 
 /**
- * @zh search_termbase 工具: 在术语库中搜索源文本的相关术语。
- * @en search_termbase tool: search the termbase for terms occurring in the source text.
+ * search_termbase tool: search the termbase for terms occurring in the source text.
  */
 export const searchTermbaseTool: AgentToolDefinition = {
   name: "search_termbase",

@@ -20,8 +20,7 @@ export const UpdatePRCommandSchema = z.object({
 export type UpdatePRCommand = z.infer<typeof UpdatePRCommandSchema>;
 
 /**
- * @zh 更新 PR 标题、正文或 reviewers 列表。
- * @en Update a PR's title, body, or reviewers list.
+ * Update a PR's title, body, or reviewers list.
  */
 export const updatePR: Command<
   UpdatePRCommand,

@@ -1,6 +1,5 @@
 /**
- * @zh 仍以文件系统插件形式分发的默认插件 ID。
- * @en Default plugin IDs that are still distributed as filesystem plugins.
+ * Default plugin IDs that are still distributed as filesystem plugins.
  */
 export const defaultFilesystemPluginIds = [
   "password-auth-provider",
@@ -19,14 +18,12 @@ export const defaultFilesystemPluginIds = [
 ] as const;
 
 /**
- * @zh 系统内置默认插件 ID。
- * @en Builtin system plugin IDs.
+ * Builtin system plugin IDs.
  */
 export const defaultSystemPluginIds = ["system-pgvector-storage"] as const;
 
 /**
- * @zh 默认产品插件 ID 列表。
- * @en Default product plugin IDs.
+ * Default product plugin IDs.
  */
 export const defaultProductPluginIds = [
   ...defaultFilesystemPluginIds,

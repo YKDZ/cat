@@ -19,8 +19,7 @@ export const SubmitReviewCommandSchema = z.object({
 export type SubmitReviewCommand = z.infer<typeof SubmitReviewCommandSchema>;
 
 /**
- * @zh 提交 PR Review：APPROVE 时 PR 保持 REVIEW 状态（或移回 OPEN），CHANGES_REQUESTED 时设为 CHANGES_REQUESTED。
- * @en Submit a PR review: APPROVE keeps the PR in REVIEW (or moves back to OPEN if CHANGES_REQUESTED),
+ * Submit a PR review: APPROVE keeps the PR in REVIEW (or moves back to OPEN if CHANGES_REQUESTED),
  * CHANGES_REQUESTED sets PR status to CHANGES_REQUESTED.
  */
 export const submitReview: Command<

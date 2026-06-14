@@ -5,8 +5,7 @@ import type {
 } from "../diff-strategy.ts";
 
 /**
- * @zh 对两个对象进行浅层字段级 diff，返回所有发生变化的字段
- * @en Shallow field-level diff between two objects, returning changed fields
+ * Shallow field-level diff between two objects, returning changed fields
  */
 export const shallowDiff = (
   before: Record<string, unknown> | null,
@@ -50,8 +49,7 @@ export const shallowDiff = (
 };
 
 /**
- * @zh 通用策略工厂：基于 shallowDiff 构建简单策略
- * @en Generic strategy factory using shallowDiff
+ * Generic strategy factory using shallowDiff
  */
 export const createGenericStrategy = (options: {
   entityType: string;

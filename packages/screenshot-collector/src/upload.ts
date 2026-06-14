@@ -37,12 +37,11 @@ export type UploadCaptureResultOptions = UploadOptions & {
 };
 
 /**
- * @zh 从 seeder bindings 中解析元素数据库 ID。
- * @en Resolve an element database ID from seeder bindings.
+ * Resolve an element database ID from seeder bindings.
  *
- * @param elementRef - {@zh 元素引用} {@en Element reference}
- * @param bindings - {@zh seeder 绑定表} {@en Seeder binding map}
- * @returns - {@zh 元素数据库 ID} {@en Element database ID}
+ * @param elementRef - Element reference
+ * @param bindings - Seeder binding map
+ * @returns - Element database ID
  */
 export const resolveElementId = (
   elementRef: string,

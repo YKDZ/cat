@@ -18,18 +18,15 @@ import ProgressBar from "./progress/bar/ProgressBar.vue";
 const { t } = useI18n();
 
 /**
- * @zh 内容节点翻译进度属性。
- * @en Props for the content-node translation progress component.
+ * Props for the content-node translation progress component.
  */
 const props = defineProps<{
   /**
-   * @zh 当前内容节点。
-   * @en Current content node.
+   * Current content node.
    */
   contentNode: Pick<ContentNode, "id" | "projectId">;
   /**
-   * @zh 目标语言。
-   * @en Target language.
+   * Target language.
    */
   language: Pick<Language, "id">;
 }>();

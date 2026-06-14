@@ -1,8 +1,7 @@
 import type { TranslationSuggestion } from "@cat/shared";
 
 /**
- * @zh 排序配置。
- * @en Sorting configuration.
+ * Sorting configuration.
  */
 export interface QualitySortConfig {
   /** Maximum wait time in milliseconds (default 5000). */
@@ -17,8 +16,7 @@ const DEFAULT_CONFIG: QualitySortConfig = {
 };
 
 /**
- * @zh 带来源元数据的翻译建议包装。
- * @en Translation suggestion wrapper with source metadata.
+ * Translation suggestion wrapper with source metadata.
  */
 export interface QueuedSuggestion {
   suggestion: TranslationSuggestion;
@@ -33,8 +31,7 @@ export interface QueuedSuggestion {
 }
 
 /**
- * @zh 来源优先级映射。
- * @en Source priority mapping.
+ * Source priority mapping.
  */
 const SOURCE_PRIORITY: Record<string, number> = {
   "llm-translate": 0,
@@ -42,21 +39,20 @@ const SOURCE_PRIORITY: Record<string, number> = {
 };
 
 /**
- * @zh 按来源优先级 + 置信度降序 + 到达时间升序排序建议。
  *
  * 排序键（按序）：
  * 1. 来源优先级：LLM translate > advisor
  * 2. 置信度降序（同来源内）
  * 3. 到达时间升序（同优先级同置信度内，保持确定性）
- * @en Sort suggestions by source priority + confidence descending + arrival time ascending.
+ * Sort suggestions by source priority + confidence descending + arrival time ascending.
  *
  * Sort keys (in order):
  * 1. Source priority: LLM translate > advisor
  * 2. Confidence descending (within same source)
  * 3. Arrival time ascending (within same priority and confidence, deterministic)
  *
- * @param suggestions - {@zh 待排序建议列表} {@en List of suggestions to sort}
- * @returns - {@zh 排序后的建议列表} {@en Sorted suggestions}
+ * @param suggestions - List of suggestions to sort
+ * @returns - Sorted suggestions
  */
 export const sortByQuality = (
   suggestions: QueuedSuggestion[],
@@ -78,17 +74,16 @@ export const sortByQuality = (
 };
 
 /**
- * @zh 带有缓存延迟保护的建议收集器。
  *
  * 在 minBatchMs 内收集建议，然后按质量排序 yield。
  * 未在 maxWaitMs 内到达的建议追加到末尾。
- * @en Suggestion collector with cache-delay guard.
+ * Suggestion collector with cache-delay guard.
  *
  * Collects suggestions for minBatchMs, then sorts by quality and yields.
  * Suggestions arriving after maxWaitMs are appended to the end.
  *
- * @param config - {@zh 排序配置} {@en Sorting configuration}
- * @returns - {@zh 收集器 API} {@en Collector API}
+ * @param config - Sorting configuration
+ * @returns - Collector API
  */
 export const createSuggestionCollector = (
   config: Partial<QualitySortConfig> = {},

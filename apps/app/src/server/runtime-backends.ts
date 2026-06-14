@@ -19,39 +19,33 @@ import {
 } from "@cat/server-shared";
 
 /**
- * @zh 按运行时 profile 解析后的基础设施后端集合。
- * @en Infrastructure backend set resolved from a runtime profile.
+ * Infrastructure backend set resolved from a runtime profile.
  */
 export type RuntimeBackends = {
   /**
-   * @zh 当前进程使用的缓存存储。
-   * @en Cache store used by the current process.
+   * Cache store used by the current process.
    */
   cacheStore: CacheStore;
   /**
-   * @zh 当前进程使用的会话存储。
-   * @en Session store used by the current process.
+   * Session store used by the current process.
    */
   sessionStore: SessionStore;
   /**
-   * @zh 向量化后台任务队列。
-   * @en Background task queue for vectorization.
+   * Background task queue for vectorization.
    */
   vectorizationQueue: TaskQueue<VectorizationTask>;
   /**
-   * @zh 若当前 profile 需要 Redis，则返回已连接的 Redis 句柄。
-   * @en Connected Redis handle when the current profile requires Redis.
+   * Connected Redis handle when the current profile requires Redis.
    */
   redis?: RedisConnection;
 };
 
 /**
- * @zh 根据运行时 profile 创建缓存、会话、队列与可选 Redis 后端。
- * @en Create cache, session, queue, and optional Redis backends from the runtime profile.
+ * Create cache, session, queue, and optional Redis backends from the runtime profile.
  *
- * @param profile - {@zh 已解析的运行时 profile} {@en Resolved runtime profile}
- * @param db - {@zh Drizzle 数据库客户端} {@en Drizzle database client}
- * @returns - {@zh 运行时后端集合} {@en Runtime backend collection}
+ * @param profile - Resolved runtime profile
+ * @param db - Drizzle database client
+ * @returns - Runtime backend collection
  */
 export const createRuntimeBackends = async (
   profile: RuntimeProfile,

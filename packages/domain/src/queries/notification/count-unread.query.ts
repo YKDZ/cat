@@ -7,7 +7,7 @@ import type { Query } from "@/types";
 export const CountUnreadQuerySchema = z.object({ userId: z.uuidv4() });
 export type CountUnreadQuery = z.infer<typeof CountUnreadQuerySchema>;
 
-/** @zh 查询未读通知数量。 @en Count unread notifications. */
+/** Count unread notifications. */
 export const countUnread: Query<CountUnreadQuery, number> = async (
   ctx,
   query,

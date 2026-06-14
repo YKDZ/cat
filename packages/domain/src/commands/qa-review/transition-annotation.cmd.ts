@@ -38,8 +38,7 @@ export type TransitionQaReviewAnnotationCommand = z.infer<
 >;
 
 /**
- * @zh 按显式状态机推进审校批注状态，并同步队列未解决计数。
- * @en Transition a QA review annotation according to the explicit state machine and sync queue unresolved counts.
+ * Transition a QA review annotation according to the explicit state machine and sync queue unresolved counts.
  */
 export const transitionQaReviewAnnotation: Command<
   TransitionQaReviewAnnotationCommand,

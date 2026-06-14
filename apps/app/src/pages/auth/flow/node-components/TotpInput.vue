@@ -13,13 +13,11 @@ import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
 /**
- * @zh TotpInput 的 props。
- * @en Props for the TotpInput node component.
+ * Props for the TotpInput node component.
  */
 const props = defineProps<{
   /**
-   * @zh 来自认证流节点的客户端提示信息。
-   * @en Client hint from the auth flow node.
+   * Client hint from the auth flow node.
    */
   hint?: {
     displayInfo?: {
@@ -30,8 +28,7 @@ const props = defineProps<{
 }>();
 
 /**
- * @zh 用户提交 TOTP 验证码时触发。
- * @en Emitted when user submits the TOTP code.
+ * Emitted when user submits the TOTP code.
  */
 const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;

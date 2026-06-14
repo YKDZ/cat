@@ -20,8 +20,7 @@ export type InsertSemanticDiffEntryOutput = {
 };
 
 /**
- * @zh 插入一条语义差分条目记录。
- * @en Insert a single semantic diff entry record.
+ * Insert a single semantic diff entry record.
  */
 export const insertSemanticDiffEntry: Command<
   InsertSemanticDiffEntryInput,

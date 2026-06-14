@@ -5,10 +5,9 @@ import {
 } from "@cat/server-shared";
 
 /**
- * @zh 为测试安装一个全局内存向量化任务队列。
- * @en Install a global in-memory vectorization task queue for tests.
+ * Install a global in-memory vectorization task queue for tests.
  *
- * @returns - {@zh 已安装的内存队列实例} {@en The installed in-memory queue instance}
+ * @returns - The installed in-memory queue instance
  */
 export const installTestVectorizationQueue =
   (): InMemoryTaskQueue<VectorizationTask> => {

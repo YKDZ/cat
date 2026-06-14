@@ -21,8 +21,7 @@ export type FindProjectContentNodeByLabelQuery = z.infer<
 >;
 
 /**
- * @zh 按 displayLabel 在项目中查找内容节点（可选过滤 kind）。
- * @en Find a content node in a project by displayLabel (optionally filtered by kind).
+ * Find a content node in a project by displayLabel (optionally filtered by kind).
  */
 export const findProjectContentNodeByLabel: Query<
   FindProjectContentNodeByLabelQuery,

@@ -26,8 +26,7 @@ export type CountContentNodeElementsQuery = z.infer<
 >;
 
 /**
- * @zh 统计内容节点下满足条件的可翻译元素数量。
- * @en Count translatable elements under a content node matching the given filters.
+ * Count translatable elements under a content node matching the given filters.
  */
 export const countContentNodeElements: Query<
   CountContentNodeElementsQuery,

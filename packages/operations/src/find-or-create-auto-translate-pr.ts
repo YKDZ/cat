@@ -21,11 +21,10 @@ export interface FindOrCreateAutoTranslatePRResult {
 }
 
 /**
- * @zh 查找或创建指定语言的 AutoTranslate PR。
  * 并发安全由 pullRequest 表的 partial unique index 保证：
  *   UNIQUE(projectId, targetLanguageId) WHERE type='AUTO_TRANSLATE' AND status NOT IN ('MERGED','CLOSED')
  * 如果 insert 冲突，重新查询已有 PR。
- * @en Find or create an AutoTranslate PR for the given language.
+ * Find or create an AutoTranslate PR for the given language.
  * Concurrency safety is ensured by a partial unique index on the pullRequest table.
  * On conflict, re-query the existing PR.
  */

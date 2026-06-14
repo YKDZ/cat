@@ -9,8 +9,7 @@ import type {
 } from "./types.ts";
 
 /**
- * @zh 将 SourceExtractionGraphResult 与平台路由参数组装为 StructuredContentPayload。
- * @en Assemble SourceExtractionGraphResult + platform routing into StructuredContentPayload.
+ * Assemble SourceExtractionGraphResult + platform routing into StructuredContentPayload.
  */
 export function toCollectionPayload(
   result: SourceExtractionGraphResult,

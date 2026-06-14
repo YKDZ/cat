@@ -89,8 +89,7 @@ const toEntry = (
 });
 
 /**
- * @zh 以 builtin 方式分发的默认文件系统插件条目。
- * @en Default filesystem plugin entries distributed as builtins.
+ * Default filesystem plugin entries distributed as builtins.
  */
 export const builtinFilesystemPluginEntries: BuiltinPluginEntry[] = [
   toEntry(
@@ -162,8 +161,7 @@ export const builtinFilesystemPluginEntries: BuiltinPluginEntry[] = [
 ];
 
 /**
- * @zh 当前 app 默认安装的 builtin 插件条目。
- * @en Builtin plugin entries installed by default in the app.
+ * Builtin plugin entries installed by default in the app.
  */
 export const builtinDefaultPluginEntries: BuiltinPluginEntry[] = [
   ...builtinFilesystemPluginEntries,
@@ -171,20 +169,17 @@ export const builtinDefaultPluginEntries: BuiltinPluginEntry[] = [
 ];
 
 /**
- * @zh 当前 app 默认安装的插件 ID 列表。
- * @en Plugin IDs installed by default in the app.
+ * Plugin IDs installed by default in the app.
  */
 export const defaultPluginIds = [...defaultProductPluginIds];
 
 /**
- * @zh 返回默认插件 ID 列表的副本。
- * @en Return a copy of the default plugin IDs.
+ * Return a copy of the default plugin IDs.
  */
 export const getDefaultPluginIds = (): string[] => [...defaultPluginIds];
 
 /**
- * @zh 创建 app 使用的组合 plugin loader（builtin + filesystem）。
- * @en Create the app plugin loader that combines builtin and filesystem plugins.
+ * Create the app plugin loader that combines builtin and filesystem plugins.
  */
 export const createAppPluginLoader = (): PluginLoader => {
   return new CompositePluginLoader([

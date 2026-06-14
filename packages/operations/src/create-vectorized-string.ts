@@ -48,21 +48,20 @@ const createStringIdsFromData = async (
 };
 
 /**
- * @zh 创建向量化字符串；若已提供向量服务，则以异步 fire-and-forget 方式排队向量化。
  *
  * 先在数据库中插入 VectorizedString 行（status=PENDING_VECTORIZE），
  * 仅当 `vectorizerId` 与 `vectorStorageId` 同时可用时，才会将向量化任务加入队列并发布领域事件；
  * 否则仅创建字符串记录，等待后续重向量化流程补齐。
- * @en Create vectorized strings and enqueue background vectorization when vector services are available.
+ * Create vectorized strings and enqueue background vectorization when vector services are available.
  *
  * Inserts VectorizedString rows (status=PENDING_VECTORIZE) into the database first,
  * and only enqueues the vectorization task plus publishes a domain event when both
  * `vectorizerId` and `vectorStorageId` are available. Otherwise it only creates the
  * string records and leaves later re-vectorization to follow-up flows.
  *
- * @param data - {@zh 字符串创建输入参数} {@en String creation input parameters}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 新创建的字符串 ID 列表} {@en List of IDs of the newly created strings}
+ * @param data - String creation input parameters
+ * @param ctx - Operation context
+ * @returns - List of IDs of the newly created strings
  */
 export const createVectorizedStringOp = async (
   data: CreateVectorizedStringInput,

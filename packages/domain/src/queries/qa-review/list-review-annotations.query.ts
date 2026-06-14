@@ -13,8 +13,7 @@ export type ListQaReviewAnnotationsQuery = z.infer<
 >;
 
 /**
- * @zh 列出队列项下的批注，默认隐藏 hidden 状态。
- * @en List annotations under a queue item, hiding hidden annotations by default.
+ * List annotations under a queue item, hiding hidden annotations by default.
  */
 export const listQaReviewAnnotations: Query<
   ListQaReviewAnnotationsQuery,

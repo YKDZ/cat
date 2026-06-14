@@ -19,8 +19,7 @@ export type CreateQaReviewSuggestionCommand = z.infer<
 >;
 
 /**
- * @zh 为 `SUGGESTION` 类型批注创建唯一的修改建议。
- * @en Create the unique suggestion record for an annotation whose intent is `SUGGESTION`.
+ * Create the unique suggestion record for an annotation whose intent is `SUGGESTION`.
  */
 export const createQaReviewSuggestion: Command<
   CreateQaReviewSuggestionCommand,

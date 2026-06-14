@@ -18,8 +18,7 @@ import * as z from "zod";
 type DbClient = Awaited<ReturnType<typeof getDbHandle>>["client"];
 
 /**
- * @zh 解析批量操作范围元素的输入 Schema。
- * @en Schema for resolving elements inside an operation scope.
+ * Schema for resolving elements inside an operation scope.
  */
 export const ResolveOperationScopeElementsInputSchema =
   OperationScopeSchema.extend({
@@ -29,16 +28,14 @@ export const ResolveOperationScopeElementsInputSchema =
   });
 
 /**
- * @zh 解析批量操作范围元素的输入类型。
- * @en Input type for resolving elements inside an operation scope.
+ * Input type for resolving elements inside an operation scope.
  */
 export type ResolveOperationScopeElementsInput = z.infer<
   typeof ResolveOperationScopeElementsInputSchema
 >;
 
 /**
- * @zh 带 chunk 信息的操作范围元素。
- * @en Operation-scope element with chunk metadata.
+ * Operation-scope element with chunk metadata.
  */
 export type OperationScopeElement = {
   id: number;
@@ -113,12 +110,11 @@ const assertOperationScopeContext = async (
 };
 
 /**
- * @zh 解析批量操作范围内的元素并附带 chunk 信息。
- * @en Resolve elements inside an operation scope with chunk metadata.
+ * Resolve elements inside an operation scope with chunk metadata.
  *
- * @param data - {@zh 批量操作范围输入} {@en Operation-scope input}
- * @param _ctx - {@zh 操作上下文（当前未使用）} {@en Operation context (currently unused)}
- * @returns - {@zh 解析后的元素列表} {@en Resolved element list}
+ * @param data - Operation-scope input
+ * @param _ctx - Operation context (currently unused)
+ * @returns - Resolved element list
  */
 export const resolveOperationScopeElementsOp = async (
   data: ResolveOperationScopeElementsInput,

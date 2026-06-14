@@ -4,8 +4,7 @@ import type { RouterClient } from "@orpc/server";
 import { createClient } from "./rpc.ts";
 
 /**
- * @zh CLI 全局配置。
- * @en CLI global configuration.
+ * CLI global configuration.
  */
 export type CliConfig = {
   apiUrl: string;
@@ -14,8 +13,7 @@ export type CliConfig = {
 };
 
 /**
- * @zh 从 CLI 参数和环境变量解析全局配置。优先使用命令行参数。
- * @en Resolve global config from CLI args and env vars. CLI args take precedence.
+ * Resolve global config from CLI args and env vars. CLI args take precedence.
  */
 export const resolveConfig = (values: Record<string, unknown>): CliConfig => {
   const apiUrl =

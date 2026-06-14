@@ -17,13 +17,11 @@ import TranslationVote from "./TranslationVote.vue";
 const { t } = useI18n();
 
 /**
- * @zh 翻译列表项组件属性。
- * @en Props for the translation list item component.
+ * Props for the translation list item component.
  */
 const props = defineProps<{
   /**
-   * @zh 当前要渲染的翻译条目。
-   * @en Translation entry to render.
+   * Translation entry to render.
    */
   translation: TranslationWithStatus;
 }>();

@@ -14,8 +14,7 @@ export const CreateBranchCommandSchema = z.object({
 export type CreateBranchCommand = z.infer<typeof CreateBranchCommandSchema>;
 
 /**
- * @zh 创建一个新的 entity_branch，baseChangesetId 设为 main 上最新 changeset 的 ID。
- * @en Creates a new entity_branch with baseChangesetId set to the latest main changeset ID.
+ * Creates a new entity_branch with baseChangesetId set to the latest main changeset ID.
  */
 export const createBranch: Command<
   CreateBranchCommand,

@@ -11,21 +11,20 @@ import {
 import { collectTermRecallOp } from "./collect-term-recall";
 
 /**
- * @zh 根据 elementId 从后端自动查找相关术语。
  *
  * 复用 glossary.findTerm 路由中的查询链：
  * element → document → project → glossaryIds → lexical term query。
  * 使用 ILIKE + word_similarity 进行术语匹配（不含语义搜索）。
- * @en Look up relevant terms for a translatable element from the backend.
+ * Look up relevant terms for a translatable element from the backend.
  *
  * Reuses the query chain from the glossary.findTerm route:
  * element → document → project → glossaryIds → lexical term query.
  * Uses ILIKE + word_similarity for term matching (no semantic search).
  *
- * @param elementId - {@zh 可翻译元素 ID} {@en Translatable element ID}
- * @param translationLanguageId - {@zh 目标语言 ID} {@en Target language ID}
- * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
- * @returns - {@zh 匹配到的术语数据列表} {@en List of matched term data entries}
+ * @param elementId - Translatable element ID
+ * @param translationLanguageId - Target language ID
+ * @param _ctx - Operation context (unused)
+ * @returns - List of matched term data entries
  */
 export const lookupTermsForElementOp = async (
   elementId: number,

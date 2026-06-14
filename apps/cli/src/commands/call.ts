@@ -23,8 +23,7 @@ call — 通用 oRPC 调用
 `;
 
 /**
- * @zh 通用 oRPC 调用命令。支持普通返回值和流式（AsyncIterable）返回值。
- * @en Generic oRPC call command. Supports both regular and streaming (AsyncIterable) returns.
+ * Generic oRPC call command. Supports both regular and streaming (AsyncIterable) returns.
  */
 export const runCallCommand = async (
   config: CliConfig,

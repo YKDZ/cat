@@ -3,33 +3,30 @@ import type { ChatMessage } from "@cat/plugin-core";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 /**
- * @zh 压缩管线配置。
- * @en Compression pipeline configuration.
+ * Compression pipeline configuration.
  */
 export interface CompressionConfig {
-  /** @zh 单条 tool result 的最大 token 数 @en Max tokens for a single tool result */
+  /** Max tokens for a single tool result */
   toolResultBudget: number;
   /**
-   * @zh 消息总 token 数的上下文窗口限制比例（0–1）
-   * @en Ratio of context window to use as the token target (0–1)
+   * Ratio of context window to use as the token target (0–1)
    */
   contextWindowRatio: number;
-  /** @zh LLM 上下文窗口总大小（tokens）@en Total LLM context window size in tokens */
+  /** Total LLM context window size in tokens */
   contextWindowSize: number;
 }
 
 /**
- * @zh 压缩结果统计。
- * @en Statistics from a compression run.
+ * Statistics from a compression run.
  */
 export interface CompressionStats {
-  /** @zh 原始 token 总数 @en Original total token count */
+  /** Original total token count */
   originalTokens: number;
-  /** @zh 压缩后 token 总数 @en Compressed total token count */
+  /** Compressed total token count */
   totalTokens: number;
-  /** @zh 删除的 token 数 @en Number of removed tokens */
+  /** Number of removed tokens */
   removedTokens: number;
-  /** @zh 触发的最高压缩级别（0 = 未压缩）@en Highest compression level triggered (0 = none) */
+  /** Highest compression level triggered (0 = none) */
   levelReached: number;
 }
 
@@ -62,9 +59,8 @@ const countTokens = (
 // ─── CompressionPipeline ─────────────────────────────────────────────────────
 
 /**
- * @zh 5 级消息压缩管线。每级压缩在前一级的基础上继续，直到 token 数满足目标。
  * thinking 内容不参与压缩（thinking 不在 messages 数组中）。
- * @en 5-level message compression pipeline. Each level builds on the previous
+ * 5-level message compression pipeline. Each level builds on the previous
  * until tokens fit within the target. Thinking content is never in messages.
  */
 export class CompressionPipeline {

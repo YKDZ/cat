@@ -1,6 +1,5 @@
 /**
- * @zh 验证 buildUserPrompt 接受 FlattenedContextEvidence 并正确渲染证据区块。
- * @en Verify buildUserPrompt accepts FlattenedContextEvidence and renders the evidence block correctly.
+ * Verify buildUserPrompt accepts FlattenedContextEvidence and renders the evidence block correctly.
  */
 import { describe, expect, it } from "vitest";
 

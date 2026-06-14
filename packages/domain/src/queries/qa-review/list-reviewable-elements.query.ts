@@ -49,11 +49,10 @@ export type QaReviewableElement = {
 };
 
 /**
- * @zh 构建按元素聚合的 QA 审校集合 SQL。
- * @en Build SQL for QA reviewable elements aggregated by element.
+ * Build SQL for QA reviewable elements aggregated by element.
  *
- * @param input - {@zh 查询输入} {@en Query input}
- * @returns - {@zh 聚合查询 SQL} {@en Aggregated query SQL}
+ * @param input - Query input
+ * @returns - Aggregated query SQL
  */
 export const buildQaReviewableElementsSql = (
   input: ListQaReviewableElementsQuery,
@@ -114,12 +113,11 @@ export const buildQaReviewableElementsSql = (
 };
 
 /**
- * @zh 按元素分页列出可审校集合。
- * @en List reviewable QA elements paginated by element.
+ * List reviewable QA elements paginated by element.
  *
- * @param ctx - {@zh 查询上下文} {@en Query context}
- * @param input - {@zh 查询输入} {@en Query input}
- * @returns - {@zh 聚合元素列表} {@en Aggregated reviewable elements}
+ * @param ctx - Query context
+ * @param input - Query input
+ * @returns - Aggregated reviewable elements
  */
 export const listQaReviewableElements: Query<
   ListQaReviewableElementsQuery,

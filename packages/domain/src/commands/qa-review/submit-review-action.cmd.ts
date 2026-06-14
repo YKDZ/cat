@@ -268,12 +268,11 @@ const runSubmitQaReviewAction = async (
 };
 
 /**
- * @zh 提交 QA 工作台原子审校动作。
- * @en Submit an atomic QA workbench review action.
+ * Submit an atomic QA workbench review action.
  *
- * @param ctx - {@zh 命令上下文} {@en Command context}
- * @param input - {@zh 命令输入} {@en Command input}
- * @returns - {@zh 审校动作结果} {@en Review action result}
+ * @param ctx - Command context
+ * @param input - Command input
+ * @returns - Review action result
  */
 export const submitQaReviewAction: Command<
   z.infer<typeof SubmitQaReviewActionCommandSchema>,

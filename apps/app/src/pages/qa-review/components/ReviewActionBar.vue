@@ -18,37 +18,31 @@ type ActionCandidate = {
 };
 
 /**
- * @zh 审校动作栏属性。
- * @en Props for the review action bar.
+ * Props for the review action bar.
  */
 const props = defineProps<{
   /**
-   * @zh 当前选中的候选。
-   * @en Currently selected candidate.
+   * Currently selected candidate.
    */
   candidate: ActionCandidate | null;
 
   /**
-   * @zh 当前批注输入内容。
-   * @en Current note body.
+   * Current note body.
    */
   noteBody: string;
 
   /**
-   * @zh 提交失败时的错误提示。
-   * @en Error message shown when submission fails.
+   * Error message shown when submission fails.
    */
   error?: string | null;
 
   /**
-   * @zh 当前是否禁止写入。
-   * @en Whether writing is currently disabled.
+   * Whether writing is currently disabled.
    */
   writeDisabled?: boolean;
 
   /**
-   * @zh 写入被禁用时的原因。
-   * @en Reason shown when writing is disabled.
+   * Reason shown when writing is disabled.
    */
   disabledReason?: string | null;
 }>();

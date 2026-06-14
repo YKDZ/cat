@@ -6,12 +6,11 @@ import type { CalibrationSummary } from "./types";
 import { calibrateBm25Confidence } from "./core";
 
 /**
- * @zh 对 term recall 的 RawResult[] 执行置信度校准（当前 term recall 无 BM25 通道，为架构一致性保留）。
- * @en Apply confidence calibration to term recall RawResult[] (currently no-op, reserved for architectural consistency).
+ * Apply confidence calibration to term recall RawResult[] (currently no-op, reserved for architectural consistency).
  *
- * @param results - {@zh 原始术语召回结果} {@en Raw term recall results}
- * @param boostFactor - {@zh 提升因子（默认 2.5）} {@en Boost factor (default 2.5)}
- * @returns - {@zh 校准摘要} {@en Calibration summary}
+ * @param results - Raw term recall results
+ * @param boostFactor - Boost factor (default 2.5)
+ * @returns - Calibration summary
  */
 export const calibrateTermBm25 = (
   results: RawResult[],

@@ -36,8 +36,7 @@ const translationString = alias(vectorizedString, "translationString");
 const elementString = alias(vectorizedString, "elementString");
 
 /**
- * @zh 获取执行翻译 QA 所需的上下文（翻译文本、源文本及语言信息）。
- * @en Fetch the context required to run translation QA (translation text, source text, language info).
+ * Fetch the context required to run translation QA (translation text, source text, language info).
  */
 export const getTranslationQaContext: Query<
   GetTranslationQaContextQuery,

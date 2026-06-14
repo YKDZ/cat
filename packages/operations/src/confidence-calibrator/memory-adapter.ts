@@ -6,14 +6,13 @@ import type { CalibrationSummary } from "./types";
 import { calibrateBm25Confidence } from "./core";
 
 /**
- * @zh 对 memory recall 的 RawResult[] 执行 BM25 置信度校准。
- * @en Apply BM25 confidence calibration to memory recall RawResult[].
+ * Apply BM25 confidence calibration to memory recall RawResult[].
  *
  * Mutates the evidences array of each result in-place.
  *
- * @param results - {@zh 原始内存召回结果} {@en Raw memory recall results}
- * @param boostFactor - {@zh 提升因子（默认 2.5）} {@en Boost factor (default 2.5)}
- * @returns - {@zh 校准摘要} {@en Calibration summary}
+ * @param results - Raw memory recall results
+ * @param boostFactor - Boost factor (default 2.5)
+ * @returns - Calibration summary
  */
 export const calibrateMemoryBm25 = (
   results: RawResult[],

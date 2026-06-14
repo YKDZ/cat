@@ -11,7 +11,7 @@ export type MarkAllNotificationsReadCommand = z.infer<
   typeof MarkAllNotificationsReadCommandSchema
 >;
 
-/** @zh 全部标记已读。 @en Mark all notifications as read. */
+/** Mark all notifications as read. */
 export const markAllNotificationsRead: Command<
   MarkAllNotificationsReadCommand
 > = async (ctx, cmd) => {

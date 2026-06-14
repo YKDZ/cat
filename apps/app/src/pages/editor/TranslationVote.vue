@@ -13,13 +13,11 @@ import { orpc } from "@/rpc/orpc";
 import { useToastStore } from "@/stores/toast.ts";
 
 /**
- * @zh 翻译投票组件属性。
- * @en Props for the translation vote component.
+ * Props for the translation vote component.
  */
 const props = defineProps<{
   /**
-   * @zh 只能对主线翻译进行投票。
-   * @en Only mainline translations can be voted on.
+   * Only mainline translations can be voted on.
    */
   translation: Pick<
     Extract<TranslationWithStatus, { kind: "main" }>,

@@ -26,18 +26,17 @@ export type LoadElementTextsOutput = z.infer<
 >;
 
 /**
- * @zh 批量加载元素文本。
  *
  * 根据批量操作范围批量加载 TranslatableElement 及其 TranslatableString.value，
  * 返回统一格式的文本列表。
- * @en Batch load element texts.
+ * Batch load element texts.
  *
  * Loads TranslatableElements and their TranslatableString.value in bulk
  * by operation scope, returning a normalized list.
  *
- * @param data - {@zh 加载输入参数，使用 OperationScope 描述范围} {@en Load input using OperationScope}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 统一格式的元素文本列表} {@en Normalized list of element texts}
+ * @param data - Load input using OperationScope
+ * @param ctx - Operation context
+ * @returns - Normalized list of element texts
  */
 export const loadElementTextsOp = async (
   data: LoadElementTextsInput,

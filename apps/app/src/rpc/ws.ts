@@ -33,8 +33,7 @@ const link = new RPCLink({
 export const ws: RouterClient<AppRouter> = createORPCClient(link);
 
 /**
- * @zh 登录成功后重连 WebSocket，确保新连接携带有效的会话 Cookie。
- * @en Reconnect the WebSocket after login so the new connection carries the session cookie.
+ * Reconnect the WebSocket after login so the new connection carries the session cookie.
  */
 export const reconnectWs = (): void => {
   socket.reconnect();

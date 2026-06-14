@@ -1,8 +1,7 @@
 import type { RecallEvidence } from "@cat/shared";
 
 /**
- * @zh 校准后的 BM25 evidence，含原始分数与归一化信息。
- * @en Calibrated BM25 evidence with raw score and normalization metadata.
+ * Calibrated BM25 evidence with raw score and normalization metadata.
  */
 export interface CalibratedBm25Evidence {
   /** Original channel (preserved from input evidence). */
@@ -24,8 +23,7 @@ export interface CalibratedBm25Evidence {
 }
 
 /**
- * @zh 批次 BM25 校准结果摘要。
- * @en Summary of batch BM25 calibration.
+ * Summary of batch BM25 calibration.
  */
 export interface CalibrationSummary {
   /** Number of BM25 evidences in the batch. */

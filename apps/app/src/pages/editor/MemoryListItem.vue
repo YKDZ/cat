@@ -20,19 +20,16 @@ const writeCapability = useProjectWriteCapabilityStore();
 const { canWrite, disabledReason } = storeToRefs(writeCapability);
 
 /**
- * @zh 记忆建议列表项属性。
- * @en Props for a memory suggestion list item.
+ * Props for a memory suggestion list item.
  */
 const props = defineProps<{
   /**
-   * @zh 当前记忆建议。
-   * @en Current memory suggestion.
+   * Current memory suggestion.
    */
   memorySuggestion: MemorySuggestion;
 
   /**
-   * @zh 当前建议在列表中的索引。
-   * @en Zero-based index of the current suggestion in the list.
+   * Zero-based index of the current suggestion in the list.
    */
   index: number;
 }>();

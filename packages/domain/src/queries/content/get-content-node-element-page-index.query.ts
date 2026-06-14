@@ -30,8 +30,7 @@ export type GetContentNodeElementPageIndexQuery = z.infer<
 >;
 
 /**
- * @zh 获取元素在内容节点元素列表中的页码（基于 localOrder 排序）。
- * @en Get the page index of an element within its content node's element list (ordered by localOrder).
+ * Get the page index of an element within its content node's element list (ordered by localOrder).
  */
 export const getContentNodeElementPageIndex: Query<
   GetContentNodeElementPageIndexQuery,

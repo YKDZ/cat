@@ -12,8 +12,7 @@ import * as z from "zod";
 import { insertMemory } from "./memory";
 
 /**
- * @zh 批准译文晋升到项目记忆的输入。
- * @en Input for promoting an approved translation into project memories.
+ * Input for promoting an approved translation into project memories.
  */
 export const PromoteApprovedTranslationMemoryInputSchema = z.object({
   translationId: z.int(),
@@ -21,16 +20,14 @@ export const PromoteApprovedTranslationMemoryInputSchema = z.object({
 });
 
 /**
- * @zh 批准译文晋升到项目记忆的输入。
- * @en Input for promoting an approved translation into project memories.
+ * Input for promoting an approved translation into project memories.
  */
 export type PromoteApprovedTranslationMemoryInput = z.infer<
   typeof PromoteApprovedTranslationMemoryInputSchema
 >;
 
 /**
- * @zh 批准译文晋升结果。
- * @en Result of approved-translation promotion.
+ * Result of approved-translation promotion.
  */
 export type PromoteApprovedTranslationMemoryOutput = {
   projectMemoryIds: string[];
@@ -39,11 +36,10 @@ export type PromoteApprovedTranslationMemoryOutput = {
 };
 
 /**
- * @zh 将已批准译文晋升到项目记忆（幂等且可重试）。
- * @en Promote an approved translation into project memories (idempotent and retry-safe).
+ * Promote an approved translation into project memories (idempotent and retry-safe).
  *
- * @param input - {@zh 晋升输入} {@en Promotion input}
- * @returns - {@zh 晋升结果} {@en Promotion result}
+ * @param input - Promotion input
+ * @returns - Promotion result
  */
 export const promoteApprovedTranslationMemoryOp = async (
   input: PromoteApprovedTranslationMemoryInput,

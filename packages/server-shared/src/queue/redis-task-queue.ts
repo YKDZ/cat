@@ -11,13 +11,11 @@ type RedisQueueClient = {
 };
 
 /**
- * @zh Redis 任务队列的可选配置。
- * @en Optional configuration for the Redis task queue.
+ * Optional configuration for the Redis task queue.
  */
 export type RedisTaskQueueOptions = {
   /**
-   * @zh 单次租约时长（毫秒）。
-   * @en Lease duration in milliseconds.
+   * Lease duration in milliseconds.
    */
   leaseMs?: number;
 };
@@ -69,8 +67,7 @@ return 1
 `;
 
 /**
- * @zh 基于 Redis List 的持久化任务队列。
- * @en Redis List-backed persistent task queue.
+ * Redis List-backed persistent task queue.
  */
 export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   private readonly pendingKey: string;
@@ -78,12 +75,11 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   private readonly leaseMs: number;
 
   /**
-   * @zh 创建一个 Redis List 任务队列。
-   * @en Create a Redis List-backed task queue.
+   * Create a Redis List-backed task queue.
    *
-   * @param redis - {@zh Redis 客户端} {@en Redis client}
-   * @param queueName - {@zh 队列名称} {@en Queue name}
-   * @param options - {@zh 租约配置} {@en Lease configuration}
+   * @param redis - Redis client
+   * @param queueName - Queue name
+   * @param options - Lease configuration
    */
   public constructor(
     private readonly redis: RedisQueueClient,
@@ -96,11 +92,10 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   }
 
   /**
-   * @zh 批量入队 Redis 任务。
-   * @en Enqueue Redis-backed tasks in batch.
+   * Enqueue Redis-backed tasks in batch.
    *
-   * @param payloads - {@zh 要入队的任务负载列表} {@en List of task payloads to enqueue}
-   * @returns - {@zh 新生成的任务 ID 列表} {@en Newly generated task IDs}
+   * @param payloads - List of task payloads to enqueue
+   * @returns - Newly generated task IDs
    */
   public async enqueue(payloads: T[]): Promise<string[]> {
     if (payloads.length === 0) return [];
@@ -125,11 +120,10 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   }
 
   /**
-   * @zh 取出最多 `maxCount` 个任务并附加处理租约。
-   * @en Dequeue up to `maxCount` tasks and attach a processing lease.
+   * Dequeue up to `maxCount` tasks and attach a processing lease.
    *
-   * @param maxCount - {@zh 最大出队数量} {@en Maximum number of tasks to dequeue}
-   * @returns - {@zh 已出队的任务列表} {@en Dequeued task list}
+   * @param maxCount - Maximum number of tasks to dequeue
+   * @returns - Dequeued task list
    */
   public async dequeue(maxCount: number): Promise<QueueTask<T>[]> {
     await this.requeueExpiredLeases();
@@ -158,11 +152,10 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   }
 
   /**
-   * @zh 确认 processing 中的任务完成。
-   * @en Acknowledge completion of a task in processing.
+   * Acknowledge completion of a task in processing.
    *
-   * @param taskId - {@zh 任务 ID} {@en Task ID}
-   * @returns - {@zh 无返回值} {@en No return value}
+   * @param taskId - Task ID
+   * @returns - No return value
    */
   public async ack(taskId: string): Promise<void> {
     const allItems = await this.redis.lRange(this.processingKey, 0, -1);
@@ -178,11 +171,10 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   }
 
   /**
-   * @zh 拒绝 processing 中的任务并将其原子地重新入队。
-   * @en Reject a processing task and atomically requeue it.
+   * Reject a processing task and atomically requeue it.
    *
-   * @param taskId - {@zh 任务 ID} {@en Task ID}
-   * @returns - {@zh 无返回值} {@en No return value}
+   * @param taskId - Task ID
+   * @returns - No return value
    */
   public async nack(taskId: string): Promise<void> {
     await this.redis.sendCommand([
@@ -196,20 +188,18 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   }
 
   /**
-   * @zh 获取当前待处理任务数量。
-   * @en Get the current number of pending tasks.
+   * Get the current number of pending tasks.
    *
-   * @returns - {@zh 待处理任务数量} {@en Pending task count}
+   * @returns - Pending task count
    */
   public async pendingCount(): Promise<number> {
     return this.redis.lLen(this.pendingKey);
   }
 
   /**
-   * @zh 回收 processing 队列中租约过期的任务。
-   * @en Recover tasks whose processing leases have expired.
+   * Recover tasks whose processing leases have expired.
    *
-   * @returns - {@zh 被重新放回 pending 的任务数量} {@en Number of tasks moved back to pending}
+   * @returns - Number of tasks moved back to pending
    */
   public async requeueExpiredLeases(): Promise<number> {
     const now = Date.now();

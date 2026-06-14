@@ -2,13 +2,11 @@
 import { useI18n } from "vue-i18n";
 
 /**
- * @zh 项目子页数据错误态的属性。
- * @en Props for the project child page data error state.
+ * Props for the project child page data error state.
  */
 defineProps<{
   /**
-   * @zh 错误消息。
-   * @en Error message.
+   * Error message.
    */
   message: string;
 }>();

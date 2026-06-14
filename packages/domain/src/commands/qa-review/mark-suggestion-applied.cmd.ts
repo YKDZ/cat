@@ -44,8 +44,7 @@ export type MarkQaReviewSuggestionAppliedCommand = z.infer<
 >;
 
 /**
- * @zh 将审校建议标记为已应用，并同步接受对应批注。
- * @en Mark a QA review suggestion as applied and accept the corresponding annotation.
+ * Mark a QA review suggestion as applied and accept the corresponding annotation.
  */
 export const markQaReviewSuggestionApplied: Command<
   MarkQaReviewSuggestionAppliedCommand,

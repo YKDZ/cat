@@ -1,8 +1,7 @@
 import type { Scorer, ScorerInput, ScoreValue } from "../types";
 
 /**
- * @zh 噪音率评分器：语义通道命中中被标记为噪音的比例。
- * @en Noise rate scorer: fraction of semantic-channel hits that are noise.
+ * Noise rate scorer: fraction of semantic-channel hits that are noise.
  */
 export const noiseRateScorer: Scorer = {
   name: "noise-rate",

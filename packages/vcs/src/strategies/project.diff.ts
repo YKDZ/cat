@@ -3,8 +3,7 @@ import type { DiffStrategy } from "../diff-strategy.ts";
 import { createGenericStrategy } from "./generic.ts";
 
 /**
- * @zh project_settings 实体 diff 策略（CASCADING：影响全项目行为）
- * @en ProjectSettings entity diff strategy (CASCADING: affects whole project behavior)
+ * ProjectSettings entity diff strategy (CASCADING: affects whole project behavior)
  */
 export const projectSettingsDiffStrategy: DiffStrategy = createGenericStrategy({
   entityType: "project_settings",
@@ -13,8 +12,7 @@ export const projectSettingsDiffStrategy: DiffStrategy = createGenericStrategy({
 });
 
 /**
- * @zh project_member 实体 diff 策略
- * @en ProjectMember entity diff strategy
+ * ProjectMember entity diff strategy
  */
 export const projectMemberDiffStrategy: DiffStrategy = createGenericStrategy({
   entityType: "project_member",
@@ -24,8 +22,7 @@ export const projectMemberDiffStrategy: DiffStrategy = createGenericStrategy({
 });
 
 /**
- * @zh project_attributes 实体 diff 策略
- * @en ProjectAttributes entity diff strategy
+ * ProjectAttributes entity diff strategy
  */
 export const projectAttributesDiffStrategy: DiffStrategy =
   createGenericStrategy({
@@ -35,8 +32,7 @@ export const projectAttributesDiffStrategy: DiffStrategy =
   });
 
 /**
- * @zh context 实体 diff 策略
- * @en Context entity diff strategy
+ * Context entity diff strategy
  */
 export const contextDiffStrategy: DiffStrategy = createGenericStrategy({
   entityType: "context",

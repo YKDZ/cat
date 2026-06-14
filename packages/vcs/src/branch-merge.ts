@@ -45,8 +45,7 @@ export interface RebaseResult {
 // ─── Core Functions ───────────────────────────────────────────────────────────
 
 /**
- * @zh 检测冲突：比较 branch 创建以来 main 上的变更与 branch 自身的变更。
- * @en Detects conflicts: compares main changes since branch creation with branch changes.
+ * Detects conflicts: compares main changes since branch creation with branch changes.
  */
 export async function detectConflicts(
   db: DbHandle,
@@ -103,12 +102,11 @@ export async function detectConflicts(
 }
 
 /**
- * @zh 合并分支到 main：
  * 1. 检测冲突
  * 2. 如有冲突，标记 hasConflicts=true 并返回
  * 3. 如无冲突，将分支变更作为新 main Changeset 应用
  * 4. 更新 branch status=MERGED
- * @en Merges a branch into main:
+ * Merges a branch into main:
  * 1. Detect conflicts
  * 2. If conflicts exist, mark hasConflicts=true and return
  * 3. If no conflicts, apply branch changes as a new main changeset
@@ -201,8 +199,7 @@ export async function mergeBranch(
 }
 
 /**
- * @zh Rebase：更新 branch 的 baseChangesetId 到 main 最新，并重写 UPDATE/DELETE entry 的 before 值。
- * @en Rebase: updates the branch's baseChangesetId to the latest main changeset and rewrites
+ * Rebase: updates the branch's baseChangesetId to the latest main changeset and rewrites
  * the before-values of UPDATE/DELETE entries to reflect the current main state.
  */
 export async function rebaseBranch(

@@ -14,13 +14,11 @@ import { ws } from "@/rpc/ws";
 import { clientLogger as logger } from "@/utils/logger";
 
 /**
- * @zh 当前翻译 QA 按钮的属性。
- * @en Props for the current-translation QA button.
+ * Props for the current-translation QA button.
  */
 const props = defineProps<{
   /**
-   * @zh 当前原文信息。
-   * @en Current source payload.
+   * Current source payload.
    */
   source: {
     text: string;
@@ -28,8 +26,7 @@ const props = defineProps<{
     languageId: string;
   };
   /**
-   * @zh 当前译文信息。
-   * @en Current translation payload.
+   * Current translation payload.
    */
   translation: {
     text: string;
@@ -37,8 +34,7 @@ const props = defineProps<{
     languageId: string;
   };
   /**
-   * @zh 当前元素主内容节点 ID。
-   * @en Primary content-node ID of the current element.
+   * Primary content-node ID of the current element.
    */
   contentNodeId?: string;
 }>();

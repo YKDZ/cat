@@ -701,12 +701,11 @@ const getValidatedCandidateValue = async (
 };
 
 /**
- * @zh 对候选配置或当前运行态配置执行平台内置检测。
- * @en Run the built-in platform probe against candidate or runtime plugin configuration.
+ * Run the built-in platform probe against candidate or runtime plugin configuration.
  *
- * @param context - {@zh 当前请求上下文} {@en Current request context}
- * @param input - {@zh 插件检测输入} {@en Plugin probe input}
- * @returns - {@zh 结构化检测结果} {@en Structured probe result}
+ * @param context - Current request context
+ * @param input - Plugin probe input
+ * @returns - Structured probe result
  */
 export const probePluginConfig = async (
   context: Context,

@@ -5,15 +5,13 @@ import type { CatPlugin } from "@/entities/plugin";
 import type { PluginLoader } from "./loader";
 
 /**
- * @zh 将多个 loader 组合为一个按顺序回退的 loader。
- * @en Compose multiple loaders into a fallback-based loader.
+ * Compose multiple loaders into a fallback-based loader.
  */
 export class CompositePluginLoader implements PluginLoader {
   /**
-   * @zh 创建一个组合 loader。
-   * @en Create a composite plugin loader.
+   * Create a composite plugin loader.
    *
-   * @param loaders - {@zh 按优先级排序的 loader 列表} {@en Loaders ordered by priority}
+   * @param loaders - Loaders ordered by priority
    */
   public constructor(private readonly loaders: PluginLoader[]) {}
 
@@ -41,32 +39,28 @@ export class CompositePluginLoader implements PluginLoader {
   }
 
   /**
-   * @zh 按优先级获取插件 manifest。
-   * @en Resolve a plugin manifest by loader priority.
+   * Resolve a plugin manifest by loader priority.
    */
   public async getManifest(pluginId: string): Promise<PluginManifest> {
     return this.first(pluginId, async (loader) => loader.getManifest(pluginId));
   }
 
   /**
-   * @zh 按优先级获取插件展示数据。
-   * @en Resolve plugin display data by loader priority.
+   * Resolve plugin display data by loader priority.
    */
   public async getData(pluginId: string): Promise<PluginData> {
     return this.first(pluginId, async (loader) => loader.getData(pluginId));
   }
 
   /**
-   * @zh 按优先级加载插件实例。
-   * @en Resolve a plugin instance by loader priority.
+   * Resolve a plugin instance by loader priority.
    */
   public async getInstance(pluginId: string): Promise<CatPlugin> {
     return this.first(pluginId, async (loader) => loader.getInstance(pluginId));
   }
 
   /**
-   * @zh 列出组合 loader 中的全部插件，并按首次出现去重。
-   * @en List all plugins from the composite loader, deduplicated by first occurrence.
+   * List all plugins from the composite loader, deduplicated by first occurrence.
    */
   public async listAvailablePlugins(): Promise<PluginManifest[]> {
     const manifestsByLoader = await Promise.all(
@@ -89,8 +83,7 @@ export class CompositePluginLoader implements PluginLoader {
   }
 
   /**
-   * @zh 按优先级尝试解析插件静态资源路径。
-   * @en Try to resolve a plugin asset path by loader priority.
+   * Try to resolve a plugin asset path by loader priority.
    */
   public async resolveAssetPath(
     pluginId: string,

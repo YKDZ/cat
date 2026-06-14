@@ -16,26 +16,24 @@ import type { NonNullPluginDetail } from "./types";
 const { t } = useI18n();
 
 /**
- * @zh 插件生命周期面板的属性。
- * @en Props for the plugin lifecycle actions panel.
+ * Props for the plugin lifecycle actions panel.
  */
 defineProps<{
-  /** @zh 插件详情读模型。 @en Plugin detail read model. */
+  /** Plugin detail read model. */
   detail: NonNullPluginDetail;
-  /** @zh 生命周期动作是否进行中。 @en Whether a lifecycle action is in progress. */
+  /** Whether a lifecycle action is in progress. */
   isBusy: boolean;
 }>();
 
 /**
- * @zh 插件生命周期面板触发的事件。
- * @en Events emitted by the plugin lifecycle actions panel.
+ * Events emitted by the plugin lifecycle actions panel.
  */
 const emit = defineEmits<{
-  /** @zh 安装插件到当前作用域。 @en Install the plugin into the current scope. */
+  /** Install the plugin into the current scope. */
   install: [];
-  /** @zh 从当前作用域卸载插件。 @en Uninstall the plugin from the current scope. */
+  /** Uninstall the plugin from the current scope. */
   uninstall: [];
-  /** @zh 重载当前插件运行态。 @en Reload the current plugin runtime. */
+  /** Reload the current plugin runtime. */
   reload: [];
 }>();
 

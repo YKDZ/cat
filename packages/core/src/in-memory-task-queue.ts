@@ -1,8 +1,7 @@
 import type { QueueTask, TaskQueue } from "./task-queue.ts";
 
 /**
- * @zh 基于 Map 的内存任务队列实现，满足 TaskQueue 接口（主要用于测试）。
- * @en In-memory task queue implementation backed by Map, satisfies the TaskQueue interface (primarily for testing).
+ * In-memory task queue implementation backed by Map, satisfies the TaskQueue interface (primarily for testing).
  */
 export class InMemoryTaskQueue<T> implements TaskQueue<T> {
   private pending: Map<string, QueueTask<T>> = new Map();

@@ -28,8 +28,7 @@ export type GetElementTranslationStatusQuery = z.infer<
 >;
 
 /**
- * @zh 获取单个可翻译元素的翻译状态。
- * @en Get the translation status for a single translatable element.
+ * Get the translation status for a single translatable element.
  */
 export const getElementTranslationStatus: Query<
   GetElementTranslationStatusQuery,

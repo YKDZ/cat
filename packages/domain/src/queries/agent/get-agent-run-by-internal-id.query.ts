@@ -15,8 +15,7 @@ export type GetAgentRunByInternalIdQuery = z.infer<
 >;
 
 /**
- * @zh 按内部 ID 查询 Agent 运行记录及其黑板快照。
- * @en Query an agent run and its blackboard snapshot by internal ID.
+ * Query an agent run and its blackboard snapshot by internal ID.
  */
 export type AgentRunByInternalId = {
   externalId: string;

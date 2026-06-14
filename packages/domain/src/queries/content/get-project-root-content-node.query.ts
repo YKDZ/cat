@@ -11,8 +11,7 @@ export type GetProjectRootContentNodeQuery = z.infer<
 >;
 
 /**
- * @zh 获取项目的根内容节点（kind = PROJECT_ROOT）。
- * @en Get the root content node of a project (kind = PROJECT_ROOT).
+ * Get the root content node of a project (kind = PROJECT_ROOT).
  */
 export const getProjectRootContentNode: Query<
   GetProjectRootContentNodeQuery,

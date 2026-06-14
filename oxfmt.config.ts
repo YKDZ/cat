@@ -6,9 +6,7 @@ export default defineConfig({
   ignorePatterns: [
     "**/dist",
     "packages/shared/src/schema/drizzle",
-    "apps/docs/src/autodoc",
     "packages/ui/src/components",
-    ".symbol-index.json",
   ],
   sortImports: {
     groups: [

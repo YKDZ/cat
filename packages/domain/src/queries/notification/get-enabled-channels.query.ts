@@ -15,8 +15,7 @@ export type GetEnabledChannelsQuery = z.infer<
 >;
 
 /**
- * @zh 获取用户对指定类别的启用渠道列表。未配置时默认 `["IN_APP"]`。
- * @en Get enabled channels for a user's message category. Falls back to `["IN_APP"]`.
+ * Get enabled channels for a user's message category. Falls back to `["IN_APP"]`.
  */
 export const getEnabledChannels: Query<
   GetEnabledChannelsQuery,

@@ -1,6 +1,5 @@
 /**
- * @zh ToolNode vcsMode 动态传递单元测试。
- * @en Unit tests for dynamic vcsMode passing in ToolNode.
+ * Unit tests for dynamic vcsMode passing in ToolNode.
  */
 
 import { describe, expect, it, vi } from "vitest";

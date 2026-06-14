@@ -10,8 +10,7 @@ import {
 import * as z from "zod";
 
 /**
- * @zh 编辑器分支覆盖中使用的内容节点行 Schema。
- * @en Content-node row schema used by editor branch overlays.
+ * Content-node row schema used by editor branch overlays.
  */
 export const EditorOverlayContentNodeRowSchema = z.object({
   id: z.uuidv4(),
@@ -38,16 +37,14 @@ export const EditorOverlayContentNodeRowSchema = z.object({
 });
 
 /**
- * @zh 编辑器分支覆盖内容节点行类型。
- * @en Content-node row type for editor branch overlays.
+ * Content-node row type for editor branch overlays.
  */
 export type EditorOverlayContentNodeRow = z.infer<
   typeof EditorOverlayContentNodeRowSchema
 >;
 
 /**
- * @zh 编辑器分支覆盖中使用的内容关系行 Schema。
- * @en Content-relation row schema used by editor branch overlays.
+ * Content-relation row schema used by editor branch overlays.
  */
 export const EditorOverlayContentRelationRowSchema = z.object({
   id: z.uuidv4(),
@@ -71,16 +68,14 @@ export const EditorOverlayContentRelationRowSchema = z.object({
 });
 
 /**
- * @zh 编辑器分支覆盖内容关系行类型。
- * @en Content-relation row type for editor branch overlays.
+ * Content-relation row type for editor branch overlays.
  */
 export type EditorOverlayContentRelationRow = z.infer<
   typeof EditorOverlayContentRelationRowSchema
 >;
 
 /**
- * @zh 编辑器分支覆盖中使用的元素行 Schema。
- * @en Element row schema used by editor branch overlays.
+ * Element row schema used by editor branch overlays.
  */
 export const EditorOverlayElementRowSchema = z.object({
   id: z.int(),
@@ -103,16 +98,14 @@ export const EditorOverlayElementRowSchema = z.object({
 });
 
 /**
- * @zh 编辑器分支覆盖元素行类型。
- * @en Element row type for editor branch overlays.
+ * Element row type for editor branch overlays.
  */
 export type EditorOverlayElementRow = z.infer<
   typeof EditorOverlayElementRowSchema
 >;
 
 /**
- * @zh 编辑器分支覆盖中使用的翻译状态 Schema。
- * @en Translation-state schema used by editor branch overlays.
+ * Translation-state schema used by editor branch overlays.
  */
 export const EditorOverlayTranslationStateSchema = z.object({
   translatableElementId: z.int(),
@@ -125,8 +118,7 @@ export const EditorOverlayTranslationStateSchema = z.object({
 });
 
 /**
- * @zh 编辑器分支覆盖翻译状态类型。
- * @en Translation-state type for editor branch overlays.
+ * Translation-state type for editor branch overlays.
  */
 export type EditorOverlayTranslationState = z.infer<
   typeof EditorOverlayTranslationStateSchema

@@ -14,7 +14,7 @@ export type MarkNotificationReadCommand = z.infer<
   typeof MarkNotificationReadCommandSchema
 >;
 
-/** @zh 将通知标记为已读并发布 notification:status-changed 事件。 @en Mark notification read. */
+/** Mark notification read. */
 export const markNotificationRead: Command<
   MarkNotificationReadCommand
 > = async (ctx, cmd) => {

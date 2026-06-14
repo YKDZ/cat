@@ -26,8 +26,7 @@ const listContentNodesArgs = z
   .strict();
 
 /**
- * @zh list_content_nodes 工具：分页列出项目中的内容节点。
- * @en list_content_nodes tool: list project content nodes with pagination.
+ * list_content_nodes tool: list project content nodes with pagination.
  */
 export const listContentNodesTool: AgentToolDefinition = {
   name: "list_content_nodes",

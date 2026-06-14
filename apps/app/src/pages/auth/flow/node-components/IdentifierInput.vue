@@ -13,13 +13,11 @@ import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
 /**
- * @zh IdentifierInput 的 props。
- * @en Props for the IdentifierInput node component.
+ * Props for the IdentifierInput node component.
  */
 const props = defineProps<{
   /**
-   * @zh 来自认证流节点的客户端提示信息。
-   * @en Client hint from the auth flow node.
+   * Client hint from the auth flow node.
    */
   hint?: {
     displayInfo?: {
@@ -30,8 +28,7 @@ const props = defineProps<{
 }>();
 
 /**
- * @zh 用户提交标识符（邮箱或用户名）时触发。
- * @en Emitted when user submits the identifier.
+ * Emitted when user submits the identifier.
  */
 const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;

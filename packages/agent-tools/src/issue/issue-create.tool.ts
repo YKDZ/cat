@@ -5,21 +5,18 @@ import * as z from "zod";
 
 const issueCreateArgs = z.object({
   /**
-   * @zh Issue 标题
-   * @en Issue title
+   * Issue title
    */
   title: z.string().min(1).describe("The title of the issue to create"),
   /**
-   * @zh Issue 正文（Markdown）
-   * @en Issue body in Markdown
+   * Issue body in Markdown
    */
   body: z
     .string()
     .optional()
     .describe("The body/description of the issue in Markdown"),
   /**
-   * @zh 标签列表
-   * @en List of labels to apply
+   * List of labels to apply
    */
   labels: z
     .array(z.string())
@@ -28,8 +25,7 @@ const issueCreateArgs = z.object({
 });
 
 /**
- * @zh issue_create 工具: 在当前项目内创建一个 Issue。
- * @en issue_create tool: create a new Issue in the current project.
+ * issue_create tool: create a new Issue in the current project.
  */
 export const issueCreateTool: AgentToolDefinition = {
   name: "issue_create",

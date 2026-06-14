@@ -8,8 +8,7 @@ import {
 import type { Query } from "@/types";
 
 /**
- * @zh 根据队列项 ID 获取其所属项目。
- * @en Get the owning project for a QA review queue item.
+ * Get the owning project for a QA review queue item.
  */
 export const getQaReviewQueueItemProject: Query<
   { queueItemId: number },
@@ -24,8 +23,7 @@ export const getQaReviewQueueItemProject: Query<
 };
 
 /**
- * @zh 根据批注 ID 获取其所属项目。
- * @en Get the owning project for a QA review annotation.
+ * Get the owning project for a QA review annotation.
  */
 export const getQaReviewAnnotationProject: Query<
   { annotationId: number },
@@ -40,8 +38,7 @@ export const getQaReviewAnnotationProject: Query<
 };
 
 /**
- * @zh 根据建议 ID 获取其所属项目。
- * @en Get the owning project for a QA review suggestion.
+ * Get the owning project for a QA review suggestion.
  */
 export const getQaReviewSuggestionProject: Query<
   { suggestionId: number },

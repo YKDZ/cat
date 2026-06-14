@@ -12,17 +12,15 @@ import {
 import { detectConflicts, getDefaultRegistries, rebaseBranch } from "@cat/vcs";
 
 /**
- * @zh rebasePRFull 的输入参数。
- * @en Input parameters for rebasePRFull.
+ * Input parameters for rebasePRFull.
  */
 export interface RebasePRFullInput {
-  /** @zh PR 的 externalId (UUID) @en PR externalId (UUID) */
+  /** PR externalId (UUID) */
   prExternalId: string;
 }
 
 /**
- * @zh rebasePRFull 的返回结果。
- * @en Result of rebasePRFull.
+ * Result of rebasePRFull.
  */
 export interface RebasePRFullResult {
   success: boolean;
@@ -32,8 +30,7 @@ export interface RebasePRFullResult {
 }
 
 /**
- * @zh 完整 PR rebase 操作：基线移动 → 冲突检测 → branch 状态同步。
- * @en Full PR rebase operation: baseline move → conflict detection → branch status sync.
+ * Full PR rebase operation: baseline move → conflict detection → branch status sync.
  */
 export const rebasePRFull = async (
   ctx: DbContext,

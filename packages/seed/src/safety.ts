@@ -1,11 +1,10 @@
 /**
- * @zh 数据库重置安全选项。
- * @en Safety options for database reset.
+ * Safety options for database reset.
  */
 export type DatabaseSafetyOptions = {
-  /** @zh 显式允许不安全目标。 @en Explicitly allow an otherwise unsafe target. */
+  /** Explicitly allow an otherwise unsafe target. */
   allowUnsafeReset?: boolean;
-  /** @zh 当前运行环境。 @en Current runtime environment. */
+  /** Current runtime environment. */
   nodeEnv?: string;
 };
 
@@ -22,12 +21,11 @@ const SAFE_HOSTS = new Set([
 ]);
 
 /**
- * @zh 判断数据库 URL 是否明显指向开发/测试目标。
- * @en Determine whether a database URL clearly targets development/test.
+ * Determine whether a database URL clearly targets development/test.
  *
- * @param databaseUrl - {@zh 数据库 URL} {@en Database URL}
- * @param options - {@zh 安全选项} {@en Safety options}
- * @returns - {@zh 如果允许重置则返回 void} {@en Returns void when reset is allowed}
+ * @param databaseUrl - Database URL
+ * @param options - Safety options
+ * @returns - Returns void when reset is allowed
  */
 export const assertSafeDatabaseTarget = (
   databaseUrl: string | undefined,

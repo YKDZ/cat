@@ -11,8 +11,7 @@ export type GetCommentRecipientQuery = z.infer<
 >;
 
 /**
- * @zh 解析评论通知的接收人：若为回复则通知被回复人，否则通知翻译作者。与评论作者相同时返回 null。
- * @en Resolve the notification recipient for a comment: reply author or translation author. Returns null when same as commenter.
+ * Resolve the notification recipient for a comment: reply author or translation author. Returns null when same as commenter.
  */
 export const getCommentRecipient: Query<
   GetCommentRecipientQuery,

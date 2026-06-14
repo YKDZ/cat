@@ -112,8 +112,7 @@ const insertRunWithFindings = async (
 };
 
 /**
- * @zh 在同一事务中创建 QA review run 及其 findings。
- * @en Create a QA review run and its findings in the same transaction.
+ * Create a QA review run and its findings in the same transaction.
  */
 export const createQaReviewRunWithFindings: Command<
   CreateQaReviewRunWithFindingsCommand,

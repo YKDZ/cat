@@ -1,8 +1,7 @@
 import type { Scorer, ScorerInput, ScoreValue } from "../types";
 
 /**
- * @zh BM25 置信度评分器：返回每个 case 中 BM25 通道的最高置信度。
- * @en BM25 confidence scorer: returns the highest BM25 channel confidence per case.
+ * BM25 confidence scorer: returns the highest BM25 channel confidence per case.
  */
 export const bm25ConfidenceScorer: Scorer = {
   name: "bm25-confidence",

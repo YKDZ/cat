@@ -31,8 +31,7 @@ const isPageContextAbortError = (
 };
 
 /**
- * @zh 项目 Shell 数据，供项目布局、Header、Navbar 和项目级注入使用。
- * @en Project shell data consumed by the project layout, header, navbar, and project-level injection.
+ * Project shell data consumed by the project layout, header, navbar, and project-level injection.
  */
 export type ProjectShellData = {
   project: ProjectShellProject;
@@ -41,16 +40,14 @@ export type ProjectShellData = {
 };
 
 /**
- * @zh 项目子页可恢复错误信息。
- * @en Recoverable error information for project child pages.
+ * Recoverable error information for project child pages.
  */
 export type ProjectPageDataError = {
   message: string;
 };
 
 /**
- * @zh 带项目 Shell 的项目子页 data 返回值。
- * @en Project child page data with project shell data attached.
+ * Project child page data with project shell data attached.
  */
 export type ProjectShellPageData<T extends Record<string, unknown>> = Partial<
   SanitizedProjectPageData<T>
@@ -72,11 +69,10 @@ const sanitizeProjectPageData = <T extends Record<string, unknown>>(
 };
 
 /**
- * @zh 从 Vike 路由上下文加载稳定的项目 Shell 数据。
- * @en Load stable project shell data from the Vike route context.
+ * Load stable project shell data from the Vike route context.
  *
- * @param ctx - {@zh Vike 服务端页面上下文} {@en Vike server page context}
- * @returns - {@zh 项目 Shell 数据} {@en Project shell data}
+ * @param ctx - Vike server page context
+ * @returns - Project shell data
  */
 export const loadProjectShell = async (
   ctx: PageContextServer,
@@ -99,12 +95,11 @@ export const loadProjectShell = async (
 };
 
 /**
- * @zh 将子页专属 data 与项目 Shell data 并列组合。
- * @en Combine child page-specific data with project shell data side by side.
+ * Combine child page-specific data with project shell data side by side.
  *
- * @param ctx - {@zh Vike 服务端页面上下文} {@en Vike server page context}
- * @param pageData - {@zh 子页数据或其加载函数} {@en Child page data or its loader}
- * @returns - {@zh 带项目 Shell 的子页数据} {@en Child page data with project shell}
+ * @param ctx - Vike server page context
+ * @param pageData - Child page data or its loader
+ * @returns - Child page data with project shell
  */
 export const withProjectShell = async <T extends Record<string, unknown>>(
   ctx: PageContextServer,

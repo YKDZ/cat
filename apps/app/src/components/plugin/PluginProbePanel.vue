@@ -15,26 +15,24 @@ import type { NonNullPluginDetail, PluginProbeResult } from "./types";
 const { t } = useI18n();
 
 /**
- * @zh 插件检测面板的属性。
- * @en Props for the plugin probe panel.
+ * Props for the plugin probe panel.
  */
 defineProps<{
-  /** @zh 插件详情读模型。 @en Plugin detail read model. */
+  /** Plugin detail read model. */
   detail: NonNullPluginDetail;
-  /** @zh 最近一次检测结果。 @en Latest probe result. */
+  /** Latest probe result. */
   result: PluginProbeResult | null;
-  /** @zh 检测请求是否进行中。 @en Whether a probe request is in progress. */
+  /** Whether a probe request is in progress. */
   isProbing: boolean;
 }>();
 
 /**
- * @zh 插件检测面板触发的事件。
- * @en Events emitted by the plugin probe panel.
+ * Events emitted by the plugin probe panel.
  */
 const emit = defineEmits<{
-  /** @zh 检测当前已应用运行态配置。 @en Probe the currently applied runtime config. */
+  /** Probe the currently applied runtime config. */
   probeRuntime: [];
-  /** @zh 取消正在进行的检测请求。 @en Cancel the in-flight probe request. */
+  /** Cancel the in-flight probe request. */
   cancelProbe: [];
 }>();
 </script>

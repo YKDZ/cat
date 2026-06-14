@@ -16,8 +16,7 @@ import { vectorizeToChunkSetOp } from "./vectorize";
 const MAX_RETRIES = 3;
 
 /**
- * @zh 处理一批向量化队列任务：向量化 → 回填 chunkSetId → 更新状态 → 发布事件。
- * @en Process a batch of vectorization queue tasks: vectorize → backfill chunkSetId → update status → publish event.
+ * Process a batch of vectorization queue tasks: vectorize → backfill chunkSetId → update status → publish event.
  */
 export const processVectorizationBatch = async (
   queue: TaskQueue<VectorizationTask>,

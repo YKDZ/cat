@@ -8,10 +8,9 @@ import {
 } from "@cat/domain";
 
 /**
- * @zh 向量化异步任务完成的回调处理器。
  * 接收任务完成通知，更新对应 ChangesetEntry 的 asyncStatus，
  * 并重新计算整个 ChangeSet 的 asyncStatus 汇总。
- * @en Handler for async vectorization task completion callbacks.
+ * Handler for async vectorization task completion callbacks.
  * Receives completion notifications, updates the ChangesetEntry asyncStatus,
  * and recomputes the aggregated ChangeSet asyncStatus.
  */
@@ -23,8 +22,7 @@ export class AsyncCompletionHandler {
   }
 
   /**
-   * @zh 处理一个异步任务完成事件。
-   * @en Handle one async task completion event.
+   * Handle one async task completion event.
    */
   async onAsyncComplete(payload: {
     asyncTaskId: string;

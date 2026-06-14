@@ -6,8 +6,7 @@ import type {
 } from "@cat/shared";
 
 /**
- * @zh reuse-first 在单个 scope 内可排序的最大元素数，超过时结构顺序回退。
- * @en Maximum rows ranked by reuse-first inside one scope before structural fallback.
+ * Maximum rows ranked by reuse-first inside one scope before structural fallback.
  */
 export const MAX_REUSE_FIRST_SCOPE_ROWS = 5000;
 
@@ -15,16 +14,14 @@ const NEIGHBOR_WINDOW = 3;
 const MAX_NGRAM = 4;
 
 /**
- * @zh 可参与优先级排序的编辑器元素行，包含结构顺序位置。
- * @en Editor element row that can participate in priority ranking, including structural position.
+ * Editor element row that can participate in priority ranking, including structural position.
  */
 export type PriorityRankableEditorElement = EditorElement & {
   position: number;
 };
 
 /**
- * @zh 单个元素在优先级计划中的排序结果。
- * @en Ranked result for a single element inside the priority plan.
+ * Ranked result for a single element inside the priority plan.
  */
 export type ElementPriorityPlanItem = {
   id: number;
@@ -32,8 +29,7 @@ export type ElementPriorityPlanItem = {
 };
 
 /**
- * @zh 当前作用域的临时元素优先级计划。
- * @en Ephemeral element-priority plan for the current scope.
+ * Ephemeral element-priority plan for the current scope.
  */
 export type ElementPriorityPlan = {
   mode: ElementSortMode;
@@ -265,12 +261,11 @@ const structuralSummary = (
 });
 
 /**
- * @zh 构建当前编辑器 scope 的临时元素优先级计划。
- * @en Build an ephemeral element-priority plan for the current editor scope.
+ * Build an ephemeral element-priority plan for the current editor scope.
  *
- * @param rows - {@zh 已按结构顺序排序并携带 position 的 scope 行} {@en Scope rows already sorted structurally and carrying positions}
- * @param sortMode - {@zh 当前请求的排序模式} {@en Requested sort mode}
- * @returns - {@zh 作用域内的优先级计划} {@en Priority plan for the scope}
+ * @param rows - Scope rows already sorted structurally and carrying positions
+ * @param sortMode - Requested sort mode
+ * @returns - Priority plan for the scope
  */
 export const buildElementPriorityPlan = (
   rows: PriorityRankableEditorElement[],
@@ -349,12 +344,11 @@ export const buildElementPriorityPlan = (
 };
 
 /**
- * @zh 按优先级计划重排 rows，并附加轻量 priority 摘要。
- * @en Reorder rows by a priority plan and attach lightweight priority summaries.
+ * Reorder rows by a priority plan and attach lightweight priority summaries.
  *
- * @param rows - {@zh 原始 scope 行} {@en Original scope rows}
- * @param plan - {@zh 当前 scope 的优先级计划} {@en Priority plan for the current scope}
- * @returns - {@zh 重新排序后的 scope 行} {@en Reordered scope rows}
+ * @param rows - Original scope rows
+ * @param plan - Priority plan for the current scope
+ * @returns - Reordered scope rows
  */
 export const orderRowsByPriorityPlan = <
   T extends PriorityRankableEditorElement,

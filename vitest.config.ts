@@ -255,15 +255,6 @@ export default defineConfig({
         resolve: { alias: alias(resolve(ROOT, "packages/oxlint-plugin")) },
       },
 
-      // ── 工具包 ────────────────────────────────────────────────────────
-      {
-        test: {
-          name: "unit-autodoc",
-          include: ["tools/autodoc/src/**/*.{spec,test}.ts"],
-          environment: "node",
-        },
-        resolve: { alias: alias(resolve(ROOT, "tools/autodoc")) },
-      },
       {
         test: {
           name: "unit-root",

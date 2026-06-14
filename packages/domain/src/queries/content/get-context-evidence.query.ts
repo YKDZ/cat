@@ -11,8 +11,7 @@ export type GetContextEvidenceQuery = z.infer<
 >;
 
 /**
- * @zh 按 ID 获取单条 ContextEvidence 记录。
- * @en Fetch a single ContextEvidence row by ID.
+ * Fetch a single ContextEvidence row by ID.
  */
 export const getContextEvidence: Query<
   GetContextEvidenceQuery,

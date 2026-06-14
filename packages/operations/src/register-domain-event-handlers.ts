@@ -63,7 +63,6 @@ const onMemoryCreated = async (
 };
 
 /**
- * @zh 注册领域事件处理器（全局单例）。
  *
  * 订阅以下领域事件：
  * - `concept:updated` → 触发概念重向量化
@@ -74,7 +73,7 @@ const onMemoryCreated = async (
  * - `pr:merged` → 如关联 Issue 则自动关闭 Issue
  *
  * 具备内置幂等性防护，重复调用不会重复注册。
- * @en Register domain event handlers (global singleton).
+ * Register domain event handlers (global singleton).
  *
  * Subscribes to the following domain events:
  * - `concept:updated` → triggers concept re-vectorization

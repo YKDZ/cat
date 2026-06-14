@@ -6,36 +6,30 @@ import type {
 } from "@cat/plugin-core";
 
 /**
- * @zh 从 LLM 流中收集的完整响应结构。
- * @en The complete response collected from an LLM stream.
+ * The complete response collected from an LLM stream.
  */
 export interface CollectedLLMResponse {
   /**
-   * @zh 生成的文本内容（如果无文本内容则为 null）。
-   * @en Generated text content, or null if no text was produced.
+   * Generated text content, or null if no text was produced.
    */
   content: string | null;
   /**
-   * @zh 工具调用列表。
-   * @en List of tool calls.
+   * List of tool calls.
    */
   toolCalls: ToolCall[];
   /**
-   * @zh Token 使用量。
-   * @en Token usage statistics.
+   * Token usage statistics.
    */
   usage: ChatCompletionUsage;
   /**
-   * @zh 完成原因。
-   * @en Reason the completion finished.
+   * Reason the completion finished.
    */
   finishReason: ChatCompletionFinishReason;
 }
 
 /**
- * @zh 消费 LLM AsyncIterable Chunk 流，将所有 chunk 聚合为一个完整响应对象。
  *     如果流中出现 error chunk，抛出其中的 Error。
- * @en Consume an LLM AsyncIterable chunk stream and aggregate all chunks into
+ * Consume an LLM AsyncIterable chunk stream and aggregate all chunks into
  *     a single complete response object. Throws if an error chunk is encountered.
  */
 export const collectLLMResponse = async (

@@ -13,13 +13,11 @@ import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
 /**
- * @zh OtpInput 的 props（预留）。
- * @en Props for the OtpInput node component (reserved for future use).
+ * Props for the OtpInput node component (reserved for future use).
  */
 defineProps<{
   /**
-   * @zh 来自认证流节点的客户端提示信息。
-   * @en Client hint from the auth flow node.
+   * Client hint from the auth flow node.
    */
   hint?: {
     displayInfo?: {
@@ -30,8 +28,7 @@ defineProps<{
 }>();
 
 /**
- * @zh 用户提交 OTP 验证码时触发。
- * @en Emitted when user submits the OTP code.
+ * Emitted when user submits the OTP code.
  */
 const emit = defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;

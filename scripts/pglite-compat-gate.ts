@@ -9,23 +9,19 @@ type QueryableDatabase = {
 };
 
 /**
- * @zh 单项兼容性能力检查结果。
- * @en Result of a single compatibility capability check.
+ * Result of a single compatibility capability check.
  */
 export type CapabilityCheck = {
   /**
-   * @zh 检查项名称。
-   * @en Name of the capability check.
+   * Name of the capability check.
    */
   name: string;
   /**
-   * @zh 检查结果状态。
-   * @en Outcome status for the capability check.
+   * Outcome status for the capability check.
    */
   status: "available" | "missing" | "blocked";
   /**
-   * @zh 可选的失败或阻塞详情。
-   * @en Optional failure or blocking details.
+   * Optional failure or blocking details.
    */
   details?: string;
 };
@@ -91,13 +87,12 @@ const isExecutedDirectly = (): boolean => {
 };
 
 /**
- * @zh 执行一组 SQL 语句并将异常转换为兼容性检查结果。
- * @en Execute one or more SQL statements and convert failures into a compatibility check result.
+ * Execute one or more SQL statements and convert failures into a compatibility check result.
  *
- * @param db - {@zh 具备 `query()` 能力的数据库对象} {@en Database-like object exposing `query()`}
- * @param name - {@zh 检查项名称} {@en Capability check name}
- * @param sqlStatements - {@zh 要依次执行的一条或多条 SQL 语句} {@en One or more SQL statements to execute sequentially}
- * @returns - {@zh 结构化的能力检查结果} {@en Structured capability check result}
+ * @param db - Database-like object exposing `query()`
+ * @param name - Capability check name
+ * @param sqlStatements - One or more SQL statements to execute sequentially
+ * @returns - Structured capability check result
  */
 export const checkSql = async (
   db: QueryableDatabase,
@@ -122,11 +117,10 @@ export const checkSql = async (
 };
 
 /**
- * @zh 根据兼容性检查结果推导搜索能力等级。
- * @en Derive the search capability level from compatibility check results.
+ * Derive the search capability level from compatibility check results.
  *
- * @param checks - {@zh 已完成的能力检查结果列表} {@en Completed capability check results}
- * @returns - {@zh 推导出的搜索能力等级} {@en Derived search capability level}
+ * @param checks - Completed capability check results
+ * @returns - Derived search capability level
  */
 export const classifyFromChecks = (
   checks: CapabilityCheck[],
@@ -144,10 +138,9 @@ export const classifyFromChecks = (
 };
 
 /**
- * @zh 执行 PGlite 兼容性门禁并返回结构化 JSON 报告数据。
- * @en Execute the PGlite compatibility gate and return structured JSON report data.
+ * Execute the PGlite compatibility gate and return structured JSON report data.
  *
- * @returns - {@zh 包含搜索能力等级与各项检查结果的报告摘要} {@en Report summary containing search capability level and individual check results}
+ * @returns - Report summary containing search capability level and individual check results
  */
 export const runPgliteCompatGate = async (): Promise<{
   level: SearchRuntimeLevel;

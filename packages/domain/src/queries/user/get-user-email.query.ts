@@ -7,7 +7,7 @@ import type { Query } from "@/types";
 export const GetUserEmailQuerySchema = z.object({ userId: z.uuidv4() });
 export type GetUserEmailQuery = z.infer<typeof GetUserEmailQuerySchema>;
 
-/** @zh 按用户 ID 查询邮件地址。 @en Get a user's email address by user ID. */
+/** Get a user's email address by user ID. */
 export const getUserEmail: Query<GetUserEmailQuery, string | null> = async (
   ctx,
   query,

@@ -39,8 +39,7 @@ import { SessionManager } from "./session-manager.ts";
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * @zh 判断错误是否为 LLM context 超出错误。
- * @en Check whether the error is a context-length exceeded error from the LLM.
+ * Check whether the error is a context-length exceeded error from the LLM.
  */
 function isContextOverflowError(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
@@ -58,7 +57,7 @@ function isContextOverflowError(err: unknown): boolean {
   return code === "context_length_exceeded";
 }
 
-/** @zh 默认压缩管线配置。@en Default compression pipeline configuration. */
+/** Default compression pipeline configuration. */
 const DEFAULT_COMPRESSION_CONFIG: CompressionConfig = {
   toolResultBudget: 2000,
   contextWindowRatio: 0.8,
@@ -131,8 +130,7 @@ const toAgentMessages = (value: unknown): AgentBlackboardData["messages"] => {
 // ─── Agent Events ─────────────────────────────────────────────────────────────
 
 /**
- * @zh AgentRuntime.runLoop() 发出的事件联合类型。
- * @en Union type of events emitted by AgentRuntime.runLoop().
+ * Union type of events emitted by AgentRuntime.runLoop().
  */
 export type AgentEvent =
   | { type: "started"; runId: string; sessionId: string }
@@ -162,23 +160,21 @@ export type AgentEvent =
 // ─── AgentRuntime Config ──────────────────────────────────────────────────────
 
 /**
- * @zh AgentRuntime 初始化配置。
- * @en AgentRuntime initialization configuration.
+ * AgentRuntime initialization configuration.
  */
 export interface AgentRuntimeConfig {
-  /** @zh LLM 调用网关 @en LLM call gateway */
+  /** LLM call gateway */
   llmGateway: LLMGateway;
-  /** @zh 工具注册表 @en Tool registry */
+  /** Tool registry */
   toolRegistry: ToolRegistry;
-  /** @zh Prompt 引擎 @en Prompt engine */
+  /** Prompt engine */
   promptEngine?: PromptEngine;
-  /** @zh 结构化日志 @en Structured logger */
+  /** Structured logger */
   logger?: AgentLogger;
-  /** @zh PreCheck 使用的可选服务集合 @en Optional services used by PreCheck */
+  /** Optional services used by PreCheck */
   preCheckServices?: PreCheckServices;
   /**
-   * @zh 当前作用域的插件管理器
-   * @en Scoped plugin manager
+   * Scoped plugin manager
    */
   pluginManager?: PluginManager;
 }
@@ -186,7 +182,6 @@ export interface AgentRuntimeConfig {
 // ─── AgentRuntime ─────────────────────────────────────────────────────────────
 
 /**
- * @zh AgentRuntime：顶层 Agent DAG 循环控制器。
  *
  * 职责:
  * - 启动/恢复 Session（委托给 SessionManager）
@@ -195,7 +190,7 @@ export interface AgentRuntimeConfig {
  * - 持久化 Blackboard 快照
  * - 完成时更新 Session 状态
  *
- * @en AgentRuntime: top-level Agent DAG loop controller.
+ * AgentRuntime: top-level Agent DAG loop controller.
  *
  * Responsibilities:
  * - Start/resume sessions (delegated to SessionManager)
@@ -216,11 +211,10 @@ export class AgentRuntime {
   }
 
   /**
-   * @zh 启动新的 Agent Session 并返回 Session/Run ID。
-   * @en Start a new Agent Session and return Session/Run IDs.
+   * Start a new Agent Session and return Session/Run IDs.
    *
-   * @param params - {@zh 会话创建参数} {@en Session creation parameters}
-   * @returns - {@zh Session ID 和 Run ID} {@en Session ID and Run ID}
+   * @param params - Session creation parameters
+   * @returns - Session ID and Run ID
    */
   async startSession(
     params: CreateSessionParams,
@@ -229,17 +223,16 @@ export class AgentRuntime {
   }
 
   /**
-   * @zh 运行 Agent DAG 循环，以 AsyncIterable<AgentEvent> 流式发出事件。
    *
    * 调用者负责消费事件流（例如通过 for await of 获取 token_delta 实时渲染）。
    *
-   * @en Run the Agent DAG loop, emitting events as AsyncIterable<AgentEvent>.
+   * Run the Agent DAG loop, emitting events as AsyncIterable<AgentEvent>.
    *
    * Callers are responsible for consuming the event stream
    * (e.g. using for-await-of to render token_delta in real time).
    *
-   * @param sessionId - {@zh agentSession 外部 UUID} {@en agentSession external UUID}
-   * @param runId - {@zh agentRun 外部 UUID} {@en agentRun external UUID}
+   * @param sessionId - agentSession external UUID
+   * @param runId - agentRun external UUID
    */
   async *runLoop(sessionId: string, runId: string): AsyncIterable<AgentEvent> {
     // Load session state

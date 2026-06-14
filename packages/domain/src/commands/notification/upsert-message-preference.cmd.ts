@@ -16,7 +16,7 @@ export type UpsertMessagePreferenceCommand = z.infer<
 >;
 
 /**
- * @zh 更新用户消息偏好（upsert）。 @en Update user message preference (upsert).
+ * Update user message preference (upsert).
  */
 export const upsertMessagePreference: Command<
   UpsertMessagePreferenceCommand

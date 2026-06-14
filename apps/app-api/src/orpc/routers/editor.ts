@@ -145,8 +145,7 @@ const resolveEditorBranchId = async (
 };
 
 /**
- * @zh 解析并清洗编辑器作用域，返回服务端可消费的作用域视图。
- * @en Resolve and sanitize an editor scope into a server-ready scope view.
+ * Resolve and sanitize an editor scope into a server-ready scope view.
  */
 export const resolveScope = authed
   .input(EditorScopeSchema)
@@ -163,8 +162,7 @@ export const resolveScope = authed
   });
 
 /**
- * @zh 列出编辑器作用域可选的内容节点过滤器。
- * @en List selectable content-node filters for an editor scope.
+ * List selectable content-node filters for an editor scope.
  */
 export const listContentNodes = authed
   .input(EditorScopeSchema.pick({ projectId: true, branchId: true }))
@@ -198,8 +196,7 @@ export const listContentNodes = authed
   });
 
 /**
- * @zh 统计编辑器作用域内匹配过滤条件的元素数量。
- * @en Count elements matching filters inside an editor scope.
+ * Count elements matching filters inside an editor scope.
  */
 export const countElements = authed
   .input(EditorElementQuerySchema.omit({ page: true, pageSize: true }))
@@ -219,8 +216,7 @@ export const countElements = authed
   });
 
 /**
- * @zh 按编辑器作用域列出元素。
- * @en List elements under the given editor scope.
+ * List elements under the given editor scope.
  */
 export const listElements = authed
   .input(EditorElementQuerySchema)
@@ -237,8 +233,7 @@ export const listElements = authed
   });
 
 /**
- * @zh 获取编辑器作用域内首个匹配元素或指定元素之后的首个匹配元素。
- * @en Get the first matching element in scope, or the first one after a given element.
+ * Get the first matching element in scope, or the first one after a given element.
  */
 export const getFirstElement = authed
   .input(EditorFirstElementQuerySchema)
@@ -261,8 +256,7 @@ export const getFirstElement = authed
   });
 
 /**
- * @zh 获取元素在编辑器作用域内的 0 基页码索引；不在作用域内返回 `null`。
- * @en Get the zero-based page index of an element inside the editor scope; returns `null` when the element is out of scope.
+ * Get the zero-based page index of an element inside the editor scope; returns `null` when the element is out of scope.
  */
 export const getElementPageIndex = authed
   .input(EditorElementPageIndexQuerySchema)

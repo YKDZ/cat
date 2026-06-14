@@ -28,10 +28,9 @@ interface AutoTranslatePayload {
 }
 
 /**
- * @zh 处理 auto_translation entityType 的 apply 逻辑。
  * applyCreate 解析 entry.after payload，创建 vectorizedString 和 Translation 记录。
  * 不会覆盖已有人工翻译。
- * @en Handles apply logic for auto_translation entityType.
+ * Handles apply logic for auto_translation entityType.
  * applyCreate parses entry.after, creates vectorizedString and Translation records.
  * Will not overwrite existing human translations.
  */

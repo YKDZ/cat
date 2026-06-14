@@ -20,8 +20,7 @@ routes — 列出所有可调用的 oRPC 端点路径
 `;
 
 /**
- * @zh 按命名空间分组并格式化输出。
- * @en Group routes by namespace and format output.
+ * Group routes by namespace and format output.
  */
 const formatGrouped = (routes: readonly string[]): string => {
   const groups = new Map<string, string[]>();
@@ -48,8 +47,7 @@ const formatGrouped = (routes: readonly string[]): string => {
 };
 
 /**
- * @zh 列出所有可调用的 oRPC 端点路径。不需要服务器连接或 API Key。
- * @en List all callable oRPC endpoint paths. No server connection or API Key required.
+ * List all callable oRPC endpoint paths. No server connection or API Key required.
  */
 export const runRoutesCommand = (args: string[]): void => {
   if (args.includes("--help") || args.includes("-h")) {

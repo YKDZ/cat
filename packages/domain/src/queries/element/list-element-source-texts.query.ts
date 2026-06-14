@@ -18,8 +18,7 @@ export type ElementSourceText = {
 };
 
 /**
- * @zh 批量获取 element 的源文本（通过 vectorizedString join）。
- * @en Batch-fetch element source texts via the vectorizedString join.
+ * Batch-fetch element source texts via the vectorizedString join.
  */
 export const listElementSourceTexts: Query<
   ListElementSourceTextsQuery,
