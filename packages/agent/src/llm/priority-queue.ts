@@ -1,6 +1,5 @@
 /**
- * @zh LLM 请求的优先级枚举：CRITICAL > HIGH > NORMAL > LOW
- * @en Priority levels for LLM requests: CRITICAL > HIGH > NORMAL > LOW
+ * Priority levels for LLM requests: CRITICAL > HIGH > NORMAL > LOW
  */
 export type LLMPriority = "CRITICAL" | "HIGH" | "NORMAL" | "LOW";
 
@@ -21,8 +20,7 @@ interface QueueItem<T> {
 }
 
 /**
- * @zh 带优先级的异步任务队列，支持 4 级优先级（CRITICAL > HIGH > NORMAL > LOW），同级先进先出。
- * @en Priority-based async task queue supporting 4 levels (CRITICAL > HIGH > NORMAL > LOW) with FIFO ordering within the same level.
+ * Priority-based async task queue supporting 4 levels (CRITICAL > HIGH > NORMAL > LOW) with FIFO ordering within the same level.
  */
 export class PriorityQueue<T> {
   private items: QueueItem<T>[] = [];
@@ -31,22 +29,20 @@ export class PriorityQueue<T> {
   private readonly concurrency: number;
 
   /**
-   * @zh 创建优先级队列。
-   * @en Create a priority queue.
+   * Create a priority queue.
    *
-   * @param concurrency - {@zh 允许同时运行的最大任务数} {@en Maximum number of concurrently running tasks}
+   * @param concurrency - Maximum number of concurrently running tasks
    */
   constructor(concurrency: number = 1) {
     this.concurrency = concurrency;
   }
 
   /**
-   * @zh 将一个值加入队列并等待其轮到执行时返回。
-   * @en Enqueue a value and return a promise that resolves when it's dequeued for processing.
+   * Enqueue a value and return a promise that resolves when it's dequeued for processing.
    *
-   * @param value - {@zh 要入队的值} {@en Value to enqueue}
-   * @param priority - {@zh 优先级（默认 NORMAL）} {@en Priority (default NORMAL)}
-   * @returns - {@zh 当该请求出队时 resolve 的 Promise} {@en Promise that resolves when this request is dequeued}
+   * @param value - Value to enqueue
+   * @param priority - Priority (default NORMAL)
+   * @returns - Promise that resolves when this request is dequeued
    */
   async enqueue(value: T, priority: LLMPriority = "NORMAL"): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -67,8 +63,7 @@ export class PriorityQueue<T> {
   }
 
   /**
-   * @zh 通知队列某个任务已完成，触发下一个任务出队。
-   * @en Signal that a task has completed, triggering the next dequeue.
+   * Signal that a task has completed, triggering the next dequeue.
    */
   release(): void {
     this.running -= 1;
@@ -83,7 +78,7 @@ export class PriorityQueue<T> {
     }
   }
 
-  /** @zh 当前队列中等待的任务数 @en Number of items waiting in the queue */
+  /** Number of items waiting in the queue */
   get size(): number {
     return this.items.length;
   }

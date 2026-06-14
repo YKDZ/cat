@@ -8,30 +8,28 @@ import type {
 // ─── Collected LLM Response ───────────────────────────────────────────────────
 
 /**
- * @zh 聚合后的 LLM 响应。
- * @en Aggregated LLM response.
+ * Aggregated LLM response.
  */
 export interface CollectedLLMResponse {
-  /** @zh 文本输出 @en Text output */
+  /** Text output */
   text: string;
-  /** @zh 工具调用列表 @en Tool call list */
+  /** Tool call list */
   toolCalls: Array<{ id: string; name: string; arguments: string }>;
-  /** @zh 完成原因 @en Finish reason */
+  /** Finish reason */
   finishReason: string;
-  /** @zh Token 用量 @en Token usage */
+  /** Token usage */
   tokenUsage: { promptTokens: number; completionTokens: number };
-  /** @zh 聚合后的思维链文本 @en Aggregated thinking chain text */
+  /** Aggregated thinking chain text */
   thinkingText: string;
 }
 
 /**
- * @zh 消费 AsyncIterable<LLMChunk> 流，聚合为完整的 LLM 响应。
- * @en Consume AsyncIterable<LLMChunk> stream and aggregate into a complete LLM response.
+ * Consume AsyncIterable<LLMChunk> stream and aggregate into a complete LLM response.
  *
- * @param stream - {@zh LLM 流式输出} {@en LLM streaming output}
- * @param onChunk - {@zh 每个 chunk 的回调（可选），用于实时转发 thinking delta} {@en Optional per-chunk callback for real-time thinking delta forwarding}
- * @returns - {@zh 聚合后的 LLM 响应} {@en Aggregated LLM response}
- * @throws - {@zh LLM 流出现 error chunk 时抛出} {@en Throws when an error chunk appears in the stream}
+ * @param stream - LLM streaming output
+ * @param onChunk - Optional per-chunk callback for real-time thinking delta forwarding
+ * @returns - Aggregated LLM response
+ * @throws - Throws when an error chunk appears in the stream
  */
 export const collectLLMResponse = async (
   stream: AsyncIterable<LLMChunk>,
@@ -92,35 +90,33 @@ export const collectLLMResponse = async (
 // ─── Result ───────────────────────────────────────────────────────────────────
 
 /**
- * @zh ReasoningNode 执行结果。
- * @en ReasoningNode execution result.
+ * ReasoningNode execution result.
  */
 export interface ReasoningNodeResult {
-  /** @zh LLM 文本输出 @en LLM text output */
+  /** LLM text output */
   text: string;
-  /** @zh 是否有工具调用 @en Whether there are tool calls */
+  /** Whether there are tool calls */
   hasToolCalls: boolean;
-  /** @zh Token 用量 @en Token usage */
+  /** Token usage */
   tokenUsage: { promptTokens: number; completionTokens: number };
-  /** @zh 聚合后的思维链文本 @en Aggregated thinking chain text */
+  /** Aggregated thinking chain text */
   thinkingText: string;
-  /** @zh Blackboard data 更新 @en Blackboard data updates */
+  /** Blackboard data updates */
   updates: Partial<AgentBlackboardData>;
 }
 
 // ─── ReasoningNode ────────────────────────────────────────────────────────────
 
 /**
- * @zh ReasoningNode：读取 Blackboard 消息历史，调用 LLMGateway，
  * 聚合响应后将工具调用和输出快照写回 Blackboard。
  *
- * @en ReasoningNode: reads message history from Blackboard, calls LLMGateway,
+ * ReasoningNode: reads message history from Blackboard, calls LLMGateway,
  * aggregates the response, then writes tool calls and output snapshot back to Blackboard.
  *
- * @param data - {@zh 当前 Blackboard 数据} {@en Current Blackboard data}
- * @param ctx - {@zh Agent 节点上下文} {@en Agent node context}
- * @param definition - {@zh 已解析的 Agent 定义（含 tools 列表和 llm 配置）} {@en Parsed agent definition (with tools and llm config)}
- * @returns - {@zh ReasoningNodeResult} {@en ReasoningNodeResult}
+ * @param data - Current Blackboard data
+ * @param ctx - Agent node context
+ * @param definition - Parsed agent definition (with tools and llm config)
+ * @returns - ReasoningNodeResult
  */
 export const runReasoningNode = async (
   data: AgentBlackboardData,

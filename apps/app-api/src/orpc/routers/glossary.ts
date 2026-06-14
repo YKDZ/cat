@@ -52,7 +52,7 @@ export const deleteTerm = authed
     z.object({
       termId: z.int(),
       branchId: z.int().optional(),
-      /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
+      /** Project ID for Direct mode VCS audit */
       projectId: z.uuidv4().optional(),
     }),
   )
@@ -240,7 +240,7 @@ export const insertTerm = authed
       glossaryId: z.uuidv4(),
       termsData: z.array(TermDataSchema),
       branchId: z.int().optional(),
-      /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
+      /** Project ID for Direct mode VCS audit */
       projectId: z.uuidv4().optional(),
     }),
   )

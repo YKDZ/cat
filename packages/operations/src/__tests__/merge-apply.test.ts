@@ -1,6 +1,5 @@
 /**
- * @zh mergePRFull 集成测试 — 真实数据库（完整 merge + apply 流程）。
- * @en Integration tests for mergePRFull with a real database (full merge + apply flow).
+ * Integration tests for mergePRFull with a real database (full merge + apply flow).
  *
  * Validates:
  * - Happy path: branch entries copied to main changeset; changeset APPLIED; PR status MERGED

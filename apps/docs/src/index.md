@@ -6,9 +6,9 @@ hero:
   tagline: Official documentation for the CAT platform
   actions:
     - theme: brand
-      text: AutoDoc Overview
-      link: /autodoc/overview
+      text: Developer Docs
+      link: /developer/
     - theme: alt
-      text: Developer Guide
-      link: /developer/future
+      text: System Topics
+      link: /developer/plugin-lifecycle
 ---

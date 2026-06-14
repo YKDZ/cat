@@ -10,8 +10,7 @@ import { resolve } from "node:path";
 import type { BootstrapLocaleCatalog } from "../schemas";
 
 /**
- * @zh locale bridge 诊断项。
- * @en Diagnostic emitted by the locale bridge.
+ * Diagnostic emitted by the locale bridge.
  */
 export type LocaleBridgeDiagnostic = {
   severity: "warning" | "error";
@@ -26,8 +25,7 @@ export type LocaleBridgeDiagnostic = {
 };
 
 /**
- * @zh locale bridge 输出的记忆条目。
- * @en Translation-memory material emitted by the locale bridge.
+ * Translation-memory material emitted by the locale bridge.
  */
 export type LocaleMemoryMaterial = {
   ref: string;
@@ -38,8 +36,7 @@ export type LocaleMemoryMaterial = {
 };
 
 /**
- * @zh locale bridge 运行结果。
- * @en Locale bridge result.
+ * Locale bridge result.
  */
 export type LocaleBridgeResult = {
   evidence: StructuredEvidenceInput[];
@@ -85,11 +82,10 @@ const parseFlatLocaleObject = (
 };
 
 /**
- * @zh 基于 locale catalog 构建 bootstrap 记忆条目和证据。
- * @en Build bootstrap memory material and evidence from locale catalogs.
+ * Build bootstrap memory material and evidence from locale catalogs.
  *
- * @param input - {@zh locale bridge 输入} {@en Locale bridge input}
- * @returns - {@zh locale bridge 结果} {@en Locale bridge result}
+ * @param input - Locale bridge input
+ * @returns - Locale bridge result
  */
 export const buildLocaleBridgeMaterial = async (input: {
   seedDir: string;

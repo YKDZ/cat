@@ -200,8 +200,7 @@ export const buildQaReviewQueueRowsSql = (
 };
 
 /**
- * @zh 按 editor scope 与 queue filter 分页列出 QA 审校队列项。
- * @en List QA review queue items with pagination using the shared editor scope and queue filters.
+ * List QA review queue items with pagination using the shared editor scope and queue filters.
  */
 export const listQaReviewQueueItems: Query<
   ListQaReviewQueueItemsQuery,

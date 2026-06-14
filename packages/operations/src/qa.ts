@@ -57,17 +57,16 @@ const flattenTokens = (tokens: Token[]): Token[] => {
 };
 
 /**
- * @zh 质量检查。
  *
  * 使用所有已注册的 QA_CHECKER 插件对源文本/翻译文本进行质量检查。
- * @en Quality check.
+ * Quality check.
  *
  * Runs all registered QA_CHECKER plugin services against the source
  * text and translation text.
  *
- * @param payload - {@zh QA 输入，包含源文本、翻译文本及词汇表 IDs} {@en QA input containing source text, translation text, and glossary IDs}
- * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
- * @returns - {@zh 每个检查器的检查结果列表} {@en List of check results from each QA checker}
+ * @param payload - QA input containing source text, translation text, and glossary IDs
+ * @param _ctx - Operation context (unused)
+ * @returns - List of check results from each QA checker
  */
 export const qaOp = async (
   payload: QAInput,

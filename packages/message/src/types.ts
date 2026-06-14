@@ -1,7 +1,7 @@
 import type { MessageCategory, MessageChannel } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
 
-/** @zh 消息发送请求载荷。 @en Message send request payload. */
+/** Message send request payload. */
 export type MessageRequest = {
   recipientId: string;
   category: MessageCategory;
@@ -11,7 +11,7 @@ export type MessageRequest = {
   channels?: MessageChannel[];
 };
 
-/** @zh 渠道分发器接口。 @en Channel dispatcher interface. */
+/** Channel dispatcher interface. */
 export interface ChannelDispatcher {
   readonly channel: MessageChannel;
   dispatch(request: MessageRequest): Promise<void>;

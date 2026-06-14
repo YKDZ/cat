@@ -22,8 +22,7 @@ export const GetPRDiffQuerySchema = z.object({
 export type GetPRDiffQuery = z.infer<typeof GetPRDiffQuerySchema>;
 
 /**
- * @zh 获取 PR 关联分支的变更 diff（ChangesetEntry 列表）。
- * @en Get the changeset entries (diff) for the branch associated with the PR.
+ * Get the changeset entries (diff) for the branch associated with the PR.
  */
 export const getPRDiff: Query<
   GetPRDiffQuery,

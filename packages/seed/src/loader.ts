@@ -22,8 +22,7 @@ import {
 } from "./schemas";
 
 /**
- * @zh 已加载的本地 seed 覆盖来源摘要，不包含配置值。
- * @en Summary of a loaded local seed override source, excluding config values.
+ * Summary of a loaded local seed override source, excluding config values.
  */
 export type LoadedLocalSeedOverride = {
   path: string;
@@ -31,8 +30,7 @@ export type LoadedLocalSeedOverride = {
 };
 
 /**
- * @zh 加载开发 seed 时可选的本地覆盖配置。
- * @en Optional local override settings for loading a development seed.
+ * Optional local override settings for loading a development seed.
  */
 export type LoadDevSeedOptions = {
   localOverridePaths?: string[];

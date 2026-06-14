@@ -19,8 +19,7 @@ import { SimpleApplicationMethod } from "./methods/simple-application-method.ts"
 import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
 /**
- * @zh 将 DB 行（可能包含 Date 等非 JSON 原生类型）安全序列化为 JSONType。
- * @en Safely serialize a DB row (which may contain Date etc.) to JSONType.
+ * Safely serialize a DB row (which may contain Date etc.) to JSONType.
  */
 function rowToJSON(value: unknown): JSONType {
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion
@@ -34,9 +33,8 @@ const toTimestampString = (value: unknown, fallback: string): string => {
 };
 
 /**
- * @zh 向 ApplicationMethodRegistry 中的每个 method 注入 EntityStateFetcher。
  * 在服务器启动时调用一次，使 rebase before-重写可以查询实际数据库表。
- * @en Inject EntityStateFetcher into each method in the registry.
+ * Inject EntityStateFetcher into each method in the registry.
  * Called once at server startup so rebase before-rewrite can query actual DB tables.
  */
 export function wireEntityStateFetchers(

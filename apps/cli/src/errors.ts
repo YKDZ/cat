@@ -1,27 +1,25 @@
 import { ORPCError } from "@orpc/client";
 
 /**
- * @zh 语义化错误报告。为 agent 和人类提供结构化的错误上下文。
- * @en Semantic error report. Provides structured error context for agents and humans.
+ * Semantic error report. Provides structured error context for agents and humans.
  */
 export type SemanticError = {
-  /** @zh 错误类别 @en Error category */
+  /** Error category */
   code: string;
-  /** @zh HTTP 状态码 @en HTTP status code */
+  /** HTTP status code */
   status?: number;
-  /** @zh 人类可读的错误摘要 @en Human-readable error summary */
+  /** Human-readable error summary */
   message: string;
-  /** @zh 调用的 oRPC 路径 @en The oRPC path that was called */
+  /** The oRPC path that was called */
   path?: string;
-  /** @zh 结构化错误详情（如 Zod 验证问题列表） @en Structured error details (e.g., Zod validation issues) */
+  /** Structured error details (e.g., Zod validation issues) */
   details?: unknown;
-  /** @zh 修复建议 @en Suggestion for fixing the error */
+  /** Suggestion for fixing the error */
   hint?: string;
 };
 
 /**
- * @zh Zod v4 验证问题的简化表示。
- * @en Simplified representation of a Zod v4 validation issue.
+ * Simplified representation of a Zod v4 validation issue.
  */
 type ZodIssue = {
   path: (string | number)[];
@@ -32,8 +30,7 @@ type ZodIssue = {
 };
 
 /**
- * @zh 从 oRPC 错误的 data 字段中提取 Zod 验证问题。
- * @en Extract Zod validation issues from an oRPC error's data field.
+ * Extract Zod validation issues from an oRPC error's data field.
  *
  * oRPC 服务端在 input 验证失败时会将 Zod issue 数组放入 data.issues 字段。
  */
@@ -59,8 +56,7 @@ const extractZodIssues = (data: unknown): ZodIssue[] | null => {
 };
 
 /**
- * @zh 根据错误类型生成修复建议。
- * @en Generate a fix suggestion based on the error type.
+ * Generate a fix suggestion based on the error type.
  */
 const generateHint = (
   code: string,
@@ -90,8 +86,7 @@ const generateHint = (
 };
 
 /**
- * @zh 将 Zod 验证问题格式化为可读的多行文本。
- * @en Format Zod validation issues into readable multi-line text.
+ * Format Zod validation issues into readable multi-line text.
  */
 const formatZodIssues = (issues: ZodIssue[]): string => {
   return issues
@@ -107,11 +102,10 @@ const formatZodIssues = (issues: ZodIssue[]): string => {
 };
 
 /**
- * @zh 将任意错误转换为语义化错误报告。
- * @en Convert any error into a semantic error report.
+ * Convert any error into a semantic error report.
  *
- * @param err - {@zh 捕获到的错误} {@en The caught error}
- * @param context - {@zh 调用上下文} {@en Call context for richer reporting}
+ * @param err - The caught error
+ * @param context - Call context for richer reporting
  */
 export const toSemanticError = (
   err: unknown,
@@ -162,9 +156,8 @@ export const toSemanticError = (
 };
 
 /**
- * @zh 将语义化错误格式化为 stderr 友好的多行文本。
  *     设计为同时对人类和 AI agent 可读。
- * @en Format a semantic error into stderr-friendly multi-line text.
+ * Format a semantic error into stderr-friendly multi-line text.
  *     Designed to be readable by both humans and AI agents.
  */
 export const formatSemanticError = (se: SemanticError): string => {
@@ -200,8 +193,7 @@ export const formatSemanticError = (se: SemanticError): string => {
 };
 
 /**
- * @zh 包装异步操作，捕获错误并输出语义化报告后退出。
- * @en Wrap an async operation: catch errors, print semantic report, and exit.
+ * Wrap an async operation: catch errors, print semantic report, and exit.
  */
 export const withErrorReporting = async (
   fn: () => Promise<void>,

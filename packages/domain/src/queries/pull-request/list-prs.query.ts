@@ -17,8 +17,7 @@ export const ListPRsQuerySchema = z.object({
 export type ListPRsQuery = z.infer<typeof ListPRsQuerySchema>;
 
 /**
- * @zh 列出项目 PR（支持 status 筛选和分页）。
- * @en List PRs in a project with optional status filter and pagination.
+ * List PRs in a project with optional status filter and pagination.
  */
 export const listPRs: Query<
   ListPRsQuery,

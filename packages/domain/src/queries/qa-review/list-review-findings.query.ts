@@ -29,8 +29,7 @@ export type ListQaReviewFindingsQuery = z.infer<
 >;
 
 /**
- * @zh 列出队列项关联的审校 findings，默认隐藏 suppressed/superseded。
- * @en List QA review findings for a queue item, hiding suppressed/superseded entries by default.
+ * List QA review findings for a queue item, hiding suppressed/superseded entries by default.
  */
 export const listQaReviewFindings: Query<
   ListQaReviewFindingsQuery,

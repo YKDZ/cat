@@ -35,14 +35,12 @@ export interface SessionListFilter {
 }
 
 /**
- * @zh 前端持有的会话上下文元数据。
- * @en Session context metadata held by the frontend.
+ * Session context metadata held by the frontend.
  */
 export type AgentSessionContext = AgentSessionMetadata;
 
 /**
- * @zh 从服务端会话状态接口归一化后的 hydration 结果。
- * @en Normalized hydration result returned from the server session-state API.
+ * Normalized hydration result returned from the server session-state API.
  */
 export interface HydratedSessionState {
   sessionId: string;

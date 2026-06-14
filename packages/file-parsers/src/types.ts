@@ -1,6 +1,5 @@
 /**
- * @zh 可选的源位置信息。
- * @en Optional source location information.
+ * Optional source location information.
  */
 export interface ElementLocation {
   startLine?: number;
@@ -9,8 +8,7 @@ export interface ElementLocation {
 }
 
 /**
- * @zh 解析出的可翻译元素，包含稳定标识引用和本地顺序。
- * @en A parsed translatable element with stable identity references and local order.
+ * A parsed translatable element with stable identity references and local order.
  */
 export interface ElementData {
   ref: string;
@@ -22,8 +20,7 @@ export interface ElementData {
 }
 
 /**
- * @zh 序列化所需的最小元素描述。
- * @en Minimal element descriptor needed for serialization.
+ * Minimal element descriptor needed for serialization.
  */
 export interface SerializeElement {
   ref?: string;
@@ -34,8 +31,7 @@ export interface SerializeElement {
 }
 
 /**
- * @zh 文件解析器接口：负责将文件内容解析为可翻译元素，以及将翻译结果序列化回文件。
- * @en File parser interface: parses file content into translatable elements and serializes translated elements back to file content.
+ * File parser interface: parses file content into translatable elements and serializes translated elements back to file content.
  */
 export type FileParser = {
   id: string;

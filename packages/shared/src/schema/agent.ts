@@ -6,8 +6,7 @@ import { AgentDefinitionTypeSchema } from "./enum";
 // ─── LLM Configuration ───
 
 /**
- * @zh Agent LLM 配置 Schema。
- * @en Agent LLM configuration schema.
+ * Agent LLM configuration schema.
  */
 export const AgentLLMConfigSchema = z.object({
   /** Optional fallback PluginService DB ID referencing an LLM_PROVIDER instance */
@@ -19,8 +18,7 @@ export const AgentLLMConfigSchema = z.object({
 // ─── Prompt Configuration ───
 
 /**
- * @zh Agent Prompt 配置 Schema。
- * @en Agent prompt configuration schema.
+ * Agent prompt configuration schema.
  */
 export const AgentPromptConfigSchema = z.object({
   /** Slot indices to auto-inject into the system prompt */
@@ -30,8 +28,7 @@ export const AgentPromptConfigSchema = z.object({
 // ─── Security Policy ───
 
 /**
- * @zh Agent 安全策略 Schema（Phase 0a 极简版）。
- * @en Agent security policy schema (Phase 0a minimal version).
+ * Agent security policy schema (Phase 0a minimal version).
  */
 export const AgentSecurityPolicySchema = z.object({
   allowExternalNetwork: z.boolean().default(false),
@@ -40,8 +37,7 @@ export const AgentSecurityPolicySchema = z.object({
 // ─── Scope ───
 
 /**
- * @zh Agent 作用域 Schema。
- * @en Agent scope schema.
+ * Agent scope schema.
  */
 export const AgentScopeSchema = z.object({
   type: z.enum(["GLOBAL", "PROJECT"]).default("GLOBAL"),
@@ -50,8 +46,7 @@ export const AgentScopeSchema = z.object({
 // ─── Session Metadata ───
 
 /**
- * @zh Agent 会话元数据 Schema。
- * @en Agent session metadata schema.
+ * Agent session metadata schema.
  */
 export const AgentSessionMetadataSchema = z.strictObject({
   projectId: z.uuidv4().optional(),
@@ -70,8 +65,7 @@ export const AgentSessionMetadataSchema = z.strictObject({
 // ─── Runtime Constraints ───
 
 /**
- * @zh Agent 运行时约束 Schema。
- * @en Agent runtime constraints schema.
+ * Agent runtime constraints schema.
  */
 export const AgentConstraintsSchema = z.object({
   maxSteps: z.int().positive().default(50),
@@ -94,8 +88,7 @@ export const AgentConstraintsSchema = z.object({
 // ─── Pipeline Orchestration ───
 
 /**
- * @zh 编排管线阶段 Schema。
- * @en Orchestration pipeline stage schema.
+ * Orchestration pipeline stage schema.
  */
 export const PipelineStageSchema = z.object({
   agentId: z.string(),
@@ -104,8 +97,7 @@ export const PipelineStageSchema = z.object({
 });
 
 /**
- * @zh 多 Agent 编排配置 Schema。
- * @en Multi-agent orchestration configuration schema.
+ * Multi-agent orchestration configuration schema.
  */
 export const OrchestrationSchema = z.object({
   mode: z.enum(["pipeline"]),
@@ -115,8 +107,7 @@ export const OrchestrationSchema = z.object({
 // ─── Agent Definition Metadata Schema (frontmatter only) ───
 
 /**
- * @zh Agent 定义 frontmatter 的 Zod Schema（仅元数据，不含正文）。
- * @en Zod schema for agent definition frontmatter (metadata only, excludes body).
+ * Zod schema for agent definition frontmatter (metadata only, excludes body).
  */
 export const AgentDefinitionMetadataSchema = z.object({
   /** Unique human-readable slug identifier for the agent (e.g. "translator-zh-en") */
@@ -146,18 +137,15 @@ export const AgentDefinitionMetadataSchema = z.object({
 // ─── Parsed Agent Definition (metadata + body) ───
 
 /**
- * @zh 从 MD 解析后的完整 Agent 定义（元数据 + 正文）。
- * @en Full agent definition parsed from MD (metadata + body content).
+ * Full agent definition parsed from MD (metadata + body content).
  */
 export interface ParsedAgentDefinition {
   /**
-   * @zh 从 frontmatter 解析的元数据。
-   * @en Metadata parsed from frontmatter.
+   * Metadata parsed from frontmatter.
    */
   metadata: AgentDefinitionMetadata;
   /**
-   * @zh MD body 正文（即 systemPrompt 模板内容，支持 {{variable}} 插值）。
-   * @en MD body content (systemPrompt template, supports {{variable}} interpolation).
+   * MD body content (systemPrompt template, supports {{variable}} interpolation).
    */
   content: string;
 }
@@ -165,11 +153,10 @@ export interface ParsedAgentDefinition {
 // ─── Serialize Helper ───
 
 /**
- * @zh 将 Agent 元数据和正文内容序列化为完整的 MD 文本。
- * @en Serialize agent metadata and body content into a complete MD text.
+ * Serialize agent metadata and body content into a complete MD text.
  *
- * @param parsed - {@zh 解析后的 Agent 定义} {@en Parsed agent definition}
- * @returns - {@zh 包含 YAML frontmatter 和正文的完整 MD 字符串} {@en Full MD string with YAML frontmatter and body}
+ * @param parsed - Parsed agent definition
+ * @returns - Full MD string with YAML frontmatter and body
  */
 export const serializeAgentDefinition = (
   parsed: ParsedAgentDefinition,
@@ -181,58 +168,49 @@ export const serializeAgentDefinition = (
 // ─── Inferred Types ───
 
 /**
- * @zh Agent 定义元数据类型。
- * @en Agent definition metadata type.
+ * Agent definition metadata type.
  */
 export type AgentDefinitionMetadata = z.infer<
   typeof AgentDefinitionMetadataSchema
 >;
 
 /**
- * @zh Agent LLM 配置类型。
- * @en Agent LLM configuration type.
+ * Agent LLM configuration type.
  */
 export type AgentLLMConfig = z.infer<typeof AgentLLMConfigSchema>;
 
 /**
- * @zh Agent 运行时约束类型。
- * @en Agent runtime constraints type.
+ * Agent runtime constraints type.
  */
 export type AgentConstraints = z.infer<typeof AgentConstraintsSchema>;
 
 /**
- * @zh Agent Prompt 配置类型。
- * @en Agent prompt configuration type.
+ * Agent prompt configuration type.
  */
 export type AgentPromptConfig = z.infer<typeof AgentPromptConfigSchema>;
 
 /**
- * @zh Agent 安全策略类型。
- * @en Agent security policy type.
+ * Agent security policy type.
  */
 export type AgentSecurityPolicy = z.infer<typeof AgentSecurityPolicySchema>;
 
 /**
- * @zh Agent 作用域类型。
- * @en Agent scope type.
+ * Agent scope type.
  */
 export type AgentScope = z.infer<typeof AgentScopeSchema>;
 
 /**
- * @zh Agent 会话元数据类型。
- * @en Agent session metadata type.
+ * Agent session metadata type.
  */
 export type AgentSessionMetadata = z.infer<typeof AgentSessionMetadataSchema>;
 
 /**
- * @zh 多 Agent 编排配置类型。
- * @en Multi-agent orchestration configuration type.
+ * Multi-agent orchestration configuration type.
  */
 export type Orchestration = z.infer<typeof OrchestrationSchema>;
 
 /**
- * @zh 编排管线阶段类型。
- * @en Orchestration pipeline stage type.
+ * Orchestration pipeline stage type.
  */
 export type PipelineStage = z.infer<typeof PipelineStageSchema>;
 

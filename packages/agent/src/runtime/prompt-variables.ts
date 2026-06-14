@@ -1,11 +1,10 @@
 import type { AgentConstraints, AgentSessionMetadata } from "@cat/shared";
 
 /**
- * @zh 构造传给 PromptEngine 的变量映射。
- * @en Build the variable map passed to the PromptEngine.
+ * Build the variable map passed to the PromptEngine.
  *
- * @param input - {@zh 约束与会话元数据} {@en Constraints and session metadata}
- * @returns - {@zh Prompt 变量键值映射} {@en Prompt variable key-value map}
+ * @param input - Constraints and session metadata
+ * @returns - Prompt variable key-value map
  */
 export const buildPromptVariables = (input: {
   constraints: AgentConstraints;

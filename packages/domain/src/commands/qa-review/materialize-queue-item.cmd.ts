@@ -240,8 +240,7 @@ const persistQueueItem = async (
 };
 
 /**
- * @zh 根据当前 translation 的未关闭 findings 物化或更新审校队列项。
- * @en Materialize or update a QA review queue item from the current translation findings.
+ * Materialize or update a QA review queue item from the current translation findings.
  */
 export const materializeQaReviewQueueItem: Command<
   MaterializeQaReviewQueueItemCommand,

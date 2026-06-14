@@ -18,12 +18,11 @@ export type GetFirstQaReviewableElementQuery = z.infer<
 >;
 
 /**
- * @zh 获取首个（或相对 afterElementId 的下一个）可审校元素。
- * @en Get the first (or next after afterElementId) reviewable element.
+ * Get the first (or next after afterElementId) reviewable element.
  *
- * @param ctx - {@zh 查询上下文} {@en Query context}
- * @param input - {@zh 查询输入} {@en Query input}
- * @returns - {@zh 首个可审校元素或空} {@en First reviewable element or null}
+ * @param ctx - Query context
+ * @param input - Query input
+ * @returns - First reviewable element or null
  */
 export const getFirstQaReviewableElement: Query<
   GetFirstQaReviewableElementQuery,

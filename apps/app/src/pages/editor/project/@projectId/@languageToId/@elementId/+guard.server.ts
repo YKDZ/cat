@@ -13,11 +13,10 @@ const getSearch = (ctx: PageContextServer) =>
   ctx.urlParsed.searchOriginal ?? "";
 
 /**
- * @zh canonical project editor 路由守卫。
- * @en Route guard for the canonical project editor route.
+ * Route guard for the canonical project editor route.
  *
- * @param ctx - {@zh 页面服务端上下文} {@en Server page context}
- * @returns - {@zh 无返回；通过重定向或渲染中断请求} {@en Never returns; interrupts via redirect or render}
+ * @param ctx - Server page context
+ * @returns - Never returns; interrupts via redirect or render
  */
 export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw render("/auth", "You must login to access");

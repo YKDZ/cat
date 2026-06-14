@@ -25,8 +25,7 @@ import { buildLocaleBridgeMaterial } from "./locale-bridge";
 import { type BootstrapRunReport, writeBootstrapRunReport } from "./report";
 
 /**
- * @zh 运行 bootstrap 源图导入的输入。
- * @en Input for running bootstrap source graph ingestion.
+ * Input for running bootstrap source graph ingestion.
  */
 export type RunBootstrapSourceGraphInput = {
   execCtx: ExecutorContext;
@@ -42,8 +41,7 @@ export type RunBootstrapSourceGraphInput = {
 };
 
 /**
- * @zh 运行 bootstrap 源图导入的结果。
- * @en Result of running bootstrap source graph ingestion.
+ * Result of running bootstrap source graph ingestion.
  */
 export type RunBootstrapSourceGraphResult = {
   elementIdsByRef: Record<string, number>;
@@ -53,11 +51,10 @@ export type RunBootstrapSourceGraphResult = {
 };
 
 /**
- * @zh 运行 bootstrap 源码采集、locale bridge 与结构化 diff。
- * @en Run bootstrap source collection, locale bridge, and structured diff ingestion.
+ * Run bootstrap source collection, locale bridge, and structured diff ingestion.
  *
- * @param input - {@zh bootstrap 输入} {@en Bootstrap input}
- * @returns - {@zh bootstrap 结果} {@en Bootstrap result}
+ * @param input - Bootstrap input
+ * @returns - Bootstrap result
  */
 export const runBootstrapSourceGraph = async (
   input: RunBootstrapSourceGraphInput,

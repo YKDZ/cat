@@ -6,8 +6,7 @@ import type {
 // ─── Result ───────────────────────────────────────────────────────────────────
 
 /**
- * @zh DecisionNode 路由决策结果。
- * @en DecisionNode routing decision result.
+ * DecisionNode routing decision result.
  */
 export type DecisionOutcome =
   | { shouldContinue: true }
@@ -19,7 +18,6 @@ export type DecisionOutcome =
 // ─── DecisionNode ─────────────────────────────────────────────────────────────
 
 /**
- * @zh DecisionNode：根据 Blackboard 状态决定 DAG 循环是否继续。
  *
  * 路由优先级（由高到低）:
  * 1. finish 工具被调用 → 路由到完成
@@ -27,7 +25,7 @@ export type DecisionOutcome =
  * 3. 超时 → 路由到失败
  * 4. 否则 → 路由回 PreCheck 继续循环
  *
- * @en DecisionNode: decides whether the DAG loop should continue based on Blackboard state.
+ * DecisionNode: decides whether the DAG loop should continue based on Blackboard state.
  *
  * Routing priority (high to low):
  * 1. finish tool was called → route to completion
@@ -35,9 +33,9 @@ export type DecisionOutcome =
  * 3. timeout exceeded → route to failure
  * 4. otherwise → route back to PreCheck to continue loop
  *
- * @param data - {@zh 当前 Blackboard 数据} {@en Current Blackboard data}
- * @param ctx - {@zh Agent 节点上下文} {@en Agent node context}
- * @returns - {@zh DecisionOutcome} {@en DecisionOutcome}
+ * @param data - Current Blackboard data
+ * @param ctx - Agent node context
+ * @returns - DecisionOutcome
  */
 export const runDecisionNode = (
   data: AgentBlackboardData,

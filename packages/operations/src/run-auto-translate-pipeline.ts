@@ -21,8 +21,7 @@ export interface RunAutoTranslatePipelineInput {
 }
 
 /**
- * @zh 预翻译流水线：检查项目设置，为每个启用语言生成候选并写入 changeset。
- * @en Pre-translation pipeline: check project settings, then for each enabled
+ * Pre-translation pipeline: check project settings, then for each enabled
  * language generate candidates and write them to a changeset.
  */
 export const runAutoTranslatePipeline = async (

@@ -12,8 +12,7 @@ export type GetQaReviewSuggestionQuery = z.infer<
 >;
 
 /**
- * @zh 按 ID 获取单条审校建议。
- * @en Fetch a single QA review suggestion by ID.
+ * Fetch a single QA review suggestion by ID.
  */
 export const getQaReviewSuggestion: Query<
   GetQaReviewSuggestionQuery,

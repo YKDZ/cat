@@ -110,12 +110,11 @@ const runtimeErrorMessage = (error: unknown): string => {
 };
 
 /**
- * @zh 构建插件详情页所需的读模型。
- * @en Build the read model required by the plugin detail page.
+ * Build the read model required by the plugin detail page.
  *
- * @param context - {@zh 当前请求上下文} {@en Current request context}
- * @param input - {@zh 插件作用域输入} {@en Plugin scope input}
- * @returns - {@zh 插件详情读模型，不存在时为 null} {@en Plugin detail read model, or null when the plugin does not exist}
+ * @param context - Current request context
+ * @param input - Plugin scope input
+ * @returns - Plugin detail read model, or null when the plugin does not exist
  */
 export const getPluginDetailModel = async (
   context: Context,
@@ -281,12 +280,11 @@ export const getPluginDetailModel = async (
 };
 
 /**
- * @zh 按插件 JSON Schema 校验配置值。
- * @en Validate a configuration value against the plugin JSON Schema.
+ * Validate a configuration value against the plugin JSON Schema.
  *
- * @param schema - {@zh 插件配置 Schema} {@en Plugin configuration schema}
- * @param value - {@zh 待校验的配置值} {@en Configuration value to validate}
- * @returns - {@zh 无返回；校验失败时抛出错误} {@en No return value; throws when validation fails}
+ * @param schema - Plugin configuration schema
+ * @param value - Configuration value to validate
+ * @returns - No return value; throws when validation fails
  */
 export const assertConfigValueMatchesSchema = (
   schema: PluginDetail["config"]["schema"],
@@ -304,12 +302,11 @@ export const assertConfigValueMatchesSchema = (
 };
 
 /**
- * @zh 将插件安装到指定作用域并尽力激活。
- * @en Install a plugin into the target scope and attempt to activate it.
+ * Install a plugin into the target scope and attempt to activate it.
  *
- * @param context - {@zh 当前请求上下文} {@en Current request context}
- * @param input - {@zh 插件作用域输入} {@en Plugin scope input}
- * @returns - {@zh 结构化安装结果} {@en Structured installation result}
+ * @param context - Current request context
+ * @param input - Plugin scope input
+ * @returns - Structured installation result
  */
 export const installPluginToScope = async (
   context: Context,
@@ -335,12 +332,11 @@ export const installPluginToScope = async (
 };
 
 /**
- * @zh 从指定作用域卸载插件。
- * @en Uninstall a plugin from the target scope.
+ * Uninstall a plugin from the target scope.
  *
- * @param context - {@zh 当前请求上下文} {@en Current request context}
- * @param input - {@zh 插件作用域输入} {@en Plugin scope input}
- * @returns - {@zh 结构化卸载结果} {@en Structured uninstall result}
+ * @param context - Current request context
+ * @param input - Plugin scope input
+ * @returns - Structured uninstall result
  */
 export const uninstallPluginFromScope = async (
   context: Context,
@@ -361,12 +357,11 @@ export const uninstallPluginFromScope = async (
 };
 
 /**
- * @zh 使用长期数据库句柄重载插件运行态。
- * @en Reload the plugin runtime using a long-lived database handle.
+ * Reload the plugin runtime using a long-lived database handle.
  *
- * @param context - {@zh 当前请求上下文} {@en Current request context}
- * @param input - {@zh 插件作用域输入} {@en Plugin scope input}
- * @returns - {@zh 结构化重载结果} {@en Structured reload result}
+ * @param context - Current request context
+ * @param input - Plugin scope input
+ * @returns - Structured reload result
  */
 export const reloadPluginRuntime = async (
   context: Context,
@@ -389,12 +384,11 @@ export const reloadPluginRuntime = async (
 };
 
 /**
- * @zh 保存插件配置并尝试热应用；失败时回滚旧值。
- * @en Save plugin configuration and attempt hot-apply; roll back to the previous value on failure.
+ * Save plugin configuration and attempt hot-apply; roll back to the previous value on failure.
  *
- * @param context - {@zh 当前请求上下文} {@en Current request context}
- * @param input - {@zh 插件配置保存与应用输入} {@en Input for saving and applying plugin configuration}
- * @returns - {@zh 结构化保存/应用结果} {@en Structured save/apply result}
+ * @param context - Current request context
+ * @param input - Input for saving and applying plugin configuration
+ * @returns - Structured save/apply result
  */
 export const savePluginConfigAndApply = async (
   context: Context,

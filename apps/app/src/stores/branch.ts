@@ -4,14 +4,12 @@ import { computed, ref } from "vue";
 import { useProfileStore } from "@/stores/profile";
 
 /**
- * @zh 分支选择校验状态。
- * @en Validation state of the current branch selection.
+ * Validation state of the current branch selection.
  */
 export type BranchValidationStatus = "main" | "pending" | "active" | "stale";
 
 /**
- * @zh 进入分支工作区所需的输入。
- * @en Input payload for entering a branch workspace.
+ * Input payload for entering a branch workspace.
  */
 export type EnterBranchInput = {
   projectId: string;
@@ -23,8 +21,7 @@ export type EnterBranchInput = {
 };
 
 /**
- * @zh 分支工作空间状态管理 — 按项目跟踪当前用户正在查看的 PR 分支。
- * @en Branch workspace state — tracks the PR branch the user is viewing per project.
+ * Branch workspace state — tracks the PR branch the user is viewing per project.
  */
 export const useBranchStore = defineStore("branch", () => {
   const profile = useProfileStore();
@@ -37,14 +34,12 @@ export const useBranchStore = defineStore("branch", () => {
   const validationStatus = ref<BranchValidationStatus>("main");
 
   /**
-   * @zh 当前是否处于分支工作空间
-   * @en Whether the user is currently in a branch workspace
+   * Whether the user is currently in a branch workspace
    */
   const isOnBranch = computed(() => currentBranchId.value !== null);
 
   /**
-   * @zh 当前是否在主分支（isOnBranch 的语义反转）
-   * @en Whether the user is on the main branch (semantic inverse of isOnBranch)
+   * Whether the user is on the main branch (semantic inverse of isOnBranch)
    */
   const isOnMainBranch = computed(() => !isOnBranch.value);
 
@@ -58,8 +53,7 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
-   * @zh 进入分支工作空间
-   * @en Enter the branch workspace
+   * Enter the branch workspace
    */
   const enterBranch = (input: EnterBranchInput) => {
     currentProjectId.value = input.projectId;
@@ -82,8 +76,7 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
-   * @zh 从 URL 或 profile 恢复某项目的分支；URL 优先。
-   * @en Restore a project's branch from URL or profile; URL takes priority.
+   * Restore a project's branch from URL or profile; URL takes priority.
    */
   const restoreProjectBranch = (input: {
     projectId: string;
@@ -138,8 +131,7 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
-   * @zh 从 URL 恢复分支 ID；PR 元数据稍后由 BranchCombobox 补齐。
-   * @en Restore branch ID from URL; BranchCombobox can hydrate PR metadata later.
+   * Restore branch ID from URL; BranchCombobox can hydrate PR metadata later.
    */
   const setBranchIdFromRoute = (branchIdFromRoute: number | null) => {
     if (!currentProjectId.value) {
@@ -159,8 +151,7 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
-   * @zh 离开分支工作空间，回到主分支
-   * @en Leave the branch workspace and return to the main branch
+   * Leave the branch workspace and return to the main branch
    */
   const leaveBranch = (projectId = currentProjectId.value) => {
     if (projectId) profile.clearProjectBranchSelection(projectId);
@@ -168,8 +159,7 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
-   * @zh 当前分支已失效时清理 profile 并回到主分支。
-   * @en Clear profile and return to the main branch when the current branch is stale.
+   * Clear profile and return to the main branch when the current branch is stale.
    */
   const markStale = (projectId = currentProjectId.value) => {
     validationStatus.value = "stale";

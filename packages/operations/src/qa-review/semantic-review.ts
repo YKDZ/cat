@@ -79,8 +79,7 @@ export type RunSemanticQaReviewResult = {
 };
 
 /**
- * @zh 运行可选的语义审校层；无 provider、禁用或解析失败时优雅降级。
- * @en Run the optional semantic QA review layer and degrade gracefully when disabled, unavailable, or invalid.
+ * Run the optional semantic QA review layer and degrade gracefully when disabled, unavailable, or invalid.
  */
 export const runSemanticQaReview = async (
   input: RunSemanticQaReviewInput,

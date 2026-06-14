@@ -6,14 +6,13 @@ const DEFAULT_BOOST_FACTOR = 2.5;
 const MAX_CALIBRATED_CONFIDENCE = 0.85;
 
 /**
- * @zh 对一批 evidence 中的 BM25 通道进行批次内归一化校准。
  *
  * 算法：
  * 1. 从所有 evidence 中收集 channel === "bm25" 的 confidence 作为 rawScore
  * 2. 计算 maxRaw = max(rawScores)
  * 3. 每个 BM25 evidence 的校准后置信度 = min(rawScore / maxRaw, 1.0) * boostFactor，上限 0.85
  * 4. 若 sparse evidence 命中率 >= 0.5，追加 multi-evidence 标记
- * @en Batch-normalize BM25-channel evidences within a result set.
+ * Batch-normalize BM25-channel evidences within a result set.
  *
  * Algorithm:
  * 1. Collect all BM25 channel confidences as rawScores
@@ -21,9 +20,9 @@ const MAX_CALIBRATED_CONFIDENCE = 0.85;
  * 3. Calibrated confidence = min(rawScore / maxRaw, 1.0) * boostFactor, capped at 0.85
  * 4. If sparse evidence hit rate >= 0.5, append multi-evidence markup
  *
- * @param evidencesByCandidate - {@zh 每个候选的 evidence 数组列表} {@en List of evidence arrays per candidate}
- * @param boostFactor - {@zh 提升因子（默认 2.5）} {@en Boost factor (default 2.5)}
- * @returns - {@zh 校准后的 evidence 数组列表和摘要} {@en Calibrated evidence arrays and summary}
+ * @param evidencesByCandidate - List of evidence arrays per candidate
+ * @param boostFactor - Boost factor (default 2.5)
+ * @returns - Calibrated evidence arrays and summary
  */
 export const calibrateBm25Confidence = (
   evidencesByCandidate: RecallEvidence[][],

@@ -15,8 +15,7 @@ export type UpsertAutoTranslationEntryCommand = z.infer<
 >;
 
 /**
- * @zh 应用级 upsert：查找已有 auto_translation entry 并更新，否则插入新行。
- * @en Application-level upsert: find existing auto_translation changeset entry and
+ * Application-level upsert: find existing auto_translation changeset entry and
  * update it, or insert a new one.
  */
 export const upsertAutoTranslationEntry: Command<

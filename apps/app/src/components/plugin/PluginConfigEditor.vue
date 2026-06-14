@@ -13,26 +13,24 @@ import type { NonNullPluginDetail } from "./types";
 const { t } = useI18n();
 
 /**
- * @zh 插件配置编辑器的属性。
- * @en Props for the plugin configuration editor.
+ * Props for the plugin configuration editor.
  */
 const props = defineProps<{
-  /** @zh 插件详情读模型。 @en Plugin detail read model. */
+  /** Plugin detail read model. */
   detail: NonNullPluginDetail;
-  /** @zh 保存请求是否进行中。 @en Whether a save request is in progress. */
+  /** Whether a save request is in progress. */
   isSaving: boolean;
-  /** @zh 检测请求是否进行中。 @en Whether a probe request is in progress. */
+  /** Whether a probe request is in progress. */
   isProbing: boolean;
 }>();
 
 /**
- * @zh 插件配置编辑器触发的事件。
- * @en Events emitted by the plugin configuration editor.
+ * Events emitted by the plugin configuration editor.
  */
 const emit = defineEmits<{
-  /** @zh 保存当前编辑配置并请求后端热应用。 @en Save the edited config and request backend hot-apply. */
+  /** Save the edited config and request backend hot-apply. */
   save: [value: NonNullJSONType, expectedUpdatedAt: string | null];
-  /** @zh 使用当前表单值发起候选配置检测。 @en Probe the current form value as candidate config. */
+  /** Probe the current form value as candidate config. */
   probeCandidate: [value: NonNullJSONType];
 }>();
 

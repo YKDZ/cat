@@ -19,8 +19,7 @@ export type CountQaReviewQueueItemsQuery = z.infer<
 >;
 
 /**
- * @zh 统计当前 editor scope + queue filter 下的审校队列项数量。
- * @en Count QA review queue items under the current editor scope plus queue filters.
+ * Count QA review queue items under the current editor scope plus queue filters.
  */
 export const countQaReviewQueueItems: Query<
   CountQaReviewQueueItemsQuery,

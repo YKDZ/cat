@@ -15,8 +15,7 @@ const toHnfCandidate = (r: RawTermResult): HnfCandidate => ({
 });
 
 /**
- * @zh 将 HNF 预管道规则应用于 term recall 结果。
- * @en Apply HNF pre-pipeline rules to term recall results.
+ * Apply HNF pre-pipeline rules to term recall results.
  */
 export const applyTermHnfPre = (
   results: RawResult[],

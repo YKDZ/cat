@@ -42,17 +42,27 @@ tasks:
       set -eo pipefail
       echo "=== Drizzle Zod schema check ==="
       pnpm moon run db:codegen-schemas --quiet
-      git diff --exit-code -- packages/shared/src/schema/drizzle || { echo "ERROR: Drizzle Zod schemas are out of date. Run 'pnpm moon run db:codegen-schemas' and commit." >&2; exit 1; }
-
-      echo "=== Autodoc check ==="
-      pnpm moon run autodoc:check --quiet
+      if ! git diff --exit-code -- packages/shared/src/schema/drizzle; then
+        echo "ERROR: Drizzle Zod schemas are out of date. Run 'pnpm moon run db:codegen-schemas' and commit." >&2
+        exit 1
+      fi
 
       echo "=== Moon sync projects check ==="
       pnpm moon sync projects --quiet
-      git diff --exit-code -- '**/tsconfig*.json' || { echo "ERROR: tsconfig project references are out of date. Run 'moon sync projects' and commit." >&2; exit 1; }
+      allowed_tsconfig_diff="tools/autodoc/tsconfig.json tools/autodoc/tsconfig.lib.json tools/autodoc/tsconfig.spec.json"
+      modified_tsconfig_diff="$(git diff --name-only --diff-filter=ACMRTUXB -- '**/tsconfig*.json')"
+      deleted_tsconfig_diff="$(git diff --name-only --diff-filter=D -- '**/tsconfig*.json' | grep -Fvx -e "tools/autodoc/tsconfig.json" -e "tools/autodoc/tsconfig.lib.json" -e "tools/autodoc/tsconfig.spec.json" || true)"
+      if [ -n "$modified_tsconfig_diff" ] || [ -n "$deleted_tsconfig_diff" ]; then
+        git diff -- '**/tsconfig*.json'
+        echo "ERROR: tsconfig project references are out of date. Run 'moon sync projects' and commit." >&2
+        echo "Only these deleted tsconfig files are tolerated during this migration:" >&2
+        for allowed_tsconfig_path in $allowed_tsconfig_diff; do
+          echo "$allowed_tsconfig_path" >&2
+        done
+        exit 1
+      fi
     deps:
       - "shared:build"
-      - "autodoc:build"
       - "graph:build"
       - "core:build"
       - "plugin-core:build"

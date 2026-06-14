@@ -12,24 +12,21 @@ import * as z from "zod";
 import type { Query } from "@/types";
 
 /**
- * @zh 批量元素详情查询 Schema。
- * @en Schema for bulk element detail queries.
+ * Schema for bulk element detail queries.
  */
 export const ListElementsWithChunkIdsByIdsQuerySchema = z.object({
   elementIds: z.array(z.int().positive()).max(5000),
 });
 
 /**
- * @zh 批量元素详情查询类型。
- * @en Type for bulk element detail queries.
+ * Type for bulk element detail queries.
  */
 export type ListElementsWithChunkIdsByIdsQuery = z.infer<
   typeof ListElementsWithChunkIdsByIdsQuerySchema
 >;
 
 /**
- * @zh 带 chunk 信息的元素详情。
- * @en Element detail with chunk metadata.
+ * Element detail with chunk metadata.
  */
 export type ElementWithChunkIdsById = {
   id: number;
@@ -41,8 +38,7 @@ export type ElementWithChunkIdsById = {
 };
 
 /**
- * @zh 批量获取元素源文本、项目、主内容节点和 chunk ID。
- * @en Batch-fetch element source text, project, primary content node, and chunk ids.
+ * Batch-fetch element source text, project, primary content node, and chunk ids.
  */
 export const listElementsWithChunkIdsByIds: Query<
   ListElementsWithChunkIdsByIdsQuery,

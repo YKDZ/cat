@@ -56,10 +56,6 @@ const loadTranslationOverlayPayload = async (
   };
 };
 
-/**
- * @zh 按项目编辑器作用域列出 QA 审校队列项。
- * @en List QA review queue items under a project editor scope.
- */
 export const listQueue = authed
   .input(ListQaReviewQueueItemsQuerySchema)
   .use(checkPermission("project", "viewer"), (input) => input.projectId)
@@ -71,10 +67,6 @@ export const listQueue = authed
     return await executeQuery({ db }, listQaReviewQueueItems, input);
   });
 
-/**
- * @zh 统计 QA 审校队列项数量。
- * @en Count QA review queue items.
- */
 export const countQueue = authed
   .input(CountQaReviewQueueItemsQuerySchema)
   .use(checkPermission("project", "viewer"), (input) => input.projectId)
@@ -87,10 +79,6 @@ export const countQueue = authed
     return await executeQuery({ db }, countQaReviewQueueItems, input);
   });
 
-/**
- * @zh 获取单个 QA 审校队列项详情，并校验其属于请求项目。
- * @en Get a QA review queue item detail and verify it belongs to the requested project.
- */
 export const getQueueItem = authed
   .input(
     GetQaReviewQueueItemDetailQuerySchema.extend({ projectId: z.uuidv4() }),
@@ -112,10 +100,6 @@ export const getQueueItem = authed
     return detail;
   });
 
-/**
- * @zh 按元素聚合列出 QA 可审校集合。
- * @en List QA reviewable items aggregated by element.
- */
 export const listReviewableElements = authed
   .input(ListQaReviewableElementsQuerySchema)
   .use(checkPermission("project", "viewer"), (input) => input.projectId)
@@ -127,10 +111,6 @@ export const listReviewableElements = authed
     return await executeQuery({ db }, listQaReviewableElements, input);
   });
 
-/**
- * @zh 统计可审校元素数量。
- * @en Count reviewable elements.
- */
 export const countReviewableElements = authed
   .input(CountQaReviewableElementsQuerySchema)
   .use(checkPermission("project", "viewer"), (input) => input.projectId)
@@ -143,10 +123,6 @@ export const countReviewableElements = authed
     return await executeQuery({ db }, countQaReviewableElements, input);
   });
 
-/**
- * @zh 获取单个可审校元素详情。
- * @en Get a reviewable element detail.
- */
 export const getReviewableElement = authed
   .input(GetQaReviewableElementDetailQuerySchema)
   .use(checkPermission("project", "viewer"), (input) => input.projectId)
@@ -167,10 +143,6 @@ export const getReviewableElement = authed
     return detail;
   });
 
-/**
- * @zh 获取首个（或下一个）可审校元素。
- * @en Get the first (or next) reviewable element.
- */
 export const getFirstReviewableElement = authed
   .input(GetFirstQaReviewableElementQuerySchema)
   .use(checkPermission("project", "viewer"), (input) => input.projectId)
@@ -182,10 +154,6 @@ export const getFirstReviewableElement = authed
     return await executeQuery({ db }, getFirstQaReviewableElement, input);
   });
 
-/**
- * @zh 提交 QA 工作台动作，并在分支模式下写入 translation overlay。
- * @en Submit QA workbench action and write translation overlay in branch mode.
- */
 export const submitAction = authed
   .input(SubmitQaReviewActionInputSchema)
   .use(checkPermission("project", "editor"), (input) => input.projectId)

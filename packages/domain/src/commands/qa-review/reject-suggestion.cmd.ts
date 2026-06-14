@@ -32,8 +32,7 @@ export type RejectQaReviewSuggestionCommand = z.infer<
 >;
 
 /**
- * @zh 拒绝一条开放中的审校建议，并同步拒绝对应批注。
- * @en Reject an open QA review suggestion and reject the corresponding annotation.
+ * Reject an open QA review suggestion and reject the corresponding annotation.
  */
 export const rejectQaReviewSuggestion: Command<
   RejectQaReviewSuggestionCommand,

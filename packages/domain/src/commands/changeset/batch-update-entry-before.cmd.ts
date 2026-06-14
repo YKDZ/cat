@@ -19,8 +19,7 @@ export type BatchUpdateEntryBeforeCommand = z.infer<
 >;
 
 /**
- * @zh 批量更新 changeset entry 的 before 字段。仅用于 rebase before-重写。
- * @en Batch-update the `before` field of changeset entries. Used exclusively for rebase before-rewrite.
+ * Batch-update the `before` field of changeset entries. Used exclusively for rebase before-rewrite.
  *
  * @note This uses N individual UPDATE queries via Promise.all. For large rebases this could be
  * slow. A single SQL CASE WHEN batching would be more optimal but is deferred as a future optimization.

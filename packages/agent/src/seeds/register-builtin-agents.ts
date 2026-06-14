@@ -13,8 +13,7 @@ import { parseAgentDefinition } from "../definition/index.ts";
 /**
  * Translator agent MD definition (embedded to avoid filesystem path concerns at runtime).
  *
- * @zh 翻译助手 Agent 的 Markdown 定义文本。
- * @en Markdown definition text for the built-in translator agent.
+ * Markdown definition text for the built-in translator agent.
  */
 const TRANSLATOR_MD = `---
 id: translator
@@ -92,8 +91,7 @@ scope:
 `;
 
 /**
- * @zh 注册/更新所有内置 Agent 的 GLOBAL 模板行。每次启动时调用，确保模板始终与代码同步。
- * @en Register or update all builtin agent GLOBAL template rows. Called on every startup to keep templates in sync with code.
+ * Register or update all builtin agent GLOBAL template rows. Called on every startup to keep templates in sync with code.
  */
 export const registerBuiltinAgents = async (db: DbHandle): Promise<void> => {
   const ctx = { db };

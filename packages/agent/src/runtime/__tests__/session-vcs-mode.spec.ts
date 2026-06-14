@@ -1,6 +1,5 @@
 /**
- * @zh AgentRuntime.runLoop() vcsMode 动态计算单元测试。
- * @en Unit tests for dynamic vcsMode calculation in AgentRuntime.runLoop().
+ * Unit tests for dynamic vcsMode calculation in AgentRuntime.runLoop().
  *
  * Validates:
  * - determineWriteMode returns "direct"      → vcsMode = "direct" passed to tool context

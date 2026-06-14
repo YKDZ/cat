@@ -37,16 +37,14 @@ const decodeCacheValue = <T>(value: JSONType): T | null => {
 };
 
 /**
- * @zh 基于 PostgreSQL 的缓存存储实现。
- * @en PostgreSQL-backed cache store implementation.
+ * PostgreSQL-backed cache store implementation.
  */
 export class PostgresCacheStore implements CacheStore {
   /**
-   * @zh 创建一个 PostgreSQL 缓存存储。
-   * @en Create a PostgreSQL-backed cache store.
+   * Create a PostgreSQL-backed cache store.
    *
-   * @param db - {@zh Drizzle 数据库客户端} {@en Drizzle database client}
-   * @param namespace - {@zh 缓存命名空间} {@en Cache namespace}
+   * @param db - Drizzle database client
+   * @param namespace - Cache namespace
    */
   public constructor(
     private readonly db: DrizzleClient,
@@ -54,11 +52,10 @@ export class PostgresCacheStore implements CacheStore {
   ) {}
 
   /**
-   * @zh 读取缓存值；若记录已过期则自动删除。
-   * @en Read a cached value and delete it automatically when expired.
+   * Read a cached value and delete it automatically when expired.
    *
-   * @param key - {@zh 缓存键} {@en Cache key}
-   * @returns - {@zh 缓存值；不存在或已过期时为 `null`} {@en Cached value, or `null` when missing or expired}
+   * @param key - Cache key
+   * @returns - Cached value, or `null` when missing or expired
    */
   public async get<T>(key: string): Promise<T | null> {
     const [row] = await this.db
@@ -92,13 +89,12 @@ export class PostgresCacheStore implements CacheStore {
   }
 
   /**
-   * @zh 写入缓存值并可选设置 TTL。
-   * @en Write a cached value with an optional TTL.
+   * Write a cached value with an optional TTL.
    *
-   * @param key - {@zh 缓存键} {@en Cache key}
-   * @param value - {@zh 要缓存的值} {@en Value to cache}
-   * @param ttlSeconds - {@zh 可选 TTL（秒）} {@en Optional TTL in seconds}
-   * @returns - {@zh 无返回值} {@en No return value}
+   * @param key - Cache key
+   * @param value - Value to cache
+   * @param ttlSeconds - Optional TTL in seconds
+   * @returns - No return value
    */
   public async set<T>(
     key: string,
@@ -131,11 +127,10 @@ export class PostgresCacheStore implements CacheStore {
   }
 
   /**
-   * @zh 删除指定缓存键。
-   * @en Delete the specified cache key.
+   * Delete the specified cache key.
    *
-   * @param key - {@zh 缓存键} {@en Cache key}
-   * @returns - {@zh 无返回值} {@en No return value}
+   * @param key - Cache key
+   * @returns - No return value
    */
   public async delete(key: string): Promise<void> {
     await this.db
@@ -149,11 +144,10 @@ export class PostgresCacheStore implements CacheStore {
   }
 
   /**
-   * @zh 检查缓存键是否存在且未过期。
-   * @en Check whether a cache key exists and is not expired.
+   * Check whether a cache key exists and is not expired.
    *
-   * @param key - {@zh 缓存键} {@en Cache key}
-   * @returns - {@zh 键是否存在且有效} {@en Whether the key exists and is valid}
+   * @param key - Cache key
+   * @returns - Whether the key exists and is valid
    */
   public async has(key: string): Promise<boolean> {
     const [row] = await this.db
@@ -177,11 +171,10 @@ export class PostgresCacheStore implements CacheStore {
   }
 
   /**
-   * @zh 批量清理命名空间中已过期的缓存项。
-   * @en Clean up expired cache entries for the namespace in batches.
+   * Clean up expired cache entries for the namespace in batches.
    *
-   * @param batchSize - {@zh 单次清理的最大记录数} {@en Maximum number of records to clean in one pass}
-   * @returns - {@zh 实际删除的记录数} {@en Number of rows actually deleted}
+   * @param batchSize - Maximum number of records to clean in one pass
+   * @returns - Number of rows actually deleted
    */
   public async cleanupExpired(batchSize = 500): Promise<number> {
     const result = await this.db.execute<{ key: string }>(sql`

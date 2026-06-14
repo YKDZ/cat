@@ -82,7 +82,6 @@ export type ClassifySemanticElementDiffResult = {
 const stableJson = (value: unknown): string => JSON.stringify(value ?? null);
 
 /**
- * @zh 对单个元素匹配执行语义差分分类（纯函数，用于测试）。
  *
  * 规则：
  * - 文本改变 → SOURCE_TEXT_UPDATE / SOURCE_TEXT_CHANGED
@@ -90,7 +89,7 @@ const stableJson = (value: unknown): string => JSON.stringify(value ?? null);
  * - 仅顺序改变 → MOVE / NOT_REQUIRED
  * - 其他 → METADATA_ONLY / NOT_REQUIRED
  *
- * @en Classify a single matched element pair semantically (pure function, testable).
+ * Classify a single matched element pair semantically (pure function, testable).
  */
 export const classifySemanticElementDiffForTest = (
   input: ClassifySemanticElementDiffInput,
@@ -144,7 +143,6 @@ export const classifySemanticElementDiffForTest = (
 // ─── Main diff operation ──────────────────────────────────────────────────────
 
 /**
- * @zh 通过结构化内容载荷对元素执行稳定身份差分，并记录语义差分条目。
  *
  * 1. 持久化图结构（关系类型、节点）
  * 2. 加载现有元素（按 importerId + sourceRootRef 匹配）
@@ -154,7 +152,7 @@ export const classifySemanticElementDiffForTest = (
  * 6. 记录 SemanticDiffEntry
  * 7. 持久化图附件（关系、证据）
  *
- * @en Diff elements by stable identity from a structured content payload
+ * Diff elements by stable identity from a structured content payload
  * and record semantic diff entries.
  */
 export const diffStructuredContentOp = async (

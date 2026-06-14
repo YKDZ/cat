@@ -18,8 +18,7 @@ export type GetTranslationCreatedEventContextQuery = z.infer<
 >;
 
 /**
- * @zh 翻译创建事件的上下文载荷。
- * @en Context payload for translation-created events.
+ * Context payload for translation-created events.
  */
 export type TranslationCreatedEventContext = {
   projectId: string;
@@ -29,12 +28,11 @@ export type TranslationCreatedEventContext = {
 };
 
 /**
- * @zh 根据翻译 ID 解析项目、元素和主内容节点上下文。
- * @en Resolve project, element, and primary content-node context for translation ids.
+ * Resolve project, element, and primary content-node context for translation ids.
  *
- * @param ctx - {@zh 查询上下文} {@en Query context}
- * @param query - {@zh 翻译 ID 查询参数} {@en Translation-id query input}
- * @returns - {@zh 按项目分组的翻译创建事件上下文} {@en Translation-created event context grouped by project}
+ * @param ctx - Query context
+ * @param query - Translation-id query input
+ * @returns - Translation-created event context grouped by project
  */
 export const getTranslationCreatedEventContext: Query<
   GetTranslationCreatedEventContextQuery,

@@ -23,11 +23,10 @@ export type StreamSearchMemoryInput = z.input<
 >;
 
 /**
- * @zh 流式翻译记忆搜索。
  *
  * 底层统一走 aggregated helper，合并 exact / trgm / variant / semantic
  * 通道与 template adaptation，再按排序后的结果顺序流式产出。
- * @en Streaming memory search backed by the aggregated recall helper.
+ * Streaming memory search backed by the aggregated recall helper.
  */
 export const streamSearchMemoryOp = (
   data: StreamSearchMemoryInput,

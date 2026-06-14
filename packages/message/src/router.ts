@@ -7,8 +7,7 @@ import { serverLogger } from "@cat/server-shared";
 import type { ChannelDispatcher, MessageRequest } from "@/types";
 
 /**
- * @zh 统一消息路由器 — 按用户偏好解析渠道并并发分发。
- * @en Unified message router — resolves channels and dispatches concurrently.
+ * Unified message router — resolves channels and dispatches concurrently.
  */
 export class MessageRouter {
   private readonly dispatchers = new Map<MessageChannel, ChannelDispatcher>();

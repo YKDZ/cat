@@ -7,8 +7,7 @@ import {
 import * as z from "zod";
 
 /**
- * @zh 编辑器路由中的元素目标标识。
- * @en Target element token used in editor routes.
+ * Target element token used in editor routes.
  */
 export type EditorElementRouteTarget = number | "auto" | "empty";
 
@@ -43,11 +42,10 @@ const parseSortMode = (value: string | null): EditorScope["sortMode"] =>
   ElementSortModeSchema.safeParse(value).data ?? "structure";
 
 /**
- * @zh 从 canonical editor 路由参数与 query 中解析编辑器作用域。
- * @en Parse an editor scope from canonical editor route params and query params.
+ * Parse an editor scope from canonical editor route params and query params.
  *
- * @param input - {@zh 路由输入} {@en Route input}
- * @returns - {@zh 规范化后的编辑器作用域} {@en Normalized editor scope}
+ * @param input - Route input
+ * @returns - Normalized editor scope
  */
 export const parseEditorScopeFromRoute = (input: {
   projectId: unknown;
@@ -71,11 +69,10 @@ export const parseEditorScopeFromRoute = (input: {
 };
 
 /**
- * @zh 将编辑器作用域序列化为 URL 查询参数。
- * @en Serialize an editor scope into URL search params.
+ * Serialize an editor scope into URL search params.
  *
- * @param scope - {@zh 编辑器作用域} {@en Editor scope}
- * @returns - {@zh 对应的查询参数} {@en Corresponding query params}
+ * @param scope - Editor scope
+ * @returns - Corresponding query params
  */
 export const toEditorSearchParams = (scope: EditorScope): URLSearchParams => {
   const params = new URLSearchParams();
@@ -106,12 +103,11 @@ export const toEditorSearchParams = (scope: EditorScope): URLSearchParams => {
 };
 
 /**
- * @zh 为 canonical editor route 构建链接。
- * @en Build a canonical editor route href.
+ * Build a canonical editor route href.
  *
- * @param scope - {@zh 编辑器作用域} {@en Editor scope}
- * @param target - {@zh 目标元素标识} {@en Target element token}
- * @returns - {@zh 可导航的编辑器链接} {@en Navigable editor href}
+ * @param scope - Editor scope
+ * @param target - Target element token
+ * @returns - Navigable editor href
  */
 export const buildEditorHref = (
   scope: EditorScope,

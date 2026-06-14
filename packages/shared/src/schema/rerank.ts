@@ -23,8 +23,7 @@ export const RerankContextHintsSchema = z.object({
 });
 
 /**
- * @zh 重排候选项 Schema。
- * @en Rerank candidate-item schema.
+ * Rerank candidate-item schema.
  */
 export const RerankCandidateItemSchema = z.object({
   candidateId: z.string(),
@@ -92,8 +91,7 @@ export type RerankRequest = z.infer<typeof RerankRequestSchema>;
 export type RerankResponse = z.infer<typeof RerankResponseSchema>;
 export type RerankDecisionTrace = z.infer<typeof RerankDecisionTraceSchema>;
 /**
- * @zh 重排候选项类型。
- * @en Rerank candidate-item type.
+ * Rerank candidate-item type.
  */
 export type RerankCandidateItem = z.infer<typeof RerankCandidateItemSchema>;
 export type RerankBand = z.infer<typeof RerankBandSchema>;

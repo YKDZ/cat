@@ -5,25 +5,21 @@ import type { NonNullJSONType } from "@cat/shared";
 import { and, eq, runtimeQueueTask, sql } from "@cat/db";
 
 /**
- * @zh PostgreSQL 任务队列的可选参数。
- * @en Optional configuration for the PostgreSQL task queue.
+ * Optional configuration for the PostgreSQL task queue.
  */
 export type PostgresTaskQueueOptions = {
   /**
-   * @zh 单次租约时长（毫秒）。
-   * @en Lease duration in milliseconds.
+   * Lease duration in milliseconds.
    */
   leaseMs?: number;
   /**
-   * @zh 最大重试次数。
-   * @en Maximum retry count.
+   * Maximum retry count.
    */
   maxRetries?: number;
 };
 
 /**
- * @zh 基于 PostgreSQL 的 at-least-once 任务队列实现。
- * @en PostgreSQL-backed at-least-once task queue implementation.
+ * PostgreSQL-backed at-least-once task queue implementation.
  */
 export class PostgresTaskQueue<
   T extends NonNullJSONType,
@@ -32,12 +28,11 @@ export class PostgresTaskQueue<
   private readonly maxRetries: number;
 
   /**
-   * @zh 创建一个 PostgreSQL 任务队列。
-   * @en Create a PostgreSQL-backed task queue.
+   * Create a PostgreSQL-backed task queue.
    *
-   * @param db - {@zh Drizzle 数据库客户端} {@en Drizzle database client}
-   * @param queueName - {@zh 队列名称} {@en Queue name}
-   * @param options - {@zh 可选租约与重试配置} {@en Optional lease and retry configuration}
+   * @param db - Drizzle database client
+   * @param queueName - Queue name
+   * @param options - Optional lease and retry configuration
    */
   public constructor(
     private readonly db: DrizzleClient,
@@ -49,11 +44,10 @@ export class PostgresTaskQueue<
   }
 
   /**
-   * @zh 批量入队任务。
-   * @en Enqueue tasks in batch.
+   * Enqueue tasks in batch.
    *
-   * @param payloads - {@zh 要入队的任务负载列表} {@en List of task payloads to enqueue}
-   * @returns - {@zh 新生成的任务 ID 列表} {@en Newly generated task IDs}
+   * @param payloads - List of task payloads to enqueue
+   * @returns - Newly generated task IDs
    */
   public async enqueue(payloads: T[]): Promise<string[]> {
     if (payloads.length === 0) return [];
@@ -72,11 +66,10 @@ export class PostgresTaskQueue<
   }
 
   /**
-   * @zh 取出最多 `maxCount` 个待处理任务并为其加租约。
-   * @en Dequeue up to `maxCount` pending tasks and lease them.
+   * Dequeue up to `maxCount` pending tasks and lease them.
    *
-   * @param maxCount - {@zh 最大出队数量} {@en Maximum number of tasks to dequeue}
-   * @returns - {@zh 出队后的任务列表} {@en Dequeued task list}
+   * @param maxCount - Maximum number of tasks to dequeue
+   * @returns - Dequeued task list
    */
   public async dequeue(maxCount: number): Promise<QueueTask<T>[]> {
     await this.requeueExpiredLeases();
@@ -112,11 +105,10 @@ export class PostgresTaskQueue<
   }
 
   /**
-   * @zh 确认任务完成。
-   * @en Acknowledge task completion.
+   * Acknowledge task completion.
    *
-   * @param taskId - {@zh 任务 ID} {@en Task ID}
-   * @returns - {@zh 无返回值} {@en No return value}
+   * @param taskId - Task ID
+   * @returns - No return value
    */
   public async ack(taskId: string): Promise<void> {
     await this.db
@@ -131,11 +123,10 @@ export class PostgresTaskQueue<
   }
 
   /**
-   * @zh 拒绝任务并根据重试次数重新入队或标记失败。
-   * @en Reject a task and requeue it or mark it failed depending on retry count.
+   * Reject a task and requeue it or mark it failed depending on retry count.
    *
-   * @param taskId - {@zh 任务 ID} {@en Task ID}
-   * @returns - {@zh 无返回值} {@en No return value}
+   * @param taskId - Task ID
+   * @returns - No return value
    */
   public async nack(taskId: string): Promise<void> {
     await this.db.transaction(async (tx) => {
@@ -171,10 +162,9 @@ export class PostgresTaskQueue<
   }
 
   /**
-   * @zh 获取当前队列中待处理任务数量。
-   * @en Get the number of pending tasks in the queue.
+   * Get the number of pending tasks in the queue.
    *
-   * @returns - {@zh 待处理任务数量} {@en Pending task count}
+   * @returns - Pending task count
    */
   public async pendingCount(): Promise<number> {
     const result = await this.db.execute<{ count: string }>(sql`
@@ -187,10 +177,9 @@ export class PostgresTaskQueue<
   }
 
   /**
-   * @zh 将租约过期的任务重新放回待处理状态。
-   * @en Requeue tasks whose leases have expired.
+   * Requeue tasks whose leases have expired.
    *
-   * @returns - {@zh 被重新入队的任务数量} {@en Number of tasks requeued}
+   * @returns - Number of tasks requeued
    */
   public async requeueExpiredLeases(): Promise<number> {
     const result = await this.db.execute<{ task_id: string }>(sql`

@@ -42,8 +42,7 @@ export type ResolveQaReviewProfileResult = {
 };
 
 /**
- * @zh 解析项目/语言/内容节点/分支作用域下最具体的 QA review profile。
- * @en Resolve the most specific QA review profile for the given project/language/content-node/branch scope.
+ * Resolve the most specific QA review profile for the given project/language/content-node/branch scope.
  */
 export const resolveQaReviewProfile: Query<
   ResolveQaReviewProfileQuery,

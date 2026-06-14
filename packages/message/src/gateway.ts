@@ -14,8 +14,7 @@ export type MessageGatewayOptions = {
 };
 
 /**
- * @zh 统一消息网关 — 订阅域事件，串联路由器与实时连接管理。
- * @en Unified message gateway — subscribes to domain events, ties router and connections.
+ * Unified message gateway — subscribes to domain events, ties router and connections.
  */
 export class MessageGateway {
   readonly router: MessageRouter;
@@ -35,7 +34,7 @@ export class MessageGateway {
     );
   }
 
-  /** @zh 启动网关，订阅域事件。 @en Start gateway, subscribe to domain events. */
+  /** Start gateway, subscribe to domain events. */
   start(): void {
     this.unsubSend = domainEventBus.subscribe(
       "message:send-requested",
@@ -51,7 +50,7 @@ export class MessageGateway {
     );
   }
 
-  /** @zh 停止网关，取消订阅。 @en Stop gateway, unsubscribe. */
+  /** Stop gateway, unsubscribe. */
   stop(): void {
     this.unsubSend?.();
     this.unsubCreated?.();

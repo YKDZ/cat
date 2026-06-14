@@ -8,8 +8,7 @@ import {
 } from "@cat/vcs";
 
 /**
- * @zh 创建 VCS 路由 helper，用于在 handler 中执行 isolation 模式写入。
- * @en Create VCS route helper for isolation mode writes in handlers.
+ * Create VCS route helper for isolation mode writes in handlers.
  */
 export const createVCSRouteHelper = (
   db: DbHandle,
@@ -26,8 +25,7 @@ export const createVCSRouteHelper = (
 };
 
 /**
- * @zh 解析 branch 写上下文；若分支尚无 changeset，则懒创建一个初始 changeset。
- * @en Resolve branch write context and lazily create an initial changeset when the branch has none yet.
+ * Resolve branch write context and lazily create an initial changeset when the branch has none yet.
  */
 export const ensureBranchWriteContext = async (input: {
   drizzle: DbHandle;

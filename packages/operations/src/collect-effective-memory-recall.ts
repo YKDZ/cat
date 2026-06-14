@@ -10,8 +10,7 @@ import {
 } from "./collect-memory-recall";
 
 /**
- * @zh 有效记忆集合召回输入（拆分项目记忆与个人记忆）。
- * @en Effective memory recall input with separated project and personal memory IDs.
+ * Effective memory recall input with separated project and personal memory IDs.
  */
 export const CollectEffectiveMemoryRecallInputSchema =
   CollectMemoryRecallInputSchema.omit({ memoryIds: true }).extend({
@@ -20,8 +19,7 @@ export const CollectEffectiveMemoryRecallInputSchema =
   });
 
 /**
- * @zh 有效记忆集合召回输入。
- * @en Effective memory recall input.
+ * Effective memory recall input.
  */
 export type CollectEffectiveMemoryRecallInput = z.input<
   typeof CollectEffectiveMemoryRecallInputSchema
@@ -37,12 +35,11 @@ const getSuggestionDedupeKey = (item: MemorySuggestion): string =>
   ].join("\0");
 
 /**
- * @zh 召回“项目 + 个人”有效记忆，并按项目优先规则去重。
- * @en Recall effective project+personal memories and dedupe with project-first precedence.
+ * Recall effective project+personal memories and dedupe with project-first precedence.
  *
- * @param input - {@zh 召回输入} {@en Recall input}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 合并后的记忆候选} {@en Merged memory candidates}
+ * @param input - Recall input
+ * @param ctx - Operation context
+ * @returns - Merged memory candidates
  */
 export const collectEffectiveMemoryRecallOp = async (
   input: CollectEffectiveMemoryRecallInput,

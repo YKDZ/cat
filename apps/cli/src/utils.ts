@@ -1,6 +1,5 @@
 /**
- * @zh 解析 --extra-json 并合并到基础对象。
- * @en Parse --extra-json and merge into a base object.
+ * Parse --extra-json and merge into a base object.
  *
  * @remarks
  * 返回值通过类型断言转为 T，因为 --extra-json 的内容是运行时动态的。

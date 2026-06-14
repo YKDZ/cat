@@ -11,8 +11,7 @@ export type DeleteContentNodeCommand = z.infer<
 >;
 
 /**
- * @zh 删除内容节点（级联删除其关联关系和子节点）。
- * @en Delete a content node (cascading to its relations and children).
+ * Delete a content node (cascading to its relations and children).
  */
 export const deleteContentNode: Command<DeleteContentNodeCommand> = async (
   ctx,

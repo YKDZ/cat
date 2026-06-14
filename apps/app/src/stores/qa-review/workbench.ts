@@ -11,8 +11,7 @@ import { useEditorContextStore } from "@/stores/editor/context";
 import { useEditorTableStore } from "@/stores/editor/table";
 
 /**
- * @zh QA 审校工作台页面状态。
- * @en QA review workbench page state.
+ * QA review workbench page state.
  */
 export const useQaReviewWorkbenchStore = defineStore(
   "qaReviewWorkbench",

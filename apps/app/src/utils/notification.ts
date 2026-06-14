@@ -1,8 +1,7 @@
 import type { useI18n } from "vue-i18n";
 
 /**
- * @zh 获取消息分类的本地化标签。
- * @en Get the localized label for a notification category.
+ * Get the localized label for a notification category.
  */
 export const getCategoryLabel = (
   t: ReturnType<typeof useI18n>["t"],

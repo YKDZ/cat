@@ -16,12 +16,11 @@ export type CountQaReviewableElementsQuery = z.infer<
 >;
 
 /**
- * @zh 统计当前过滤条件下可审校元素数量。
- * @en Count reviewable QA elements under current filters.
+ * Count reviewable QA elements under current filters.
  *
- * @param ctx - {@zh 查询上下文} {@en Query context}
- * @param input - {@zh 查询输入} {@en Query input}
- * @returns - {@zh 元素总数} {@en Total element count}
+ * @param ctx - Query context
+ * @param input - Query input
+ * @returns - Total element count
  */
 export const countQaReviewableElements: Query<
   CountQaReviewableElementsQuery,

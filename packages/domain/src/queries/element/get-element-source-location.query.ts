@@ -32,8 +32,7 @@ export type ElementSourceLocation = {
 };
 
 /**
- * @zh 获取元素的源文件位置信息（用于编辑器跳转到源文件）。
- * @en Get the source file location info for an element (for editor source navigation).
+ * Get the source file location info for an element (for editor source navigation).
  */
 export const getElementSourceLocation: Query<
   GetElementSourceLocationQuery,

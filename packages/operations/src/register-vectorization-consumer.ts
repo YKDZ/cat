@@ -10,8 +10,7 @@ import { processVectorizationBatch } from "./vectorization-consumer";
 let registered = false;
 
 /**
- * @zh 注册向量化队列消费者，并在订阅前阻塞式恢复可回收租约。
- * @en Register the vectorization queue consumer and block on recoverable lease restoration before subscribing.
+ * Register the vectorization queue consumer and block on recoverable lease restoration before subscribing.
  */
 export const registerVectorizationConsumer = async (
   queue: TaskQueue<VectorizationTask>,

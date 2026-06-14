@@ -27,9 +27,9 @@ import AgentThinkingIndicator from "./AgentThinkingIndicator.vue";
 import AgentToolConfirmCard from "./AgentToolConfirmCard.vue";
 
 const props = defineProps<{
-  /** @zh 当前项目外部 UUID @en Current project external UUID */
+  /** Current project external UUID */
   projectId: string;
-  /** @zh 当前项目名称 @en Current project name */
+  /** Current project name */
   projectName: string;
 }>();
 

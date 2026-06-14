@@ -1,6 +1,5 @@
 /**
- * @zh 应用层认证流程节点执行器，替换 @cat/auth 包中的桩实现。
- * @en App-layer auth flow node executors that replace the stubs from @cat/auth.
+ * App-layer auth flow node executors that replace the stubs from @cat/auth.
  */
 
 import type { AuthNodeExecutor } from "@cat/auth";
@@ -15,8 +14,7 @@ import {
 import { PluginManager } from "@cat/plugin-core";
 
 /**
- * @zh 从 services.db 提取强类型 DbHandle（auth 包中定义为 unknown）。
- * @en Extract a strongly-typed DbHandle from services.db (typed unknown in the auth package).
+ * Extract a strongly-typed DbHandle from services.db (typed unknown in the auth package).
  */
 // oxlint-disable-next-line no-unsafe-type-assertion -- services.db is always DrizzleClient passed in by buildScheduler
 const dbFrom = (services: { db: unknown }) => services.db as DbHandle;
@@ -24,8 +22,7 @@ const dbFrom = (services: { db: unknown }) => services.db as DbHandle;
 // ====== Identity Resolver ======
 
 /**
- * @zh 应用层 identity_resolver：通过数据库查找用户。
- * @en App-layer identity_resolver: looks up users in PostgreSQL.
+ * App-layer identity_resolver: looks up users in PostgreSQL.
  */
 export const appIdentityResolverExecutor: AuthNodeExecutor = async (
   ctx,
@@ -100,8 +97,7 @@ export const appIdentityResolverExecutor: AuthNodeExecutor = async (
 // ====== PASSWORD factor executor ======
 
 /**
- * @zh PASSWORD 认证因子执行器：收集密码并通过插件验证。
- * @en PASSWORD factor executor: collects password and verifies via the plugin.
+ * PASSWORD factor executor: collects password and verifies via the plugin.
  */
 export const passwordFactorExecutor: AuthNodeExecutor = async (
   ctx,
@@ -191,8 +187,7 @@ export const passwordFactorExecutor: AuthNodeExecutor = async (
 // ====== MFA-aware decision router ======
 
 /**
- * @zh 应用层 decision_router：支持 MFA 检查。
- * @en App-layer decision_router: supports MFA requirement check.
+ * App-layer decision_router: supports MFA requirement check.
  */
 export const appDecisionRouterExecutor: AuthNodeExecutor = async (
   ctx,
@@ -231,8 +226,7 @@ export const appDecisionRouterExecutor: AuthNodeExecutor = async (
 // ====== TOTP factor executor ======
 
 /**
- * @zh TOTP MFA 因子执行器：收集验证码并通过插件验证。
- * @en TOTP MFA factor executor: collects token and verifies via the plugin.
+ * TOTP MFA factor executor: collects token and verifies via the plugin.
  */
 export const totpFactorExecutor: AuthNodeExecutor = async (ctx, nodeDef) => {
   if (!ctx.input || Object.keys(ctx.input).length === 0) {

@@ -65,9 +65,9 @@ export type SchedulerStartOptions = {
   deduplicationKey?: string;
   /** Plugin manager instance for this run */
   pluginManager?: PluginManager;
-  /** @zh 可选的 VCS 上下文，用于 Direct 模式审计 @en Optional VCS context for Direct mode audit */
+  /** Optional VCS context for Direct mode audit */
   vcsContext?: VCSContext;
-  /** @zh 可选的 VCS 中间件实例 @en Optional VCS middleware instance */
+  /** Optional VCS middleware instance */
   vcsMiddleware?: VCSMiddleware;
 };
 
@@ -804,10 +804,9 @@ export class Scheduler {
   };
 
   /**
-   * @zh 返回当前进程正在活跃执行的 run ID 列表。
-   * @en Return the list of run IDs currently active in this process.
+   * Return the list of run IDs currently active in this process.
    *
-   * @returns - {@zh 当前活跃 run ID 列表} {@en List of active run IDs}
+   * @returns - List of active run IDs
    */
   getActiveRunIds = (): RunId[] => {
     return [...this.activeRuns.keys()];

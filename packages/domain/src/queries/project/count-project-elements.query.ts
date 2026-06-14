@@ -24,8 +24,7 @@ export type CountProjectElementsQuery = z.infer<
 >;
 
 /**
- * @zh 统计项目下满足条件的可翻译元素总数。
- * @en Count all translatable elements in a project matching the given filters.
+ * Count all translatable elements in a project matching the given filters.
  */
 export const countProjectElements: Query<
   CountProjectElementsQuery,

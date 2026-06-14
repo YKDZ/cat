@@ -39,8 +39,7 @@ export type GetQaReviewNotificationRecipientResult = {
 } | null;
 
 /**
- * @zh 解析审校通知应发送给的用户，避免把通知发回给触发者本人。
- * @en Resolve the user who should receive a QA review notification while avoiding self-notifications.
+ * Resolve the user who should receive a QA review notification while avoiding self-notifications.
  */
 export const getQaReviewNotificationRecipient: Query<
   GetQaReviewNotificationRecipientQuery,

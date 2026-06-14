@@ -10,23 +10,20 @@ import * as z from "zod";
 
 const issueCommentArgs = z.object({
   /**
-   * @zh Issue 的内部整数 ID
-   * @en Internal integer ID of the issue
+   * Internal integer ID of the issue
    */
   issueId: z
     .int()
     .positive()
     .describe("Internal integer ID of the issue to comment on"),
   /**
-   * @zh 评论内容（Markdown）
-   * @en Comment body in Markdown
+   * Comment body in Markdown
    */
   body: z.string().min(1).describe("The body of the comment in Markdown"),
 });
 
 /**
- * @zh issue_comment 工具: 在 Issue 上发表评论。
- * @en issue_comment tool: post a comment on an Issue.
+ * issue_comment tool: post a comment on an Issue.
  */
 export const issueCommentTool: AgentToolDefinition = {
   name: "issue_comment",

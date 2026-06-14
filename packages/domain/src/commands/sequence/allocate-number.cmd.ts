@@ -10,8 +10,7 @@ export const AllocateNumberCommandSchema = z.object({
 export type AllocateNumberCommand = z.infer<typeof AllocateNumberCommandSchema>;
 
 /**
- * @zh 原子递增 project_sequence 并返回分配的序号。如果 projectId 尚无记录则自动初始化。
- * @en Atomically increments the project_sequence and returns the allocated number.
+ * Atomically increments the project_sequence and returns the allocated number.
  * Auto-initializes if no record exists for the given projectId.
  */
 export const allocateNumber: Command<AllocateNumberCommand, number> = async (

@@ -4,13 +4,11 @@ import type { ContentNode } from "@cat/shared";
 import { computed } from "vue";
 
 /**
- * @zh 内容节点面包屑属性。
- * @en Props for the content-node breadcrumb.
+ * Props for the content-node breadcrumb.
  */
 const props = defineProps<{
   /**
-   * @zh 当前内容节点。
-   * @en Current content node.
+   * Current content node.
    */
   contentNode: Pick<ContentNode, "displayLabel">;
 }>();

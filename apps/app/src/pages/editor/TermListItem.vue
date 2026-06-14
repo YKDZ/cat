@@ -17,13 +17,11 @@ import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
 import { useHotKeys } from "@/utils/magic-keys.ts";
 
 /**
- * @zh 术语建议列表项属性。
- * @en Props for a term suggestion list item.
+ * Props for a term suggestion list item.
  */
 const props = defineProps<{
   /**
-   * @zh 当前术语建议。
-   * @en Current term suggestion.
+   * Current term suggestion.
    */
   term: {
     term: string;
@@ -42,8 +40,7 @@ const props = defineProps<{
   };
 
   /**
-   * @zh 当前建议在列表中的索引。
-   * @en Zero-based index of the current term in the list.
+   * Zero-based index of the current term in the list.
    */
   index: number;
 }>();

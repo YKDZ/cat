@@ -138,17 +138,16 @@ type ConfidenceContext = {
 };
 
 /**
- * @zh 计算 LLM 翻译建议的置信度评分。
  *
  * 基础分由记忆匹配的置信度决定，然后为每种存在的上下文信号添加固定增量。
  * 硬上限为 0.85，四舍五入到小数点后四位。
- * @en Derive a confidence score for an LLM translation suggestion.
+ * Derive a confidence score for an LLM translation suggestion.
  *
  * Base score from memory match confidence, plus fixed bonuses per context signal present.
  * Hard cap at 0.85, rounded to 4 decimal places.
  *
- * @param ctx - {@zh 置信度上下文信号} {@en Confidence context signals}
- * @returns - {@zh 0-0.85 的置信度评分} {@en Confidence score between 0 and 0.85}
+ * @param ctx - Confidence context signals
+ * @returns - Confidence score between 0 and 0.85
  */
 export const deriveLlmTranslateConfidence = (
   ctx: ConfidenceContext,
@@ -404,7 +403,6 @@ const loadContext = async (
 // ─── Operation ─────────────────────────────────────────────────────────────────
 
 /**
- * @zh LLM 翻译建议（内置首方建议源）。
  *
  * 自行加载元素信息、邻居翻译、元素上下文、元素元数据、已批准翻译和评论，
  * 结合调用方传入的记忆召回和术语召回结果，调用一次 LLM 生成翻译建议。
@@ -414,7 +412,7 @@ const loadContext = async (
  * - LLM 调用失败
  * - 元素未找到
  * - 数据库访问失败
- * @en Built-in LLM Translation Suggestion (first-party suggestion source).
+ * Built-in LLM Translation Suggestion (first-party suggestion source).
  *
  * Self-loads element info, neighbor translations, element contexts, element metadata,
  * approved translations, and comments via domain queries. Combines with
@@ -427,8 +425,8 @@ const loadContext = async (
  * - The element is not found
  * - Database access fails
  *
- * @param data - {@zh LLM 翻译输入参数} {@en LLM translate input}
- * @param ctx  - {@zh 操作上下文} {@en Operation context}
+ * @param data - LLM translate input
+ * @param ctx  - Operation context
  */
 export const llmTranslateOp = async (
   data: LlmTranslateInput,

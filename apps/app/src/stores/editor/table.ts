@@ -170,11 +170,10 @@ export const useEditorTableStore = defineStore("editorTable", () => {
   };
 
   /**
-   * @zh 如果目标元素已经在本地缓存页中，则立即选中它。
-   * @en Immediately select the target element if it is already cached locally.
+   * Immediately select the target element if it is already cached locally.
    *
-   * @param targetElementId - {@zh 目标元素 ID} {@en Target element ID}
-   * @returns - {@zh 是否命中了本地缓存} {@en Whether the local cache was hit}
+   * @param targetElementId - Target element ID
+   * @returns - Whether the local cache was hit
    */
   const selectLoadedElement = (targetElementId: number): boolean => {
     for (const [pageIndex, rows] of elementStore.loadedPages.entries()) {

@@ -17,8 +17,7 @@ export type GetClaimableIssueQuery = z.infer<
 >;
 
 /**
- * @zh 返回项目中第一个可接取的 OPEN Issue（基于 claimPolicy 过滤），不执行锁定。
- * @en Returns the first claimable OPEN issue in the project (filtered by claimPolicy), without locking.
+ * Returns the first claimable OPEN issue in the project (filtered by claimPolicy), without locking.
  * This is a "peek" query — actual atomic claim uses claim-issue.cmd with FOR UPDATE SKIP LOCKED.
  */
 export const getClaimableIssue: Query<

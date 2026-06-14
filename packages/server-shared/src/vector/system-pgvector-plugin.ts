@@ -11,8 +11,7 @@ const systemPgVectorPlugin = {
 } satisfies CatPlugin;
 
 /**
- * @zh 通过标准插件生命周期公开的内置 pgvector 系统插件条目。
- * @en Builtin pgvector system plugin entry exposed through the standard plugin lifecycle.
+ * Builtin pgvector system plugin entry exposed through the standard plugin lifecycle.
  */
 export const systemPgVectorEntry: BuiltinPluginEntry = {
   manifest: {

@@ -24,8 +24,7 @@ import type { DiffResult } from "./diff-strategy.ts";
 // ─── Local Types ──────────────────────────────────────────────────────────────
 
 /**
- * @zh 变更集摘要（agent 内部使用）。
- * @en Changeset summary for internal agent use.
+ * Changeset summary for internal agent use.
  */
 export interface Changeset {
   id: number;
@@ -108,8 +107,7 @@ const mapChangeset = (row: NonNullable<DBChangeset>): Changeset => ({
 // ─── ChangeSetService ────────────────────────────────────────────────────────
 
 /**
- * @zh ChangeSet 核心服务：提供 CRUD、状态机转换和 OCC 版本检查。
- * @en Core service for changeset CRUD, state-machine transitions, and OCC version checking.
+ * Core service for changeset CRUD, state-machine transitions, and OCC version checking.
  */
 export class ChangeSetService {
   private readonly ctx: { db: DbHandle };
@@ -197,8 +195,7 @@ export class ChangeSetService {
   //──────────────────────────────────────────────────────────────────────────
 
   /**
-   * @zh 应用一个 ChangeSet：逐条 entry 调用 ApplicationMethod，最后更新状态为 APPLIED。
-   * @en Apply a changeset by invoking the ApplicationMethod for each entry.
+   * Apply a changeset by invoking the ApplicationMethod for each entry.
    */
   async applyChangeSet(
     changesetId: number,
@@ -245,8 +242,7 @@ export class ChangeSetService {
   //──────────────────────────────────────────────────────────────────────────
 
   /**
-   * @zh 生成反向 ChangeSet（回滚）：对每条 entry 交换 before/after 并反转 action。
-   * @en Generate a reverse changeset for rollback by swapping before/after and inverting action.
+   * Generate a reverse changeset for rollback by swapping before/after and inverting action.
    */
   async rollbackChangeSet(
     changesetId: number,
@@ -315,8 +311,7 @@ export class ChangeSetService {
   //──────────────────────────────────────────────────────────────────────────
 
   /**
-   * @zh 根据所有 entry 的 asyncStatus 计算 ChangeSet 级别的异步状态。
-   * @en Compute the changeset-level asyncStatus from all entry asyncStatuses.
+   * Compute the changeset-level asyncStatus from all entry asyncStatuses.
    */
   async computeAsyncStatus(
     changesetId: number,
@@ -345,9 +340,8 @@ export class ChangeSetService {
   //──────────────────────────────────────────────────────────────────────────
 
   /**
-   * @zh OCC 乐观并发控制：检查实体的当前 updatedAt 是否与预期版本匹配。
    * Phase 0b 中为占位实现——实际版本检查需要具体实体查询。
-   * @en OCC check: verify the entity's updatedAt matches the expected version.
+   * OCC check: verify the entity's updatedAt matches the expected version.
    * Phase 0b stub — real version check requires entity-specific queries.
    */
   async checkOCCVersion(

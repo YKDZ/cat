@@ -12,8 +12,7 @@ export const GetPRByNumberQuerySchema = z.object({
 export type GetPRByNumberQuery = z.infer<typeof GetPRByNumberQuerySchema>;
 
 /**
- * @zh 按 (projectId, number) 获取 PR。
- * @en Get a PR by (projectId, number).
+ * Get a PR by (projectId, number).
  */
 export const getPRByNumber: Query<
   GetPRByNumberQuery,

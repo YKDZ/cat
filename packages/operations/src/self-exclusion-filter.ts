@@ -1,12 +1,11 @@
 import { serverLogger as logger } from "@cat/server-shared";
 
 /**
- * @zh 从记忆匹配结果中移除当前元素的自身记忆条目。
- * @en Remove the current element's own memory items from recall results.
+ * Remove the current element's own memory items from recall results.
  *
- * @param candidates - {@zh 精排后的候选或建议列表} {@en Ranked candidates or suggestion list}
- * @param excludeMemoryItemIds - {@zh 要排除的 memoryItem UUID 列表} {@en Memory item UUIDs to exclude}
- * @returns - {@zh 排除自匹配后的结果} {@en Results with self-matches excluded}
+ * @param candidates - Ranked candidates or suggestion list
+ * @param excludeMemoryItemIds - Memory item UUIDs to exclude
+ * @returns - Results with self-matches excluded
  */
 export const applySelfExclusion = <T extends { memoryId: string }>(
   candidates: T[],

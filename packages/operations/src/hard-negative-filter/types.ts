@@ -1,8 +1,7 @@
 import type { RecallEvidence } from "@cat/shared";
 
 /**
- * @zh 硬负例移除原因分类。
- * @en Hard-negative removal reason categories.
+ * Hard-negative removal reason categories.
  */
 export type HardNegativeReason =
   | "cw-zero-intersection"
@@ -11,8 +10,7 @@ export type HardNegativeReason =
   | "tier3-isolated-semantic";
 
 /**
- * @zh 硬负例移除记录。
- * @en Record of a hard-negative removal.
+ * Record of a hard-negative removal.
  */
 export interface HardNegativeRemoval {
   /** Candidate surface type. */
@@ -28,8 +26,7 @@ export interface HardNegativeRemoval {
 }
 
 /**
- * @zh HNF 核心规则引擎的统一输入接口。
- * @en Unified input interface for the HNF core rules engine.
+ * Unified input interface for the HNF core rules engine.
  */
 export interface HnfCandidate {
   /** Surface type. */
@@ -45,8 +42,7 @@ export interface HnfCandidate {
 }
 
 /**
- * @zh HNF 规则检查结果。
- * @en Result of an HNF rule check.
+ * Result of an HNF rule check.
  */
 export interface HnfRuleResult {
   /** Whether the candidate passes (true = keep, false = remove). */

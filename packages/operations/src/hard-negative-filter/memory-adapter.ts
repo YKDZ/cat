@@ -15,8 +15,7 @@ import {
 } from "./core";
 
 /**
- * @zh 从 RawMemoryResult 构造 HnfCandidate。
- * @en Build an HnfCandidate from a RawMemoryResult.
+ * Build an HnfCandidate from a RawMemoryResult.
  */
 const toHnfCandidate = (r: RawMemoryResult): HnfCandidate => ({
   surface: "memory",
@@ -27,13 +26,12 @@ const toHnfCandidate = (r: RawMemoryResult): HnfCandidate => ({
 });
 
 /**
- * @zh 将 HNF 预管道规则应用于 memory recall 结果。
- * @en Apply HNF pre-pipeline rules to memory recall results.
+ * Apply HNF pre-pipeline rules to memory recall results.
  *
- * @param results - {@zh 原始内存召回结果（in-place mutation of confidence）} {@en Raw memory recall results}
- * @param sourceNlpTokens - {@zh 源文本的 NLP tokens} {@en NLP tokens of the source text}
- * @param queryText - {@zh 查询文本} {@en Query text}
- * @returns - {@zh 移除记录} {@en Removal records}
+ * @param results - Raw memory recall results
+ * @param sourceNlpTokens - NLP tokens of the source text
+ * @param queryText - Query text
+ * @returns - Removal records
  */
 export const applyMemoryHnfPre = (
   results: RawResult[],
@@ -91,12 +89,11 @@ export const applyMemoryHnfPre = (
 };
 
 /**
- * @zh 将 HNF 后管道规则应用于精排后的 memory recall 结果。
- * @en Apply HNF post-pipeline rules to ranked memory recall results.
+ * Apply HNF post-pipeline rules to ranked memory recall results.
  *
- * @param ranked - {@zh 精排后的候选列表} {@en Ranked candidates with tier info}
- * @param sourceNlpTokens - {@zh 源文本的 NLP tokens} {@en NLP tokens of the source text}
- * @returns - {@zh 移除记录} {@en Removal records}
+ * @param ranked - Ranked candidates with tier info
+ * @param sourceNlpTokens - NLP tokens of the source text
+ * @returns - Removal records
  */
 export const applyMemoryHnfPost = (
   ranked: RecallCandidate[],

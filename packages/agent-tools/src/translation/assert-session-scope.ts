@@ -44,12 +44,11 @@ const buildScopedContentNodeSet = (
 };
 
 /**
- * @zh 验证内容节点过滤器属于当前会话项目，并符合会话限定的内容节点范围。
- * @en Verify content-node filters belong to the session project and obey the session content-node scope.
+ * Verify content-node filters belong to the session project and obey the session content-node scope.
  *
- * @param contentNodeIds - {@zh 待校验的内容节点 ID 列表} {@en Content-node IDs to validate}
- * @param ctx - {@zh 工具执行上下文} {@en Tool execution context}
- * @returns - {@zh 校验通过时无返回} {@en No return value when validation passes}
+ * @param contentNodeIds - Content-node IDs to validate
+ * @param ctx - Tool execution context
+ * @returns - No return value when validation passes
  */
 export const assertContentNodesInSession = async (
   contentNodeIds: string[],
@@ -76,12 +75,11 @@ export const assertContentNodesInSession = async (
 };
 
 /**
- * @zh 解析工具请求在当前 Agent 会话中的有效内容节点范围。
- * @en Resolve the effective content-node scope for a tool request in the current Agent session.
+ * Resolve the effective content-node scope for a tool request in the current Agent session.
  *
- * @param requested - {@zh 工具显式请求的内容节点过滤器} {@en Explicitly requested content-node filters}
- * @param ctx - {@zh 工具执行上下文} {@en Tool execution context}
- * @returns - {@zh 生效的内容节点范围} {@en Effective content-node scope}
+ * @param requested - Explicitly requested content-node filters
+ * @param ctx - Tool execution context
+ * @returns - Effective content-node scope
  */
 export const resolveEffectiveContentNodeIds = (
   requested: string[] | undefined,
@@ -102,11 +100,10 @@ export const resolveEffectiveContentNodeIds = (
 };
 
 /**
- * @zh 解析当前会话的内容节点上下文 ID。
- * @en Resolve the content-node context ID for the current session.
+ * Resolve the content-node context ID for the current session.
  *
- * @param ctx - {@zh 工具执行上下文} {@en Tool execution context}
- * @returns - {@zh 当前会话的上下文内容节点 ID} {@en Context content-node ID for the current session}
+ * @param ctx - Tool execution context
+ * @returns - Context content-node ID for the current session
  */
 export const resolveSessionContentNodeContextId = (
   ctx: ToolExecutionContext,
@@ -120,8 +117,7 @@ export const resolveSessionContentNodeContextId = (
 };
 
 /**
- * @zh 验证指定元素属于当前会话的项目与编辑范围。
- * @en Verify the given element belongs to the current session's project and editor scope.
+ * Verify the given element belongs to the current session's project and editor scope.
  *
  * @throws 若元素不存在或不在会话作用域内。 / If element not found or out of scope.
  * @returns 解析后的元素数据（value, languageId, projectId, primaryContentNodeId, chunkIds）。 / Resolved element data.
@@ -182,8 +178,7 @@ export const assertElementInSession = async (
 };
 
 /**
- * @zh 验证指定项目属于当前会话的项目作用域。
- * @en Verify the given project belongs to the current session's project scope.
+ * Verify the given project belongs to the current session's project scope.
  *
  * @throws 若项目不在会话作用域内。 / If the project is outside the current session scope.
  */

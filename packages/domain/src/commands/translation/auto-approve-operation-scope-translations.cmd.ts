@@ -29,8 +29,7 @@ export type AutoApproveOperationScopeTranslationsResult = {
 };
 
 /**
- * @zh 自动批准指定元素集合在目标语言中的最新翻译。
- * @en Auto-approve the latest translation for the provided element set in the target language.
+ * Auto-approve the latest translation for the provided element set in the target language.
  * @returns Number of elements approved.
  */
 export const autoApproveOperationScopeTranslations: Command<

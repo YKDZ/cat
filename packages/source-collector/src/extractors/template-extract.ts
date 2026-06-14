@@ -25,8 +25,7 @@ type TemplateWalkContext = {
 };
 
 /**
- * @zh 从模板表达式字符串中匹配 $t() 或 t() 调用的正则表达式。
- * @en Regex to match $t() or t() calls in template expression strings.
+ * Regex to match $t() or t() calls in template expression strings.
  *
  * Captures:
  * - Group 1: single-quoted string content
@@ -36,14 +35,13 @@ const I18N_CALL_RE =
   /(?<!\w)\$?t\(\s*(?:'((?:[^'\\]|\\.)*)'|"((?:[^"\\]|\\.)*)")/g;
 
 /**
- * @zh 从 Vue 模板 AST 中提取 i18n 调用。
- * @en Extract i18n calls from a Vue template AST.
+ * Extract i18n calls from a Vue template AST.
  *
- * @param ast - {@zh 模板 AST 根节点} {@en Template AST root node}
- * @param filePath - {@zh 相对文件路径，用于 meta.file} {@en Relative file path used in meta.file}
- * @param templateStartLine - {@zh 模板块在 SFC 中的起始行号偏移（1-based）} {@en Starting line offset of the template block inside the SFC (1-based)}
- * @param options - {@zh 提取选项} {@en Extraction options}
- * @returns - {@zh 提取出的可翻译元素} {@en Extracted translatable elements}
+ * @param ast - Template AST root node
+ * @param filePath - Relative file path used in meta.file
+ * @param templateStartLine - Starting line offset of the template block inside the SFC (1-based)
+ * @param options - Extraction options
+ * @returns - Extracted translatable elements
  */
 export function extractFromTemplate(
   ast: RootNode,

@@ -5,8 +5,7 @@ import type { ProjectContentNodeRow } from "@/queries/content/list-project-conte
 import type { Query } from "@/types";
 
 /**
- * @zh 列出编辑器作用域可见内容节点的查询 Schema。
- * @en Schema for listing content nodes visible to an editor scope.
+ * Schema for listing content nodes visible to an editor scope.
  */
 export const ListEditorScopeContentNodesQuerySchema = z.object({
   projectId: z.uuidv4(),
@@ -14,8 +13,7 @@ export const ListEditorScopeContentNodesQuerySchema = z.object({
 });
 
 /**
- * @zh 列出编辑器作用域可见内容节点的查询类型。
- * @en Type for listing content nodes visible to an editor scope.
+ * Type for listing content nodes visible to an editor scope.
  */
 export type ListEditorScopeContentNodesQuery = z.infer<
   typeof ListEditorScopeContentNodesQuerySchema
@@ -114,8 +112,7 @@ const branchOverlayCtesSql = (branchId: number | undefined) => {
 };
 
 /**
- * @zh 列出指定项目在主干或分支覆盖视图下可见的内容节点。
- * @en List content nodes visible for a project under main or branch-overlay visibility.
+ * List content nodes visible for a project under main or branch-overlay visibility.
  */
 export const listEditorScopeContentNodes: Query<
   ListEditorScopeContentNodesQuery,

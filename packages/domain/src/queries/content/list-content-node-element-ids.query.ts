@@ -12,8 +12,7 @@ export type ListContentNodeElementIdsQuery = z.infer<
 >;
 
 /**
- * @zh 获取属于指定内容节点的所有可翻译元素 ID（主关系）。
- * @en Get all translatable element IDs that belong to a content node (primary relations).
+ * Get all translatable element IDs that belong to a content node (primary relations).
  */
 export const listContentNodeElementIds: Query<
   ListContentNodeElementIdsQuery,

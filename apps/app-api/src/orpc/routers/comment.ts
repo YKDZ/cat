@@ -36,7 +36,7 @@ export const comment = authed
       content: z.string(),
       languageId: z.string(),
       branchId: z.int().optional(),
-      /** @zh 项目 ID（用于 Direct 模式 VCS 审计） @en Project ID for Direct mode VCS audit */
+      /** Project ID for Direct mode VCS audit */
       projectId: z.uuid().optional(),
     }),
   )

@@ -14,8 +14,7 @@ export const ClosePRCommandSchema = z.object({
 export type ClosePRCommand = z.infer<typeof ClosePRCommandSchema>;
 
 /**
- * @zh 关闭 PR：设置 PR 状态为 CLOSED，并将关联分支状态设为 ABANDONED。
- * @en Close a PR: set PR status to CLOSED and update associated branch to ABANDONED.
+ * Close a PR: set PR status to CLOSED and update associated branch to ABANDONED.
  */
 export const closePR: Command<
   ClosePRCommand,

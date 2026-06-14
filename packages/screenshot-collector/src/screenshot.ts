@@ -21,8 +21,7 @@ import type {
 import { authenticateBrowser } from "./auth.ts";
 
 /**
- * @zh 按文本在页面中查找元素，先尝试文本节点，再 fallback 到 placeholder 属性。
- * @en Find an element by text, first as a text node, then falling back to placeholder attribute.
+ * Find an element by text, first as a text node, then falling back to placeholder attribute.
  */
 const findLocatorByText = (page: Page, text: string) => {
   const byText = page.getByText(text, { exact: true });

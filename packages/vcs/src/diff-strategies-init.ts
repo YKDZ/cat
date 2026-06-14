@@ -28,8 +28,7 @@ import {
 import { translationDiffStrategy } from "./strategies/translation.diff.ts";
 
 /**
- * @zh 向注册表注册全部 entityType 的 diff 策略（包含内容图谱实体）
- * @en Register all entityType diff strategies into the registry (including content graph entities)
+ * Register all entityType diff strategies into the registry (including content graph entities)
  */
 export const registerAllDiffStrategies = (
   registry: DiffStrategyRegistry,

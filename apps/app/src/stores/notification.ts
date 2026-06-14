@@ -36,8 +36,7 @@ const isNotificationPushPayload = (
 };
 
 /**
- * @zh 通知 Store — 管理站内信状态与实时推送流。
- * @en Notification store — manages in-app notification state and real-time stream.
+ * Notification store — manages in-app notification state and real-time stream.
  */
 export const useNotificationStore = defineStore("notification", () => {
   const unreadCount = ref(0);
@@ -45,7 +44,7 @@ export const useNotificationStore = defineStore("notification", () => {
   const isStreaming = ref(false);
   let abortController: AbortController | null = null;
 
-  /** @zh 加载最近通知与未读数（首次挂载时调用）。 @en Load recent notifications and unread count. */
+  /** Load recent notifications and unread count. */
   const loadInitial = async () => {
     const [count, items] = await Promise.all([
       orpc.notification.unreadCount(),
@@ -55,7 +54,7 @@ export const useNotificationStore = defineStore("notification", () => {
     recentNotifications.value = items as NotificationItem[];
   };
 
-  /** @zh 开始 WebSocket 实时通知流。 @en Start the WebSocket notification stream. */
+  /** Start the WebSocket notification stream. */
   const startStreaming = async () => {
     if (isStreaming.value) return;
     isStreaming.value = true;
@@ -91,14 +90,14 @@ export const useNotificationStore = defineStore("notification", () => {
     }
   };
 
-  /** @zh 停止流。 @en Stop the stream. */
+  /** Stop the stream. */
   const stopStreaming = () => {
     abortController?.abort();
     abortController = null;
     isStreaming.value = false;
   };
 
-  /** @zh 将指定通知标记为已读。 @en Mark a notification as read. */
+  /** Mark a notification as read. */
   const markRead = async (notificationId: number) => {
     await orpc.notification.markRead({ notificationId });
     const item = recentNotifications.value.find((n) => n.id === notificationId);
@@ -108,7 +107,7 @@ export const useNotificationStore = defineStore("notification", () => {
     }
   };
 
-  /** @zh 全部标记已读。 @en Mark all notifications as read. */
+  /** Mark all notifications as read. */
   const markAllRead = async () => {
     await orpc.notification.markAllRead();
     recentNotifications.value.forEach((n) => (n.status = "READ"));

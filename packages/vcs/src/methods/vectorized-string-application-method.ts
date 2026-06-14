@@ -20,10 +20,9 @@ const VECTORIZATION_ASYNC_SPEC: AsyncDependencySpec = {
 };
 
 /**
- * @zh 带向量化异步依赖的应用方法。适用于 translation、element、term_concept、memory_item。
  * CREATE 操作返回 ASYNC_PENDING（后台向量化任务启动后完成）。
  * Phase 0b 中为存根实现。
- * @en Application method for entities requiring async vectorization.
+ * Application method for entities requiring async vectorization.
  * CREATE returns ASYNC_PENDING. Stub implementation for Phase 0b.
  */
 export class VectorizedStringApplicationMethod implements ApplicationMethod {

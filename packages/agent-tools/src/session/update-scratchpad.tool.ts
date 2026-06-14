@@ -11,13 +11,11 @@ import * as z from "zod";
 
 const updateScratchpadArgs = z.object({
   /**
-   * @zh 当前 AgentRun 的外部 UUID（由 AgentRuntime 注入上下文中使用）
-   * @en External UUID of the current AgentRun (injected by AgentRuntime as context)
+   * External UUID of the current AgentRun (injected by AgentRuntime as context)
    */
   runId: z.uuid().optional().describe("External UUID of the current AgentRun"),
   /**
-   * @zh 新的 Scratchpad 内容（Agent 的工作笔记）
-   * @en New scratchpad content (agent's working notes)
+   * New scratchpad content (agent's working notes)
    */
   scratchpad: z
     .string()
@@ -25,8 +23,7 @@ const updateScratchpadArgs = z.object({
 });
 
 /**
- * @zh update_scratchpad 工具: 更新 Agent 的工作笔记（Scratchpad）。
- * @en update_scratchpad tool: update the agent's working notes (scratchpad).
+ * update_scratchpad tool: update the agent's working notes (scratchpad).
  */
 export const updateScratchpadTool: AgentToolDefinition = {
   name: "update_scratchpad",

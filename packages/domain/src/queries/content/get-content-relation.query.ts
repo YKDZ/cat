@@ -11,8 +11,7 @@ export type GetContentRelationQuery = z.infer<
 >;
 
 /**
- * @zh 按 ID 获取单条 ContentRelation 记录。
- * @en Fetch a single ContentRelation row by ID.
+ * Fetch a single ContentRelation row by ID.
  */
 export const getContentRelation: Query<
   GetContentRelationQuery,

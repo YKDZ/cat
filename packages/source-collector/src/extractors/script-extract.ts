@@ -4,7 +4,7 @@ import { Node, Project } from "ts-morph";
 
 import { buildStableSourceRef, buildTextFingerprint } from "./stable-ref.ts";
 
-/** @zh 复用的 ts-morph Project 实例。 @en Reusable ts-morph Project instance. */
+/** Reusable ts-morph Project instance. */
 let sharedProject: Project | undefined;
 
 function getProject(): Project {
@@ -21,8 +21,7 @@ function getProject(): Project {
 }
 
 /**
- * @zh i18n 上下文注释的正则：匹配 `// @i18n-context: <text>` 或 `/* @i18n-context: <text> * /`。
- * @en Regex for i18n context comments: matches `// @i18n-context: <text>` or block comment equivalent.
+ * Regex for i18n context comments: matches `// @i18n-context: <text>` or block comment equivalent.
  */
 const I18N_CONTEXT_RE = /@i18n-context:\s*(.+)/;
 
@@ -87,15 +86,14 @@ const findStableTsAnchor = (
 };
 
 /**
- * @zh 从 TypeScript/JavaScript 源码中提取 i18n 调用。
- * @en Extract i18n calls from TypeScript/JavaScript source code.
+ * Extract i18n calls from TypeScript/JavaScript source code.
  *
- * @param content - {@zh 脚本内容字符串} {@en Script content}
- * @param filePath - {@zh 相对文件路径} {@en Relative file path}
- * @param section - {@zh 脚本段标识} {@en Script section identifier}
- * @param lineOffset - {@zh 脚本块在 SFC 中的起始行偏移（0-based）} {@en Starting line offset inside the SFC block (0-based)}
- * @param options - {@zh 提取选项} {@en Extraction options}
- * @returns - {@zh 提取出的可翻译元素} {@en Extracted translatable elements}
+ * @param content - Script content
+ * @param filePath - Relative file path
+ * @param section - Script section identifier
+ * @param lineOffset - Starting line offset inside the SFC block (0-based)
+ * @param options - Extraction options
+ * @returns - Extracted translatable elements
  */
 export function extractFromScript(
   content: string,

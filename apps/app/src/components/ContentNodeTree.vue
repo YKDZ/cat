@@ -7,13 +7,11 @@ import { useI18n } from "vue-i18n";
 import ContentNodeTreeNode from "./ContentNodeTreeNode.vue";
 
 /**
- * @zh 内容节点树组件的属性。
- * @en Props for the content node tree component.
+ * Props for the content node tree component.
  */
 const props = defineProps<{
   /**
-   * @zh 扁平内容节点列表。
-   * @en Flat content-node list.
+   * Flat content-node list.
    */
   contentNodes: (ContentNode & {
     parentId: string | null;
@@ -22,20 +20,17 @@ const props = defineProps<{
 }>();
 
 /**
- * @zh 内容节点树组件发出的事件。
- * @en Emits for the content node tree component.
+ * Emits for the content node tree component.
  */
 const emits = defineEmits<{
   /**
-   * @zh 点击某个内容节点时触发。
-   * @en Emitted when a content node is clicked.
+   * Emitted when a content node is clicked.
    */
   (e: "click", node: ContentNode): void;
 }>();
 
 /**
- * @zh 树形内容节点。
- * @en Tree-shaped content node.
+ * Tree-shaped content node.
  */
 export type TreeNode = ContentNode & {
   parentId: string | null;

@@ -10,8 +10,7 @@ import type {
 } from "../application-method.ts";
 
 /**
- * @zh 实体状态查询回调。由注册方提供，用于 rebase before-重写。
- * @en Entity state fetcher callback, provided by the registrar for rebase before-rewrite.
+ * Entity state fetcher callback, provided by the registrar for rebase before-rewrite.
  */
 export type EntityStateFetcher = {
   fetchOne: (
@@ -25,10 +24,9 @@ export type EntityStateFetcher = {
 };
 
 /**
- * @zh 简单 CRUD 应用方法。适用于无异步依赖的实体（project_settings、project_member、
  * project_attributes、context、comment、comment_reaction、content_node、content_relation、element、translation、term）。
  * Phase 0b 中为存根实现——仅记录操作并返回 APPLIED。
- * @en Simple CRUD application method for entities with no async dependencies.
+ * Simple CRUD application method for entities with no async dependencies.
  * Stub implementation for Phase 0b — records the action and returns APPLIED.
  */
 export class SimpleApplicationMethod implements ApplicationMethod {
@@ -102,8 +100,7 @@ export class SimpleApplicationMethod implements ApplicationMethod {
 }
 
 /**
- * @zh 为多个 entityType 批量创建 SimpleApplicationMethod 实例。
- * @en Create SimpleApplicationMethod instances for multiple entityTypes.
+ * Create SimpleApplicationMethod instances for multiple entityTypes.
  */
 export const createSimpleMethods = (
   entityTypes: string[],

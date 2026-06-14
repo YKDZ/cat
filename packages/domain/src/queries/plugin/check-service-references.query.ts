@@ -12,8 +12,7 @@ export type CheckServiceReferencesQuery = z.infer<
 >;
 
 /**
- * @zh 检查插件服务是否被其他实体引用（mfaProvider / blob / chunk）。
- * @en Check if a plugin service is referenced by any entity (mfaProvider / blob / chunk).
+ * Check if a plugin service is referenced by any entity (mfaProvider / blob / chunk).
  * @returns `true` if at least one reference exists (service must be kept), `false` if safe to delete.
  */
 export const checkServiceReferences: Query<

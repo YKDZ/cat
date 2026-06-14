@@ -15,13 +15,11 @@ import TotpInput from "./node-components/TotpInput.vue";
 import WebAuthnPrompt from "./node-components/WebAuthnPrompt.vue";
 
 /**
- * @zh AuthFlowRenderer 的 props。
- * @en Props for AuthFlowRenderer component.
+ * Props for AuthFlowRenderer component.
  */
 const props = defineProps<{
   /**
-   * @zh 要初始化的认证流类型。
-   * @en The auth flow type to initialize.
+   * The auth flow type to initialize.
    */
   flowType: "login" | "register";
 }>();

@@ -10,8 +10,7 @@ import {
 import * as z from "zod";
 
 /**
- * @zh 插件作用域输入参数 Schema。
- * @en Schema for plugin scope input parameters.
+ * Schema for plugin scope input parameters.
  */
 export const PluginScopeInputSchema = z.object({
   pluginId: z.string(),
@@ -20,8 +19,7 @@ export const PluginScopeInputSchema = z.object({
 });
 
 /**
- * @zh 插件运行态状态枚举 Schema。
- * @en Schema for plugin runtime statuses.
+ * Schema for plugin runtime statuses.
  */
 export const PluginRuntimeStatusSchema = z.enum([
   "NOT_INSTALLED",
@@ -31,8 +29,7 @@ export const PluginRuntimeStatusSchema = z.enum([
 ]);
 
 /**
- * @zh 插件检测状态枚举 Schema。
- * @en Schema for plugin probe statuses.
+ * Schema for plugin probe statuses.
  */
 export const PluginProbeStatusSchema = z.enum([
   "SUCCESS",
@@ -44,14 +41,12 @@ export const PluginProbeStatusSchema = z.enum([
 ]);
 
 /**
- * @zh 插件检测目标枚举 Schema。
- * @en Schema for plugin probe targets.
+ * Schema for plugin probe targets.
  */
 export const PluginProbeTargetSchema = z.enum(["CANDIDATE", "RUNTIME"]);
 
 /**
- * @zh 插件服务能力记录 Schema。
- * @en Schema for plugin capability service records.
+ * Schema for plugin capability service records.
  */
 export const PluginCapabilityServiceSchema = z.object({
   serviceType: PluginServiceTypeSchema,
@@ -66,8 +61,7 @@ export const PluginCapabilityServiceSchema = z.object({
 });
 
 /**
- * @zh 插件组件能力记录 Schema。
- * @en Schema for plugin capability component records.
+ * Schema for plugin capability component records.
  */
 export const PluginCapabilityComponentSchema = z.object({
   componentId: z.string(),
@@ -77,8 +71,7 @@ export const PluginCapabilityComponentSchema = z.object({
 });
 
 /**
- * @zh 权限占位记录 Schema。
- * @en Schema for placeholder permission records.
+ * Schema for placeholder permission records.
  */
 const PermissionRecordSchema = z.object({
   permission: z.string(),
@@ -86,8 +79,7 @@ const PermissionRecordSchema = z.object({
 });
 
 /**
- * @zh 插件配置详情 Schema。
- * @en Schema for plugin configuration details.
+ * Schema for plugin configuration details.
  */
 export const PluginConfigDetailSchema = z.object({
   hasConfig: z.boolean(),
@@ -99,8 +91,7 @@ export const PluginConfigDetailSchema = z.object({
 });
 
 /**
- * @zh 插件详情读模型 Schema。
- * @en Schema for the plugin detail read model.
+ * Schema for the plugin detail read model.
  */
 export const PluginDetailSchema = z.object({
   plugin: PluginSchema,
@@ -135,8 +126,7 @@ export const PluginDetailSchema = z.object({
 });
 
 /**
- * @zh 插件动作状态枚举 Schema。
- * @en Schema for plugin action statuses.
+ * Schema for plugin action statuses.
  */
 export const PluginActionStatusSchema = z.enum([
   "INSTALLED",
@@ -150,8 +140,7 @@ export const PluginActionStatusSchema = z.enum([
 ]);
 
 /**
- * @zh 插件动作结果 Schema。
- * @en Schema for plugin action results.
+ * Schema for plugin action results.
  */
 export const PluginActionResultSchema = z.object({
   status: PluginActionStatusSchema,
@@ -160,8 +149,7 @@ export const PluginActionResultSchema = z.object({
 });
 
 /**
- * @zh 保存并应用插件配置的输入 Schema。
- * @en Schema for saving and applying plugin configuration.
+ * Schema for saving and applying plugin configuration.
  */
 export const SavePluginConfigAndApplyInputSchema =
   PluginScopeInputSchema.extend({
@@ -170,8 +158,7 @@ export const SavePluginConfigAndApplyInputSchema =
   });
 
 /**
- * @zh 插件配置检测输入 Schema。
- * @en Schema for plugin configuration probe input.
+ * Schema for plugin configuration probe input.
  */
 export const ProbePluginConfigInputSchema = PluginScopeInputSchema.extend({
   target: PluginProbeTargetSchema,
@@ -181,8 +168,7 @@ export const ProbePluginConfigInputSchema = PluginScopeInputSchema.extend({
 });
 
 /**
- * @zh 插件检测错误 Schema。
- * @en Schema for plugin probe errors.
+ * Schema for plugin probe errors.
  */
 export const PluginProbeErrorSchema = z.object({
   category: z.enum([
@@ -202,8 +188,7 @@ export const PluginProbeErrorSchema = z.object({
 });
 
 /**
- * @zh 单个插件服务检测结果 Schema。
- * @en Schema for a single plugin service probe result.
+ * Schema for a single plugin service probe result.
  */
 export const PluginProbeServiceResultSchema = z.object({
   serviceType: PluginServiceTypeSchema,
@@ -217,8 +202,7 @@ export const PluginProbeServiceResultSchema = z.object({
 });
 
 /**
- * @zh 插件检测汇总结果 Schema。
- * @en Schema for the aggregated plugin probe result.
+ * Schema for the aggregated plugin probe result.
  */
 export const PluginProbeResultSchema = z.object({
   target: PluginProbeTargetSchema,
@@ -227,40 +211,34 @@ export const PluginProbeResultSchema = z.object({
 });
 
 /**
- * @zh 插件作用域输入类型。
- * @en Type for plugin scope input.
+ * Type for plugin scope input.
  */
 export type PluginScopeInput = z.infer<typeof PluginScopeInputSchema>;
 
 /**
- * @zh 插件详情读模型类型。
- * @en Type for the plugin detail read model.
+ * Type for the plugin detail read model.
  */
 export type PluginDetail = z.infer<typeof PluginDetailSchema>;
 
 /**
- * @zh 插件动作结果类型。
- * @en Type for plugin action results.
+ * Type for plugin action results.
  */
 export type PluginActionResult = z.infer<typeof PluginActionResultSchema>;
 
 /**
- * @zh 插件配置检测输入类型。
- * @en Type for plugin configuration probe input.
+ * Type for plugin configuration probe input.
  */
 export type ProbePluginConfigInput = z.infer<
   typeof ProbePluginConfigInputSchema
 >;
 
 /**
- * @zh 插件检测汇总结果类型。
- * @en Type for aggregated plugin probe results.
+ * Type for aggregated plugin probe results.
  */
 export type PluginProbeResult = z.infer<typeof PluginProbeResultSchema>;
 
 /**
- * @zh 单个插件服务检测结果类型。
- * @en Type for a single plugin service probe result.
+ * Type for a single plugin service probe result.
  */
 export type PluginProbeServiceResult = z.infer<
   typeof PluginProbeServiceResultSchema

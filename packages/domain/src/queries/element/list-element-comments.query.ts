@@ -28,8 +28,7 @@ export type CommentThread = {
 };
 
 /**
- * @zh 查询元素上的评论及其回复，按最新优先排序。
- * @en Query comments on an element with their replies, ordered by most recent.
+ * Query comments on an element with their replies, ordered by most recent.
  */
 export const listElementComments: Query<
   ListElementCommentsQuery,

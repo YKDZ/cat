@@ -2,8 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 /**
- * @zh 按项目持久化的分支选择。
- * @en Persisted branch selection scoped by project.
+ * Persisted branch selection scoped by project.
  */
 export type PersistedBranchSelection = {
   projectId: string;

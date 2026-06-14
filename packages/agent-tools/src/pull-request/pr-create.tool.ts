@@ -5,21 +5,18 @@ import * as z from "zod";
 
 const prCreateArgs = z.object({
   /**
-   * @zh PR 标题
-   * @en PR title
+   * PR title
    */
   title: z.string().min(1).describe("The title of the pull request"),
   /**
-   * @zh PR 正文（Markdown）
-   * @en PR body in Markdown
+   * PR body in Markdown
    */
   body: z
     .string()
     .optional()
     .describe("The body/description of the pull request in Markdown"),
   /**
-   * @zh 关联的 Issue ID（可选）
-   * @en Associated issue ID (optional)
+   * Associated issue ID (optional)
    */
   issueId: z
     .int()
@@ -29,8 +26,7 @@ const prCreateArgs = z.object({
 });
 
 /**
- * @zh pr_create 工具: 在当前项目内独立创建一个 PR（不强制关联 Issue）。
- * @en pr_create tool: create a standalone PR in the current project (issue link is optional).
+ * pr_create tool: create a standalone PR in the current project (issue link is optional).
  */
 export const prCreateTool: AgentToolDefinition = {
   name: "pr_create",

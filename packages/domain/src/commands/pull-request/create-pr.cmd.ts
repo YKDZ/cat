@@ -30,8 +30,7 @@ export const CreatePRCommandSchema = z.object({
 export type CreatePRCommand = z.infer<typeof CreatePRCommandSchema>;
 
 /**
- * @zh 创建 PR：分配序号、创建关联分支，并插入 PR 记录。
- * @en Create a PR: allocate number, create associated branch, and insert the PR record.
+ * Create a PR: allocate number, create associated branch, and insert the PR record.
  */
 export const createPR: Command<
   CreatePRCommand,

@@ -14,40 +14,38 @@ import PluginProbePanel from "./PluginProbePanel.vue";
 const { t } = useI18n();
 
 /**
- * @zh 插件详情壳层组件的属性。
- * @en Props for the plugin detail shell component.
+ * Props for the plugin detail shell component.
  */
 const props = defineProps<{
-  /** @zh 插件详情读模型。 @en Plugin detail read model. */
+  /** Plugin detail read model. */
   detail: NonNullPluginDetail;
-  /** @zh 最近一次检测结果。 @en Latest probe result. */
+  /** Latest probe result. */
   probeResult: PluginProbeResult | null;
-  /** @zh 生命周期动作是否进行中。 @en Whether a lifecycle action is in progress. */
+  /** Whether a lifecycle action is in progress. */
   isBusy: boolean;
-  /** @zh 保存请求是否进行中。 @en Whether a save request is in progress. */
+  /** Whether a save request is in progress. */
   isSaving: boolean;
-  /** @zh 检测请求是否进行中。 @en Whether a probe request is in progress. */
+  /** Whether a probe request is in progress. */
   isProbing: boolean;
 }>();
 
 /**
- * @zh 插件详情壳层组件触发的事件。
- * @en Events emitted by the plugin detail shell component.
+ * Events emitted by the plugin detail shell component.
  */
 const emit = defineEmits<{
-  /** @zh 安装插件。 @en Install the plugin. */
+  /** Install the plugin. */
   install: [];
-  /** @zh 卸载插件。 @en Uninstall the plugin. */
+  /** Uninstall the plugin. */
   uninstall: [];
-  /** @zh 重载插件。 @en Reload the plugin. */
+  /** Reload the plugin. */
   reload: [];
-  /** @zh 保存插件配置。 @en Save plugin configuration. */
+  /** Save plugin configuration. */
   saveConfig: [value: NonNullJSONType, expectedUpdatedAt: string | null];
-  /** @zh 检测候选配置。 @en Probe candidate configuration. */
+  /** Probe candidate configuration. */
   probeCandidate: [value: NonNullJSONType];
-  /** @zh 检测当前运行配置。 @en Probe the current runtime configuration. */
+  /** Probe the current runtime configuration. */
   probeRuntime: [];
-  /** @zh 取消检测。 @en Cancel the running probe. */
+  /** Cancel the running probe. */
   cancelProbe: [];
 }>();
 

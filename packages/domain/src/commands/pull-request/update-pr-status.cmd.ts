@@ -15,8 +15,7 @@ export const UpdatePRStatusCommandSchema = z.object({
 export type UpdatePRStatusCommand = z.infer<typeof UpdatePRStatusCommandSchema>;
 
 /**
- * @zh 更新 PR 状态（DRAFT→OPEN→REVIEW→MERGED/CLOSED 等流转）。
- * @en Update PR status (state machine transitions: DRAFT→OPEN→REVIEW→MERGED/CLOSED etc.).
+ * Update PR status (state machine transitions: DRAFT→OPEN→REVIEW→MERGED/CLOSED etc.).
  */
 export const updatePRStatus: Command<
   UpdatePRStatusCommand,

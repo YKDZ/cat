@@ -22,8 +22,7 @@ export type CountContentNodeTranslationsQuery = z.infer<
 >;
 
 /**
- * @zh 统计内容节点下指定语言的翻译数量。
- * @en Count translations for a given language under a content node.
+ * Count translations for a given language under a content node.
  */
 export const countContentNodeTranslations: Query<
   CountContentNodeTranslationsQuery,

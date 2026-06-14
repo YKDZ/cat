@@ -18,12 +18,11 @@ export type PersistContentGraphAttachmentsOutput = {
 };
 
 /**
- * @zh 持久化结构化内容图中的关系和上下文证据。
  *
  * 在 diff 创建/更新元素后，将 payload.relations 和 payload.evidence
  * 解析为数据库行并持久化。
  *
- * @en Persist relations and context evidence from a structured content graph payload.
+ * Persist relations and context evidence from a structured content graph payload.
  *
  * After element diff creates/updates elements, resolves payload.relations
  * and payload.evidence endpoint refs to database IDs and persists them.

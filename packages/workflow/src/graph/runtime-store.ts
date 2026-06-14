@@ -32,10 +32,9 @@ export const getStoredGraphRuntime = (): StoredGraphRuntime => {
 };
 
 /**
- * @zh 获取全局 graph runtime；若尚未初始化则返回 `null`。
- * @en Get the global graph runtime, or return `null` when it has not been initialized yet.
+ * Get the global graph runtime, or return `null` when it has not been initialized yet.
  *
- * @returns - {@zh 已存储的 runtime 或 `null`} {@en Stored runtime or `null`}
+ * @returns - Stored runtime or `null`
  */
 export const getStoredGraphRuntimeOrNull = (): StoredGraphRuntime | null => {
   return storedRuntime;

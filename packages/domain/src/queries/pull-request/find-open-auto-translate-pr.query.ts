@@ -18,8 +18,7 @@ export type OpenAutoTranslatePR = {
 };
 
 /**
- * @zh 查找指定语言当前开放中的 AUTO_TRANSLATE PR。
- * @en Find the currently open AUTO_TRANSLATE PR for the given language.
+ * Find the currently open AUTO_TRANSLATE PR for the given language.
  */
 export const findOpenAutoTranslatePR: Query<
   FindOpenAutoTranslatePRQuery,

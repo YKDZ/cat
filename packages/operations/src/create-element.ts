@@ -38,17 +38,16 @@ export type CreateElementInput = z.infer<typeof CreateElementInputSchema>;
 export type CreateElementOutput = z.infer<typeof CreateElementOutputSchema>;
 
 /**
- * @zh 创建可翻译元素。
  *
  * 先创建 TranslatableString（含向量化），然后插入 TranslatableElement 行。
- * @en Create translatable elements.
+ * Create translatable elements.
  *
  * First creates TranslatableStrings (with vectorization), then inserts
  * the corresponding TranslatableElement rows.
  *
- * @param data - {@zh 元素创建输入参数} {@en Element creation input parameters}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 新创建的元素 ID 列表} {@en List of IDs of the newly created elements}
+ * @param data - Element creation input parameters
+ * @param ctx - Operation context
+ * @returns - List of IDs of the newly created elements
  */
 export const createElementOp = async (
   data: CreateElementInput,

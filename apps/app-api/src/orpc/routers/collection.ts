@@ -14,8 +14,7 @@ import * as z from "zod";
 import { authed, checkPermission } from "@/orpc/server";
 
 /**
- * @zh 采集入库：接受 CollectionPayload，执行完整入库流程。
- * @en Ingest collection: accept CollectionPayload, run full ingestion pipeline.
+ * Ingest collection: accept CollectionPayload, run full ingestion pipeline.
  */
 export const ingest = authed
   .input(StructuredContentPayloadSchema)
@@ -52,8 +51,7 @@ export const ingest = authed
   });
 
 /**
- * @zh 获取 presigned URL 用于上传文件类上下文（截图等）。
- * @en Get presigned URL for uploading file-based contexts (screenshots, etc.).
+ * Get presigned URL for uploading file-based contexts (screenshots, etc.).
  */
 export const prepareUpload = authed
   .input(
@@ -100,8 +98,7 @@ export const prepareUpload = authed
   });
 
 /**
- * @zh 完成 presigned 上传：校验会话、计算哈希、去重、激活文件。
- * @en Finish presigned upload: validate session, compute hash, deduplicate, activate file.
+ * Finish presigned upload: validate session, compute hash, deduplicate, activate file.
  */
 export const finishUpload = authed
   .input(
@@ -137,8 +134,7 @@ const HighlightRegionSchema = z.object({
 });
 
 /**
- * @zh 为元素附加截图上下文证据。
- * @en Attach screenshot context evidence to elements.
+ * Attach screenshot context evidence to elements.
  */
 export const addScreenshotEvidence = authed
   .input(

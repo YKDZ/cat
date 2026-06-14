@@ -278,18 +278,16 @@ onUnmounted(() => {
 // ─── Public API (exposed for parent components) ───
 
 /**
- * @zh 聚焦编辑器。
- * @en Focus the editor.
+ * Focus the editor.
  */
 const focus = () => {
   editorView?.focus();
 };
 
 /**
- * @zh 获取当前光标位置。
- * @en Get the current cursor position.
+ * Get the current cursor position.
  *
- * @returns - {@zh 当前光标位置} {@en Current cursor position}
+ * @returns - Current cursor position
  */
 const getCursorPosition = () => {
   return editorView?.state.selection.main.head ?? 0;

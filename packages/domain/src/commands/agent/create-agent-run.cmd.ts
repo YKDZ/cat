@@ -7,18 +7,15 @@ import type { Command } from "@/types";
 
 export const CreateAgentRunCommandSchema = z.object({
   /**
-   * @zh 对应的 agentSession 外部 UUID
-   * @en Corresponding agentSession external UUID
+   * Corresponding agentSession external UUID
    */
   sessionId: z.uuidv4(),
   /**
-   * @zh 图定义（GraphDefinition JSON）
-   * @en Graph definition (GraphDefinition JSON)
+   * Graph definition (GraphDefinition JSON)
    */
   graphDefinition: nonNullSafeZDotJson,
   /**
-   * @zh 去重键（可选，用于幂等性保证）
-   * @en Deduplication key (optional, for idempotency)
+   * Deduplication key (optional, for idempotency)
    */
   deduplicationKey: z.string().optional(),
 });
@@ -26,15 +23,14 @@ export const CreateAgentRunCommandSchema = z.object({
 export type CreateAgentRunCommand = z.infer<typeof CreateAgentRunCommandSchema>;
 
 export type CreateAgentRunResult = {
-  /** @zh 新创建的 agentRun 外部 UUID @en External UUID of the new agentRun */
+  /** External UUID of the new agentRun */
   runId: string;
-  /** @zh 新创建的 agentRun 内部 ID @en Internal ID of the new agentRun */
+  /** Internal ID of the new agentRun */
   runDbId: number;
 };
 
 /**
- * @zh 创建新的 AgentRun 并更新 AgentSession.currentRunId。
- * @en Create a new AgentRun and update AgentSession.currentRunId.
+ * Create a new AgentRun and update AgentSession.currentRunId.
  */
 export const createAgentRun: Command<
   CreateAgentRunCommand,

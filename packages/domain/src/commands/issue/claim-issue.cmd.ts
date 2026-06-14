@@ -23,8 +23,7 @@ export type ClaimIssueResult = {
 } | null;
 
 /**
- * @zh 原子性地接取项目内首个符合 claimPolicy 的 OPEN Issue（FOR UPDATE SKIP LOCKED）。
- * @en Atomically claims the first OPEN issue matching claimPolicy in the project (FOR UPDATE SKIP LOCKED).
+ * Atomically claims the first OPEN issue matching claimPolicy in the project (FOR UPDATE SKIP LOCKED).
  *
  * Returns null if no claimable issue is available.
  */

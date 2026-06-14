@@ -1,6 +1,5 @@
 /**
- * @zh 字段级变更描述
- * @en Field-level change description
+ * Field-level change description
  */
 export interface FieldChange {
   path: string;
@@ -11,8 +10,7 @@ export interface FieldChange {
 }
 
 /**
- * @zh diff 计算结果
- * @en Diff computation result
+ * Diff computation result
  */
 export interface DiffResult {
   entityType: string;
@@ -22,8 +20,7 @@ export interface DiffResult {
 }
 
 /**
- * @zh 实体 diff 策略接口
- * @en Entity diff strategy interface
+ * Entity diff strategy interface
  */
 export interface DiffStrategy<T = unknown> {
   diff(before: T | null, after: T | null): DiffResult;

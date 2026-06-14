@@ -17,8 +17,7 @@ export type CreateProjectTranslationSnapshotCommand = z.infer<
 >;
 
 /**
- * @zh 为项目创建翻译快照，记录当前所有已审批的翻译。
- * @en Create a translation snapshot for the project, recording all currently approved translations.
+ * Create a translation snapshot for the project, recording all currently approved translations.
  * @returns The snapshot ID.
  */
 export const createProjectTranslationSnapshot: Command<

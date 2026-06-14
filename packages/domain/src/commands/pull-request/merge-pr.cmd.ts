@@ -16,8 +16,7 @@ export const MergePRCommandSchema = z.object({
 export type MergePRCommand = z.infer<typeof MergePRCommandSchema>;
 
 /**
- * @zh 合并 PR：设置 PR 状态为 MERGED，并将关联分支状态设为 MERGED。触发 pr:merged 事件。
- * @en Merge a PR: set PR status to MERGED and update associated branch to MERGED. Fires pr:merged event.
+ * Merge a PR: set PR status to MERGED and update associated branch to MERGED. Fires pr:merged event.
  */
 export const mergePR: Command<
   MergePRCommand,

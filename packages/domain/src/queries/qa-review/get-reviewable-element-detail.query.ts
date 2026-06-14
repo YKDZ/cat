@@ -144,12 +144,11 @@ const resolveApprovedTranslationForQaDetail = async (
 };
 
 /**
- * @zh 获取 QA 审校元素详情（包含所有待审候选与批准态）。
- * @en Get QA reviewable element detail including all pending candidates and approval state.
+ * Get QA reviewable element detail including all pending candidates and approval state.
  *
- * @param ctx - {@zh 查询上下文} {@en Query context}
- * @param input - {@zh 查询输入} {@en Query input}
- * @returns - {@zh 元素详情或空} {@en Element detail or null}
+ * @param ctx - Query context
+ * @param input - Query input
+ * @returns - Element detail or null
  */
 export const getQaReviewableElementDetail: Query<
   GetQaReviewableElementDetailQuery,

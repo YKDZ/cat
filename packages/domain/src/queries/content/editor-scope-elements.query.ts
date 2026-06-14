@@ -23,20 +23,17 @@ import {
 } from "./element-priority";
 
 /**
- * @zh 编辑器作用域分页元素查询 Schema。
- * @en Schema for paginated editor-scope element queries.
+ * Schema for paginated editor-scope element queries.
  */
 export const ListEditorScopeElementsQuerySchema = EditorElementQuerySchema;
 
 /**
- * @zh 编辑器作用域分页元素查询类型。
- * @en Type for paginated editor-scope element queries.
+ * Type for paginated editor-scope element queries.
  */
 export type ListEditorScopeElementsQuery = EditorElementQuery;
 
 /**
- * @zh 编辑器作用域元素计数查询 Schema。
- * @en Schema for editor-scope element count queries.
+ * Schema for editor-scope element count queries.
  */
 export const CountEditorScopeElementsQuerySchema =
   EditorElementQuerySchema.omit({
@@ -45,8 +42,7 @@ export const CountEditorScopeElementsQuerySchema =
   });
 
 /**
- * @zh 编辑器作用域元素计数查询类型。
- * @en Type for editor-scope element count queries.
+ * Type for editor-scope element count queries.
  */
 export type CountEditorScopeElementsQuery = Omit<
   EditorElementQuery,
@@ -54,28 +50,24 @@ export type CountEditorScopeElementsQuery = Omit<
 >;
 
 /**
- * @zh 获取编辑器作用域首个元素查询 Schema。
- * @en Schema for fetching the first matching element in an editor scope.
+ * Schema for fetching the first matching element in an editor scope.
  */
 export const GetEditorScopeFirstElementQuerySchema =
   EditorFirstElementQuerySchema;
 
 /**
- * @zh 获取编辑器作用域首个元素查询类型。
- * @en Type for fetching the first matching element in an editor scope.
+ * Type for fetching the first matching element in an editor scope.
  */
 export type GetEditorScopeFirstElementQuery = EditorFirstElementQuery;
 
 /**
- * @zh 获取编辑器作用域元素页码索引查询 Schema。
- * @en Schema for editor-scope element page-index queries.
+ * Schema for editor-scope element page-index queries.
  */
 export const GetEditorScopeElementPageIndexQuerySchema =
   EditorElementPageIndexQuerySchema;
 
 /**
- * @zh 获取编辑器作用域元素页码索引查询类型。
- * @en Type for editor-scope element page-index queries.
+ * Type for editor-scope element page-index queries.
  */
 export type GetEditorScopeElementPageIndexQuery = EditorElementPageIndexQuery;
 
@@ -475,8 +467,7 @@ const orderedScopeSql = (query: EditorScopeSqlInput) => sql`
 `;
 
 /**
- * @zh 构建 editor scope 元素查询共享的 CTE/过滤 SQL。
- * @en Build the shared CTE/filter SQL used by editor-scope element queries.
+ * Build the shared CTE/filter SQL used by editor-scope element queries.
  */
 export const buildEditorScopeElementFilterSql = (
   query: EditorScopeSqlInput,
@@ -558,8 +549,7 @@ const listReuseFirstRowsOrFallback = async (
 };
 
 /**
- * @zh 按编辑器作用域分页列出元素；空 `contentNodeIds` 表示整个项目。
- * @en List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project.
+ * List elements by editor scope with pagination; an empty `contentNodeIds` means the whole project.
  */
 export const listEditorScopeElements: Query<
   ListEditorScopeElementsQuery,
@@ -582,8 +572,7 @@ export const listEditorScopeElements: Query<
 };
 
 /**
- * @zh 统计编辑器作用域内匹配过滤条件的元素数量。
- * @en Count the elements matching filters inside the editor scope.
+ * Count the elements matching filters inside the editor scope.
  */
 export const countEditorScopeElements: Query<
   CountEditorScopeElementsQuery,
@@ -599,8 +588,7 @@ export const countEditorScopeElements: Query<
 };
 
 /**
- * @zh 获取编辑器作用域内首个匹配元素，或指定元素之后的首个匹配元素。
- * @en Get the first matching element in the editor scope, or the first one after a given element.
+ * Get the first matching element in the editor scope, or the first one after a given element.
  */
 export const getEditorScopeFirstElement: Query<
   GetEditorScopeFirstElementQuery,
@@ -706,8 +694,7 @@ export const getEditorScopeFirstElement: Query<
 };
 
 /**
- * @zh 计算元素在同一编辑器作用域和同一过滤条件下的 0 基页码；不在作用域内时返回 `null`。
- * @en Calculate the zero-based page index of an element under the same editor scope and filters; returns `null` if the element is out of scope.
+ * Calculate the zero-based page index of an element under the same editor scope and filters; returns `null` if the element is out of scope.
  */
 export const getEditorScopeElementPageIndex: Query<
   GetEditorScopeElementPageIndexQuery,

@@ -9,8 +9,7 @@ import { extractFromScript } from "./script-extract.ts";
 import { extractFromTemplate } from "./template-extract.ts";
 
 /**
- * @zh vue-i18n 源码提取器——提取 Vue SFC 和 TS/JS 文件中的 $t()/t() 调用。
- * @en vue-i18n source extractor — extracts $t()/t() calls from Vue SFC and TS/JS files.
+ * vue-i18n source extractor — extracts $t()/t() calls from Vue SFC and TS/JS files.
  */
 export const vueI18nExtractor: SourceExtractor = {
   id: "vue-i18n",
@@ -27,8 +26,7 @@ export const vueI18nExtractor: SourceExtractor = {
 };
 
 /**
- * @zh 从 Vue SFC 文件中提取 i18n 调用。
- * @en Extract i18n calls from a Vue SFC file.
+ * Extract i18n calls from a Vue SFC file.
  */
 function extractFromVueSFC(
   content: string,

@@ -23,8 +23,7 @@ export type ElementForDiff = {
 };
 
 /**
- * @zh 根据 element ID 列表批量获取 diff 视图所需的元素信息。
- * @en Get element data for diff display by a list of element IDs.
+ * Get element data for diff display by a list of element IDs.
  */
 export const listElementsForDiff: Query<
   ListElementsForDiffQuery,

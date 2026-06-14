@@ -2,12 +2,11 @@ import type { DomainEventMap } from "@cat/domain/events";
 
 import { AsyncMessageQueue } from "@cat/server-shared";
 
-/** @zh 通知推送载荷。 @en Notification push payload. */
+/** Notification push payload. */
 export type NotificationPushPayload = DomainEventMap["notification:created"];
 
 /**
- * @zh 站内信连接管理器 — 管理每用户的 AsyncMessageQueue。
- * @en Notification connection manager — manages per-user AsyncMessageQueue instances.
+ * Notification connection manager — manages per-user AsyncMessageQueue instances.
  */
 export class NotificationConnectionManager {
   private readonly connections = new Map<

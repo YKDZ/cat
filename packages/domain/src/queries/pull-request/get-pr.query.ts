@@ -12,8 +12,7 @@ export const GetPRQuerySchema = z.object({
 export type GetPRQuery = z.infer<typeof GetPRQuerySchema>;
 
 /**
- * @zh 按 externalId 获取 PR（含基本信息）。
- * @en Get a PR by externalId.
+ * Get a PR by externalId.
  */
 export const getPR: Query<
   GetPRQuery,

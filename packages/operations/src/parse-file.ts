@@ -34,17 +34,16 @@ export type ParseFileInput = z.infer<typeof ParseFileInputSchema>;
 export type ParseFileOutput = z.infer<typeof ParseFileOutputSchema>;
 
 /**
- * @zh 解析文件内容为结构化内容图载荷。
  *
  * 通过 FILE_IMPORTER 插件解析文件，并组装 StructuredContentPayload。
- * @en Parse file content into a structured content graph payload.
+ * Parse file content into a structured content graph payload.
  *
  * Parses the file via the FILE_IMPORTER plugin and assembles a
  * StructuredContentPayload.
  *
- * @param data - {@zh 解析输入参数} {@en Parse input parameters}
- * @param _ctx - {@zh 操作上下文（未使用）} {@en Operation context (unused)}
- * @returns - {@zh 结构化内容图载荷} {@en Structured content graph payload}
+ * @param data - Parse input parameters
+ * @param _ctx - Operation context (unused)
+ * @returns - Structured content graph payload
  */
 export const parseFileOp = async (
   data: ParseFileInput,

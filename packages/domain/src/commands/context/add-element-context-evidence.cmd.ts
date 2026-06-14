@@ -9,8 +9,7 @@ import * as z from "zod";
 import type { Command } from "@/types";
 
 /**
- * @zh 添加元素上下文证据命令的输入 schema。
- * @en Input schema for adding element context evidence.
+ * Input schema for adding element context evidence.
  */
 export const AddElementContextEvidenceCommandSchema = z.object({
   projectId: z.uuidv4(),
@@ -30,8 +29,7 @@ export const AddElementContextEvidenceCommandSchema = z.object({
 });
 
 /**
- * @zh 添加元素上下文证据命令。
- * @en Command input for adding element context evidence.
+ * Command input for adding element context evidence.
  */
 export type AddElementContextEvidenceCommand = z.infer<
   typeof AddElementContextEvidenceCommandSchema
@@ -42,8 +40,7 @@ export type AddElementContextEvidenceCommandInput = z.input<
 >;
 
 /**
- * @zh 为元素批量添加上下文证据。
- * @en Add context evidence rows for elements in bulk.
+ * Add context evidence rows for elements in bulk.
  */
 export const addElementContextEvidence: Command<
   AddElementContextEvidenceCommandInput,

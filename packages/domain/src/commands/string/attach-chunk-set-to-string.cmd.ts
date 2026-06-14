@@ -17,8 +17,7 @@ export type AttachChunkSetToStringCommand = z.infer<
 >;
 
 /**
- * @zh 将向量化结果（ChunkSet）关联到已有的 VectorizedString 行，并将状态更新为 ACTIVE。
- * @en Attach vectorization results (ChunkSet) to existing VectorizedString rows and set status to ACTIVE.
+ * Attach vectorization results (ChunkSet) to existing VectorizedString rows and set status to ACTIVE.
  */
 export const attachChunkSetToString: Command<
   AttachChunkSetToStringCommand

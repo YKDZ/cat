@@ -30,8 +30,7 @@ export type RunQaReviewForTranslationInput = {
 };
 
 /**
- * @zh 运行翻译的 deterministic/semantic QA 审校管线并物化审校队列。
- * @en Run deterministic/semantic QA review pipeline for a translation and materialize the review queue item.
+ * Run deterministic/semantic QA review pipeline for a translation and materialize the review queue item.
  */
 export const runQaReviewForTranslationOp = async (
   input: RunQaReviewForTranslationInput,

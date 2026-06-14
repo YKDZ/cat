@@ -23,7 +23,6 @@ export type StreamSearchTermsInput = z.input<
 >;
 
 /**
- * @zh 组合术语搜索 — 三通道流式输出。
  *
  * 同时启动三种搜索策略，结果通过 {@link AsyncMessageQueue} 以流的形式推送：
  *
@@ -33,7 +32,7 @@ export type StreamSearchTermsInput = z.input<
  *
  * 三路结果按 `(term text, conceptId)` 复合键全局去重（先到先得）。
  * 返回的 `AsyncIterable` 可直接用 `for await` 消费或在 oRPC async generator 中 yield。
- * @en Combined term search with tri-channel streaming output.
+ * Combined term search with tri-channel streaming output.
  *
  * Launches three search strategies concurrently; results are pushed via
  * {@link AsyncMessageQueue}:
@@ -49,9 +48,9 @@ export type StreamSearchTermsInput = z.input<
  * composite key (first-wins). The returned `AsyncIterable` can be consumed
  * with `for await` or yielded inside an oRPC `async function*`.
  *
- * @param data - {@zh 术语搜索输入参数} {@en Term search input parameters}
- * @param ctx - {@zh 操作上下文} {@en Operation context}
- * @returns - {@zh 异步迭代器，将依次 yield 去重后的术语匹配结果} {@en Async iterable that yields deduplicated term match results}
+ * @param data - Term search input parameters
+ * @param ctx - Operation context
+ * @returns - Async iterable that yields deduplicated term match results
  */
 export const streamSearchTermsOp = (
   data: StreamSearchTermsInput,

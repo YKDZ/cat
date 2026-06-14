@@ -9,48 +9,40 @@ import type { TreeNode } from "./ContentNodeTree.vue";
 const { t } = useI18n();
 
 /**
- * @zh 内容节点树节点属性。
- * @en Props for a content node tree node.
+ * Props for a content node tree node.
  */
 const props = defineProps<{
   /**
-   * @zh 当前树节点。
-   * @en Current tree node.
+   * Current tree node.
    */
   node: TreeNode;
   /**
-   * @zh 当前层级深度。
-   * @en Current depth level.
+   * Current depth level.
    */
   depth: number;
   /**
-   * @zh 已展开节点集合。
-   * @en Expanded node set.
+   * Expanded node set.
    */
   expandedNodes: Set<string>;
 }>();
 
 /**
- * @zh 内容节点树节点事件。
- * @en Emits for a content node tree node.
+ * Emits for a content node tree node.
  */
 const emits = defineEmits<{
   /**
-   * @zh 请求切换节点展开状态。
-   * @en Request toggling the node expansion state.
+   * Request toggling the node expansion state.
    */
   (e: "toggle", nodeId: string): void;
   /**
-   * @zh 点击节点时触发。
-   * @en Emitted when the node is clicked.
+   * Emitted when the node is clicked.
    */
   (e: "click", node: ContentNode): void;
 }>();
 
 defineSlots<{
   /**
-   * @zh 节点右侧操作区插槽。
-   * @en Actions slot rendered on the right side of the node.
+   * Actions slot rendered on the right side of the node.
    */
   actions(props: { node: ContentNode }): unknown;
 }>();

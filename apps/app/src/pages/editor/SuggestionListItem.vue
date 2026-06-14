@@ -21,19 +21,16 @@ const writeCapability = useProjectWriteCapabilityStore();
 const { canWrite, disabledReason } = storeToRefs(writeCapability);
 
 /**
- * @zh 建议列表项属性。
- * @en Props for a suggestion list item.
+ * Props for a suggestion list item.
  */
 const props = defineProps<{
   /**
-   * @zh 当前建议数据。
-   * @en Current suggestion data.
+   * Current suggestion data.
    */
   suggestion: TranslationSuggestion;
 
   /**
-   * @zh 当前建议在列表中的索引。
-   * @en Zero-based index of the current suggestion in the list.
+   * Zero-based index of the current suggestion in the list.
    */
   index: number;
 }>();

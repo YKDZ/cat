@@ -18,8 +18,7 @@ export type UpdatePrimaryElementRelationsForDiffCommand = z.infer<
 >;
 
 /**
- * @zh 为稳定身份差分更新元素的主包含关系。
- * @en Update primary containment relations for stable-identity diffs.
+ * Update primary containment relations for stable-identity diffs.
  */
 export const updatePrimaryElementRelationsForDiff: Command<
   UpdatePrimaryElementRelationsForDiffCommand

@@ -16,8 +16,7 @@ export type ClaimQaReviewQueueItemCommand = z.infer<
 >;
 
 /**
- * @zh 将审校队列项标记为已认领，并记录认领人。
- * @en Mark a QA review queue item as claimed and record the claimant.
+ * Mark a QA review queue item as claimed and record the claimant.
  */
 export const claimQaReviewQueueItem: Command<
   ClaimQaReviewQueueItemCommand,

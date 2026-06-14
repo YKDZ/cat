@@ -5,8 +5,7 @@ import * as z from "zod";
 
 const issueClaimArgs = z.object({
   /**
-   * @zh 领取者 Agent ID（使用 session 中的 agentId 即可，无需显式传入）
-   * @en Claimant agent ID (defaults to session agentId; no need to pass explicitly)
+   * Claimant agent ID (defaults to session agentId; no need to pass explicitly)
    */
   agentId: z
     .int()
@@ -18,11 +17,10 @@ const issueClaimArgs = z.object({
 });
 
 /**
- * @zh issue_claim 工具: 原子性领取当前项目的首个可用 Issue。
  * - Trust 模式: 仅领取 Issue，不创建 PR。
  * - Isolation 模式: 领取 Issue + 自动创建 PR + 关联 Issue。
  *
- * @en issue_claim tool: atomically claim the first available Issue in the project.
+ * issue_claim tool: atomically claim the first available Issue in the project.
  * - Trust mode: claim issue only, no PR created.
  * - Isolation mode: claim issue + auto-create PR + link to issue.
  */

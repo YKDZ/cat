@@ -5,16 +5,14 @@ import * as z from "zod";
 
 const finishArgs = z.object({
   /**
-   * @zh 会话外部 UUID（agentSession.externalId）
-   * @en Session external UUID (agentSession.externalId)
+   * Session external UUID (agentSession.externalId)
    */
   sessionId: z
     .uuid()
     .optional()
     .describe("External UUID of the current agent session"),
   /**
-   * @zh 完成原因说明（供日志和审计使用）
-   * @en Completion reason (for logging and audit)
+   * Completion reason (for logging and audit)
    */
   reason: z
     .string()
@@ -23,8 +21,7 @@ const finishArgs = z.object({
 });
 
 /**
- * @zh finish 工具: 宣告 Agent 任务完成，结束 DAG 循环。
- * @en finish tool: signal task completion and exit the DAG loop.
+ * finish tool: signal task completion and exit the DAG loop.
  */
 export const finishTool: AgentToolDefinition = {
   name: "finish",

@@ -22,8 +22,7 @@ export type AutoApproveContentNodeTranslationsCommand = z.infer<
 >;
 
 /**
- * @zh 自动批准指定内容节点下所有元素在目标语言中的最新翻译。
- * @en Auto-approve the latest translation for each element under a content node in the target language.
+ * Auto-approve the latest translation for each element under a content node in the target language.
  * @returns Number of elements approved.
  */
 export const autoApproveContentNodeTranslations: Command<

@@ -10,11 +10,10 @@ import {
 } from "@cat/domain";
 
 /**
- * @zh 在分支上下文中读取实体：先查分支内最近的变更 entry，再回落到 main 数据。
  * 如果分支内有 DELETE 记录，返回 null（表示被删除）。
  * 如果分支内有 CREATE/UPDATE 记录，返回 after 数据。
  * 如果分支内无变更，返回 null（调用方负责从 main 读取）。
- * @en Reads an entity in branch context: checks the most recent branch changeset entry first,
+ * Reads an entity in branch context: checks the most recent branch changeset entry first,
  * then falls back to main data.
  * Returns null if deleted in branch, or if no branch changes exist (caller reads from main).
  */
@@ -61,8 +60,7 @@ export async function readWithOverlay<T extends Record<string, unknown>>(
 }
 
 /**
- * @zh 列表查询的 overlay：将 main 数据与分支变更合并（CREATE 追加，DELETE 剔除，UPDATE 覆盖）。
- * @en List query overlay: merges main data with branch changes
+ * List query overlay: merges main data with branch changes
  * (CREATE appended, DELETE removed, UPDATE overwritten).
  */
 export async function listWithOverlay<T extends Record<string, unknown>>(
@@ -133,8 +131,7 @@ export async function listWithOverlay<T extends Record<string, unknown>>(
 }
 
 /**
- * @zh 获取分支关联的最新 changeset ID（用于向该 changeset 写入 entry）。
- * @en Gets the latest changeset ID associated with the given branch.
+ * Gets the latest changeset ID associated with the given branch.
  */
 export async function getBranchChangesetId(
   db: DbHandle,
@@ -144,8 +141,7 @@ export async function getBranchChangesetId(
 }
 
 /**
- * @zh 获取分支的 baseChangesetId。
- * @en Gets the baseChangesetId of a branch.
+ * Gets the baseChangesetId of a branch.
  */
 export async function getBranchBaseChangesetId(
   db: DbHandle,

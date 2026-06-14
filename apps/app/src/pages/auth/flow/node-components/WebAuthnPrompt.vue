@@ -2,13 +2,11 @@
 import { useI18n } from "vue-i18n";
 
 /**
- * @zh WebAuthnPrompt 的 props（预留）。
- * @en Props for the WebAuthnPrompt node component (reserved for future use).
+ * Props for the WebAuthnPrompt node component (reserved for future use).
  */
 defineProps<{
   /**
-   * @zh 来自认证流节点的客户端提示信息。
-   * @en Client hint from the auth flow node.
+   * Client hint from the auth flow node.
    */
   hint?: {
     displayInfo?: {
@@ -19,8 +17,7 @@ defineProps<{
 }>();
 
 /**
- * @zh 用户完成 WebAuthn 验证时触发。
- * @en Emitted when user completes WebAuthn authentication.
+ * Emitted when user completes WebAuthn authentication.
  */
 defineEmits<{
   (e: "submit", data: Record<string, unknown>): void;

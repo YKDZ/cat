@@ -27,8 +27,7 @@ export type CreateQaReviewAnnotationCommand = z.infer<
 >;
 
 /**
- * @zh 在审校队列项下创建一条批注，并同步更新队列活动计数。
- * @en Create an annotation under a QA review queue item and update queue activity counters.
+ * Create an annotation under a QA review queue item and update queue activity counters.
  */
 export const createQaReviewAnnotation: Command<
   CreateQaReviewAnnotationCommand,

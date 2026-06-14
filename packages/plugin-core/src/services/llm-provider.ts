@@ -6,14 +6,12 @@ import type { IPluginService } from "@/services/service";
 // ─── Chat Message Types ───
 
 /**
- * @zh 聊天消息角色。
- * @en Chat message role.
+ * Chat message role.
  */
 export type ChatMessageRole = "system" | "user" | "assistant" | "tool";
 
 /**
- * @zh 聊天消息。
- * @en A chat message in a conversation.
+ * A chat message in a conversation.
  */
 export type ChatMessage = {
   role: ChatMessageRole;
@@ -33,8 +31,7 @@ export type ChatMessage = {
 // ─── Tool Types ───
 
 /**
- * @zh 工具定义（JSON Schema 描述参数）。
- * @en Tool definition with JSON Schema parameters.
+ * Tool definition with JSON Schema parameters.
  */
 export type ToolDefinition = {
   name: string;
@@ -44,8 +41,7 @@ export type ToolDefinition = {
 };
 
 /**
- * @zh LLM 发起的工具调用。
- * @en A tool call initiated by the LLM.
+ * A tool call initiated by the LLM.
  */
 export type ToolCall = {
   id: string;
@@ -57,8 +53,7 @@ export type ToolCall = {
 // ─── Request / Response Types ───
 
 /**
- * @zh 聊天补全请求参数（纯 AsyncIterable 模式，无 onChunk 回调）。
- * @en Chat completion request parameters (pure AsyncIterable mode, no onChunk callback).
+ * Chat completion request parameters (pure AsyncIterable mode, no onChunk callback).
  */
 export type ChatCompletionRequest = {
   messages: ChatMessage[];
@@ -76,8 +71,7 @@ export type ChatCompletionRequest = {
 };
 
 /**
- * @zh 聊天完成的终止原因。
- * @en Finish reason for a chat completion.
+ * Finish reason for a chat completion.
  */
 export type ChatCompletionFinishReason =
   | "stop"
@@ -86,8 +80,7 @@ export type ChatCompletionFinishReason =
   | "error";
 
 /**
- * @zh 聊天补全的 Token 使用量。
- * @en Token usage for a chat completion.
+ * Token usage for a chat completion.
  */
 export type ChatCompletionUsage = {
   promptTokens: number;
@@ -95,8 +88,7 @@ export type ChatCompletionUsage = {
 };
 
 /**
- * @zh LLM 流式输出的单个 Chunk 联合类型。
- * @en Union type for a single chunk from LLM streaming output.
+ * Union type for a single chunk from LLM streaming output.
  */
 export type LLMChunk =
   | { type: "text_delta"; textDelta: string }
@@ -116,8 +108,7 @@ export type LLMChunk =
 // ─── Abstract LLMProvider Service ───
 
 /**
- * @zh 抽象 LLM Provider 基类，所有 LLM Provider 插件必须继承此类。
- * @en Abstract LLM Provider base class; all LLM provider plugins must extend this.
+ * Abstract LLM Provider base class; all LLM provider plugins must extend this.
  */
 export abstract class LLMProvider implements IPluginService {
   abstract getId(): string;
@@ -130,8 +121,7 @@ export abstract class LLMProvider implements IPluginService {
   abstract getModelName(): string;
 
   /**
-   * @zh 执行聊天补全请求，返回 AsyncIterable Chunk 流。
-   * @en Execute a chat completion request, returning an AsyncIterable chunk stream.
+   * Execute a chat completion request, returning an AsyncIterable chunk stream.
    */
   abstract chat(request: ChatCompletionRequest): AsyncIterable<LLMChunk>;
 }
