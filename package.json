@@ -19,7 +19,7 @@
     "@vitest/ui": "^4.1.7",
     "@vue/test-utils": "^2.4.10",
     "jiti": "^2.7.0",
-    "oxfmt": "^0.51.0",
+    "oxfmt": "^0.55.0",
     "oxlint": "^1.66.0",
     "oxlint-tsgolint": "^0.23.0",
     "pino-pretty": "^13.1.3",
