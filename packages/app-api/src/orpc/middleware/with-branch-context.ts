@@ -14,12 +14,7 @@ type BranchAwareContext = {
 };
 
 /**
- * @zh 提取并验证 branchId，将分支上下文注入到 context 中。
- * branchId 存在时验证 branch 状态和权限，并注入 branchId/branchChangesetId/branchProjectId。
- * branchId 不存在时，若 projectId 有 isolation_forced 则返回 403。
- * 当 input 中未提供 branchId 时，会尝试从请求头读取成对的
- * x-branch-id / x-branch-project-id，并校验分支与项目归属一致。
- * @en Extracts and validates branchId, injecting branch context into the handler context.
+ * Extracts and validates branchId, injecting branch context into the handler context.
  * When branchId is present, validates branch status and permissions.
  * When absent, returns 403 if the project has isolation_forced.
  * When branchId is not in input, it can fall back to paired

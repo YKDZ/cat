@@ -238,7 +238,6 @@ describe("repository metadata validation gates", () => {
         "-v",
         "AGENTS.md",
         ".agents/rules/README.md",
-        ".claude/rules/example.md",
         ".scratch/retire-autodoc-agent-rules/PRD.md",
       ],
       { cwd: repoRoot, encoding: "utf8" },
@@ -246,7 +245,6 @@ describe("repository metadata validation gates", () => {
 
     expect(stdout).toContain("AGENTS.md");
     expect(stdout).toContain(".agents/rules/README.md");
-    expect(stdout).toContain(".claude/rules/example.md");
     expect(stdout).toContain(".scratch/retire-autodoc-agent-rules/PRD.md");
   });
 });

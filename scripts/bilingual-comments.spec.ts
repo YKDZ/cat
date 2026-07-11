@@ -248,9 +248,9 @@ describe("bilingual comment cleanup", () => {
 
   it("keeps retained cleanup comments free of Chinese bilingual text", async () => {
     const retainedCommentCleanupFiles = [
-      "apps/app-api/src/orpc/middleware/with-branch-context.ts",
-      "apps/app-api/src/orpc/routers/qa-review.ts",
-      "apps/app-api/src/orpc/routers/translation.schemas.ts",
+      "packages/app-api/src/orpc/middleware/with-branch-context.ts",
+      "packages/app-api/src/orpc/routers/qa-review.ts",
+      "packages/app-api/src/orpc/routers/translation.schemas.ts",
       "packages/vcs/src/strategies/term.diff.ts",
       "packages/vcs/src/vcs-middleware.ts",
       "packages/workflow/src/graph/vcs-write-helper.ts",
