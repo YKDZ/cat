@@ -128,7 +128,7 @@ catalog:
   playwright: ^1.60.0
   qrcode: ^1.5.4
   redis: ^6.0.0
-  reka-ui: ^2.9.10
+  reka-ui: ^2.10.1
   remark-frontmatter: ^5.0.0
   remark-gfm: ^4.0.1
   remark-parse: ^11.0.0
