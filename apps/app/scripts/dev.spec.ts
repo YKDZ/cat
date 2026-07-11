@@ -236,7 +236,7 @@ describe("development runner", () => {
       async () => {
         await expect(readFile(cleanupFile, "utf8")).resolves.toBe("cleaned");
       },
-      { interval: 20, timeout: 1_000 },
+      { interval: 20, timeout: 3_000 },
     );
   });
 

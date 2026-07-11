@@ -11,7 +11,6 @@ export default defineConfig({
     "**/schema/generated/**",
     "**/schema/drizzle/**",
     "**/*.generated.ts",
-    ".symbol-index.json",
   ],
   sortImports: {},
   sortPackageJson: {
