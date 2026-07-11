@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
 import { telefunc } from "telefunc/vite";
@@ -40,6 +42,15 @@ export default defineConfig({
   },
 
   resolve: {
+    alias: [
+      {
+        find: /^@cat-plugin\/([^/]+)$/,
+        replacement: resolve(
+          import.meta.dirname,
+          "../../@cat-plugin/$1/src/index.ts",
+        ),
+      },
+    ],
     conditions: ["source"],
   },
 
