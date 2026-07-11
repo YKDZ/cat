@@ -49,7 +49,7 @@ describe("@cat/plugin-core workspace exports", () => {
 
     expect(manifest.exports["."]?.types).toBe("./src/index.ts");
     expect(manifest.exports["./client"]?.types).toBe("./src/client/index.ts");
-    expect(manifest.exports["."]?.import).toBe("./src/index.ts");
+    expect(manifest.exports["."]?.import).toBe("./dist/index.js");
     expect(manifest.publishConfig.exports["."]?.types).toBe(
       "./dist/index.d.ts",
     );
@@ -70,8 +70,8 @@ describe("@cat/plugin-core workspace exports", () => {
     },
   );
 
-  it("uses source by default inside the workspace", () => {
-    expect(resolveFromApp("@cat/plugin-core").endsWith("/src/index.ts")).toBe(
+  it("keeps the default export on compiled output", () => {
+    expect(resolveFromApp("@cat/plugin-core").endsWith("/dist/index.js")).toBe(
       true,
     );
   });

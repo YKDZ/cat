@@ -833,44 +833,44 @@ importers:
   apps/app:
     dependencies:
       '@cat-plugin/basic-qa-checker':
-        specifier: workspace:*
-        version: file:@cat-plugin/basic-qa-checker(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/basic-qa-checker
+        version: link:../../@cat-plugin/basic-qa-checker
       '@cat-plugin/basic-tokenizer':
-        specifier: workspace:*
-        version: file:@cat-plugin/basic-tokenizer(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/basic-tokenizer
+        version: link:../../@cat-plugin/basic-tokenizer
       '@cat-plugin/json-file-handler':
-        specifier: workspace:*
-        version: file:@cat-plugin/json-file-handler(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/json-file-handler
+        version: link:../../@cat-plugin/json-file-handler
       '@cat-plugin/libretranslate-advisor':
-        specifier: workspace:*
-        version: file:@cat-plugin/libretranslate-advisor(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/libretranslate-advisor
+        version: link:../../@cat-plugin/libretranslate-advisor
       '@cat-plugin/local-storage-provider':
-        specifier: workspace:*
-        version: file:@cat-plugin/local-storage-provider(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/local-storage-provider
+        version: link:../../@cat-plugin/local-storage-provider
       '@cat-plugin/markdown-file-handler':
-        specifier: workspace:*
-        version: file:@cat-plugin/markdown-file-handler(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/markdown-file-handler
+        version: link:../../@cat-plugin/markdown-file-handler
       '@cat-plugin/openai-llm-provider':
-        specifier: workspace:*
-        version: file:@cat-plugin/openai-llm-provider(@cat/plugin-core@packages+plugin-core)(ws@8.21.0)
+        specifier: link:../../@cat-plugin/openai-llm-provider
+        version: link:../../@cat-plugin/openai-llm-provider
       '@cat-plugin/openai-vectorizer':
-        specifier: workspace:*
-        version: file:@cat-plugin/openai-vectorizer(@cat/plugin-core@packages+plugin-core)(ws@8.21.0)
+        specifier: link:../../@cat-plugin/openai-vectorizer
+        version: link:../../@cat-plugin/openai-vectorizer
       '@cat-plugin/password-auth-provider':
-        specifier: workspace:*
-        version: file:@cat-plugin/password-auth-provider(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/password-auth-provider
+        version: link:../../@cat-plugin/password-auth-provider
       '@cat-plugin/spacy-segmenter':
-        specifier: workspace:*
-        version: file:@cat-plugin/spacy-segmenter(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/spacy-segmenter
+        version: link:../../@cat-plugin/spacy-segmenter
       '@cat-plugin/tei-rerank-provider':
-        specifier: workspace:*
-        version: file:@cat-plugin/tei-rerank-provider(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/tei-rerank-provider
+        version: link:../../@cat-plugin/tei-rerank-provider
       '@cat-plugin/tiny-widget':
-        specifier: workspace:*
-        version: file:@cat-plugin/tiny-widget(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/tiny-widget
+        version: link:../../@cat-plugin/tiny-widget
       '@cat-plugin/yaml-file-handler':
-        specifier: workspace:*
-        version: file:@cat-plugin/yaml-file-handler(@cat/plugin-core@packages+plugin-core)
+        specifier: link:../../@cat-plugin/yaml-file-handler
+        version: link:../../@cat-plugin/yaml-file-handler
       '@cat/agent':
         specifier: link:../../packages/agent
         version: link:../../packages/agent
@@ -2363,71 +2363,6 @@ packages:
 
   '@brillout/vite-plugin-server-entry@0.7.18':
     resolution: {integrity: sha512-j3neG+vaIZ2AbP2/vGgaIyJwrFIxlK3xd3Ey2EGBswCvAGeI4QSSfXGbb7R3b3H8223PgTTsWOZuZH0Y8Ope2w==}
-
-  '@cat-plugin/basic-qa-checker@file:@cat-plugin/basic-qa-checker':
-    resolution: {directory: '@cat-plugin/basic-qa-checker', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/basic-tokenizer@file:@cat-plugin/basic-tokenizer':
-    resolution: {directory: '@cat-plugin/basic-tokenizer', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/json-file-handler@file:@cat-plugin/json-file-handler':
-    resolution: {directory: '@cat-plugin/json-file-handler', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/libretranslate-advisor@file:@cat-plugin/libretranslate-advisor':
-    resolution: {directory: '@cat-plugin/libretranslate-advisor', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/local-storage-provider@file:@cat-plugin/local-storage-provider':
-    resolution: {directory: '@cat-plugin/local-storage-provider', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/markdown-file-handler@file:@cat-plugin/markdown-file-handler':
-    resolution: {directory: '@cat-plugin/markdown-file-handler', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/openai-llm-provider@file:@cat-plugin/openai-llm-provider':
-    resolution: {directory: '@cat-plugin/openai-llm-provider', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/openai-vectorizer@file:@cat-plugin/openai-vectorizer':
-    resolution: {directory: '@cat-plugin/openai-vectorizer', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/password-auth-provider@file:@cat-plugin/password-auth-provider':
-    resolution: {directory: '@cat-plugin/password-auth-provider', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/spacy-segmenter@file:@cat-plugin/spacy-segmenter':
-    resolution: {directory: '@cat-plugin/spacy-segmenter', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/tei-rerank-provider@file:@cat-plugin/tei-rerank-provider':
-    resolution: {directory: '@cat-plugin/tei-rerank-provider', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/tiny-widget@file:@cat-plugin/tiny-widget':
-    resolution: {directory: '@cat-plugin/tiny-widget', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
-
-  '@cat-plugin/yaml-file-handler@file:@cat-plugin/yaml-file-handler':
-    resolution: {directory: '@cat-plugin/yaml-file-handler', type: directory}
-    peerDependencies:
-      '@cat/plugin-core': workspace:*
 
   '@chevrotain/types@11.1.2':
     resolution: {integrity: sha512-U+HFai5+zmJCkK86QsaJtoITlboZHBqrVketcO2ROv865xfCMSFpELQoz1GkX5GzME8pTa+3kbKrZHQtI0gdbw==}
@@ -9883,80 +9818,6 @@ snapshots:
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/picocolors': 1.0.31
-
-  '@cat-plugin/basic-qa-checker@file:@cat-plugin/basic-qa-checker(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-
-  '@cat-plugin/basic-tokenizer@file:@cat-plugin/basic-tokenizer(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-
-  '@cat-plugin/json-file-handler@file:@cat-plugin/json-file-handler(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      yaml: 2.9.0
-      zod: 4.4.3
-
-  '@cat-plugin/libretranslate-advisor@file:@cat-plugin/libretranslate-advisor(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      undici: 7.27.2
-      yaml: 2.9.0
-      zod: 4.4.3
-
-  '@cat-plugin/local-storage-provider@file:@cat-plugin/local-storage-provider(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      zod: 4.4.3
-
-  '@cat-plugin/markdown-file-handler@file:@cat-plugin/markdown-file-handler(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      yaml: 2.9.0
-      zod: 4.4.3
-
-  '@cat-plugin/openai-llm-provider@file:@cat-plugin/openai-llm-provider(@cat/plugin-core@packages+plugin-core)(ws@8.21.0)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      openai: 6.42.0(ws@8.21.0)(zod@4.4.3)
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - ws
-
-  '@cat-plugin/openai-vectorizer@file:@cat-plugin/openai-vectorizer(@cat/plugin-core@packages+plugin-core)(ws@8.21.0)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      openai: 6.42.0(ws@8.21.0)(zod@4.4.3)
-      zod: 4.4.3
-    transitivePeerDependencies:
-      - ws
-
-  '@cat-plugin/password-auth-provider@file:@cat-plugin/password-auth-provider(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      zod: 4.4.3
-
-  '@cat-plugin/spacy-segmenter@file:@cat-plugin/spacy-segmenter(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      undici: 7.27.2
-      yaml: 2.9.0
-      zod: 4.4.3
-
-  '@cat-plugin/tei-rerank-provider@file:@cat-plugin/tei-rerank-provider(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      zod: 4.4.3
-
-  '@cat-plugin/tiny-widget@file:@cat-plugin/tiny-widget(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-
-  '@cat-plugin/yaml-file-handler@file:@cat-plugin/yaml-file-handler(@cat/plugin-core@packages+plugin-core)':
-    dependencies:
-      '@cat/plugin-core': link:packages/plugin-core
-      zod: 4.4.3
 
   '@chevrotain/types@11.1.2': {}
 
