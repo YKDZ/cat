@@ -51,7 +51,8 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "pnpm --filter @cat/app build && pnpm --filter @cat/app preview",
+    command:
+      "pnpm turbo run build --filter=@cat/app && pnpm --filter @cat/app preview",
     url: `http://localhost:${process.env.PORT ?? 3000}/_health`,
     reuseExistingServer,
     timeout: 300_000,
