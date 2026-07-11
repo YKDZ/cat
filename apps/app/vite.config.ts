@@ -44,6 +44,20 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: "@cat/plugin-core/client",
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-core/src/client/index.ts",
+        ),
+      },
+      {
+        find: "@cat/plugin-core",
+        replacement: resolve(
+          import.meta.dirname,
+          "../../packages/plugin-core/src/index.ts",
+        ),
+      },
+      {
         find: /^@cat-plugin\/([^/]+)$/,
         replacement: resolve(
           import.meta.dirname,
