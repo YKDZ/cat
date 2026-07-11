@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import type { AspectRatioProps } from "reka-ui"
-import { AspectRatio } from "reka-ui"
+import type { AspectRatioProps } from "reka-ui";
+import { AspectRatio } from "reka-ui";
 
-const props = defineProps<AspectRatioProps>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+
+const props = defineProps<AspectRatioProps>();
 </script>
 
 <template>
   <AspectRatio
     v-slot="slotProps"
     data-slot="aspect-ratio"
-    v-bind="props"
+    v-bind="exactOptionalProps(props)"
   >
-    <slot v-bind="slotProps" />
+    <slot v-bind="exactOptionalProps(slotProps)" />
   </AspectRatio>
 </template>

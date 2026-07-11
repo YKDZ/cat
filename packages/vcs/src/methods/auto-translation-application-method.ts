@@ -1,6 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import {
   createVectorizedStrings,
   createTranslations,
@@ -8,6 +6,8 @@ import {
   executeQuery,
   listTranslationsByElement,
 } from "@cat/domain";
+import type { JSONType } from "@cat/shared";
+import { assertFirstNonNullish } from "@cat/shared";
 
 import type {
   ApplicationContext,
@@ -89,7 +89,7 @@ export class AutoTranslationApplicationMethod implements ApplicationMethod {
       data: [
         {
           translatableElementId: payload.elementId,
-          stringId: stringIds[0],
+          stringId: assertFirstNonNullish(stringIds),
         },
       ],
     });

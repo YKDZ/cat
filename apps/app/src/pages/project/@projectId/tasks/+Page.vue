@@ -2,9 +2,8 @@
 import { useData } from "vike-vue/useData";
 import { computed } from "vue";
 
-import type { Data } from "./+data.ts";
-
 import ProjectPageDataError from "../ProjectPageDataError.vue";
+import type { Data } from "./+data.ts";
 
 const data = useData<Data>();
 const pageError = computed(() => data.pageError);

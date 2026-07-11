@@ -1,12 +1,11 @@
 import type { AgentSessionMetadata } from "@cat/shared";
-
 import { AgentSessionMetadataSchema } from "@cat/shared";
 
 import type {
   AgentMessageItem,
   AgentSessionContext,
   HydratedSessionState,
-} from "@/stores/agent";
+} from "#/stores/agent.ts";
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null && !Array.isArray(value);

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Token } from "@cat/plugin-core";
 import type { QASeverity } from "@cat/plugin-core";
-
 import { Button } from "@cat/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
 import { CircleAlert, TriangleAlert, Info, Check } from "@lucide/vue";
@@ -10,8 +9,8 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import z from "zod";
 
-import { ws } from "@/rpc/ws";
-import { clientLogger as logger } from "@/utils/logger";
+import { ws } from "#/rpc/ws.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 /**
  * Props for the current-translation QA button.
@@ -36,7 +35,7 @@ const props = defineProps<{
   /**
    * Primary content-node ID of the current element.
    */
-  contentNodeId?: string;
+  contentNodeId?: string | undefined;
 }>();
 
 const { t } = useI18n();

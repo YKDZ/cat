@@ -1,7 +1,7 @@
 import { eq, inArray, termConceptSubject, termConceptToSubject } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListConceptSubjectsByConceptIdsQuerySchema = z.object({
   conceptIds: z.array(z.int()),

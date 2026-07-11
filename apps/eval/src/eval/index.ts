@@ -1,4 +1,4 @@
-export { evaluate } from "./engine";
+export { evaluate } from "./engine.ts";
 export type {
   EvaluationReport,
   ScenarioEvaluation,
@@ -6,4 +6,4 @@ export type {
   ScoreValue,
   Scorer,
   ScorerInput,
-} from "./types";
+} from "./types.ts";

@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import type { Language } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { toShortFixed } from "@cat/shared";
 import { useQuery } from "@pinia/colada";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ProgressBarLine } from "@/components/progress/bar/index.ts";
-
-import Dot from "@/components/Dot.vue";
-import ProgressBar from "@/components/progress/bar/ProgressBar.vue";
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/rpc/orpc";
+import Dot from "#/components/Dot.vue";
+import type { ProgressBarLine } from "#/components/progress/bar/index.ts";
+import ProgressBar from "#/components/progress/bar/ProgressBar.vue";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = defineProps<{
   project: Pick<Project, "id">;

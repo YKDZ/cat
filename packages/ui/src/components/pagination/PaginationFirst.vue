@@ -1,15 +1,14 @@
 <script setup lang="ts">
+import { ChevronLeftIcon } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
 import type { PaginationFirstProps } from "reka-ui";
+import { PaginationFirst, useForwardProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-import { reactiveOmit } from "@vueuse/core";
-import { ChevronLeftIcon } from "lucide-vue-next";
-import { PaginationFirst, useForwardProps } from "reka-ui";
-
-import type { ButtonVariants } from "@/components/button";
-
-import { buttonVariants } from "@/components/button";
-import { cn } from "@/utils/lib/utils";
+import type { ButtonVariants } from "#/components/button/index.ts";
+import { buttonVariants } from "#/components/button/index.ts";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = withDefaults(
   defineProps<
@@ -37,7 +36,7 @@ const forwarded = useForwardProps(delegatedProps);
         props.class,
       )
     "
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
   >
     <slot>
       <ChevronLeftIcon />

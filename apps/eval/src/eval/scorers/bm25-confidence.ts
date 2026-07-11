@@ -1,4 +1,4 @@
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 /**
  * BM25 confidence scorer: returns the highest BM25 channel confidence per case.

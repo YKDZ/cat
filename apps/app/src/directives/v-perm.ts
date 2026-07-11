@@ -1,7 +1,7 @@
 import type { ObjectType, Relation } from "@cat/shared";
 import type { Directive } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 export type PermBinding = {
   object: ObjectType;
@@ -36,7 +36,7 @@ const checkAndToggle = async (
       placeholder.parentNode.removeChild(placeholder);
     }
     el._permVisible = true;
-    el._permPlaceholder = undefined;
+    delete el._permPlaceholder;
   } else if (!allowed && el._permVisible !== false) {
     // Replace element with comment placeholder
     const placeholder = document.createComment("v-perm");

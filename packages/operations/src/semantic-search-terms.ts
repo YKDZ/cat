@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listSemanticTermSearchRange } from "@cat/domain";
 import { fetchTermsByConceptIds, type LookedUpTerm } from "@cat/domain";

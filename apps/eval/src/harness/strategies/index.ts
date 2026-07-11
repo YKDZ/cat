@@ -1,9 +1,8 @@
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- concrete strategies require widening to the registry interface
-import type { ScenarioStrategy } from "../types";
-
-import { agentTranslateStrategy } from "./agent-translate";
-import { memoryRecallStrategy } from "./memory-recall";
-import { termRecallStrategy } from "./term-recall";
+import type { ScenarioStrategy } from "../types.ts";
+import { agentTranslateStrategy } from "./agent-translate.ts";
+import { memoryRecallStrategy } from "./memory-recall.ts";
+import { termRecallStrategy } from "./term-recall.ts";
 
 const strategyRegistry = new Map<string, ScenarioStrategy>([
   ["term-recall", termRecallStrategy as unknown as ScenarioStrategy],

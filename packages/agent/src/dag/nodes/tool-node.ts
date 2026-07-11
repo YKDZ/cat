@@ -144,6 +144,9 @@ export const runToolNode = async (
   for (let i = 0; i < results.length; i += 1) {
     const outcome = results[i];
     const tc = toolCalls[i];
+    if (!outcome || !tc) {
+      throw new Error("tool execution result count did not match tool calls");
+    }
 
     if (outcome.status === "fulfilled") {
       toolResults.push({
@@ -190,7 +193,7 @@ export const runToolNode = async (
     finishCalled,
     updates: {
       tool_results: toolResults,
-      finish_called: finishCalled || data.finish_called,
+      finish_called: finishCalled || data.finish_called === true,
       messages: [...existingMessages, ...toolResultMessages],
     },
   };

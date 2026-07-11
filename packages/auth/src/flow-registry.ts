@@ -3,13 +3,15 @@ import type { AuthFlowDefinition } from "./types.ts";
 // ====== DAG Validation ======
 
 export class AuthFlowValidationError extends Error {
-  constructor(
-    public readonly flowId: string,
-    public readonly issues: string[],
-  ) {
+  public readonly flowId: string;
+  public readonly issues: string[];
+
+  constructor(flowId: string, issues: string[]) {
     super(
       `AuthFlow "${flowId}" validation failed:\n${issues.map((i) => `  - ${i}`).join("\n")}`,
     );
+    this.flowId = flowId;
+    this.issues = issues;
     this.name = "AuthFlowValidationError";
   }
 }

@@ -1,7 +1,7 @@
 import { eq, getColumns, memory } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListOwnedMemoriesQuerySchema = z.object({
   creatorId: z.uuidv4(),

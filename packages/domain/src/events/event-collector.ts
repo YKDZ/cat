@@ -1,5 +1,5 @@
-import type { DomainEventBus } from "@/events/domain-event-bus";
-import type { DomainEvent } from "@/events/domain-events";
+import type { DomainEventBus } from "#/events/domain-event-bus.ts";
+import type { DomainEvent } from "#/events/domain-events.ts";
 
 export type EventCollector = {
   collect: (events: DomainEvent[]) => void;

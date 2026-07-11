@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "../../../..");
@@ -25,6 +26,7 @@ const extractRedisServiceBlock = (text: string): string => {
   const block: string[] = [];
   for (let index = start + 1; index < lines.length; index += 1) {
     const line = lines[index];
+    if (line === undefined) continue;
     if (/^ {2}[A-Za-z0-9_-]+:\s*$/u.test(line)) {
       break;
     }
@@ -44,12 +46,14 @@ const extractCommandTokens = (serviceBlock: string): string[] => {
   const tokens: string[] = [];
   for (let index = commandIndex + 1; index < lines.length; index += 1) {
     const line = lines[index];
+    if (line === undefined) continue;
     if (/^ {4}[A-Za-z0-9_-]+:\s*$/u.test(line)) {
       break;
     }
     const match = line.match(/^\s*-\s+"?([^"]+)"?\s*$/u);
-    if (match) {
-      tokens.push(match[1]);
+    const token = match?.[1];
+    if (token !== undefined) {
+      tokens.push(token);
     }
   }
 

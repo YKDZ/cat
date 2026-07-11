@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import type { EvaluationReport } from "@/eval/types";
-import type { RunResult } from "@/harness/harness";
+import type { EvaluationReport } from "#/eval/types.ts";
+import type { RunResult } from "#/harness/harness.ts";
+import { RefResolver } from "#/seeder/ref-resolver.ts";
 
-import { RefResolver } from "@/seeder/ref-resolver";
-
-import { generateReport } from "./reporter";
+import { generateReport } from "./reporter.ts";
 
 describe("generateReport", () => {
   const runResult: RunResult = {

@@ -1,6 +1,6 @@
 import type { ZodObject } from "zod";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 /**
  * Confirmation policy for agent tools. Controls whether the user

@@ -1,2 +1,2 @@
-export type { EventStore } from "./types";
-export { PostgresEventStore } from "./postgres";
+export type { EventStore } from "./types.ts";
+export { PostgresEventStore } from "./postgres.ts";

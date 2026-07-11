@@ -1,14 +1,13 @@
 import type { OperationContext } from "@cat/domain";
-import type { TermData } from "@cat/shared";
-
 import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
   getElementWithChunkIds,
   listProjectGlossaryIds,
 } from "@cat/domain";
+import type { TermData } from "@cat/shared";
 
-import { collectTermRecallOp } from "./collect-term-recall";
+import { collectTermRecallOp } from "./collect-term-recall.ts";
 
 /**
  *

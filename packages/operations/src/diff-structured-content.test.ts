@@ -1,4 +1,4 @@
-import type { StructuredContentPayload } from "@cat/shared";
+import { randomUUID } from "node:crypto";
 
 import {
   createProject,
@@ -6,22 +6,25 @@ import {
   ensureLanguages,
   executeCommand,
 } from "@cat/domain";
-import { setupTestDB, type TestDB } from "@cat/test-utils";
-import { randomUUID } from "node:crypto";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
+import type { StructuredContentPayload } from "@cat/shared";
 import {
   and,
   contentNode,
   contentRelation,
   eq,
+  setupTestDB,
   translatableElement,
-} from "../../db/dist/index.js";
+  type TestDB,
+} from "@cat/test-utils";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
 import {
   classifySemanticElementDiffForTest,
   DiffStructuredContentInputSchema,
   diffStructuredContentOp,
-} from "./diff-structured-content";
+} from "./diff-structured-content.ts";
 
 const BASE_DIFF_INPUT = {
   oldText: "Hello",
@@ -244,7 +247,9 @@ describe("diffStructuredContentOp integration", () => {
     });
 
     const first = await diffStructuredContentOp({ payload: initialPayload });
-    const elementId = first.elementIdsByRef["element:initial"];
+    const elementId = requireFixtureValue(
+      first.elementIdsByRef["element:initial"],
+    );
     expect(typeof elementId).toBe("number");
 
     const nodes = await db.client

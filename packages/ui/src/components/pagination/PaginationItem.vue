@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import type { PaginationListItemProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
-import type { ButtonVariants } from "@/components/button";
 import { reactiveOmit } from "@vueuse/core";
+import type { PaginationListItemProps } from "reka-ui";
 import { PaginationListItem } from "reka-ui";
-import { cn } from "@/utils/lib/utils";
-import { buttonVariants } from "@/components/button";
+import type { HTMLAttributes } from "vue";
+
+import type { ButtonVariants } from "#/components/button/index.ts";
+import { buttonVariants } from "#/components/button/index.ts";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = withDefaults(
   defineProps<
@@ -26,7 +28,7 @@ const delegatedProps = reactiveOmit(props, "class", "size", "isActive");
 <template>
   <PaginationListItem
     data-slot="pagination-item"
-    v-bind="delegatedProps"
+    v-bind="exactOptionalProps(delegatedProps)"
     :class="
       cn(
         buttonVariants({

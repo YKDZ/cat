@@ -1,7 +1,7 @@
 import { and, eq, inArray, memoryToProject } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const UnlinkProjectMemoriesCommandSchema = z.object({
   projectId: z.uuidv4(),

@@ -1,14 +1,14 @@
 import type { RecallEvidence } from "@cat/shared";
-
 import { describe, it, expect } from "vitest";
 
-import type { HnfCandidate } from "./types";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
 
 import {
   applyHnfPreRules,
   applyHnfPostRules,
   extractContentWordsFromTokens,
-} from "./core";
+} from "./core.ts";
+import type { HnfCandidate } from "./types.ts";
 
 const makeCandidate = (
   overrides: Partial<HnfCandidate> & {
@@ -69,7 +69,7 @@ describe("HNF core: applyHnfPreRules", () => {
     );
     expect(kept).toHaveLength(0);
     expect(removals).toHaveLength(1);
-    expect(removals[0].reason).toBe("isolated-semantic");
+    expect(requireFixtureValue(removals[0]).reason).toBe("isolated-semantic");
   });
 
   it("Rule 1: semantic-only but has CW intersection -> kept", () => {
@@ -130,7 +130,7 @@ describe("HNF core: applyHnfPreRules", () => {
     );
     expect(kept).toHaveLength(1);
     // Discount factor = max(0.15, 0.3) = 0.3, so 0.8 * 0.3 = 0.24
-    expect(kept[0].confidence).toBeCloseTo(0.24);
+    expect(requireFixtureValue(kept[0]).confidence).toBeCloseTo(0.24);
   });
 
   it("Rule 2: sparse >= 0.2 or semantic <= 0.7 -> no change", () => {
@@ -162,9 +162,9 @@ describe("HNF core: applyHnfPreRules", () => {
     );
     expect(kept).toHaveLength(2);
     // First candidate's confidence stays at 0.8 (sparse >= 0.2)
-    expect(kept[0].confidence).toBeCloseTo(0.8);
+    expect(requireFixtureValue(kept[0]).confidence).toBeCloseTo(0.8);
     // Second candidate's confidence stays at 0.8 (semantic <= 0.7)
-    expect(kept[1].confidence).toBeCloseTo(0.8);
+    expect(requireFixtureValue(kept[1]).confidence).toBeCloseTo(0.8);
   });
 
   it("Rule 3: non-exact, non-template, CW intersection = 0 -> removed", () => {
@@ -183,7 +183,9 @@ describe("HNF core: applyHnfPreRules", () => {
     );
     expect(kept).toHaveLength(0);
     expect(removals).toHaveLength(1);
-    expect(removals[0].reason).toBe("cw-zero-intersection");
+    expect(requireFixtureValue(removals[0]).reason).toBe(
+      "cw-zero-intersection",
+    );
   });
 
   it("Rule 3: exact channel present -> kept even without CW intersection", () => {
@@ -231,7 +233,9 @@ describe("HNF core: applyHnfPostRules", () => {
     ]);
     expect(kept).toHaveLength(0);
     expect(removals).toHaveLength(1);
-    expect(removals[0].reason).toBe("tier3-isolated-semantic");
+    expect(requireFixtureValue(removals[0]).reason).toBe(
+      "tier3-isolated-semantic",
+    );
   });
 
   it("Rule 4: tier 3 but has other channels -> kept", () => {

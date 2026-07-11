@@ -1,9 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-
 import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { resolveOperationScopeElementsOp } from "./resolve-operation-scope-elements";
+import { resolveOperationScopeElementsOp } from "./resolve-operation-scope-elements.ts";
 
 export const LoadElementTextsInputSchema = OperationScopeSchema.extend({
   /** Source language of the elements */

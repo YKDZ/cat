@@ -1,3 +1,4 @@
+import { watchThrottled, type WatchThrottledOptions } from "@vueuse/core";
 import type {
   MultiWatchSources,
   WatchSource,
@@ -6,8 +7,6 @@ import type {
   WatchStopHandle,
   WatchHandle,
 } from "vue";
-
-import { watchThrottled, type WatchThrottledOptions } from "@vueuse/core";
 import { type Ref, watch } from "vue";
 
 export const syncRefWith = <T>(ref: Ref<T>, getter: () => T): WatchHandle => {

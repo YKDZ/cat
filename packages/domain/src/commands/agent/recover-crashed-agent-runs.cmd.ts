@@ -1,8 +1,9 @@
-import { agentEvent, agentRun, and, eq, sql } from "@cat/db";
 import { createHash } from "node:crypto";
+
+import { agentEvent, agentRun, and, eq, sql } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 const DEFAULT_CRASH_RECOVERY_REASON =
   "Process exited while run was active" as const;
@@ -52,8 +53,8 @@ export const createCrashRecoveryEventId = (runId: string): string => {
     .digest()
     .subarray(0, 16);
 
-  bytes[6] = (bytes[6] & 0x0f) | 0x40;
-  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  bytes.writeUInt8((bytes.readUInt8(6) & 0x0f) | 0x40, 6);
+  bytes.writeUInt8((bytes.readUInt8(8) & 0x3f) | 0x80, 8);
 
   const hex = bytes.toString("hex");
 

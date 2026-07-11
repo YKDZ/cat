@@ -10,8 +10,8 @@ import {
 import { SlotMappingEntrySchema, type SlotMappingEntry } from "@cat/shared";
 import * as z from "zod";
 
-import type { RawMemorySuggestion } from "@/queries/memory/list-lexical-memory-suggestions.query";
-import type { Query } from "@/types";
+import type { RawMemorySuggestion } from "#/queries/memory/list-lexical-memory-suggestions.query.ts";
+import type { Query } from "#/types.ts";
 
 export const ListBm25MemorySuggestionsQuerySchema = z.object({
   text: z.string(),

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { MemoryCacheStore } from "./memory-cache-store";
-import { MemorySessionStore } from "./memory-session-store";
+import { MemoryCacheStore } from "./memory-cache-store.ts";
+import { MemorySessionStore } from "./memory-session-store.ts";
 
 afterEach(() => {
   vi.useRealTimers();

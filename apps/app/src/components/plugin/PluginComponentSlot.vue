@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import PluginComponentSlotInternal from "@/components/plugin/PluginComponentSlotInternal.vue";
+import PluginComponentSlotInternal from "#/components/plugin/PluginComponentSlotInternal.vue";
 
 const props = defineProps<{
   id: string;

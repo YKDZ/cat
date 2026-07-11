@@ -56,8 +56,7 @@ CAT 平台的翻译记忆召回与术语匹配在 Minecraft 数据集上暴露�
 ### 启动依赖服务
 
 ```bash
-cd apps/eval
-pnpm eval env up --suite minecraft-quality
+pnpm --filter @cat/eval eval -- env up --suite minecraft-quality
 ```
 
 这会通过 Docker Compose `include:` 引用 `apps/app/docker-compose.yml`，启动 PostgreSQL（pgvector）、Redis、Ollama 和 spaCy 服务。
@@ -66,16 +65,16 @@ pnpm eval env up --suite minecraft-quality
 
 ```bash
 # 运行所有场景（不含 agent-translate）
-cd apps/eval && pnpm eval run suites/minecraft-quality
+pnpm --filter @cat/eval eval -- run apps/eval/suites/minecraft-quality
 
 # 仅运行 memory-recall 场景
-pnpm eval run suites/minecraft-quality --scenario memory-recall
+pnpm --filter @cat/eval eval -- run apps/eval/suites/minecraft-quality --scenario memory-recall
 
 # 仅运行 term-recall 场景
-pnpm eval run suites/minecraft-quality --scenario term-recall
+pnpm --filter @cat/eval eval -- run apps/eval/suites/minecraft-quality --scenario term-recall
 
 # 清空向量缓存后运行
-pnpm eval run suites/minecraft-quality --clear-cache
+pnpm --filter @cat/eval eval -- run apps/eval/suites/minecraft-quality --clear-cache
 ```
 
 ## 性能基线

@@ -1,7 +1,7 @@
 import { getColumns, qaReviewAnnotation, sql } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListQaReviewAnnotationsQuerySchema = z.object({
   queueItemId: z.int().positive(),

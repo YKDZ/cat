@@ -1,7 +1,7 @@
 import { serverLogger as logger } from "@cat/server-shared";
 
-import { placeholderize } from "./memory-template";
-import { tokenizeOp } from "./tokenize";
+import { placeholderize } from "./memory-template.ts";
+import { tokenizeOp } from "./tokenize.ts";
 
 /**
  *

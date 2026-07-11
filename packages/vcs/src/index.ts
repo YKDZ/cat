@@ -22,7 +22,10 @@ export type {
   AddEntryParams,
   ChangeSetFilters,
 } from "./changeset-service.ts";
-export { OCCConflictError } from "./changeset-service.ts";
+export {
+  ChangeSetApplicationError,
+  OCCConflictError,
+} from "./changeset-service.ts";
 
 export type { VCSContext } from "./vcs-middleware.ts";
 export type {

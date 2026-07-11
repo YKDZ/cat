@@ -1,12 +1,10 @@
-import type { NonNullJSONType } from "@cat/shared";
-
 import { resolvePath } from "@cat/graph";
 import { PluginManager } from "@cat/plugin-core";
+import type { NonNullJSONType } from "@cat/shared";
 
-import type { NodeExecutor } from "@/graph/node-registry";
-
-import { buildPatch } from "@/graph/blackboard";
-import { getStepHandler } from "@/graph/dsl/step-handler-registry";
+import { buildPatch } from "#/graph/blackboard.ts";
+import { getStepHandler } from "#/graph/dsl/step-handler-registry.ts";
+import type { NodeExecutor } from "#/graph/node-registry.ts";
 
 const isStringRecord = (value: unknown): value is Record<string, string> => {
   if (value === null || typeof value !== "object" || Array.isArray(value)) {

@@ -1,12 +1,15 @@
 import type { CollectionElement } from "@cat/shared";
-
 import { parse as parseTemplate } from "@vue/compiler-dom";
 import { parse as parseSFC } from "@vue/compiler-sfc";
 
-import type { SourceExtractor } from "../types.ts";
+import { extractFromScript } from "#/extractors/script-extract.ts";
+import { extractFromTemplate } from "#/extractors/template-extract.ts";
+import type { SourceExtractor } from "#/types.ts";
 
-import { extractFromScript } from "./script-extract.ts";
-import { extractFromTemplate } from "./template-extract.ts";
+const sourceLanguageOptions = (
+  sourceLanguageId: string | undefined,
+): { sourceLanguageId?: string } =>
+  sourceLanguageId === undefined ? {} : { sourceLanguageId };
 
 /**
  * vue-i18n source extractor — extracts $t()/t() calls from Vue SFC and TS/JS files.
@@ -17,11 +20,19 @@ export const vueI18nExtractor: SourceExtractor = {
 
   extract({ content, filePath, sourceLanguageId }): CollectionElement[] {
     if (filePath.endsWith(".vue")) {
-      return extractFromVueSFC(content, filePath, { sourceLanguageId });
+      return extractFromVueSFC(
+        content,
+        filePath,
+        sourceLanguageOptions(sourceLanguageId),
+      );
     }
-    return extractFromScript(content, filePath, "file", 0, {
-      sourceLanguageId,
-    });
+    return extractFromScript(
+      content,
+      filePath,
+      "file",
+      0,
+      sourceLanguageOptions(sourceLanguageId),
+    );
   },
 };
 
@@ -53,7 +64,7 @@ function extractFromVueSFC(
 
     elements.push(
       ...extractFromTemplate(ast, filePath, templateStartLine, {
-        sourceLanguageId: options.sourceLanguageId,
+        ...sourceLanguageOptions(options.sourceLanguageId),
       }),
     );
   }
@@ -67,7 +78,7 @@ function extractFromVueSFC(
         filePath,
         "scriptSetup",
         scriptStartLine,
-        { sourceLanguageId: options.sourceLanguageId },
+        sourceLanguageOptions(options.sourceLanguageId),
       ),
     );
   }
@@ -76,9 +87,13 @@ function extractFromVueSFC(
     const scriptContent = descriptor.script.content;
     const scriptStartLine = descriptor.script.loc.start.line - 1;
     elements.push(
-      ...extractFromScript(scriptContent, filePath, "script", scriptStartLine, {
-        sourceLanguageId: options.sourceLanguageId,
-      }),
+      ...extractFromScript(
+        scriptContent,
+        filePath,
+        "script",
+        scriptStartLine,
+        sourceLanguageOptions(options.sourceLanguageId),
+      ),
     );
   }
 

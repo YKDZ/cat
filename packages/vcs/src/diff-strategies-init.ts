@@ -1,5 +1,4 @@
 import type { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
-
 import {
   commentDiffStrategy,
   commentReactionDiffStrategy,

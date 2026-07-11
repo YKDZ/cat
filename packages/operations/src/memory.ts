@@ -1,5 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-
 import {
   createMemoryItems,
   executeCommand,
@@ -7,14 +6,14 @@ import {
   fetchTranslationsForMemory,
 } from "@cat/domain";
 
-import { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants";
+import { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants.ts";
 import {
   placeholderize,
   slotsToMapping,
   type SlotMappingEntry,
-} from "./memory-template";
-import { nlpBatchSegmentOp } from "./nlp-batch-segment";
-import { tokenizeOp } from "./tokenize";
+} from "./memory-template.ts";
+import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
+import { tokenizeOp } from "./tokenize.ts";
 
 /**
  *

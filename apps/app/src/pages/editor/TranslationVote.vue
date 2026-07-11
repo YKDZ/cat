@@ -6,11 +6,10 @@ import { useQuery } from "@pinia/colada";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { TranslationWithStatus } from "@/stores/editor/translation";
-
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import type { TranslationWithStatus } from "#/stores/editor/translation.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 /**
  * Props for the translation vote component.

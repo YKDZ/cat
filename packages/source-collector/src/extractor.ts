@@ -1,1 +1,1 @@
-export type { SourceExtractor, ExtractOptions } from "./types.ts";
+export type { SourceExtractor, ExtractOptions } from "#/types.ts";

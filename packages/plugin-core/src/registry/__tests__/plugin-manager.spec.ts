@@ -1,3 +1,7 @@
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 /**
  * PluginManager — orchestration-level unit tests
  *
@@ -6,14 +10,10 @@
  */
 import type { DrizzleClient } from "@cat/domain";
 import type { PluginData, PluginManifest } from "@cat/shared";
-
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CatPlugin } from "@/entities/plugin";
-import type { PluginLoader } from "@/registry/loader";
+import type { CatPlugin } from "#/entities/plugin.ts";
+import type { PluginLoader } from "#/registry/loader.ts";
 
 /* ─── Module mocks (hoisted) ───────────────────────────────────────────────── */
 
@@ -23,10 +23,10 @@ vi.mock("@cat/domain");
 /* ─── Imports that follow mocks ────────────────────────────────────────────── */
 import { executeCommand, executeQuery } from "@cat/domain";
 
-import { ComponentRegistry } from "@/registry/component-registry";
-import { PluginDiscoveryService } from "@/registry/plugin-discovery";
-import { PluginManager } from "@/registry/plugin-manager";
-import { ServiceRegistry } from "@/registry/service-registry";
+import { ComponentRegistry } from "#/registry/component-registry.ts";
+import { PluginDiscoveryService } from "#/registry/plugin-discovery.ts";
+import { PluginManager } from "#/registry/plugin-manager.ts";
+import { ServiceRegistry } from "#/registry/service-registry.ts";
 
 /* ─── Test helpers ──────────────────────────────────────────────────────────── */
 

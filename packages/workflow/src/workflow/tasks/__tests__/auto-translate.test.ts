@@ -10,7 +10,7 @@ import {
   vi,
 } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
 const mocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
@@ -33,11 +33,11 @@ vi.mock("@cat/operations", async () => {
   };
 });
 
-vi.mock("@/graph/dsl/run-graph", () => ({
+vi.mock("#/graph/dsl/run-graph.ts", () => ({
   runGraph: mocks.nestedRunGraph,
 }));
 
-import { autoTranslateGraph } from "../auto-translate";
+import { autoTranslateGraph } from "../auto-translate.ts";
 
 describe("autoTranslateGraph", () => {
   let cleanup: TestDB["cleanup"] | undefined;
@@ -99,8 +99,8 @@ describe("autoTranslateGraph", () => {
 
   it("feeds fused recall into MT advise instead of re-querying vector-only memory", async () => {
     const { runGraph } = await vi.importActual<
-      typeof import("@/graph/dsl/run-graph")
-    >("@/graph/dsl/run-graph");
+      typeof import("#/graph/dsl/run-graph.ts")
+    >("#/graph/dsl/run-graph.ts");
 
     const result = await runGraph(
       autoTranslateGraph,
@@ -174,8 +174,8 @@ describe("autoTranslateGraph", () => {
 
   it("injects runtime scope seeds into advisor memories and LLM neighbor context", async () => {
     const { runGraph } = await vi.importActual<
-      typeof import("@/graph/dsl/run-graph")
-    >("@/graph/dsl/run-graph");
+      typeof import("#/graph/dsl/run-graph.ts")
+    >("#/graph/dsl/run-graph.ts");
     mocks.llmRefineTranslationOp.mockResolvedValue({
       refinedText: "请确认订单",
       refined: true,

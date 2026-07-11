@@ -1,12 +1,12 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import type { SourceExtractor } from "../types.ts";
-
-import { extract } from "../extract.ts";
-import { vueI18nExtractor } from "../extractors/vue-i18n.ts";
+import { extract } from "#/extract.ts";
+import { vueI18nExtractor } from "#/extractors/vue-i18n.ts";
+import type { SourceExtractor } from "#/types.ts";
 
 async function createTempFiles(files: Record<string, string>): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "sc-extract-test-"));

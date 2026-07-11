@@ -1,41 +1,21 @@
 {
-  "extends": ["../../tsconfig.base.json", "@vue/tsconfig/tsconfig.dom.json"],
+  "extends": "../../tsconfig.vue.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
-    "paths": {
-      "@/*": ["./src/*"]
-    },
-    "lib": ["ESNext", "DOM", "DOM.Iterable", "WebWorker"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable", "WebWorker"],
+    "importHelpers": false,
     "declaration": false,
-    "noEmit": true,
-    "composite": false,
     "declarationMap": false,
     "emitDeclarationOnly": false,
-    "moduleResolution": "bundler",
-    "customConditions": ["import", "types"],
-    "types": ["node"]
+    "noEmit": true,
+    "types": ["node", "vite/client", "vitest/globals", "vitest/importMeta"]
   },
-  "exclude": [
-    "out-tsc",
-    "dist",
-    "src/**/*.spec.ts",
-    "src/**/*.test.ts",
-    "src/**/*.spec.vue",
-    "src/**/*.test.vue",
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue",
+    "scripts/**/*.ts",
     "vite.config.ts",
-    "vitest.config.ts",
-    "src/**/*.test.tsx",
-    "src/**/*.spec.tsx",
-    "src/**/*.test.js",
-    "src/**/*.spec.js",
-    "src/**/*.test.jsx",
-    "src/**/*.spec.jsx"
+    "vitest.config.ts"
   ],
-  "include": ["src/**/*.ts", "src/**/*.vue"],
-  "references": [
-    {
-      "path": "../../packages/workflow"
-    }
-  ]
+  "exclude": ["dist", "out-tsc"]
 }

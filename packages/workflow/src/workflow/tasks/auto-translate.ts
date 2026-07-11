@@ -12,10 +12,10 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
 
-import { createTranslationGraph } from "./create-translation";
+import { createTranslationGraph } from "./create-translation.ts";
 
 // ─── Config Schema ────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 import { eq, glossaryToProject } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListProjectGlossaryIdsQuerySchema = z.object({
   projectId: z.uuidv4(),

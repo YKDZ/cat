@@ -11,7 +11,7 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useAgentStore } from "@/stores/agent";
+import { useAgentStore } from "#/stores/agent.ts";
 
 const props = withDefaults(
   defineProps<{

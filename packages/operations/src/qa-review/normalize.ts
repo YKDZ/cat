@@ -1,6 +1,5 @@
-import type { NormalizedQaFinding } from "@cat/shared";
-
 import { QAIssueSchema } from "@cat/plugin-core";
+import type { NormalizedQaFinding } from "@cat/shared";
 
 export const normalizeQaResultItems = (input: {
   qaResultItemIds: number[];

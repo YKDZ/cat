@@ -7,21 +7,21 @@ import {
   createNodeDistortion,
   createPrototypeDistortion,
   createVueDistortion,
-} from "./distortions.ts";
-import { SandboxGlobalHandler } from "./handlers.ts";
-import { Membrane } from "./membrane.ts";
-import { basicSandboxGlobal } from "./safe-objects.ts";
-import { Distortion } from "./types.ts";
+} from "#/client/sce/distortions.ts";
+import { SandboxGlobalHandler } from "#/client/sce/handlers.ts";
+import { Membrane } from "#/client/sce/membrane.ts";
+import { basicSandboxGlobal } from "#/client/sce/safe-objects.ts";
+import type { BrowserWindow, Distortion } from "#/client/sce/types.ts";
 
 export type DistortionSetup = (
   membrane: Membrane,
   pluginId: string,
-  win: Window,
+  win: BrowserWindow,
 ) => void;
 
 export type GlobalContextBuilder = (
   pluginId: string,
-  win: Window,
+  win: BrowserWindow,
 ) => Record<string, unknown>;
 
 export interface SandboxOptions {
@@ -46,8 +46,10 @@ export const setupDefaultDistortions: DistortionSetup = (
   const elementDistortion = createElementDistortion(win);
 
   const compositeDistortion: Distortion = {
-    get: nodeDistortion.get,
-    set: elementDistortion.set,
+    ...(nodeDistortion.get === undefined ? {} : { get: nodeDistortion.get }),
+    ...(elementDistortion.set === undefined
+      ? {}
+      : { set: elementDistortion.set }),
   };
 
   membrane.distortions.set(win.Node.prototype, nodeDistortion);
@@ -61,7 +63,7 @@ export const setupDefaultDistortions: DistortionSetup = (
 
 export function createSandbox(
   pluginId: string,
-  win: Window,
+  win: BrowserWindow,
   options: SandboxOptions,
 ): {
   evaluate: (code: string) => void;

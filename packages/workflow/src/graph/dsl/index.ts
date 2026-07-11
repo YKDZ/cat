@@ -1,16 +1,16 @@
-export { defineGraph } from "./define-graph";
-export { defineNode } from "./define-graph";
+export { defineGraph } from "./define-graph.ts";
+export { defineNode } from "./define-graph.ts";
 export {
   getStepHandler,
   hasStepHandler,
   registerStepHandler,
-} from "./step-handler-registry";
-export type { StepHandler } from "./step-handler-registry";
+} from "./step-handler-registry.ts";
+export type { StepHandler } from "./step-handler-registry.ts";
 export type {
   TypedGraphDefinition,
   TypedGraphOptions,
   TypedNodeContext,
   TypedNodeDef,
-} from "./types";
-export { runGraph, startGraph } from "./run-graph";
-export type { GraphRunHandle, RunGraphOptions } from "./run-graph";
+} from "./types.ts";
+export { runGraph, startGraph } from "./run-graph.ts";
+export type { GraphRunHandle, RunGraphOptions } from "./run-graph.ts";

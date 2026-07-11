@@ -9,8 +9,11 @@ import {
 } from "@cat/plugin-core";
 
 export class Storage extends VectorStorage {
-  public constructor(private readonly capabilities: PluginCapabilities) {
+  private readonly capabilities: PluginCapabilities;
+
+  public constructor(capabilities: PluginCapabilities) {
     super();
+    this.capabilities = capabilities;
   }
 
   getId(): string {

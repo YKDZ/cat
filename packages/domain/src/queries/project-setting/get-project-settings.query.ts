@@ -2,7 +2,7 @@ import { eq, projectSetting } from "@cat/db";
 import { ProjectSettingPayloadSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetProjectSettingsQuerySchema = z.object({
   projectId: z.uuidv4(),

@@ -4,7 +4,9 @@ import {
 } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
-import { applyQaReviewPolicy } from "./policy";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
+import { applyQaReviewPolicy } from "./policy.ts";
 
 const baseFinding = (
   overrides: Partial<NormalizedQaFinding> = {},
@@ -52,8 +54,8 @@ describe("applyQaReviewPolicy", () => {
       profile,
     });
 
-    expect(finding.action).toBe("BLOCK_APPROVAL");
-    expect(finding.riskScore).toBe(100);
+    expect(requireFixtureValue(finding).action).toBe("BLOCK_APPROVAL");
+    expect(requireFixtureValue(finding).riskScore).toBe(100);
   });
 
   it("keeps number findings in manual review lane", () => {
@@ -62,8 +64,8 @@ describe("applyQaReviewPolicy", () => {
       profile,
     });
 
-    expect(finding.action).toBe("NEEDS_REVIEW");
-    expect(finding.riskScore).toBe(65);
+    expect(requireFixtureValue(finding).action).toBe("NEEDS_REVIEW");
+    expect(requireFixtureValue(finding).riskScore).toBe(65);
   });
 
   it("downgrades low-confidence matched findings to informational", () => {
@@ -78,8 +80,8 @@ describe("applyQaReviewPolicy", () => {
       profile,
     });
 
-    expect(finding.action).toBe("INFORMATIONAL");
-    expect(finding.riskScore).toBe(20);
+    expect(requireFixtureValue(finding).action).toBe("INFORMATIONAL");
+    expect(requireFixtureValue(finding).riskScore).toBe(20);
   });
 
   it("preserves pass findings with zero risk when no rule matches", () => {
@@ -88,7 +90,7 @@ describe("applyQaReviewPolicy", () => {
       profile,
     });
 
-    expect(finding.action).toBe("PASS");
-    expect(finding.riskScore).toBe(0);
+    expect(requireFixtureValue(finding).action).toBe("PASS");
+    expect(requireFixtureValue(finding).riskScore).toBe(0);
   });
 });

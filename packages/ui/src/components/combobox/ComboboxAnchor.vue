@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import type { ComboboxAnchorProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import type { ComboboxAnchorProps } from "reka-ui";
 import { ComboboxAnchor, useForwardProps } from "reka-ui";
-import { cn } from "@/utils/lib/utils";
+import type { HTMLAttributes } from "vue";
 
-const props = defineProps<ComboboxAnchorProps & { class?: HTMLAttributes["class"] }>();
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
+
+const props = defineProps<
+  ComboboxAnchorProps & { class?: HTMLAttributes["class"] }
+>();
 
 const delegatedProps = reactiveOmit(props, "class");
 
@@ -15,7 +19,7 @@ const forwarded = useForwardProps(delegatedProps);
 <template>
   <ComboboxAnchor
     data-slot="combobox-anchor"
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
     :class="cn('inline-block', props.class)"
   >
     <slot />

@@ -6,8 +6,6 @@
  * changeset-entry persistence — not the translation quality.
  */
 
-import type { TestDB } from "@cat/test-utils";
-
 import {
   addProjectTargetLanguages,
   createElements,
@@ -23,6 +21,7 @@ import {
   updateProjectFeatures,
   updateProjectSettings,
 } from "@cat/domain";
+import type { TestDB } from "@cat/test-utils";
 import { setupTestDB } from "@cat/test-utils";
 import {
   afterAll,
@@ -34,15 +33,17 @@ import {
   vi,
 } from "vitest";
 
-import { runAutoTranslatePipeline } from "../run-auto-translate-pipeline";
+import { runAutoTranslatePipeline } from "../run-auto-translate-pipeline.ts";
 
 // Mock the fetch-best-translation-candidate module so tests don't need
 // live AI services.  Individual tests override the implementation as needed.
-vi.mock("../fetch-best-translation-candidate", () => ({
+vi.mock("../fetch-best-translation-candidate.ts", () => ({
   fetchBestTranslationCandidateOp: vi.fn(),
 }));
 
-import { fetchBestTranslationCandidateOp } from "../fetch-best-translation-candidate";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
+import { fetchBestTranslationCandidateOp } from "../fetch-best-translation-candidate.ts";
 
 const mockFetch = vi.mocked(fetchBestTranslationCandidateOp);
 
@@ -143,7 +144,7 @@ async function seedProjectWithElements(opts?: {
           sourceRootRef: `project:${project.id}`,
           sourceNodeRef: `test#0`,
           stableSourceRef: `test#0`,
-          stringId: stringId,
+          stringId: requireFixtureValue(stringId),
           creatorId: user.id,
         },
       ],
@@ -286,7 +287,7 @@ describe("runAutoTranslatePipeline — changeset entries", () => {
 
     // Fetch the changeset created for this project+language
     const { findOrCreateAutoTranslatePR } =
-      await import("../find-or-create-auto-translate-pr");
+      await import("../find-or-create-auto-translate-pr.ts");
     const { changesetId } = await findOrCreateAutoTranslatePR(
       { db: testDb.client },
       { projectId, languageId: "zh-CN" },
@@ -322,7 +323,7 @@ describe("runAutoTranslatePipeline — changeset entries", () => {
     );
 
     const { findOrCreateAutoTranslatePR } =
-      await import("../find-or-create-auto-translate-pr");
+      await import("../find-or-create-auto-translate-pr.ts");
     const { changesetId } = await findOrCreateAutoTranslatePR(
       { db: testDb.client },
       { projectId, languageId: "zh-CN" },
@@ -349,7 +350,7 @@ describe("runAutoTranslatePipeline — changeset entries", () => {
     );
 
     const { findOrCreateAutoTranslatePR } =
-      await import("../find-or-create-auto-translate-pr");
+      await import("../find-or-create-auto-translate-pr.ts");
     const { changesetId } = await findOrCreateAutoTranslatePR(
       { db: testDb.client },
       { projectId, languageId: "zh-CN" },

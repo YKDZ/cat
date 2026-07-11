@@ -1,4 +1,4 @@
-import { test, expect } from "@/fixtures";
+import { test, expect } from "#/fixtures.ts";
 
 test.describe("Branch workspace", () => {
   test("keeps selected branch after refresh and writes translation to branch", async ({

@@ -1,18 +1,17 @@
 import type { OperationContext } from "@cat/domain";
-import type { MemorySuggestion } from "@cat/shared";
-import type { EnrichedTermMatch } from "@cat/shared";
-
 import {
   assembleContextEvidence,
   executeQuery,
   getDbHandle,
 } from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";
+import type { MemorySuggestion } from "@cat/shared";
+import type { EnrichedTermMatch } from "@cat/shared";
 import * as z from "zod";
 
-import { applyBandOrder } from "./rerank/apply-band-order";
-import { selectContextBand } from "./rerank/context-band-selector";
-import { orchestrateRerank } from "./rerank/orchestrator";
+import { applyBandOrder } from "./rerank/apply-band-order.ts";
+import { selectContextBand } from "./rerank/context-band-selector.ts";
+import { orchestrateRerank } from "./rerank/orchestrator.ts";
 
 const tokenize = (text: string): string[] =>
   text

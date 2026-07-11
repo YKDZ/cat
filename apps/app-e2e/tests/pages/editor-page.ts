@@ -1,7 +1,11 @@
 import { expect, type Page } from "@playwright/test";
 
 export class EditorPage {
-  constructor(private readonly page: Page) {}
+  private readonly page: Page;
+
+  constructor(page: Page) {
+    this.page = page;
+  }
 
   private getEditorSidebar(): ReturnType<Page["locator"]> {
     return this.page.locator('[data-sidebar="sidebar"]').filter({

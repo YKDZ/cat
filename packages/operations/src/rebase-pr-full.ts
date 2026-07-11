@@ -1,7 +1,5 @@
 // packages/operations/src/rebase-pr-full.ts
 import type { DbContext } from "@cat/domain";
-import type { ConflictInfo, RebaseResult } from "@cat/vcs";
-
 import {
   executeCommand,
   executeQuery,
@@ -9,6 +7,7 @@ import {
   getPR,
   markBranchConflicted,
 } from "@cat/domain";
+import type { ConflictInfo, RebaseResult } from "@cat/vcs";
 import { detectConflicts, getDefaultRegistries, rebaseBranch } from "@cat/vcs";
 
 /**

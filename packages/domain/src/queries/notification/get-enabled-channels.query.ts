@@ -1,10 +1,9 @@
-import type { MessageCategory, MessageChannel } from "@cat/shared";
-
 import { userMessagePreference } from "@cat/db";
 import { and, eq } from "@cat/db";
+import type { MessageCategory, MessageChannel } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetEnabledChannelsQuerySchema = z.object({
   userId: z.uuidv4(),

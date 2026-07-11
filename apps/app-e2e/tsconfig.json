@@ -1,18 +1,10 @@
 {
-  "extends": ["../../tsconfig.base.json"],
+  "extends": "../../tsconfig.node-base.json",
   "compilerOptions": {
-    "resolveJsonModule": true,
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
-    "paths": {
-      "@/*": ["./tests/*"]
-    },
-    "declaration": false,
     "noEmit": true,
-    "composite": false,
-    "declarationMap": false,
-    "emitDeclarationOnly": false
+    "resolveJsonModule": true,
+    "types": ["node"]
   },
-  "include": ["tests/**/*.ts", "*.ts"],
-  "exclude": ["tests/project-crud.spec.ts", "tests/agent-phase2.spec.ts"],
-  "references": []
+  "include": ["tests/**/*.ts", "global-setup.ts", "playwright.config.ts"],
+  "exclude": ["tests/project-crud.spec.ts", "tests/agent-phase2.spec.ts"]
 }

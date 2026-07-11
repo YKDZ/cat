@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue";
 import { useEventListener, useMediaQuery } from "@vueuse/core";
 import { TooltipProvider } from "reka-ui";
+import { usePageContext } from "vike-vue/usePageContext";
+import type { HTMLAttributes } from "vue";
 import { computed, ref, shallowRef, watchEffect } from "vue";
-import { cn } from "@/utils/lib/utils";
+
 import {
   provideSidebarContext,
   SIDEBAR_KEYBOARD_SHORTCUT,
@@ -12,8 +13,9 @@ import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_WIDTH_ICON,
   SIDEBAR_WIDTH_MOBILE,
-} from "./utils";
-import { usePageContext } from "vike-vue/usePageContext";
+} from "#/components/sidebar/utils.ts";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = withDefaults(
   defineProps<{
@@ -23,14 +25,15 @@ const props = withDefaults(
     class?: HTMLAttributes["class"];
   }>(),
   {
-    defaultOpen: undefined,
     inline: false,
   },
 );
 
 const ctx = usePageContext();
 
-const isMobile = !ctx.isClientSide ? shallowRef(ctx.isMobile) : useMediaQuery("(max-width: 768px)");
+const isMobile = !ctx.isClientSide
+  ? shallowRef(ctx.isMobile)
+  : useMediaQuery("(max-width: 768px)");
 const openMobile = ref(false);
 
 const open = defineModel<boolean>({ default: true });
@@ -45,11 +48,16 @@ function setOpenMobile(value: boolean) {
 
 // Helper to toggle the sidebar.
 function toggleSidebar() {
-  return isMobile.value ? setOpenMobile(!openMobile.value) : setOpen(!open.value);
+  return isMobile.value
+    ? setOpenMobile(!openMobile.value)
+    : setOpen(!open.value);
 }
 
 useEventListener("keydown", (event: KeyboardEvent) => {
-  if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
+  if (
+    event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
+    (event.metaKey || event.ctrlKey)
+  ) {
     event.preventDefault();
     toggleSidebar();
   }
@@ -107,8 +115,13 @@ provideSidebarContext(props.id, {
   <TooltipProvider :delay-duration="0">
     <div
       data-slot="sidebar-wrapper"
-      :class="cn('group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar', props.class)"
-      v-bind="$attrs"
+      :class="
+        cn(
+          'group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar',
+          props.class,
+        )
+      "
+      v-bind="exactOptionalProps($attrs)"
     >
       <slot />
     </div>

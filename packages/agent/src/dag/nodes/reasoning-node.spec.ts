@@ -3,7 +3,6 @@ import type {
   LLMChunk,
   LLMProvider,
 } from "@cat/plugin-core";
-
 import { describe, expect, it, vi } from "vitest";
 
 import { LLMGateway } from "../../llm/llm-gateway.ts";
@@ -105,7 +104,14 @@ describe("runReasoningNode", () => {
       ctx,
       {
         content: "Project {{projectName}} / Turns {{maxTurns}}",
-        metadata: { tools: [], llm: { temperature: 0.3, maxTokens: 128 } },
+        metadata: {
+          id: "test-agent",
+          name: "Test Agent",
+          version: "1.0.0",
+          type: "GENERAL",
+          tools: [],
+          llm: { temperature: 0.3, maxTokens: 128 },
+        },
       },
     );
 
@@ -122,7 +128,14 @@ describe("runReasoningNode", () => {
       ctx,
       {
         content: "项目：{{projectName}}；最大轮数：{{maxTurns}}。",
-        metadata: { tools: [], llm: { temperature: 0.3, maxTokens: 128 } },
+        metadata: {
+          id: "test-agent",
+          name: "Test Agent",
+          version: "1.0.0",
+          type: "GENERAL",
+          tools: [],
+          llm: { temperature: 0.3, maxTokens: 128 },
+        },
       },
     );
 

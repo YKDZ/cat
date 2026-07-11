@@ -1,13 +1,12 @@
+import { redirect, render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
-import { redirect, render } from "vike/abort";
-
-import { ssc } from "@/server/ssc";
+import { ssc } from "#/server/ssc.ts";
 
 import {
   buildQaReviewHref,
   parseQaReviewScopeFromRoute,
-} from "../../../../scope-url";
+} from "../../../../scope-url.ts";
 
 export async function guard(ctx: PageContextServer) {
   if (!ctx.user) throw render("/auth", "You must login to access");

@@ -16,10 +16,9 @@ import * as z from "zod";
 import type {
   ContentNodeElementRow,
   ElementTranslationStatus,
-} from "@/queries/content/get-content-node-elements.query";
-import type { Query } from "@/types";
-
-import { buildTranslationStatusConditions } from "@/queries/translation/build-translation-status-conditions";
+} from "#/queries/content/get-content-node-elements.query.ts";
+import { buildTranslationStatusConditions } from "#/queries/translation/build-translation-status-conditions.ts";
+import type { Query } from "#/types.ts";
 
 export const GetContentNodeFirstElementQuerySchema = z.object({
   contentNodeId: z.uuidv4(),

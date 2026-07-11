@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ContentNode } from "@cat/shared";
-
 import { computed } from "vue";
 
 /**

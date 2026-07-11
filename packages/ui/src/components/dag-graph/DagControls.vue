@@ -5,6 +5,7 @@
  * lastReviewed: 2026-03-20
  */
 import { Controls } from "@vue-flow/controls";
+
 import "@vue-flow/controls/dist/style.css";
 </script>
 

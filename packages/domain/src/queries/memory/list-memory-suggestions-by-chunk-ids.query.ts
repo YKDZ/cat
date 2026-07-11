@@ -10,7 +10,7 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListMemorySuggestionsByChunkIdsQuerySchema = z.object({
   searchedChunkIds: z.array(z.int()),

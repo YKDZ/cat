@@ -1,5 +1,6 @@
-import { defineConfig } from "drizzle-kit";
 import { resolve } from "node:path";
+
+import { defineConfig } from "drizzle-kit";
 
 try {
   if (!process.env.DATABASE_URL) {

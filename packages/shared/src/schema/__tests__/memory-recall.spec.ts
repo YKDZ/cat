@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   MemoryRecallBm25CapabilityEntrySchema,
   MemoryRecallBm25CompressionProfileSchema,
-} from "../memory-recall.ts";
-import { EvidenceLaneSchema } from "../precision-recall.ts";
-import { RecallChannelSchema } from "../recall.ts";
+} from "#/schema/memory-recall.ts";
+import { EvidenceLaneSchema } from "#/schema/precision-recall.ts";
+import { RecallChannelSchema } from "#/schema/recall.ts";
 
 describe("BM25 memory recall schemas", () => {
   it("accepts bm25 as a recall channel", () => {

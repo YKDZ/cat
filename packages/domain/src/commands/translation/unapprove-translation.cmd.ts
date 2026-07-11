@@ -2,9 +2,8 @@ import { and, eq, translatableElement, translation } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const UnapproveTranslationCommandSchema = z.object({
   translationId: z.int(),

@@ -5,7 +5,7 @@ import {
   hasAvailabilityProbe,
   type IPluginService,
   type PluginServiceAvailabilityProbe,
-} from "./service";
+} from "#/services/service.ts";
 
 const basicService: IPluginService = {
   getId: () => "basic",

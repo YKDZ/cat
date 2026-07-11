@@ -1,10 +1,10 @@
 import type { RecallChannel } from "@cat/shared";
-
 import { describe, expect, it } from "vitest";
 
-import type { RecallCandidate } from "./types";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
 
-import { applyBudgetGate } from "./budget-gate";
+import { applyBudgetGate } from "./budget-gate.ts";
+import type { RecallCandidate } from "./types.ts";
 
 const PROFILE = {
   tokenCount: 2,
@@ -56,7 +56,7 @@ describe("applyBudgetGate", () => {
   it("records budget decision note", () => {
     const candidates = [make(1, "lexical")];
     const result = applyBudgetGate(candidates, PROFILE, { maxTotal: 5 });
-    const decision = result[0].rankingDecisions.find(
+    const decision = requireFixtureValue(result[0]).rankingDecisions.find(
       (d) => d.action === "budget-classified",
     );
     expect(decision).toBeDefined();

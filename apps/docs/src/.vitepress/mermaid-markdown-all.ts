@@ -10,6 +10,7 @@ const MermaidExample = (md: MarkdownRenderer) => {
 
   md.renderer.rules.fence = (tokens, index, options, env, slf) => {
     const token = tokens[index];
+    if (!token) return "";
     const language = token.info.trim();
 
     if (language.startsWith("mermaid")) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import { Button, Input } from "@cat/ui";
 import {
   FormControl,
@@ -39,7 +40,7 @@ const onSubmit = handleSubmit((values) => emit("submit", values));
             type="password"
             autocomplete="current-password"
             :placeholder="t('输入你的密码')"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           />
         </FormControl>
         <FormMessage />

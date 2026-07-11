@@ -2,9 +2,9 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useEditorSuggestionStore } from "@/stores/editor/suggestion.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { watchClient } from "@/utils/vue.ts";
+import { useEditorSuggestionStore } from "#/stores/editor/suggestion.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { watchClient } from "#/utils/vue.ts";
 
 import SuggestionListItem from "./SuggestionListItem.vue";
 

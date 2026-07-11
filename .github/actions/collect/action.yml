@@ -14,8 +14,8 @@ inputs:
   source-lang:
     description: "Source language ID (e.g., 'zh_cn', 'en')"
     required: true
-  document-name:
-    description: "Document name for the collection"
+  source-root-ref:
+    description: "Stable source root reference for the collection"
     required: true
   source-glob:
     description: "Glob patterns for source files (newline-separated)"
@@ -36,7 +36,10 @@ inputs:
     description: "Base URL for screenshot collection (required if screenshots=true)"
     required: false
   screenshot-routes:
-    description: "Path to routes JSON file (required if screenshots=true)"
+    description: "Path to routes JSON/YAML manifest (required if screenshots=true)"
+    required: false
+  screenshot-bindings:
+    description: "Path to element bindings JSON (required if screenshots=true)"
     required: false
 
 outputs:
@@ -66,12 +69,12 @@ runs:
           fi
         done <<< "${{ inputs.source-glob }}"
 
-        npx tsx packages/source-collector/src/cli.ts collect \
+        packages/source-collector/src/cli.ts collect \
           "${GLOB_ARGS[@]}" \
           --framework "${{ inputs.framework }}" \
           --project-id "${{ inputs.project-id }}" \
           --source-lang "${{ inputs.source-lang }}" \
-          --document-name "${{ inputs.document-name }}" \
+          --source-root-ref "${{ inputs.source-root-ref }}" \
           --base-dir "${{ inputs.base-dir }}" \
           --output /tmp/cat-source-payload.json
 
@@ -119,19 +122,52 @@ runs:
         echo "| New elements added | $ADDED |" >> "$GITHUB_STEP_SUMMARY"
         echo "| Elements removed | $REMOVED |" >> "$GITHUB_STEP_SUMMARY"
 
-    - name: Collect and upload screenshots
+    - name: Extract source elements for screenshots
       if: inputs.screenshots == 'true'
       shell: bash
       run: |
-        npx playwright install --with-deps chromium
+        GLOB_ARGS=()
+        while IFS= read -r pattern; do
+          pattern=$(echo "$pattern" | xargs)
+          if [ -n "$pattern" ]; then
+            GLOB_ARGS+=(--glob "$pattern")
+          fi
+        done <<< "${{ inputs.source-glob }}"
 
-        npx tsx packages/screenshot-collector/src/cli.ts collect \
+        packages/source-collector/src/cli.ts extract \
+          "${GLOB_ARGS[@]}" \
+          --framework "${{ inputs.framework }}" \
+          --source-lang "${{ inputs.source-lang }}" \
+          --base-dir "${{ inputs.base-dir }}" \
+          --output /tmp/cat-source-extraction.json
+
+    - name: Capture and upload screenshots
+      if: inputs.screenshots == 'true'
+      shell: bash
+      run: |
+        SCREENSHOT_BASE_URL="${{ inputs.screenshot-base-url }}"
+        SCREENSHOT_ROUTES="${{ inputs.screenshot-routes }}"
+        SCREENSHOT_BINDINGS="${{ inputs.screenshot-bindings }}"
+        for input_name in SCREENSHOT_BASE_URL SCREENSHOT_ROUTES SCREENSHOT_BINDINGS; do
+          if [ -z "${!input_name}" ]; then
+            echo "${input_name} is required when screenshots=true" >&2
+            exit 1
+          fi
+        done
+
+        pnpm exec playwright install --with-deps chromium
+
+        packages/screenshot-collector/src/cli.ts capture \
           --base-url "${{ inputs.screenshot-base-url }}" \
           --routes "${{ inputs.screenshot-routes }}" \
-          --elements /tmp/cat-source-payload.json \
+          --bindings "${{ inputs.screenshot-bindings }}" \
+          --elements /tmp/cat-source-extraction.json \
           --output-dir /tmp/cat-screenshots \
+          --output /tmp/cat-capture-result.json
+
+        packages/screenshot-collector/src/cli.ts upload \
+          --capture /tmp/cat-capture-result.json \
+          --bindings "${{ inputs.screenshot-bindings }}" \
           --project-id "${{ inputs.project-id }}" \
-          --document-name "${{ inputs.document-name }}" \
           --api-url "${{ inputs.api-url }}" \
-          --api-key "${{ inputs.api-key }}" \
-          --upload
+          --api-key "${{ inputs.api-key }}"

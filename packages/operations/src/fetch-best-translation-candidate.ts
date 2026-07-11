@@ -1,9 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-
 import { z } from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall";
-import { fetchAdviseOp } from "./fetch-advise";
+import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import { fetchAdviseOp } from "./fetch-advise.ts";
 
 export const FetchBestTranslationCandidateInputSchema = z.object({
   text: z.string(),

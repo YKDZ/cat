@@ -1,6 +1,6 @@
 // apps/eval/src/eval/scorers/decision-note.ts
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- rawOutput requires casting from unknown
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 type ResultWithDecisions = {
   conceptId?: number;

@@ -1,6 +1,6 @@
 import type { PageContextServer } from "vike/types";
 
-import { ssc } from "@/server/ssc";
+import { ssc } from "#/server/ssc.ts";
 
 export const data = async (ctx: PageContextServer) => {
   const plugins = await ssc(ctx).plugin.getAll({});

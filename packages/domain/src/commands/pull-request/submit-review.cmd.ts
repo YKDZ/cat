@@ -2,9 +2,8 @@ import { eq, getColumns, pullRequest } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 /** Review decision: APPROVE or CHANGES_REQUESTED */
 export const ReviewDecisionSchema = z.enum(["APPROVE", "CHANGES_REQUESTED"]);

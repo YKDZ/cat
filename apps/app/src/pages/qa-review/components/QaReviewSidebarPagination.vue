@@ -12,9 +12,9 @@ import { navigate } from "vike/client/router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { buildQaReviewHref } from "@/pages/qa-review/scope-url";
-import { useEditorContextStore } from "@/stores/editor/context";
-import { useQaReviewWorkbenchStore } from "@/stores/qa-review/workbench";
+import { buildQaReviewHref } from "#/pages/qa-review/scope-url.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useQaReviewWorkbenchStore } from "#/stores/qa-review/workbench.ts";
 
 const { t } = useI18n();
 const contextStore = useEditorContextStore();

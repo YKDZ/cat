@@ -1,6 +1,6 @@
 import { logger } from "@cat/shared";
 
-import type { CacheStore } from "@/cache/types";
+import type { CacheStore } from "#/cache/types.ts";
 
 /**
  * 基于内存的缓存实现
@@ -35,7 +35,10 @@ export class MemoryCacheStore implements CacheStore {
     const fullKey = `${this.keyPrefix}:${key}`;
     const expires = ttl ? Date.now() + ttl * 1000 : undefined;
 
-    this.storage.set(fullKey, { value, expires });
+    this.storage.set(fullKey, {
+      value,
+      ...(expires === undefined ? {} : { expires }),
+    });
 
     logger.debug(
       {

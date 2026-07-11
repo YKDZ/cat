@@ -5,7 +5,7 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const EnsureCoreRelationTypesCommandSchema = z.object({});
 export type EnsureCoreRelationTypesCommand = z.infer<

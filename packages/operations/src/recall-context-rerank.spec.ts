@@ -1,10 +1,11 @@
+import { PluginManager, RerankProvider } from "@cat/plugin-core";
 import type { MemorySuggestion } from "@cat/shared";
 import type { RerankRequest, RerankResponse } from "@cat/shared";
-
-import { PluginManager, RerankProvider } from "@cat/plugin-core";
 import { describe, expect, it, vi } from "vitest";
 
-import { recallContextRerankOp } from "./recall-context-rerank";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
+import { recallContextRerankOp } from "./recall-context-rerank.ts";
 
 vi.mock("@cat/domain", async () => {
   const actual =
@@ -73,7 +74,7 @@ describe("recallContextRerankOp", () => {
       memories,
     });
     expect(result).toHaveLength(1);
-    expect(result[0].id).toBe(1);
+    expect(requireFixtureValue(result[0]).id).toBe(1);
   });
 
   it("returns original order when no provider is configured", async () => {
@@ -87,8 +88,8 @@ describe("recallContextRerankOp", () => {
       { traceId: "t1", pluginManager: new PluginManager("GLOBAL", "") },
     );
     // No reranking applied — fallback to original order
-    expect(result[0].id).toBe(1);
-    expect(result[1].id).toBe(2);
+    expect(requireFixtureValue(result[0]).id).toBe(1);
+    expect(requireFixtureValue(result[1]).id).toBe(2);
   });
 
   it("does NOT mutate confidence values", async () => {
@@ -132,7 +133,7 @@ describe("recallContextRerankOp", () => {
       { traceId: "t1", pluginManager },
     );
     // Original order
-    expect(result[0].id).toBe(1);
-    expect(result[1].id).toBe(2);
+    expect(requireFixtureValue(result[0]).id).toBe(1);
+    expect(requireFixtureValue(result[1]).id).toBe(2);
   });
 });

@@ -8,13 +8,14 @@ import {
   listAllGlossaries,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
+import { assertSingleNonNullish } from "@cat/shared";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { fetchAdviseGraph } from "../fetch-advise";
+import { fetchAdviseGraph } from "../fetch-advise.ts";
 
 let cleanup: () => Promise<void>;
 let pluginManager: PluginManager;
@@ -64,7 +65,7 @@ test("worker should fetch advise", async () => {
   const { client: drizzle } = await getDbHandle();
 
   const glossaries = await executeQuery({ db: drizzle }, listAllGlossaries, {});
-  const glossaryId = glossaries[0].id;
+  const glossaryId = assertSingleNonNullish(glossaries).id;
 
   const { suggestions } = await runGraph(
     fetchAdviseGraph,

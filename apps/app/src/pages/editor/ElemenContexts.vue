@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { FlattenedContextEvidence } from "@cat/shared";
-
 import { SidebarGroup, SidebarGroupContent, SidebarContent } from "@cat/ui";
 import { ScrollArea } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
 
-import { orpc } from "@/rpc/orpc";
-import { useEditorTableStore } from "@/stores/editor/table";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
 import ElemenContextJson from "./ElemenContextJson.vue";
 import ElemenContextMarkdown from "./ElemenContextMarkdown.vue";

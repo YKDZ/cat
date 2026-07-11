@@ -16,7 +16,14 @@ export const TokenTypeValues = [
 export const TokenTypeSchema = z.enum(TokenTypeValues);
 export type TokenType = (typeof TokenTypeValues)[number];
 
-export const TaskStatusValues = ["COMPLETED", "PENDING", "FAILED"] as const;
+export const TaskStatusValues = [
+  "PENDING",
+  "RUNNING",
+  "COMPLETED",
+  "FAILED",
+  "BLOCKED",
+  "CANCELED",
+] as const;
 export const TaskStatusSchema = z.enum(TaskStatusValues);
 
 export const QueueTaskStatusValues = [

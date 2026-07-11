@@ -1,8 +1,8 @@
-export type { CacheOptions, CacheStore, SessionStore } from "./types";
-export { MemoryCacheStore } from "./memory-cache-store";
-export { MemorySessionStore } from "./memory-session-store";
-export { PostgresCacheStore } from "./postgres-cache-store";
-export { PostgresSessionStore } from "./postgres-session-store";
+export type { CacheOptions, CacheStore, SessionStore } from "./types.ts";
+export { MemoryCacheStore } from "./memory-cache-store.ts";
+export { MemorySessionStore } from "./memory-session-store.ts";
+export { PostgresCacheStore } from "./postgres-cache-store.ts";
+export { PostgresSessionStore } from "./postgres-session-store.ts";
 export {
   generateCacheKey,
   getCacheStore,
@@ -10,4 +10,4 @@ export {
   initCacheStore,
   initSessionStore,
   withCache,
-} from "./cache-decorator";
+} from "./cache-decorator.ts";

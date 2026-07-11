@@ -1,7 +1,7 @@
 import { sessionRecord as sessionRecordTable } from "@cat/db";
 import { and, eq } from "@cat/db";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export interface RevokeSessionRecordCommand {
   id: string;

@@ -2,7 +2,7 @@ import { notification } from "@cat/db";
 import { and, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetNotificationQuerySchema = z.object({
   notificationId: z.int(),

@@ -3,7 +3,6 @@ import type {
   LLMChunk,
   LLMProvider,
 } from "@cat/plugin-core";
-
 import { describe, expect, it, vi } from "vitest";
 
 import { LLMGateway } from "./llm-gateway.ts";

@@ -1,5 +1,4 @@
 import type { PluginCapabilities } from "@cat/domain";
-
 import {
   VectorStorage,
   type CosineSimilarityContext,
@@ -17,8 +16,11 @@ type NativePgVectorStorageContext = {
  * Native vector storage service backed by the built-in PostgreSQL vector capabilities.
  */
 export class NativePgVectorStorage extends VectorStorage {
-  public constructor(private readonly ctx: NativePgVectorStorageContext) {
+  private readonly ctx: NativePgVectorStorageContext;
+
+  public constructor(ctx: NativePgVectorStorageContext) {
     super();
+    this.ctx = ctx;
   }
 
   /**

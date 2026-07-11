@@ -5,7 +5,7 @@ import {
   PermissionActionSchema,
   RelationSchema,
   SubjectTypeSchema,
-} from "./enum.ts";
+} from "#/schema/enum.ts";
 
 export {
   ObjectTypeSchema,
@@ -18,7 +18,7 @@ export type {
   PermissionAction,
   Relation,
   SubjectType,
-} from "./enum.ts";
+} from "#/schema/enum.ts";
 
 export const PermissionCheckSchema = z.object({
   objectType: ObjectTypeSchema,

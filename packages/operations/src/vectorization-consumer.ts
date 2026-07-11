@@ -1,7 +1,5 @@
 import type { TaskQueue } from "@cat/core";
 import type { OperationContext } from "@cat/domain";
-import type { VectorizationTask } from "@cat/server-shared";
-
 import {
   attachChunkSetToString,
   domainEvent,
@@ -10,8 +8,9 @@ import {
   getDbHandle,
   updateVectorizedStringStatus,
 } from "@cat/domain";
+import type { VectorizationTask } from "@cat/server-shared";
 
-import { vectorizeToChunkSetOp } from "./vectorize";
+import { vectorizeToChunkSetOp } from "./vectorize.ts";
 
 const MAX_RETRIES = 3;
 
@@ -46,12 +45,20 @@ export const processVectorizationBatch = async (
       // 2. Attach chunkSetIds to strings
       // oxlint-disable-next-line no-await-in-loop
       const { client: drizzle } = await getDbHandle();
+      if (chunkSetIds.length !== task.payload.stringIds.length) {
+        throw new Error(
+          "vectorization result count did not match string count",
+        );
+      }
       // oxlint-disable-next-line no-await-in-loop
       await executeCommand({ db: drizzle }, attachChunkSetToString, {
-        updates: task.payload.stringIds.map((sid, i) => ({
-          stringId: sid,
-          chunkSetId: chunkSetIds[i],
-        })),
+        updates: task.payload.stringIds.map((stringId, index) => {
+          const chunkSetId = chunkSetIds[index];
+          if (chunkSetId === undefined) {
+            throw new Error("vectorization result omitted a chunk set ID");
+          }
+          return { stringId, chunkSetId };
+        }),
       });
 
       // 3. Ack + publish success

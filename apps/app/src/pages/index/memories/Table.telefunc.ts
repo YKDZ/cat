@@ -1,9 +1,8 @@
+import { listMemoriesByCreator } from "@cat/domain";
 import type { Memory } from "@cat/shared";
 
-import { listMemoriesByCreator } from "@cat/domain";
-
-import { runAppQuery } from "@/server/domain";
-import { requireTelefuncAuth } from "@/server/telefunc-auth";
+import { runAppQuery } from "#/server/domain.ts";
+import { requireTelefuncAuth } from "#/server/telefunc-auth.ts";
 
 export type PagedResult<T> = {
   data: T[];

@@ -1,7 +1,7 @@
 import { comment, eq, translation } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetCommentRecipientQuerySchema = z.object({
   commentId: z.int(),

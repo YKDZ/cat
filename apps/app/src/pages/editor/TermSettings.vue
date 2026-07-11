@@ -17,7 +17,7 @@ import { Settings } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useProfileStore } from "@/stores/profile.ts";
+import { useProfileStore } from "#/stores/profile.ts";
 
 const { t } = useI18n();
 

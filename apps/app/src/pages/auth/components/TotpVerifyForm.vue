@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import { Button, Input } from "@cat/ui";
 import {
   FormControl,
@@ -42,7 +43,7 @@ const onSubmit = handleSubmit((values) => emit("submit", values));
             maxlength="6"
             :placeholder="t('输入 6 位验证码')"
             class="text-center font-mono text-lg tracking-[0.5em]"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           />
         </FormControl>
         <FormMessage />

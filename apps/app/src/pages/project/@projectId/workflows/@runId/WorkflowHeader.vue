@@ -4,7 +4,7 @@ import { ArrowRight, ArrowDown, Pause, Play, X } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useWorkflowStore } from "@/stores/workflow";
+import { useWorkflowStore } from "#/stores/workflow.ts";
 
 import WorkflowRunStatusBadge from "../WorkflowRunStatusBadge.vue";
 

@@ -2,7 +2,7 @@ import { agentDefinition, eq, getColumns } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetAgentDefinitionByInternalIdQuerySchema = z.object({
   id: z.int(),

@@ -24,8 +24,8 @@ import { prefetch } from "vike/client/router";
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import SidebarLogo from "@/components/SidebarLogo.vue";
-import UserSidebarDropdownMenu from "@/components/UserSidebarDropdownMenu.vue";
+import SidebarLogo from "#/components/SidebarLogo.vue";
+import UserSidebarDropdownMenu from "#/components/UserSidebarDropdownMenu.vue";
 
 const { t } = useI18n();
 

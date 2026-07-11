@@ -1,4 +1,4 @@
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 export const selfExclusionRateScorer: Scorer = {
   name: "self-exclusion-rate",

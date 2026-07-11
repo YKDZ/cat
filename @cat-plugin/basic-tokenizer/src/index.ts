@@ -9,7 +9,7 @@ import {
   LinkTokenizer,
   VariableTokenizer,
   MaskTokenizer,
-} from "@/tokenizer.ts";
+} from "./tokenizer.ts";
 
 class Plugin implements CatPlugin {
   services() {

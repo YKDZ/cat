@@ -2,7 +2,7 @@ import { and, eq, getColumns, pullRequest } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetPRByNumberQuerySchema = z.object({
   projectId: z.uuid(),

@@ -1,7 +1,7 @@
 import type { DrizzleDB, RedisConnection } from "@cat/db";
 import type { PluginManager } from "@cat/plugin-core";
 
-import type { RefResolver } from "./ref-resolver";
+import type { RefResolver } from "./ref-resolver.ts";
 
 export type SeededContext = {
   db: DrizzleDB;

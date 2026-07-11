@@ -1,24 +1,24 @@
 // === Types ===
-export type { OperationContext } from "./types";
+export type { OperationContext } from "./types.ts";
 export type {
   MemorySuggestionWithPrecision,
   LookedUpTermWithPrecision,
-} from "./precision/types";
+} from "./precision/types.ts";
 
 // === Memory utilities ===
-export { insertMemory } from "./memory";
+export { insertMemory } from "./memory.ts";
 export {
   writePersonalTranslationMemoryOp,
   WritePersonalTranslationMemoryInputSchema,
   type WritePersonalTranslationMemoryInput,
   type WritePersonalTranslationMemoryOutput,
-} from "./write-personal-translation-memory";
+} from "./write-personal-translation-memory.ts";
 export {
   promoteApprovedTranslationMemoryOp,
   PromoteApprovedTranslationMemoryInputSchema,
   type PromoteApprovedTranslationMemoryInput,
   type PromoteApprovedTranslationMemoryOutput,
-} from "./promote-approved-translation-memory";
+} from "./promote-approved-translation-memory.ts";
 export {
   placeholderize,
   fillTemplate,
@@ -26,7 +26,7 @@ export {
   mappingToSlots,
   type PlaceholderSlot,
   type SlotMappingEntry,
-} from "./memory-template";
+} from "./memory-template.ts";
 
 export {
   fetchAdviseOp,
@@ -34,7 +34,7 @@ export {
   FetchAdviseOutputSchema,
   type FetchAdviseInput,
   type FetchAdviseOutput,
-} from "./fetch-advise";
+} from "./fetch-advise.ts";
 
 export {
   tokenizeOp,
@@ -42,7 +42,7 @@ export {
   TokenizeOutputSchema,
   type TokenizeInput,
   type TokenizeOutput,
-} from "./tokenize";
+} from "./tokenize.ts";
 
 export {
   vectorizeToChunkSetOp,
@@ -50,7 +50,7 @@ export {
   VectorizeOutputSchema,
   type VectorizeInput,
   type VectorizeOutput,
-} from "./vectorize";
+} from "./vectorize.ts";
 
 export {
   retrieveEmbeddingsOp,
@@ -58,7 +58,7 @@ export {
   RetrieveEmbeddingsOutputSchema,
   type RetrieveEmbeddingsInput,
   type RetrieveEmbeddingsOutput,
-} from "./retrieve-embeddings";
+} from "./retrieve-embeddings.ts";
 
 export {
   parseFileOp,
@@ -66,7 +66,7 @@ export {
   ParseFileOutputSchema,
   type ParseFileInput,
   type ParseFileOutput,
-} from "./parse-file";
+} from "./parse-file.ts";
 
 export {
   revectorizeOp,
@@ -74,7 +74,7 @@ export {
   RevectorizeOutputSchema,
   type RevectorizeInput,
   type RevectorizeOutput,
-} from "./revectorize";
+} from "./revectorize.ts";
 
 export {
   revectorizeConceptOp,
@@ -82,10 +82,10 @@ export {
   RevectorizeConceptOutputSchema,
   type RevectorizeConceptInput,
   type RevectorizeConceptOutput,
-} from "./revectorize-concept";
+} from "./revectorize-concept.ts";
 
-export { triggerConceptRevectorize } from "./trigger-revectorize";
-export { registerDomainEventHandlers } from "./register-domain-event-handlers";
+export { triggerConceptRevectorize } from "./trigger-revectorize.ts";
+export { registerDomainEventHandlers } from "./register-domain-event-handlers.ts";
 
 export {
   qaOp,
@@ -93,7 +93,7 @@ export {
   QAOutputSchema,
   type QAInput,
   type QAOutput,
-} from "./qa";
+} from "./qa.ts";
 
 export {
   updateConceptOp,
@@ -101,7 +101,7 @@ export {
   UpdateConceptOutputSchema,
   type UpdateConceptInput,
   type UpdateConceptOutput,
-} from "./update-concept";
+} from "./update-concept.ts";
 
 export {
   addTermToConceptOp,
@@ -109,7 +109,7 @@ export {
   AddTermToConceptOutputSchema,
   type AddTermToConceptInput,
   type AddTermToConceptOutput,
-} from "./add-term-to-concept";
+} from "./add-term-to-concept.ts";
 
 export {
   deleteTermOp,
@@ -117,7 +117,7 @@ export {
   DeleteTermOutputSchema,
   type DeleteTermInput,
   type DeleteTermOutput,
-} from "./delete-term";
+} from "./delete-term.ts";
 
 export {
   semanticSearchTermsOp,
@@ -125,22 +125,22 @@ export {
   SemanticSearchTermsOutputSchema,
   type SemanticSearchTermsInput,
   type SemanticSearchTermsOutput,
-} from "./semantic-search-terms";
+} from "./semantic-search-terms.ts";
 
 export {
   streamSearchTermsOp,
   StreamSearchTermsInputSchema,
   type StreamSearchTermsInput,
-} from "./stream-search-terms";
+} from "./stream-search-terms.ts";
 
 export {
   LookupTermsInputSchema,
   LookupTermsOutputSchema,
   type LookupTermsInput,
   type LookupTermsOutput,
-} from "./lookup-terms";
+} from "./lookup-terms.ts";
 
-export { lookupTermsForElementOp } from "./lookup-terms-for-element";
+export { lookupTermsForElementOp } from "./lookup-terms-for-element.ts";
 
 export {
   searchChunkOp,
@@ -148,7 +148,7 @@ export {
   SearchChunkOutputSchema,
   type SearchChunkInput,
   type SearchChunkOutput,
-} from "./search-chunk";
+} from "./search-chunk.ts";
 
 export {
   createVectorizedStringOp,
@@ -156,11 +156,11 @@ export {
   CreateVectorizedStringOutputSchema,
   type CreateVectorizedStringInput,
   type CreateVectorizedStringOutput,
-} from "./create-vectorized-string";
+} from "./create-vectorized-string.ts";
 
-export { processVectorizationBatch } from "./vectorization-consumer";
+export { processVectorizationBatch } from "./vectorization-consumer.ts";
 export type { VectorizationTask } from "@cat/server-shared";
-export { registerVectorizationConsumer } from "./register-vectorization-consumer";
+export { registerVectorizationConsumer } from "./register-vectorization-consumer.ts";
 
 // === Level 2 Operations ===
 export {
@@ -169,7 +169,7 @@ export {
   CreateElementOutputSchema,
   type CreateElementInput,
   type CreateElementOutput,
-} from "./create-element";
+} from "./create-element.ts";
 
 export {
   createTermOp,
@@ -177,7 +177,7 @@ export {
   CreateTermOutputSchema,
   type CreateTermInput,
   type CreateTermOutput,
-} from "./create-term";
+} from "./create-term.ts";
 
 export {
   searchMemoryOp,
@@ -185,30 +185,30 @@ export {
   SearchMemoryOutputSchema,
   type SearchMemoryInput,
   type SearchMemoryOutput,
-} from "./search-memory";
+} from "./search-memory.ts";
 
 export {
   streamSearchMemoryOp,
   StreamSearchMemoryInputSchema,
   type StreamSearchMemoryInput,
-} from "./stream-search-memory";
+} from "./stream-search-memory.ts";
 
 export {
   collectMemoryRecallOp,
   CollectMemoryRecallInputSchema,
   type CollectMemoryRecallInput,
-} from "./collect-memory-recall";
+} from "./collect-memory-recall.ts";
 export {
   collectEffectiveMemoryRecallOp,
   CollectEffectiveMemoryRecallInputSchema,
   type CollectEffectiveMemoryRecallInput,
-} from "./collect-effective-memory-recall";
+} from "./collect-effective-memory-recall.ts";
 export {
   BM25_DISABLED_REASON,
   buildMemoryRecallBm25Capabilities,
   compressBm25Score,
   MEMORY_RECALL_BM25_REGISTRY,
-} from "./memory-recall-bm25";
+} from "./memory-recall-bm25.ts";
 
 export {
   qaTranslationOp,
@@ -216,10 +216,10 @@ export {
   QaTranslationOutputSchema,
   type QaTranslationInput,
   type QaTranslationOutput,
-} from "./qa-translation";
+} from "./qa-translation.ts";
 
-export { applyQaReviewPolicy } from "./qa-review/policy";
-export { normalizeQaResultItems } from "./qa-review/normalize";
+export { applyQaReviewPolicy } from "./qa-review/policy.ts";
+export { normalizeQaResultItems } from "./qa-review/normalize.ts";
 
 export {
   termRecallOp,
@@ -229,12 +229,12 @@ export {
   type TermRecallInput,
   type TermContext,
   type TermRecallOutput,
-} from "./term-recall";
+} from "./term-recall.ts";
 
 export {
   recallContextRerankOp,
   rerankTermRecallOp,
-} from "./recall-context-rerank";
+} from "./recall-context-rerank.ts";
 
 export {
   llmRefineTranslationOp,
@@ -242,7 +242,7 @@ export {
   LlmRefineTranslationOutputSchema,
   type LlmRefineTranslationInput,
   type LlmRefineTranslationOutput,
-} from "./llm-refine-translation";
+} from "./llm-refine-translation.ts";
 
 export {
   llmTranslateOp,
@@ -253,7 +253,7 @@ export {
   type LlmTranslateInput,
   type LlmTranslateOutput,
   type LlmTranslateConfig,
-} from "./llm-translate";
+} from "./llm-translate.ts";
 
 // === Level 3+ Operations ===
 export {
@@ -264,7 +264,7 @@ export {
   type CreateTranslationInput,
   type CreateTranslationOutput,
   type CreateTranslationPubPayload,
-} from "./create-translation";
+} from "./create-translation.ts";
 
 export {
   applyStructuredContentGraphEnvelope,
@@ -274,7 +274,7 @@ export {
   type AppliedGraphEnvelope,
   type PersistGraphAttachmentsInput,
   type PersistGraphAttachmentsOutput,
-} from "./apply-structured-content-graph";
+} from "./apply-structured-content-graph.ts";
 
 export {
   diffStructuredContentOp,
@@ -285,7 +285,7 @@ export {
   type DiffStructuredContentOutput,
   type ClassifySemanticElementDiffInput,
   type ClassifySemanticElementDiffResult,
-} from "./diff-structured-content";
+} from "./diff-structured-content.ts";
 
 export {
   upsertContentNodeFromFileOp,
@@ -293,7 +293,7 @@ export {
   UpsertContentNodeFromFileOutputSchema,
   type UpsertContentNodeFromFileInput,
   type UpsertContentNodeFromFileOutput,
-} from "./upsert-content-node-from-file";
+} from "./upsert-content-node-from-file.ts";
 
 export {
   autoTranslateOp,
@@ -301,7 +301,7 @@ export {
   AutoTranslateOutputSchema,
   type AutoTranslateInput,
   type AutoTranslateOutput,
-} from "./auto-translate";
+} from "./auto-translate.ts";
 
 // === NLP Operations ===
 export {
@@ -310,7 +310,7 @@ export {
   NlpSegmentOutputSchema,
   type NlpSegmentInput,
   type NlpSegmentOutput,
-} from "./nlp-segment";
+} from "./nlp-segment.ts";
 
 export {
   nlpBatchSegmentOp,
@@ -318,7 +318,7 @@ export {
   NlpBatchSegmentOutputSchema,
   type NlpBatchSegmentInput,
   type NlpBatchSegmentOutput,
-} from "./nlp-batch-segment";
+} from "./nlp-batch-segment.ts";
 
 // === Term Discovery Operations ===
 export {
@@ -326,7 +326,7 @@ export {
   ResolveOperationScopeElementsInputSchema,
   type ResolveOperationScopeElementsInput,
   type OperationScopeElement,
-} from "./resolve-operation-scope-elements";
+} from "./resolve-operation-scope-elements.ts";
 
 export {
   loadElementTextsOp,
@@ -334,7 +334,7 @@ export {
   LoadElementTextsOutputSchema,
   type LoadElementTextsInput,
   type LoadElementTextsOutput,
-} from "./load-element-texts";
+} from "./load-element-texts.ts";
 
 export {
   statisticalTermExtractOp,
@@ -342,7 +342,7 @@ export {
   StatisticalTermExtractOutputSchema,
   type StatisticalTermExtractInput,
   type StatisticalTermExtractOutput,
-} from "./statistical-term-extract";
+} from "./statistical-term-extract.ts";
 
 export {
   deduplicateAndMatchOp,
@@ -350,17 +350,17 @@ export {
   DeduplicateAndMatchOutputSchema,
   type DeduplicateAndMatchInput,
   type DeduplicateAndMatchOutput,
-} from "./deduplicate-match-terms";
+} from "./deduplicate-match-terms.ts";
 
 export {
   collectTermRecallOp,
   CollectTermRecallInputSchema,
   type CollectTermRecallInput,
-} from "./collect-term-recall";
+} from "./collect-term-recall.ts";
 
-export { buildTermRecallVariantsOp } from "./build-term-recall-variants";
-export { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants";
-export { triggerTermRecallReindex } from "./trigger-term-recall-reindex";
+export { buildTermRecallVariantsOp } from "./build-term-recall-variants.ts";
+export { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants.ts";
+export { triggerTermRecallReindex } from "./trigger-term-recall-reindex.ts";
 
 export {
   llmTermEnhanceOp,
@@ -368,7 +368,7 @@ export {
   LlmTermEnhanceOutputSchema,
   type LlmTermEnhanceInput,
   type LlmTermEnhanceOutput,
-} from "./llm-term-enhance";
+} from "./llm-term-enhance.ts";
 
 // === Term Alignment Operations ===
 export {
@@ -377,7 +377,7 @@ export {
   VectorTermAlignOutputSchema,
   type VectorTermAlignInput,
   type VectorTermAlignOutput,
-} from "./vector-term-align";
+} from "./vector-term-align.ts";
 
 export {
   statisticalTermAlignOp,
@@ -385,7 +385,7 @@ export {
   StatisticalTermAlignOutputSchema,
   type StatisticalTermAlignInput,
   type StatisticalTermAlignOutput,
-} from "./statistical-term-align";
+} from "./statistical-term-align.ts";
 
 export {
   llmTermAlignOp,
@@ -393,7 +393,7 @@ export {
   LlmTermAlignOutputSchema,
   type LlmTermAlignInput,
   type LlmTermAlignOutput,
-} from "./llm-term-align";
+} from "./llm-term-align.ts";
 
 export {
   mergeAlignmentOp,
@@ -401,20 +401,20 @@ export {
   MergeAlignmentOutputSchema,
   type MergeAlignmentInput,
   type MergeAlignmentOutput,
-} from "./merge-alignment";
+} from "./merge-alignment.ts";
 
 // === VCS Operations ===
 export {
   mergePRFull,
   type MergePRFullInput,
   type MergePRFullResult,
-} from "./merge-pr-full";
+} from "./merge-pr-full.ts";
 
 export {
   rebasePRFull,
   type RebasePRFullInput,
   type RebasePRFullResult,
-} from "./rebase-pr-full";
+} from "./rebase-pr-full.ts";
 
 // === Auto-translate Pipeline ===
 export {
@@ -423,29 +423,29 @@ export {
   FetchBestTranslationCandidateOutputSchema,
   type FetchBestTranslationCandidateInput,
   type FetchBestTranslationCandidateOutput,
-} from "./fetch-best-translation-candidate";
+} from "./fetch-best-translation-candidate.ts";
 
 export {
   findOrCreateAutoTranslatePR,
   type FindOrCreateAutoTranslatePRInput,
   type FindOrCreateAutoTranslatePRResult,
-} from "./find-or-create-auto-translate-pr";
+} from "./find-or-create-auto-translate-pr.ts";
 
 export {
   runAutoTranslatePipeline,
   type RunAutoTranslatePipelineInput,
-} from "./run-auto-translate-pipeline";
+} from "./run-auto-translate-pipeline.ts";
 
 // === Quality Components ===
 export {
   calibrateBm25Confidence,
   calibrateMemoryBm25,
   calibrateTermBm25,
-} from "./confidence-calibrator";
+} from "./confidence-calibrator/index.ts";
 export type {
   CalibratedBm25Evidence,
   CalibrationSummary,
-} from "./confidence-calibrator";
+} from "./confidence-calibrator/index.ts";
 
 export {
   applyHnfPreRules,
@@ -453,15 +453,15 @@ export {
   applyMemoryHnfPre,
   applyMemoryHnfPost,
   applyTermHnfPre,
-} from "./hard-negative-filter";
+} from "./hard-negative-filter/index.ts";
 export type {
   HardNegativeRemoval,
   HardNegativeReason,
   HnfCandidate,
   HnfRuleResult,
-} from "./hard-negative-filter";
+} from "./hard-negative-filter/index.ts";
 
-export { matchTemplateStructure } from "./template-structure-matcher";
-export { applySelfExclusion } from "./self-exclusion-filter";
-export { sortByQuality, createSuggestionCollector } from "./quality-sorter";
-export type { QualitySortConfig, QueuedSuggestion } from "./quality-sorter";
+export { matchTemplateStructure } from "./template-structure-matcher.ts";
+export { applySelfExclusion } from "./self-exclusion-filter.ts";
+export { sortByQuality, createSuggestionCollector } from "./quality-sorter.ts";
+export type { QualitySortConfig, QueuedSuggestion } from "./quality-sorter.ts";

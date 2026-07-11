@@ -1,5 +1,6 @@
-import dotenv from "dotenv";
 import { resolve } from "node:path";
+
+import dotenv from "dotenv";
 
 // Load .env from the app-e2e directory (not CWD, which may differ)
 dotenv.config({ path: resolve(import.meta.dirname, ".env") });
@@ -26,10 +27,10 @@ const webServerEnv = {
 
 export default defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: reporters,
   timeout: 90_000,
 
@@ -50,7 +51,8 @@ export default defineConfig({
   },
 
   webServer: {
-    command: "pnpm moon run app:preview",
+    command:
+      "pnpm turbo run build --filter=@cat/app && pnpm --filter @cat/app preview",
     url: `http://localhost:${process.env.PORT ?? 3000}/_health`,
     reuseExistingServer,
     timeout: 300_000,

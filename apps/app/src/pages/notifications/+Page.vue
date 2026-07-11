@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NotificationStatus } from "@cat/shared";
-
 import {
   Badge,
   Button,
@@ -17,9 +16,9 @@ import { navigate } from "vike/client/router";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-import { useNotificationStore } from "@/stores/notification";
-import { getCategoryLabel as _getCategoryLabel } from "@/utils/notification";
+import { orpc } from "#/rpc/orpc.ts";
+import { useNotificationStore } from "#/stores/notification.ts";
+import { getCategoryLabel as _getCategoryLabel } from "#/utils/notification.ts";
 
 const { t } = useI18n();
 const store = useNotificationStore();

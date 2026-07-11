@@ -2,7 +2,7 @@
 import { useQuery } from "@pinia/colada";
 import { defineAsyncComponent } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const PluginComponentClient = defineAsyncComponent(
   () => import("./PluginComponentClient.vue"),

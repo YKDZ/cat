@@ -1,11 +1,9 @@
 import type { JSONType } from "@cat/shared";
-
 import { assertSingleOrNull } from "@cat/shared";
 import { and, eq } from "drizzle-orm";
 
-import type { DrizzleClient, DrizzleTransaction } from "@/drizzle/db.ts";
-
-import { account } from "@/drizzle/schema.ts";
+import type { DrizzleClient, DrizzleTransaction } from "#/drizzle/db.ts";
+import { account } from "#/drizzle/schema.ts";
 
 export const getAccountMetaByIdentity = async (
   drizzle: DrizzleClient | DrizzleTransaction,

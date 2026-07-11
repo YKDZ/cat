@@ -3,13 +3,16 @@ import type {
   OutputSituation,
   LogEntry,
   LoggerTransport,
-} from "./types.ts";
+} from "#/utils/logger/types.ts";
 
 export class Logger {
-  constructor(
-    public situation: OutputSituation,
-    public transports: LoggerTransport[] = [],
-  ) {}
+  public situation: OutputSituation;
+  public transports: LoggerTransport[];
+
+  constructor(situation: OutputSituation, transports: LoggerTransport[] = []) {
+    this.situation = situation;
+    this.transports = transports;
+  }
 
   public addTransport(transport: LoggerTransport): void {
     this.transports.push(transport);
@@ -113,7 +116,7 @@ export class Logger {
       msg = typeof args[2] === "string" ? args[2] : undefined;
     }
 
-    entry.payload = payload;
+    if (payload !== undefined) entry.payload = payload;
 
     if (typeof errOrMsg === "string") {
       entry.error = new Error(errOrMsg);
@@ -160,7 +163,11 @@ export class Logger {
 }
 
 export class TypedLogger<T extends Record<string, unknown>> {
-  constructor(private baseLogger: Logger) {}
+  private baseLogger: Logger;
+
+  constructor(baseLogger: Logger) {
+    this.baseLogger = baseLogger;
+  }
 
   public debug(payload: T, message?: string): void {
     if (message === undefined) {

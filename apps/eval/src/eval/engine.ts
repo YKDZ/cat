@@ -5,18 +5,17 @@ import type {
   TermRecallTestCase,
   MemoryRecallTestCase,
   TranslationTestCase,
-} from "@/config/schemas";
-import type { ScenarioResult } from "@/harness/types";
-import type { RefResolver } from "@/seeder/ref-resolver";
+} from "#/config/schemas.ts";
+import type { ScenarioResult } from "#/harness/types.ts";
+import type { RefResolver } from "#/seeder/ref-resolver.ts";
 
+import { getScorer } from "./scorers/index.ts";
 import type {
   CaseEvaluation,
   EvaluationReport,
   ScenarioEvaluation,
   ScoreValue,
-} from "./types";
-
-import { getScorer } from "./scorers";
+} from "./types.ts";
 
 export const evaluate = (
   scenarioResults: ScenarioResult[],
@@ -31,6 +30,7 @@ export const evaluate = (
 
   for (let i = 0; i < scenarioResults.length; i += 1) {
     const sr = scenarioResults[i];
+    if (sr === undefined) continue;
     const names = scorerNames[i] ?? [];
     const scorers = names.map(getScorer);
 
@@ -66,7 +66,9 @@ export const evaluate = (
 
     scenarioEvaluations.push({
       scenarioType: sr.scenarioType,
-      scenarioName: sr.scenarioName,
+      ...(sr.scenarioName === undefined
+        ? {}
+        : { scenarioName: sr.scenarioName }),
       testSetName: sr.testSetName,
       caseEvaluations,
       aggregates,
@@ -130,8 +132,8 @@ const computeAggregates = (cases: CaseEvaluation[]): Record<string, number> => {
   for (const [name, values] of Object.entries(agg)) {
     // Handle percentile suffixes: scorerName.p50, scorerName.p90, etc.
     const pctMatch = name.match(/^(.+)\.(p\d+)$/);
-    if (pctMatch) {
-      const [, , pctSuffix] = pctMatch;
+    const pctSuffix = pctMatch?.[2];
+    if (pctSuffix !== undefined) {
       const p = parseInt(pctSuffix.slice(1)) / 100;
       const sorted = [...values].sort((a, b) => a - b);
       result[name] = percentile(sorted, p);
@@ -153,5 +155,5 @@ const computeAggregates = (cases: CaseEvaluation[]): Record<string, number> => {
 const percentile = (sorted: number[], p: number): number => {
   if (sorted.length === 0) return 0;
   const index = Math.ceil(p * sorted.length) - 1;
-  return sorted[Math.max(0, Math.min(index, sorted.length - 1))];
+  return sorted[Math.max(0, Math.min(index, sorted.length - 1))] ?? 0;
 };

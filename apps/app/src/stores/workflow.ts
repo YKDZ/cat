@@ -1,12 +1,11 @@
 import type { DagGraphData, DagNodeStatus } from "@cat/ui";
 import type { AgentEvent } from "@cat/workflow";
-
 import { defineStore } from "pinia";
 import { ref, shallowRef } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { ws } from "@/rpc/ws";
-import { convertGraphDefinition } from "@/utils/graph-convert";
+import { orpc } from "#/rpc/orpc.ts";
+import { ws } from "#/rpc/ws.ts";
+import { convertGraphDefinition } from "#/utils/graph-convert.ts";
 
 type GraphDef = Parameters<typeof convertGraphDefinition>[0];
 type RunGraphResult = {
@@ -159,13 +158,16 @@ export const useWorkflowStore = defineStore("workflow", () => {
     }
 
     const converted = convertGraphDefinition(graphDef);
-    converted.nodes = converted.nodes.map((n) => ({
-      ...n,
-      status: isDagNodeStatus(result.nodeStatuses[n.id] ?? "")
-        ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-          (result.nodeStatuses[n.id] as DagNodeStatus)
-        : n.status,
-    }));
+    converted.nodes = converted.nodes.map((n) => {
+      const status = result.nodeStatuses[n.id];
+      return {
+        ...n,
+        ...(isDagNodeStatus(status ?? "")
+          ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+            { status: status as DagNodeStatus }
+          : {}),
+      };
+    });
 
     graph.value = converted;
   };

@@ -11,7 +11,7 @@ import { Download, RefreshCw, Trash2 } from "@lucide/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { NonNullPluginDetail } from "./types";
+import type { NonNullPluginDetail } from "./types.ts";
 
 const { t } = useI18n();
 

@@ -1,21 +1,19 @@
 import type { JSONObject } from "@cat/shared";
-
 import { describe, expect, it } from "vitest";
 
-import type { AgentEvent } from "@/graph/events";
-import type { NodeExecutorContext } from "@/graph/node-registry";
-
-import { MemoryCheckpointer } from "@/graph/checkpointer";
-import { InProcessEventBus } from "@/graph/event-bus";
-import { createAgentEvent } from "@/graph/events";
+import { MemoryCheckpointer } from "#/graph/checkpointer/index.ts";
+import { InProcessEventBus } from "#/graph/event-bus.ts";
+import type { AgentEvent } from "#/graph/events.ts";
+import { createAgentEvent } from "#/graph/events.ts";
 import {
   HumanInputNodeExecutor,
   resumeHumanInputNode,
-} from "@/graph/executors/human-input-node";
-import { JoinNodeExecutor } from "@/graph/executors/join-node";
-import { LoopNodeExecutor } from "@/graph/executors/loop-node";
-import { ParallelNodeExecutor } from "@/graph/executors/parallel-node";
-import { SubgraphNodeExecutor } from "@/graph/executors/subgraph-node";
+} from "#/graph/executors/human-input-node.ts";
+import { JoinNodeExecutor } from "#/graph/executors/join-node.ts";
+import { LoopNodeExecutor } from "#/graph/executors/loop-node.ts";
+import { ParallelNodeExecutor } from "#/graph/executors/parallel-node.ts";
+import { SubgraphNodeExecutor } from "#/graph/executors/subgraph-node.ts";
+import type { NodeExecutorContext } from "#/graph/node-registry.ts";
 
 const createCtx = (nodeId: string, data: JSONObject): NodeExecutorContext => {
   const eventBus = new InProcessEventBus();

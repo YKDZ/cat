@@ -4,8 +4,8 @@ import { navigate } from "vike/client/router";
 import { computed, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { reconnectWs } from "@/rpc/ws";
-import { useAuthFlowStore } from "@/stores/auth-flow.ts";
+import { reconnectWs } from "#/rpc/ws.ts";
+import { useAuthFlowStore } from "#/stores/auth-flow.ts";
 
 import IdentifierInput from "./node-components/IdentifierInput.vue";
 import JsonFormFallback from "./node-components/JsonFormFallback.vue";

@@ -12,7 +12,7 @@ import {
 } from "@cat/ui";
 import { ScrollArea } from "@cat/ui";
 
-import SidebarLogo from "@/components/SidebarLogo.vue";
+import SidebarLogo from "#/components/SidebarLogo.vue";
 
 import QaReviewSidebarElement from "./QaReviewSidebarElement.vue";
 import QaReviewSidebarPagination from "./QaReviewSidebarPagination.vue";

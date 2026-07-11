@@ -10,27 +10,27 @@ import {
   type Node as FlowNode,
   type Edge as FlowEdge,
 } from "@vue-flow/core";
+
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";
 import { ref, watch, shallowRef } from "vue";
 
+import DagControls from "#/components/dag-graph/DagControls.vue";
+import DagEdge from "#/components/dag-graph/DagEdge.vue";
+import DagMinimap from "#/components/dag-graph/DagMinimap.vue";
+import DagNode from "#/components/dag-graph/DagNode.vue";
+import { computeElkLayout } from "#/components/dag-graph/layout.ts";
 import type {
   DagDirection,
   DagEdgeData,
   DagGraphData,
   DagNodeData,
-} from "./types";
-
-import DagControls from "./DagControls.vue";
-import DagEdge from "./DagEdge.vue";
-import DagMinimap from "./DagMinimap.vue";
-import DagNode from "./DagNode.vue";
-import { computeElkLayout } from "./layout";
+} from "#/components/dag-graph/types.ts";
 
 const props = withDefaults(
   defineProps<{
     graph: DagGraphData;
-    selectedNodeId?: string;
+    selectedNodeId?: string | undefined;
     direction?: DagDirection;
     interactive?: boolean;
     fitViewOnInit?: boolean;
@@ -42,30 +42,24 @@ const props = withDefaults(
   },
 );
 
-
 const emit = defineEmits<{
   "update:selectedNodeId": [nodeId: string | undefined];
   nodeClick: [nodeId: string];
   nodeDoubleClick: [nodeId: string];
 }>();
 
-
 const nodeTypes = { "dag-node": DagNode };
 const edgeTypes = { "dag-edge": DagEdge };
-
 
 const nodes = shallowRef<FlowNode[]>([]);
 const edges = shallowRef<FlowEdge[]>([]);
 const isLayouting = ref(false);
 
-
 const { fitView, onNodeClick, onNodeDoubleClick, getNodes } = useVueFlow();
-
 
 // Track previous node set to detect topology changes
 let prevNodeIds = new Set<string>();
 let prevEdgeIds = new Set<string>();
-
 
 const buildFlowNodes = (
   dagNodes: DagNodeData[],
@@ -79,17 +73,16 @@ const buildFlowNodes = (
   return dagNodes.map((n) => ({
     id: n.id,
     type: "dag-node",
-    position: currentPositionMap?.get(n.id) ?? positionMap.get(n.id) ?? { x: 0, y: 0 },
+    position: currentPositionMap?.get(n.id) ??
+      positionMap.get(n.id) ?? { x: 0, y: 0 },
     data: { ...n },
     selected: n.id === props.selectedNodeId,
   }));
 };
 
-
 const buildFlowEdges = (dagEdges: DagEdgeData[]): FlowEdge[] => {
   const sourceHandle = props.direction === "RIGHT" ? "right" : "bottom";
   const targetHandle = props.direction === "RIGHT" ? "left" : "top";
-
 
   return dagEdges.map((e) => ({
     id: e.id,
@@ -100,10 +93,9 @@ const buildFlowEdges = (dagEdges: DagEdgeData[]): FlowEdge[] => {
     type: "dag-edge",
     animated: e.animated ?? false,
     data: e,
-    label: e.label,
+    ...(e.label === undefined ? {} : { label: e.label }),
   }));
 };
-
 
 const topologyChanged = (graph: DagGraphData): boolean => {
   const newNodeIds = new Set(graph.nodes.map((n) => n.id));
@@ -118,11 +110,12 @@ const topologyChanged = (graph: DagGraphData): boolean => {
   return false;
 };
 
-
 const updateStatusOnly = (graph: DagGraphData): void => {
   // Preserve current node positions from Vue Flow
   const currentNodes = getNodes.value;
-  const currentPositionMap = new Map(currentNodes.map((n) => [n.id, n.position]));
+  const currentPositionMap = new Map(
+    currentNodes.map((n) => [n.id, n.position]),
+  );
 
   nodes.value = nodes.value.map((node) => {
     const updated = graph.nodes.find((n) => n.id === node.id);
@@ -138,8 +131,10 @@ const updateStatusOnly = (graph: DagGraphData): void => {
   edges.value = buildFlowEdges(graph.edges);
 };
 
-
-const relayout = async (graph: DagGraphData, preservePositions = false): Promise<void> => {
+const relayout = async (
+  graph: DagGraphData,
+  preservePositions = false,
+): Promise<void> => {
   if (isLayouting.value) return;
   isLayouting.value = true;
   try {
@@ -162,7 +157,6 @@ const relayout = async (graph: DagGraphData, preservePositions = false): Promise
   }
 };
 
-
 watch(
   () => props.graph,
   async (graph) => {
@@ -175,7 +169,6 @@ watch(
   { deep: true, immediate: true },
 );
 
-
 watch(
   () => props.direction,
   async () => {
@@ -183,17 +176,14 @@ watch(
   },
 );
 
-
 onNodeClick(({ node }) => {
   emit("update:selectedNodeId", node.id);
   emit("nodeClick", node.id);
 });
 
-
 onNodeDoubleClick(({ node }) => {
   emit("nodeDoubleClick", node.id);
 });
-
 
 // Update node selection when selectedNodeId changes from parent
 watch(
@@ -201,7 +191,9 @@ watch(
   (newId) => {
     // Get current positions from Vue Flow to preserve user-dragged positions
     const currentNodes = getNodes.value;
-    const currentPositionMap = new Map(currentNodes.map((n) => [n.id, n.position]));
+    const currentPositionMap = new Map(
+      currentNodes.map((n) => [n.id, n.position]),
+    );
 
     nodes.value = nodes.value.map((node) => ({
       ...node,

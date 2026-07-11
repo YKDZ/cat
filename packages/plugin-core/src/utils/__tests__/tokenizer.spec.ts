@@ -1,11 +1,9 @@
 import type { TermData } from "@cat/shared";
-
 import { describe, expect, it } from "vitest";
 
-import type { ParseResult, ParserContext } from "@/services/tokenizer.ts";
-
-import { Tokenizer, TokenizerPriority } from "@/services/tokenizer.ts";
-import { parseInner, tokenize } from "@/utils/tokenizer.ts";
+import type { ParseResult, ParserContext } from "#/services/tokenizer.ts";
+import { Tokenizer, TokenizerPriority } from "#/services/tokenizer.ts";
+import { parseInner, tokenize } from "#/utils/tokenizer.ts";
 
 // ─── Stub tokenizers ──────────────────────────────────────────────────────────
 
@@ -21,13 +19,15 @@ class VarTokenizer extends Tokenizer {
     const slice = ctx.source.slice(ctx.cursor);
     const m = /^\{\{([^}]+)\}\}/.exec(slice);
     if (!m) return undefined;
+    const name = m[1];
+    if (name === undefined) return undefined;
     return {
       token: {
         type: "variable",
         value: m[0],
         start: ctx.cursor,
         end: ctx.cursor + m[0].length,
-        meta: { name: m[1] },
+        meta: { name },
       },
     };
   }
@@ -45,13 +45,16 @@ class LinkTokenizer extends Tokenizer {
     const slice = ctx.source.slice(ctx.cursor);
     const m = /^\[([^\]]+)\]\(([^)]+)\)/.exec(slice);
     if (!m) return undefined;
+    const label = m[1];
+    const url = m[2];
+    if (label === undefined || url === undefined) return undefined;
     return {
       token: {
         type: "link",
         value: m[0],
         start: ctx.cursor,
         end: ctx.cursor + m[0].length,
-        meta: { label: m[1], url: m[2] },
+        meta: { label, url },
       },
     };
   }

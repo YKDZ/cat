@@ -1,5 +1,5 @@
-import type { EvaluationReport } from "@/eval/types";
-import type { RunResult } from "@/harness/harness";
+import type { EvaluationReport } from "#/eval/types.ts";
+import type { RunResult } from "#/harness/harness.ts";
 
 export type ThresholdResult = {
   metric: string;
@@ -124,6 +124,7 @@ const evaluateThreshold = (actual: number, expr: string): boolean => {
   const match = expr.match(/^(>=?|<=?|==)\s*([\d.]+)$/);
   if (!match) return false;
   const [, op, valueStr] = match;
+  if (op === undefined || valueStr === undefined) return false;
   const threshold = Number.parseFloat(valueStr);
   switch (op) {
     case ">=":

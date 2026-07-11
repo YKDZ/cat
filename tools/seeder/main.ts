@@ -1,3 +1,6 @@
+import { writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
 import { DrizzleDB, RedisConnection, ensureDB, sql } from "@cat/db";
 import {
   BuiltinPluginLoader,
@@ -15,8 +18,6 @@ import {
   defaultProductPluginIds,
   systemPgVectorEntry,
 } from "@cat/server-shared";
-import { writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
 
 const collectOptionValueIndexes = (
   args: string[],
@@ -63,9 +64,11 @@ const main = async (): Promise<void> => {
 
   if (!datasetDir) {
     console.error(
-      "Usage: tsx main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>] [--local-overrides <path>] [--no-local-overrides] [--respect-process-env]",
+      "Usage: node --conditions=source main.ts <dataset-dir> [--skip-vectorization] [--allow-unsafe-reset] [--output-bindings <path>] [--local-overrides <path>] [--no-local-overrides] [--respect-process-env]",
     );
-    console.error("Example: tsx main.ts datasets/default");
+    console.error(
+      "Example: node --conditions=source main.ts datasets/minecraft",
+    );
     process.exit(1);
   }
 
@@ -79,7 +82,7 @@ const main = async (): Promise<void> => {
 
   const runtimeEnv = loadSeedRuntimeEnv({
     envFilePaths: [resolve(import.meta.dirname, "../../apps/app/.env")],
-    preferredKeys: respectProcessEnv ? [] : undefined,
+    ...(respectProcessEnv ? { preferredKeys: [] } : {}),
   });
 
   if (runtimeEnv.loadedEnvFilePath) {

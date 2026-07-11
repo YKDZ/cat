@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveProjectWriteCapability } from "./write-capability";
+import { resolveProjectWriteCapability } from "./write-capability.ts";
 
 describe("resolveProjectWriteCapability", () => {
   const projectId = "11111111-1111-4111-8111-111111111111";

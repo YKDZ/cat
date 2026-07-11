@@ -1,10 +1,9 @@
 import type { OperationContext } from "@cat/domain";
-
 import { resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
-import { createVectorizedStringOp } from "./create-vectorized-string";
+import { createVectorizedStringOp } from "./create-vectorized-string.ts";
 
 // ─── Input / Output Schemas ───
 

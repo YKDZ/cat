@@ -2,7 +2,7 @@ import { notification } from "@cat/db";
 import { and, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const MarkAllNotificationsReadCommandSchema = z.object({
   userId: z.uuidv4(),

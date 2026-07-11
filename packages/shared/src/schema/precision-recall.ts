@@ -1,7 +1,7 @@
 // packages/shared/src/schema/precision-recall.ts
 import * as z from "zod";
 
-import { RerankBandSchema } from "@/schema/rerank.ts";
+import { RerankBandSchema } from "#/schema/rerank.ts";
 
 // ─── Evidence Lane ────────────────────────────────────────────────
 /** Fine-grained retrieval lane inside the Fusion Ledger. */

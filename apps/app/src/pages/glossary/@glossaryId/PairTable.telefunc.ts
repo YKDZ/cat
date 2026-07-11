@@ -1,7 +1,7 @@
 import { listGlossaryTermPairs, type GlossaryTermPairData } from "@cat/domain";
 
-import { runAppQuery } from "@/server/domain";
-import { requireTelefuncPermission } from "@/server/telefunc-auth";
+import { runAppQuery } from "#/server/domain.ts";
+import { requireTelefuncPermission } from "#/server/telefunc-auth.ts";
 
 export type PairData = GlossaryTermPairData;
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Task } from "@cat/shared";
 import type { ColumnDef } from "@tanstack/vue-table";
-
 import {
   useVueTable,
   getCoreRowModel,

@@ -1,10 +1,9 @@
-import type { Updater } from "@tanstack/vue-table"
+import type { Updater } from "@tanstack/vue-table";
+import { isFunction } from "@tanstack/vue-table";
+import type { Ref } from "vue";
 
-import type { Ref } from "vue"
-import { isFunction } from "@tanstack/vue-table"
-
-export function valueUpdater<T>(updaterOrValue: Updater<T>, ref: Ref<T>) {
+export function valueUpdater<T>(updaterOrValue: Updater<T>, ref: Ref<T>): void {
   ref.value = isFunction(updaterOrValue)
     ? updaterOrValue(ref.value)
-    : updaterOrValue
+    : updaterOrValue;
 }

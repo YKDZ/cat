@@ -5,40 +5,40 @@ export {
   type LoadDevSeedOptions,
   readJson,
   readYamlWithEnv,
-} from "./loader";
+} from "./loader.ts";
 export {
   normalizeMemorySeed,
   runSeedPipeline,
   type DevSeedResult,
   type SeedSummary,
-} from "./pipeline";
-export { RefResolver } from "./ref-resolver";
-export { assertSafeDatabaseTarget } from "./safety";
-export type { DatabaseSafetyOptions } from "./safety";
+} from "./pipeline.ts";
+export { RefResolver } from "./ref-resolver.ts";
+export { assertSafeDatabaseTarget } from "./safety.ts";
+export type { DatabaseSafetyOptions } from "./safety.ts";
 export {
   loadSeedRuntimeEnv,
   type SeedRuntimeEnvLoadResult,
   type SeedRuntimeEnvOptions,
-} from "./runtime-env";
-export { truncateAllTables } from "./truncate";
-export { VectorCache } from "./vector-cache";
-export type { CachedChunk } from "./vector-cache";
-export { interpolateEnvVars } from "./env-interpolation";
+} from "./runtime-env.ts";
+export { truncateAllTables } from "./truncate.ts";
+export { VectorCache } from "./vector-cache.ts";
+export type { CachedChunk } from "./vector-cache.ts";
+export { interpolateEnvVars } from "./env-interpolation.ts";
 export {
   buildLocaleBridgeMaterial,
   type LocaleBridgeDiagnostic,
   type LocaleBridgeResult,
   type LocaleMemoryMaterial,
-} from "./bootstrap/locale-bridge";
+} from "./bootstrap/locale-bridge.ts";
 export {
   runBootstrapSourceGraph,
   type RunBootstrapSourceGraphInput,
   type RunBootstrapSourceGraphResult,
-} from "./bootstrap/source-bootstrap";
+} from "./bootstrap/source-bootstrap.ts";
 export {
   writeBootstrapRunReport,
   type BootstrapRunReport,
-} from "./bootstrap/report";
+} from "./bootstrap/report.ts";
 export type {
   BootstrapLocaleCatalog,
   BootstrapProfile,
@@ -55,7 +55,7 @@ export type {
   ElementsSeed,
   ElementSeed,
   UserSeed,
-} from "./schemas";
+} from "./schemas.ts";
 export {
   BootstrapLocaleCatalogSchema,
   BootstrapProfileSchema,
@@ -77,4 +77,4 @@ export {
   ElementsSeedSchema,
   PluginSeedSchema,
   UserSeedSchema,
-} from "./schemas";
+} from "./schemas.ts";

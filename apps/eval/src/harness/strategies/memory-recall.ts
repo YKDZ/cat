@@ -3,9 +3,9 @@ import { collectMemoryRecallOp } from "@cat/operations";
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- params from unknown config require casting
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-import type { MemoryRecallTestSet, ScenarioConfig } from "@/config/schemas";
+import type { MemoryRecallTestSet, ScenarioConfig } from "#/config/schemas.ts";
 
-import type { CaseResult, HarnessContext, ScenarioResult } from "../types";
+import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
 
@@ -105,7 +105,7 @@ export const memoryRecallStrategy = {
 
     return {
       scenarioType: "memory-recall",
-      scenarioName: scenario.name,
+      ...(scenario.name === undefined ? {} : { scenarioName: scenario.name }),
       testSetName: testSet.name,
       cases,
     };

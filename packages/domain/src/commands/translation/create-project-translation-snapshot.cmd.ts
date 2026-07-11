@@ -4,9 +4,10 @@ import {
   translationSnapshotItem,
   translatableElement,
 } from "@cat/db";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateProjectTranslationSnapshotCommandSchema = z.object({
   projectId: z.uuidv4(),
@@ -32,7 +33,7 @@ export const createProjectTranslationSnapshot: Command<
     })
     .returning({ id: translationSnapshot.id });
 
-  const snapshotId = snapshotRows[0].id;
+  const snapshotId = assertSingleNonNullish(snapshotRows).id;
 
   // Get all approved translation IDs for the project
   const elements = await ctx.db

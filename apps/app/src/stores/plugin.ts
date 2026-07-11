@@ -1,5 +1,4 @@
 import type { ComponentRecord } from "@cat/plugin-core";
-
 import { defineStore } from "pinia";
 import { ref } from "vue";
 

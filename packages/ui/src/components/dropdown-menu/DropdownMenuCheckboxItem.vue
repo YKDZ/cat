@@ -1,28 +1,26 @@
 <script setup lang="ts">
+import { Check } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
 import type {
   DropdownMenuCheckboxItemEmits,
   DropdownMenuCheckboxItemProps,
 } from "reka-ui";
-import type { HTMLAttributes } from "vue";
-
-import { Check } from "lucide-vue-next";
-import { reactiveOmit } from "@vueuse/core";
 import {
   DropdownMenuCheckboxItem,
   DropdownMenuItemIndicator,
   useForwardPropsEmits,
 } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-import { cn } from "@/utils/lib/utils";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = defineProps<
   DropdownMenuCheckboxItemProps & { class?: HTMLAttributes["class"] }
 >();
 const emits = defineEmits<DropdownMenuCheckboxItemEmits>();
 
-
 const delegatedProps = reactiveOmit(props, "class");
-
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
@@ -30,10 +28,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
 <template>
   <DropdownMenuCheckboxItem
     data-slot="dropdown-menu-checkbox-item"
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
     :class="
       cn(
-        'focus:bg-accent focus:text-accent-foreground relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
+        'relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
         props.class,
       )
     "

@@ -1,11 +1,10 @@
 import type { MemorySuggestion, TranslationSuggestion } from "@cat/shared";
-
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 const mocks = vi.hoisted(() => ({
   canWrite: false,
@@ -36,7 +35,7 @@ vi.mock("@lucide/vue", () => ({
   ArrowRight: defineComponent({ template: '<svg data-icon="arrow-right" />' }),
 }));
 
-vi.mock("@/components/editor/TokenViewer.vue", () => ({
+vi.mock("#/components/editor/TokenViewer.vue", () => ({
   default: defineComponent({
     props: {
       text: {
@@ -48,13 +47,13 @@ vi.mock("@/components/editor/TokenViewer.vue", () => ({
   }),
 }));
 
-vi.mock("@/components/tooltip/TextTooltip.vue", () => ({
+vi.mock("#/components/tooltip/TextTooltip.vue", () => ({
   default: defineComponent({
     template: "<div><slot /></div>",
   }),
 }));
 
-vi.mock("@/stores/editor/table.ts", async () => {
+vi.mock("#/stores/editor/table.ts", async () => {
   const { defineStore } = await import("pinia");
   return {
     useEditorTableStore: defineStore("writeDisabledItemsTableSpec", () => ({
@@ -64,7 +63,7 @@ vi.mock("@/stores/editor/table.ts", async () => {
   };
 });
 
-vi.mock("@/stores/editor/context.ts", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
   return {
@@ -74,7 +73,7 @@ vi.mock("@/stores/editor/context.ts", async () => {
   };
 });
 
-vi.mock("@/stores/write-capability", async () => {
+vi.mock("#/stores/write-capability.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
   return {
@@ -88,11 +87,11 @@ vi.mock("@/stores/write-capability", async () => {
   };
 });
 
-vi.mock("@/utils/magic-keys.ts", () => ({
+vi.mock("#/utils/magic-keys.ts", () => ({
   useHotKeys: vi.fn(),
 }));
 
-vi.mock("@/rpc/orpc", async () => {
+vi.mock("#/rpc/orpc.ts", async () => {
   return {
     orpc: {
       memory: {

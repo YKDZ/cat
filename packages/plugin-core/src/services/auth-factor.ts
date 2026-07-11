@@ -1,6 +1,6 @@
 import type { PluginServiceType } from "@cat/shared";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 /**
  * Authentication Assurance Level:

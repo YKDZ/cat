@@ -1,8 +1,7 @@
 import type { QueueTask, TaskQueue } from "@cat/core";
 import type { DrizzleClient } from "@cat/db";
-import type { NonNullJSONType } from "@cat/shared";
-
 import { and, eq, runtimeQueueTask, sql } from "@cat/db";
+import type { NonNullJSONType } from "@cat/shared";
 
 /**
  * Optional configuration for the PostgreSQL task queue.
@@ -26,6 +25,8 @@ export class PostgresTaskQueue<
 > implements TaskQueue<T> {
   private readonly leaseMs: number;
   private readonly maxRetries: number;
+  private readonly db: DrizzleClient;
+  private readonly queueName: string;
 
   /**
    * Create a PostgreSQL-backed task queue.
@@ -35,10 +36,12 @@ export class PostgresTaskQueue<
    * @param options - Optional lease and retry configuration
    */
   public constructor(
-    private readonly db: DrizzleClient,
-    private readonly queueName: string,
+    db: DrizzleClient,
+    queueName: string,
     options: PostgresTaskQueueOptions = {},
   ) {
+    this.db = db;
+    this.queueName = queueName;
     this.leaseMs = options.leaseMs ?? 60_000;
     this.maxRetries = options.maxRetries ?? 3;
   }

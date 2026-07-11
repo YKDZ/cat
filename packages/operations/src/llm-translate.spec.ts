@@ -40,7 +40,10 @@ vi.mock("@cat/server-shared", async () => {
   };
 });
 
-import { deriveLlmTranslateConfidence, llmTranslateOp } from "./llm-translate";
+import {
+  deriveLlmTranslateConfidence,
+  llmTranslateOp,
+} from "./llm-translate.ts";
 
 const mockLlmService = {
   id: 1,

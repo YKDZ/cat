@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { InProcessLeaseManager } from "@/graph/lease";
+import { InProcessLeaseManager } from "#/graph/lease.ts";
 
 describe("InProcessLeaseManager", () => {
   it("acquires, renews, releases, and finds expired leases", async () => {

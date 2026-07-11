@@ -1,7 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-import type { SlotMappingEntry } from "@cat/shared";
-import type { MemorySuggestion } from "@cat/shared";
-
 import {
   executeQuery,
   getDbHandle,
@@ -15,29 +12,33 @@ import {
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
+import type { SlotMappingEntry } from "@cat/shared";
+import type { MemorySuggestion } from "@cat/shared";
 import * as z from "zod";
 
-import type {
-  MemorySuggestionWithPrecision,
-  RawMemoryResult,
-  RecallCandidate,
-} from "./precision/types";
-
-import { calibrateMemoryBm25 } from "./confidence-calibrator";
-import { applyMemoryHnfPre, applyMemoryHnfPost } from "./hard-negative-filter";
-import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25";
+import { calibrateMemoryBm25 } from "./confidence-calibrator/index.ts";
+import {
+  applyMemoryHnfPre,
+  applyMemoryHnfPost,
+} from "./hard-negative-filter/index.ts";
+import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25.ts";
 import {
   fillTemplate,
   mappingToSlots,
   placeholderize,
-} from "./memory-template";
-import { joinLemmas } from "./nlp-normalization";
-import { runPrecisionPipeline } from "./precision/precision-pipeline";
-import { augmentWithSparseLane } from "./precision/sparse-lane";
-import { searchMemoryOp } from "./search-memory";
-import { applySelfExclusion } from "./self-exclusion-filter";
-import { matchTemplateStructure } from "./template-structure-matcher";
-import { tokenizeOp } from "./tokenize";
+} from "./memory-template.ts";
+import { joinLemmas } from "./nlp-normalization.ts";
+import { runPrecisionPipeline } from "./precision/precision-pipeline.ts";
+import { augmentWithSparseLane } from "./precision/sparse-lane.ts";
+import type {
+  MemorySuggestionWithPrecision,
+  RawMemoryResult,
+  RecallCandidate,
+} from "./precision/types.ts";
+import { searchMemoryOp } from "./search-memory.ts";
+import { applySelfExclusion } from "./self-exclusion-filter.ts";
+import { matchTemplateStructure } from "./template-structure-matcher.ts";
+import { tokenizeOp } from "./tokenize.ts";
 
 export const CollectMemoryRecallInputSchema = z.object({
   text: z.string(),
@@ -237,14 +238,14 @@ export const collectMemoryRecallOp = async (
       confidence: number;
       createdAt: Date;
       updatedAt: Date;
-      sourceTemplate?: string | null;
-      translationTemplate?: string | null;
-      translationId?: number | null;
-      slotMapping?: SlotMappingEntry[] | null;
-      matchedVariantText?: string;
-      matchedVariantType?: string;
-      matchedText?: string;
-      evidences?: MemorySuggestion["evidences"];
+      sourceTemplate?: string | null | undefined;
+      translationTemplate?: string | null | undefined;
+      translationId?: number | null | undefined;
+      slotMapping?: SlotMappingEntry[] | null | undefined;
+      matchedVariantText?: string | undefined;
+      matchedVariantType?: string | undefined;
+      matchedText?: string | undefined;
+      evidences?: MemorySuggestion["evidences"] | undefined;
     },
   ) => {
     const suggestion: MemorySuggestion = {
@@ -253,17 +254,29 @@ export const collectMemoryRecallOp = async (
       translation: raw.translation,
       translationChunkSetId: raw.translationChunkSetId,
       sourceScope: input.memoryScope,
-      translationId: raw.translationId,
-      sourceTemplate: raw.sourceTemplate,
-      translationTemplate: raw.translationTemplate,
+      ...(raw.translationId === undefined
+        ? {}
+        : { translationId: raw.translationId }),
+      ...(raw.sourceTemplate === undefined
+        ? {}
+        : { sourceTemplate: raw.sourceTemplate }),
+      ...(raw.translationTemplate === undefined
+        ? {}
+        : { translationTemplate: raw.translationTemplate }),
       memoryId: raw.memoryId,
       creatorId: raw.creatorId,
       confidence: raw.confidence,
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
-      matchedText: raw.matchedText,
-      matchedVariantText: raw.matchedVariantText,
-      matchedVariantType: raw.matchedVariantType,
+      ...(raw.matchedText === undefined
+        ? {}
+        : { matchedText: raw.matchedText }),
+      ...(raw.matchedVariantText === undefined
+        ? {}
+        : { matchedVariantText: raw.matchedVariantText }),
+      ...(raw.matchedVariantType === undefined
+        ? {}
+        : { matchedVariantType: raw.matchedVariantType }),
       evidences: raw.evidences ? [...raw.evidences] : [],
     };
 

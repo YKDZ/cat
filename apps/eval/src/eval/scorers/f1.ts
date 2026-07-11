@@ -1,7 +1,6 @@
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
-
-import { precisionScorer } from "./precision";
-import { recallScorer } from "./recall";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
+import { precisionScorer } from "./precision.ts";
+import { recallScorer } from "./recall.ts";
 
 /**
  * F1@K scorer — harmonic mean of precision and recall.

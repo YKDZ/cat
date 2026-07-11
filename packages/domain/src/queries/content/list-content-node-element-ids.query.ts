@@ -1,7 +1,7 @@
 import { and, contentRelation, eq, translatableElement } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListContentNodeElementIdsQuerySchema = z.object({
   contentNodeId: z.uuidv4(),

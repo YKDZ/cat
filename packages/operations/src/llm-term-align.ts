@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import {
   collectLLMResponse,
   firstOrGivenService,

@@ -1,14 +1,13 @@
 import type { Root, RootContent, PhrasingContent } from "mdast";
-
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 import { unified } from "unified";
+import type { Position } from "unist";
 import * as z from "zod";
 
-import type { ElementData, FileParser, SerializeElement } from "./types.ts";
-
-import { toJsonPointerRef } from "./stable-ref.ts";
+import { toJsonPointerRef } from "#/stable-ref.ts";
+import type { ElementData, FileParser, SerializeElement } from "#/types.ts";
 
 interface ElementMeta {
   index: number;
@@ -73,7 +72,7 @@ export const markdownParser: FileParser = {
 
     const locationFromNode = (n: {
       type: string;
-      position?: { start: { line: number }; end: { line: number } };
+      position?: Position | undefined;
     }) =>
       n.position
         ? {
@@ -323,7 +322,11 @@ export const markdownParser: FileParser = {
 
       if ("children" in tempTree && tempTree.children.length > 0) {
         const firstChild = tempTree.children[0];
-        if (firstChild.type === "paragraph" && "children" in firstChild) {
+        if (
+          firstChild !== undefined &&
+          firstChild.type === "paragraph" &&
+          "children" in firstChild
+        ) {
           return firstChild.children;
         }
       }

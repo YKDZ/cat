@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { SourceExtractionGraphResult } from "../types.ts";
-
-import { toCollectionPayload } from "../adapter.ts";
+import { toCollectionPayload } from "#/adapter.ts";
+import type { SourceExtractionGraphResult } from "#/types.ts";
 
 describe("toCollectionPayload", () => {
   const baseResult: SourceExtractionGraphResult = {

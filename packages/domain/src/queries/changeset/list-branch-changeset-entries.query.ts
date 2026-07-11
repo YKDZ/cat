@@ -2,7 +2,7 @@ import { and, changeset, changesetEntry, desc, eq, getColumns } from "@cat/db";
 import { EntityTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListBranchChangesetEntriesQuerySchema = z.object({
   /** Internal serial ID of the branch */

@@ -1,10 +1,11 @@
-import { logger } from "@cat/shared";
 import { createHash } from "node:crypto";
 
-import type { CacheOptions, CacheStore, SessionStore } from "@/cache/types";
+import { logger } from "@cat/shared";
 
-import { MemoryCacheStore } from "./memory-cache-store";
-import { MemorySessionStore } from "./memory-session-store";
+import type { CacheOptions, CacheStore, SessionStore } from "#/cache/types.ts";
+
+import { MemoryCacheStore } from "./memory-cache-store.ts";
+import { MemorySessionStore } from "./memory-session-store.ts";
 
 declare global {
   // oxlint-disable-next-line no-var

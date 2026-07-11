@@ -1,9 +1,8 @@
 import type { ObjectType, Relation } from "@cat/shared";
-
 import { useQuery, type DataState } from "@pinia/colada";
 import { computed, type ComputedRef } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 /**
  * 检查当前用户对指定资源是否具有某种权限关系。

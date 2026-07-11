@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { interpolateEnvVars } from "./env-interpolation";
+import { interpolateEnvVars } from "./env-interpolation.ts";
 
 describe("interpolateEnvVars", () => {
   const originalEnv = { ...process.env };

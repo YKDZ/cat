@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { FlattenedContextEvidence } from "@cat/shared";
-
 import { Card, CardContent } from "@cat/ui";
 
-import Markdown from "@/components/Markdown.vue";
+import Markdown from "#/components/Markdown.vue";
 
 const props = defineProps<{
   context: FlattenedContextEvidence;

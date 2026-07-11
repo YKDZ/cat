@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   reconnect: vi.fn(),
 }));
 
-vi.mock("@/stores/branch", async () => {
+vi.mock("#/stores/branch.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
 

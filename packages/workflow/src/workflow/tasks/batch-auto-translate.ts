@@ -1,17 +1,16 @@
-import type { ScopeTranslationSeed } from "@cat/shared";
-
 import { resolveOperationScopeElementsOp } from "@cat/operations";
+import type { ScopeTranslationSeed } from "@cat/shared";
 import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
 
 import {
   type AutoTranslateOutput,
   AutoTranslateConfigSchema,
   autoTranslateGraph,
-} from "./auto-translate";
+} from "./auto-translate.ts";
 
 const MAX_SCOPE_TRANSLATION_SEEDS = 8;
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   hydrateMessagesFromBlackboard,
   hydrateSessionState,
-} from "@/utils/agent/session-hydration";
+} from "#/utils/agent/session-hydration.ts";
 
 describe("session-hydration", () => {
   it("hydrates user and assistant messages", () => {

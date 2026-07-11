@@ -1,6 +1,7 @@
-import Database from "better-sqlite3";
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
+
+import Database from "better-sqlite3";
 
 /** Single chunk with embedding vector and optional metadata. */
 export type CachedChunk = {

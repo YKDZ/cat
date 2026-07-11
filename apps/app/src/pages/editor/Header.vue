@@ -2,8 +2,8 @@
 import { SidebarTrigger } from "@cat/ui";
 import { storeToRefs } from "pinia";
 
-import BranchCombobox from "@/components/shared/BranchCombobox.vue";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
+import BranchCombobox from "#/components/shared/BranchCombobox.vue";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
 
 import EditorScopeBar from "./EditorScopeBar.vue";
 import EditorSortModeSelect from "./EditorSortModeSelect.vue";

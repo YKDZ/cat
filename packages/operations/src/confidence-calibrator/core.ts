@@ -1,6 +1,6 @@
 import type { RecallEvidence } from "@cat/shared";
 
-import type { CalibrationSummary } from "./types";
+import type { CalibrationSummary } from "./types.ts";
 
 const DEFAULT_BOOST_FACTOR = 2.5;
 const MAX_CALIBRATED_CONFIDENCE = 0.85;

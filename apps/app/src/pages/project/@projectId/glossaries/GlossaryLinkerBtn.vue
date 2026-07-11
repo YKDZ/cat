@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -14,9 +13,9 @@ import { Link2 } from "@lucide/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import MultiGlossaryPicker from "@/components/MultiGlossaryPicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
+import MultiGlossaryPicker from "#/components/MultiGlossaryPicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 

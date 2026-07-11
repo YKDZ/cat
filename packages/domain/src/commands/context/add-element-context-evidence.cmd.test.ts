@@ -1,5 +1,6 @@
-import { contextEvidence, vectorizedString } from "@cat/db";
 import { randomUUID } from "node:crypto";
+
+import { contextEvidence, vectorizedString } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -10,9 +11,10 @@ import {
   createUser,
   ensureCoreRelationTypes,
   ensureLanguages,
-} from "@/commands";
-import { executeCommand } from "@/executor";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/commands/index.ts";
+import { executeCommand } from "#/executor.ts";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 let testDb: TestDB;
 let creatorId: string;
@@ -71,14 +73,14 @@ const seedElement = async (): Promise<{
           sourceRootRef: `project:${project.id}`,
           sourceNodeRef: `node:${randomUUID()}`,
           stableSourceRef: `stable:${randomUUID()}`,
-          stringId: stringRow.id,
+          stringId: requireFixtureValue(stringRow).id,
           localOrder: 0,
         },
       ],
     },
   );
 
-  return { projectId: project.id, elementId };
+  return { projectId: project.id, elementId: requireFixtureValue(elementId) };
 };
 
 describe("addElementContextEvidence", () => {

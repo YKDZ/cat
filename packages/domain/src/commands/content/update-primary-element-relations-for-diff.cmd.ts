@@ -1,7 +1,7 @@
 import { and, contentRelation, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const UpdatePrimaryElementRelationsForDiffCommandSchema = z.object({
   updates: z.array(

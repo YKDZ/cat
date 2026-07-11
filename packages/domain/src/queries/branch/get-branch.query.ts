@@ -2,7 +2,7 @@ import { entityBranch, eq, getColumns } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetBranchQuerySchema = z.object({
   /** externalId (UUID) of the branch */

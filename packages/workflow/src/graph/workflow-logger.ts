@@ -1,6 +1,6 @@
 import { serverLogger } from "@cat/server-shared";
 
-import type { RunId } from "@/graph/types";
+import type { RunId } from "#/graph/types.ts";
 
 export interface WorkflowEventMeta extends Record<string, unknown> {
   domain: string;

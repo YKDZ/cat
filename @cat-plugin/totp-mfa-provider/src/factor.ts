@@ -1,5 +1,4 @@
 import type { PluginCapabilities } from "@cat/plugin-core";
-
 import {
   AuthFactor,
   type AuthFactorExecutionContext,
@@ -22,8 +21,11 @@ const verify = (secret: string, token: string, window = 2) =>
   speakeasy.totp.verify({ secret, encoding: "base32", token, window });
 
 export class TotpFactor extends AuthFactor {
-  constructor(private readonly capabilities: PluginCapabilities) {
+  private readonly capabilities: PluginCapabilities;
+
+  constructor(capabilities: PluginCapabilities) {
     super();
+    this.capabilities = capabilities;
   }
 
   getId(): string {

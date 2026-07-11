@@ -1,6 +1,6 @@
 import { loginAttempt as loginAttemptTable } from "@cat/db";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export interface InsertLoginAttemptCommand {
   identifier: string;

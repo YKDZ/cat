@@ -3,8 +3,8 @@ import { Button } from "@cat/ui";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import MarkdownEditor from "@/components/editor/MarkdownEditor.vue";
-import Markdown from "@/components/Markdown.vue";
+import MarkdownEditor from "#/components/editor/MarkdownEditor.vue";
+import Markdown from "#/components/Markdown.vue";
 
 const props = defineProps<{
   content: string;

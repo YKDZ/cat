@@ -3,14 +3,14 @@ import type { NonNullJSONType } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
-import type { EventEnvelopeInput } from "@/graph/events";
+import type { EventEnvelopeInput } from "#/graph/events.ts";
 import type {
   BlackboardSnapshot,
   EdgeDefinition,
   GraphDefinition,
   NodeType,
   RetryConfig,
-} from "@/graph/types";
+} from "#/graph/types.ts";
 
 // ─── 类型安全节点上下文 ──────────────────────────────────────────────
 
@@ -18,7 +18,7 @@ import type {
 export type TypedNodeContext = {
   runId: string;
   nodeId: string;
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
   /** Alias for runId – supplied for compatibility with OperationContext */
   traceId: string;
   /** Plugin manager instance from the graph runtime */
@@ -39,11 +39,11 @@ export type TypedNodeContext = {
   /**
    * Optional VCS context. When provided, graph nodes should use executeWithVCS for writes.
    */
-  vcsContext?: VCSContext;
+  vcsContext?: VCSContext | undefined;
   /**
    * VCS middleware instance. Used alongside vcsContext.
    */
-  vcsMiddleware?: VCSMiddleware;
+  vcsMiddleware?: VCSMiddleware | undefined;
 };
 
 // ─── 类型安全节点定义 ──────────────────────────────────────────────

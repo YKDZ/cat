@@ -1,0 +1,33 @@
+diff --git a/lib/quickstart/runTsc.js b/lib/quickstart/runTsc.js
+index a10fcf7fe52c4a51b6f20847d4da381bc6f5deeb..568204a228dd254dbf907f98e98642d9af487ea3 100644
+--- a/lib/quickstart/runTsc.js
++++ b/lib/quickstart/runTsc.js
+@@ -5,9 +5,28 @@ exports.runTsc = runTsc;
+ exports.transformTscContent = transformTscContent;
+ const fs = require("fs");
+ const path = require("path");
++const resolveTscPath = (initialPath) => {
++    let currentPath = initialPath;
++    while (true) {
++        const source = fs.readFileSync(currentPath, 'utf8');
++        if (source.includes('supportedTSExtensions =')) {
++            return currentPath;
++        }
++        const exportRequire = /module\.exports\s*=\s*require\((?:"|')(?<path>[^"']+)(?:"|')\)/.exec(source);
++        const bareRequire = /^require\((?:"|')(?<path>[^"']+)(?:"|')\)/m.exec(source);
++        const requirePath = exportRequire?.groups?.path ?? bareRequire?.groups?.path;
++        if (!requirePath) {
++            return currentPath;
++        }
++        currentPath = requirePath.startsWith('.')
++            ? path.join(path.dirname(currentPath), requirePath)
++            : require.resolve(requirePath, { paths: [path.dirname(currentPath)] });
++    }
++};
+ let getLanguagePlugins = () => [];
+ exports.getLanguagePlugins = getLanguagePlugins;
+ function runTsc(tscPath, options, _getLanguagePlugins, typescriptObject) {
++    tscPath = resolveTscPath(tscPath);
+     exports.getLanguagePlugins = _getLanguagePlugins;
+     let extraSupportedExtensions;
+     let extraExtensionsToRemove;

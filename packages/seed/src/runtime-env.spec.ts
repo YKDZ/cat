@@ -1,9 +1,10 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { loadSeedRuntimeEnv } from "@/runtime-env";
+import { loadSeedRuntimeEnv } from "#/runtime-env.ts";
 
 describe("loadSeedRuntimeEnv", () => {
   let dir: string;

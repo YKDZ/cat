@@ -5,6 +5,7 @@
  * lastReviewed: 2026-03-20
  */
 import { MiniMap } from "@vue-flow/minimap";
+
 import "@vue-flow/minimap/dist/style.css";
 </script>
 

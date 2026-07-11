@@ -1,5 +1,4 @@
 import type { DiffStrategy } from "../diff-strategy.ts";
-
 import { createGenericStrategy } from "./generic.ts";
 
 /**

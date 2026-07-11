@@ -1,4 +1,4 @@
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 export const preserveRateScorer: Scorer = {
   name: "preserve-rate",

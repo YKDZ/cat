@@ -1,10 +1,9 @@
-import type { Project } from "@cat/shared";
-
 import { listAccessibleProjects } from "@cat/domain";
 import { getPermissionEngine } from "@cat/permissions";
+import type { Project } from "@cat/shared";
 
-import { runAppQuery } from "@/server/domain";
-import { requireTelefuncAuth } from "@/server/telefunc-auth";
+import { runAppQuery } from "#/server/domain.ts";
+import { requireTelefuncAuth } from "#/server/telefunc-auth.ts";
 
 export type PagedResult<T> = {
   data: T[];

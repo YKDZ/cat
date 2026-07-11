@@ -39,8 +39,11 @@ export interface IPluginService {
  * Structured error indicating that a plugin service is currently unavailable.
  */
 export class PluginServiceUnavailableError extends Error {
-  public constructor(public readonly availability: PluginServiceAvailability) {
+  public readonly availability: PluginServiceAvailability;
+
+  public constructor(availability: PluginServiceAvailability) {
     super(availability.message ?? availability.reason);
+    this.availability = availability;
   }
 }
 

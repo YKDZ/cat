@@ -1,9 +1,8 @@
 import type { DrizzleClient } from "@cat/domain";
-
 import { PluginManager } from "@cat/plugin-core";
 import { afterEach, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
 afterEach(() => {
   PluginManager.clear();

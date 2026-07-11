@@ -14,8 +14,8 @@ import {
 import { ScrollArea } from "@cat/ui";
 import { storeToRefs } from "pinia";
 
-import SidebarLogo from "@/components/SidebarLogo.vue";
-import { useEditorElementStore } from "@/stores/editor/element";
+import SidebarLogo from "#/components/SidebarLogo.vue";
+import { useEditorElementStore } from "#/stores/editor/element.ts";
 
 import SidebarElement from "./SidebarElement.vue";
 import SidebarPagination from "./SidebarPagination.vue";

@@ -1,5 +1,4 @@
 import type { AgentToolDefinition } from "@cat/agent";
-
 import {
   executeQuery,
   getDbHandle,
@@ -100,8 +99,12 @@ export const listElementsTool: AgentToolDefinition = {
       pageSize: parsed.pageSize,
       searchQuery: parsed.searchQuery ?? "",
       statusFilter: legacyStatusFilter({
-        isTranslated: parsed.isTranslated,
-        isApproved: parsed.isApproved,
+        ...(parsed.isTranslated === undefined
+          ? {}
+          : { isTranslated: parsed.isTranslated }),
+        ...(parsed.isApproved === undefined
+          ? {}
+          : { isApproved: parsed.isApproved }),
       }),
       sortMode: "structure",
     });

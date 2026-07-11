@@ -3,17 +3,16 @@ import type {
   ChatCompletionRequest,
   LLMChunk,
 } from "@cat/plugin-core";
-import type {
-  ChatCompletionMessageParam,
-  ChatCompletionTool,
-} from "openai/resources/chat/completions";
-
 import {
   LLMProvider,
   PluginServiceUnavailableError,
   type PluginServiceAvailability,
 } from "@cat/plugin-core";
 import OpenAI from "openai";
+import type {
+  ChatCompletionMessageParam,
+  ChatCompletionTool,
+} from "openai/resources/chat/completions";
 import { Stream } from "openai/streaming";
 import { z } from "zod";
 
@@ -88,11 +87,15 @@ export class OpenAILLMProvider extends LLMProvider {
     const params = {
       model: this.config.model,
       messages,
-      tools: tools && tools.length > 0 ? tools : undefined,
-      temperature: request.temperature,
-      max_tokens: request.maxTokens,
       stream: true as const,
       stream_options: { include_usage: true },
+      ...(tools && tools.length > 0 ? { tools } : {}),
+      ...(request.temperature === undefined
+        ? {}
+        : { temperature: request.temperature }),
+      ...(request.maxTokens === undefined
+        ? {}
+        : { max_tokens: request.maxTokens }),
       ...(request.thinking !== undefined && {
         // oxlint-disable-next-line no-unsafe-type-assertion -- enable_thinking is an OpenAI-compatible extension not in the official SDK types
         enable_thinking: request.thinking as unknown,
@@ -170,8 +173,12 @@ export class OpenAILLMProvider extends LLMProvider {
               type: "tool_call_delta",
               toolCallDelta: {
                 id: tc.id ?? existing?.id ?? "",
-                name: tc.function?.name,
-                argumentsDelta: tc.function?.arguments,
+                ...(tc.function?.name === undefined
+                  ? {}
+                  : { name: tc.function.name }),
+                ...(tc.function?.arguments === undefined
+                  ? {}
+                  : { argumentsDelta: tc.function.arguments }),
               },
             };
           }

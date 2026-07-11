@@ -2,7 +2,7 @@ import { agentDefinition, and, desc, eq, getColumns } from "@cat/db";
 import { AgentDefinitionTypeSchema, ScopeTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListAgentDefinitionsQuerySchema = z.object({
   scopeType: ScopeTypeSchema.optional(),

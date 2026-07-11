@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NonNullJSONType } from "@cat/shared";
-
 import { Switch } from "@cat/ui";
 import {
   FormControl,

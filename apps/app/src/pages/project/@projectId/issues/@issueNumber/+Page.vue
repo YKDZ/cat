@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { IssueComment, IssueCommentThread } from "@cat/shared";
 import type { CrossReference } from "@cat/shared";
-
 import { Badge, Button, Separator } from "@cat/ui";
 import { CircleDot, CircleCheck, ChevronLeft } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
@@ -10,17 +9,15 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import type { MetadataSection } from "@/components/shared/MetadataSidebar.vue";
-
-import MarkdownEditor from "@/components/editor/MarkdownEditor.vue";
-import InlineEdit from "@/components/shared/InlineEdit.vue";
-import MetadataSidebar from "@/components/shared/MetadataSidebar.vue";
-import Timeline from "@/components/shared/Timeline.vue";
-import { orpc } from "@/rpc/orpc";
-
-import type { Data } from "./+data.ts";
+import MarkdownEditor from "#/components/editor/MarkdownEditor.vue";
+import InlineEdit from "#/components/shared/InlineEdit.vue";
+import type { MetadataSection } from "#/components/shared/MetadataSidebar.vue";
+import MetadataSidebar from "#/components/shared/MetadataSidebar.vue";
+import Timeline from "#/components/shared/Timeline.vue";
+import { orpc } from "#/rpc/orpc.ts";
 
 import ProjectPageDataError from "../../ProjectPageDataError.vue";
+import type { Data } from "./+data.ts";
 
 const { t } = useI18n();
 const data = useData<Data>();

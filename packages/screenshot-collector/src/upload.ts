@@ -1,11 +1,11 @@
-import type { CaptureResult } from "@cat/shared";
-
 // oxlint-disable no-console
 // oxlint-disable no-await-in-loop -- sequential upload: each file must complete before next (presign → PUT → finish)
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- API response JSON requires casting
 import { readFile } from "node:fs/promises";
 
-import type { UploadOptions } from "./types.ts";
+import type { CaptureResult } from "@cat/shared";
+
+import type { UploadOptions } from "#/types.ts";
 
 interface PrepareUploadResponse {
   url: string;
@@ -126,7 +126,9 @@ export const uploadCaptureResult = async (
       elementRef: screenshot.elementRef,
       fileId: finishData.fileId,
       route: screenshot.route,
-      highlightRegion: screenshot.highlightRegion,
+      ...(screenshot.highlightRegion === undefined
+        ? {}
+        : { highlightRegion: screenshot.highlightRegion }),
     });
   }
 

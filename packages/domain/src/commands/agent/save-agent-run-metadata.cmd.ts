@@ -2,7 +2,7 @@ import { agentRun } from "@cat/db";
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const SaveAgentRunMetadataCommandSchema = z.object({
   externalId: z.string(),

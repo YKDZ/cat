@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+
 import * as z from "zod";
 
 export const AvailableLocalesSchema = z.object({

@@ -4,7 +4,7 @@ import {
   RevectorizeOutputSchema,
 } from "@cat/operations";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 export { RevectorizeInputSchema, RevectorizeOutputSchema };
 

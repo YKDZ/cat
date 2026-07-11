@@ -8,7 +8,7 @@ import { useI18n } from "vue-i18n";
 import {
   buildEditorHref,
   parseEditorScopeFromRoute,
-} from "../../../../scope-url";
+} from "../../../../scope-url.ts";
 
 const pageContext = usePageContext();
 const { t } = useI18n();

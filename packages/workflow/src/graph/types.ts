@@ -1,7 +1,7 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
-import type { EventEnvelopeInput } from "@/graph/events";
+import type { EventEnvelopeInput } from "#/graph/events.ts";
 
 export {
   BlackboardSnapshotSchema,
@@ -49,14 +49,14 @@ export type NodeExecutionContext = {
   runId: import("@cat/graph").RunId;
   nodeId: import("@cat/graph").NodeId;
   snapshot: import("@cat/graph").BlackboardSnapshot;
-  signal?: AbortSignal;
-  idempotencyKey?: string;
+  signal?: AbortSignal | undefined;
+  idempotencyKey?: string | undefined;
 };
 
 export type GraphRuntimeContext = {
-  pluginManager?: PluginManager;
+  pluginManager?: PluginManager | undefined;
   /** Optional VCS context for Direct mode audit */
-  vcsContext?: VCSContext;
+  vcsContext?: VCSContext | undefined;
   /** Optional VCS middleware instance */
-  vcsMiddleware?: VCSMiddleware;
+  vcsMiddleware?: VCSMiddleware | undefined;
 };

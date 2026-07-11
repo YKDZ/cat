@@ -1,9 +1,18 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import { loadRouteManifest, mergeBindings, resolveRoutes } from "../route.ts";
+import { loadRouteManifest, mergeBindings, resolveRoutes } from "#/route.ts";
+
+const itemAt = <T>(items: T[], index: number): T => {
+  const item = items[index];
+  if (item === undefined) {
+    throw new Error(`Expected item at index ${index}`);
+  }
+  return item;
+};
 
 describe("loadRouteManifest", () => {
   it("loads JSON RouteManifest format", async () => {
@@ -54,8 +63,8 @@ describe("loadRouteManifest", () => {
     try {
       const manifest = await loadRouteManifest(file);
       expect(manifest.routes).toHaveLength(2);
-      expect(manifest.routes[0].template).toBe("/");
-      expect(manifest.routes[0].waitAfterLoad).toBe(1000);
+      expect(itemAt(manifest.routes, 0).template).toBe("/");
+      expect(itemAt(manifest.routes, 0).waitAfterLoad).toBe(1000);
       expect(manifest.bindings).toBeUndefined();
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -84,8 +93,8 @@ describe("resolveRoutes", () => {
     });
 
     expect(routes).toHaveLength(2);
-    expect(routes[0].path).toBe("/");
-    expect(routes[1].path).toBe("/project/abc-123");
+    expect(itemAt(routes, 0).path).toBe("/");
+    expect(itemAt(routes, 1).path).toBe("/project/abc-123");
   });
 
   it("extra bindings override manifest bindings", () => {
@@ -97,7 +106,7 @@ describe("resolveRoutes", () => {
       { project: "new" },
     );
 
-    expect(routes[0].path).toBe("/project/new");
+    expect(itemAt(routes, 0).path).toBe("/project/new");
   });
 
   it("throws on missing bindings", () => {

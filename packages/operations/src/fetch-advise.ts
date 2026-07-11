@@ -1,15 +1,14 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, getElementMeta } from "@cat/domain";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
+import type { JSONType } from "@cat/shared";
 import { TranslationAdviseSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall";
-import { termRecallOp } from "./term-recall";
+import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import { termRecallOp } from "./term-recall.ts";
 
 export const FetchAdviseInputSchema = z.object({
   advisorId: z.int().optional().meta({

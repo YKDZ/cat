@@ -10,8 +10,8 @@ import {
   QaReviewRiskBucketSchema,
   QaReviewRunLayerSchema,
   QaReviewSuggestionStatusSchema,
-} from "@/schema/enum.ts";
-import { safeZDotJson } from "@/schema/json.ts";
+} from "#/schema/enum.ts";
+import { safeZDotJson } from "#/schema/json.ts";
 
 export const QaReviewTextRangeSchema = z
   .object({

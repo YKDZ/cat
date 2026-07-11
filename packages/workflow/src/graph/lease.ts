@@ -1,6 +1,6 @@
 import * as crypto from "node:crypto";
 
-import type { NodeId, RunId } from "@/graph/types";
+import type { NodeId, RunId } from "#/graph/types.ts";
 
 export type LeaseStatus = "active" | "expired" | "released";
 

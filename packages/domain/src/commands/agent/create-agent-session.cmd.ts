@@ -1,14 +1,9 @@
-import type { JSONType } from "@cat/shared";
-
 import { agentDefinition, agentSession, eq } from "@cat/db";
-import {
-  AgentSessionMetadataSchema,
-  type AgentSessionMetadata,
-} from "@cat/shared";
+import { AgentSessionMetadataSchema, safeZDotJson } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateAgentSessionCommandSchema = z.object({
   agentDefinitionId: z.uuidv4(),
@@ -40,8 +35,7 @@ export const createAgentSession: Command<
         agentDefinitionId: definition.id,
         userId: command.userId,
         projectId: command.projectId,
-        metadata: (command.metadata ??
-          {}) satisfies AgentSessionMetadata as JSONType,
+        metadata: safeZDotJson.parse(command.metadata ?? {}),
       })
       .returning({ externalId: agentSession.externalId }),
   );

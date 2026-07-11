@@ -1,19 +1,19 @@
+import { readFile } from "node:fs/promises";
+import { extname, relative } from "node:path";
+
 import type {
   StructuredContentNodeInput,
   StructuredEvidenceInput,
   StructuredRelationInput,
   StructuredTranslatableElementInput,
 } from "@cat/shared";
-
 import { glob } from "glob";
-import { readFile } from "node:fs/promises";
-import { extname, relative } from "node:path";
 
 import type {
   SourceCollectionDiagnostic,
   SourceExtractionGraphResult,
   SourceExtractOptions,
-} from "./types.ts";
+} from "#/types.ts";
 
 type FileExtractionResult = {
   fileNode: StructuredContentNodeInput;

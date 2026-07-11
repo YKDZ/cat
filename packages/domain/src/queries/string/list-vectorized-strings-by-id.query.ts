@@ -2,7 +2,7 @@ import { vectorizedString } from "@cat/db";
 import { inArray } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListVectorizedStringsByIdQuerySchema = z.object({
   stringIds: z.array(z.int()),

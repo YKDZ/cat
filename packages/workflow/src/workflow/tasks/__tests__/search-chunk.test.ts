@@ -15,11 +15,11 @@ import {
 } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { createVectorizedStringGraph } from "../create-vectorized-string";
-import { searchChunkGraph } from "../search-chunk";
+import { createVectorizedStringGraph } from "../create-vectorized-string.ts";
+import { searchChunkGraph } from "../search-chunk.ts";
 
 const data = [
   { text: "Search chunk text 1", languageId: "en" },
@@ -89,13 +89,17 @@ test("search-chunk should return similar chunks", async () => {
 
   const allChunks = await executeQuery({ db: drizzle }, listAllChunks, {});
   const chunkIds = allChunks.map((chunk) => chunk.id);
+  const queryChunkId = chunkIds[0];
+  if (queryChunkId === undefined) {
+    throw new Error("search fixture did not create any chunks");
+  }
   const searchRange = chunkIds;
 
   const { chunks } = await runGraph(searchChunkGraph, {
     minSimilarity: 0,
     maxAmount: 10,
     searchRange,
-    queryChunkIds: [chunkIds[0]],
+    queryChunkIds: [queryChunkId],
     vectorStorageId: vectorStorage.dbId,
   });
 
@@ -121,12 +125,16 @@ test("search-chunk with empty searchRange should return empty chunks", async () 
 
   const allChunks = await executeQuery({ db: drizzle }, listAllChunks, {});
   const chunkIds = allChunks.map((chunk) => chunk.id);
+  const queryChunkId = chunkIds[0];
+  if (queryChunkId === undefined) {
+    throw new Error("search fixture did not create any chunks");
+  }
 
   const { chunks } = await runGraph(searchChunkGraph, {
     minSimilarity: 0,
     maxAmount: 10,
     searchRange: [],
-    queryChunkIds: [chunkIds[0]],
+    queryChunkIds: [queryChunkId],
     vectorStorageId: vectorStorage.dbId,
   });
   expect(Array.isArray(chunks)).toBe(true);

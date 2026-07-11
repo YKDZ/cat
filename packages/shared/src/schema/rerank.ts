@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { FlattenedContextEvidenceSchema } from "@/schema/content.ts";
+import { FlattenedContextEvidenceSchema } from "#/schema/content.ts";
 
 export const RerankTriggerSchema = z.enum([
   "precision-ambiguity",

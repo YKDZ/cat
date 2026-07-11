@@ -3,10 +3,10 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { tokenizeGraph } from "../tokenize";
+import { tokenizeGraph } from "../tokenize.ts";
 
 let cleanup: () => Promise<void>;
 

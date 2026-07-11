@@ -1,9 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import { getDbHandle } from "@cat/domain";
 import { createVectorizedChunks, executeCommand } from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";
+import type { JSONType } from "@cat/shared";
 import z from "zod";
 
 const InputSchema = z.object({
@@ -92,10 +91,17 @@ export const vectorizeToChunkSetOp = async (
 
   for (let i = 0; i < chunkDataList.length; i += 1) {
     const chunkData = chunkDataList[i];
+    if (!chunkData) {
+      throw new Error("vectorizer result omitted an input text");
+    }
     for (let j = 0; j < chunkData.length; j += 1) {
+      const chunk = chunkData[j];
+      if (!chunk) {
+        throw new Error("vectorizer result omitted a chunk");
+      }
       flattened.push({
-        vector: chunkData[j].vector,
-        meta: chunkData[j].meta,
+        vector: chunk.vector,
+        meta: chunk.meta,
         textIndex: i,
       });
     }
@@ -115,11 +121,16 @@ export const vectorizeToChunkSetOp = async (
     },
   );
 
-  const storePayload = chunkIds.map((cid, idx) => ({
-    chunkId: cid,
-    vector: flattened[idx].vector,
-    meta: flattened[idx].meta,
-  }));
+  if (chunkIds.length !== flattened.length) {
+    throw new Error("created chunk count did not match vectorized chunk count");
+  }
+  const storePayload = chunkIds.map((chunkId, index) => {
+    const chunk = flattened[index];
+    if (!chunk) {
+      throw new Error("created chunk omitted vector data");
+    }
+    return { chunkId, vector: chunk.vector, meta: chunk.meta };
+  });
 
   await storage.store({ chunks: storePayload });
 

@@ -2,7 +2,7 @@ import { user } from "@cat/db";
 import { eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetUserEmailQuerySchema = z.object({ userId: z.uuidv4() });
 export type GetUserEmailQuery = z.infer<typeof GetUserEmailQuerySchema>;

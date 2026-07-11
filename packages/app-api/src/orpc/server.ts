@@ -1,0 +1,309 @@
+import {
+  getContentNode,
+  getElementProject,
+  listTranslationsByIds,
+} from "@cat/domain";
+import { getPermissionEngine } from "@cat/permissions";
+import type { ObjectType, Relation } from "@cat/shared";
+import { ORPCError, os } from "@orpc/server";
+
+import { verifyCsrfToken } from "#/middleware/csrf.ts";
+import type { Context } from "#/utils/context.ts";
+
+export const base = os.$context<Context>();
+
+export const authed = base.use(async ({ context, next }) => {
+  const { user, sessionId, auth, helpers } = context;
+
+  if (!user || !auth) throw new ORPCError("UNAUTHORIZED");
+  // Cookie Session 认证必须有 sessionId；API Key（auth.scopes !== null）不需要
+  if (!sessionId && auth.scopes === null) throw new ORPCError("UNAUTHORIZED");
+
+  // CSRF 验证：仅对来自浏览器的 Cookie Session 请求生效
+  // SSR 内部调用、WebSocket 连接和 API Key（Bearer header）请求豁免
+  if (!context.isSSR && !context.isWebSocket && auth.scopes === null) {
+    const csrfCookie = helpers.getCookie("csrfToken");
+    const csrfHeader = helpers.getReqHeader("x-csrf-token");
+    if (!verifyCsrfToken(csrfCookie, csrfHeader)) {
+      throw new ORPCError("FORBIDDEN", {
+        message: "CSRF token mismatch",
+      });
+    }
+  }
+
+  return await next({
+    context: {
+      user,
+      sessionId,
+      auth,
+    },
+  });
+});
+
+// ============================================================
+// 类型安全的权限中间件
+// 使用 oRPC 的 .use(middleware, mapInput) 模式
+// mapInput 函数的参数类型会从 .input() schema 自动推断
+// ============================================================
+
+/**
+ * 检查对特定资源的权限。
+ * 输入：objectId (string)
+ *
+ * 用法：
+ * authed
+ *   .input(z.object({ projectId: z.uuidv4() }))
+ *   .use(checkPermission("project", "owner"), (i) => i.projectId)
+ *   .handler(...)
+ */
+// oxlint-disable-next-line typescript/explicit-module-boundary-types
+export const checkPermission = (objectType: ObjectType, relation: Relation) => {
+  type AuthedContext = {
+    user: NonNullable<Context["user"]>;
+    sessionId: Context["sessionId"];
+    auth: NonNullable<Context["auth"]>;
+  };
+
+  return os
+    .$context<AuthedContext>()
+    .middleware(async ({ context, next }, objectId: string) => {
+      const engine = getPermissionEngine();
+      const allowed = await engine.check(
+        context.auth,
+        { type: objectType, id: objectId },
+        relation,
+      );
+
+      if (!allowed) throw new ORPCError("FORBIDDEN");
+
+      return next({
+        context: {
+          user: context.user,
+          sessionId: context.sessionId,
+          auth: context.auth,
+        },
+      });
+    });
+};
+
+/**
+ * 检查 ContentNode 权限（通过 projectId 传递）。
+ * 输入：contentNodeId (string)
+ *
+ * 用法：
+ * authed
+ *   .input(z.object({ contentNodeId: z.uuidv4() }))
+ *   .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
+ *   .handler(...)
+ */
+// oxlint-disable-next-line typescript/explicit-module-boundary-types
+export const checkContentNodePermission = (relation: Relation) => {
+  type AuthedContext = {
+    user: NonNullable<Context["user"]>;
+    sessionId: Context["sessionId"];
+    auth: NonNullable<Context["auth"]>;
+    drizzleDB: Context["drizzleDB"];
+  };
+
+  return os
+    .$context<AuthedContext>()
+    .middleware(async ({ context, next }, contentNodeId: string) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = context;
+
+      const node = await getContentNode({ db: drizzle }, { id: contentNodeId });
+      if (!node)
+        throw new ORPCError("NOT_FOUND", {
+          message: "Content node not found",
+        });
+
+      const engine = getPermissionEngine();
+      const allowed = await engine.check(
+        context.auth,
+        { type: "project", id: node.projectId },
+        relation,
+      );
+      if (!allowed) throw new ORPCError("FORBIDDEN");
+      return next({
+        context: {
+          user: context.user,
+          sessionId: context.sessionId,
+          auth: context.auth,
+        },
+      });
+    });
+};
+
+/**
+ * 检查 Element 权限（通过 translatableElement.projectId 直接传递）。
+ * 输入：elementId (number)
+ *
+ * 用法：
+ * authed
+ *   .input(z.object({ elementId: z.int() }))
+ *   .use(checkElementPermission("viewer"), (i) => i.elementId)
+ *   .handler(...)
+ */
+// oxlint-disable-next-line typescript/explicit-module-boundary-types
+export const checkElementPermission = (relation: Relation) => {
+  type AuthedContext = {
+    user: NonNullable<Context["user"]>;
+    sessionId: Context["sessionId"];
+    auth: NonNullable<Context["auth"]>;
+    drizzleDB: Context["drizzleDB"];
+  };
+
+  return os
+    .$context<AuthedContext>()
+    .middleware(async ({ context, next }, elementId: number) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = context;
+
+      const element = await getElementProject({ db: drizzle }, { elementId });
+      if (!element)
+        throw new ORPCError("NOT_FOUND", { message: "Element not found" });
+
+      const engine = getPermissionEngine();
+      const allowed = await engine.check(
+        context.auth,
+        { type: "project", id: element.projectId },
+        relation,
+      );
+      if (!allowed) throw new ORPCError("FORBIDDEN");
+      return next({
+        context: {
+          user: context.user,
+          sessionId: context.sessionId,
+          auth: context.auth,
+        },
+      });
+    });
+};
+
+// ============================================================
+// 向后兼容的旧 API（使用 unknown 类型，不推荐）
+// 保留这些是为了平滑迁移，新代码应使用上面的 check* 函数
+// ============================================================
+
+/**
+ * @deprecated 使用 checkPermission 配合 .use() 替代
+ * 资源级鉴权中间件工厂。
+ * 在 authed 基础上，进一步校验当前用户对指定资源是否持有 relation 权限。
+ */
+// oxlint-disable-next-line explicit-module-boundary-types
+export const requirePermission = (
+  objectType: ObjectType,
+  relation: Relation,
+  getObjectId: (input: unknown) => string,
+) =>
+  authed.use(async ({ context, next }, input) => {
+    const engine = getPermissionEngine();
+    const allowed = await engine.check(
+      context.auth,
+      { type: objectType, id: getObjectId(input) },
+      relation,
+    );
+    if (!allowed) throw new ORPCError("FORBIDDEN");
+    return await next({
+      context: {
+        user: context.user,
+        sessionId: context.sessionId,
+        auth: context.auth,
+      },
+    });
+  });
+
+/**
+ * @deprecated 使用 checkElementPermission 配合 .use() 替代
+ * Element 权限检查中间件工厂。
+ */
+// oxlint-disable-next-line explicit-module-boundary-types
+export const requireElementPermission = (
+  relation: Relation,
+  getElementId: (input: unknown) => number,
+) =>
+  authed.use(async ({ context, next }, input) => {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const elementId = getElementId(input);
+
+    const element = await getElementProject({ db: drizzle }, { elementId });
+    if (!element)
+      throw new ORPCError("NOT_FOUND", { message: "Element not found" });
+
+    const engine = getPermissionEngine();
+    const allowed = await engine.check(
+      context.auth,
+      { type: "project", id: element.projectId },
+      relation,
+    );
+    if (!allowed) throw new ORPCError("FORBIDDEN");
+    return await next({
+      context: {
+        user: context.user,
+        sessionId: context.sessionId,
+        auth: context.auth,
+      },
+    });
+  });
+
+/**
+ * 检查 Translation 权限（通过 translationId → elementId → projectId 传递）。
+ * 输入：translationId (number)
+ *
+ * 用法：
+ * authed
+ *   .input(z.object({ translationId: z.int() }))
+ *   .use(checkTranslationPermission("editor"), (i) => i.translationId)
+ *   .handler(...)
+ */
+// oxlint-disable-next-line typescript/explicit-module-boundary-types
+export const checkTranslationPermission = (relation: Relation) => {
+  type AuthedContext = {
+    user: NonNullable<Context["user"]>;
+    sessionId: Context["sessionId"];
+    auth: NonNullable<Context["auth"]>;
+    drizzleDB: Context["drizzleDB"];
+  };
+
+  return os
+    .$context<AuthedContext>()
+    .middleware(async ({ context, next }, translationId: number) => {
+      const {
+        drizzleDB: { client: drizzle },
+      } = context;
+
+      const translations = await listTranslationsByIds(
+        { db: drizzle },
+        { translationIds: [translationId] },
+      );
+      const translation = translations[0];
+      if (!translation)
+        throw new ORPCError("NOT_FOUND", { message: "Translation not found" });
+
+      const element = await getElementProject(
+        { db: drizzle },
+        { elementId: translation.translatableElementId },
+      );
+      if (!element)
+        throw new ORPCError("NOT_FOUND", { message: "Element not found" });
+
+      const engine = getPermissionEngine();
+      const allowed = await engine.check(
+        context.auth,
+        { type: "project", id: element.projectId },
+        relation,
+      );
+      if (!allowed) throw new ORPCError("FORBIDDEN");
+      return next({
+        context: {
+          user: context.user,
+          sessionId: context.sessionId,
+          auth: context.auth,
+        },
+      });
+    });
+};

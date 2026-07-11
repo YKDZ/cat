@@ -2,15 +2,13 @@
 // oxlint-disable no-await-in-loop -- scenarios are intentionally sequential
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-import type { LoadedSuite } from "@/config";
-import type { RefResolver } from "@/seeder/ref-resolver";
-import type { SeededContext } from "@/seeder/types";
+import type { LoadedSuite } from "#/config/index.ts";
+import { seed } from "#/seeder/index.ts";
+import type { RefResolver } from "#/seeder/ref-resolver.ts";
+import type { SeededContext } from "#/seeder/types.ts";
 
-import { seed } from "@/seeder";
-
-import type { HarnessContext, ScenarioResult } from "./types";
-
-import { getStrategy } from "./strategies";
+import { getStrategy } from "./strategies/index.ts";
+import type { HarnessContext, ScenarioResult } from "./types.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
 

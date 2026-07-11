@@ -3,19 +3,10 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vite/client"]
   },
   "include": ["src/**/*.ts"],
-  "references": [
-    {
-      "path": "../../packages/shared/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/plugin-core/tsconfig.lib.json"
-    }
-  ],
   "exclude": [
     "vite.config.ts",
     "vite.config.mts",

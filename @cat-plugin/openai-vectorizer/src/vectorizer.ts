@@ -1,12 +1,11 @@
-import type { JSONType } from "@cat/shared";
-import type { VectorizedTextData } from "@cat/shared";
-
 import {
   PluginServiceUnavailableError,
   TextVectorizer,
   type PluginServiceAvailability,
   type VectorizeContext,
 } from "@cat/plugin-core";
+import type { JSONType } from "@cat/shared";
+import type { VectorizedTextData } from "@cat/shared";
 import OpenAI from "openai";
 import * as z from "zod";
 
@@ -102,7 +101,7 @@ export class Vectorizer extends TextVectorizer {
         meta: {
           modelId: this.config["model-id"],
         },
-        vector: response.data[index].embedding,
+        vector: response.data[index]?.embedding ?? [],
       },
     ]);
   }

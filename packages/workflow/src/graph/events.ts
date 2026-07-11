@@ -1,9 +1,8 @@
 import type { JSONObject } from "@cat/shared";
-
 import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
-import { EventIdSchema, NodeTypeSchema } from "@/graph/types";
+import { EventIdSchema, NodeTypeSchema } from "#/graph/types.ts";
 
 // ─── Event Types ─────────────────────────────────────────────────
 
@@ -153,8 +152,8 @@ export type AgentEventPayload =
 type AgentEventBase = {
   eventId: string;
   runId: string;
-  nodeId?: string;
-  parentEventId?: string;
+  nodeId?: string | undefined;
+  parentEventId?: string | undefined;
   timestamp: string;
   metadata?: JSONObject;
 };
@@ -171,14 +170,14 @@ export type AgentEvent = {
 export type AgentEventOf<T extends EventType> = AgentEventVariant<T>;
 
 export type AgentEventLike = {
-  eventId?: string;
+  eventId?: string | undefined;
   runId: string;
-  nodeId?: string;
-  parentEventId?: string;
+  nodeId?: string | undefined;
+  parentEventId?: string | undefined;
   type: EventType;
   timestamp: string;
   payload: unknown;
-  metadata?: JSONObject;
+  metadata?: JSONObject | undefined;
 };
 
 // ─── Runtime Schemas (AgentEvent) ────────────────────────────────

@@ -2,9 +2,8 @@ import { glossary, glossaryToProject } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const CreateGlossaryCommandSchema = z.object({
   name: z.string().min(1),

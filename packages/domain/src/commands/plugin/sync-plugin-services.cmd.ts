@@ -2,7 +2,7 @@ import { pluginService } from "@cat/db";
 import { PluginServiceTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const SyncPluginServicesCommandSchema = z.object({
   pluginInstallationId: z.int(),

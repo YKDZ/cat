@@ -1,7 +1,6 @@
+import { NlpWordSegmenter, type CatPlugin } from "@cat/plugin-core";
 import type { NlpSegmentResult } from "@cat/shared";
 import type { PluginManifest } from "@cat/shared";
-
-import { NlpWordSegmenter, type CatPlugin } from "@cat/plugin-core";
 
 const TOKEN_PATTERN = /\p{L}+|\p{N}+|[^\s]/gu;
 

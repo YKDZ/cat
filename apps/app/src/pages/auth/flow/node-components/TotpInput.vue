@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import { Button, Input } from "@cat/ui";
 import {
   FormControl,
@@ -65,7 +66,7 @@ const onSubmit = handleSubmit((values) => {
         <FormLabel>{{ t("验证码") }}</FormLabel>
         <FormControl>
           <Input
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
             type="text"
             inputmode="numeric"
             autocomplete="one-time-code"

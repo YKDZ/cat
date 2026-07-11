@@ -1,8 +1,7 @@
 import type { DbHandle } from "@cat/domain";
-
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { MergePRFullInput } from "../merge-pr-full";
+import type { MergePRFullInput } from "../merge-pr-full.ts";
 
 const m = vi.hoisted(() => ({
   executeQuery: vi.fn(),
@@ -44,7 +43,7 @@ vi.mock("@cat/vcs", () => ({
   VectorizedStringApplicationMethod: vi.fn(),
 }));
 
-import { mergePRFull } from "../merge-pr-full";
+import { mergePRFull } from "../merge-pr-full.ts";
 
 const mockPR = { id: 1, branchId: 10, projectId: "proj-1", status: "OPEN" };
 const mockBranch = {

@@ -37,10 +37,10 @@ import {
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
-import { clientLogger as logger } from "@/utils/logger";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 type ListMemoryItemsResult = Awaited<ReturnType<typeof orpc.memory.listItems>>;
 type MemoryItemRow = ListMemoryItemsResult["items"][number];

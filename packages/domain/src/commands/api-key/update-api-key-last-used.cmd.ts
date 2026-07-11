@@ -1,7 +1,7 @@
 import { apiKey as apiKeyTable } from "@cat/db";
 import { eq } from "@cat/db";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export interface UpdateApiKeyLastUsedCommand {
   id: number;

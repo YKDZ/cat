@@ -3,7 +3,7 @@ import { and } from "@cat/db";
 import { ScopeTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListInstalledPluginsQuerySchema = z.object({
   scopeType: ScopeTypeSchema,

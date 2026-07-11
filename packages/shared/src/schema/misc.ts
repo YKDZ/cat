@@ -1,7 +1,7 @@
 import * as z from "zod";
 
-import { safeZDotJson } from "@/schema/json.ts";
-import { RecallEvidenceSchema } from "@/schema/recall.ts";
+import { safeZDotJson } from "#/schema/json.ts";
+import { RecallEvidenceSchema } from "#/schema/recall.ts";
 
 export const DrizzleDateTimeSchema = z.coerce.date();
 

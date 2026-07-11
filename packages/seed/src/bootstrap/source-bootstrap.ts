@@ -1,6 +1,6 @@
-import type { ExecutorContext } from "@cat/domain";
-import type { PluginManager } from "@cat/plugin-core";
+import { resolve } from "node:path";
 
+import type { ExecutorContext } from "@cat/domain";
 import {
   createMemory,
   createMemoryItems,
@@ -11,18 +11,17 @@ import {
   buildMemoryRecallVariantsOp,
   diffStructuredContentOp,
 } from "@cat/operations";
+import type { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import {
   extract,
   toCollectionPayload,
   vueI18nExtractor,
 } from "@cat/source-collector";
-import { resolve } from "node:path";
 
-import type { BootstrapProfile } from "../schemas";
-
-import { buildLocaleBridgeMaterial } from "./locale-bridge";
-import { type BootstrapRunReport, writeBootstrapRunReport } from "./report";
+import type { BootstrapProfile } from "../schemas.ts";
+import { buildLocaleBridgeMaterial } from "./locale-bridge.ts";
+import { type BootstrapRunReport, writeBootstrapRunReport } from "./report.ts";
 
 /**
  * Input for running bootstrap source graph ingestion.

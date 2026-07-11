@@ -1,10 +1,9 @@
 import { parseExpectedValue } from "@cat/graph";
 
-import type { NodeExecutor } from "@/graph/node-registry";
+import { buildPatch } from "#/graph/blackboard.ts";
+import type { NodeExecutor } from "#/graph/node-registry.ts";
 
-import { buildPatch } from "@/graph/blackboard";
-
-import { resolvePath } from "./utils";
+import { resolvePath } from "./utils.ts";
 
 const toBoolean = (value: unknown): boolean => {
   if (typeof value === "boolean") return value;

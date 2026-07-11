@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
@@ -104,7 +103,7 @@ export const parseFileOp = async (
     fileContent,
     name,
     fileId: data.fileId,
-    contentNodeId: data.contentNodeId,
+    ...(data.contentNodeId ? { contentNodeId: data.contentNodeId } : {}),
     sourceRootRef,
     sourceNodeRef,
     stableSourceNodeRef,

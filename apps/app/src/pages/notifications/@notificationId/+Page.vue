@@ -16,10 +16,10 @@ import { navigate } from "vike/client/router";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Markdown from "@/components/Markdown.vue";
-import { orpc } from "@/rpc/orpc";
-import { useNotificationStore } from "@/stores/notification";
-import { getCategoryLabel as _getCategoryLabel } from "@/utils/notification";
+import Markdown from "#/components/Markdown.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useNotificationStore } from "#/stores/notification.ts";
+import { getCategoryLabel as _getCategoryLabel } from "#/utils/notification.ts";
 
 const { t } = useI18n();
 const ctx = usePageContext();

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
-import logoUrl from "@/assets/logo.png";
+import logoUrl from "#/assets/logo.png";
 
 import AuthFlowRenderer from "./flow/AuthFlowRenderer.vue";
 

@@ -13,11 +13,11 @@ import { storeToRefs } from "pinia";
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-import { useAgentStore } from "@/stores/agent";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useRegisterClientTools } from "@/utils/agent/register-client-tools";
-import { clientLogger as logger } from "@/utils/logger";
+import { orpc } from "#/rpc/orpc.ts";
+import { useAgentStore } from "#/stores/agent.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useRegisterClientTools } from "#/utils/agent/register-client-tools.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 import AgentMaxStepsCard from "./AgentMaxStepsCard.vue";
 import AgentMessageBubble from "./AgentMessageBubble.vue";

@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listLexicalTermSuggestions } from "@cat/domain";
 import {

@@ -2,7 +2,7 @@ import { eq, project } from "@cat/db";
 import { assertFirstOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetProjectQuerySchema = z.object({
   projectId: z.uuidv4(),

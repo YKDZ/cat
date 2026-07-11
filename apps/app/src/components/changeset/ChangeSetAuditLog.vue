@@ -4,7 +4,7 @@ import { useQuery } from "@pinia/colada";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 import ChangeSetAuditCard from "./ChangeSetAuditCard.vue";
 

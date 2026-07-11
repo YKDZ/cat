@@ -1,7 +1,7 @@
 import { blob, chunk, eq, mfaProvider } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const CheckServiceReferencesQuerySchema = z.object({
   serviceDbId: z.int(),

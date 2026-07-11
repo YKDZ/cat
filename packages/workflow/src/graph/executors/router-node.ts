@@ -1,10 +1,8 @@
 import type { EdgeCondition } from "@cat/graph";
-
 import { EdgeConditionSchema, evaluateCondition } from "@cat/graph";
 
-import type { NodeExecutor } from "@/graph/node-registry";
-
-import { buildPatch } from "@/graph/blackboard";
+import { buildPatch } from "#/graph/blackboard.ts";
+import type { NodeExecutor } from "#/graph/node-registry.ts";
 
 type RouteLike = {
   condition?: EdgeCondition;
@@ -32,7 +30,11 @@ const toRoutes = (value: unknown): RouteLike[] => {
       ? parsedCondition.data
       : undefined;
 
-    routes.push({ condition, target, label });
+    routes.push({
+      target,
+      ...(condition ? { condition } : {}),
+      ...(label ? { label } : {}),
+    });
   }
 
   return routes;

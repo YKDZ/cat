@@ -1,5 +1,5 @@
-import type { CaseResult } from "@/harness/types";
-import type { RefResolver } from "@/seeder/ref-resolver";
+import type { CaseResult } from "#/harness/types.ts";
+import type { RefResolver } from "#/seeder/ref-resolver.ts";
 
 export type ScorerInput = {
   caseResult: CaseResult;

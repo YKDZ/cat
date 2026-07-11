@@ -1,15 +1,15 @@
-import { JoinNodeExecutor } from "./join-node";
-import { LoopNodeExecutor } from "./loop-node";
-import { ParallelNodeExecutor } from "./parallel-node";
-import { SubgraphNodeExecutor } from "./subgraph-node";
+import { JoinNodeExecutor } from "./join-node.ts";
+import { LoopNodeExecutor } from "./loop-node.ts";
+import { ParallelNodeExecutor } from "./parallel-node.ts";
+import { SubgraphNodeExecutor } from "./subgraph-node.ts";
 
-export { RouterNodeExecutor } from "./router-node";
+export { RouterNodeExecutor } from "./router-node.ts";
 export {
   HumanInputNodeExecutor,
   resumeHumanInputNode,
-} from "./human-input-node";
+} from "./human-input-node.ts";
 
-export { TransformNodeExecutor } from "./identity-node";
+export { TransformNodeExecutor } from "./identity-node.ts";
 
 export {
   ParallelNodeExecutor,

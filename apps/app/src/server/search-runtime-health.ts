@@ -1,3 +1,4 @@
+import { sql } from "@cat/db";
 import type {
   DatabaseRuntimeSummary,
   DrizzleClient,
@@ -5,8 +6,6 @@ import type {
   RuntimeProfile,
   SearchRuntimeLevel,
 } from "@cat/domain";
-
-import { sql } from "@cat/db";
 
 const levelRank: Record<SearchRuntimeLevel, number> = {
   "basic-db-runtime": 0,

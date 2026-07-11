@@ -8,9 +8,8 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command, DbHandle } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command, DbHandle } from "#/types.ts";
 
 const CreateQaReviewRunWithFindingsCommandSchema = z.object({
   projectId: z.uuidv4(),
@@ -133,7 +132,9 @@ export const createQaReviewRunWithFindings: Command<
       domainEvent("qa-review:run-completed", {
         projectId: cmd.projectId,
         elementId: cmd.elementId,
-        translationId: cmd.translationId ?? undefined,
+        ...(cmd.translationId === null
+          ? {}
+          : { translationId: cmd.translationId }),
         runId: result.runId,
         findingCount: result.findingIds.length,
         maxRiskScore: cmd.riskScore,

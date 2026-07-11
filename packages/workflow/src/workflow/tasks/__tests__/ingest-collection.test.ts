@@ -1,6 +1,7 @@
 import {
   createProject,
   createUser,
+  ensureCoreRelationTypes,
   ensureLanguages,
   executeCommand,
   executeQuery,
@@ -9,13 +10,17 @@ import {
   listProjectContentNodes,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
+import {
+  installTestVectorizationQueue,
+  setupTestDB,
+  TestPluginLoader,
+} from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { ingestCollectionGraph } from "../ingest-collection";
+import { ingestCollectionGraph } from "../ingest-collection.ts";
 
 let cleanup: () => Promise<void>;
 let projectId: string;
@@ -47,15 +52,17 @@ beforeAll(async () => {
     languageIds: ["en", "zh-Hans"],
   });
 
-  await executeCommand({ db: drizzle }, createUser, {
+  const user = await executeCommand({ db: drizzle }, createUser, {
     email: "admin@test.com",
     name: "Test User",
   });
 
+  await executeCommand({ db: drizzle }, ensureCoreRelationTypes, {});
+
   const project = await executeCommand({ db: drizzle }, createProject, {
     name: "Test Project",
     description: null,
-    creatorId: "00000000-0000-0000-0000-000000000001",
+    creatorId: user.id,
   });
   projectId = project.id;
 
@@ -64,6 +71,7 @@ beforeAll(async () => {
   vectorizerId = vectorizers[0]?.dbId ?? 1;
   vectorStorageId = vectorStorages[0]?.dbId ?? 1;
 
+  installTestVectorizationQueue();
   createDefaultGraphRuntime(drizzle, pluginManager);
 });
 

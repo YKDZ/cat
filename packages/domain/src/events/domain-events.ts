@@ -1,11 +1,10 @@
+import { createEvent, type AnyEventOf, type EventOf } from "@cat/core";
 import type {
   MessageCategory,
   MessageChannel,
   QaReviewQueueStatus,
 } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
-
-import { createEvent, type AnyEventOf, type EventOf } from "@cat/core";
 
 export type DomainEventMap = {
   "setting:updated": { key: string };

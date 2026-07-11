@@ -1,9 +1,9 @@
-import type { SourceCollectionDiagnostic } from "@cat/source-collector";
-
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 
-import type { LocaleBridgeDiagnostic } from "./locale-bridge";
+import type { SourceCollectionDiagnostic } from "@cat/source-collector";
+
+import type { LocaleBridgeDiagnostic } from "./locale-bridge.ts";
 
 /**
  * Bootstrap run report.

@@ -1,10 +1,8 @@
 import type { RecallChannel } from "@cat/shared";
-
 import { describe, expect, it } from "vitest";
 
-import type { RecallCandidate } from "./types";
-
-import { evaluateAmbiguity } from "./ambiguity-gate";
+import { evaluateAmbiguity } from "./ambiguity-gate.ts";
+import type { RecallCandidate } from "./types.ts";
 
 const CONF = { topicIds: ["mob"], confidence: "confident" as const };
 

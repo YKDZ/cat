@@ -1,5 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-
 import {
   createAgentDefinition,
   executeCommand,

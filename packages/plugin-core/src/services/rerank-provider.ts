@@ -1,7 +1,7 @@
 import type { PluginServiceType } from "@cat/shared";
 import type { RerankProviderCall, RerankResponse } from "@cat/shared";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 export abstract class RerankProvider implements IPluginService {
   abstract getId(): string;

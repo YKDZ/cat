@@ -3,7 +3,7 @@ import { Badge, Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useQaReviewWorkbenchStore } from "@/stores/qa-review/workbench";
+import { useQaReviewWorkbenchStore } from "#/stores/qa-review/workbench.ts";
 
 import FindingSummary from "./FindingSummary.vue";
 

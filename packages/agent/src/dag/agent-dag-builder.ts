@@ -80,7 +80,7 @@ export interface AgentNodeContext {
   /**
    * Scoped plugin manager
    */
-  pluginManager?: PluginManager;
+  pluginManager?: PluginManager | undefined;
   /** Optional real-time event callback for thinking delta forwarding */
   emitEvent?: (event: {
     type: string;
@@ -99,10 +99,6 @@ export interface AgentNodeContext {
 // ─── Agent DAG Builder ────────────────────────────────────────────────────────
 
 /**
- *
- * 此定义用于 Schema 校验和 GraphRegistry，实际执行逻辑由 AgentRuntime 以命令式
- * 方式调用各节点函数实现。
- *
  * Build the Agent DAG graph definition (PreCheck → Reasoning → Tool/Decision → loop).
  *
  * This definition is used for schema validation and GraphRegistry.

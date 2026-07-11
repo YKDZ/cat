@@ -1,40 +1,33 @@
 {
   "name": "@cat/auth",
   "version": "0.0.1",
+  "private": true,
   "description": "DAG-based authentication flow engine",
   "license": "GPL-3.0-only",
-  "files": [
-    "dist",
-    "src",
-    "package.json"
-  ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@cat/core": "link:../core",
+    "@cat/graph": "link:../graph",
+    "@cat/shared": "link:../shared",
+    "redis": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@cat/core": "workspace:*",
-    "@cat/graph": "workspace:*",
-    "@cat/shared": "workspace:*",
     "@types/node": "catalog:",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:",
-    "vitest": "catalog:",
-    "zod": "catalog:"
-  },
-  "peerDependencies": {
-    "@cat/core": "workspace:*",
-    "@cat/graph": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "redis": "^5.11.0",
-    "zod": "catalog:"
-  },
-  "engines": {
-    "node": ">=24.0.0"
+    "vitest": "catalog:"
   }
 }

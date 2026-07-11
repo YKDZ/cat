@@ -1,5 +1,4 @@
 import type { NonNullJSONType } from "@cat/shared";
-
 import { RelationSchema, nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 

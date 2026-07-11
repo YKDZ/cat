@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { serverLogger as logger } from "@cat/server-shared";
 import { MemorySuggestionSchema, type MemorySuggestion } from "@cat/shared";
 import * as z from "zod";
@@ -7,7 +6,7 @@ import * as z from "zod";
 import {
   CollectMemoryRecallInputSchema,
   collectMemoryRecallOp,
-} from "./collect-memory-recall";
+} from "./collect-memory-recall.ts";
 
 /**
  * Effective memory recall input with separated project and personal memory IDs.

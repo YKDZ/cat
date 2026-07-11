@@ -1,6 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import {
   executeCommand,
   executeQuery,
@@ -8,10 +6,11 @@ import {
   getConceptRecallDetail,
   replaceTermRecallVariants,
 } from "@cat/domain";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment";
-import { buildTokenWindows, joinLemmas } from "./nlp-normalization";
+import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
+import { buildTokenWindows, joinLemmas } from "./nlp-normalization.ts";
 
 // Maximum lemma window size for multi-word terms
 const MAX_WINDOW_SIZE = 6;

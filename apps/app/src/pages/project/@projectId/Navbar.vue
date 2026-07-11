@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-import type { Component } from "vue";
-
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -24,6 +22,7 @@ import {
   Workflow,
 } from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
+import type { Component } from "vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 

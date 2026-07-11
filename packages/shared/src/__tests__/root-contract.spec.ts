@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import * as shared from "../index.ts";
+import * as shared from "#/index.ts";
 
 describe("@cat/shared root contract", () => {
   it("exposes canonical root symbols", () => {

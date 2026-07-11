@@ -1,14 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { AgentEvent } from "@/graph/events";
-import type { GraphDefinition } from "@/graph/types";
-
-import { MemoryCheckpointer } from "@/graph/checkpointer";
-import { InProcessEventBus } from "@/graph/event-bus";
-import { QueuedExecutorPool } from "@/graph/executor-pool";
-import { GraphRegistry } from "@/graph/graph-registry";
-import { NodeRegistry, type NodeExecutor } from "@/graph/node-registry";
-import { Scheduler } from "@/graph/scheduler";
+import { MemoryCheckpointer } from "#/graph/checkpointer/index.ts";
+import { InProcessEventBus } from "#/graph/event-bus.ts";
+import type { AgentEvent } from "#/graph/events.ts";
+import { QueuedExecutorPool } from "#/graph/executor-pool.ts";
+import { GraphRegistry } from "#/graph/graph-registry.ts";
+import { NodeRegistry, type NodeExecutor } from "#/graph/node-registry.ts";
+import { Scheduler } from "#/graph/scheduler.ts";
+import type { GraphDefinition } from "#/graph/types.ts";
 
 const createDeferred = () => {
   let resolvePromise: (() => void) | null = null;

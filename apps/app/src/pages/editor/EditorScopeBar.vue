@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { EditorContentNodeFilter } from "@cat/shared";
-
 import { Badge, Button } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
@@ -8,12 +7,12 @@ import { navigate } from "vike/client/router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
 
 import ContentNodeFilterPicker from "./ContentNodeFilterPicker.vue";
-import { buildEditorHref } from "./scope-url";
+import { buildEditorHref } from "./scope-url.ts";
 
 const { t } = useI18n();
 const contextStore = useEditorContextStore();

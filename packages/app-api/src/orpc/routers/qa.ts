@@ -1,0 +1,100 @@
+import {
+  executeQuery,
+  getContentNode,
+  listProjectGlossaryIds,
+} from "@cat/domain";
+import { TokenSchema } from "@cat/plugin-core";
+import { AsyncMessageQueue } from "@cat/server-shared";
+import { serverLogger as logger } from "@cat/server-shared";
+import type { QaResultItem } from "@cat/shared";
+import {
+  getGlobalGraphRuntime,
+  QAPubPayloadSchema,
+  qaGraph,
+  startGraph,
+} from "@cat/workflow/tasks";
+import z from "zod";
+
+import { authed, checkContentNodePermission } from "#/orpc/server.ts";
+
+export const check = authed
+  .input(
+    z.object({
+      source: z.object({
+        languageId: z.string(),
+        text: z.string(),
+        tokens: z.array(TokenSchema),
+      }),
+      translation: z.object({
+        languageId: z.string(),
+        text: z.string(),
+        tokens: z.array(TokenSchema),
+      }),
+      contentNodeId: z.uuidv4(),
+    }),
+  )
+  .use(checkContentNodePermission("viewer"), (i) => i.contentNodeId)
+  .handler(async function* ({ context, input }) {
+    const {
+      drizzleDB: { client: drizzle },
+    } = context;
+    const { contentNodeId, source, translation } = input;
+
+    const contentNode = await executeQuery({ db: drizzle }, getContentNode, {
+      id: contentNodeId,
+    });
+
+    const glossaryIds = contentNode
+      ? await executeQuery({ db: drizzle }, listProjectGlossaryIds, {
+          projectId: contentNode.projectId,
+        })
+      : [];
+
+    const issuesQueue = new AsyncMessageQueue<
+      Omit<QaResultItem, "id" | "createdAt" | "updatedAt" | "resultId">
+    >();
+    const { runId, complete } = await startGraph(qaGraph, {
+      source,
+      translation,
+      glossaryIds,
+    });
+
+    const unsubscribe = getGlobalGraphRuntime().eventBus.subscribe(
+      "workflow:qa:issue",
+      async (event) => {
+        const parsed = QAPubPayloadSchema.safeParse(event.payload);
+        if (!parsed.success) {
+          logger
+            .withSituation("RPC")
+            .error(parsed.error, "Invalid issue format");
+          return;
+        }
+
+        if (parsed.data.traceId !== runId) {
+          return;
+        }
+
+        issuesQueue.push(
+          ...parsed.data.result.filter((item) => !item.isPassed),
+        );
+      },
+    );
+
+    void complete
+      .then(() => {
+        issuesQueue.close();
+      })
+      .catch((err: unknown) => {
+        logger.withSituation("RPC").error(err, "QA graph failed");
+        issuesQueue.close();
+      });
+
+    try {
+      for await (const issue of issuesQueue.consume()) {
+        yield issue;
+      }
+    } finally {
+      unsubscribe();
+      issuesQueue.clear();
+    }
+  });

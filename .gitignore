@@ -104,9 +104,6 @@ node_modules/
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
 
-# Moon
-.moon/cache
-
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
 
@@ -119,13 +116,18 @@ vitest.config.*.timestamp*
 .claude/
 AGENTS.md
 CLAUDE.md
-.mcp.json
 
 .github/prompts
-
 
 test-results.json
 
 .tmp
 
 .scratch
+.mcp.json
+
+# Local context documents generated for agent navigation
+CONTEXT-MAP.md
+**/CONTEXT.md
+
+.turbo

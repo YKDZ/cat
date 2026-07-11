@@ -9,11 +9,11 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
 
-import { qaGraph } from "./qa";
-import { tokenizeGraph } from "./tokenize";
+import { qaGraph } from "./qa.ts";
+import { tokenizeGraph } from "./tokenize.ts";
 
 export const qaTranslationGraph = defineGraph({
   id: "qa-translation",

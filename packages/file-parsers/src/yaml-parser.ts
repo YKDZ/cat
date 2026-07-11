@@ -1,5 +1,4 @@
 import type { Pair, Scalar } from "yaml";
-
 import {
   isScalar,
   parse,
@@ -10,9 +9,8 @@ import {
 } from "yaml";
 import * as z from "zod";
 
-import type { ElementData, FileParser, SerializeElement } from "./types.ts";
-
-import { toJsonPointerRef } from "./stable-ref.ts";
+import { toJsonPointerRef } from "#/stable-ref.ts";
+import type { ElementData, FileParser, SerializeElement } from "#/types.ts";
 
 type YamlValue = string | number | boolean | null | YamlObject | YamlArray;
 
@@ -58,7 +56,8 @@ export const yamlParser: FileParser = {
       let hi = lineOffsets.length - 1;
       while (lo < hi) {
         const mid = (lo + hi + 1) >> 1;
-        if (lineOffsets[mid] <= charOffset) {
+        const middleOffset = lineOffsets[mid];
+        if (middleOffset !== undefined && middleOffset <= charOffset) {
           lo = mid;
         } else {
           hi = mid - 1;
@@ -70,7 +69,7 @@ export const yamlParser: FileParser = {
     const traverseNode = (
       node: unknown,
       path: (string | number)[] = [],
-      parentComments: string | undefined = undefined,
+      parentComments?: string,
     ): void => {
       if (isScalar(node) && typeof node.value === "string") {
         const scalarNode = node;
@@ -148,8 +147,12 @@ export const yamlParser: FileParser = {
         return obj.map((item, idx) => applyTranslations(item, [...path, idx]));
       } else if (isObject(obj)) {
         const result: YamlObject = {};
-        for (const k in obj)
-          result[k] = applyTranslations(obj[k], [...path, k]);
+        for (const k in obj) {
+          const value = obj[k];
+          if (value !== undefined) {
+            result[k] = applyTranslations(value, [...path, k]);
+          }
+        }
         return result;
       }
       return obj;

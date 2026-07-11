@@ -1,6 +1,5 @@
-import type { Component } from "vue";
-
 import { defineStore } from "pinia";
+import type { Component } from "vue";
 import { toast } from "vue-sonner";
 import { z, type ZodError } from "zod";
 
@@ -19,7 +18,7 @@ export const useToastStore = defineStore("toast", () => {
   ) => {
     toast(message, {
       duration,
-      icon,
+      ...(icon === undefined ? {} : { icon }),
     });
   };
 
@@ -30,7 +29,7 @@ export const useToastStore = defineStore("toast", () => {
   ) => {
     toast(message, {
       duration,
-      icon,
+      ...(icon === undefined ? {} : { icon }),
     });
   };
 
@@ -61,7 +60,7 @@ export const useToastStore = defineStore("toast", () => {
   ) => {
     toast(message, {
       duration,
-      icon,
+      ...(icon === undefined ? {} : { icon }),
     });
   };
 

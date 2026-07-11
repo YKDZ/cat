@@ -1,7 +1,7 @@
 // packages/operations/src/precision/scope-anchor-guard.ts
 import type { AnchorSignature, QueryTopicHypothesis } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
+import type { RecallCandidate } from "./types.ts";
 
 export type ScopeGuardOptions = {
   /** Allowed scope IDs for this query. Empty = accept all. */

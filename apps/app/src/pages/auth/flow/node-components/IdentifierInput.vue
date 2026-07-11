@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import { Button, Input } from "@cat/ui";
 import {
   FormControl,
@@ -62,7 +63,7 @@ const onSubmit = handleSubmit((values) => {
         <FormLabel>{{ t("邮箱") }}</FormLabel>
         <FormControl>
           <Input
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
             type="email"
             autocomplete="email"
             :placeholder="t('请输入邮箱地址')"

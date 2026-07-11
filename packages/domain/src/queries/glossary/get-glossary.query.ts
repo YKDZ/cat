@@ -2,7 +2,7 @@ import { eq, glossary } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetGlossaryQuerySchema = z.object({
   glossaryId: z.uuidv4(),

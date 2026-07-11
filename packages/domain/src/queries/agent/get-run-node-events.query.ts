@@ -1,9 +1,8 @@
-import type { JSONType } from "@cat/shared";
-
 import { agentEvent, agentRun, and, eq } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetRunNodeEventsQuerySchema = z.object({
   runExternalId: z.string(),

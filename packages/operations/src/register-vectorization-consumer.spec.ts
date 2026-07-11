@@ -1,6 +1,5 @@
 import type { TaskQueue } from "@cat/core";
 import type { VectorizationTask } from "@cat/server-shared";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -9,6 +8,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@cat/core", () => ({
+  InProcessEventBus: class {},
   isLeaseRecoverableTaskQueue: <T>(
     queue: TaskQueue<T> & { requeueExpiredLeases?: () => Promise<number> },
   ) => {
@@ -20,13 +20,13 @@ vi.mock("@cat/domain", () => ({
   domainEventBus: { subscribe: mocks.subscribe },
 }));
 
-vi.mock("./vectorization-consumer", () => ({
+vi.mock("./vectorization-consumer.ts", () => ({
   processVectorizationBatch: mocks.processVectorizationBatch,
 }));
 
 const loadRegisterVectorizationConsumer = async () => {
   vi.resetModules();
-  const module = await import("./register-vectorization-consumer");
+  const module = await import("./register-vectorization-consumer.ts");
   return module.registerVectorizationConsumer;
 };
 

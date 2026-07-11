@@ -1,11 +1,10 @@
 import type { OperationContext } from "@cat/domain";
-import type { MemorySuggestion } from "@cat/shared";
-
 import { AsyncMessageQueue } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
+import type { MemorySuggestion } from "@cat/shared";
 import * as z from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall";
+import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
 
 export const StreamSearchMemoryInputSchema = z.object({
   text: z.string(),

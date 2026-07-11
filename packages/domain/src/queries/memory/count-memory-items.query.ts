@@ -2,7 +2,7 @@ import { count, eq, memoryItem } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const CountMemoryItemsQuerySchema = z.object({
   memoryId: z.uuidv4(),

@@ -1,8 +1,7 @@
-import type { DomainEvent } from "@/events/domain-events";
-import type { EventCollector } from "@/events/event-collector";
-import type { Command, DbHandle, Query } from "@/types";
-
-import { domainEventBus } from "@/events/domain-event-bus";
+import { domainEventBus } from "#/events/domain-event-bus.ts";
+import type { DomainEvent } from "#/events/domain-events.ts";
+import type { EventCollector } from "#/events/event-collector.ts";
+import type { Command, DbHandle, Query } from "#/types.ts";
 
 export type ExecutorContext = {
   db: DbHandle;

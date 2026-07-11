@@ -1,10 +1,9 @@
-import type { JSONType } from "@cat/shared";
-
 import { eq, setting } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetSettingQuerySchema = z.object({
   key: z.string(),

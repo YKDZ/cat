@@ -1,7 +1,7 @@
 import { and, eq, memory, memoryToProject } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListMemoryIdsByProjectQuerySchema = z.object({
   projectId: z.uuidv4(),

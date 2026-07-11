@@ -1,8 +1,8 @@
-import { plugin, pluginConfig } from "@cat/db";
+import { plugin, pluginConfig } from "@cat/db/drizzle";
 import { _JSONSchemaSchema, JSONSchemaSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const RegisterPluginDefinitionCommandSchema = z.object({
   pluginId: z.string(),

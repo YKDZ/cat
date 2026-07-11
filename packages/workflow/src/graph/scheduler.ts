@@ -1,43 +1,42 @@
+import { randomUUID } from "node:crypto";
+
+import { evaluateCondition } from "@cat/graph";
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
-import { evaluateCondition } from "@cat/graph";
-import { randomUUID } from "node:crypto";
-
-import type { Checkpointer } from "@/graph/checkpointer";
-import type { CompensationRegistry } from "@/graph/compensation";
-import type { AgentEventBus } from "@/graph/event-bus";
-import type { AgentEvent, EventEnvelopeInput } from "@/graph/events";
-import type { ExecutorPool } from "@/graph/executor-pool";
-import type { GraphRegistry } from "@/graph/graph-registry";
-import type { LeaseManager, LeaseRecord } from "@/graph/lease";
-import type { NodeRegistry } from "@/graph/node-registry";
+import { Blackboard } from "#/graph/blackboard.ts";
+import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type { CompensationRegistry } from "#/graph/compensation.ts";
+import { InMemoryCompensationRegistry } from "#/graph/compensation.ts";
+import type { AgentEventBus } from "#/graph/event-bus.ts";
+import type { AgentEvent, EventEnvelopeInput } from "#/graph/events.ts";
+import { createAgentEvent, normalizeEventEnvelope } from "#/graph/events.ts";
+import type { ExecutorPool } from "#/graph/executor-pool.ts";
+import type { GraphRegistry } from "#/graph/graph-registry.ts";
+import type { LeaseManager, LeaseRecord } from "#/graph/lease.ts";
+import { InProcessLeaseManager } from "#/graph/lease.ts";
+import type { NodeRegistry } from "#/graph/node-registry.ts";
 import type {
   GraphRuntimeContext,
   GraphDefinition,
   NodeId,
   RunId,
   RunStatus,
-} from "@/graph/types";
-
-import { Blackboard } from "@/graph/blackboard";
-import { InMemoryCompensationRegistry } from "@/graph/compensation";
-import { createAgentEvent, normalizeEventEnvelope } from "@/graph/events";
-import { InProcessLeaseManager } from "@/graph/lease";
-import { PatchSchema } from "@/graph/types";
+} from "#/graph/types.ts";
+import { PatchSchema } from "#/graph/types.ts";
 import {
   defaultWorkflowLogger,
   type WorkflowLogger,
-} from "@/graph/workflow-logger";
+} from "#/graph/workflow-logger.ts";
 
 type RunContext = {
   runId: RunId;
   graph: GraphDefinition;
   blackboard: Blackboard;
   runtime: GraphRuntimeContext;
-  deduplicationKey?: string;
-  metadata?: JSONObject | null;
+  deduplicationKey?: string | undefined;
+  metadata?: JSONObject | null | undefined;
   status: RunStatus;
   pendingNodeIds: Set<NodeId>;
   currentNodeIds: Set<NodeId>;
@@ -59,20 +58,20 @@ export type SchedulerOptions = {
 
 export type SchedulerStartOptions = {
   /** DB-internal session ID, used to associate AgentRun records */
-  sessionId?: number;
+  sessionId?: number | undefined;
   /** Additional persisted run metadata */
-  metadata?: JSONObject | null;
-  deduplicationKey?: string;
+  metadata?: JSONObject | null | undefined;
+  deduplicationKey?: string | undefined;
   /** Plugin manager instance for this run */
-  pluginManager?: PluginManager;
+  pluginManager?: PluginManager | undefined;
   /** Optional VCS context for Direct mode audit */
-  vcsContext?: VCSContext;
+  vcsContext?: VCSContext | undefined;
   /** Optional VCS middleware instance */
-  vcsMiddleware?: VCSMiddleware;
+  vcsMiddleware?: VCSMiddleware | undefined;
 };
 
 export type SchedulerRecoverOptions = {
-  runtime?: GraphRuntimeContext;
+  runtime?: GraphRuntimeContext | undefined;
 };
 
 const SCHEDULER_PENDING_NODE_IDS_KEY = "__scheduler.pendingNodeIds";

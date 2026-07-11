@@ -1,5 +1,3 @@
-import type { JSONType } from "@cat/shared";
-
 import {
   and,
   contentRelation,
@@ -7,9 +5,10 @@ import {
   translatableElement,
   vectorizedString,
 } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListElementsByImporterScopeQuerySchema = z.object({
   projectId: z.uuidv4(),

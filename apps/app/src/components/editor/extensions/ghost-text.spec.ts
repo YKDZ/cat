@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getGhostTextRemainder, shouldHandleGhostTextKey } from "./ghost-text";
+import {
+  getGhostTextRemainder,
+  shouldHandleGhostTextKey,
+} from "./ghost-text.ts";
 
 describe("ghost text helpers", () => {
   it("continues showing only the suffix while the input is a prefix", () => {

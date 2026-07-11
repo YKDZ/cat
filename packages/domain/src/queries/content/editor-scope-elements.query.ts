@@ -1,3 +1,4 @@
+import { sql } from "@cat/db";
 import type {
   EditorElement,
   EditorElementPageIndexQuery,
@@ -5,22 +6,20 @@ import type {
   EditorFirstElementQuery,
   EditorTranslationStatusFilter,
 } from "@cat/shared";
-
-import { sql } from "@cat/db";
 import {
   EditorElementPageIndexQuerySchema,
   EditorElementQuerySchema,
   EditorFirstElementQuerySchema,
 } from "@cat/shared";
 
-import type { DbContext, Query } from "@/types";
+import type { DbContext, Query } from "#/types.ts";
 
 import {
   buildElementPriorityPlan,
   MAX_REUSE_FIRST_SCOPE_ROWS,
   orderRowsByPriorityPlan,
   type PriorityRankableEditorElement,
-} from "./element-priority";
+} from "./element-priority.ts";
 
 /**
  * Schema for paginated editor-scope element queries.

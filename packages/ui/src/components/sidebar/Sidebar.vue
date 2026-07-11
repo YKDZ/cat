@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import type { SidebarProps } from ".";
-import { cn } from "@/utils/lib/utils";
-import { Sheet, SheetContent } from "@/components/sheet";
-import SheetDescription from "@/components/sheet/SheetDescription.vue";
-import SheetHeader from "@/components/sheet/SheetHeader.vue";
-import SheetTitle from "@/components/sheet/SheetTitle.vue";
-import { useSidebar } from "./utils";
+import { Sheet, SheetContent } from "#/components/sheet/index.ts";
+import SheetDescription from "#/components/sheet/SheetDescription.vue";
+import SheetHeader from "#/components/sheet/SheetHeader.vue";
+import SheetTitle from "#/components/sheet/SheetTitle.vue";
+import type { SidebarProps } from "#/components/sidebar/index.ts";
+import { useSidebar } from "#/components/sidebar/utils.ts";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 defineOptions({
   inheritAttrs: false,
@@ -16,8 +17,16 @@ const props = withDefaults(defineProps<SidebarProps>(), {
   collapsible: "offcanvas",
 });
 
-const { isMobile, state, openMobile, setOpenMobile, width, widthIcon, widthMobile, side } =
-  useSidebar(props.id);
+const {
+  isMobile,
+  state,
+  openMobile,
+  setOpenMobile,
+  width,
+  widthIcon,
+  widthMobile,
+  side,
+} = useSidebar(props.id);
 </script>
 
 <template>
@@ -29,9 +38,12 @@ const { isMobile, state, openMobile, setOpenMobile, width, widthIcon, widthMobil
       '--sidebar-width-icon': widthIcon + 'rem',
     }"
     :class="
-      cn('bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col', props.class)
+      cn(
+        'flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground',
+        props.class,
+      )
     "
-    v-bind="$attrs"
+    v-bind="exactOptionalProps($attrs)"
   >
     <slot />
   </div>
@@ -39,7 +51,7 @@ const { isMobile, state, openMobile, setOpenMobile, width, widthIcon, widthMobil
   <Sheet
     v-else-if="isMobile"
     :open="openMobile"
-    v-bind="$attrs"
+    v-bind="exactOptionalProps($attrs)"
     @update:open="setOpenMobile"
     :style="{
       '--sidebar-width': width + 'px',
@@ -51,7 +63,7 @@ const { isMobile, state, openMobile, setOpenMobile, width, widthIcon, widthMobil
       data-slot="sidebar"
       data-mobile="true"
       :side="side"
-      class="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+      class="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
       :style="{
         '--sidebar-width': widthMobile + 'rem',
       }"
@@ -68,7 +80,7 @@ const { isMobile, state, openMobile, setOpenMobile, width, widthIcon, widthMobil
 
   <div
     v-else
-    class="group peer text-sidebar-foreground hidden md:block"
+    class="group peer hidden text-sidebar-foreground md:block"
     data-slot="sidebar"
     :data-state="state"
     :data-collapsible="state === 'collapsed' ? collapsible : ''"
@@ -106,11 +118,11 @@ const { isMobile, state, openMobile, setOpenMobile, width, widthIcon, widthMobil
           props.class,
         )
       "
-      v-bind="$attrs"
+      v-bind="exactOptionalProps($attrs)"
     >
       <div
         data-sidebar="sidebar"
-        class="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+        class="flex h-full w-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-sidebar-border group-data-[variant=floating]:shadow-sm"
       >
         <slot />
       </div>

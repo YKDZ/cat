@@ -1,0 +1,14 @@
+import { expect, test } from "vitest";
+
+import { useStringTemplate } from "#/utils/string-template.ts";
+
+test("should return correct string", () => {
+  const date = new Date();
+  const template = "/test/path/{year}/{month}/{date}";
+
+  const result = useStringTemplate(template, { date });
+
+  expect(result).toStrictEqual(
+    `/test/path/${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`,
+  );
+});

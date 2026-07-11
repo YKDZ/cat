@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import * as dbExports from "@cat/db";
 import { relations, type DrizzleDB } from "@cat/db";
 import {
@@ -5,7 +7,6 @@ import {
   generateMigration,
 } from "drizzle-kit/api-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 
 export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
@@ -159,7 +160,7 @@ export const setupTestDB = async (): Promise<TestDB> => {
   const cleanup = async () => {
     // 清除全局引用，防止其他测试获取到已关闭的连接
     if (globalThis["__DRIZZLE_DB__"] === drizzleDB) {
-      delete globalThis["__DRIZZLE_DB__"];
+      globalThis["__DRIZZLE_DB__"] = undefined;
     }
     try {
       await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);

@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { Comment, CommentReaction } from "@cat/shared";
 import type { CommentReactionType } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = defineProps<{
   comment: Pick<Comment, "id">;

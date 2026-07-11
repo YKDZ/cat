@@ -11,7 +11,7 @@ import {
   type SQL,
 } from "@cat/db";
 
-import type { DbHandle } from "@/types";
+import type { DbHandle } from "#/types.ts";
 
 export const buildTranslationStatusConditions = (
   db: DbHandle,

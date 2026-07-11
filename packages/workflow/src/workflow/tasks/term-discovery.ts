@@ -7,7 +7,7 @@ import {
 import { OperationScopeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 // ─── Config Schema ───────────────────────────────────────────────────────────
 

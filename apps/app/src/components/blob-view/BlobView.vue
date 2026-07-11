@@ -3,24 +3,23 @@ import { FileText } from "@lucide/vue";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { FileInfo } from "./types";
-
 import ImageViewer from "./renderers/ImageViewer.vue";
 import PdfViewer from "./renderers/PdfViewer.vue";
 import TextViewer from "./renderers/TextViewer.vue";
 import UnsupportedViewer from "./renderers/UnsupportedViewer.vue";
-import { detectFileType } from "./types";
+import type { FileInfo } from "./types.ts";
+import { detectFileType } from "./types.ts";
 
 const props = defineProps<{
-  contentNodeId?: string;
+  contentNodeId?: string | undefined;
   fileUrl?: string | null;
   fileName: string;
   language?: string;
   maxInitialLines?: number;
   /** 要高亮显示的行号范围 */
-  highlightStartLine?: number | null;
+  highlightStartLine?: number | null | undefined;
   /** 要高亮显示的行号范围 */
-  highlightEndLine?: number | null;
+  highlightEndLine?: number | null | undefined;
   /** 紧凑模式（用于侧边栏等空间受限场景，隐藏头部工具栏和外围边框） */
   compact?: boolean;
 }>();
@@ -31,21 +30,20 @@ const fileInfo = computed<FileInfo>(() => detectFileType(props.fileName));
 
 const totalBytes = ref(0);
 
-// 计算文件大小
-const fileSize = computed(() => {
-  if (totalBytes.value === 0) return t("未知");
-
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return t("未知");
   const units = ["B", "KB", "MB", "GB"];
-  let size = totalBytes.value;
+  let size = bytes;
   let unitIndex = 0;
-
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex += 1;
   }
+  return `${size.toFixed(2)} ${units[unitIndex] ?? "B"}`;
+};
 
-  return `${size.toFixed(2)} ${units[unitIndex]}`;
-});
+// 计算文件大小
+const fileSize = computed(() => formatFileSize(totalBytes.value));
 
 watch(
   () => [props.contentNodeId, props.fileUrl],

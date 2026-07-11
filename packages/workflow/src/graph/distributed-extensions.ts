@@ -1,8 +1,8 @@
-import type { Checkpointer } from "./checkpointer";
-import type { AgentEventBus } from "./event-bus";
-import type { AgentEvent, EventHandler, EventType } from "./events";
-import type { ExecutorPool, ExecutorTask } from "./executor-pool";
-import type { RunId } from "./types";
+import type { Checkpointer } from "./checkpointer/index.ts";
+import type { AgentEventBus } from "./event-bus.ts";
+import type { AgentEvent, EventHandler, EventType } from "./events.ts";
+import type { ExecutorPool, ExecutorTask } from "./executor-pool.ts";
+import type { RunId } from "./types.ts";
 
 /**
  * 分布式扩展点

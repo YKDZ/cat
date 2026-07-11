@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import { Button } from "@cat/ui";
 import { Input } from "@cat/ui";
 import {
@@ -16,9 +17,9 @@ import { onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import { orpc } from "@/rpc/orpc";
-import { useAuthStore } from "@/stores/auth";
-import { useToastStore } from "@/stores/toast";
+import { orpc } from "#/rpc/orpc.ts";
+import { useAuthStore } from "#/stores/auth.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 const { info } = useToastStore();
@@ -71,7 +72,7 @@ onMounted(() => {
             type="email"
             autocomplete="email"
             :placeholder="t('你的电子邮箱地址')"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           /> </FormControl
         ><FormMessage />
       </FormItem>
@@ -84,7 +85,7 @@ onMounted(() => {
             type="text"
             autocomplete="nickname"
             :placeholder="t('你的显示名称')"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           /> </FormControl
         ><FormMessage />
       </FormItem>
@@ -97,7 +98,7 @@ onMounted(() => {
             type="password"
             autocomplete="new-password"
             :placeholder="t('安全的密码')"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           /> </FormControl
         ><FormMessage />
       </FormItem>

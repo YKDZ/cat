@@ -1,3 +1,7 @@
-export type { Checkpointer, ExternalOutputRecord, RunMetadata } from "./types";
-export { MemoryCheckpointer } from "./memory";
-export { PostgresCheckpointer } from "./postgres";
+export type {
+  Checkpointer,
+  ExternalOutputRecord,
+  RunMetadata,
+} from "./types.ts";
+export { MemoryCheckpointer } from "./memory.ts";
+export { PostgresCheckpointer } from "./postgres.ts";

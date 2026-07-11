@@ -6,10 +6,9 @@
  */
 import { describe, expect, it, vi } from "vitest";
 
-import type { PermissionEngine } from "@/engine";
-import type { AuthContext, ObjectRef } from "@/types";
-
-import { determineWriteMode } from "@/trust-isolation";
+import type { PermissionEngine } from "#/engine.ts";
+import { determineWriteMode } from "#/trust-isolation.ts";
+import type { AuthContext, ObjectRef } from "#/types.ts";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

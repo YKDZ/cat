@@ -1,6 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-import type { FlattenedContextEvidence } from "@cat/shared";
-
 import {
   assembleContextEvidence,
   executeQuery,
@@ -15,6 +13,7 @@ import {
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
+import type { FlattenedContextEvidence } from "@cat/shared";
 import { TranslationAdviseSchema } from "@cat/shared";
 import * as z from "zod";
 

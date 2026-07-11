@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared";
-
 import { useQuery } from "@pinia/colada";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 import type { PickerOption } from "./picker/index.ts";
-
 import MultiPicker from "./picker/MultiPicker.vue";
 
 const props = withDefaults(
@@ -28,7 +26,7 @@ const props = withDefaults(
   },
 );
 
-const memoryIds = defineModel<string[]>();
+const memoryIds = defineModel<string[]>({ default: [] });
 
 const { state } = useQuery({
   key: ["memories"],

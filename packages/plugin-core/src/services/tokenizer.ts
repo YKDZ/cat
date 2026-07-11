@@ -1,5 +1,4 @@
 import type { TermData } from "@cat/shared";
-
 import {
   TokenTypeSchema,
   type PluginServiceType,
@@ -8,16 +7,19 @@ import {
 import { JSONObjectSchema, type JSONObject } from "@cat/shared";
 import z from "zod";
 
-import type { IPluginService } from "./service";
+import type { IPluginService } from "#/services/service.ts";
 
-export enum TokenizerPriority {
-  HIGHEST = 1000,
-  STRUCTURE = 800,
-  TERM = 600,
-  VARIABLE = 400,
-  LITERAL = 200,
-  LOWEST = 0,
-}
+export const TokenizerPriority = {
+  HIGHEST: 1000,
+  STRUCTURE: 800,
+  TERM: 600,
+  VARIABLE: 400,
+  LITERAL: 200,
+  LOWEST: 0,
+} as const;
+
+export type TokenizerPriority =
+  (typeof TokenizerPriority)[keyof typeof TokenizerPriority];
 
 export const TokenSchema: z.ZodType<Token> = z.object({
   type: TokenTypeSchema,
@@ -36,15 +38,15 @@ export interface Token {
   value: string;
   start: number;
   end: number;
-  children?: Token[];
-  meta?: JSONObject;
-  ruleId?: number;
+  children?: Token[] | undefined;
+  meta?: JSONObject | undefined;
+  ruleId?: number | undefined;
 }
 
 export interface ParserContext {
   source: string;
   cursor: number;
-  terms?: TermData[];
+  terms?: TermData[] | undefined;
 }
 
 export type ParseResult = {

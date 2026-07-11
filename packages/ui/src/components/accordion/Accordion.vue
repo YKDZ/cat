@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import type { AccordionRootEmits, AccordionRootProps } from "reka-ui"
-import {
-  AccordionRoot,
-  useForwardPropsEmits,
-} from "reka-ui"
+import type { AccordionRootEmits, AccordionRootProps } from "reka-ui";
+import { AccordionRoot, useForwardPropsEmits } from "reka-ui";
 
-const props = defineProps<AccordionRootProps>()
-const emits = defineEmits<AccordionRootEmits>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
 
-const forwarded = useForwardPropsEmits(props, emits)
+const props = defineProps<AccordionRootProps>();
+const emits = defineEmits<AccordionRootEmits>();
+
+const forwarded = useForwardPropsEmits(props, emits);
 </script>
 
 <template>
-  <AccordionRoot v-slot="slotProps" data-slot="accordion" v-bind="forwarded">
-    <slot v-bind="slotProps" />
+  <AccordionRoot
+    v-slot="slotProps"
+    data-slot="accordion"
+    v-bind="exactOptionalProps(forwarded)"
+  >
+    <slot v-bind="exactOptionalProps(slotProps)" />
   </AccordionRoot>
 </template>

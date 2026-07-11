@@ -1,6 +1,5 @@
 import type { CacheStore } from "@cat/domain";
 import type { Relation } from "@cat/shared";
-
 import { RelationValues } from "@cat/shared";
 
 const permCacheKey = (

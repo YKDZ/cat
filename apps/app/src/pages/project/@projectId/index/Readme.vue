@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { ContentNode } from "@cat/shared";
-
 import { ref } from "vue";
 
-import Markdown from "@/components/Markdown.vue";
-import { orpc } from "@/rpc/orpc";
-import { clientLogger as logger } from "@/utils/logger";
-import { watchClient } from "@/utils/vue.ts";
+import Markdown from "#/components/Markdown.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
+import { watchClient } from "#/utils/vue.ts";
 
 const props = defineProps<{
   readme: Pick<ContentNode, "id">;

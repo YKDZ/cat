@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { PaginationRootEmits, PaginationRootProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import type { PaginationRootEmits, PaginationRootProps } from "reka-ui";
 import { PaginationRoot, useForwardPropsEmits } from "reka-ui";
-import { cn } from "@/utils/lib/utils";
+import type { HTMLAttributes } from "vue";
+
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = defineProps<
   PaginationRootProps & {
@@ -20,9 +22,9 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
   <PaginationRoot
     v-slot="slotProps"
     data-slot="pagination"
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
     :class="cn('mx-auto flex w-full justify-center', props.class)"
   >
-    <slot v-bind="slotProps" />
+    <slot v-bind="exactOptionalProps(slotProps)" />
   </PaginationRoot>
 </template>

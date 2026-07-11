@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { profileQuery } from "./query-profiler";
+import { profileQuery } from "./query-profiler.ts";
 
 describe("profileQuery", () => {
   it("marks a 2-word entity query as short + entity", () => {

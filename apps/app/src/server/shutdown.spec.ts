@@ -22,7 +22,7 @@ vi.mock("@cat/server-shared", () => ({
   },
 }));
 
-import { createShutdownHandler } from "./shutdown";
+import { createShutdownHandler } from "./shutdown.ts";
 
 const swallowProcessExit = (
   _code?: Parameters<typeof process.exit>[0],

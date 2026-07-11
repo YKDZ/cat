@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -13,7 +12,7 @@ import {
 import { Plus } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import ProjectUploadFiles from "@/components/ProjectUploadFiles.vue";
+import ProjectUploadFiles from "#/components/ProjectUploadFiles.vue";
 
 defineProps<{
   project: Project;

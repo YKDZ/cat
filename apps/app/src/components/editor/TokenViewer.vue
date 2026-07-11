@@ -1,27 +1,26 @@
 <script setup lang="ts">
 import type { Token } from "@cat/plugin-core";
-
 import { EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { useQuery } from "@pinia/colada";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 
-import { ws } from "@/rpc/ws";
+import { ws } from "#/rpc/ws.ts";
 
 import {
   linkClickHandler,
   setTokensEffect,
   tokenDecorationExtension,
-} from "./extensions/token-decorations";
+} from "./extensions/token-decorations.ts";
 import {
   tokenTooltipExtension,
   tokenTooltipTheme,
-} from "./extensions/token-tooltips";
+} from "./extensions/token-tooltips.ts";
 
 const props = defineProps<{
   text: string;
-  elementId?: number;
-  translationLanguageId?: string;
+  elementId?: number | undefined;
+  translationLanguageId?: string | undefined;
 }>();
 
 const emit = defineEmits<{

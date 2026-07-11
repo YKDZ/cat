@@ -1,0 +1,49 @@
+{
+  "name": "@cat/app-api",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./app": "./src/app.ts",
+    "./orpc/router": "./src/orpc/router.ts",
+    "./context": "./src/utils/context.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@cat/agent": "link:../agent",
+    "@cat/agent-tools": "link:../agent-tools",
+    "@cat/auth": "link:../auth",
+    "@cat/domain": "link:../domain",
+    "@cat/message": "link:../message",
+    "@cat/operations": "link:../operations",
+    "@cat/permissions": "link:../permissions",
+    "@cat/plugin-core": "link:../plugin-core",
+    "@cat/server-shared": "link:../server-shared",
+    "@cat/shared": "link:../shared",
+    "@cat/vcs": "link:../vcs",
+    "@cat/workflow": "link:../workflow",
+    "@hono/node-ws": "catalog:",
+    "@orpc/client": "catalog:",
+    "@orpc/experimental-pino": "catalog:",
+    "@orpc/server": "catalog:",
+    "hono": "catalog:",
+    "telefunc": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cat/test-utils": "link:../test-utils",
+    "vitest": "catalog:"
+  }
+}

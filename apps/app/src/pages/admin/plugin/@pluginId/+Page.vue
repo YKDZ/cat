@@ -1,18 +1,16 @@
 <script setup lang="ts">
 import type { NonNullJSONType } from "@cat/shared";
-
 import { useData } from "vike-vue/useData";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import type { PluginProbeResult } from "@/components/plugin/types";
+import PluginDetailShell from "#/components/plugin/PluginDetailShell.vue";
+import type { PluginProbeResult } from "#/components/plugin/types.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
-import PluginDetailShell from "@/components/plugin/PluginDetailShell.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast";
-
-import type { Data } from "./+data.server";
+import type { Data } from "./+data.server.ts";
 
 const { t } = useI18n();
 const toast = useToastStore();

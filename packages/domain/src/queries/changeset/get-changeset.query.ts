@@ -3,7 +3,7 @@ import { ChangesetStatusSchema, EntityTypeSchema } from "@cat/shared";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 // ─── Get changeset by internal ID ───────────────────────────────────────────
 

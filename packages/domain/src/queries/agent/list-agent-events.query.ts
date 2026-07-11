@@ -1,9 +1,8 @@
-import type { NonNullJSONType } from "@cat/shared";
-
 import { agentEvent, eq } from "@cat/db";
+import type { NonNullJSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListAgentEventsQuerySchema = z.object({
   runInternalId: z.int(),

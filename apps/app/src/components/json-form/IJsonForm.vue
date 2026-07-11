@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
-
 import { computed, provide } from "vue";
 
 import { MatcherRegistry, type RendererComponent } from "./index.ts";

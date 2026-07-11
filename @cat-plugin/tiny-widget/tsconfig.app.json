@@ -3,7 +3,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vite/client"],
     "lib": ["ES2022", "DOM"],
@@ -12,11 +11,6 @@
     }
   },
   "include": ["**/*.ts", "**/*.vue"],
-  "references": [
-    {
-      "path": "../../packages/plugin-core/tsconfig.lib.json"
-    }
-  ],
   "exclude": [
     "src/**/*.test.ts",
     "src/**/*.spec.ts",

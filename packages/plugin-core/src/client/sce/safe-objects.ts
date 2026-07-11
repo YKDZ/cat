@@ -1,6 +1,6 @@
-import type { SandboxGlobal } from "./types";
+import type { BrowserWindow, SandboxGlobal } from "#/client/sce/types.ts";
 
-export const basicSandboxGlobal = (win: Window): SandboxGlobal => {
+export const basicSandboxGlobal = (win: BrowserWindow): SandboxGlobal => {
   // oxlint-disable-next-line no-unsafe-type-assertion
   const basic = {
     console: win.console,
@@ -33,7 +33,12 @@ export const safeCustomElements = (
       constructor: CustomElementConstructor,
       options?: ElementDefinitionOptions,
     ): void => {
-      if (!registry.get(name)) registry.set(name, { constructor, options });
+      if (!registry.get(name)) {
+        registry.set(name, {
+          constructor,
+          ...(options === undefined ? {} : { options }),
+        });
+      }
     },
     get: (name: string): CustomElementConstructor | undefined =>
       registry.get(name)?.constructor,

@@ -355,7 +355,7 @@ export const orderRowsByPriorityPlan = <
 >(
   rows: T[],
   plan: ElementPriorityPlan,
-): Array<T & { priority?: ElementPrioritySummary }> => {
+): Array<T & { priority?: ElementPrioritySummary | undefined }> => {
   if (plan.mode === "structure" && plan.fallbackReason === null) {
     return rows;
   }

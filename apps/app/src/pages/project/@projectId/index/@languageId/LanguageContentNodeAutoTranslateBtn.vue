@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ContentNode, ElementSortMode, Language } from "@cat/shared";
-
 import { ElementSortModeSchema, ElementSortModeValues } from "@cat/shared";
 import {
   Button,
@@ -27,10 +26,9 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import type { PickerOption } from "@/components/picker";
-
-import Picker from "@/components/picker/Picker.vue";
-import { orpc } from "@/rpc/orpc";
+import type { PickerOption } from "#/components/picker/index.ts";
+import Picker from "#/components/picker/Picker.vue";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = defineProps<{
   contentNode: Pick<ContentNode, "id" | "projectId">;

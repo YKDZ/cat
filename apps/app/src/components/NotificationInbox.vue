@@ -12,7 +12,7 @@ import { Bell } from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
-import { useNotificationStore } from "@/stores/notification";
+import { useNotificationStore } from "#/stores/notification.ts";
 
 const { t } = useI18n();
 const store = useNotificationStore();

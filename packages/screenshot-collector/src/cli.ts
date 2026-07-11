@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 
-// oxlint-disable no-console
-// oxlint-disable typescript-eslint/no-unsafe-type-assertion -- CLI JSON parsing requires casting
-import { CollectionPayloadSchema } from "@cat/shared";
-import { CaptureResultSchema, ExtractionResultSchema } from "@cat/shared";
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 
-import { loadBindings, loadRouteManifest, resolveRoutes } from "./route.ts";
-import { captureScreenshots, collectScreenshots } from "./screenshot.ts";
-import { uploadCaptureResult } from "./upload.ts";
+// oxlint-disable no-console
+// oxlint-disable typescript-eslint/no-unsafe-type-assertion -- CLI JSON parsing requires casting
+import { CollectionPayloadSchema } from "@cat/shared";
+import { CaptureResultSchema, ExtractionResultSchema } from "@cat/shared";
+
+import { loadBindings, loadRouteManifest, resolveRoutes } from "#/route.ts";
+import { captureScreenshots, collectScreenshots } from "#/screenshot.ts";
+import { uploadCaptureResult } from "#/upload.ts";
 
 const HELP = `
 screenshot-collector — CAT Screenshot Context Collector
@@ -151,17 +152,24 @@ async function runCapture(values: Record<string, unknown>): Promise<void> {
     outputDir,
     headless,
     auth: {
-      email: authEmail ?? undefined,
-      password: authPassword ?? undefined,
-      storageStatePath: authStorageState,
+      ...(authEmail === undefined ? {} : { email: authEmail }),
+      ...(authPassword === undefined ? {} : { password: authPassword }),
+      ...(authStorageState === undefined
+        ? {}
+        : { storageStatePath: authStorageState }),
     },
-    strict:
-      strictMinScreenshots !== undefined || strictRoutes.length > 0
-        ? {
-            minScreenshots: strictMinScreenshots,
-            requiredRoutes: strictRoutes.length > 0 ? strictRoutes : undefined,
-          }
-        : undefined,
+    ...(strictMinScreenshots !== undefined || strictRoutes.length > 0
+      ? {
+          strict: {
+            ...(strictMinScreenshots === undefined
+              ? {}
+              : { minScreenshots: strictMinScreenshots }),
+            ...(strictRoutes.length === 0
+              ? {}
+              : { requiredRoutes: strictRoutes }),
+          },
+        }
+      : {}),
   });
 
   console.error(
@@ -299,7 +307,9 @@ async function runCollect(values: Record<string, unknown>): Promise<void> {
     type: "IMAGE" as const,
     data: {
       fileId: 0, // placeholder — will be filled after upload
-      highlightRegion: c.highlightRegion,
+      ...(c.highlightRegion === undefined
+        ? {}
+        : { highlightRegion: c.highlightRegion }),
     },
   }));
 
@@ -353,6 +363,7 @@ const main = async () => {
   }
 
   const [command] = positionals;
+  if (command === undefined) return;
 
   switch (command) {
     case "capture":

@@ -1,11 +1,10 @@
 import type { EditorScope, EditorScopeView } from "@cat/shared";
-
 import { EditorScopeSchema } from "@cat/shared";
 import { useQuery } from "@pinia/colada";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 export const useEditorContextStore = defineStore("editorContext", () => {
   const projectId = ref<string | undefined>();

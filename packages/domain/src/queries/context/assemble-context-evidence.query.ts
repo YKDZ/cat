@@ -1,5 +1,3 @@
-import type { FlattenedContextEvidence } from "@cat/shared";
-
 import {
   and,
   asc,
@@ -12,11 +10,12 @@ import {
   translatableElement,
   vectorizedString,
 } from "@cat/db";
+import type { FlattenedContextEvidence } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
-import { getEffectiveContextProfile } from "./get-effective-context-profile.query";
+import { getEffectiveContextProfile } from "./get-effective-context-profile.query.ts";
 
 export const AssembleContextEvidenceQuerySchema = z.object({
   elementId: z.int(),

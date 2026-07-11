@@ -10,10 +10,9 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { LookedUpTerm } from "@/queries/glossary/fetch-terms-by-concept-ids.query";
-import type { Query } from "@/types";
-
-import { fetchTermsByConceptIds } from "@/queries/glossary/fetch-terms-by-concept-ids.query";
+import type { LookedUpTerm } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
+import { fetchTermsByConceptIds } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
+import type { Query } from "#/types.ts";
 
 export const ListMorphologicalTermSuggestionsQuerySchema = z.object({
   glossaryIds: z.array(z.uuidv4()),

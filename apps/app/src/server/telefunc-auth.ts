@@ -1,7 +1,6 @@
 import type { AuthContext } from "@cat/permissions";
-import type { ObjectType, Relation } from "@cat/shared";
-
 import { getPermissionEngine } from "@cat/permissions";
+import type { ObjectType, Relation } from "@cat/shared";
 import { getContext, type Telefunc } from "telefunc";
 
 /** Telefunc 上下文，auth 已确认非空 */

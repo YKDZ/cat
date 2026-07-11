@@ -1,12 +1,12 @@
-import type { ExecutorContext } from "@cat/domain";
-
-import { PluginManager } from "@cat/plugin-core";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+import type { ExecutorContext } from "@cat/domain";
+import { PluginManager } from "@cat/plugin-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { BootstrapProfile } from "@/schemas";
+import type { BootstrapProfile } from "#/schemas.ts";
 
 const sourceCollectorMock = vi.hoisted(() => ({
   extract: vi.fn(),
@@ -38,7 +38,7 @@ vi.mock("@cat/operations", () => operationsMock);
 vi.mock("@cat/domain", () => domainMock);
 vi.mock("@cat/server-shared", () => serverSharedMock);
 
-import { runBootstrapSourceGraph } from "@/bootstrap/source-bootstrap";
+import { runBootstrapSourceGraph } from "#/bootstrap/source-bootstrap.ts";
 
 const BASE_PROFILE: BootstrapProfile = {
   enabled: true,

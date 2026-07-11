@@ -1,9 +1,8 @@
 import { and, contextProfile, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
-
-import { DefaultContextProfilePayload } from "@/context/default-context-profile";
+import { DefaultContextProfilePayload } from "#/context/default-context-profile.ts";
+import type { Query } from "#/types.ts";
 
 export const GetEffectiveContextProfileQuerySchema = z.object({
   projectId: z.uuidv4(),

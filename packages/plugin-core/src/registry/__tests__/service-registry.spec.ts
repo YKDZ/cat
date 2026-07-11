@@ -1,5 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Activate __mocks__/@cat/domain.ts — must be hoisted before any @cat/domain import
@@ -7,9 +6,8 @@ vi.mock("@cat/domain");
 
 import { executeQuery } from "@cat/domain";
 
-import type { RegisteredService } from "@/registry/service-registry";
-
-import { ServiceRegistry } from "@/registry/service-registry";
+import type { RegisteredService } from "#/registry/service-registry.ts";
+import { ServiceRegistry } from "#/registry/service-registry.ts";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 

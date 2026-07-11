@@ -3,7 +3,7 @@ import { Badge } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useQaReviewWorkbenchStore } from "@/stores/qa-review/workbench";
+import { useQaReviewWorkbenchStore } from "#/stores/qa-review/workbench.ts";
 
 const { t } = useI18n();
 const { total } = storeToRefs(useQaReviewWorkbenchStore());

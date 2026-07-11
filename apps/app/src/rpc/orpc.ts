@@ -1,10 +1,9 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
-import type { RouterClient } from "@orpc/server";
-
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
+import type { RouterClient } from "@orpc/server";
 
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 const getCsrfToken = (): string | undefined => {
   const match = document.cookie.match(/(?:^|; )csrfToken=([^;]*)/);

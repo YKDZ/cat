@@ -24,13 +24,12 @@ import { navigate } from "vike/client/router";
 import { inject, onMounted, ref, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import LanguagePicker from "@/components/LanguagePicker.vue";
-import { clientLogger as logger } from "@/utils/logger";
-import { useInjectionKey } from "@/utils/provide";
+import LanguagePicker from "#/components/LanguagePicker.vue";
+import { clientLogger as logger } from "#/utils/logger.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
-import type { Data } from "./+data.server";
-
-import { onRequestTermPair, type PairData } from "./PairTable.telefunc";
+import type { Data } from "./+data.server.ts";
+import { onRequestTermPair, type PairData } from "./PairTable.telefunc.ts";
 
 const { t } = useI18n();
 

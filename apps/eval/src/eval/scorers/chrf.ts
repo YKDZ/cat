@@ -1,5 +1,5 @@
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- rawOutput requires casting from unknown
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 const MAX_NGRAM_ORDER = 6;
 const BETA = 2;

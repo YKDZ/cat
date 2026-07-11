@@ -1,9 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import type { RecallCandidate } from "./types";
-
-import { resolveQueryTopic } from "./query-topic-resolver";
-import { createTaxonomyRegistry } from "./taxonomy-registry";
+import { resolveQueryTopic } from "./query-topic-resolver.ts";
+import { createTaxonomyRegistry } from "./taxonomy-registry.ts";
+import type { RecallCandidate } from "./types.ts";
 
 const PROFILE = {
   tokenCount: 2,

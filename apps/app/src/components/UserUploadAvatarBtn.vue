@@ -14,10 +14,10 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { computed, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import ImageCopper from "@/components/ImageCopper.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
-import { uploadFileToS3PresignedURL } from "@/utils/file.ts";
+import ImageCopper from "#/components/ImageCopper.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { uploadFileToS3PresignedURL } from "#/utils/file.ts";
 
 const { t } = useI18n();
 
@@ -76,10 +76,9 @@ const handleFileChange = () => {
 };
 
 const rawFileMime = computed(() => {
-  if (!fileInputEl.value || !fileInputEl.value.files) return;
-  const file = fileInputEl.value.files[0];
-  if (!file) return;
-  return file.type;
+  const files = fileInputEl.value?.files;
+  const selectedFile = files?.[0];
+  return selectedFile?.type;
 });
 </script>
 

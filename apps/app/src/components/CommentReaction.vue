@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { CommentReaction, Comment } from "@cat/shared";
 import type { CommentReactionType } from "@cat/shared";
-
 import { Badge } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = defineProps<{
   emoji: string;

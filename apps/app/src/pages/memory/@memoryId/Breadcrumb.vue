@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared";
 
-import Slash from "@/components/Slash.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
+import Slash from "#/components/Slash.vue";
+import UserAvatar from "#/components/UserAvatar.vue";
 
 defineProps<{
   memory: Pick<Memory, "name" | "creatorId">;

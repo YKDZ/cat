@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { markdownParser } from "../markdown-parser.ts";
+import { markdownParser } from "#/markdown-parser.ts";
 
 const SAMPLE_MD = `# Hello World
 
@@ -57,7 +57,7 @@ describe("markdownParser", () => {
         (e) => (e.meta as { type: string }).type === "listItem",
       );
       expect(items).toHaveLength(2);
-      expect(items[0].text).toBe("item one");
+      expect(items[0]?.text).toBe("item one");
     });
 
     it("extracts code blocks with lang", () => {

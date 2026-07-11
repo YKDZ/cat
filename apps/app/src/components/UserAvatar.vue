@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@cat/ui";
 import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { computed } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = withDefaults(
   defineProps<{

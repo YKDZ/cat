@@ -1,13 +1,13 @@
-import type { PluginServiceType } from "@cat/shared";
+import path, { join, resolve } from "node:path";
+import { cwd } from "node:process";
 
 import {
   PluginManager,
   type IPluginService,
   type PluginServiceMap,
 } from "@cat/plugin-core";
+import type { PluginServiceType } from "@cat/shared";
 import { assertFirstNonNullish } from "@cat/shared";
-import path, { join, resolve } from "node:path";
-import { cwd } from "node:process";
 
 export const firstOrGivenService = <T extends PluginServiceType>(
   pluginManager: PluginManager,

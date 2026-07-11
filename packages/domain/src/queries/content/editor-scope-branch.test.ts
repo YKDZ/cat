@@ -1,5 +1,6 @@
-import { language, sql, user, vectorizedString } from "@cat/db";
 import { randomUUID } from "node:crypto";
+
+import { language, sql, user, vectorizedString } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -13,17 +14,18 @@ import {
   createRootContentNode,
   createTranslations,
   ensureCoreRelationTypes,
-} from "@/commands";
-import { executeCommand, executeQuery } from "@/executor";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/commands/index.ts";
+import { executeCommand, executeQuery } from "#/executor.ts";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 import {
   countEditorScopeElements,
   getEditorScopeElementPageIndex,
   getEditorScopeFirstElement,
   listEditorScopeElements,
-} from "./editor-scope-elements.query";
-import { listEditorScopeContentNodes } from "./list-editor-scope-content-nodes.query";
+} from "./editor-scope-elements.query.ts";
+import { listEditorScopeContentNodes } from "./list-editor-scope-content-nodes.query.ts";
 
 const CREATOR_ID = randomUUID();
 let testDb: TestDB;
@@ -161,7 +163,7 @@ const seedFixture = async () => {
           sourceRootRef: "root",
           sourceNodeRef: "a.json",
           stableSourceRef: `apple-${randomUUID()}`,
-          stringId: sourceIdByValue.get("Apple")!,
+          stringId: requireFixtureValue(sourceIdByValue.get("Apple")),
           localOrder: 0,
         },
         {
@@ -171,7 +173,7 @@ const seedFixture = async () => {
           sourceRootRef: "root",
           sourceNodeRef: "a.json",
           stableSourceRef: `banana-${randomUUID()}`,
-          stringId: sourceIdByValue.get("Banana")!,
+          stringId: requireFixtureValue(sourceIdByValue.get("Banana")),
           localOrder: 1,
         },
         {
@@ -181,7 +183,7 @@ const seedFixture = async () => {
           sourceRootRef: "root",
           sourceNodeRef: "b.json",
           stableSourceRef: `cherry-${randomUUID()}`,
-          stringId: sourceIdByValue.get("Cherry")!,
+          stringId: requireFixtureValue(sourceIdByValue.get("Cherry")),
           localOrder: 0,
         },
         {
@@ -191,7 +193,7 @@ const seedFixture = async () => {
           sourceRootRef: "root",
           sourceNodeRef: "c.json",
           stableSourceRef: `durian-${randomUUID()}`,
-          stringId: sourceIdByValue.get("Durian")!,
+          stringId: requireFixtureValue(sourceIdByValue.get("Durian")),
           localOrder: 0,
         },
       ],
@@ -211,30 +213,30 @@ const seedFixture = async () => {
     {
       data: [
         {
-          translatableElementId: elementIds[1],
+          translatableElementId: requireFixtureValue(elementIds[1]),
           translatorId: CREATOR_ID,
-          stringId: targetIdByValue.get("香蕉")!,
+          stringId: requireFixtureValue(targetIdByValue.get("香蕉")),
         },
         {
-          translatableElementId: elementIds[2],
+          translatableElementId: requireFixtureValue(elementIds[2]),
           translatorId: CREATOR_ID,
-          stringId: targetIdByValue.get("樱桃")!,
+          stringId: requireFixtureValue(targetIdByValue.get("樱桃")),
         },
       ],
     },
   );
   await executeCommand({ db: testDb.client }, approveTranslation, {
-    translationId: translationIds[1],
+    translationId: requireFixtureValue(translationIds[1]),
   });
 
   return {
     project,
     nodes: { root, dirA, dirB, fileA, fileB, fileC },
     elementIds: {
-      apple: elementIds[0],
-      banana: elementIds[1],
-      cherry: elementIds[2],
-      durian: elementIds[3],
+      apple: requireFixtureValue(elementIds[0]),
+      banana: requireFixtureValue(elementIds[1]),
+      cherry: requireFixtureValue(elementIds[2]),
+      durian: requireFixtureValue(elementIds[3]),
     },
   };
 };

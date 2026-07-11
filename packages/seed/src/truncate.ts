@@ -1,6 +1,5 @@
-import type { ExecutorContext } from "@cat/domain";
-
 import { sql } from "@cat/db";
+import type { ExecutorContext } from "@cat/domain";
 
 type TruncateAllTablesOptions = {
   excludeTables?: string[];

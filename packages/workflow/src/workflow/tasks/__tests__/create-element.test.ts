@@ -2,6 +2,7 @@ import {
   createProject,
   createRootContentNode,
   createUser,
+  ensureCoreRelationTypes,
   ensureLanguages,
   executeCommand,
   executeQuery,
@@ -17,10 +18,10 @@ import {
 } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { createElementGraph } from "../create-element";
+import { createElementGraph } from "../create-element.ts";
 
 let cleanup: () => Promise<void>;
 let contentNodeId: string;
@@ -62,6 +63,8 @@ beforeAll(async () => {
     creatorId: user.id,
   });
   projectId = project.id;
+
+  await executeCommand({ db: drizzle }, ensureCoreRelationTypes, {});
 
   const contentNode = await executeCommand(
     { db: drizzle },

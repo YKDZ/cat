@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { JSONSchema, NonNullJSONType } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { Save } from "@lucide/vue";
 import { computed, onMounted, ref, shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import JsonForm from "@/components/json-form/JsonForm.vue";
+import JsonForm from "#/components/json-form/JsonForm.vue";
 
 const { t } = useI18n();
 

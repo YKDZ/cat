@@ -2,7 +2,7 @@ import { count, vectorizedString } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const CountVectorizedStringsQuerySchema = z.object({});
 

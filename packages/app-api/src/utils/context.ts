@@ -1,0 +1,175 @@
+import {
+  type CacheStore,
+  getCacheStore,
+  getCurrentRedisHandle,
+  type SessionStore,
+  getSessionStore,
+  getDbHandle,
+  type DrizzleDB,
+  type RedisConnection,
+} from "@cat/domain";
+import { type AuthContext, loadUserSystemRoles } from "@cat/permissions";
+import { PluginManager } from "@cat/plugin-core";
+import { userFromSessionId } from "@cat/server-shared";
+import type { User } from "@cat/shared";
+import {
+  createHTTPHelpers,
+  type HTTPHelpers,
+  shouldUseSecureCookies,
+} from "@cat/shared";
+
+import { generateCsrfToken } from "#/middleware/csrf.ts";
+
+import { resolveApiKey, updateApiKeyLastUsedAsync } from "./api-key.ts";
+
+export const getContext = async (
+  req: Request,
+  resHeaders: Headers,
+): Promise<Context> => {
+  const helpers = createHTTPHelpers(
+    req,
+    resHeaders,
+    shouldUseSecureCookies({
+      isProduction: process.env["NODE_ENV"] === "production",
+      requestUrl: req.url,
+      forwardedProto: req.headers.get("x-forwarded-proto") ?? undefined,
+    }),
+  );
+
+  const drizzleDB = await getDbHandle();
+  const redis = getCurrentRedisHandle();
+  const pluginManager = PluginManager.get("GLOBAL", "");
+
+  const cacheStore = getCacheStore();
+  const sessionStore = getSessionStore();
+
+  // ====== 双通道认证 ======
+  let user: User | null = null;
+  let sessionId: string | null = null;
+  let apiKeyScopes: string[] | null = null;
+
+  // 通道 1: Cookie Session
+  sessionId = helpers.getCookie("sessionId") ?? null;
+  if (sessionId) {
+    user = await userFromSessionId(drizzleDB.client, sessionId);
+    if (!user) sessionId = null;
+  }
+
+  // 通道 2: Bearer Token (API Key) — 仅在无 Cookie Session 用户时尝试
+  if (!user) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+      const rawKey = authHeader.slice(7);
+      const resolved = await resolveApiKey(drizzleDB.client, rawKey);
+      if (resolved) {
+        user = resolved.user;
+        apiKeyScopes = resolved.scopes;
+        sessionId = `apikey:${resolved.apiKeyId}`;
+        // 异步更新 lastUsedAt（不阻塞请求）
+        updateApiKeyLastUsedAsync(drizzleDB.client, resolved.apiKeyId);
+      }
+    }
+  }
+
+  let auth: AuthContext | null = null;
+  if (user) {
+    const systemRoles = await loadUserSystemRoles(drizzleDB.client, user.id);
+    const traceId = req.headers.get("x-trace-id") ?? undefined;
+    const ip =
+      req.headers.get("x-forwarded-for") ??
+      req.headers.get("x-real-ip") ??
+      undefined;
+    const userAgent = req.headers.get("user-agent") ?? undefined;
+    auth = {
+      subjectType: "user",
+      subjectId: user.id,
+      systemRoles,
+      scopes: apiKeyScopes,
+      ...(traceId === undefined ? {} : { traceId }),
+      ...(ip === undefined ? {} : { ip }),
+      ...(userAgent === undefined ? {} : { userAgent }),
+    };
+
+    // 从 Cookie Session 读取 AAL 等认证增强字段
+    if (sessionId) {
+      const rawSession = await sessionStore.getAll(`user:session:${sessionId}`);
+      if (rawSession) {
+        const rawAal = rawSession["aal"];
+        const rawFactors = rawSession["completedFactors"];
+        const rawTraceId = rawSession["flowTraceId"];
+        auth = {
+          ...auth,
+          ...(rawAal === undefined ? {} : { aal: Number(rawAal) }),
+          ...(rawFactors === undefined
+            ? {}
+            : {
+                // oxlint-disable-next-line no-unsafe-type-assertion
+                completedFactors: JSON.parse(
+                  rawFactors,
+                ) as unknown as NonNullable<AuthContext["completedFactors"]>,
+              }),
+          ...(rawTraceId === undefined ? {} : { flowTraceId: rawTraceId }),
+        };
+      }
+    }
+  }
+
+  // ====== CSRF Token ======
+  // 如果 csrfToken cookie 不存在，生成一个新的（不带 HttpOnly 以便前端 JS 读取）
+  let csrfToken = helpers.getCookie("csrfToken") ?? undefined;
+  if (!csrfToken) {
+    csrfToken = generateCsrfToken();
+    const flags = ["Path=/", "SameSite=Lax"];
+
+    const forwardedProto =
+      helpers.getReqHeader("x-forwarded-proto")?.split(",")[0]?.trim() ?? "";
+    const isHttpsRequest =
+      req.url.startsWith("https://") ||
+      forwardedProto.toLowerCase() === "https";
+    if (isHttpsRequest) flags.push("Secure");
+
+    resHeaders.append(
+      "Set-Cookie",
+      `csrfToken=${csrfToken}; ${flags.join("; ")}`,
+    );
+  }
+
+  return {
+    user,
+    sessionId,
+    auth,
+    pluginManager,
+    drizzleDB,
+    ...(redis === undefined ? {} : { redis }),
+    cacheStore,
+    sessionStore,
+    helpers,
+    csrfToken,
+    isSSR: false,
+    isWebSocket: false,
+    requestSignal: req.signal,
+  };
+};
+
+export type Context = {
+  user: User | null;
+  sessionId: string | null;
+  auth: AuthContext | null;
+  pluginManager: PluginManager;
+  drizzleDB: DrizzleDB;
+  redis?: RedisConnection | undefined;
+  cacheStore: CacheStore;
+  sessionStore: SessionStore;
+  helpers: HTTPHelpers;
+  csrfToken?: string | undefined;
+  isSSR: boolean;
+  isWebSocket: boolean;
+  /** Abort signal for the current HTTP request. */
+  requestSignal?: AbortSignal | undefined;
+  /** Branch workspace ID */
+  branchId?: number | undefined;
+  /** Branch changeset ID */
+  branchChangesetId?: number | undefined;
+  /** Branch project ID */
+  branchProjectId?: string | undefined;
+};

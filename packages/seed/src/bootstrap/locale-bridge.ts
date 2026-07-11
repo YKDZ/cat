@@ -1,13 +1,13 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
+
 import type {
   StructuredEvidenceInput,
   StructuredTranslatableElementInput,
 } from "@cat/shared";
-
 import { normalizeI18nText } from "@cat/source-collector";
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 
-import type { BootstrapLocaleCatalog } from "../schemas";
+import type { BootstrapLocaleCatalog } from "../schemas.ts";
 
 /**
  * Diagnostic emitted by the locale bridge.

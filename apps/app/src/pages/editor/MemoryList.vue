@@ -2,10 +2,10 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useEditorMemoryStore } from "@/stores/editor/memory.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProfileStore } from "@/stores/profile.ts";
-import { watchClient, watchClientThrottled } from "@/utils/vue.ts";
+import { useEditorMemoryStore } from "#/stores/editor/memory.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProfileStore } from "#/stores/profile.ts";
+import { watchClient, watchClientThrottled } from "#/utils/vue.ts";
 
 import MemoryListItem from "./MemoryListItem.vue";
 

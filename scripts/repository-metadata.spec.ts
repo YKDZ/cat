@@ -3,6 +3,7 @@ import { constants } from "node:fs";
 import { access, readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import { promisify } from "node:util";
+
 import { describe, expect, it } from "vitest";
 
 const execFileAsync = promisify(execFile);
@@ -12,9 +13,10 @@ const activeMetadataFiles = [
   "package.json",
   "pnpm-lock.yaml",
   "pnpm-workspace.yaml",
-  "moon.yml",
-  "apps/docs/moon.yml",
-  "vitest.config.ts",
+  "turbo.json",
+  "apps/docs/package.json",
+  "apps/docs/turbo.json",
+  "scripts/vitest.config.ts",
   "tsconfig.node.json",
   "oxlint.config.ts",
   "oxfmt.config.ts",
@@ -102,20 +104,8 @@ const retiredAutoDocContentPatterns = [
   },
 ] as const;
 
-const intentionalAutoDocTsconfigDeletions = [
-  "tools/autodoc/tsconfig.json",
-  "tools/autodoc/tsconfig.lib.json",
-  "tools/autodoc/tsconfig.spec.json",
-] as const;
-
 const readRepoFile = (path: string) =>
   readFile(resolve(repoRoot, path), "utf8");
-
-const stripIntentionalAutoDocTsconfigDeletionAllowance = (content: string) =>
-  intentionalAutoDocTsconfigDeletions.reduce(
-    (normalized, allowedPath) => normalized.replaceAll(allowedPath, ""),
-    content,
-  );
 
 const pathExists = async (path: string) => {
   try {
@@ -157,11 +147,6 @@ const listActiveRepositoryFiles = async () => {
   return existingFiles.filter(({ exists }) => exists).map(({ file }) => file);
 };
 
-const searchableAutoDocAuditContent = (file: string, content: string) =>
-  file === "moon.yml"
-    ? stripIntentionalAutoDocTsconfigDeletionAllowance(content)
-    : content;
-
 const lineForOffset = (content: string, offset: number) =>
   content.slice(0, offset).split("\n").length;
 
@@ -177,12 +162,8 @@ describe("repository metadata validation gates", () => {
     await Promise.all(
       activeMetadataFiles.map(async (file) => {
         const content = await readRepoFile(file);
-        const searchableContent =
-          file === "moon.yml"
-            ? stripIntentionalAutoDocTsconfigDeletionAllowance(content)
-            : content;
         for (const marker of retiredAutoDocMarkers) {
-          if (searchableContent.includes(marker)) {
+          if (content.includes(marker)) {
             matches.push(`${file}: ${marker}`);
           }
         }
@@ -192,25 +173,20 @@ describe("repository metadata validation gates", () => {
     expect(matches.sort()).toEqual([]);
   });
 
-  it("keeps schema generation and moon project sync checks wired", async () => {
-    const moonConfig = await readRepoFile("moon.yml");
+  it("keeps schema and route generation drift checks wired", async () => {
+    const [rootManifest, generatedCheck, turboConfig] = await Promise.all([
+      readRepoFile("package.json"),
+      readRepoFile("scripts/check-generated.ts"),
+      readRepoFile("turbo.json"),
+    ]);
 
-    expect(moonConfig).toContain("db:codegen-schemas");
-    expect(moonConfig).toContain("moon sync projects");
-    expect(moonConfig).toContain(
-      "git diff --exit-code -- packages/shared/src/schema/drizzle",
+    expect(rootManifest).toContain(
+      '"codegen:check": "node scripts/check-generated.ts"',
     );
-    expect(moonConfig).toContain("allowed_tsconfig_diff");
-    for (const allowedPath of intentionalAutoDocTsconfigDeletions) {
-      expect(moonConfig).toContain(allowedPath);
-    }
-    expect(
-      stripIntentionalAutoDocTsconfigDeletionAllowance(moonConfig),
-    ).not.toMatch(/autodoc/iu);
-    expect(moonConfig).not.toContain("schema_diff_before");
-    expect(moonConfig).not.toContain("schema_diff_after");
-    expect(moonConfig).not.toContain("tsconfig_diff_before");
-    expect(moonConfig).not.toContain("tsconfig_diff_after");
+    expect(generatedCheck).toContain("packages/shared/src/schema/drizzle");
+    expect(generatedCheck).toContain("apps/cli/src/routes.generated.ts");
+    expect(turboConfig).toContain('"generate:routes"');
+    expect(turboConfig).toContain('"codegen:schemas"');
   });
 
   it("keeps active Git deliverables free of residual AutoDoc assets and references", async () => {
@@ -228,14 +204,10 @@ describe("repository metadata validation gates", () => {
         if (!activeTextExtensions.has(extname(file))) return;
 
         const content = await readFile(resolve(repoRoot, file), "utf8");
-        const searchableContent = searchableAutoDocAuditContent(file, content);
-
         for (const audit of retiredAutoDocContentPatterns) {
-          for (const match of searchableContent.matchAll(
-            globalPattern(audit.pattern),
-          )) {
+          for (const match of content.matchAll(globalPattern(audit.pattern))) {
             matches.push(
-              `${file}:${lineForOffset(searchableContent, match.index ?? 0)}: ${audit.label}`,
+              `${file}:${lineForOffset(content, match.index ?? 0)}: ${audit.label}`,
             );
           }
         }
@@ -246,11 +218,13 @@ describe("repository metadata validation gates", () => {
   });
 
   it("keeps docs tasks validating hand-written docs without generated docs imports", async () => {
-    const docsTasks = await readRepoFile("apps/docs/moon.yml");
+    const docsManifest = await readRepoFile("apps/docs/package.json");
+    const docsTasks = await readRepoFile("apps/docs/turbo.json");
     const docsConfig = await readRepoFile("apps/docs/src/.vitepress/config.ts");
 
-    expect(docsTasks).toContain("vitepress build src");
-    expect(docsTasks).toContain("vue-tsc --noEmit -p tsconfig.app.json");
+    expect(docsManifest).toContain('"build": "vitepress build src"');
+    expect(docsManifest).toContain("vue-tsc --noEmit -p tsconfig.app.json");
+    expect(docsTasks).toContain('"application"');
     expect(docsTasks).not.toMatch(/autodoc/iu);
     expect(docsConfig).toContain("/developer/");
     expect(docsConfig).not.toMatch(/autodoc/iu);
@@ -264,7 +238,6 @@ describe("repository metadata validation gates", () => {
         "-v",
         "AGENTS.md",
         ".agents/rules/README.md",
-        ".claude/rules/example.md",
         ".scratch/retire-autodoc-agent-rules/PRD.md",
       ],
       { cwd: repoRoot, encoding: "utf8" },
@@ -272,7 +245,6 @@ describe("repository metadata validation gates", () => {
 
     expect(stdout).toContain("AGENTS.md");
     expect(stdout).toContain(".agents/rules/README.md");
-    expect(stdout).toContain(".claude/rules/example.md");
     expect(stdout).toContain(".scratch/retire-autodoc-agent-rules/PRD.md");
   });
 });

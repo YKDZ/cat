@@ -1,5 +1,3 @@
-import type { MemorySuggestion } from "@cat/shared";
-
 import {
   aliasedTable,
   and,
@@ -9,10 +7,11 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
+import type { MemorySuggestion } from "@cat/shared";
 import { SlotMappingEntrySchema, type SlotMappingEntry } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export type RawMemorySuggestion = Omit<MemorySuggestion, "sourceScope"> & {
   sourceScope?: "PROJECT" | "PERSONAL";

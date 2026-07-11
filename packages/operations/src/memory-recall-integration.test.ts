@@ -1,6 +1,3 @@
-import type { CatPlugin } from "@cat/plugin-core";
-import type { PluginManifest } from "@cat/shared";
-
 import {
   createElements,
   createMemory,
@@ -11,52 +8,58 @@ import {
   ensureLanguages,
   executeCommand,
 } from "@cat/domain";
-import { PluginManager } from "@cat/plugin-core";
+import type { CatPlugin, ParserContext, ParseResult } from "@cat/plugin-core";
+import { PluginManager, Tokenizer, TokenizerPriority } from "@cat/plugin-core";
+import type { PluginManifest } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
-import { setupTestDB, TestPluginLoader, type TestDB } from "@cat/test-utils";
-import { createRequire } from "node:module";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
 import {
   eq,
   memoryItem,
   memoryRecallVariant,
   project,
+  setupTestDB,
+  TestPluginLoader,
+  type TestDB,
   vectorizedString,
-} from "../../db/dist/index.js";
-import { collectMemoryRecallOp } from "./collect-memory-recall";
-import { insertMemory } from "./memory";
+} from "@cat/test-utils";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-const require = createRequire(import.meta.url);
-const basicTokenizerModule: unknown = require("../../../@cat-plugin/basic-tokenizer/dist/index.js");
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
 
-const isCatPlugin = (value: unknown): value is CatPlugin => {
-  return typeof value === "object" && value !== null;
-};
+import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import { insertMemory } from "./memory.ts";
 
-const basicTokenizerPlugin = (() => {
-  if (
-    typeof basicTokenizerModule === "object" &&
-    basicTokenizerModule !== null &&
-    "default" in basicTokenizerModule &&
-    isCatPlugin(basicTokenizerModule.default)
-  ) {
-    return basicTokenizerModule.default;
-  }
+class TestNumberTokenizer extends Tokenizer {
+  public override getId = (): string => "test-number-tokenizer";
 
-  throw new Error("basic-tokenizer dist module does not expose a valid plugin");
-})();
+  public override getPriority = (): TokenizerPriority =>
+    TokenizerPriority.LITERAL;
+
+  public override parse = (context: ParserContext): ParseResult | undefined => {
+    const value = context.source.slice(context.cursor).match(/^[0-9]+/)?.[0];
+    if (!value) return undefined;
+
+    return {
+      token: {
+        type: "number",
+        value,
+        start: context.cursor,
+        end: context.cursor + value.length,
+      },
+    };
+  };
+}
+
+const basicTokenizerPlugin = {
+  services: () => [new TestNumberTokenizer()],
+} satisfies CatPlugin;
 
 const BASIC_TOKENIZER_MANIFEST: PluginManifest = {
   id: "basic-tokenizer",
   version: "0.1.0",
   entry: "dist/index.js",
   services: [
-    { id: "newline-tokenizer", type: "TOKENIZER", dynamic: false },
-    { id: "number-tokenizer", type: "TOKENIZER", dynamic: false },
-    { id: "whitespace-tokenizer", type: "TOKENIZER", dynamic: false },
-    { id: "term-tokenizer", type: "TOKENIZER", dynamic: false },
-    { id: "punctuation-tokenizer", type: "TOKENIZER", dynamic: false },
+    { id: "test-number-tokenizer", type: "TOKENIZER", dynamic: false },
   ],
 };
 
@@ -129,7 +132,7 @@ describe("memory recall integration", () => {
       {
         data: [
           {
-            translatableElementId: elementId,
+            translatableElementId: requireFixtureValue(elementId),
             translatorId: creatorId,
             stringId: translation.id,
           },
@@ -137,7 +140,7 @@ describe("memory recall integration", () => {
       },
     );
 
-    return translationId;
+    return requireFixtureValue(translationId);
   };
 
   beforeAll(async () => {

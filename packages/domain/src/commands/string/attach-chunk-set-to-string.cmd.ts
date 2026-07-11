@@ -1,7 +1,7 @@
 import { eq, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const AttachChunkSetToStringCommandSchema = z.object({
   updates: z.array(

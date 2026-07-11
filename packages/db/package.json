@@ -1,47 +1,43 @@
 {
   "name": "@cat/db",
   "version": "0.1.0",
+  "private": true,
   "description": "Database layer: Drizzle ORM schemas and Redis client",
-  "files": [
-    "src",
-    "dist",
-    "drizzle/",
-    "package.json",
-    "drizzle.config.ts"
-  ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts",
+    "./drizzle": "./src/drizzle/index.ts"
   },
   "scripts": {
-    "codegen:schemas": "tsx src/zod/codegen.ts",
+    "codegen:schemas": "node src/zod/codegen.ts",
     "drizzle:generate": "drizzle-kit generate",
     "drizzle:migrate": "drizzle-kit migrate",
-    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983"
+    "drizzle:push": "drizzle-kit push --force",
+    "drizzle:studio": "drizzle-kit studio --host 0.0.0.0 --port 4983",
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "pg": "^8.21.0",
-    "redis": "^5.12.1"
+    "@cat/shared": "link:../shared",
+    "cldr-core": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:",
+    "redis": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "@types/pg": "^8.20.0",
+    "@types/pg": "catalog:",
     "drizzle-kit": "catalog:",
-    "drizzle-seed": "^0.3.1",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:",
+    "drizzle-seed": "catalog:",
     "vitest": "catalog:"
-  },
-  "peerDependencies": {
-    "@cat/shared": "workspace:*",
-    "cldr-core": "^48.0.0",
-    "dotenv": "^17.2.3",
-    "drizzle-orm": "catalog:",
-    "zod": "catalog:"
   }
 }

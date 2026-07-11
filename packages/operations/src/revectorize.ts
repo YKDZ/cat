@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import {
   bulkUpdateChunkVectorMetadata,
@@ -97,17 +96,23 @@ export const revectorizeOp = async (
   }[] = [];
 
   for (let i = 0; i < chunksData.length; i += 1) {
-    const chunkId = chunksData[i].chunkId;
+    const chunkData = chunksData[i];
     const result = results[i];
+    if (!chunkData || !result) {
+      throw new Error("vectorizer result length mismatch with chunk data");
+    }
 
     if (result.length > 0) {
       const vectorData = result[0];
+      if (!vectorData) {
+        throw new Error("vectorizer returned an empty vector result");
+      }
       storePayload.push({
-        chunkId: chunkId,
+        chunkId: chunkData.chunkId,
         vector: vectorData.vector,
       });
       chunkUpdates.push({
-        id: chunkId,
+        id: chunkData.chunkId,
         vectorizerId: vectorizerId,
         vectorStorageId: vectorStorageId,
       });

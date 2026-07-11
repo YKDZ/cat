@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import { Button, Input } from "@cat/ui";
 import {
   Dialog,
@@ -21,8 +22,8 @@ import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 const { rpcWarn, info } = useToastStore();
@@ -153,7 +154,10 @@ onMounted(load);
             <FormItem>
               <FormLabel>{{ t("名称") }}</FormLabel>
               <FormControl>
-                <Input :placeholder="t('我的密钥')" v-bind="componentField" />
+                <Input
+                  :placeholder="t('我的密钥')"
+                  v-bind="exactOptionalProps(componentField)"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -165,7 +169,7 @@ onMounted(load);
                 <Input
                   type="number"
                   :placeholder="t('留空则永久有效')"
-                  v-bind="componentField"
+                  v-bind="exactOptionalProps(componentField)"
                 />
               </FormControl>
               <FormMessage />

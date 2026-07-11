@@ -1,9 +1,8 @@
-import type { MessageCategory, MessageChannel } from "@cat/shared";
-
 import { userMessagePreference } from "@cat/db";
+import type { MessageCategory, MessageChannel } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const UpsertMessagePreferenceCommandSchema = z.object({
   userId: z.uuidv4(),

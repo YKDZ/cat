@@ -3,12 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#/*": "./tests/*"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
   "devDependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/seed": "workspace:*",
-    "@playwright/test": "^1.60.0",
+    "@cat/db": "link:../../packages/db",
+    "@cat/domain": "link:../../packages/domain",
+    "@cat/seed": "link:../../packages/seed",
+    "@playwright/test": "catalog:",
     "@types/node": "catalog:",
-    "dotenv": "^16.6.1"
+    "dotenv": "catalog:"
   }
 }

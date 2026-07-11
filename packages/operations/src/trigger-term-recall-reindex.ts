@@ -1,8 +1,7 @@
 import type { OperationContext } from "@cat/domain";
-
 import { serverLogger as logger } from "@cat/server-shared";
 
-import { buildTermRecallVariantsOp } from "./build-term-recall-variants";
+import { buildTermRecallVariantsOp } from "./build-term-recall-variants.ts";
 
 /**
  * Fire-and-forget wrapper around `buildTermRecallVariantsOp`.

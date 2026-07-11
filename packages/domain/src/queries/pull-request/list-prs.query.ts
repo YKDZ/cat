@@ -2,7 +2,7 @@ import { and, eq, ilike, ne, pullRequest } from "@cat/db";
 import { PullRequestStatusSchema, PullRequestTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListPRsQuerySchema = z.object({
   projectId: z.uuid(),

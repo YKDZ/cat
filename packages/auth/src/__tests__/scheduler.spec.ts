@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { AuthBlackboardSnapshot } from "../blackboard.ts";
-import type { AuthNodeExecutor } from "../types.ts";
-
 import { AuthFlowRegistry } from "../flow-registry.ts";
 import { standardLoginFlow } from "../flows/standard-login.ts";
 import { AuthNodeRegistry } from "../node-registry.ts";
 import { AuthFlowScheduler, type FlowStorage } from "../scheduler.ts";
+import type { AuthNodeExecutor } from "../types.ts";
 
 // ====== In-memory FlowStorage for tests ======
 

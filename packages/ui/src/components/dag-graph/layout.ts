@@ -8,7 +8,7 @@ import type {
   DagGraphData,
   DagNodeData,
   DagNodeType,
-} from "./types";
+} from "#/components/dag-graph/types.ts";
 
 const elk = new ELK();
 
@@ -84,39 +84,36 @@ export const convertGraphDefinitionToData = (def: {
   entry: string;
   exit?: string[];
 }): DagGraphData => {
-  const dagNodeType = (type: string): DagNodeType => {
-    const valid = [
-      "llm",
-      "tool",
-      "router",
-      "parallel",
-      "join",
-      "human_input",
-      "transform",
-      "loop",
-      "subgraph",
-    ] as const;
-    return (valid as readonly string[]).includes(type)
-      ? (type as DagNodeType)
-      : "transform";
-  };
+  const validNodeTypes: readonly DagNodeType[] = [
+    "llm",
+    "tool",
+    "router",
+    "parallel",
+    "join",
+    "human_input",
+    "transform",
+    "loop",
+    "subgraph",
+  ];
+  const dagNodeType = (type: string): DagNodeType =>
+    validNodeTypes.find((validType) => validType === type) ?? "transform";
 
-  const nodes: DagNodeData[] = Object.values(def.nodes).map(
-    (n) => ({
-      id: n.id,
-      label: n.label ?? n.id,
-      type: dagNodeType(n.type),
-      isEntry: n.id === def.entry,
-      isExit: def.exit?.includes(n.id) ?? false,
-    }),
-  );
+  const nodes: DagNodeData[] = Object.values(def.nodes).map((n) => ({
+    id: n.id,
+    label: n.label ?? n.id,
+    type: dagNodeType(n.type),
+    isEntry: n.id === def.entry,
+    isExit: def.exit?.includes(n.id) ?? false,
+  }));
 
   const edges: DagEdgeData[] = def.edges.map((e, i) => ({
     id: `e-${e.from}-${e.to}-${i}`,
     source: e.from,
     target: e.to,
-    label: e.label,
-    condition: e.condition?.description,
+    ...(e.label === undefined ? {} : { label: e.label }),
+    ...(e.condition?.description === undefined
+      ? {}
+      : { condition: e.condition.description }),
   }));
 
   return { nodes, edges };

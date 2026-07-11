@@ -1,22 +1,23 @@
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared";
-import { eq } from "drizzle-orm";
 import { randomBytes } from "node:crypto";
 
-import { DrizzleDB } from "@/drizzle/db.ts";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared";
+import { eq } from "drizzle-orm";
+
+import { DrizzleDB } from "#/drizzle/db.ts";
 import {
   setting as settingTable,
   type DrizzleTransaction,
-} from "@/drizzle/index.ts";
+} from "#/drizzle/index.ts";
 import {
   language as languageTable,
   pluginService,
-} from "@/drizzle/schema/schema.ts";
+} from "#/drizzle/schema/schema.ts";
 import {
   user as userTable,
   account as accountTable,
-} from "@/drizzle/schema/schema.ts";
-import { AvailableLocales } from "@/utils/languages/cldr.ts";
-import { DEFAULT_SETTINGS } from "@/utils/settings/default.ts";
+} from "#/drizzle/schema/schema.ts";
+import { AvailableLocales } from "#/utils/languages/cldr.ts";
+import { DEFAULT_SETTINGS } from "#/utils/settings/default.ts";
 
 import { hashPassword } from "./password.ts";
 

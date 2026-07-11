@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import {
   createQaReviewRunWithFindings,
   executeCommand,
@@ -10,9 +9,9 @@ import {
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 
-import { normalizeQaResultItems } from "./normalize";
-import { applyQaReviewPolicy } from "./policy";
-import { runSemanticQaReview } from "./semantic-review";
+import { normalizeQaResultItems } from "./normalize.ts";
+import { applyQaReviewPolicy } from "./policy.ts";
+import { runSemanticQaReview } from "./semantic-review.ts";
 
 export type RunQaReviewForTranslationInput = {
   projectId: string;
@@ -21,9 +20,9 @@ export type RunQaReviewForTranslationInput = {
   languageId: string;
   sourceText: string;
   translationText: string;
-  primaryContentNodeId?: string | null;
-  branchId?: number | null;
-  pullRequestId?: number | null;
+  primaryContentNodeId?: string | null | undefined;
+  branchId?: number | null | undefined;
+  pullRequestId?: number | null | undefined;
   qaResultId: number;
   qaResultItemIds: number[];
   qaItems: Array<{ isPassed: boolean; checkerId: number; meta: unknown }>;
@@ -59,7 +58,7 @@ export const runQaReviewForTranslationOp = async (
   );
 
   await executeCommand(
-    { db, traceId: ctx?.traceId },
+    { db, ...(ctx?.traceId ? { traceId: ctx.traceId } : {}) },
     createQaReviewRunWithFindings,
     {
       projectId: input.projectId,
@@ -93,12 +92,12 @@ export const runQaReviewForTranslationOp = async (
       sourceText: input.sourceText,
       translationText: input.translationText,
       profile: profile.config,
-      pluginManager,
-      signal: ctx?.signal,
+      ...(pluginManager ? { pluginManager } : {}),
+      ...(ctx?.signal ? { signal: ctx.signal } : {}),
     });
 
     await executeCommand(
-      { db, traceId: ctx?.traceId },
+      { db, ...(ctx?.traceId ? { traceId: ctx.traceId } : {}) },
       createQaReviewRunWithFindings,
       {
         projectId: input.projectId,
@@ -127,7 +126,7 @@ export const runQaReviewForTranslationOp = async (
   }
 
   const queue = await executeCommand(
-    { db, traceId: ctx?.traceId },
+    { db, ...(ctx?.traceId ? { traceId: ctx.traceId } : {}) },
     materializeQaReviewQueueItem,
     {
       projectId: input.projectId,

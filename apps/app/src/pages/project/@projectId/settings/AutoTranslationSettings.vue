@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { ProjectSettingPayload } from "@cat/shared";
-
 import { Label, Switch } from "@cat/ui";
 import { nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import MultiLanguagePicker from "@/components/MultiLanguagePicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
+import MultiLanguagePicker from "#/components/MultiLanguagePicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const props = defineProps<{
   projectId: string;

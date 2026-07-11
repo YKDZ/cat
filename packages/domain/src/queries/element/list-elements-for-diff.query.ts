@@ -1,9 +1,8 @@
-import type { JSONType } from "@cat/shared";
-
 import { eq, inArray, translatableElement, vectorizedString } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListElementsForDiffQuerySchema = z.object({
   elementIds: z.array(z.int()),

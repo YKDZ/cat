@@ -1,6 +1,6 @@
 import type { LeaseRecoverableTaskQueue, QueueTask } from "@cat/core";
 
-import { serverLogger } from "../utils/logger";
+import { serverLogger } from "../utils/logger.ts";
 
 type RedisQueueClient = {
   rPush: (key: string, values: string | string[]) => Promise<number>;
@@ -73,6 +73,7 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
   private readonly pendingKey: string;
   private readonly processingKey: string;
   private readonly leaseMs: number;
+  private readonly redis: RedisQueueClient;
 
   /**
    * Create a Redis List-backed task queue.
@@ -82,10 +83,11 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
    * @param options - Lease configuration
    */
   public constructor(
-    private readonly redis: RedisQueueClient,
+    redis: RedisQueueClient,
     queueName: string,
     options: RedisTaskQueueOptions = {},
   ) {
+    this.redis = redis;
     this.pendingKey = `queue:${queueName}:pending`;
     this.processingKey = `queue:${queueName}:processing`;
     this.leaseMs = options.leaseMs ?? DEFAULT_LEASE_MS;

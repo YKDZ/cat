@@ -2,20 +2,18 @@
 import type { ContentNode } from "@cat/shared";
 import type { Language } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { navigate } from "vike/client/router";
 import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-import ContentNodeTranslationProgress from "@/components/ContentNodeTranslationProgress.vue";
-import ContentNodeTree from "@/components/ContentNodeTree.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast";
-import { useInjectionKey } from "@/utils/provide";
+import ContentNodeTranslationProgress from "#/components/ContentNodeTranslationProgress.vue";
+import ContentNodeTree from "#/components/ContentNodeTree.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
-import type { Data } from "../../+data.server";
-
+import type { Data } from "../../+data.server.ts";
 import LanguageContentNodeAutoApproveBtn from "./LanguageContentNodeAutoApproveBtn.vue";
 import LanguageContentNodeAutoTranslateBtn from "./LanguageContentNodeAutoTranslateBtn.vue";
 

@@ -2,4 +2,8 @@ import { defineCustomElement } from "vue";
 
 import UserInitTotp from "./UserInitTotp.ce.vue";
 
-export default defineCustomElement(UserInitTotp);
+const component = defineCustomElement(UserInitTotp);
+
+customElements.define("user-init-totp", component);
+
+export default component;

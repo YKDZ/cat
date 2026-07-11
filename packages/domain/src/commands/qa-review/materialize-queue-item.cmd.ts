@@ -1,9 +1,3 @@
-import type {
-  QaFindingDisposition,
-  QaReviewQueueStatus,
-  QaReviewRiskBucket,
-} from "@cat/shared";
-
 import {
   and,
   eq,
@@ -13,12 +7,16 @@ import {
   qaReviewQueueItem,
   sql,
 } from "@cat/db";
+import type {
+  QaFindingDisposition,
+  QaReviewQueueStatus,
+  QaReviewRiskBucket,
+} from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command, DbHandle } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command, DbHandle } from "#/types.ts";
 
 const MaterializeQaReviewQueueItemCommandSchema = z.object({
   projectId: z.uuidv4(),
@@ -263,7 +261,9 @@ export const materializeQaReviewQueueItem: Command<
         queueItemId: persisted.queueItemId,
         status: persisted.status,
         riskScore: persisted.riskScore,
-        previousStatus: persisted.previousStatus,
+        ...(persisted.previousStatus === undefined
+          ? {}
+          : { previousStatus: persisted.previousStatus }),
       }),
     ],
   };

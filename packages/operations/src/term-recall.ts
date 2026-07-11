@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import {
   executeQuery,
   getDbHandle,
@@ -8,7 +7,7 @@ import {
 import { EnrichedTermMatchSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { collectTermRecallOp } from "./collect-term-recall";
+import { collectTermRecallOp } from "./collect-term-recall.ts";
 
 export const TermRecallInputSchema = z.object({
   text: z.string(),

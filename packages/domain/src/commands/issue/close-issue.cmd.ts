@@ -2,9 +2,8 @@ import { eq, getColumns, issue } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const CloseIssueCommandSchema = z.object({
   issueId: z.int().positive(),
@@ -34,7 +33,9 @@ export const closeIssue: Command<
     events: [
       domainEvent("issue:closed", {
         issueId: command.issueId,
-        closedByPRId: command.closedByPRId,
+        ...(command.closedByPRId === undefined
+          ? {}
+          : { closedByPRId: command.closedByPRId }),
       }),
     ],
   };

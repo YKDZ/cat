@@ -1,6 +1,7 @@
 {
   "name": "@cat/server-shared",
   "version": "0.1.0",
+  "private": true,
   "description": "Shared server utilities",
   "keywords": [
     "cat",
@@ -9,37 +10,33 @@
     "typescript"
   ],
   "license": "MIT",
-  "files": [
-    "dist",
-    "package.json"
-  ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./plugin": {
-      "types": "./dist/plugin.d.ts",
-      "import": "./dist/plugin.js"
-    }
+    ".": "./src/index.ts",
+    "./plugin": "./src/plugin.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "pino": "^10.3.1",
-    "redis": "^5.12.1"
+    "@cat/core": "link:../core",
+    "@cat/domain": "link:../domain",
+    "@cat/plugin-core": "link:../plugin-core",
+    "@cat/shared": "link:../shared",
+    "pino": "catalog:",
+    "redis": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "pino-pretty": "^13.1.3",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:"
-  },
-  "peerDependencies": {
-    "@cat/core": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "zod": "catalog:"
+    "pino-pretty": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveRouteTemplate } from "../resolve-route-template.ts";
+import { resolveRouteTemplate } from "#/utils/resolve-route-template.ts";
 
 describe("resolveRouteTemplate", () => {
   it("resolves a simple placeholder", () => {

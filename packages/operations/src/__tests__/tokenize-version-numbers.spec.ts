@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 
-import { placeholderize } from "../memory-template";
-import { tokenizeOp } from "../tokenize";
+import { placeholderize } from "../memory-template.ts";
+import { tokenizeOp } from "../tokenize.ts";
 
 describe("spaCy tokenizer version number recognition", () => {
   const versionStrings = ["1.20", "1.21", "1.20.4", "1.21.1"];

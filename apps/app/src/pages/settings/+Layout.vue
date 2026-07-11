@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import IndexHeader from "@/components/IndexHeader.vue";
-import IndexSidebar from "@/components/IndexSidebar.vue";
+import IndexHeader from "#/components/IndexHeader.vue";
+import IndexSidebar from "#/components/IndexSidebar.vue";
 </script>
 
 <template>

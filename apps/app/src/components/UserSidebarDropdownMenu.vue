@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { User } from "@cat/shared";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +12,9 @@ import { navigate } from "vike/client/router";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UserAvatar from "@/components/UserAvatar.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast";
+import UserAvatar from "#/components/UserAvatar.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const props = defineProps<{
   user: Pick<User, "id" | "name"> | null;

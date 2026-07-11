@@ -10,8 +10,10 @@ export const interpolate = (
   variables: Record<string, string>,
 ): string => {
   return template.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
-    return Object.prototype.hasOwnProperty.call(variables, key)
-      ? variables[key]
+    const value = variables[key];
+    return Object.prototype.hasOwnProperty.call(variables, key) &&
+      typeof value === "string"
+      ? value
       : `{{${key}}}`;
   });
 };

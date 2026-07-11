@@ -10,7 +10,7 @@ import {
 import { TestTube2, XCircle } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import type { NonNullPluginDetail, PluginProbeResult } from "./types";
+import type { NonNullPluginDetail, PluginProbeResult } from "./types.ts";
 
 const { t } = useI18n();
 

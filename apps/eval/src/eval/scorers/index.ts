@@ -1,25 +1,24 @@
-import type { Scorer } from "../types";
-
-import { agentLatencyScorer } from "./agent-latency";
-import { bm25ConfidenceScorer } from "./bm25-confidence";
-import { channelCoverageScorer } from "./channel-coverage";
-import { chrfScorer } from "./chrf";
-import { confidenceScorer } from "./confidence";
-import { decisionNoteScorer } from "./decision-note";
-import { f1Scorer } from "./f1";
-import { hitRateScorer } from "./hit-rate";
-import { instructionAdherenceScorer } from "./instruction-adherence";
-import { latencyScorer } from "./latency";
-import { mrrScorer } from "./mrr";
-import { negativeExclusionScorer } from "./negative-exclusion";
-import { noiseRateScorer } from "./noise-rate";
-import { precisionScorer } from "./precision";
-import { preserveRateScorer } from "./preserve-rate";
-import { recallScorer } from "./recall";
-import { selfExclusionRateScorer } from "./self-exclusion-rate";
-import { templateMatchRateScorer } from "./template-match-rate";
-import { termComplianceScorer } from "./term-compliance";
-import { tokenCostScorer } from "./token-cost";
+import type { Scorer } from "../types.ts";
+import { agentLatencyScorer } from "./agent-latency.ts";
+import { bm25ConfidenceScorer } from "./bm25-confidence.ts";
+import { channelCoverageScorer } from "./channel-coverage.ts";
+import { chrfScorer } from "./chrf.ts";
+import { confidenceScorer } from "./confidence.ts";
+import { decisionNoteScorer } from "./decision-note.ts";
+import { f1Scorer } from "./f1.ts";
+import { hitRateScorer } from "./hit-rate.ts";
+import { instructionAdherenceScorer } from "./instruction-adherence.ts";
+import { latencyScorer } from "./latency.ts";
+import { mrrScorer } from "./mrr.ts";
+import { negativeExclusionScorer } from "./negative-exclusion.ts";
+import { noiseRateScorer } from "./noise-rate.ts";
+import { precisionScorer } from "./precision.ts";
+import { preserveRateScorer } from "./preserve-rate.ts";
+import { recallScorer } from "./recall.ts";
+import { selfExclusionRateScorer } from "./self-exclusion-rate.ts";
+import { templateMatchRateScorer } from "./template-match-rate.ts";
+import { termComplianceScorer } from "./term-compliance.ts";
+import { tokenCostScorer } from "./token-cost.ts";
 
 const scorerRegistry = new Map<string, Scorer>([
   ["precision", precisionScorer],

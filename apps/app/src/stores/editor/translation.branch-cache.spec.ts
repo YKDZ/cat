@@ -35,7 +35,8 @@ const mocks = vi.hoisted(() => ({
   queryOptions: null as QueryOptions | null,
   getAll: vi.fn(),
   onCreate: vi.fn(),
-  setQueryData: vi.fn(),
+  setQueryData:
+    vi.fn<(key: unknown[], updater: (old: unknown) => unknown) => void>(),
   setElementPending: vi.fn(),
   updateElementStatus: vi.fn(async () => undefined),
   elementIdRef: null as ReturnType<typeof ref<number | null>> | null,
@@ -132,7 +133,7 @@ vi.mock("@pinia/colada", async () => {
   };
 });
 
-vi.mock("@/rpc/orpc", () => ({
+vi.mock("#/rpc/orpc.ts", () => ({
   orpc: {
     translation: {
       getAll: mocks.getAll,
@@ -141,7 +142,7 @@ vi.mock("@/rpc/orpc", () => ({
   },
 }));
 
-vi.mock("@/stores/editor/table.ts", async () => {
+vi.mock("#/stores/editor/table.ts", async () => {
   const { defineStore } = await import("pinia");
 
   return {
@@ -151,7 +152,7 @@ vi.mock("@/stores/editor/table.ts", async () => {
   };
 });
 
-vi.mock("@/stores/editor/context.ts", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -163,7 +164,7 @@ vi.mock("@/stores/editor/context.ts", async () => {
   };
 });
 
-vi.mock("@/stores/editor/element.ts", async () => {
+vi.mock("#/stores/editor/element.ts", async () => {
   const { defineStore } = await import("pinia");
 
   return {
@@ -227,10 +228,8 @@ describe("useEditorTranslationStore branch cache", () => {
       branchId: 7,
     });
 
-    mocks.scopeRef!.value = {
-      ...mocks.scopeRef!.value!,
-      branchId: undefined,
-    };
+    const { branchId: _branchId, ...mainScope } = mocks.scopeRef!.value!;
+    mocks.scopeRef!.value = mainScope;
 
     expect(mocks.queryOptions?.key()).toEqual([
       "translations",
@@ -243,7 +242,6 @@ describe("useEditorTranslationStore branch cache", () => {
     expect(mocks.getAll).toHaveBeenLastCalledWith({
       elementId: 1,
       languageId: "zh-Hans",
-      branchId: undefined,
     });
   });
 
@@ -288,15 +286,15 @@ describe("useEditorTranslationStore branch cache", () => {
       expect.objectContaining({ kind: "main", id: 11 }),
     ]);
 
-    mocks.scopeRef!.value = {
-      ...mocks.scopeRef!.value!,
-      branchId: undefined,
-    };
+    const { branchId: _branchId, ...mainScope } = mocks.scopeRef!.value!;
+    mocks.scopeRef!.value = mainScope;
     await flushStore();
 
     expect(branchStream.signal.aborted).toBe(true);
-    expect(mocks.onCreate).toHaveBeenLastCalledWith(
-      expect.objectContaining({ branchId: undefined }),
+    const mainSubscriptionCall = mocks.onCreate.mock.lastCall;
+    expect(mainSubscriptionCall?.[0]).toEqual(mainScope);
+    expect(mainSubscriptionCall?.[0]).not.toHaveProperty("branchId");
+    expect(mainSubscriptionCall?.[1]).toEqual(
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
 

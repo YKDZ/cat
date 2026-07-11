@@ -4,13 +4,13 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { watch } from "vue";
 
-import { useBranchStore } from "@/stores/branch";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorElementStore } from "@/stores/editor/element";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { watchClient } from "@/utils/vue.ts";
+import { useBranchStore } from "#/stores/branch.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorElementStore } from "#/stores/editor/element.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { watchClient } from "#/utils/vue.ts";
 
-import { buildEditorHref, parseEditorScopeFromRoute } from "./scope-url";
+import { buildEditorHref, parseEditorScopeFromRoute } from "./scope-url.ts";
 import Sidebar from "./Sidebar.vue";
 import WorkbenchShell from "./WorkbenchShell.vue";
 

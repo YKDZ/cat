@@ -30,7 +30,10 @@ export type SidebarContextValue = {
 
 const sidebarRegistry = new Map<string, SidebarContextValue>();
 
-export function provideSidebarContext(id: string, context: SidebarContextValue): void {
+export function provideSidebarContext(
+  id: string,
+  context: SidebarContextValue,
+): void {
   provide(Symbol.for(id), context);
   sidebarRegistry.set(id, context);
 

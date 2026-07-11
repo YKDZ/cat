@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import {
   Dialog,
@@ -16,10 +15,10 @@ import { computed } from "vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import MultiMemoryPicker from "@/components/MultiMemoryPicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useBranchStore } from "@/stores/branch";
-import { useToastStore } from "@/stores/toast.ts";
+import MultiMemoryPicker from "#/components/MultiMemoryPicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useBranchStore } from "#/stores/branch.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 const { info, rpcWarn } = useToastStore();

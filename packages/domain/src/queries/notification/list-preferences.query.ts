@@ -2,7 +2,7 @@ import { userMessagePreference } from "@cat/db";
 import { eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListPreferencesQuerySchema = z.object({ userId: z.uuidv4() });
 export type ListPreferencesQuery = z.infer<typeof ListPreferencesQuerySchema>;

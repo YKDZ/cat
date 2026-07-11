@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Relation } from "@cat/shared";
-
 import {
   Badge,
   Button,
@@ -16,8 +15,8 @@ import { useQuery, useQueryCache } from "@pinia/colada";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-import { useInjectionKey } from "@/utils/provide.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data } from "../+data.server.ts";
 

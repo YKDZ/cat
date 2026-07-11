@@ -30,15 +30,14 @@ import { useData } from "vike-vue/useData";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { PickerOption } from "@/components/picker";
+import LanguagePicker from "#/components/LanguagePicker.vue";
+import type { PickerOption } from "#/components/picker/index.ts";
+import MultiPicker from "#/components/picker/MultiPicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
-import LanguagePicker from "@/components/LanguagePicker.vue";
-import MultiPicker from "@/components/picker/MultiPicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast";
-import { clientLogger as logger } from "@/utils/logger";
-
-import type { Data } from "./+data.server";
+import type { Data } from "./+data.server.ts";
 
 const { t } = useI18n();
 const { concept, subjects, terms, availableSubjects } = useData<Data>();

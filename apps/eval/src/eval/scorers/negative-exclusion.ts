@@ -1,5 +1,5 @@
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- rawOutput requires casting from unknown
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 /**
  * Negative exclusion scorer — 1 if no negative items found in results, 0 otherwise.
@@ -39,8 +39,9 @@ export const negativeExclusionScorer: Scorer = {
       {
         name: "negative-exclusion",
         value: leaked.length === 0 ? 1 : 0,
-        detail:
-          leaked.length > 0 ? `leaked IDs: ${leaked.join(", ")}` : undefined,
+        ...(leaked.length > 0
+          ? { detail: `leaked IDs: ${leaked.join(", ")}` }
+          : {}),
       },
     ];
   },

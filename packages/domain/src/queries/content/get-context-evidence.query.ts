@@ -1,7 +1,7 @@
 import { contextEvidence, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetContextEvidenceQuerySchema = z.object({
   id: z.int(),

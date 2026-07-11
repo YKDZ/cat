@@ -1,6 +1,6 @@
 import type { TermData } from "@cat/shared";
 
-import type { Token, Tokenizer } from "@/services/tokenizer.ts";
+import type { Token, Tokenizer } from "#/services/tokenizer.ts";
 
 export interface TokenizeOptions {
   terms?: TermData[];
@@ -24,7 +24,7 @@ export const tokenize = async (
       const result = await rule.rule.parse({
         source: text,
         cursor,
-        terms: options?.terms,
+        ...(options?.terms === undefined ? {} : { terms: options.terms }),
       });
       matchedToken = result?.token;
 
@@ -35,7 +35,7 @@ export const tokenize = async (
     }
 
     if (matchedToken) {
-      matchedToken.ruleId = matchedRuleId;
+      if (matchedRuleId !== undefined) matchedToken.ruleId = matchedRuleId;
       matchedToken.meta = {
         ...matchedToken.meta,
         matchedRuleId: matchedRuleId ?? -1,
@@ -44,6 +44,8 @@ export const tokenize = async (
       cursor = matchedToken.end;
     } else {
       const char = text[cursor];
+      if (char === undefined)
+        throw new Error("Tokenizer cursor is out of range");
       const lastToken = tokens[tokens.length - 1];
       if (lastToken && lastToken.type === "text") {
         lastToken.value += char;
@@ -79,13 +81,12 @@ export const parseInner = async (
 };
 
 const shiftTokens = (tokens: Token[], offset: number): Token[] => {
-  if (offset === 0) return tokens; // 无偏移则直接返回
+  if (offset === 0) return tokens;
 
   return tokens.map((t) => ({
     ...t,
     start: t.start + offset,
     end: t.end + offset,
-    // 递归修正 children
-    children: t.children ? shiftTokens(t.children, offset) : undefined,
+    ...(t.children ? { children: shiftTokens(t.children, offset) } : {}),
   }));
 };

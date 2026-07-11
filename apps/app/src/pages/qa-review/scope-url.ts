@@ -3,7 +3,7 @@ import type { EditorScope } from "@cat/shared";
 import {
   parseEditorScopeFromRoute,
   toEditorSearchParams,
-} from "@/pages/editor/scope-url";
+} from "#/pages/editor/scope-url.ts";
 
 /**
  * Element target token used in QA review routes.

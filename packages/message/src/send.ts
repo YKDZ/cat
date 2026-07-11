@@ -1,7 +1,6 @@
+import { domainEvent, domainEventBus } from "@cat/domain/events";
 import type { MessageCategory, MessageChannel } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
-
-import { domainEvent, domainEventBus } from "@cat/domain/events";
 
 /**
  * Send a message from anywhere in the backend by publishing message:send-requested.

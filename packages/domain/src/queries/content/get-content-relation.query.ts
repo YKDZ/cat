@@ -1,7 +1,7 @@
 import { contentRelation, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetContentRelationQuerySchema = z.object({
   id: z.uuidv4(),

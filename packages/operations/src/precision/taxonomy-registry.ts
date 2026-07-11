@@ -5,7 +5,7 @@ import type {
   TopicMatchState,
 } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
+import type { RecallCandidate } from "./types.ts";
 
 export type TaxonomyRegistryOptions = {
   /** Map from raw subject string (from termConceptSubject.subject) to canonical topic id. */

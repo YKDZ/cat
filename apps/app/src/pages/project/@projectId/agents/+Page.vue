@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { ScopeType } from "@cat/shared";
-import type { Component } from "vue";
-
 import {
   Badge,
   Button,
@@ -20,12 +18,13 @@ import {
   ShieldCheck,
   Trash2,
 } from "@lucide/vue";
+import type { Component } from "vue";
 import { inject, ref, computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
-import { useInjectionKey } from "@/utils/provide.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data as LayoutData } from "../+data.server.ts";
 

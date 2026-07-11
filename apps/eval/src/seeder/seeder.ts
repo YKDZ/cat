@@ -1,11 +1,9 @@
+import { RedisConnection, sql } from "@cat/db";
 // oxlint-disable no-console -- intentional diagnostic logging in eval harness
 // oxlint-disable no-await-in-loop -- seeder is intentionally sequential
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
 // oxlint-disable typescript-eslint/no-unsafe-return -- vectorize result requires cast
 import type { ExecutorContext } from "@cat/domain";
-import type { JSONObject, JSONType } from "@cat/shared";
-
-import { RedisConnection, sql } from "@cat/db";
 import {
   attachChunkSetToString,
   createAgentDefinition,
@@ -40,20 +38,28 @@ import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { normalizeMemorySeed } from "@cat/seed";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import type { JSONObject, JSONType } from "@cat/shared";
 import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
 
-import type { LoadedSuite } from "@/config";
-import type { PluginOverride } from "@/config/schemas";
+import type { LoadedSuite } from "#/config/index.ts";
+import type { PluginOverride } from "#/config/schemas.ts";
 
-import type { SeededContext } from "./types";
-
-import { RefResolver } from "./ref-resolver";
-import { VectorCache } from "./vector-cache";
+import { RefResolver } from "./ref-resolver.ts";
+import type { SeededContext } from "./types.ts";
+import { VectorCache } from "./vector-cache.ts";
 
 export type SeedOptions = {
   suite: LoadedSuite;
   cacheDir: string;
   pluginsDir: string;
+};
+
+const requireFirst = <T>(values: readonly T[], operation: string): T => {
+  const value = values[0];
+  if (value === undefined) {
+    throw new Error(`${operation} returned no values`);
+  }
+  return value;
 };
 
 export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
@@ -286,13 +292,21 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
         },
       );
 
+      const sourceStringId = requireFirst(
+        sourceStringIds,
+        "create source vectorized string",
+      );
+      const translationStringId = requireFirst(
+        translationStringIds,
+        "create translation vectorized string",
+      );
       const items = await executeCommand(execCtx, createMemoryItems, {
         memoryId: containerMemoryId,
         items: [
           {
             translationId: null,
-            translationStringId: translationStringIds[0],
-            sourceStringId: sourceStringIds[0],
+            translationStringId,
+            sourceStringId,
             creatorId: userId,
             sourceTemplate: null,
             translationTemplate: null,
@@ -300,11 +314,12 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
           },
         ],
       });
-      refs.set(itemSeed.ref, items[0].id);
+      const memoryItem = requireFirst(items, "create memory item");
+      refs.set(itemSeed.ref, memoryItem.id);
 
       await buildMemoryRecallVariantsOp(
         {
-          memoryItemId: items[0].id,
+          memoryItemId: memoryItem.id,
           memoryId: containerMemoryId,
           sourceText: itemSeed.source,
           translationText: itemSeed.translation,
@@ -337,13 +352,13 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
             sourceRootRef: `project:${project.id}`,
             sourceNodeRef: `eval#${elSeed.ref}`,
             stableSourceRef: `eval#${elSeed.ref}`,
-            stringId: stringIds[0],
+            stringId: requireFirst(stringIds, "create element source string"),
             creatorId: userId,
             meta: elSeed.meta as JSONType | undefined,
           },
         ],
       });
-      refs.set(elSeed.ref, elementIds[0]);
+      refs.set(elSeed.ref, requireFirst(elementIds, "create element"));
     }
   }
 
@@ -598,14 +613,25 @@ const vectorizeWithCache = async (opts: {
 
       const vectorPairs = chunkDataArrays.flatMap((chunks) =>
         chunks.map((chunk, i) => ({
-          chunkId: chunkIds[i],
+          chunkId: requireFirst(
+            chunkIds.slice(i, i + 1),
+            "create vectorized chunk",
+          ),
           vector: chunk.vector,
         })),
       );
       await storage.store({ chunks: vectorPairs });
 
       await executeCommand(execCtx, attachChunkSetToString, {
-        updates: [{ stringId, chunkSetId: chunkSetIds[0] }],
+        updates: [
+          {
+            stringId,
+            chunkSetId: requireFirst(
+              chunkSetIds,
+              "create vectorized chunk set",
+            ),
+          },
+        ],
       });
     } catch (err) {
       console.error(

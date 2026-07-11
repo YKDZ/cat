@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { inject } from "vue";
 
-import { useInjectionKey } from "@/utils/provide.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data as LayoutData } from "../+data.server.ts";
-
 import ContentNodeTreePanel from "./ContentNodeTreePanel.vue";
 import TermDiscoveryBtn from "./TermDiscoveryBtn.vue";
 import UploadFileBtn from "./UploadFileBtn.vue";

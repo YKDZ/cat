@@ -1,9 +1,8 @@
 import { eq, user } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const UpdateUserAvatarCommandSchema = z.object({
   userId: z.uuidv4(),

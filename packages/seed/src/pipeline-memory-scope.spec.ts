@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
-import { normalizeMemorySeed } from "@/pipeline";
-import { MemorySeedSchema } from "@/schemas";
+import { normalizeMemorySeed } from "#/pipeline.ts";
+import { MemorySeedSchema } from "#/schemas.ts";
 
 describe("normalizeMemorySeed", () => {
   it("normalizes legacy memory into one PROJECT container", () => {

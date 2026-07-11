@@ -1,7 +1,7 @@
 import { asc, ilike, language } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListLanguagesQuerySchema = z.object({
   page: z.int().min(0).default(0),

@@ -4,12 +4,11 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { TranslationWithStatus } from "@/stores/editor/translation.ts";
-
-import TokenViewer from "@/components/editor/TokenViewer.vue";
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
-import { useEditorTableStore } from "@/stores/editor/table";
+import TokenViewer from "#/components/editor/TokenViewer.vue";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import UserAvatar from "#/components/UserAvatar.vue";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import type { TranslationWithStatus } from "#/stores/editor/translation.ts";
 
 import TranslationQaResult from "./TranslationQaResult.vue";
 import TranslationVote from "./TranslationVote.vue";

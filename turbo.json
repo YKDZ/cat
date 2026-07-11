@@ -1,0 +1,103 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "tsconfig.base.json",
+    "tsconfig.node-base.json",
+    "tsconfig.node.json",
+    "tsconfig.web.json",
+    "tsconfig.vue.json",
+    "oxlint.config.ts",
+    "oxfmt.config.ts",
+    "tooling/oxlint/**"
+  ],
+  "boundaries": {
+    "tags": {
+      "browser": {},
+      "server": {
+        "dependencies": { "deny": ["browser"] }
+      },
+      "database": {},
+      "feature": {},
+      "plugin": {},
+      "public-sdk": {},
+      "application": {},
+      "library": {},
+      "tool": {},
+      "test-infrastructure": {},
+      "database-consumer": {},
+      "database-path": {},
+      "product-runtime": {},
+      "data-tool": {},
+      "isomorphic": {}
+    }
+  },
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.{spec,test}.{ts,tsx,js,jsx}"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "preview": {
+      "cache": false,
+      "dependsOn": ["build"],
+      "persistent": true
+    },
+    "format": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "test:unit": {
+      "dependsOn": ["^test:unit"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "env": ["CI"],
+      "outputs": []
+    },
+    "test:integration": {
+      "cache": false,
+      "dependsOn": ["^typecheck"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "env": ["DATABASE_URL", "REDIS_URL", "TEST_DATABASE_URL"],
+      "outputs": []
+    },
+    "pack:artifact": {
+      "dependsOn": ["build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/scripts/pack-public-package.ts",
+        "$TURBO_ROOT$/pnpm-workspace.yaml"
+      ],
+      "outputs": ["*.tgz"]
+    },
+    "generate:routes": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/app-api/src/orpc/router.ts",
+        "$TURBO_ROOT$/packages/app-api/src/orpc/routers/**/*.ts"
+      ],
+      "outputs": ["src/routes.generated.ts"]
+    },
+    "codegen:schemas": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    }
+  }
+}

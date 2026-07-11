@@ -1,6 +1,6 @@
 import * as z from "zod";
 
-import { RecallEvidenceSchema } from "@/schema/recall.ts";
+import { RecallEvidenceSchema } from "#/schema/recall.ts";
 
 // ─── 术语召回通道统一输出 ───
 

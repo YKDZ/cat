@@ -9,22 +9,29 @@ import {
 } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Comments from "@/components/Comments.vue";
-import { useEditorTableStore } from "@/stores/editor/table";
-import { useCookieStringRef } from "@/utils/cookie";
+import Comments from "#/components/Comments.vue";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useCookieStringRef } from "#/utils/cookie.ts";
 
 import ElemenContexts from "./ElemenContexts.vue";
 import ElementSourcePreview from "./ElementSourcePreview.vue";
 
 const { t } = useI18n();
 
-const panelOpen = useCookieStringRef(
+const panelOpenCookie = useCookieStringRef(
   usePageContext(),
   "editorContextPanelTab",
   "context",
 );
+const panelOpen = computed({
+  get: () => panelOpenCookie.value ?? "context",
+  set: (value: string) => {
+    panelOpenCookie.value = value;
+  },
+});
 
 const { elementId } = storeToRefs(useEditorTableStore());
 

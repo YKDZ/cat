@@ -1,10 +1,10 @@
 import { navigate } from "vike/client/router";
 
-import { buildEditorHref } from "@/pages/editor/scope-url";
-import { useEditorContextStore } from "@/stores/editor/context";
-import { useEditorTableStore } from "@/stores/editor/table";
+import { buildEditorHref } from "#/pages/editor/scope-url.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
-import { registerClientTool } from "./client-tool-registry";
+import { registerClientTool } from "./client-tool-registry.ts";
 
 /**
  * Register all built-in client tool handlers.

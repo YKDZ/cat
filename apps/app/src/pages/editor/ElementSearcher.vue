@@ -7,9 +7,9 @@ import { navigate } from "vike/client/router";
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useEditorContextStore } from "@/stores/editor/context";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
 
-import { buildEditorHref } from "./scope-url";
+import { buildEditorHref } from "./scope-url.ts";
 
 const { t } = useI18n();
 

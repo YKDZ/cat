@@ -57,7 +57,7 @@ vi.mock("vike/client/router", () => ({
   navigate: mocks.navigate,
 }));
 
-vi.mock("@/rpc/orpc", () => ({
+vi.mock("#/rpc/orpc.ts", () => ({
   orpc: {
     editor: {
       countElements: mocks.countElements,
@@ -77,7 +77,7 @@ vi.mock("@/rpc/orpc", () => ({
   },
 }));
 
-vi.mock("@/stores/editor/context.ts", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -117,7 +117,7 @@ vi.mock("@/stores/editor/context.ts", async () => {
   };
 });
 
-vi.mock("@/stores/editor/element.ts", async () => {
+vi.mock("#/stores/editor/element.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -138,7 +138,7 @@ vi.mock("@/stores/editor/element.ts", async () => {
   };
 });
 
-vi.mock("@/stores/profile.ts", async () => {
+vi.mock("#/stores/profile.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
 
@@ -153,7 +153,7 @@ vi.mock("@/stores/profile.ts", async () => {
   };
 });
 
-vi.mock("@/stores/write-capability.ts", async () => {
+vi.mock("#/stores/write-capability.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -174,7 +174,7 @@ vi.mock("@/stores/write-capability.ts", async () => {
 
 import { ref } from "vue";
 
-import { useEditorTableStore } from "./table";
+import { useEditorTableStore } from "./table.ts";
 
 describe("useEditorTableStore scope navigation", () => {
   const projectId = "11111111-1111-4111-8111-111111111111";

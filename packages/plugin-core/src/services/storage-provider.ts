@@ -1,8 +1,8 @@
-import type { PluginServiceType } from "@cat/shared";
-
 import { Readable } from "node:stream";
 
-import type { IPluginService } from "@/services/service";
+import type { PluginServiceType } from "@cat/shared";
+
+import type { IPluginService } from "#/services/service.ts";
 
 export type PutStreamContext = {
   key: string;

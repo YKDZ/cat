@@ -7,9 +7,10 @@ import {
   issueComment,
   issueCommentThread,
 } from "@cat/db";
+import { assertFirstNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListThreadsQuerySchema = z.object({
   targetType: z.enum(["issue", "pr"]),
@@ -47,7 +48,7 @@ export const listThreads: Query<
     .from(issueComment)
     .where(
       threadIds.length === 1
-        ? eq(issueComment.threadId, threadIds[0])
+        ? eq(issueComment.threadId, assertFirstNonNullish(threadIds))
         : inArray(issueComment.threadId, threadIds),
     )
     .orderBy(asc(issueComment.createdAt));

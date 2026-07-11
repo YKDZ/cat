@@ -1,4 +1,4 @@
-import { test, expect } from "@/fixtures";
+import { test, expect } from "#/fixtures.ts";
 
 test.describe("Project shell SSR refresh", () => {
   test("refreshes project pull request list without losing header project data", async ({

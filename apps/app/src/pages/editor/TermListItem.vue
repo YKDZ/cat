@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RecallEvidence } from "@cat/shared";
-
 import { toShortFixed } from "@cat/shared";
 import { Badge, Button } from "@cat/ui";
 import { ArrowRight } from "@lucide/vue";
@@ -9,12 +8,12 @@ import { navigate } from "vike/client/router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TokenViewer from "@/components/editor/TokenViewer.vue";
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
-import { useHotKeys } from "@/utils/magic-keys.ts";
+import TokenViewer from "#/components/editor/TokenViewer.vue";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
+import { useHotKeys } from "#/utils/magic-keys.ts";
 
 /**
  * Props for a term suggestion list item.
@@ -32,7 +31,7 @@ const props = defineProps<{
     conceptId?: number;
     glossaryId?: string;
     evidences?: RecallEvidence[];
-    matchedText?: string;
+    matchedText?: string | undefined;
     concept?: {
       subjects: Array<{ name: string; defaultDefinition: string | null }>;
       definition?: string | null;

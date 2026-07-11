@@ -2,7 +2,7 @@ import { searchMemoryOp } from "@cat/operations";
 import { MemorySuggestionSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 export const SearchMemoryInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),

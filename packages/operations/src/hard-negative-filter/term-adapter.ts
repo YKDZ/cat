@@ -1,10 +1,9 @@
 import { serverLogger as logger } from "@cat/server-shared";
 
-import type { RawResult, RawTermResult } from "../precision/types";
-import type { HnfCandidate, HardNegativeRemoval } from "./types";
-
-import { candidateKey } from "../precision/types";
-import { applyHnfPreRules, extractContentWordsFromTokens } from "./core";
+import type { RawResult, RawTermResult } from "../precision/types.ts";
+import { candidateKey } from "../precision/types.ts";
+import { applyHnfPreRules, extractContentWordsFromTokens } from "./core.ts";
+import type { HnfCandidate, HardNegativeRemoval } from "./types.ts";
 
 const toHnfCandidate = (r: RawTermResult): HnfCandidate => ({
   surface: "term",

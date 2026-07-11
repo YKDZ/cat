@@ -1,10 +1,8 @@
 import type { FlattenedContextEvidence } from "@cat/shared";
-
 import * as z from "zod";
 
-import type { Query } from "@/types";
-
-import { assembleContextEvidence } from "@/queries/context/assemble-context-evidence.query";
+import { assembleContextEvidence } from "#/queries/context/assemble-context-evidence.query.ts";
+import type { Query } from "#/types.ts";
 
 export const GetElementContextsQuerySchema = z.object({
   elementId: z.int(),

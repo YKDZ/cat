@@ -1,12 +1,11 @@
 import type { ParserContext } from "@cat/plugin-core";
-
 import { describe, expect, it } from "vitest";
 
 import {
   LinkTokenizer,
   MaskTokenizer,
   VariableTokenizer,
-} from "@/tokenizer.ts";
+} from "../tokenizer.ts";
 
 const makeCtx = (source: string, cursor = 0): ParserContext => ({
   source,

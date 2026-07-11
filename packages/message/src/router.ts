@@ -1,17 +1,20 @@
 import type { DbHandle } from "@cat/domain";
-import type { MessageChannel } from "@cat/shared";
-
 import { executeQuery, getEnabledChannels } from "@cat/domain";
 import { serverLogger } from "@cat/server-shared";
+import type { MessageChannel } from "@cat/shared";
 
-import type { ChannelDispatcher, MessageRequest } from "@/types";
+import type { ChannelDispatcher, MessageRequest } from "#/types.ts";
 
 /**
  * Unified message router — resolves channels and dispatches concurrently.
  */
 export class MessageRouter {
   private readonly dispatchers = new Map<MessageChannel, ChannelDispatcher>();
-  constructor(private readonly db: DbHandle) {}
+  private readonly db: DbHandle;
+
+  constructor(db: DbHandle) {
+    this.db = db;
+  }
 
   registerDispatcher(dispatcher: ChannelDispatcher): void {
     this.dispatchers.set(dispatcher.channel, dispatcher);

@@ -1,7 +1,7 @@
 import { chunk, inArray } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const BulkUpdateChunkVectorMetadataCommandSchema = z.object({
   chunkIds: z.array(z.int()),

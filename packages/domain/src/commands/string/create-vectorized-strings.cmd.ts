@@ -1,7 +1,7 @@
 import { and, eq, inArray, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateVectorizedStringsCommandSchema = z.object({
   chunkSetIds: z.array(z.int()).optional(),

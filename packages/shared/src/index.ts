@@ -1,7 +1,7 @@
 // ─── Hand-written schema modules ───
 
 // Custom element schema
-export { CustomElementNameSchema } from "./schema/ce.ts";
+export { CustomElementNameSchema } from "#/schema/ce.ts";
 
 // Extraction schema
 export {
@@ -23,7 +23,7 @@ export {
   RouteEntrySchema,
   type RouteManifest,
   RouteManifestSchema,
-} from "./schema/extraction.ts";
+} from "#/schema/extraction.ts";
 
 // JSON schema
 export {
@@ -39,7 +39,7 @@ export {
   _JSONSchemaSchema,
   nonNullSafeZDotJson,
   safeZDotJson,
-} from "./schema/json.ts";
+} from "#/schema/json.ts";
 
 // Misc schema
 export {
@@ -66,7 +66,7 @@ export {
   UnvectorizedTextDataSchema,
   type VectorizedTextData,
   VectorizedTextDataSchema,
-} from "./schema/misc.ts";
+} from "#/schema/misc.ts";
 
 // Plugin schema
 export {
@@ -78,7 +78,7 @@ export {
   TranslationAdviseSchema,
   type TranslationSuggestion,
   TranslationSuggestionSchema,
-} from "./schema/plugin.ts";
+} from "#/schema/plugin.ts";
 
 // NLP schema
 export {
@@ -90,7 +90,7 @@ export {
   NlpSentenceSchema,
   type NlpToken,
   NlpTokenSchema,
-} from "./schema/nlp.ts";
+} from "#/schema/nlp.ts";
 
 // Term recall schema
 export {
@@ -100,7 +100,7 @@ export {
   EnrichedTermMatchSchema,
   type TermMatch,
   TermMatchSchema,
-} from "./schema/term-recall.ts";
+} from "#/schema/term-recall.ts";
 
 // Recall schema
 export {
@@ -111,7 +111,7 @@ export {
   RecallDebugContextSchema,
   type RecallEvidence,
   RecallEvidenceSchema,
-} from "./schema/recall.ts";
+} from "#/schema/recall.ts";
 
 // Precision-recall schema
 export {
@@ -142,14 +142,14 @@ export {
   ScopeEnvelopeSchema,
   type TopicMatchState,
   TopicMatchStateSchema,
-} from "./schema/precision-recall.ts";
+} from "#/schema/precision-recall.ts";
 
 // Project setting schema
 export {
   ProjectSettingPatchSchema,
   type ProjectSettingPayload,
   ProjectSettingPayloadSchema,
-} from "./schema/project-setting.ts";
+} from "#/schema/project-setting.ts";
 
 // Memory-recall schema
 export {
@@ -161,7 +161,7 @@ export {
   MemoryRecallBm25CapabilityQuerySchema,
   type MemoryRecallBm25CompressionProfile,
   MemoryRecallBm25CompressionProfileSchema,
-} from "./schema/memory-recall.ts";
+} from "#/schema/memory-recall.ts";
 
 // Rerank schema
 export {
@@ -181,7 +181,7 @@ export {
   RerankScoreEntrySchema,
   RerankSurfaceSchema,
   RerankTriggerSchema,
-} from "./schema/rerank.ts";
+} from "#/schema/rerank.ts";
 
 // Collection schema (aliases to content graph schemas)
 export {
@@ -196,7 +196,7 @@ export {
   type CollectionRelation,
   CollectionRelationEndpointSchema,
   CollectionRelationSchema,
-} from "./schema/collection.ts";
+} from "#/schema/collection.ts";
 
 // Content graph schemas
 export {
@@ -231,7 +231,7 @@ export {
   StructuredRelationInputSchema,
   type StructuredTranslatableElementInput,
   StructuredTranslatableElementInputSchema,
-} from "./schema/content.ts";
+} from "#/schema/content.ts";
 
 // Editor scope schemas
 export {
@@ -266,9 +266,9 @@ export {
   type EditorTranslationStatusFilter,
   EditorTranslationStatusFilterSchema,
   EditorTranslationStatusFilterValues,
-} from "./schema/editor.ts";
+} from "#/schema/editor.ts";
 
-export * from "./schema/qa-review.ts";
+export * from "#/schema/qa-review.ts";
 
 // ─── Hand-written schemas with filtering or aliasing ───
 
@@ -305,7 +305,7 @@ export {
   type ToolExecuteResponse,
   ToolExecuteResponseSchema,
   serializeAgentDefinition,
-} from "./schema/agent.ts";
+} from "#/schema/agent.ts";
 
 // Enum schemas (all values; these are canonical here)
 export {
@@ -516,7 +516,7 @@ export {
   VectorInvalidationReasonSchema,
   VectorInvalidationReasonValues,
   type VectorInvalidationReason,
-} from "./schema/enum.ts";
+} from "#/schema/enum.ts";
 
 // Permission schemas (filtering out duplicates already canonical in enum.ts)
 export {
@@ -524,7 +524,7 @@ export {
   type PermissionCheck,
   GrantPermissionSchema,
   type GrantPermission,
-} from "./schema/permission.ts";
+} from "#/schema/permission.ts";
 
 // ─── Generated Drizzle schema modules ───
 
@@ -534,7 +534,7 @@ export {
   ApiKeySchema,
   type SessionRecord,
   SessionRecordSchema,
-} from "./schema/drizzle/api-key.ts";
+} from "#/schema/drizzle/api-key.ts";
 
 // Changeset schemas
 export {
@@ -544,7 +544,7 @@ export {
   ChangesetSchema,
   type EntitySnapshot,
   EntitySnapshotSchema,
-} from "./schema/drizzle/changeset.ts";
+} from "#/schema/drizzle/changeset.ts";
 
 // Comment schemas
 export {
@@ -552,7 +552,7 @@ export {
   type CommentReaction,
   CommentReactionSchema,
   CommentSchema,
-} from "./schema/drizzle/comment.ts";
+} from "#/schema/drizzle/comment.ts";
 
 // Content graph schemas
 export {
@@ -576,13 +576,13 @@ export {
   TranslatableElementSchema,
   type VectorizedString,
   VectorizedStringSchema,
-} from "./schema/drizzle/content.ts";
+} from "#/schema/drizzle/content.ts";
 
 // Entity branch schemas
 export {
   type EntityBranch,
   EntityBranchSchema,
-} from "./schema/drizzle/entity-branch.ts";
+} from "#/schema/drizzle/entity-branch.ts";
 
 // Glossary schemas
 export {
@@ -600,7 +600,7 @@ export {
   type TermRecallVariant,
   TermRecallVariantSchema,
   TermSchema,
-} from "./schema/drizzle/glossary.ts";
+} from "#/schema/drizzle/glossary.ts";
 
 // Issue comment schemas
 export {
@@ -610,7 +610,7 @@ export {
   IssueCommentSchema,
   type IssueCommentThread,
   IssueCommentThreadSchema,
-} from "./schema/drizzle/issue-comment.ts";
+} from "#/schema/drizzle/issue-comment.ts";
 
 // Issue schemas
 export {
@@ -620,7 +620,7 @@ export {
   IssueSchema,
   type ProjectSequence,
   ProjectSequenceSchema,
-} from "./schema/drizzle/issue.ts";
+} from "#/schema/drizzle/issue.ts";
 
 // Memory schemas
 export {
@@ -634,7 +634,7 @@ export {
   MemoryToProjectSchema,
   type SlotMappingEntry,
   SlotMappingEntrySchema,
-} from "./schema/drizzle/memory.ts";
+} from "#/schema/drizzle/memory.ts";
 
 // Misc DB schemas
 export {
@@ -650,7 +650,7 @@ export {
   SettingSchema,
   type Task,
   TaskSchema,
-} from "./schema/drizzle/misc.ts";
+} from "#/schema/drizzle/misc.ts";
 
 // Plugin DB schemas
 export {
@@ -670,7 +670,7 @@ export {
   PluginServiceSchema,
   type PluginVersion,
   PluginVersionSchema,
-} from "./schema/drizzle/plugin.ts";
+} from "#/schema/drizzle/plugin.ts";
 
 // Project schemas
 export {
@@ -678,13 +678,13 @@ export {
   ProjectSchema,
   type ProjectTargetLanguage,
   ProjectTargetLanguageSchema,
-} from "./schema/drizzle/project.ts";
+} from "#/schema/drizzle/project.ts";
 
 // Pull request schemas
 export {
   type PullRequest,
   PullRequestSchema,
-} from "./schema/drizzle/pull-request.ts";
+} from "#/schema/drizzle/pull-request.ts";
 
 // QA schemas
 export {
@@ -706,7 +706,7 @@ export {
   QaReviewSuggestionSchema,
   QaResultItemSchema,
   QaResultSchema,
-} from "./schema/drizzle/qa.ts";
+} from "#/schema/drizzle/qa.ts";
 
 // Translation schemas
 export {
@@ -718,7 +718,7 @@ export {
   TranslationSnapshotSchema,
   type TranslationVote,
   TranslationVoteSchema,
-} from "./schema/drizzle/translation.ts";
+} from "#/schema/drizzle/translation.ts";
 
 // User schemas
 export {
@@ -728,7 +728,7 @@ export {
   MFAProviderSchema,
   type User,
   UserSchema,
-} from "./schema/drizzle/user.ts";
+} from "#/schema/drizzle/user.ts";
 
 // Vector schemas
 export {
@@ -738,7 +738,7 @@ export {
   ChunkSetSchema,
   type Vector,
   VectorSchema,
-} from "./schema/drizzle/vector.ts";
+} from "#/schema/drizzle/vector.ts";
 
 // ─── Generated Drizzle schemas with filtering or aliasing ───
 
@@ -756,14 +756,14 @@ export {
   type AgentExternalOutput,
   ToolCallLogSchema,
   type ToolCallLog,
-} from "./schema/drizzle/agent.ts";
+} from "#/schema/drizzle/agent.ts";
 
-// File schemas (BlobSchema omitted: hash: z.instanceof(Buffer) is not browser-safe)
-export { FileSchema, type File } from "./schema/drizzle/file.ts";
+// BlobSchema remains internal because storage blobs are not part of the shared root contract.
+export { FileSchema, type File } from "#/schema/drizzle/file.ts";
 
 // ─── Utilities ───
 
-export { chunk, chunkDual, getIndex, zip } from "./utils/array.ts";
+export { chunk, chunkDual, getIndex, zip } from "#/utils/array.ts";
 
 export {
   AssertError,
@@ -773,15 +773,16 @@ export {
   assertPromise,
   assertSingleNonNullish,
   assertSingleOrNull,
-} from "./utils/assert.ts";
+} from "#/utils/assert.ts";
 
-export { summarizeError } from "./utils/error.ts";
+export { summarizeError } from "#/utils/error.ts";
 
-export { sanitizeFileName } from "./utils/file.ts";
+export { sanitizeFileName } from "#/utils/file.ts";
 
 export {
   type HTTPHelpers,
   createHTTPHelpers,
+  shouldUseSecureCookies,
   type delCookie,
   type getCookie,
   getCookieFunc,
@@ -790,25 +791,25 @@ export {
   type getReqHeader,
   type setCookie,
   type setResHeader,
-} from "./utils/http-helpers.ts";
+} from "#/utils/http-helpers.ts";
 
-export { getDefaultFromSchema } from "./utils/json-schema.ts";
+export { getDefaultFromSchema } from "#/utils/json-schema.ts";
 
-export { Logger, TypedLogger, logger } from "./utils/logger/core.ts";
+export { Logger, TypedLogger, logger } from "#/utils/logger/core.ts";
 
 export {
   type LogEntry,
   type LogLevel,
   type LoggerTransport,
   type OutputSituation,
-} from "./utils/logger/types.ts";
+} from "#/utils/logger/types.ts";
 
-export { summarize } from "./utils/object.ts";
+export { summarize } from "#/utils/object.ts";
 
-export { resolveRouteTemplate } from "./utils/resolve-route-template.ts";
+export { resolveRouteTemplate } from "#/utils/resolve-route-template.ts";
 
-export { useStringTemplate } from "./utils/string-template.ts";
+export { useStringTemplate } from "#/utils/string-template.ts";
 
-export { parsePreferredLanguage, toShortFixed } from "./utils/string.ts";
+export { parsePreferredLanguage, toShortFixed } from "#/utils/string.ts";
 
-export { safeJoinURL } from "./utils/url.ts";
+export { safeJoinURL } from "#/utils/url.ts";

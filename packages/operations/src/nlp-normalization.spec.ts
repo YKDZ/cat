@@ -1,5 +1,4 @@
 import type { NlpToken } from "@cat/shared";
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,7 +6,7 @@ import {
   isCjkLanguage,
   joinLemmas,
   joinTokens,
-} from "./nlp-normalization";
+} from "./nlp-normalization.ts";
 
 const makeToken = (text: string, lemma: string): NlpToken => ({
   text,

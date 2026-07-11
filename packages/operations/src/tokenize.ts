@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { tokenize, type Tokenizer, TokenSchema } from "@cat/plugin-core";
 import { resolvePluginManager } from "@cat/server-shared";
 import { TermDataSchema } from "@cat/shared";
@@ -49,7 +48,7 @@ export const tokenizeOp = async (
       id: service.dbId,
     }));
 
-  const tokens = await tokenize(text, sorted, { terms });
+  const tokens = await tokenize(text, sorted, terms ? { terms } : {});
 
   return { tokens };
 };

@@ -1,8 +1,7 @@
+import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
-import { render } from "vike/abort";
-
-import { ssc } from "@/server/ssc";
+import { ssc } from "#/server/ssc.ts";
 
 type ProjectService = ReturnType<typeof ssc>["project"];
 type ProjectShellProject = NonNullable<

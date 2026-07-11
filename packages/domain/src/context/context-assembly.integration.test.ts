@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   contextEvidence,
   language,
@@ -5,7 +7,6 @@ import {
   user,
   vectorizedString,
 } from "@cat/db";
-import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -15,10 +16,11 @@ import {
   createRootContentNode,
   ensureCoreRelationTypes,
   ensureDefaultContextProfile,
-} from "@/commands";
-import { executeCommand, executeQuery } from "@/executor";
-import { assembleContextEvidence } from "@/queries";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/commands/index.ts";
+import { executeCommand, executeQuery } from "#/executor.ts";
+import { assembleContextEvidence } from "#/queries/index.ts";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 const CREATOR_ID = randomUUID();
 let testDb: TestDB;
@@ -95,7 +97,7 @@ describe("assembleContextEvidence", () => {
           sourceRootRef: "file:1",
           sourceNodeRef: "file:messages.json",
           stableSourceRef: "json:/hello",
-          stringId: strings[0].id,
+          stringId: requireFixtureValue(strings[0]).id,
           localOrder: 0,
         },
         {
@@ -105,7 +107,7 @@ describe("assembleContextEvidence", () => {
           sourceRootRef: "file:1",
           sourceNodeRef: "file:messages.json",
           stableSourceRef: "json:/bye",
-          stringId: strings[1].id,
+          stringId: requireFixtureValue(strings[1]).id,
           localOrder: 1,
         },
       ],
@@ -114,7 +116,7 @@ describe("assembleContextEvidence", () => {
     await testDb.client.insert(contextEvidence).values({
       projectId: project.id,
       attachedEndpointKind: "ELEMENT",
-      translatableElementId: ids[0],
+      translatableElementId: requireFixtureValue(ids[0]),
       kind: "TEXT",
       trustLevel: "VERIFIED",
       textData: "Shown on the landing page hero",
@@ -125,14 +127,14 @@ describe("assembleContextEvidence", () => {
       { db: testDb.client },
       assembleContextEvidence,
       {
-        elementId: ids[0],
+        elementId: requireFixtureValue(ids[0]),
         purpose: "EDITOR",
         maxItems: 3,
       },
     );
 
     expect(evidence).toHaveLength(3);
-    expect(evidence[0]?.label).toBe("element key");
+    expect(requireFixtureValue(evidence[0])?.label).toBe("element key");
     expect(evidence.some((item) => item.label === "screenshot note")).toBe(
       true,
     );

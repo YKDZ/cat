@@ -1,4 +1,4 @@
-import type { ChannelDispatcher, MessageRequest } from "@/types";
+import type { ChannelDispatcher, MessageRequest } from "#/types.ts";
 
 /**
  * Email provider interface implemented by plugins.

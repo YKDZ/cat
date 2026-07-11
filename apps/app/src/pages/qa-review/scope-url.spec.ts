@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildQaReviewHref, parseQaReviewScopeFromRoute } from "./scope-url";
+import { buildQaReviewHref, parseQaReviewScopeFromRoute } from "./scope-url.ts";
 
 describe("qa review scope url", () => {
   it("round-trips editor scope query parameters on qa-review routes", () => {

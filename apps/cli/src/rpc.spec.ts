@@ -1,6 +1,5 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
 import type { RouterClient } from "@orpc/server";
-
 import { describe, expect, it, vi } from "vitest";
 
 import { callByPath } from "./rpc.ts";

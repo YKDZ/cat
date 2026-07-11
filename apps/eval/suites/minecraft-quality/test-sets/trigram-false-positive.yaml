@@ -12,7 +12,7 @@ cases:
       - conceptRef: "concept:block:torch"
 
   - id: "wolf-not-swamp"
-    inputText: "The Wolf howled at the moon."
+    inputText: "The wolf howled at dawn."
     sourceLanguage: en
     targetLanguage: "zh-Hans"
     expectedTerms:

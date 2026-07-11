@@ -3,7 +3,7 @@ import { DagGraph, Tabs, TabsContent, TabsList, TabsTrigger } from "@cat/ui";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useWorkflowStore } from "@/stores/workflow";
+import { useWorkflowStore } from "#/stores/workflow.ts";
 
 import BlackboardPanel from "./BlackboardPanel.vue";
 import EventLogPanel from "./EventLogPanel.vue";

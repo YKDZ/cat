@@ -1,7 +1,7 @@
 import { loginAttempt as loginAttemptTable } from "@cat/db";
 import { and, eq, gte, sql } from "@cat/db";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export interface CountRecentAttemptsQuery {
   identifier?: string;

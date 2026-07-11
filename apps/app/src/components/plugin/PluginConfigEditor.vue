@@ -6,9 +6,9 @@ import { computed, ref, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import JsonForm from "@/components/json-form/JsonForm.vue";
+import JsonForm from "#/components/json-form/JsonForm.vue";
 
-import type { NonNullPluginDetail } from "./types";
+import type { NonNullPluginDetail } from "./types.ts";
 
 const { t } = useI18n();
 

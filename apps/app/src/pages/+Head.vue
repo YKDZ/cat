@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import logoUrl from "@/assets/logo.png";
-import "@/assets/style.css";
+import logoUrl from "#/assets/logo.png";
+
+import "#/assets/style.css";
 import "vue-sonner/style.css";
 </script>
 

@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import type { ContentNode } from "@cat/shared";
 import type { Language } from "@cat/shared";
-
 import { toShortFixed } from "@cat/shared";
 import { useQuery } from "@pinia/colada";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { ProgressBarLine } from "@/components/progress/bar/index.ts";
-
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/rpc/orpc";
+import type { ProgressBarLine } from "#/components/progress/bar/index.ts";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { orpc } from "#/rpc/orpc.ts";
 
 import Dot from "./Dot.vue";
 import ProgressBar from "./progress/bar/ProgressBar.vue";

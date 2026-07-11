@@ -1,35 +1,37 @@
 {
   "name": "@cat/source-collector",
   "version": "0.1.0",
+  "private": true,
   "license": "MIT",
   "bin": {
-    "source-collector": "./dist/cli.js"
+    "source-collector": "./src/cli.ts"
   },
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./src/index.ts"
-    },
-    "./extractor": {
-      "types": "./dist/extractor.d.ts",
-      "import": "./src/extractor.ts"
-    }
+    ".": "./src/index.ts",
+    "./extractor": "./src/extractor.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
+    "test:integration": "vitest run --exclude '**/*.spec.ts' --no-file-parallelism --reporter=agent --silent=passed-only --passWithNoTests",
+    "test:unit": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@cat/shared": "workspace:*",
+    "@cat/shared": "link:../shared",
     "@vue/compiler-dom": "catalog:",
     "@vue/compiler-sfc": "catalog:",
-    "glob": "^13.0.6",
-    "ts-morph": "^28.0.0",
+    "glob": "catalog:",
+    "ts-morph": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:",
     "vitest": "catalog:"
   }
 }

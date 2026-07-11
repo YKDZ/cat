@@ -2,7 +2,7 @@ import type { PluginServiceType } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
 import type { TranslationAdvise } from "@cat/shared";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 export type GetSuggestionsContext = {
   source: {

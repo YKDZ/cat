@@ -1,5 +1,3 @@
-import type { TermMatch } from "@cat/shared";
-
 import {
   aliasedTable,
   and,
@@ -13,8 +11,10 @@ import {
   termConceptSubject,
   termConceptToSubject,
 } from "@cat/db";
+import type { TermMatch } from "@cat/shared";
+import { assertFirstNonNullish } from "@cat/shared";
 
-import type { DbHandle } from "@/types";
+import type { DbHandle } from "#/types.ts";
 
 /**
  * Represents a resolved term pair (source + translation) for a given concept.
@@ -156,7 +156,7 @@ export const buildConceptVectorizationText = async (
     .limit(1);
 
   if (conceptRows.length === 0) return null;
-  const definition = conceptRows[0].definition;
+  const definition = assertFirstNonNullish(conceptRows).definition;
 
   // 2. Fetch subjects via M:N junction table (limit 3, alphabetical order)
   const subjectRows = await drizzle

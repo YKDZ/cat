@@ -1,21 +1,19 @@
 <script setup lang="ts">
 import type { Language } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
-import { warn } from "node:console";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import LanguagePicker from "@/components/LanguagePicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
+import LanguagePicker from "#/components/LanguagePicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 import type { PickerOption } from "./picker/index.ts";
 
 const { t } = useI18n();
 
-const { rpcWarn } = useToastStore();
+const { warn, rpcWarn } = useToastStore();
 
 const props = defineProps<{
   project: Project & {
@@ -28,7 +26,7 @@ const languageId = ref<string>("");
 
 const addTargetLanguages = () => {
   if (languageId.value === "") {
-    warn("你还没有选择语言");
+    warn(t("你还没有选择语言"));
     return;
   }
   if (
@@ -36,7 +34,7 @@ const addTargetLanguages = () => {
       (language) => language.id === languageId.value,
     )
   ) {
-    warn("该语言已存在");
+    warn(t("该语言已存在"));
     return;
   }
 

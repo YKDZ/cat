@@ -1,7 +1,7 @@
 import { and, eq, notInArray, pullRequest } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const FindOpenAutoTranslatePRQuerySchema = z.object({
   projectId: z.uuid(),

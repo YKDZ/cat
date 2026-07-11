@@ -9,8 +9,8 @@ import {
 
 const repoRoot = resolve(import.meta.dirname, "../../../..");
 const sharedDrizzleDir = resolve(
-  repoRoot,
-  "packages/shared/src/schema/drizzle",
+  process.env.CODEGEN_OUTPUT_DIR ??
+    resolve(repoRoot, "packages/shared/src/schema/drizzle"),
 );
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
@@ -86,7 +86,7 @@ const serializeSchema = (schema: unknown): string => {
       return `z.array(${serializeSchema(Reflect.get(def, "element"))})`;
     }
     case "custom": {
-      return "z.custom<Buffer>()";
+      return "z.instanceof(Uint8Array)";
     }
     case "null": {
       return "z.null()";
@@ -133,7 +133,7 @@ const collectImports = (
   const imports = new Set<string>(fileSpec.imports ?? []);
 
   if (body.includes("DrizzleDateTimeSchema")) {
-    imports.add('import { DrizzleDateTimeSchema } from "../misc.ts";');
+    imports.add('import { DrizzleDateTimeSchema } from "#/schema/misc.ts";');
   }
 
   const jsonImports: string[] = [];
@@ -151,7 +151,9 @@ const collectImports = (
   }
 
   if (jsonImports.length > 0) {
-    imports.add(`import { ${jsonImports.join(", ")} } from "../json.ts";`);
+    imports.add(
+      `import { ${jsonImports.join(", ")} } from "#/schema/json.ts";`,
+    );
   }
 
   return ['import * as z from "zod";', ...Array.from(imports).sort()];

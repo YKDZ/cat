@@ -34,7 +34,7 @@ export interface AsyncDependencySpec {
  * Result of applying a changeset entry.
  */
 export interface ApplicationResult {
-  status: "APPLIED" | "ASYNC_PENDING" | "FAILED";
+  status: "APPLIED" | "ASYNC_PENDING" | "BLOCKED" | "FAILED";
   asyncTaskId?: string;
   errorMessage?: string;
   retryAfter?: number;

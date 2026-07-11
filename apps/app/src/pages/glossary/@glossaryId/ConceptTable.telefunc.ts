@@ -13,8 +13,8 @@ import {
   runAppCommand,
   runAppQuery,
   withAppDrizzleTransaction,
-} from "@/server/domain";
-import { requireTelefuncPermission } from "@/server/telefunc-auth";
+} from "#/server/domain.ts";
+import { requireTelefuncPermission } from "#/server/telefunc-auth.ts";
 
 export type ConceptData = GlossaryConceptData;
 

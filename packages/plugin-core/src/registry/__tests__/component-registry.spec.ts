@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import type { ComponentRecord } from "@/registry/component-registry";
-
-import { ComponentRegistry } from "@/registry/component-registry";
+import type { ComponentRecord } from "#/registry/component-registry.ts";
+import { ComponentRegistry } from "#/registry/component-registry.ts";
 
 // ─── fixtures ────────────────────────────────────────────────────────────────
 

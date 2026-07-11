@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
+import { exactOptionalProps } from "@cat/ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import { Button } from "@cat/ui";
 import {
@@ -18,8 +18,8 @@ import { useForm } from "vee-validate";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 const { info } = useToastStore();
@@ -68,7 +68,7 @@ const onSubmit = handleSubmit(async (values) => {
                 <FormItem>
                   <FormLabel>{{ t("描述") }}</FormLabel>
                   <FormControl>
-                    <Textarea v-bind="componentField" />
+                    <Textarea v-bind="exactOptionalProps(componentField)" />
                   </FormControl>
                 </FormItem>
               </FormField>

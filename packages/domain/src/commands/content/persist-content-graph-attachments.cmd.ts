@@ -1,10 +1,9 @@
+import { contentRelation, contextEvidence } from "@cat/db";
 import type { StructuredContentPayload } from "@cat/shared";
 
-import { contentRelation, contextEvidence } from "@cat/db";
+import type { Command } from "#/types.ts";
 
-import type { Command } from "@/types";
-
-import type { AppliedGraphEnvelope } from "./apply-content-graph-envelope.cmd";
+import type { AppliedGraphEnvelope } from "./apply-content-graph-envelope.cmd.ts";
 
 export type PersistContentGraphAttachmentsInput = {
   payload: StructuredContentPayload;

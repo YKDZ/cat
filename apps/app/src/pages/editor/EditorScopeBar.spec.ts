@@ -3,7 +3,7 @@ import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 import EditorScopeBar from "./EditorScopeBar.vue";
 
@@ -84,13 +84,13 @@ vi.mock("./ContentNodeFilterPicker.vue", () => ({
   }),
 }));
 
-vi.mock("@/components/tooltip/TextTooltip.vue", () => ({
+vi.mock("#/components/tooltip/TextTooltip.vue", () => ({
   default: defineComponent({
     template: "<span><slot /></span>",
   }),
 }));
 
-vi.mock("@/stores/editor/context", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
 

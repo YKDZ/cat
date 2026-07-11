@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { PanelLeftClose, PanelLeftOpen } from "@lucide/vue";
 import { ref } from "vue";
 
-import AgentChatPanel from "@/components/agent/AgentChatPanel.vue";
-import AgentSessionSidebar from "@/components/agent/AgentSessionSidebar.vue";
-import { useAgentStore } from "@/stores/agent";
+import AgentChatPanel from "#/components/agent/AgentChatPanel.vue";
+import AgentSessionSidebar from "#/components/agent/AgentSessionSidebar.vue";
+import { useAgentStore } from "#/stores/agent.ts";
 
 const props = defineProps<{
   project: Pick<Project, "id" | "name">;

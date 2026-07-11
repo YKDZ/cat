@@ -13,10 +13,10 @@ import { Input } from "@cat/ui";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useToastStore } from "@/stores/toast";
-import { clientLogger as logger } from "@/utils/logger";
+import { useToastStore } from "#/stores/toast.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
-import { onCreateConceptSubject } from "./ConceptTable.telefunc";
+import { onCreateConceptSubject } from "./ConceptTable.telefunc.ts";
 
 const { t } = useI18n();
 const toastStore = useToastStore();

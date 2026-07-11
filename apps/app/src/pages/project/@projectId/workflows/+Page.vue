@@ -3,9 +3,8 @@ import { useData } from "vike-vue/useData";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { Data } from "./+data.server.ts";
-
 import ProjectPageDataError from "../ProjectPageDataError.vue";
+import type { Data } from "./+data.server.ts";
 import WorkflowRunList from "./WorkflowRunList.vue";
 
 const { t } = useI18n();

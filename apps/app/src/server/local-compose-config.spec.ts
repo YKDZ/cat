@@ -1,6 +1,7 @@
-import { parse as parseDotenv } from "dotenv";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+import { parse as parseDotenv } from "dotenv";
 import { describe, expect, it } from "vitest";
 
 const appRoot = resolve(import.meta.dirname, "../..");
@@ -38,8 +39,10 @@ const extractComposeDefaultPort = (
     "u",
   );
   const match = composeText.match(pattern);
-  expect(match?.[1]).toBeTruthy();
-  return match![1];
+  const port = match?.[1];
+  expect(port).toBeTruthy();
+  if (port === undefined) throw new Error(`Missing ${variableName}`);
+  return port;
 };
 
 describe("local docker compose config", () => {

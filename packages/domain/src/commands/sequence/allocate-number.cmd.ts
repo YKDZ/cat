@@ -1,7 +1,7 @@
 import { sql } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const AllocateNumberCommandSchema = z.object({
   projectId: z.uuid(),

@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { describe, expect, it } from "vitest";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 import FindingSummary from "./FindingSummary.vue";
 

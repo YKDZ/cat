@@ -13,16 +13,15 @@ import { useQuery } from "@pinia/colada";
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { PickerOption } from "@/components/picker";
-
-import Picker from "@/components/picker/Picker.vue";
-import { useToastStore } from "@/stores/toast";
-import { clientLogger as logger } from "@/utils/logger";
+import type { PickerOption } from "#/components/picker/index.ts";
+import Picker from "#/components/picker/Picker.vue";
+import { useToastStore } from "#/stores/toast.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 import {
   onCreateConcept,
   onRequestConceptSubjects,
-} from "./ConceptTable.telefunc";
+} from "./ConceptTable.telefunc.ts";
 
 const { t } = useI18n();
 const toastStore = useToastStore();

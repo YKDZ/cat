@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { TranslationSuggestion } from "@cat/shared";
-
 import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TokenViewer from "@/components/editor/TokenViewer.vue";
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
-import { useHotKeys } from "@/utils/magic-keys.ts";
+import TokenViewer from "#/components/editor/TokenViewer.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
+import { useHotKeys } from "#/utils/magic-keys.ts";
 
 const { replace } = useEditorTableStore();
 const { project } = storeToRefs(useEditorContextStore());

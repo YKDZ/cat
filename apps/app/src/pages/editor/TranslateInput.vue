@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, useTemplateRef } from "vue";
 
-import TranslationEditor from "@/components/editor/TranslationEditor.vue";
+import TranslationEditor from "#/components/editor/TranslationEditor.vue";
 
 const editorRef =
   useTemplateRef<InstanceType<typeof TranslationEditor>>("editorRef");

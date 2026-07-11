@@ -1,9 +1,8 @@
-import type { PageContextServer } from "vike/types";
-
 import { getGlossaryConceptDetail } from "@cat/domain";
 import { redirect } from "vike/abort";
+import type { PageContextServer } from "vike/types";
 
-import { runAppQuery } from "@/server/domain";
+import { runAppQuery } from "#/server/domain.ts";
 
 export const data = async (ctx: PageContextServer) => {
   const { glossaryId, conceptId } = ctx.routeParams;

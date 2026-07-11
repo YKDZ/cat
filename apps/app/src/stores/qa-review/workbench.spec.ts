@@ -43,7 +43,7 @@ vi.mock("@pinia/colada", async () => {
   };
 });
 
-vi.mock("@/rpc/orpc", () => ({
+vi.mock("#/rpc/orpc.ts", () => ({
   orpc: {
     qaReview: {
       listReviewableElements: mocks.listReviewableElements,
@@ -54,7 +54,7 @@ vi.mock("@/rpc/orpc", () => ({
   },
 }));
 
-vi.mock("@/stores/editor/context", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref, computed } = await import("vue");
 
@@ -78,7 +78,7 @@ vi.mock("@/stores/editor/context", async () => {
   };
 });
 
-vi.mock("@/stores/editor/table", async () => {
+vi.mock("#/stores/editor/table.ts", async () => {
   const { defineStore } = await import("pinia");
 
   return {
@@ -89,7 +89,7 @@ vi.mock("@/stores/editor/table", async () => {
   };
 });
 
-import { useQaReviewWorkbenchStore } from "./workbench";
+import { useQaReviewWorkbenchStore } from "./workbench.ts";
 
 describe("useQaReviewWorkbenchStore", () => {
   beforeEach(() => {

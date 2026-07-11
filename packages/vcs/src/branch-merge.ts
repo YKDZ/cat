@@ -1,6 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import {
   addChangesetEntry,
   batchUpdateEntryBefore,
@@ -16,6 +14,7 @@ import {
   updateBranchBaseChangeset,
   updateBranchStatus,
 } from "@cat/domain";
+import type { JSONType } from "@cat/shared";
 
 import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
 

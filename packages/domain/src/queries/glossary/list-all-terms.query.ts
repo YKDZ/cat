@@ -2,7 +2,7 @@ import { eq, term, termConcept } from "@cat/db";
 import { isNotNull } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListAllTermsQuerySchema = z.object({});
 

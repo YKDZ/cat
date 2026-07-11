@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { RawTermResult } from "./types";
-
-import { augmentWithSparseLane, computeSparseEvidence } from "./sparse-lane";
+import { augmentWithSparseLane, computeSparseEvidence } from "./sparse-lane.ts";
+import type { RawTermResult } from "./types.ts";
 
 describe("computeSparseEvidence", () => {
   it("returns null when no content words match", () => {

@@ -1,15 +1,16 @@
+import { writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 // oxlint-disable no-console -- intentional CLI output
 // oxlint-disable typescript-eslint/no-unsafe-member-access -- Commander opts are typed as any
 // oxlint-disable typescript-eslint/no-unsafe-argument -- Commander opts are typed as any
 import { Command } from "commander";
-import { writeFileSync } from "node:fs";
-import { resolve } from "node:path";
 
-import { loadSuite } from "@/config";
-import { evaluate } from "@/eval";
-import { runHarness } from "@/harness";
-import { initObservability } from "@/observability";
-import { generateReport } from "@/report";
+import { loadSuite } from "#/config/index.ts";
+import { evaluate } from "#/eval/index.ts";
+import { runHarness } from "#/harness/index.ts";
+import { initObservability } from "#/observability/index.ts";
+import { generateReport } from "#/report/index.ts";
 
 const program = new Command();
 
@@ -42,14 +43,15 @@ program
     }
 
     if (opts.clearCache) {
-      const { VectorCache } = await import("@/seeder/vector-cache");
+      const { VectorCache } = await import("#/seeder/vector-cache.ts");
       new VectorCache(cacheDir).clearAll();
       console.log("[eval] Vector cache cleared.");
     }
 
+    const otlpHeaders = parseHeaders(opts.otlpHeaders);
     const otel = initObservability({
       otlpEndpoint: opts.otlp,
-      otlpHeaders: parseHeaders(opts.otlpHeaders),
+      ...(otlpHeaders === undefined ? {} : { otlpHeaders }),
     });
 
     try {
@@ -114,7 +116,7 @@ program
     }
 
     const suite = loadSuite(absoluteSuiteDir);
-    const { seed } = await import("@/seeder");
+    const { seed } = await import("#/seeder/index.ts");
     const ctx = await seed({
       suite,
       cacheDir,

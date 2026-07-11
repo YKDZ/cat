@@ -1,20 +1,53 @@
-import type { PluginCapabilities } from "@cat/domain";
+import { pbkdf2, timingSafeEqual } from "node:crypto";
 
 import {
   AuthFactor,
   type AuthFactorExecutionContext,
   type AuthFactorResult,
+  type PluginCapabilities,
 } from "@cat/plugin-core";
-import { verifyPassword } from "@cat/server-shared";
 import * as z from "zod";
+
+const expectedKeyLength = 64;
+
+const verifyPassword = async (
+  password: string,
+  storedSaltHash: string,
+): Promise<boolean> => {
+  const [salt, keyHex] = storedSaltHash.split(":");
+  if (!salt || !keyHex) return false;
+
+  const storedKey = Buffer.from(keyHex, "hex");
+  if (storedKey.length !== expectedKeyLength) return false;
+
+  return new Promise<boolean>((resolve, reject) => {
+    pbkdf2(
+      password,
+      salt,
+      1024,
+      expectedKeyLength,
+      "sha512",
+      (error, derivedKey) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve(timingSafeEqual(storedKey, derivedKey));
+      },
+    );
+  });
+};
 
 const InputSchema = z.object({
   password: z.string().min(1),
 });
 
 export class PasswordFactor extends AuthFactor {
-  constructor(private readonly capabilities: PluginCapabilities) {
+  private readonly capabilities: PluginCapabilities;
+
+  constructor(capabilities: PluginCapabilities) {
     super();
+    this.capabilities = capabilities;
   }
 
   getId(): string {

@@ -13,7 +13,7 @@ import {
 import { QaResultItemSchema, type QaResultItem } from "@cat/shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 export const QAInputSchema = z.object({
   source: z.object({

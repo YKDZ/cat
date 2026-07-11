@@ -1,5 +1,6 @@
-import vue from "@vitejs/plugin-vue";
 import { resolve } from "node:path";
+
+import vue from "@vitejs/plugin-vue";
 import { defineConfig, type EnvironmentOptions } from "vite";
 
 const pascalToKebab = (input: string): string => {
@@ -74,7 +75,11 @@ export default defineConfig({
         .map(([, environment]) => environment);
 
       // Let server build empty the output dir for the rest of building at first
-      await builder.build(builder.environments["server"]);
+      const serverEnvironment = builder.environments["server"];
+      if (serverEnvironment === undefined) {
+        throw new Error("Missing server build environment");
+      }
+      await builder.build(serverEnvironment);
 
       await Promise.all(
         environments.map(async (environment) => builder.build(environment)),

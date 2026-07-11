@@ -1,5 +1,4 @@
 import type { ToolDefinition as LLMToolDefinition } from "@cat/plugin-core";
-
 import { toJSONSchema } from "zod";
 
 import type {

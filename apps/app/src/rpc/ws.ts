@@ -1,11 +1,10 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
-import type { RouterClient } from "@orpc/server";
-
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
+import type { RouterClient } from "@orpc/server";
 import { WebSocket } from "partysocket";
 
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 const wsOrigin =
   typeof window === "undefined"
@@ -20,7 +19,7 @@ const link = new RPCLink({
   // oxlint-disable-next-line no-unsafe-type-assertion -- partysocket types readyState as number instead of 0|1|2|3
   websocket: socket as unknown as Pick<
     globalThis.WebSocket,
-    "addEventListener" | "send" | "readyState"
+    "addEventListener" | "removeEventListener" | "send" | "readyState"
   >,
   headers: () => ({}),
   interceptors: [

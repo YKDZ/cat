@@ -9,7 +9,7 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { insertMemory } from "./memory";
+import { insertMemory } from "./memory.ts";
 
 /**
  * Input for promoting an approved translation into project memories.

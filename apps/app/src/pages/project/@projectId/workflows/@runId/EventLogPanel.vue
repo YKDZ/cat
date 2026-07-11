@@ -10,7 +10,7 @@ import { ChevronDown } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useWorkflowStore } from "@/stores/workflow";
+import { useWorkflowStore } from "#/stores/workflow.ts";
 
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();

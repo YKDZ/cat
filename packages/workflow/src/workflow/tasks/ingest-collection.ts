@@ -2,7 +2,7 @@ import { diffStructuredContentOp } from "@cat/operations";
 import { StructuredContentPayloadSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { defineGraph, defineNode } from "@/graph/dsl";
+import { defineGraph, defineNode } from "#/graph/dsl/index.ts";
 
 export const IngestCollectionInputSchema = z.object({
   payload: StructuredContentPayloadSchema,

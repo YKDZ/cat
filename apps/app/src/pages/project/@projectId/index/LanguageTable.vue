@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Language } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { Table, TableBody } from "@cat/ui";
 
 import LanguageTableRow from "./LanguageTableRow.vue";

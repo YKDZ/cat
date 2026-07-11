@@ -1,10 +1,9 @@
 import type { OperationContext } from "@cat/domain";
 import type { VectorStorage } from "@cat/plugin-core";
-
 import { getServiceFromDBId, resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
-import { retrieveEmbeddingsOp } from "./retrieve-embeddings";
+import { retrieveEmbeddingsOp } from "./retrieve-embeddings.ts";
 
 export const SearchChunkInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),

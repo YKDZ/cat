@@ -1,6 +1,5 @@
-import type { MaybeRefOrGetter } from "vue";
-
 import { useMagicKeys, whenever } from "@vueuse/core";
+import type { MaybeRefOrGetter } from "vue";
 import { toValue } from "vue";
 
 /**

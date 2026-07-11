@@ -1,6 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-import type { Relation } from "@cat/shared";
-
 import {
   executeCommand,
   executeQuery,
@@ -8,6 +6,7 @@ import {
   loadUserSystemRoles as loadUserSystemRolesQuery,
   seedSystemRoles as seedSystemRolesCmd,
 } from "@cat/domain";
+import type { Relation } from "@cat/shared";
 
 /**
  * 系统启动时调用（幂等）：确保 4 个系统角色存在。

@@ -4,6 +4,8 @@ import {
   type CapabilityCheck,
   checkSql,
   classifyFromChecks,
+  evaluatePgliteGate,
+  pgliteGateExitCode,
 } from "./pglite-compat-gate.ts";
 
 const available = (name: string): CapabilityCheck => ({
@@ -57,5 +59,51 @@ describe("pglite compatibility gate", () => {
     ];
 
     expect(classifyFromChecks(checks)).toBe("partial-search-runtime");
+  });
+
+  it("passes when core SQL works and only documented search probes are unavailable", () => {
+    const report = evaluatePgliteGate([
+      available("pglite package"),
+      available("basic sql"),
+      available("transactions"),
+      available("on conflict returning"),
+      available("skip locked"),
+      missing("pgvector extension"),
+      missing("pg_trgm extension"),
+      missing("rum extension"),
+      missing("zhparser extension"),
+      missing("fts parser"),
+      missing("rum ranking"),
+      missing("hnsw index"),
+    ]);
+
+    expect(report.passed).toBe(true);
+    expect(report.failures).toEqual([]);
+    expect(report.expectedUnsupported).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ name: "pgvector extension" }),
+        expect.objectContaining({ name: "rum ranking" }),
+      ]),
+    );
+    expect(pgliteGateExitCode(report)).toBe(0);
+  });
+
+  it("fails nonzero when a required capability regresses", () => {
+    const report = evaluatePgliteGate([
+      available("pglite package"),
+      available("basic sql"),
+      missing("transactions"),
+      available("on conflict returning"),
+      available("skip locked"),
+    ]);
+
+    expect(report.passed).toBe(false);
+    expect(report.failures).toEqual([
+      expect.objectContaining({
+        name: "transactions",
+        details: "transactions is unavailable",
+      }),
+    ]);
+    expect(pgliteGateExitCode(report)).toBe(1);
   });
 });

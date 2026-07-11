@@ -1,8 +1,8 @@
 import { createVectorizedStringOp } from "@cat/operations";
 import * as z from "zod";
 
-import { generateCacheKey } from "@/graph/cache";
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { generateCacheKey } from "#/graph/cache.ts";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 export const CreateVectorizedStringInputSchema = z.object({
   data: z.array(

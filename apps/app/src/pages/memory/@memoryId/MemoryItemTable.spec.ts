@@ -1,7 +1,7 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { i18n } from "../../../utils/i18n";
+import { i18n } from "../../../utils/i18n.ts";
 
 const mocks = vi.hoisted(() => ({
   listItems: vi.fn(),
@@ -10,7 +10,7 @@ const mocks = vi.hoisted(() => ({
   rpcWarn: vi.fn(),
 }));
 
-vi.mock("@/rpc/orpc", () => ({
+vi.mock("#/rpc/orpc.ts", () => ({
   orpc: {
     memory: {
       listItems: mocks.listItems,
@@ -19,7 +19,7 @@ vi.mock("@/rpc/orpc", () => ({
   },
 }));
 
-vi.mock("@/stores/toast.ts", () => ({
+vi.mock("#/stores/toast.ts", () => ({
   useToastStore: () => ({
     info: mocks.info,
     rpcWarn: mocks.rpcWarn,

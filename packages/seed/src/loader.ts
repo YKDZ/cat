@@ -1,9 +1,10 @@
-import * as yaml from "js-yaml";
 import { existsSync, readFileSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
+
+import * as yaml from "js-yaml";
 import * as z from "zod";
 
-import { interpolateEnvVars } from "./env-interpolation";
+import { interpolateEnvVars } from "./env-interpolation.ts";
 import {
   type DevSeedConfig,
   DevSeedConfigSchema,
@@ -19,7 +20,7 @@ import {
   type PluginOverride,
   type UserSeed,
   UserSeedSchema,
-} from "./schemas";
+} from "./schemas.ts";
 
 /**
  * Summary of a loaded local seed override source, excluding config values.
@@ -56,7 +57,9 @@ export const readYamlWithEnv = <T>(
   const raw = readFileSync(filePath, "utf-8");
   const parsed = yaml.load(raw);
   const interpolated = interpolateEnvVars(parsed, {
-    preserveMissing: options.preserveMissingEnv,
+    ...(options.preserveMissingEnv === undefined
+      ? {}
+      : { preserveMissing: options.preserveMissingEnv }),
   });
   return schema.parse(interpolated);
 };

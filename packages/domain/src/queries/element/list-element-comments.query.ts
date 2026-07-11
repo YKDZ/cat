@@ -1,9 +1,8 @@
 import * as z from "zod";
 
-import type { Query } from "@/types";
-
-import { listChildComments } from "@/queries/comment/list-child-comments.query";
-import { listRootComments } from "@/queries/comment/list-root-comments.query";
+import { listChildComments } from "#/queries/comment/list-child-comments.query.ts";
+import { listRootComments } from "#/queries/comment/list-root-comments.query.ts";
+import type { Query } from "#/types.ts";
 
 export const ListElementCommentsQuerySchema = z.object({
   elementId: z.int(),

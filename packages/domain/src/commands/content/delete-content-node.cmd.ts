@@ -1,7 +1,7 @@
 import { contentNode, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const DeleteContentNodeCommandSchema = z.object({
   contentNodeId: z.uuidv4(),

@@ -1,20 +1,19 @@
 import type { AmbiguityEnvelope } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
-
-import { applyBandOrder } from "../rerank/apply-band-order";
-import { normalizePrecisionCandidates } from "../rerank/normalize";
-import { orchestrateRerank } from "../rerank/orchestrator";
+import { applyBandOrder } from "../rerank/apply-band-order.ts";
+import { normalizePrecisionCandidates } from "../rerank/normalize.ts";
+import { orchestrateRerank } from "../rerank/orchestrator.ts";
+import type { RecallCandidate } from "./types.ts";
 
 type ApplyModelRerankerInput = {
   ranked: RecallCandidate[];
   queryText: string;
   envelope: AmbiguityEnvelope;
   pluginManager?: unknown;
-  signal?: AbortSignal;
-  rerankMode?: "baseline" | "reranked";
-  rerankProviderId?: number;
-  rerankTimeoutMs?: number;
+  signal?: AbortSignal | undefined;
+  rerankMode?: "baseline" | "reranked" | undefined;
+  rerankProviderId?: number | undefined;
+  rerankTimeoutMs?: number | undefined;
 };
 
 const noteAll = (
