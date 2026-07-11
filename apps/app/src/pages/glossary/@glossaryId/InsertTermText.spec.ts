@@ -3,8 +3,8 @@ import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { useBranchStore } from "@/stores/branch";
-import { i18n } from "@/utils/i18n";
+import { useBranchStore } from "#/stores/branch.ts";
+import { i18n } from "#/utils/i18n.ts";
 
 const mocks = vi.hoisted(() => ({
   insertTerm: vi.fn(),
@@ -37,7 +37,7 @@ vi.mock("@cat/ui", async () => {
   };
 });
 
-vi.mock("@/components/LanguagePicker.vue", () => ({
+vi.mock("#/components/LanguagePicker.vue", () => ({
   default: defineComponent({
     inheritAttrs: false,
     props: {
@@ -52,7 +52,7 @@ vi.mock("@/components/LanguagePicker.vue", () => ({
   }),
 }));
 
-vi.mock("@/rpc/orpc", () => ({
+vi.mock("#/rpc/orpc.ts", () => ({
   orpc: {
     glossary: {
       insertTerm: (input: unknown) => mocks.insertTerm(input),
@@ -60,7 +60,7 @@ vi.mock("@/rpc/orpc", () => ({
   },
 }));
 
-vi.mock("@/stores/toast.ts", () => ({
+vi.mock("#/stores/toast.ts", () => ({
   useToastStore: () => ({
     info: mocks.info,
     warn: mocks.warn,

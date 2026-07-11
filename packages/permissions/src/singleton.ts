@@ -1,6 +1,6 @@
 import type { CacheStore, DbHandle } from "@cat/domain";
 
-import { createPermissionEngine, type PermissionEngine } from "@/engine";
+import { createPermissionEngine, type PermissionEngine } from "#/engine.ts";
 
 declare global {
   // oxlint-disable-next-line no-var

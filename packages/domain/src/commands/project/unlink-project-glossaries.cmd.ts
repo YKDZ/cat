@@ -1,7 +1,7 @@
 import { and, eq, glossaryToProject, inArray } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const UnlinkProjectGlossariesCommandSchema = z.object({
   projectId: z.uuidv4(),

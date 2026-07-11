@@ -15,11 +15,11 @@ import { onMounted, onUnmounted, watch } from "vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { ws } from "@/rpc/ws";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorGhostTextStore } from "@/stores/editor/ghost-text.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
+import { ws } from "#/rpc/ws.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorGhostTextStore } from "#/stores/editor/ghost-text.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
 
 import {
   ghostTextExtension,
@@ -71,8 +71,11 @@ let suppressStoreUpdate = false;
 // Ghost-text-aware placeholder: hides when a suggestion is active so the
 // suggestion widget is not rendered on top of / after the placeholder text.
 class PlaceholderWidget extends WidgetType {
-  constructor(private readonly text: string) {
+  private readonly text: string;
+
+  constructor(text: string) {
     super();
+    this.text = text;
   }
   override toDOM(): HTMLElement {
     const el = document.createElement("span");

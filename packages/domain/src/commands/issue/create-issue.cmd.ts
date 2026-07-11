@@ -3,10 +3,9 @@ import { safeZDotJson } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { allocateNumber } from "@/commands/sequence/allocate-number.cmd.ts";
-import { domainEvent } from "@/events/domain-events";
+import { allocateNumber } from "#/commands/sequence/allocate-number.cmd.ts";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const CreateIssueCommandSchema = z.object({
   projectId: z.uuid(),

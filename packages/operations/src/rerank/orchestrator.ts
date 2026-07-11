@@ -1,3 +1,4 @@
+import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import type {
   RerankCandidateItem,
   RerankDecisionTrace,
@@ -5,8 +6,6 @@ import type {
   RerankResponse,
   RerankScoreEntrySchema,
 } from "@cat/shared";
-
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import * as z from "zod";
 
 type ScoreEntry = z.infer<typeof RerankScoreEntrySchema>;
@@ -14,7 +13,7 @@ type ScoreEntry = z.infer<typeof RerankScoreEntrySchema>;
 type OrchestrateRerankInput = {
   request: RerankRequest;
   pluginManager: unknown;
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
 };
 
 type OrchestrateRerankResult = {
@@ -101,7 +100,10 @@ export const orchestrateRerank = async ({
 
   let response: RerankResponse;
   try {
-    response = await provider.service.rerank({ request, signal });
+    response = await provider.service.rerank({
+      request,
+      ...(signal ? { signal } : {}),
+    });
   } catch (error) {
     if (signal?.aborted) {
       return failClosedTrace(

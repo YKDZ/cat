@@ -1,13 +1,12 @@
 import type { RecallEvidence } from "@cat/shared";
-
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
-import { useProfileStore } from "../profile";
+import { useProfileStore } from "../profile.ts";
 
 type TermRelationWithDetails = {
   term: string;
@@ -19,7 +18,7 @@ type TermRelationWithDetails = {
   conceptId?: number;
   glossaryId?: string;
   evidences?: RecallEvidence[];
-  matchedText?: string;
+  matchedText?: string | undefined;
   concept?: {
     subjects: Array<{ name: string; defaultDefinition: string | null }>;
     definition?: string | null;
@@ -111,7 +110,11 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
         return;
       }
 
-      if (terms.value[existingIndex].confidence <= relation.confidence) {
+      const existing = terms.value[existingIndex];
+      if (
+        existing !== undefined &&
+        existing.confidence <= relation.confidence
+      ) {
         terms.value.splice(existingIndex, 1, relation);
       }
     });

@@ -1,7 +1,7 @@
-import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
-import type { JSONType } from "@cat/shared";
+import { join } from "node:path";
 import type { Readable } from "node:stream";
 
+import type { PutObjectCommandInput } from "@aws-sdk/client-s3";
 import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import {
   DeleteObjectCommand,
@@ -21,7 +21,7 @@ import {
   type HeadContext,
   type PutStreamContext,
 } from "@cat/plugin-core";
-import { join } from "node:path";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
 const S3ConfigSchema = z.object({
@@ -137,10 +137,10 @@ export class Provider extends StorageProvider {
             : undefined;
 
         onProgress({
-          loaded: progress.loaded,
-          total: progress.total,
-          part: progress.part,
-          percentage,
+          ...(progress.loaded === undefined ? {} : { loaded: progress.loaded }),
+          ...(progress.total === undefined ? {} : { total: progress.total }),
+          ...(progress.part === undefined ? {} : { part: progress.part }),
+          ...(percentage === undefined ? {} : { percentage }),
         });
       });
     }
@@ -253,6 +253,7 @@ export class Provider extends StorageProvider {
     // 去掉末尾的 continuation bytes
     while (sliceEnd > 0) {
       const lastByte = buffer[sliceEnd - 1];
+      if (lastByte === undefined) break;
       // UTF-8 continuation bytes: 10xxxxxx (128-191)
       if (lastByte >= 128 && lastByte < 192) {
         sliceEnd -= 1;
@@ -264,6 +265,7 @@ export class Provider extends StorageProvider {
     // 检查最后一个字符是否完整
     if (sliceEnd > 0) {
       const lastByte = buffer[sliceEnd - 1];
+      if (lastByte === undefined) return { data: "", total, actualEnd };
       let expectedLength = 0;
 
       if (lastByte < 128) {
@@ -281,6 +283,10 @@ export class Provider extends StorageProvider {
         let isComplete = true;
         for (let i = sliceEnd - expectedLength + 1; i < sliceEnd; i += 1) {
           const byte = buffer[i];
+          if (byte === undefined) {
+            isComplete = false;
+            break;
+          }
           if (byte < 128 || byte >= 192) {
             isComplete = false;
             break;

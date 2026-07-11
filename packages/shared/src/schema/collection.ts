@@ -10,4 +10,4 @@ export {
   type StructuredEvidenceInput as CollectionEvidence,
   type StructuredRelationInput as CollectionRelation,
   type StructuredTranslatableElementInput as CollectionElement,
-} from "@/schema/content.ts";
+} from "#/schema/content.ts";

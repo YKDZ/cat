@@ -5,7 +5,7 @@ import {
 } from "@cat/server-shared";
 import { describe, expect, it } from "vitest";
 
-import { builtinDefaultPluginEntries, defaultPluginIds } from "./catalog";
+import { builtinDefaultPluginEntries, defaultPluginIds } from "./catalog.ts";
 
 describe("default plugin catalog", () => {
   it("matches the shared product defaults and excludes pgvector-storage", () => {

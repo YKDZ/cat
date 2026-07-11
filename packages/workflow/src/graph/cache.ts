@@ -93,10 +93,9 @@ export class MemoryCacheStore implements CacheStore {
   ): Promise<void> => {
     this.storage.set(key, {
       value: structuredClone(value),
-      expiresAt:
-        typeof ttlSeconds === "number" && ttlSeconds > 0
-          ? Date.now() + ttlSeconds * 1000
-          : undefined,
+      ...(typeof ttlSeconds === "number" && ttlSeconds > 0
+        ? { expiresAt: Date.now() + ttlSeconds * 1000 }
+        : {}),
     });
   };
 

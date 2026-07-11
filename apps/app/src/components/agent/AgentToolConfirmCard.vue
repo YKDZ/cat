@@ -20,9 +20,8 @@ import {
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { PendingToolConfirmation } from "@/stores/agent";
-
-import { useAgentStore } from "@/stores/agent";
+import type { PendingToolConfirmation } from "#/stores/agent.ts";
+import { useAgentStore } from "#/stores/agent.ts";
 
 const props = defineProps<{
   confirmation: PendingToolConfirmation;

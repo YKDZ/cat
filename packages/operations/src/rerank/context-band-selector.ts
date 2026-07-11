@@ -22,7 +22,7 @@ type SelectContextBandInput<T> = {
  * positive context evidence. Returns null when the cluster is not genuinely
  * ambiguous or the top candidate is clearly ahead.
  */
-export const selectContextBand = <T>({
+export const selectContextBand = <T extends object>({
   ranked,
   getCandidateId,
   getConfidence,
@@ -30,6 +30,7 @@ export const selectContextBand = <T>({
 }: SelectContextBandInput<T>): RerankBand | null => {
   if (ranked.length < 2) return null;
   const anchor = ranked[0];
+  if (anchor === undefined) return null;
   const members = [anchor];
 
   for (const candidate of ranked.slice(1)) {

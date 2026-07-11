@@ -2,12 +2,11 @@
 import { useData } from "vike-vue/useData";
 import { computed, inject } from "vue";
 
-import { useInjectionKey } from "@/utils/provide.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data as LayoutData } from "../+data.server.ts";
-import type { Data } from "./+data.server.ts";
-
 import ProjectPageDataError from "../ProjectPageDataError.vue";
+import type { Data } from "./+data.server.ts";
 import GlossaryLinkerBtn from "./GlossaryLinkerBtn.vue";
 import GlossaryList from "./GlossaryList.vue";
 

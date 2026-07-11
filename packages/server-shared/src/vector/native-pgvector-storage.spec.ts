@@ -1,8 +1,7 @@
 import type { PluginCapabilities } from "@cat/domain";
-
 import { describe, expect, it, vi } from "vitest";
 
-import { NativePgVectorStorage } from "./native-pgvector-storage";
+import { NativePgVectorStorage } from "./native-pgvector-storage.ts";
 
 const createVectorCapabilities = () => {
   const ensureSchema = vi.fn().mockResolvedValue(undefined);

@@ -1,6 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-import type { EditorElement } from "@cat/shared";
-
 import {
   executeQuery,
   getBranchById,
@@ -9,6 +7,7 @@ import {
   listEditorScopeElements,
   listElementsWithChunkIdsByIds,
 } from "@cat/domain";
+import type { EditorElement } from "@cat/shared";
 import {
   EditorTranslationStatusFilterSchema,
   OperationScopeSchema,

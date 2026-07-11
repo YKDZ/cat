@@ -1,6 +1,6 @@
 import { asc, user } from "@cat/db";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const getFirstRegisteredUser: Query<
   Record<string, never>,

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 
-import { useInjectionKey } from "@/utils/provide.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data } from "../+data.server.ts";
-
 import DetailCard from "./DetailCard.vue";
 import LanguageTable from "./LanguageTable.vue";
 import Readme from "./Readme.vue";

@@ -4,15 +4,15 @@
  * lastReviewed:2026-02-25
  */
 
-export { default as Combobox } from "./Combobox.vue";
-export { default as ComboboxAnchor } from "./ComboboxAnchor.vue";
-export { default as ComboboxEmpty } from "./ComboboxEmpty.vue";
-export { default as ComboboxGroup } from "./ComboboxGroup.vue";
-export { default as ComboboxInput } from "./ComboboxInput.vue";
-export { default as ComboboxItem } from "./ComboboxItem.vue";
-export { default as ComboboxItemIndicator } from "./ComboboxItemIndicator.vue";
-export { default as ComboboxList } from "./ComboboxList.vue";
-export { default as ComboboxSeparator } from "./ComboboxSeparator.vue";
-export { default as ComboboxViewport } from "./ComboboxViewport.vue";
+export { default as Combobox } from "#/components/combobox/Combobox.vue";
+export { default as ComboboxAnchor } from "#/components/combobox/ComboboxAnchor.vue";
+export { default as ComboboxEmpty } from "#/components/combobox/ComboboxEmpty.vue";
+export { default as ComboboxGroup } from "#/components/combobox/ComboboxGroup.vue";
+export { default as ComboboxInput } from "#/components/combobox/ComboboxInput.vue";
+export { default as ComboboxItem } from "#/components/combobox/ComboboxItem.vue";
+export { default as ComboboxItemIndicator } from "#/components/combobox/ComboboxItemIndicator.vue";
+export { default as ComboboxList } from "#/components/combobox/ComboboxList.vue";
+export { default as ComboboxSeparator } from "#/components/combobox/ComboboxSeparator.vue";
+export { default as ComboboxViewport } from "#/components/combobox/ComboboxViewport.vue";
 
 export { ComboboxCancel, ComboboxTrigger } from "reka-ui";

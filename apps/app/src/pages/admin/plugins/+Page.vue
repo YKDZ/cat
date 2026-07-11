@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
 
-import PluginList from "@/components/PluginList.vue";
-import PluginReloadBtn from "@/components/PluginReloadBtn.vue";
+import PluginList from "#/components/PluginList.vue";
+import PluginReloadBtn from "#/components/PluginReloadBtn.vue";
 
 import type { Data } from "./+data.server.ts";
 

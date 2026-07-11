@@ -1,13 +1,12 @@
 import type { DbHandle } from "@cat/domain";
-import type { EntityType } from "@cat/shared";
-import type { JSONType } from "@cat/shared";
-
 import {
   executeQuery,
   getBranchById,
   getLatestBranchChangesetId,
   listBranchChangesetEntries,
 } from "@cat/domain";
+import type { EntityType } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 
 /**
  * 如果分支内有 DELETE 记录，返回 null（表示被删除）。

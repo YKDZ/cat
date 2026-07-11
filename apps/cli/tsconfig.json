@@ -1,19 +1,8 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "files": [],
+  "extends": "../../tsconfig.node-base.json",
   "compilerOptions": {
-    "types": ["node"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "noEmit": true,
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["scripts/**/*.ts", "vite.config.ts", "src/**/*.d.ts"],
-  "references": [
-    {
-      "path": "./tsconfig.lib.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
-    }
-  ]
+  "include": ["src/**/*.ts", "scripts/**/*.ts"]
 }

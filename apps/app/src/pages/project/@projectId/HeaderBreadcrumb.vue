@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
 
-import BranchCombobox from "@/components/shared/BranchCombobox.vue";
-import Slash from "@/components/Slash.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
+import BranchCombobox from "#/components/shared/BranchCombobox.vue";
+import Slash from "#/components/Slash.vue";
+import UserAvatar from "#/components/UserAvatar.vue";
 
 defineProps<{
   project: Project;

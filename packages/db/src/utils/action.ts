@@ -1,6 +1,5 @@
-import type { PgColumn } from "drizzle-orm/pg-core";
-
 import { sql } from "drizzle-orm";
+import type { PgColumn } from "drizzle-orm/pg-core";
 
 export const increment = <T extends PgColumn>(
   column: T,

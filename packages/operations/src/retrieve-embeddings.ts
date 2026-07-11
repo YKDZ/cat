@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, getChunkVectorStorageId } from "@cat/domain";
 import { PluginManager, type VectorStorage } from "@cat/plugin-core";

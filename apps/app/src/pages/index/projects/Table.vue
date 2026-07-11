@@ -24,7 +24,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref, onMounted, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { onRequestProjects, type ProjectListItem } from "./Table.telefunc";
+import { onRequestProjects, type ProjectListItem } from "./Table.telefunc.ts";
 import TableItem from "./TableItem.vue";
 
 const { t } = useI18n();

@@ -12,7 +12,7 @@ import { Plus } from "@lucide/vue";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
-import PluginComponentSlot from "@/components/plugin/PluginComponentSlot.vue";
+import PluginComponentSlot from "#/components/plugin/PluginComponentSlot.vue";
 
 const { t } = useI18n();
 </script>

@@ -1,5 +1,4 @@
 import type { CheckContext, QAIssue } from "@cat/plugin-core";
-
 import { QAChecker } from "@cat/plugin-core";
 
 import { countTokenValues } from "@/utils/token.ts";
@@ -38,16 +37,16 @@ export class NumberConsistencyChecker extends QAChecker {
           (t) => t.type === "number" && t.value === num,
         );
 
-        issues.push({
+        const issue: QAIssue = {
           severity: "error",
           message: `译文中存在多余数字 "${num}"`,
           ruleId: "basic.number-consistency.extra",
           ruleFamily: "number",
-          targetTokenIndex:
-            targetTokenIndex !== -1 ? targetTokenIndex : undefined,
           defaultAction: "NEEDS_REVIEW",
           confidence: 0.7,
-        });
+        };
+        if (targetTokenIndex !== -1) issue.targetTokenIndex = targetTokenIndex;
+        issues.push(issue);
       }
     }
 
@@ -92,16 +91,16 @@ export class VariableConsistencyChecker extends QAChecker {
           (t) => t.type === "variable" && t.value === variable,
         );
 
-        issues.push({
+        const issue: QAIssue = {
           severity: "error",
           message: `译文中存在多余变量 "${variable}"`,
           ruleId: "basic.variable-consistency.extra",
           ruleFamily: "placeholder",
-          targetTokenIndex:
-            targetTokenIndex !== -1 ? targetTokenIndex : undefined,
           defaultAction: "BLOCK_APPROVAL",
           confidence: 1,
-        });
+        };
+        if (targetTokenIndex !== -1) issue.targetTokenIndex = targetTokenIndex;
+        issues.push(issue);
       }
     }
 

@@ -10,7 +10,7 @@ import { AgentDefinitionTypeSchema, ScopeTypeSchema } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateAgentDefinitionCommandSchema = z.object({
   name: z.string().min(1),

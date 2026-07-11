@@ -1,11 +1,10 @@
 import type { OperationContext } from "@cat/domain";
-import type { NlpSegmentResult } from "@cat/shared";
-
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import type { NlpSegmentResult } from "@cat/shared";
 import { NlpSegmentResultSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { intlSegmenterFallback } from "./nlp-intl-fallback";
+import { intlSegmenterFallback } from "./nlp-intl-fallback.ts";
 
 export const NlpSegmentInputSchema = z.object({
   nlpSegmenterId: z.int().optional().meta({
@@ -53,6 +52,6 @@ export const nlpSegmentOp = async (
   return segmenter.service.segment({
     text: data.text,
     languageId: data.languageId,
-    signal: ctx?.signal,
+    ...(ctx?.signal ? { signal: ctx.signal } : {}),
   });
 };

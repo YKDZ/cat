@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { NonNullJSONType } from "@cat/shared";
-
 import { Badge, Card, CardContent, CardHeader, CardTitle } from "@cat/ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { NonNullPluginDetail, PluginProbeResult } from "./types";
-
 import PluginConfigEditor from "./PluginConfigEditor.vue";
 import PluginLifecycleActions from "./PluginLifecycleActions.vue";
 import PluginProbePanel from "./PluginProbePanel.vue";
+import type { NonNullPluginDetail, PluginProbeResult } from "./types.ts";
 
 const { t } = useI18n();
 

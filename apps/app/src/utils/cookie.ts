@@ -1,6 +1,5 @@
-import type { PageContext, PageContextServer } from "vike/types";
-
 import { useCookies } from "@vueuse/integrations/useCookies";
+import type { PageContext, PageContextServer } from "vike/types";
 import { customRef, ref, watch, type Ref } from "vue";
 
 type CookieRefOptions<T> = {
@@ -58,7 +57,7 @@ export const useCookieRef = <T = string>(
   name: string,
   options: CookieRefOptions<T>,
 ): Ref<T | undefined> => {
-  const { defaultValue = undefined } = options;
+  const { defaultValue } = options;
 
   if (!import.meta.env.SSR) {
     const cookies = useCookies([name], {

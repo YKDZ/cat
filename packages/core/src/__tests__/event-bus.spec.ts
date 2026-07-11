@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AnyEventOf, EventBus, EventHandler } from "../event-bus.ts";
-
 import { InProcessEventBus, createEvent } from "../event-bus.ts";
 
 // Minimal test event map — no external deps needed

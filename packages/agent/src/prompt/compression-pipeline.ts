@@ -66,7 +66,10 @@ const countTokens = (
 export class CompressionPipeline {
   private readonly tokenTarget: number;
 
-  constructor(private readonly config: CompressionConfig) {
+  private readonly config: CompressionConfig;
+
+  constructor(config: CompressionConfig) {
+    this.config = config;
     this.tokenTarget = Math.floor(
       config.contextWindowSize * config.contextWindowRatio,
     );
@@ -93,7 +96,11 @@ export class CompressionPipeline {
       const tokens = countTokens(current, estimateTokens);
       if (tokens <= this.tokenTarget) break;
 
-      current = levels[i](current);
+      const level = levels[i];
+      if (!level) {
+        throw new Error(`compression level ${i} is not configured`);
+      }
+      current = level(current);
       levelReached = i + 1;
     }
 

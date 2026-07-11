@@ -118,8 +118,11 @@ export const ghostTextStateField = StateField.define<GhostTextState>({
 // ─── Widget ───
 
 class GhostTextWidget extends WidgetType {
-  constructor(readonly text: string) {
+  readonly text: string;
+
+  constructor(text: string) {
     super();
+    this.text = text;
   }
 
   override eq(other: GhostTextWidget): boolean {

@@ -1,8 +1,7 @@
 import type { DbHandle } from "@cat/domain";
-
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import type { RebasePRFullInput } from "../rebase-pr-full";
+import type { RebasePRFullInput } from "../rebase-pr-full.ts";
 
 const m = vi.hoisted(() => ({
   executeQuery: vi.fn(),
@@ -28,7 +27,7 @@ vi.mock("@cat/vcs", () => ({
   getDefaultRegistries: vi.fn(() => ({ appMethodRegistry: {} })),
 }));
 
-import { rebasePRFull } from "../rebase-pr-full";
+import { rebasePRFull } from "../rebase-pr-full.ts";
 
 const mockPR = { id: 1, branchId: 10, projectId: "proj-1", status: "OPEN" };
 const mockBranch = {

@@ -6,7 +6,7 @@ import {
 } from "@cat/operations";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 // ─── Input Schema ────────────────────────────────────────────────────────────
 

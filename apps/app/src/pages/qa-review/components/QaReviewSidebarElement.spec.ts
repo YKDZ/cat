@@ -2,7 +2,7 @@ import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 const selectElement = vi.fn();
 
@@ -22,7 +22,7 @@ vi.mock("@cat/ui", async () => {
   };
 });
 
-vi.mock("@/stores/qa-review/workbench", async () => {
+vi.mock("#/stores/qa-review/workbench.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
 

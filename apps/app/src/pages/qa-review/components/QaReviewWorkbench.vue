@@ -3,10 +3,10 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Memories from "@/pages/editor/Memories.vue";
-import Terms from "@/pages/editor/Terms.vue";
-import { useQaReviewWorkbenchStore } from "@/stores/qa-review/workbench";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
+import Memories from "#/pages/editor/Memories.vue";
+import Terms from "#/pages/editor/Terms.vue";
+import { useQaReviewWorkbenchStore } from "#/stores/qa-review/workbench.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
 
 import ReviewActionBar from "./ReviewActionBar.vue";
 import ReviewCandidateList from "./ReviewCandidateList.vue";

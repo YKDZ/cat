@@ -1,4 +1,12 @@
-import type { JSONType } from "@cat/shared";
+import {
+  createTranslations,
+  createVectorizedStrings,
+  executeCommand,
+  executeQuery,
+  listTranslationsByElement,
+} from "@cat/domain";
+import type { JSONObject, JSONType } from "@cat/shared";
+import { assertFirstNonNullish } from "@cat/shared";
 
 import type {
   ApplicationContext,
@@ -19,6 +27,19 @@ const VECTORIZATION_ASYNC_SPEC: AsyncDependencySpec = {
   completionEvent: "vectorization.completed",
 };
 
+const VCS_ENTITY_ID_META_KEY = "__catVcsEntityId";
+
+const isJsonObject = (value: JSONType | undefined): value is JSONObject =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const hasVcsEntityId = (
+  value: JSONType | undefined,
+  entityId: string,
+): boolean => {
+  if (!isJsonObject(value)) return false;
+  return value[VCS_ENTITY_ID_META_KEY] === entityId;
+};
+
 /**
  * CREATE 操作返回 ASYNC_PENDING（后台向量化任务启动后完成）。
  * Phase 0b 中为存根实现。
@@ -35,10 +56,92 @@ export class VectorizedStringApplicationMethod implements ApplicationMethod {
     this.fetcher = fetcher ?? null;
   }
 
-  async applyCreate(
-    _entry: ChangesetEntry,
-    _ctx: ApplicationContext,
+  private async applyTranslationCreate(
+    entry: ChangesetEntry,
+    ctx: ApplicationContext,
   ): Promise<ApplicationResult> {
+    if (ctx.db === undefined) {
+      return {
+        status: "FAILED",
+        errorMessage:
+          "Translation application requires db in ApplicationContext",
+      };
+    }
+
+    const payload = entry.after;
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      Array.isArray(payload)
+    ) {
+      return {
+        status: "FAILED",
+        errorMessage: `Invalid translation payload for entry ${entry.id}`,
+      };
+    }
+
+    const elementId = payload.translatableElementId;
+    const languageId = payload.languageId;
+    const text = payload.text;
+    const translatorId = payload.translatorId;
+    if (
+      typeof elementId !== "number" ||
+      !Number.isInteger(elementId) ||
+      typeof languageId !== "string" ||
+      typeof text !== "string"
+    ) {
+      return {
+        status: "FAILED",
+        errorMessage: `Invalid translation payload for entry ${entry.id}`,
+      };
+    }
+
+    const existingTranslations = await executeQuery(
+      { db: ctx.db },
+      listTranslationsByElement,
+      { elementId, languageId },
+    );
+    if (
+      existingTranslations.some((translation) =>
+        hasVcsEntityId(translation.meta ?? undefined, entry.entityId),
+      )
+    ) {
+      return { status: "APPLIED" };
+    }
+
+    const stringIds = await executeCommand(
+      { db: ctx.db },
+      createVectorizedStrings,
+      {
+        data: [{ text, languageId }],
+      },
+    );
+    const stringId = assertFirstNonNullish(stringIds);
+    await executeCommand({ db: ctx.db }, createTranslations, {
+      data: [
+        {
+          translatableElementId: elementId,
+          stringId,
+          meta: {
+            ...(isJsonObject(payload.meta) ? payload.meta : {}),
+            [VCS_ENTITY_ID_META_KEY]: entry.entityId,
+          },
+          ...(typeof translatorId === "string" || translatorId === null
+            ? { translatorId }
+            : {}),
+        },
+      ],
+    });
+    return { status: "APPLIED" };
+  }
+
+  async applyCreate(
+    entry: ChangesetEntry,
+    ctx: ApplicationContext,
+  ): Promise<ApplicationResult> {
+    if (this.entityType === "translation") {
+      return await this.applyTranslationCreate(entry, ctx);
+    }
     // In a real implementation, this would enqueue a vectorization job and
     // return the task ID. Phase 0b stub returns ASYNC_PENDING.
     return {

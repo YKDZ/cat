@@ -2,11 +2,10 @@
 import { useData } from "vike-vue/useData";
 import { computed, onMounted, onUnmounted } from "vue";
 
-import { useWorkflowStore } from "@/stores/workflow";
-
-import type { Data } from "./+data.server.ts";
+import { useWorkflowStore } from "#/stores/workflow.ts";
 
 import ProjectPageDataError from "../../ProjectPageDataError.vue";
+import type { Data } from "./+data.server.ts";
 import WorkflowViewer from "./WorkflowViewer.vue";
 
 const data = useData<Data>();

@@ -1,7 +1,7 @@
 import { stringify as stringifyYaml } from "yaml";
 import * as z from "zod";
 
-import { AgentDefinitionTypeSchema } from "./enum";
+import { AgentDefinitionTypeSchema } from "#/schema/enum.ts";
 
 // ─── LLM Configuration ───
 

@@ -1,5 +1,3 @@
-import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
-
 import {
   and,
   eq,
@@ -7,10 +5,11 @@ import {
   pluginConfigInstance,
   pluginInstallation,
 } from "@cat/db";
+import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
 import { ScopeTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetPluginConfigInstanceByInstallationQuerySchema = z.object({
   pluginId: z.string(),

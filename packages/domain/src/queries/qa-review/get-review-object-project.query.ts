@@ -5,7 +5,7 @@ import {
   qaReviewSuggestion,
 } from "@cat/db";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 /**
  * Get the owning project for a QA review queue item.

@@ -2,11 +2,8 @@
 // oxlint-disable no-await-in-loop -- seeder is intentionally sequential
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
 import type { DrizzleClient } from "@cat/db";
-import type { ExecutorContext } from "@cat/domain";
-import type { PluginLoader } from "@cat/plugin-core";
-import type { JSONObject, JSONType } from "@cat/shared";
-
 import { pluginInstallation, sql, eq, and, contextEvidence } from "@cat/db";
+import type { ExecutorContext } from "@cat/domain";
 import {
   addProjectTargetLanguages,
   attachChunkSetToString,
@@ -38,19 +35,20 @@ import {
   buildMemoryRecallVariantsOp,
   buildTermRecallVariantsOp,
 } from "@cat/operations";
+import type { PluginLoader } from "@cat/plugin-core";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import type { JSONObject, JSONType } from "@cat/shared";
 
-import type { LoadedDevSeed } from "./loader";
+import { runBootstrapSourceGraph } from "./bootstrap/source-bootstrap.ts";
+import type { LoadedDevSeed } from "./loader.ts";
+import { RefResolver } from "./ref-resolver.ts";
 import type {
   MemoryContainerSeed,
   MemorySeed,
   PluginOverride,
-} from "./schemas";
-
-import { runBootstrapSourceGraph } from "./bootstrap/source-bootstrap";
-import { RefResolver } from "./ref-resolver";
-import { VectorCache } from "./vector-cache";
+} from "./schemas.ts";
+import { VectorCache } from "./vector-cache.ts";
 
 export type DevSeedResult = {
   refs: RefResolver;
@@ -80,6 +78,14 @@ export type SeedSummary = {
   bootstrapElements: number;
   bootstrapLocaleMemoryItems: number;
   bootstrapEvidence: number;
+};
+
+const requireFirst = <T>(values: readonly T[], operation: string): T => {
+  const value = values[0];
+  if (value === undefined) {
+    throw new Error(`${operation} returned no values`);
+  }
+  return value;
 };
 
 export const runSeedPipeline = async (
@@ -402,7 +408,9 @@ export const runSeedPipeline = async (
     });
     bootstrapResult = {
       elementIdsByRef: bootstrap.elementIdsByRef,
-      memoryId: bootstrap.memoryId,
+      ...(bootstrap.memoryId === undefined
+        ? {}
+        : { memoryId: bootstrap.memoryId }),
     };
     bootstrapReportPath = bootstrap.reportPath;
     summary.bootstrapElements = Object.keys(bootstrap.elementIdsByRef).length;
@@ -605,13 +613,21 @@ export const runSeedPipeline = async (
           },
         );
 
+        const sourceStringId = requireFirst(
+          sourceStringIds,
+          "create source vectorized string",
+        );
+        const translationStringId = requireFirst(
+          translationStringIds,
+          "create translation vectorized string",
+        );
         const items = await executeCommand(execCtx, createMemoryItems, {
           memoryId: containerMemoryId,
           items: [
             {
               translationId: null,
-              translationStringId: translationStringIds[0],
-              sourceStringId: sourceStringIds[0],
+              translationStringId,
+              sourceStringId,
               creatorId,
               sourceTemplate: null,
               translationTemplate: null,
@@ -619,7 +635,8 @@ export const runSeedPipeline = async (
             },
           ],
         });
-        refs.set(itemSeed.ref, items[0].id);
+        const memoryItem = requireFirst(items, "create memory item");
+        refs.set(itemSeed.ref, memoryItem.id);
         summary.memoryItems += 1;
         if (containerScope === "PROJECT") {
           summary.projectMemoryItems += 1;
@@ -628,7 +645,7 @@ export const runSeedPipeline = async (
         }
 
         await buildMemoryRecallVariantsOp({
-          memoryItemId: items[0].id,
+          memoryItemId: memoryItem.id,
           memoryId: containerMemoryId,
           sourceText: itemSeed.source,
           translationText: itemSeed.translation,
@@ -647,6 +664,7 @@ export const runSeedPipeline = async (
       });
 
       const elIndex = elementsSeed.elements.indexOf(elSeed);
+      const stringId = requireFirst(stringIds, "create element source string");
       const elementIds = await executeCommand(execCtx, createElements, {
         data: [
           {
@@ -656,13 +674,14 @@ export const runSeedPipeline = async (
             sourceRootRef: `project:${project.id}`,
             sourceNodeRef: elSeed.ref,
             stableSourceRef: elSeed.ref,
-            stringId: stringIds[0],
+            stringId,
             creatorId,
             localOrder: elIndex,
             meta: elSeed.meta as JSONType | undefined,
           },
         ],
       });
+      const elementId = requireFirst(elementIds, "create element");
 
       if (elSeed.context !== undefined) {
         const contextPayloads = elSeed.context.map((contextItem) =>
@@ -670,7 +689,7 @@ export const runSeedPipeline = async (
             ? {
                 projectId: project.id,
                 attachedEndpointKind: "ELEMENT" as const,
-                translatableElementId: elementIds[0],
+                translatableElementId: elementId,
                 kind: "TEXT" as const,
                 trustLevel: "COLLECTED" as const,
                 textData: contextItem,
@@ -678,7 +697,7 @@ export const runSeedPipeline = async (
             : {
                 projectId: project.id,
                 attachedEndpointKind: "ELEMENT" as const,
-                translatableElementId: elementIds[0],
+                translatableElementId: elementId,
                 kind: "JSON" as const,
                 trustLevel: "COLLECTED" as const,
                 jsonData: contextItem as JSONType,
@@ -688,7 +707,7 @@ export const runSeedPipeline = async (
         await execCtx.db.insert(contextEvidence).values(contextPayloads);
       }
 
-      refs.set(elSeed.ref, elementIds[0]);
+      refs.set(elSeed.ref, elementId);
       summary.elements += 1;
     }
   }
@@ -712,8 +731,8 @@ export const runSeedPipeline = async (
     glossaryId,
     memoryId,
     contentNodeId: elementsNode.id,
-    bootstrapReportPath,
-    bootstrap: bootstrapResult,
+    ...(bootstrapReportPath === undefined ? {} : { bootstrapReportPath }),
+    ...(bootstrapResult === undefined ? {} : { bootstrap: bootstrapResult }),
     userIds,
     summary,
   };
@@ -848,14 +867,25 @@ const vectorizeWithCache = async (opts: {
 
       const vectorPairs = chunkDataArrays.flatMap((chunks) =>
         chunks.map((chunk, i) => ({
-          chunkId: chunkIds[i],
+          chunkId: requireFirst(
+            chunkIds.slice(i, i + 1),
+            "create vectorized chunk",
+          ),
           vector: chunk.vector,
         })),
       );
       await storage.store({ chunks: vectorPairs });
 
       await executeCommand(execCtx, attachChunkSetToString, {
-        updates: [{ stringId, chunkSetId: chunkSetIds[0] }],
+        updates: [
+          {
+            stringId,
+            chunkSetId: requireFirst(
+              chunkSetIds,
+              "create vectorized chunk set",
+            ),
+          },
+        ],
       });
     }
   }

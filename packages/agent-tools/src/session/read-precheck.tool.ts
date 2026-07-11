@@ -1,5 +1,4 @@
 import type { AgentToolDefinition } from "@cat/agent";
-
 import { executeQuery, getDbHandle, loadAgentRunSnapshot } from "@cat/domain";
 import * as z from "zod";
 

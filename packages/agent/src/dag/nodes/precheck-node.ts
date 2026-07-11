@@ -35,7 +35,7 @@ export type PreCheckServices = Record<string, never>;
 export type PreCheckContext = Pick<
   AgentNodeContext,
   "constraints" | "startedAt" | "logger" | "sessionId"
-> & { services?: PreCheckServices };
+> & { services?: PreCheckServices | undefined };
 
 // ─── PreCheckNode ─────────────────────────────────────────────────────────────
 

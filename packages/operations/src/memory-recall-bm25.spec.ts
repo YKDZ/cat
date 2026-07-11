@@ -8,7 +8,7 @@ import {
   collectBm25MemorySuggestionsOp,
   compressBm25Score,
   MEMORY_RECALL_BM25_REGISTRY,
-} from "./memory-recall-bm25";
+} from "./memory-recall-bm25.ts";
 
 afterEach(() => {
   Reflect.deleteProperty(globalThis, "__CAT_RUNTIME_STATE__");

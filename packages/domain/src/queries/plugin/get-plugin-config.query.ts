@@ -2,7 +2,7 @@ import { eq, pluginConfig } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetPluginConfigQuerySchema = z.object({
   pluginId: z.string(),

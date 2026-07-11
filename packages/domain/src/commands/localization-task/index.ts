@@ -1,0 +1,16 @@
+export {
+  upsertLocalizationTask,
+  UpsertLocalizationTaskCommandSchema,
+  LocalizationTaskActorSchema,
+  LocalizationTaskAffectedResourceSchema,
+  LocalizationTaskFailureSchema,
+  LocalizationTaskMetaSchema,
+  OperationFailureAffectedResourceSchema,
+  OperationFailureSchema,
+  LocalizationTaskRelatedPullRequestSchema,
+  LocalizationTaskRelatedReviewableChangeSchema,
+  type LocalizationTaskMeta,
+  type LocalizationTaskSummary,
+  type OperationFailure,
+  type UpsertLocalizationTaskCommand,
+} from "./upsert-localization-task.cmd.ts";

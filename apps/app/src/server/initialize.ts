@@ -1,3 +1,6 @@
+import { access } from "fs/promises";
+import { join } from "path";
+
 import { registerBuiltinAgents } from "@cat/agent";
 import app from "@cat/app-api/app";
 import { ensureDB, ensureRootUser } from "@cat/db";
@@ -37,16 +40,14 @@ import {
   createDefaultGraphRuntime,
   getGlobalGraphRuntimeOrNull,
 } from "@cat/workflow";
-import { access } from "fs/promises";
-import { join } from "path";
 
 import {
   createAppPluginLoader,
   getDefaultPluginIds,
-} from "./default-plugins/catalog";
-import { createRuntimeBackends } from "./runtime-backends";
-import { startPostgresRuntimeCleanup } from "./runtime-cleanup";
-import { assertSearchRuntimeHealth } from "./search-runtime-health";
+} from "./default-plugins/catalog.ts";
+import { createRuntimeBackends } from "./runtime-backends.ts";
+import { startPostgresRuntimeCleanup } from "./runtime-cleanup.ts";
+import { assertSearchRuntimeHealth } from "./search-runtime-health.ts";
 
 const getStringSetting = async (
   drizzle: DrizzleClient,

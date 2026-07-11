@@ -1,9 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { NodeExecutor } from "@/graph/node-registry";
-
-import { MemoryCheckpointer } from "@/graph/checkpointer";
-import { QueuedExecutorPool } from "@/graph/executor-pool";
+import { MemoryCheckpointer } from "#/graph/checkpointer/index.ts";
+import { QueuedExecutorPool } from "#/graph/executor-pool.ts";
+import type { NodeExecutor } from "#/graph/node-registry.ts";
 
 const createDeferred = <T>() => {
   let resolvePromise: ((value: T) => void) | null = null;

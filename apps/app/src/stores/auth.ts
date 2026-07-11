@@ -1,5 +1,4 @@
 import type { AuthMethod } from "@cat/shared";
-
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -21,7 +20,7 @@ export const useAuthStore = defineStore(
   },
   {
     persist: {
-      storage: import.meta.env.SSR ? undefined : sessionStorage,
+      ...(import.meta.env.SSR ? {} : { storage: sessionStorage }),
       pick: ["authMethod"],
     },
   },

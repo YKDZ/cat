@@ -9,7 +9,7 @@ import { ChevronRight, Wrench, Monitor, Check, X, Loader2 } from "@lucide/vue";
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AgentToolCallItem } from "@/stores/agent";
+import type { AgentToolCallItem } from "#/stores/agent.ts";
 
 const props = defineProps<{
   toolCall: AgentToolCallItem;

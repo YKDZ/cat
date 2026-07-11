@@ -2,7 +2,7 @@ import { getColumns, issueCommentThread } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateThreadCommandSchema = z.object({
   targetType: z.enum(["issue", "pr"]),

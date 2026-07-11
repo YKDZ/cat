@@ -1,9 +1,8 @@
-import type { JSONType } from "@cat/shared";
-
 import { chunk, chunkSet } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateVectorizedChunksCommandSchema = z.object({
   vectorizerId: z.int(),

@@ -1,13 +1,9 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.node-base.json",
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist"
+    "lib": ["ES2023", "DOM"],
+    "noEmit": true,
+    "types": ["node", "vitest/globals"]
   },
-  "files": [],
-  "include": [],
-  "references": [
-    { "path": "./tsconfig.lib.json" },
-    { "path": "./tsconfig.spec.json" }
-  ]
+  "include": ["src/**/*.ts"]
 }

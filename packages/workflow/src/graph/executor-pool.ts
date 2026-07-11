@@ -1,21 +1,20 @@
 import type { JSONObject } from "@cat/shared";
 
-import type { Checkpointer } from "@/graph/checkpointer";
-import type { EventEnvelopeInput } from "@/graph/events";
-import type { LeaseManager } from "@/graph/lease";
-import type { NodeExecutor } from "@/graph/node-registry";
+import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type { EventEnvelopeInput } from "#/graph/events.ts";
+import type { LeaseManager } from "#/graph/lease.ts";
+import { InProcessLeaseManager } from "#/graph/lease.ts";
+import type { NodeExecutor } from "#/graph/node-registry.ts";
 import type {
   GraphRuntimeContext,
   NodeDefinition,
   RetryConfig,
   RunId,
-} from "@/graph/types";
-
-import { InProcessLeaseManager } from "@/graph/lease";
+} from "#/graph/types.ts";
 import {
   defaultWorkflowLogger,
   type WorkflowLogger,
-} from "@/graph/workflow-logger";
+} from "#/graph/workflow-logger.ts";
 
 export type ExecutorTask = {
   runId: RunId;
@@ -34,9 +33,9 @@ export type ExecutorTask = {
   runtime: GraphRuntimeContext;
   emitProxy: (event: EventEnvelopeInput) => Promise<void>;
   publishToStream: (events: EventEnvelopeInput[]) => Promise<void>;
-  signal?: AbortSignal;
-  idempotencyKey?: string;
-  retry?: RetryConfig;
+  signal?: AbortSignal | undefined;
+  idempotencyKey?: string | undefined;
+  retry?: RetryConfig | undefined;
 };
 
 export type ExecutorPool = {

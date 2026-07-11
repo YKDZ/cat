@@ -1,5 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-
 import {
   executeCommand,
   executeQuery,
@@ -12,8 +11,8 @@ import {
 } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
 
-import { fetchBestTranslationCandidateOp } from "./fetch-best-translation-candidate";
-import { findOrCreateAutoTranslatePR } from "./find-or-create-auto-translate-pr";
+import { fetchBestTranslationCandidateOp } from "./fetch-best-translation-candidate.ts";
+import { findOrCreateAutoTranslatePR } from "./find-or-create-auto-translate-pr.ts";
 
 export interface RunAutoTranslatePipelineInput {
   projectId: string;

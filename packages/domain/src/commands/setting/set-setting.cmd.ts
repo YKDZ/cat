@@ -1,11 +1,9 @@
-import type { NonNullJSONType } from "@cat/shared";
-
 import { eq, setting } from "@cat/db";
+import type { NonNullJSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const SetSettingCommandSchema = z.object({
   key: z.string(),

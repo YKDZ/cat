@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { yamlParser } from "../yaml-parser.ts";
+import { yamlParser } from "#/yaml-parser.ts";
 
 describe("yamlParser", () => {
   describe("canParse", () => {
@@ -32,8 +32,8 @@ describe("yamlParser", () => {
       const content = "items:\n  - one\n  - two\n";
       const elements = yamlParser.parse(content);
       expect(elements).toHaveLength(2);
-      expect(elements[0].meta).toMatchObject({ path: "items.0" });
-      expect(elements[1].meta).toMatchObject({ path: "items.1" });
+      expect(elements[0]?.meta).toMatchObject({ path: "items.0" });
+      expect(elements[1]?.meta).toMatchObject({ path: "items.1" });
     });
   });
 

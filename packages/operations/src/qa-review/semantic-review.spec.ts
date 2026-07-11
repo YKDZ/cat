@@ -20,7 +20,7 @@ vi.mock("@cat/server-shared", async () => {
 import { PluginManager } from "@cat/plugin-core";
 import { QaReviewProfileConfigSchema } from "@cat/shared";
 
-import { runSemanticQaReview } from "./semantic-review";
+import { runSemanticQaReview } from "./semantic-review.ts";
 
 const mockLlmService = {
   id: 7,

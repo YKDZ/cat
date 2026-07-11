@@ -4,15 +4,14 @@ import type {
   RawResult,
   RawMemoryResult,
   RecallCandidate,
-} from "../precision/types";
-import type { HnfCandidate, HardNegativeRemoval } from "./types";
-
-import { candidateKey } from "../precision/types";
+} from "../precision/types.ts";
+import { candidateKey } from "../precision/types.ts";
 import {
   applyHnfPreRules,
   applyHnfPostRules,
   extractContentWordsFromTokens,
-} from "./core";
+} from "./core.ts";
+import type { HnfCandidate, HardNegativeRemoval } from "./types.ts";
 
 /**
  * Build an HnfCandidate from a RawMemoryResult.

@@ -1,4 +1,5 @@
-import type { PluginManager, StorageProvider } from "@cat/plugin-core";
+import { createHash, randomUUID } from "node:crypto";
+import { Readable } from "node:stream";
 
 import {
   activateFile,
@@ -11,13 +12,12 @@ import {
   type DbHandle,
   type SessionStore,
 } from "@cat/domain";
-import { createHash, randomUUID } from "node:crypto";
-import { Readable } from "node:stream";
+import type { PluginManager, StorageProvider } from "@cat/plugin-core";
 import * as z from "zod";
 
-import { getServiceFromDBId } from "./plugin";
-import { hashFromReadable } from "./stream";
-import { serverLogger } from "./utils/logger";
+import { getServiceFromDBId } from "./plugin.ts";
+import { hashFromReadable } from "./stream.ts";
+import { serverLogger } from "./utils/logger.ts";
 
 export const PresignedPutFileSessionPayloadSchema = z.object({
   blobId: z.coerce.number().int(),
@@ -155,7 +155,7 @@ export const getDownloadUrl = async (
   return await storageProvider.getPresignedGetUrl({
     key,
     expiresIn: expiresInSeconds,
-    fileName: filename,
+    ...(filename === undefined ? {} : { fileName: filename }),
   });
 };
 

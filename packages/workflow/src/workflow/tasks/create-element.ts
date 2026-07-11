@@ -3,10 +3,10 @@ import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
 
-import { createVectorizedStringGraph } from "./create-vectorized-string";
+import { createVectorizedStringGraph } from "./create-vectorized-string.ts";
 
 export const CreateElementInputSchema = z.object({
   data: z.array(

@@ -1,7 +1,7 @@
 // packages/operations/src/precision/budget-gate.ts
 import type { QueryProfile } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
+import type { RecallCandidate } from "./types.ts";
 
 export type BudgetGateOptions = {
   maxTotal: number;

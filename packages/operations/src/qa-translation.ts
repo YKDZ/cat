@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import {
   createQaResultWithItems,
@@ -10,9 +9,9 @@ import {
 } from "@cat/domain";
 import z from "zod";
 
-import { qaOp } from "./qa";
-import { runQaReviewForTranslationOp } from "./qa-review/run-translation-review";
-import { tokenizeOp } from "./tokenize";
+import { runQaReviewForTranslationOp } from "./qa-review/run-translation-review.ts";
+import { qaOp } from "./qa.ts";
+import { tokenizeOp } from "./tokenize.ts";
 
 export const QaTranslationInputSchema = z.object({
   translationId: z.int(),
@@ -112,8 +111,6 @@ export const qaTranslationOp = async (
       sourceText: data.elementText,
       translationText: data.translationText,
       primaryContentNodeId: data.primaryContentNodeId,
-      branchId: undefined,
-      pullRequestId: undefined,
       qaResultId: persistedQa.qaResultId,
       qaResultItemIds: persistedQa.itemIds,
       qaItems,

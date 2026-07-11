@@ -8,7 +8,7 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetTranslationCreatedEventContextQuerySchema = z.object({
   translationIds: z.array(z.int()),

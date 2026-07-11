@@ -16,11 +16,11 @@ import {
 } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { createVectorizedStringGraph } from "../create-vectorized-string";
-import { retriveEmbeddingsGraph } from "../retrive-embeddings";
+import { createVectorizedStringGraph } from "../create-vectorized-string.ts";
+import { retriveEmbeddingsGraph } from "../retrive-embeddings.ts";
 
 const data = [
   { text: "Text 1", languageId: "en" },

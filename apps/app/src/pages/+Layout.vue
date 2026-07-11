@@ -2,7 +2,7 @@
 import { SidebarProvider } from "@cat/ui";
 import { Toaster } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
-import { defineAsyncComponent, onMounted, onUnmounted } from "vue";
+import { computed, defineAsyncComponent, onMounted, onUnmounted } from "vue";
 
 // Only load devtools in development — avoids bundling ~2 MB of devtools panel
 // into the production SSR and client builds. Dead code elimination removes the
@@ -15,8 +15,8 @@ const PiniaColadaDevtools = import.meta.env.DEV
     )
   : null;
 
-import { useNotificationStore } from "@/stores/notification";
-import { useCookieBooleanRef } from "@/utils/cookie";
+import { useNotificationStore } from "#/stores/notification.ts";
+import { useCookieBooleanRef } from "#/utils/cookie.ts";
 
 const ctx = usePageContext();
 const notificationStore = useNotificationStore();
@@ -32,14 +32,26 @@ onUnmounted(() => {
   notificationStore.stopStreaming();
 });
 
-const indexSidebarOpen = useCookieBooleanRef(ctx, "indexSidebarOpen", true);
-const editorSidebarOpen = useCookieBooleanRef(ctx, "editorSidebarOpen", true);
-const editorContextPanelOpen = useCookieBooleanRef(
-  ctx,
-  "editorContextPanelOpen",
-  true,
+const withBooleanDefault = (value: ReturnType<typeof useCookieBooleanRef>) =>
+  computed({
+    get: () => value.value ?? true,
+    set: (next: boolean) => {
+      value.value = next;
+    },
+  });
+
+const indexSidebarOpen = withBooleanDefault(
+  useCookieBooleanRef(ctx, "indexSidebarOpen", true),
 );
-const adminSidebarOpen = useCookieBooleanRef(ctx, "adminSidebarOpen", true);
+const editorSidebarOpen = withBooleanDefault(
+  useCookieBooleanRef(ctx, "editorSidebarOpen", true),
+);
+const editorContextPanelOpen = withBooleanDefault(
+  useCookieBooleanRef(ctx, "editorContextPanelOpen", true),
+);
+const adminSidebarOpen = withBooleanDefault(
+  useCookieBooleanRef(ctx, "adminSidebarOpen", true),
+);
 </script>
 
 <template>

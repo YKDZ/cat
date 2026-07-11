@@ -9,7 +9,7 @@ import {
 } from "@cat/ui";
 import { Settings } from "@lucide/vue";
 
-import UserAvatar from "@/components/UserAvatar.vue";
+import UserAvatar from "#/components/UserAvatar.vue";
 
 export type MetadataItem =
   | { kind: "user"; userId: string }

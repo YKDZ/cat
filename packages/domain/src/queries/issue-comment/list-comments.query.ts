@@ -1,7 +1,7 @@
 import { asc, eq, getColumns, issueComment } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListCommentsQuerySchema = z.object({
   threadId: z.int().positive(),

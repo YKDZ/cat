@@ -1,0 +1,4 @@
+{
+  "extends": ["//"],
+  "tags": ["database-path", "library", "server"]
+}

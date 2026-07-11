@@ -2,11 +2,10 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "@/utils/i18n";
-
-import type { NonNullPluginDetail } from "../types";
+import { i18n } from "#/utils/i18n.ts";
 
 import PluginConfigEditor from "../PluginConfigEditor.vue";
+import type { NonNullPluginDetail } from "../types.ts";
 
 vi.mock("@cat/ui", async () => {
   const { defineComponent } = await import("vue");
@@ -30,7 +29,7 @@ vi.mock("@lucide/vue", () => ({
   TestTube2: defineComponent({ template: '<svg data-icon="probe" />' }),
 }));
 
-vi.mock("@/components/json-form/JsonForm.vue", () => ({
+vi.mock("#/components/json-form/JsonForm.vue", () => ({
   default: defineComponent({
     emits: ["update"],
     template:

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CommentTargetType } from "@cat/shared";
-
 import {
   SidebarFooter,
   SidebarGroup,
@@ -16,11 +15,11 @@ import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import MarkdownEditor from "@/components/editor/MarkdownEditor.vue";
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context";
-import { useEditorTableStore } from "@/stores/editor/table";
+import MarkdownEditor from "#/components/editor/MarkdownEditor.vue";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
 import Comment from "./Comment.vue";
 

@@ -1,6 +1,5 @@
-import type { Config } from "vike/types";
-
 import vikeVue from "vike-vue/config";
+import type { Config } from "vike/types";
 
 export default {
   passToClient: [

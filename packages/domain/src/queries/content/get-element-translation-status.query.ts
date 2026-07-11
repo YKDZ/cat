@@ -10,13 +10,12 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
-
 import {
   ElementTranslationStatusSchema,
   type ElementTranslationStatus,
-} from "@/queries/content/get-content-node-elements.query";
-import { hasBranchTranslationOverlayQuery } from "@/queries/content/has-branch-translation-overlay.query";
+} from "#/queries/content/get-content-node-elements.query.ts";
+import { hasBranchTranslationOverlayQuery } from "#/queries/content/has-branch-translation-overlay.query.ts";
+import type { Query } from "#/types.ts";
 
 export const GetElementTranslationStatusQuerySchema = z.object({
   elementId: z.int(),

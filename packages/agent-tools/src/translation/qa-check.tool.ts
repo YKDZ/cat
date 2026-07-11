@@ -1,5 +1,4 @@
 import type { AgentToolDefinition } from "@cat/agent";
-
 import { qaOp, tokenizeOp } from "@cat/operations";
 import * as z from "zod";
 

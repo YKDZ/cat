@@ -1,5 +1,5 @@
 {
-  "extends": "./tsconfig.base.json",
+  "extends": "./tsconfig.node-base.json",
   "compilerOptions": {
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
@@ -12,10 +12,6 @@
     "vitest.config.ts",
     "oxlint.config.ts",
     "oxfmt.config.ts",
-    "apps/*/oxlint.config.ts",
-    "packages/*/oxlint.config.ts",
-    "@cat-plugin/*/oxlint.config.ts",
-    "tools/*/oxlint.config.ts",
     "packages/*/drizzle.config.ts"
   ]
 }

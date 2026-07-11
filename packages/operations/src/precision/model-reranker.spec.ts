@@ -1,13 +1,11 @@
+import { PluginManager, RerankProvider } from "@cat/plugin-core";
 import type { AmbiguityEnvelope } from "@cat/shared";
 import type { RerankRequest, RerankResponse } from "@cat/shared";
-
-import { PluginManager, RerankProvider } from "@cat/plugin-core";
 import { describe, expect, it, vi } from "vitest";
 
-import type { RecallCandidate } from "./types";
-
-import { applyModelReranker } from "./model-reranker";
-import { candidateKey } from "./types";
+import { applyModelReranker } from "./model-reranker.ts";
+import type { RecallCandidate } from "./types.ts";
+import { candidateKey } from "./types.ts";
 
 // Minimal stub RerankProvider
 class StubRerankProvider extends RerankProvider {

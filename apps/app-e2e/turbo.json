@@ -1,0 +1,9 @@
+{
+  "extends": ["//"],
+  "tags": [
+    "application",
+    "database-consumer",
+    "database-path",
+    "test-infrastructure"
+  ]
+}

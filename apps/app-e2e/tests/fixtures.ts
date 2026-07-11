@@ -1,14 +1,19 @@
-import { test as baseTest } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { EditorPage } from "@/pages/editor-page";
-import { LoginPage } from "@/pages/login-page";
-import { QaReviewPage } from "@/pages/qa-review-page";
+import { test as baseTest } from "@playwright/test";
+
+import { EditorPage } from "#/pages/editor-page.ts";
+import { LoginPage } from "#/pages/login-page.ts";
+import { QaReviewPage } from "#/pages/qa-review-page.ts";
 
 // ── Types ────────────────────────────────────────────────────────────
 
-export type E2ERefs = Record<string, string>;
+export type E2ERefs = Record<string, string | undefined> & {
+  project: string;
+  "user:admin": string;
+  "content-node:elements": string;
+};
 
 interface E2EFixtures {
   /** Ref→ID mapping from seeded data (e.g., refs["project"], refs["el:001"]) */
@@ -89,7 +94,6 @@ export const test = baseTest.extend<E2EFixtures, E2EWorkerFixtures>({
       const context = await browser.newContext({
         baseURL: `http://localhost:${process.env.PORT ?? 3000}`,
         locale: "zh-CN",
-        storageState: undefined,
       });
       const page = await context.newPage();
       const loginPage = new LoginPage(page);

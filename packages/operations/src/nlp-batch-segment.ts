@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import {
   NlpBatchSegmentResultSchema,
@@ -7,7 +6,7 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import { intlSegmenterFallback } from "./nlp-intl-fallback";
+import { intlSegmenterFallback } from "./nlp-intl-fallback.ts";
 
 export const NlpBatchSegmentInputSchema = z.object({
   nlpSegmenterId: z.int().optional().meta({
@@ -65,7 +64,7 @@ export const nlpBatchSegmentOp = async (
   return segmenter.service.batchSegment({
     items: data.items,
     languageId: data.languageId,
-    signal: ctx?.signal,
+    ...(ctx?.signal ? { signal: ctx.signal } : {}),
   });
 };
 

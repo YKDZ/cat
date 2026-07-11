@@ -1,9 +1,8 @@
-import type { DbHandle } from "@cat/domain";
-import type { ObjectType, Relation, SubjectType } from "@cat/shared";
-
 import { InProcessEventBus, type AnyEventOf } from "@cat/core";
+import type { DbHandle } from "@cat/domain";
 import { executeCommand } from "@cat/domain";
 import { insertAuditLogs } from "@cat/domain";
+import type { ObjectType, Relation, SubjectType } from "@cat/shared";
 import {
   ObjectTypeSchema,
   PermissionActionSchema,
@@ -76,10 +75,14 @@ const toAuditLogRow = (event: AuditEvent): AuditLogInsert => {
     objectId: payload.objectId,
     relation: RelationSchema.parse(payload.relation),
     result: event.type === "permission:checked" ? event.payload.result : true,
-    traceId: payload.traceId,
-    ip: event.type === "permission:checked" ? event.payload.ip : undefined,
-    userAgent:
-      event.type === "permission:checked" ? event.payload.userAgent : undefined,
+    ...(payload.traceId === undefined ? {} : { traceId: payload.traceId }),
+    ...(event.type !== "permission:checked" || event.payload.ip === undefined
+      ? {}
+      : { ip: event.payload.ip }),
+    ...(event.type !== "permission:checked" ||
+    event.payload.userAgent === undefined
+      ? {}
+      : { userAgent: event.payload.userAgent }),
   };
 };
 

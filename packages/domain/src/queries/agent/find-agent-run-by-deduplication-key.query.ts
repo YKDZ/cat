@@ -1,8 +1,8 @@
 import { agentRun, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { AgentRunMetadataRow } from "@/queries/agent/load-agent-run-metadata.query";
-import type { Query } from "@/types";
+import type { AgentRunMetadataRow } from "#/queries/agent/load-agent-run-metadata.query.ts";
+import type { Query } from "#/types.ts";
 
 export const FindAgentRunByDeduplicationKeyQuerySchema = z.object({
   deduplicationKey: z.string(),

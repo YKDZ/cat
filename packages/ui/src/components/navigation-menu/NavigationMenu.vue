@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import type { NavigationMenuRootEmits, NavigationMenuRootProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import type { NavigationMenuRootEmits, NavigationMenuRootProps } from "reka-ui";
 import { NavigationMenuRoot, useForwardPropsEmits } from "reka-ui";
-import { cn } from "@/utils/lib/utils";
-import NavigationMenuViewport from "./NavigationMenuViewport.vue";
+import type { HTMLAttributes } from "vue";
+
+import NavigationMenuViewport from "#/components/navigation-menu/NavigationMenuViewport.vue";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = withDefaults(
   defineProps<
@@ -27,7 +29,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
   <NavigationMenuRoot
     data-slot="navigation-menu"
     :data-viewport="viewport"
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
     :class="
       cn(
         'group/navigation-menu relative flex max-w-max flex-1 items-center justify-center',

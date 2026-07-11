@@ -1,5 +1,6 @@
-import { user } from "@cat/db";
 import { randomUUID } from "node:crypto";
+
+import { user } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -11,10 +12,10 @@ import {
   mergePR,
   updatePRStatus,
   updateProjectFeatures,
-} from "@/commands";
-import { executeCommand, executeQuery } from "@/executor";
-import { getIssue } from "@/queries";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/commands/index.ts";
+import { executeCommand, executeQuery } from "#/executor.ts";
+import { getIssue } from "#/queries/index.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 let testDb: TestDB;
 

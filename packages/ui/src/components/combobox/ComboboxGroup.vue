@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import type { ComboboxGroupProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
 import { reactiveOmit } from "@vueuse/core";
+import type { ComboboxGroupProps } from "reka-ui";
 import { ComboboxGroup, ComboboxLabel } from "reka-ui";
-import { cn } from "@/utils/lib/utils";
+import type { HTMLAttributes } from "vue";
+
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = defineProps<
   ComboboxGroupProps & {
@@ -18,10 +20,13 @@ const delegatedProps = reactiveOmit(props, "class");
 <template>
   <ComboboxGroup
     data-slot="combobox-group"
-    v-bind="delegatedProps"
+    v-bind="exactOptionalProps(delegatedProps)"
     :class="cn('overflow-hidden p-1 text-foreground', props.class)"
   >
-    <ComboboxLabel v-if="heading" class="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+    <ComboboxLabel
+      v-if="heading"
+      class="px-2 py-1.5 text-xs font-medium text-muted-foreground"
+    >
       {{ heading }}
     </ComboboxLabel>
     <slot />

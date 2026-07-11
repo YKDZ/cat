@@ -1,6 +1,6 @@
 import { defineRelations } from "drizzle-orm";
 
-import * as schema from "./schema";
+import * as schema from "./schema.ts";
 
 export const relations: ReturnType<typeof defineRelations<typeof schema>> =
   defineRelations(schema, (r) => ({

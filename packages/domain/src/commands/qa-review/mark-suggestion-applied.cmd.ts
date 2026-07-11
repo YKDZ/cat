@@ -9,9 +9,8 @@ import {
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 class QaReviewConflictError extends Error {
   constructor(message: string) {
@@ -116,9 +115,13 @@ export const markQaReviewSuggestionApplied: Command<
         projectId: updated.projectId,
         queueItemId: annotation.queueItemId,
         suggestionId: updated.id,
-        appliedTranslationId: updated.appliedTranslationId ?? undefined,
-        appliedChangesetEntryId: updated.appliedChangesetEntryId ?? undefined,
-        userId: updated.appliedBy ?? undefined,
+        ...(updated.appliedTranslationId === null
+          ? {}
+          : { appliedTranslationId: updated.appliedTranslationId }),
+        ...(updated.appliedChangesetEntryId === null
+          ? {}
+          : { appliedChangesetEntryId: updated.appliedChangesetEntryId }),
+        ...(updated.appliedBy === null ? {} : { userId: updated.appliedBy }),
       }),
     ],
   };

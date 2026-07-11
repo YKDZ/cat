@@ -1,8 +1,7 @@
 import type { DbHandle } from "@cat/domain";
-
 import { createNotification, executeCommand } from "@cat/domain";
 
-import type { ChannelDispatcher, MessageRequest } from "@/types";
+import type { ChannelDispatcher, MessageRequest } from "#/types.ts";
 
 /**
  * In-app dispatcher — persists via createNotification command and triggers push.

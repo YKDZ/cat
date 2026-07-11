@@ -1,7 +1,7 @@
 import { chunk, chunkSet, eq, inArray, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListChunkVectorizationInputsQuerySchema = z.object({
   chunkIds: z.array(z.int()),

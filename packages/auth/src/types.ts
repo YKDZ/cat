@@ -1,5 +1,4 @@
 import type { EdgeCondition } from "@cat/graph";
-
 import * as z from "zod";
 
 // ====== Auth 节点类型 ======

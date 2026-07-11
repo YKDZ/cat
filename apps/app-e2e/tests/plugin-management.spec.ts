@@ -1,4 +1,4 @@
-import { test, expect } from "@/fixtures";
+import { test, expect } from "#/fixtures.ts";
 
 test.describe("Plugin management", () => {
   test("admin can open a no-config plugin without being redirected home", async ({

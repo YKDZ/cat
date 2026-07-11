@@ -1,5 +1,4 @@
 import type { BinaryToTextEncoding } from "node:crypto";
-
 import { createHash } from "node:crypto";
 
 export const hash = (

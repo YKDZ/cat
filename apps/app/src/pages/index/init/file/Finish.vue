@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const project = defineModel<Project>("project");
+const project = defineModel<Project | undefined>("project");
 
 const handleClick = async () => {
   if (!project.value) return;

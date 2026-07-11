@@ -1,7 +1,7 @@
 import { inArray, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const UpdateVectorizedStringStatusCommandSchema = z.object({
   stringIds: z.array(z.int()),

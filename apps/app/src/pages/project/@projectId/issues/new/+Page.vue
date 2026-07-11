@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { exactOptionalProps } from "@cat/ui";
 import {
   Button,
   FormControl,
@@ -16,10 +17,10 @@ import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import MarkdownEditor from "@/components/editor/MarkdownEditor.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
-import { useInjectionKey } from "@/utils/provide.ts";
+import MarkdownEditor from "#/components/editor/MarkdownEditor.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data as LayoutData } from "../../+data.server.ts";
 
@@ -80,7 +81,7 @@ const onSubmit = handleSubmit(async (values) => {
             <Input
               type="text"
               :placeholder="t('标题')"
-              v-bind="componentField"
+              v-bind="exactOptionalProps(componentField)"
             />
           </FormControl>
           <FormMessage />

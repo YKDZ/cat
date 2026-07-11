@@ -1,8 +1,17 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { RedisTaskQueue } from "./redis-task-queue";
+import { RedisTaskQueue } from "./redis-task-queue.ts";
 
 type Payload = { value: string };
+
+const requireFixtureValue = <T>(
+  value: T | null | undefined,
+): NonNullable<T> => {
+  if (value === null || value === undefined) {
+    throw new Error("Expected fixture value to be defined");
+  }
+  return value;
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -68,7 +77,10 @@ class FakeRedis {
   }
 
   public async sendCommand(args: string[]): Promise<string | number | null> {
-    const [, script, , firstKey, secondKey, arg] = args;
+    const script = requireFixtureValue(args[1]);
+    const firstKey = requireFixtureValue(args[3]);
+    const secondKey = requireFixtureValue(args[4]);
+    const arg = requireFixtureValue(args[5]);
 
     if (script.includes("LPOP")) {
       const pending = this.lists.get(firstKey) ?? [];
@@ -100,7 +112,7 @@ class FakeRedis {
         return 0;
       }
 
-      const [raw] = processing.splice(index, 1);
+      const raw = requireFixtureValue(processing.splice(index, 1)[0]);
       const task = parseJsonObject(raw);
 
       delete task.leasedUntil;
@@ -144,7 +156,7 @@ describe("RedisTaskQueue", () => {
   it("dequeues tasks into processing with leasedUntil", async () => {
     const [taskId] = await queue.enqueue([{ value: "a" }]);
 
-    const [task] = await queue.dequeue(1);
+    const task = requireFixtureValue((await queue.dequeue(1))[0]);
 
     expect(task.id).toBe(taskId);
     expect(task.leasedUntil).toBeDefined();
@@ -154,7 +166,7 @@ describe("RedisTaskQueue", () => {
 
   it("acks processing tasks by id", async () => {
     await queue.enqueue([{ value: "a" }]);
-    const [task] = await queue.dequeue(1);
+    const task = requireFixtureValue((await queue.dequeue(1))[0]);
 
     await queue.ack(task.id);
 
@@ -163,10 +175,10 @@ describe("RedisTaskQueue", () => {
 
   it("nacks processing tasks back to pending and increments retryCount", async () => {
     await queue.enqueue([{ value: "a" }]);
-    const [task] = await queue.dequeue(1);
+    const task = requireFixtureValue((await queue.dequeue(1))[0]);
 
     await queue.nack(task.id);
-    const [retried] = await queue.dequeue(1);
+    const retried = requireFixtureValue((await queue.dequeue(1))[0]);
 
     expect(retried.id).toBe(task.id);
     expect(retried.retryCount).toBe(1);
@@ -174,7 +186,7 @@ describe("RedisTaskQueue", () => {
 
   it("keeps the task in processing when the atomic nack script fails", async () => {
     await queue.enqueue([{ value: "a" }]);
-    const [task] = await queue.dequeue(1);
+    const task = requireFixtureValue((await queue.dequeue(1))[0]);
     const originalSendCommand = redis.sendCommand.bind(redis);
 
     redis.sendCommand = async (args) => {
@@ -213,7 +225,7 @@ describe("RedisTaskQueue", () => {
 
     expect(await queue.pendingCount()).toBe(1);
     expect(redis.lists.get("queue:vectorization:processing")).toEqual([fresh]);
-    const [retried] = await queue.dequeue(1);
+    const retried = requireFixtureValue((await queue.dequeue(1))[0]);
     expect(retried.id).toBe("expired");
     expect(retried.retryCount).toBe(1);
   });
@@ -263,7 +275,7 @@ describe("RedisTaskQueue", () => {
     expect(redis.lists.get("queue:vectorization:processing")).toEqual([
       "{not-json",
     ]);
-    const [retried] = await queue.dequeue(1);
+    const retried = requireFixtureValue((await queue.dequeue(1))[0]);
     expect(retried.retryCount).toBe(3);
   });
 });

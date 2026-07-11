@@ -1,13 +1,12 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Separator } from "@cat/ui";
 import { Settings } from "@lucide/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useToastStore } from "@/stores/toast.ts";
-import { watchClient } from "@/utils/vue";
+import { useToastStore } from "#/stores/toast.ts";
+import { watchClient } from "#/utils/vue.ts";
 
 import CreateProject from "./CreateProject.vue";
 import Finish from "./Finish.vue";

@@ -1,5 +1,3 @@
-import type { SlotMappingEntry } from "@cat/shared";
-
 import {
   aliasedTable,
   and,
@@ -10,11 +8,12 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
+import type { SlotMappingEntry } from "@cat/shared";
 import { SlotMappingEntrySchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { RawMemorySuggestion } from "@/queries/memory/list-lexical-memory-suggestions.query";
-import type { Query } from "@/types";
+import type { RawMemorySuggestion } from "#/queries/memory/list-lexical-memory-suggestions.query.ts";
+import type { Query } from "#/types.ts";
 
 export const ListVariantMemorySuggestionsQuerySchema = z.object({
   text: z.string(),

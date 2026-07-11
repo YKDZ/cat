@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { TooltipContentProps } from "reka-ui";
-
 import {
+  exactOptionalProps,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   TooltipProvider,
 } from "@cat/ui";
+import type { TooltipContentProps } from "reka-ui";
 
 const props = withDefaults(
   defineProps<TooltipContentProps & { tooltip: string }>(),
@@ -22,7 +22,7 @@ const props = withDefaults(
       <TooltipTrigger as-child>
         <slot />
       </TooltipTrigger>
-      <TooltipContent v-bind="props">
+      <TooltipContent v-bind="exactOptionalProps(props)">
         <p>{{ tooltip }}</p>
       </TooltipContent>
     </Tooltip>

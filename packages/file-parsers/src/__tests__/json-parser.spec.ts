@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { jsonParser } from "../json-parser.ts";
+import { jsonParser } from "#/json-parser.ts";
 
 describe("jsonParser", () => {
   describe("canParse", () => {
@@ -35,23 +35,23 @@ describe("jsonParser", () => {
     it("includes location info", () => {
       const content = JSON.stringify({ a: "test" }, null, 2);
       const elements = jsonParser.parse(content);
-      expect(elements[0].location).toBeDefined();
-      expect(elements[0].location!.startLine).toBeGreaterThan(0);
+      expect(elements[0]?.location).toBeDefined();
+      expect(elements[0]?.location?.startLine).toBeGreaterThan(0);
     });
 
     it("skips empty strings", () => {
       const content = JSON.stringify({ a: "", b: "text" }, null, 2);
       const elements = jsonParser.parse(content);
       expect(elements).toHaveLength(1);
-      expect(elements[0].text).toBe("text");
+      expect(elements[0]?.text).toBe("text");
     });
 
     it("handles arrays", () => {
       const content = JSON.stringify({ items: ["one", "two"] }, null, 2);
       const elements = jsonParser.parse(content);
       expect(elements).toHaveLength(2);
-      expect(elements[0].meta).toEqual({ key: ["items", "0"] });
-      expect(elements[1].meta).toEqual({ key: ["items", "1"] });
+      expect(elements[0]?.meta).toEqual({ key: ["items", "0"] });
+      expect(elements[1]?.meta).toEqual({ key: ["items", "1"] });
     });
   });
 

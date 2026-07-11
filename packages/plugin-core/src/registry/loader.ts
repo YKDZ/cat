@@ -1,3 +1,8 @@
+import { existsSync } from "node:fs";
+import { access, mkdir, readdir, readFile } from "node:fs/promises";
+import { join, resolve, sep } from "node:path";
+import { pathToFileURL } from "node:url";
+
 import {
   PluginDataSchema,
   PluginManifestSchema,
@@ -5,13 +10,9 @@ import {
   type PluginManifest,
 } from "@cat/shared";
 import { logger } from "@cat/shared";
-import { existsSync } from "node:fs";
-import { access, mkdir, readdir, readFile } from "node:fs/promises";
-import { join, resolve, sep } from "node:path";
-import { pathToFileURL } from "node:url";
 import z from "zod";
 
-import type { CatPlugin } from "@/entities/plugin";
+import type { CatPlugin } from "#/entities/plugin.ts";
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 

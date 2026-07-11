@@ -4,9 +4,8 @@ import {
   type WaitForEventOptions,
 } from "@cat/core";
 
-import type { AgentEvent, EventType } from "@/graph/events";
-
-import { createAgentEvent } from "@/graph/events";
+import type { AgentEvent, EventType } from "#/graph/events.ts";
+import { createAgentEvent } from "#/graph/events.ts";
 
 export type WaitForEventArgs<T extends EventType = EventType> =
   WaitForEventOptions<EventType, AgentEvent, T>;

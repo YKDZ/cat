@@ -1,4 +1,4 @@
-import type { SessionStore } from "@/cache/types";
+import type { SessionStore } from "#/cache/types.ts";
 
 type SessionEntry = {
   fields: Record<string, string>;

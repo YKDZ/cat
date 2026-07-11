@@ -5,10 +5,10 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import { useEditorContextStore } from "@/stores/editor/context";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
 
 import CurrentTranslationQaResult from "./CurrentTranslationQaResult.vue";
 

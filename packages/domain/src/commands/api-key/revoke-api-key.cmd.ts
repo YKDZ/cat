@@ -1,6 +1,6 @@
 import { apiKey, eq, and } from "@cat/db";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export interface RevokeApiKeyCommand {
   id: number;

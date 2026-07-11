@@ -1,7 +1,7 @@
 import { asc, count, eq, project } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListProjectsByCreatorQuerySchema = z.object({
   creatorId: z.uuidv4(),

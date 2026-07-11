@@ -3,9 +3,8 @@ import { safeZDotJson } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const UpdateIssueCommandSchema = z.object({
   issueId: z.int().positive(),

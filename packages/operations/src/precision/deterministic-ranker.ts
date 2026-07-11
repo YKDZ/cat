@@ -1,7 +1,7 @@
 // packages/operations/src/precision/deterministic-ranker.ts
 import type { QueryProfile, QueryTopicHypothesis } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
+import type { RecallCandidate } from "./types.ts";
 
 const MULTI_EVIDENCE_THRESHOLD = 2;
 

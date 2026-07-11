@@ -1,8 +1,10 @@
 import type { DbHandle, DrizzleClient } from "@cat/domain";
-
 import { executeCommand, registerPluginDefinition } from "@cat/domain";
 
-import { FileSystemPluginLoader, type PluginLoader } from "./loader";
+import {
+  FileSystemPluginLoader,
+  type PluginLoader,
+} from "#/registry/loader.ts";
 
 /**
  * 插件发现服务
@@ -11,10 +13,11 @@ import { FileSystemPluginLoader, type PluginLoader } from "./loader";
  */
 export class PluginDiscoveryService {
   private static instance: PluginDiscoveryService | undefined;
+  private readonly loader: PluginLoader;
 
-  public constructor(
-    private readonly loader: PluginLoader = new FileSystemPluginLoader(),
-  ) {}
+  public constructor(loader: PluginLoader = new FileSystemPluginLoader()) {
+    this.loader = loader;
+  }
 
   public static getInstance(loader?: PluginLoader): PluginDiscoveryService {
     if (!PluginDiscoveryService.instance || loader) {

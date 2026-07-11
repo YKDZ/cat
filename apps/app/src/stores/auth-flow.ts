@@ -1,35 +1,12 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
-type FlowStatus =
-  | "idle"
-  | "pending"
-  | "in_progress"
-  | "completed"
-  | "failed"
-  | "expired";
-
-type CurrentNode = {
-  nodeId: string;
-  hint: {
-    componentType: string;
-    displayInfo?: {
-      title?: string;
-      description?: string;
-      formSchema?: Record<string, unknown>;
-    };
-  };
-} | null;
-
-type FlowError =
-  | {
-      code: string;
-      message: string;
-      retriesRemaining?: number;
-    }
-  | undefined;
+type ServerFlowState = Awaited<ReturnType<typeof orpc.authFlow.initFlow>>;
+type FlowStatus = "idle" | ServerFlowState["status"];
+type CurrentNode = ServerFlowState["currentNode"];
+type FlowError = ServerFlowState["error"];
 
 export const useAuthFlowStore = defineStore("auth-flow", () => {
   const flowId = ref<string | null>(null);
@@ -40,14 +17,7 @@ export const useAuthFlowStore = defineStore("auth-flow", () => {
   const sessionCreated = ref(false);
   const loading = ref(false);
 
-  const applyState = (state: {
-    flowId: string;
-    status: FlowStatus;
-    currentNode: CurrentNode;
-    progress: { completedSteps: number; totalEstimatedSteps: number };
-    error?: FlowError;
-    sessionCreated?: boolean;
-  }): void => {
+  const applyState = (state: ServerFlowState): void => {
     flowId.value = state.flowId;
     status.value = state.status;
     currentNode.value = state.currentNode;

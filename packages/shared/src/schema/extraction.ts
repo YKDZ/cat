@@ -3,8 +3,8 @@ import * as z from "zod";
 import {
   StructuredEvidenceInputSchema,
   StructuredTranslatableElementInputSchema,
-} from "@/schema/content.ts";
-import { safeZDotJson } from "@/schema/json";
+} from "#/schema/content.ts";
+import { safeZDotJson } from "#/schema/json.ts";
 
 // --- Extraction Result ---
 

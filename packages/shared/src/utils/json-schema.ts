@@ -1,6 +1,5 @@
-import type { JSONSchema, JSONType } from "@/schema/json.ts";
-
-import { JSONSchemaSchema } from "@/schema/json.ts";
+import type { JSONSchema, JSONType } from "#/schema/json.ts";
+import { JSONSchemaSchema } from "#/schema/json.ts";
 
 const hasMissingRequiredDefaults = (schema: JSONSchema): boolean => {
   if (typeof schema === "boolean") return false;

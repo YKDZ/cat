@@ -2,7 +2,7 @@ import { eq, user } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetUserQuerySchema = z.object({
   userId: z.uuidv4(),

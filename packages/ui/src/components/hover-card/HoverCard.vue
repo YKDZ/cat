@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import type { HoverCardRootEmits, HoverCardRootProps } from "reka-ui"
-import { HoverCardRoot, useForwardPropsEmits } from "reka-ui"
+import type { HoverCardRootEmits, HoverCardRootProps } from "reka-ui";
+import { HoverCardRoot, useForwardPropsEmits } from "reka-ui";
 
-const props = defineProps<HoverCardRootProps>()
-const emits = defineEmits<HoverCardRootEmits>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
 
-const forwarded = useForwardPropsEmits(props, emits)
+const props = defineProps<HoverCardRootProps>();
+const emits = defineEmits<HoverCardRootEmits>();
+
+const forwarded = useForwardPropsEmits(props, emits);
 </script>
 
 <template>
   <HoverCardRoot
     v-slot="slotProps"
     data-slot="hover-card"
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
   >
-    <slot v-bind="slotProps" />
+    <slot v-bind="exactOptionalProps(slotProps)" />
   </HoverCardRoot>
 </template>

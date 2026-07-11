@@ -1,9 +1,8 @@
 import type { DbHandle } from "@cat/domain";
 import type { PluginServiceType } from "@cat/shared";
-
 import * as z from "zod";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 // ─── Context Variable Meta ───
 

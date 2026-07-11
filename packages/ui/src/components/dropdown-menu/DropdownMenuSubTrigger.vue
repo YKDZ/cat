@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { ChevronRight } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
 import type { DropdownMenuSubTriggerProps } from "reka-ui";
+import { DropdownMenuSubTrigger, useForwardProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-import { reactiveOmit } from "@vueuse/core";
-import { ChevronRight } from "@lucide/vue";
-import { DropdownMenuSubTrigger, useForwardProps } from "reka-ui";
-
-import { cn } from "@/utils/lib/utils";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = defineProps<
   DropdownMenuSubTriggerProps & {
@@ -22,7 +22,7 @@ const forwardedProps = useForwardProps(delegatedProps);
 <template>
   <DropdownMenuSubTrigger
     data-slot="dropdown-menu-sub-trigger"
-    v-bind="forwardedProps"
+    v-bind="exactOptionalProps(forwardedProps)"
     :class="
       cn(
         'flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-inset:pl-8 data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',

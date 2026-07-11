@@ -2,11 +2,10 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "@/utils/i18n";
-
-import type { NonNullPluginDetail, PluginProbeResult } from "../types";
+import { i18n } from "#/utils/i18n.ts";
 
 import PluginDetailShell from "../PluginDetailShell.vue";
+import type { NonNullPluginDetail, PluginProbeResult } from "../types.ts";
 
 vi.mock("@cat/ui", async () => {
   const { defineComponent } = await import("vue");

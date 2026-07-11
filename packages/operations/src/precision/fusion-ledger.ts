@@ -1,9 +1,8 @@
 // packages/operations/src/precision/fusion-ledger.ts
 import type { RecallEvidence } from "@cat/shared";
 
-import type { RawResult, RecallCandidate } from "./types";
-
-import { candidateKey } from "./types";
+import type { RawResult, RecallCandidate } from "./types.ts";
+import { candidateKey } from "./types.ts";
 
 const evidenceKey = (e: RecallEvidence): string =>
   [

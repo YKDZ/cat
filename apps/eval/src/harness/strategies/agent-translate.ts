@@ -7,9 +7,9 @@ import type {
   ScenarioConfig,
   TranslationTestCase,
   TranslationTestSet,
-} from "@/config/schemas";
+} from "#/config/schemas.ts";
 
-import type { CaseResult, HarnessContext, ScenarioResult } from "../types";
+import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
 
@@ -52,7 +52,7 @@ export const agentTranslateStrategy = {
 
     return {
       scenarioType: "agent-translate",
-      scenarioName: scenario.name,
+      ...(scenario.name === undefined ? {} : { scenarioName: scenario.name }),
       testSetName: testSet.name,
       cases,
     };
@@ -219,6 +219,9 @@ const executeAgentTranslation = async (
     }
 
     const batchMap = batches[batchIndex];
+    if (batchMap === undefined) {
+      throw new Error(`Missing translation batch ${batchIndex}`);
+    }
     const batchListLines = [...batchMap.entries()]
       .map(([ref, id]) => `- Element ID ${id} (ref: ${ref})`)
       .join("\n");
@@ -363,12 +366,13 @@ const executeAgentTranslation = async (
         b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt);
       return dateB.getTime() - dateA.getTime();
     });
-    if (sorted.length > 0) {
+    const latest = sorted[0];
+    if (latest !== undefined) {
       translations.push({
         elementRef: ref,
         elementId,
-        text: sorted[0].text,
-        createdAt: sorted[0].createdAt,
+        text: latest.text,
+        createdAt: latest.createdAt,
       });
     }
   }

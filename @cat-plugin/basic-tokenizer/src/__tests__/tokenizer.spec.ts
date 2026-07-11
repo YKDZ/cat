@@ -1,5 +1,4 @@
 import type { ParserContext } from "@cat/plugin-core";
-
 import { describe, expect, it } from "vitest";
 
 import {

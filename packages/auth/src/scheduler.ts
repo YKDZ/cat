@@ -1,7 +1,11 @@
 import type { EventBus } from "@cat/core";
-
 import { evaluateCondition } from "@cat/graph";
 
+import {
+  applyBlackboardUpdate,
+  createAuthBlackboard,
+  type AuthBlackboardSnapshot,
+} from "./blackboard.ts";
 import type { AuthFlowRegistry } from "./flow-registry.ts";
 import type { AuthNodeRegistry } from "./node-registry.ts";
 import type { AuthEvent, AuthEventType } from "./observability.ts";
@@ -12,12 +16,6 @@ import type {
   AuthNodeExecutorContext,
   FlowState,
 } from "./types.ts";
-
-import {
-  applyBlackboardUpdate,
-  createAuthBlackboard,
-  type AuthBlackboardSnapshot,
-} from "./blackboard.ts";
 
 // ====== FlowStorage interface ======
 
@@ -119,14 +117,18 @@ const buildFlowState = (
       completedSteps: data.completedNodes.length,
       totalEstimatedSteps: Object.keys(flowDef.nodes).length,
     },
-    error,
+    ...(error ? { error } : {}),
   };
 };
 
 // ====== Scheduler ======
 
 export class AuthFlowScheduler {
-  constructor(private readonly deps: SchedulerDeps) {}
+  private readonly deps: SchedulerDeps;
+
+  constructor(deps: SchedulerDeps) {
+    this.deps = deps;
+  }
 
   async initFlow(args: InitFlowArgs): Promise<FlowState> {
     const { flowRegistry, storage, eventBus } = this.deps;
@@ -252,7 +254,7 @@ export class AuthFlowScheduler {
       flowId: args.flowId,
       nodeId: data.currentNode,
       blackboard: data,
-      input: args.input,
+      ...(args.input ? { input: args.input } : {}),
       httpContext: args.httpContext,
       services,
     };
@@ -302,7 +304,9 @@ export class AuthFlowScheduler {
           ? {
               code: result.error.code,
               message: result.error.message,
-              retriesRemaining: nodeDef.retry?.maxAttempts,
+              ...(nodeDef.retry?.maxAttempts === undefined
+                ? {}
+                : { retriesRemaining: nodeDef.retry.maxAttempts }),
             }
           : undefined,
       );

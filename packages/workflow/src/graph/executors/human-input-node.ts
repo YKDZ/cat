@@ -1,6 +1,5 @@
-import type { NodeExecutor } from "@/graph/node-registry";
-
-import { buildPatch } from "@/graph/blackboard";
+import { buildPatch } from "#/graph/blackboard.ts";
+import type { NodeExecutor } from "#/graph/node-registry.ts";
 
 export const HumanInputNodeExecutor: NodeExecutor = async (ctx, config) => {
   const prompt =

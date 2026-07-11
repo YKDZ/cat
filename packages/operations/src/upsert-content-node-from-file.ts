@@ -1,9 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-
 import * as z from "zod";
 
-import { diffStructuredContentOp } from "./diff-structured-content";
-import { parseFileOp } from "./parse-file";
+import { diffStructuredContentOp } from "./diff-structured-content.ts";
+import { parseFileOp } from "./parse-file.ts";
 
 export const UpsertContentNodeFromFileInputSchema = z.object({
   projectId: z.uuidv4(),

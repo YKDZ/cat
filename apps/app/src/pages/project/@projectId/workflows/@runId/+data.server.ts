@@ -1,10 +1,9 @@
+import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
-import { render } from "vike/abort";
+import { ssc } from "#/server/ssc.ts";
 
-import { ssc } from "@/server/ssc";
-
-import { withProjectShell } from "../../project-shell.server";
+import { withProjectShell } from "../../project-shell.server.ts";
 
 export const data = async (ctx: PageContextServer) => {
   const { projectId, runId } = ctx.routeParams;

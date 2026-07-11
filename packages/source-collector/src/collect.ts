@@ -1,9 +1,8 @@
 import type { StructuredContentPayload } from "@cat/shared";
 
-import type { CollectOptions } from "./types.ts";
-
-import { toCollectionPayload } from "./adapter.ts";
-import { extract } from "./extract.ts";
+import { toCollectionPayload } from "#/adapter.ts";
+import { extract } from "#/extract.ts";
+import type { CollectOptions } from "#/types.ts";
 
 /**
  * Collect translatable elements from source files and return a StructuredContentPayload.

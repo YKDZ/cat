@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { startPostgresRuntimeCleanup } from "./runtime-cleanup";
+import { startPostgresRuntimeCleanup } from "./runtime-cleanup.ts";
 
 afterEach(() => {
   vi.useRealTimers();

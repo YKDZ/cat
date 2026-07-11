@@ -5,10 +5,10 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
 
-import { revectorizeConceptGraph } from "./revectorize-concept";
+import { revectorizeConceptGraph } from "./revectorize-concept.ts";
 
 export const RevectorizeSubjectConceptsInputSchema = z.object({
   subjectId: z.int(),

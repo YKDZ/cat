@@ -21,15 +21,15 @@ export interface ToolExecutionContext {
     agentId: string;
     projectId: string;
     runId: string;
-    providerId?: number;
-    branchId?: number;
-    contentNodeIds?: string[];
-    currentElementContentNodeId?: string;
-    elementId?: number;
-    languageId?: string;
-    sourceLanguageId?: string;
-    issueId?: number;
-    pullRequestId?: number;
+    providerId?: number | undefined;
+    branchId?: number | undefined;
+    contentNodeIds?: string[] | undefined;
+    currentElementContentNodeId?: string | undefined;
+    elementId?: number | undefined;
+    languageId?: string | undefined;
+    sourceLanguageId?: string | undefined;
+    issueId?: number | undefined;
+    pullRequestId?: number | undefined;
   };
   /** Permission checking interface */
   permissions: {
@@ -49,7 +49,7 @@ export interface ToolExecutionContext {
   /**
    * Scoped plugin manager (optional; tools should degrade gracefully when absent)
    */
-  pluginManager?: PluginManager;
+  pluginManager?: PluginManager | undefined;
 }
 
 /**

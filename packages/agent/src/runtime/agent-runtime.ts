@@ -1,21 +1,12 @@
-import type { PluginManager } from "@cat/plugin-core";
-import type { AgentConstraints } from "@cat/shared";
-
 import { Blackboard, buildPatch } from "@cat/graph";
 import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
+import type { PluginManager } from "@cat/plugin-core";
+import type { AgentConstraints } from "@cat/shared";
 
 import type {
   AgentBlackboardData,
   AgentNodeContext,
 } from "../dag/agent-dag-builder.ts";
-import type { LLMGateway } from "../llm/llm-gateway.ts";
-import type { AgentLogger } from "../observability/agent-logger.ts";
-import type { ToolRegistry } from "../tool/tool-registry.ts";
-import type {
-  CreateSessionParams,
-  CreateSessionResult,
-} from "./session-manager.ts";
-
 import { runDecisionNode } from "../dag/nodes/decision-node.ts";
 import {
   runPreCheckNode,
@@ -23,6 +14,8 @@ import {
 } from "../dag/nodes/precheck-node.ts";
 import { runReasoningNode } from "../dag/nodes/reasoning-node.ts";
 import { runToolNode } from "../dag/nodes/tool-node.ts";
+import type { LLMGateway } from "../llm/llm-gateway.ts";
+import type { AgentLogger } from "../observability/agent-logger.ts";
 import { createNoopAgentLogger } from "../observability/agent-logger.ts";
 import { AgentMetrics } from "../observability/agent-metrics.ts";
 import {
@@ -31,9 +24,14 @@ import {
 } from "../prompt/compression-pipeline.ts";
 import { PromptEngine } from "../prompt/prompt-engine.ts";
 import { estimateTokens } from "../prompt/token-estimator.ts";
+import type { ToolRegistry } from "../tool/tool-registry.ts";
 import { AsyncIterableChannel } from "./async-iterable-channel.ts";
 import { ErrorRecoveryManager } from "./error-recovery.ts";
 import { buildPromptVariables } from "./prompt-variables.ts";
+import type {
+  CreateSessionParams,
+  CreateSessionResult,
+} from "./session-manager.ts";
 import { SessionManager } from "./session-manager.ts";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -327,7 +325,9 @@ export class AgentRuntime {
       constraints,
       startedAt,
       logger: this.logger,
-      pluginManager: this.config.pluginManager,
+      ...(this.config.pluginManager
+        ? { pluginManager: this.config.pluginManager }
+        : {}),
       vcsMode,
       permissionChecker,
     };
@@ -366,7 +366,9 @@ export class AgentRuntime {
         // oxlint-disable-next-line no-await-in-loop -- sequential DAG step: must complete before reasoning
         const preCheckResult = await runPreCheckNode(getCurrentData(), {
           ...nodeCtx,
-          services: this.config.preCheckServices,
+          ...(this.config.preCheckServices
+            ? { services: this.config.preCheckServices }
+            : {}),
         });
 
         if (preCheckResult.shouldAbort) {

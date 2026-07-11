@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Language } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { TableRow, TableCell } from "@cat/ui";
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";

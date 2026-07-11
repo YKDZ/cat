@@ -1,6 +1,5 @@
 // oxlint-disable no-await-in-loop
 import type { OperationContext } from "@cat/domain";
-
 import {
   applyContentGraphEnvelope,
   bulkUpdateElementsForDiff,
@@ -23,7 +22,7 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import { createVectorizedStringOp } from "./create-vectorized-string";
+import { createVectorizedStringOp } from "./create-vectorized-string.ts";
 
 export const DiffStructuredContentInputSchema = z.object({
   payload: StructuredContentPayloadSchema,

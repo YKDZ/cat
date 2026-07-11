@@ -1,0 +1,10 @@
+{
+  "extends": ["//"],
+  "tags": [
+    "data-tool",
+    "database-consumer",
+    "database-path",
+    "library",
+    "server"
+  ]
+}

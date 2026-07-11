@@ -17,15 +17,15 @@ const mocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
 }));
 
-vi.mock("../fetch-advise", () => ({
+vi.mock("../fetch-advise.ts", () => ({
   fetchAdviseOp: mocks.fetchAdviseOp,
 }));
 
-vi.mock("../collect-memory-recall", () => ({
+vi.mock("../collect-memory-recall.ts", () => ({
   collectMemoryRecallOp: mocks.collectMemoryRecallOp,
 }));
 
-import { fetchBestTranslationCandidateOp } from "../fetch-best-translation-candidate";
+import { fetchBestTranslationCandidateOp } from "../fetch-best-translation-candidate.ts";
 
 const baseInput = {
   text: "Hello world",

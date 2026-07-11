@@ -1,36 +1,35 @@
 import type { ProviderStatus } from "@cat/shared";
 
-import type { RawResult, RecallCandidate } from "./types";
-
-import { evaluateAmbiguity } from "./ambiguity-gate";
-import { applyBudgetGate } from "./budget-gate";
-import { applyDeterministicRanking } from "./deterministic-ranker";
-import { buildFusionLedger } from "./fusion-ledger";
-import { applyModelReranker } from "./model-reranker";
-import { profileQuery } from "./query-profiler";
-import { resolveQueryTopic } from "./query-topic-resolver";
-import { applyGuardsToCandidates } from "./scope-anchor-guard";
+import { evaluateAmbiguity } from "./ambiguity-gate.ts";
+import { applyBudgetGate } from "./budget-gate.ts";
+import { applyDeterministicRanking } from "./deterministic-ranker.ts";
+import { buildFusionLedger } from "./fusion-ledger.ts";
+import { applyModelReranker } from "./model-reranker.ts";
+import { profileQuery } from "./query-profiler.ts";
+import { resolveQueryTopic } from "./query-topic-resolver.ts";
+import { applyGuardsToCandidates } from "./scope-anchor-guard.ts";
 import {
   createTaxonomyRegistry,
   assignTopics,
   type TaxonomyRegistryOptions,
   type CompatibilityTable,
-} from "./taxonomy-registry";
+} from "./taxonomy-registry.ts";
+import type { RawResult, RecallCandidate } from "./types.ts";
 
 export type PrecisionPipelineOptions = {
   queryText: string;
-  allowedScopeIds?: string[];
-  maxResults?: number;
-  taxonomyOptions?: TaxonomyRegistryOptions;
-  compatibilityTable?: CompatibilityTable;
+  allowedScopeIds?: string[] | undefined;
+  maxResults?: number | undefined;
+  taxonomyOptions?: TaxonomyRegistryOptions | undefined;
+  compatibilityTable?: CompatibilityTable | undefined;
   /** Term subjects keyed by conceptId, used for taxonomy assignment. */
-  termSubjectMap?: Map<number, string[]>;
-  providerStatuses?: ProviderStatus[];
+  termSubjectMap?: Map<number, string[]> | undefined;
+  providerStatuses?: ProviderStatus[] | undefined;
   pluginManager?: unknown;
-  signal?: AbortSignal;
-  rerankMode?: "baseline" | "reranked";
-  rerankProviderId?: number;
-  rerankTimeoutMs?: number;
+  signal?: AbortSignal | undefined;
+  rerankMode?: "baseline" | "reranked" | undefined;
+  rerankProviderId?: number | undefined;
+  rerankTimeoutMs?: number | undefined;
 };
 
 /**

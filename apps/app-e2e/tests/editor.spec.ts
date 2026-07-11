@@ -1,4 +1,4 @@
-import { test, expect } from "@/fixtures";
+import { test, expect } from "#/fixtures.ts";
 
 test.describe("Editor - Element Loading (P0)", () => {
   test("loads elements in the sidebar from the canonical content-node route", async ({

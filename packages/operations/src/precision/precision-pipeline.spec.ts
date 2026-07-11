@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { RecallCandidate } from "./types";
-
-import { suppressTier3IfClearTier1Winner } from "./precision-pipeline";
+import { suppressTier3IfClearTier1Winner } from "./precision-pipeline.ts";
+import type { RecallCandidate } from "./types.ts";
 
 const make = (
   id: number,

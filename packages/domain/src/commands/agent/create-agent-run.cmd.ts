@@ -3,7 +3,7 @@ import { nonNullSafeZDotJson } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateAgentRunCommandSchema = z.object({
   /**

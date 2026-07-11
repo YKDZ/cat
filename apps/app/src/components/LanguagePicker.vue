@@ -3,8 +3,8 @@ import { useInfiniteQuery } from "@pinia/colada";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Picker from "@/components/picker/Picker.vue";
-import { orpc } from "@/rpc/orpc";
+import Picker from "#/components/picker/Picker.vue";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = withDefaults(
   defineProps<{

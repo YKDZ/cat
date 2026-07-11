@@ -1,0 +1,56 @@
+# Dockerfile-specific ignore files replace the root .dockerignore. Keep every
+# credential, runtime-data, daemon-state, and cache rule required by this build.
+.git
+.github
+.scratch
+.agents
+.codex
+.vscode
+.idea
+.devcontainer
+.docker
+**/.docker
+**/.env
+**/.env.*
+**/.npmrc
+**/*.pem
+**/*.key
+
+# Dependency, package-manager, task-runner, and bundler state.
+node_modules
+**/node_modules
+.pnpm-store
+**/.pnpm-store
+.turbo
+**/.turbo
+.cache
+**/.cache
+**/.vite
+**/.vitest
+**/.eslintcache
+**/*.tsbuildinfo
+
+# Build, test, diagnostic, and local runtime output.
+**/coverage
+**/dist
+**/playwright-report
+**/test-results
+**/*.log
+**/*.sqlite
+**/*.sqlite-*
+apps/app/data
+apps/app/storage
+apps/app/plugins
+apps/app/node_modules/.tmp
+packages/db/data
+packages/db/node_modules/.tmp
+
+# Unrelated applications and contributor-only material are not part of the app graph.
+apps/app-e2e
+apps/cli
+apps/docs
+apps/eval
+docs
+docs/**
+tools
+.template

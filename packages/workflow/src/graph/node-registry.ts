@@ -1,5 +1,5 @@
-import type { Checkpointer } from "@/graph/checkpointer";
-import type { EventEnvelopeInput } from "@/graph/events";
+import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type { EventEnvelopeInput } from "#/graph/events.ts";
 import type {
   GraphRuntimeContext,
   NodeDefinition,
@@ -7,7 +7,7 @@ import type {
   NodeExecutionResult,
   NodeType,
   RetryConfig,
-} from "@/graph/types";
+} from "#/graph/types.ts";
 
 export type NodeExecutorContext = NodeExecutionContext & {
   checkpointer: Checkpointer;
@@ -27,9 +27,9 @@ export type ExecutorTaskInput = {
   nodeDef: NodeDefinition;
   snapshot: NodeExecutionContext["snapshot"];
   checkpointer: Checkpointer;
-  signal?: AbortSignal;
-  idempotencyKey?: string;
-  retry?: RetryConfig;
+  signal?: AbortSignal | undefined;
+  idempotencyKey?: string | undefined;
+  retry?: RetryConfig | undefined;
 };
 
 export class NodeRegistry {

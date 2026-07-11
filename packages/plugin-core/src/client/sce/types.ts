@@ -13,6 +13,8 @@ export interface SandboxGlobal {
   [key: string | symbol]: unknown;
 }
 
+export type BrowserWindow = Window & typeof globalThis;
+
 export type DistortionHandler = (target: object, receiver: unknown) => unknown;
 
 export type DistortionSetter = (

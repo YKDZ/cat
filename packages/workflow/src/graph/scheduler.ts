@@ -1,43 +1,42 @@
+import { randomUUID } from "node:crypto";
+
+import { evaluateCondition } from "@cat/graph";
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
-import { evaluateCondition } from "@cat/graph";
-import { randomUUID } from "node:crypto";
-
-import type { Checkpointer } from "@/graph/checkpointer";
-import type { CompensationRegistry } from "@/graph/compensation";
-import type { AgentEventBus } from "@/graph/event-bus";
-import type { AgentEvent, EventEnvelopeInput } from "@/graph/events";
-import type { ExecutorPool } from "@/graph/executor-pool";
-import type { GraphRegistry } from "@/graph/graph-registry";
-import type { LeaseManager, LeaseRecord } from "@/graph/lease";
-import type { NodeRegistry } from "@/graph/node-registry";
+import { Blackboard } from "#/graph/blackboard.ts";
+import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type { CompensationRegistry } from "#/graph/compensation.ts";
+import { InMemoryCompensationRegistry } from "#/graph/compensation.ts";
+import type { AgentEventBus } from "#/graph/event-bus.ts";
+import type { AgentEvent, EventEnvelopeInput } from "#/graph/events.ts";
+import { createAgentEvent, normalizeEventEnvelope } from "#/graph/events.ts";
+import type { ExecutorPool } from "#/graph/executor-pool.ts";
+import type { GraphRegistry } from "#/graph/graph-registry.ts";
+import type { LeaseManager, LeaseRecord } from "#/graph/lease.ts";
+import { InProcessLeaseManager } from "#/graph/lease.ts";
+import type { NodeRegistry } from "#/graph/node-registry.ts";
 import type {
   GraphRuntimeContext,
   GraphDefinition,
   NodeId,
   RunId,
   RunStatus,
-} from "@/graph/types";
-
-import { Blackboard } from "@/graph/blackboard";
-import { InMemoryCompensationRegistry } from "@/graph/compensation";
-import { createAgentEvent, normalizeEventEnvelope } from "@/graph/events";
-import { InProcessLeaseManager } from "@/graph/lease";
-import { PatchSchema } from "@/graph/types";
+} from "#/graph/types.ts";
+import { PatchSchema } from "#/graph/types.ts";
 import {
   defaultWorkflowLogger,
   type WorkflowLogger,
-} from "@/graph/workflow-logger";
+} from "#/graph/workflow-logger.ts";
 
 type RunContext = {
   runId: RunId;
   graph: GraphDefinition;
   blackboard: Blackboard;
   runtime: GraphRuntimeContext;
-  deduplicationKey?: string;
-  metadata?: JSONObject | null;
+  deduplicationKey?: string | undefined;
+  metadata?: JSONObject | null | undefined;
   status: RunStatus;
   pendingNodeIds: Set<NodeId>;
   currentNodeIds: Set<NodeId>;
@@ -59,20 +58,20 @@ export type SchedulerOptions = {
 
 export type SchedulerStartOptions = {
   /** DB-internal session ID, used to associate AgentRun records */
-  sessionId?: number;
+  sessionId?: number | undefined;
   /** Additional persisted run metadata */
-  metadata?: JSONObject | null;
-  deduplicationKey?: string;
+  metadata?: JSONObject | null | undefined;
+  deduplicationKey?: string | undefined;
   /** Plugin manager instance for this run */
-  pluginManager?: PluginManager;
-  /** Optional VCS context for Direct mode audit */
-  vcsContext?: VCSContext;
-  /** Optional VCS middleware instance */
-  vcsMiddleware?: VCSMiddleware;
+  pluginManager?: PluginManager | undefined;
+  /** @zh 可选的 VCS 上下文，用于 Direct 模式审计 @en Optional VCS context for Direct mode audit */
+  vcsContext?: VCSContext | undefined;
+  /** @zh 可选的 VCS 中间件实例 @en Optional VCS middleware instance */
+  vcsMiddleware?: VCSMiddleware | undefined;
 };
 
 export type SchedulerRecoverOptions = {
-  runtime?: GraphRuntimeContext;
+  runtime?: GraphRuntimeContext | undefined;
 };
 
 const SCHEDULER_PENDING_NODE_IDS_KEY = "__scheduler.pendingNodeIds";
@@ -804,9 +803,10 @@ export class Scheduler {
   };
 
   /**
-   * Return the list of run IDs currently active in this process.
+   * @zh 返回当前进程正在活跃执行的 run ID 列表。
+   * @en Return the list of run IDs currently active in this process.
    *
-   * @returns - List of active run IDs
+   * @returns - {@zh 当前活跃 run ID 列表} {@en List of active run IDs}
    */
   getActiveRunIds = (): RunId[] => {
     return [...this.activeRuns.keys()];

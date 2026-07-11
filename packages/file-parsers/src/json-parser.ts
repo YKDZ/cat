@@ -1,8 +1,7 @@
 import * as z from "zod";
 
-import type { ElementData, FileParser, SerializeElement } from "./types.ts";
-
-import { toJsonPointerRef } from "./stable-ref.ts";
+import { toJsonPointerRef } from "#/stable-ref.ts";
+import type { ElementData, FileParser, SerializeElement } from "#/types.ts";
 
 type JSONValue =
   | string
@@ -36,7 +35,8 @@ export const jsonParser: FileParser = {
       let hi = lineOffsets.length - 1;
       while (lo < hi) {
         const mid = (lo + hi + 1) >> 1;
-        if (lineOffsets[mid] <= charOffset) {
+        const middleOffset = lineOffsets[mid];
+        if (middleOffset !== undefined && middleOffset <= charOffset) {
           lo = mid;
         } else {
           hi = mid - 1;
@@ -58,7 +58,7 @@ export const jsonParser: FileParser = {
           for (const key in obj) {
             if (Object.hasOwn(obj, key)) {
               const value = obj[key];
-              traverse(value, [...currentPath, key]);
+              if (value !== undefined) traverse(value, [...currentPath, key]);
             }
           }
         }
@@ -103,7 +103,11 @@ export const jsonParser: FileParser = {
 
       for (let i = 0; i < pathParts.length; i += 1) {
         const part = pathParts[i];
-        if (typeof current !== "object" || current === null) {
+        if (
+          part === undefined ||
+          typeof current !== "object" ||
+          current === null
+        ) {
           validPath = false;
           break;
         }

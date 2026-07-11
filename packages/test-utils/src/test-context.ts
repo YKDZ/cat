@@ -79,7 +79,6 @@ export const createTestContext = (
   pluginManager: null as unknown as PluginManager,
   // oxlint-disable-next-line no-unsafe-type-assertion
   drizzleDB: null as unknown as DrizzleDB,
-  redis: undefined,
   cacheStore: createMockCacheStore(),
   sessionStore: createMockSessionStore(),
   helpers: createMockHTTPHelpers(),

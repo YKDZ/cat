@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { SidebarTrigger } from "@cat/ui";
 
-import NotificationInbox from "@/components/NotificationInbox.vue";
+import NotificationInbox from "#/components/NotificationInbox.vue";
 </script>
 
 <template>

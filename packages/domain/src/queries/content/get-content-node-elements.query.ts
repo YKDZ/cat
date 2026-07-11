@@ -15,9 +15,8 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { DbHandle, Query } from "@/types";
-
-import { buildTranslationStatusConditions } from "@/queries/translation/build-translation-status-conditions";
+import { buildTranslationStatusConditions } from "#/queries/translation/build-translation-status-conditions.ts";
+import type { DbHandle, Query } from "#/types.ts";
 
 export const ElementTranslationStatusSchema = z.enum([
   "NO",

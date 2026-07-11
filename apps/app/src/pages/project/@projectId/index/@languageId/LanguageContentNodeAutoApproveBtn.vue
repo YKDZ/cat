@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ContentNode } from "@cat/shared";
 import type { Language } from "@cat/shared";
-
 import {
   Button,
   Dialog,
@@ -14,8 +13,8 @@ import {
 import { Check } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 

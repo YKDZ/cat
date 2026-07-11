@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { Input } from "@cat/ui";
 import { Label } from "@cat/ui";
@@ -8,12 +7,11 @@ import { navigate } from "vike/client/router";
 import { inject, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
-import { useInjectionKey } from "@/utils/provide.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data } from "../+data.server.ts";
-
 import AutoTranslationSettings from "./AutoTranslationSettings.vue";
 import { onProjectDelete } from "./Page.telefunc.ts";
 import ProjectFeaturesSettings from "./ProjectFeaturesSettings.vue";

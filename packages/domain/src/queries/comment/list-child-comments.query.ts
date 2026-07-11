@@ -1,7 +1,7 @@
 import { and, comment, desc, eq, isNotNull } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListChildCommentsQuerySchema = z.object({
   rootCommentId: z.int(),

@@ -1,14 +1,16 @@
 import { resolve } from "node:path";
+
 import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
     noExternal: [
+      /^@cat\//,
       "@aws-sdk/s3-request-presigner",
       "@aws-sdk/client-s3",
       "@aws-sdk/lib-storage",
     ],
-    external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "zod"],
+    external: ["@cat/plugin-core", "zod"],
   },
 
   resolve: {

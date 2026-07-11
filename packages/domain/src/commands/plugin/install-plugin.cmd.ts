@@ -9,7 +9,7 @@ import { JSONSchemaSchema } from "@cat/shared";
 import { assertSingleNonNullish, getDefaultFromSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const InstallPluginCommandSchema = z.object({
   pluginId: z.string(),

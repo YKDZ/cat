@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared";
-
 import { SidebarTrigger } from "@cat/ui";
 
 import Breadcrumb from "./Breadcrumb.vue";

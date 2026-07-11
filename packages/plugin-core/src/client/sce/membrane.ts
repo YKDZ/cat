@@ -1,5 +1,9 @@
-import { BlueToRedHandler, RedToBlueHandler, unwrap } from "./handlers.ts";
-import { MembraneOptions, Distortion } from "./types.ts";
+import {
+  BlueToRedHandler,
+  RedToBlueHandler,
+  unwrap,
+} from "#/client/sce/handlers.ts";
+import type { Distortion, MembraneOptions } from "#/client/sce/types.ts";
 
 export class Membrane {
   // Host -> Proxy
@@ -8,8 +12,8 @@ export class Membrane {
   private redToBlueMap = new WeakMap<object, object>();
 
   // Tracking sets
-  private redProxies = new WeakSet<object>();
-  private blueProxies = new WeakSet<object>();
+  private redProxies = new WeakSet();
+  private blueProxies = new WeakSet();
 
   public distortions: Map<object, Distortion>;
   public pluginId: string;

@@ -28,9 +28,9 @@ import {
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import JsonViewer from "@/components/JsonViewer.vue";
-import { orpc } from "@/rpc/orpc";
-import { useWorkflowStore } from "@/stores/workflow";
+import JsonViewer from "#/components/JsonViewer.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useWorkflowStore } from "#/stores/workflow.ts";
 
 const props = defineProps<{
   runId: string;

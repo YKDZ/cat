@@ -1,11 +1,10 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import { createGlossaryTerms, executeCommand } from "@cat/domain";
 import { TermDataSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { revectorizeConceptOp } from "./revectorize-concept";
+import { revectorizeConceptOp } from "./revectorize-concept.ts";
 
 export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),

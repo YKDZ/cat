@@ -1,7 +1,7 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
-import type { EventEnvelopeInput } from "@/graph/events";
+import type { EventEnvelopeInput } from "#/graph/events.ts";
 
 export {
   BlackboardSnapshotSchema,
@@ -49,14 +49,14 @@ export type NodeExecutionContext = {
   runId: import("@cat/graph").RunId;
   nodeId: import("@cat/graph").NodeId;
   snapshot: import("@cat/graph").BlackboardSnapshot;
-  signal?: AbortSignal;
-  idempotencyKey?: string;
+  signal?: AbortSignal | undefined;
+  idempotencyKey?: string | undefined;
 };
 
 export type GraphRuntimeContext = {
-  pluginManager?: PluginManager;
-  /** Optional VCS context for Direct mode audit */
-  vcsContext?: VCSContext;
-  /** Optional VCS middleware instance */
-  vcsMiddleware?: VCSMiddleware;
+  pluginManager?: PluginManager | undefined;
+  /** @zh 可选的 VCS 上下文，用于 Direct 模式审计 @en Optional VCS context for Direct mode audit */
+  vcsContext?: VCSContext | undefined;
+  /** @zh 可选的 VCS 中间件实例 @en Optional VCS middleware instance */
+  vcsMiddleware?: VCSMiddleware | undefined;
 };

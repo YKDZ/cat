@@ -10,10 +10,10 @@ import { assertSingleNonNullish } from "@cat/shared";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { vectorizeGraph } from "../vectorize";
+import { vectorizeGraph } from "../vectorize.ts";
 
 const data = [
   { text: "Vectorize text 1", languageId: "en" },

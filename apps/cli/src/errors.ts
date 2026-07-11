@@ -120,7 +120,7 @@ export const toSemanticError = (
       code,
       status: err.status,
       message: err.message || `Server returned ${code} (HTTP ${err.status})`,
-      path: context?.path,
+      ...(context?.path === undefined ? {} : { path: context.path }),
       details: zodIssues ?? err.data ?? undefined,
       hint: generateHint(code, err.status, context),
     };
@@ -134,7 +134,7 @@ export const toSemanticError = (
     return {
       code: "NETWORK_ERROR",
       message: err.message,
-      path: context?.path,
+      ...(context?.path === undefined ? {} : { path: context.path }),
       hint: "Cannot reach the API server. Verify --api-url (or $CAT_API_URL) and ensure the server is running.",
     };
   }
@@ -144,14 +144,14 @@ export const toSemanticError = (
     return {
       code: "CLIENT_ERROR",
       message: err.message,
-      path: context?.path,
+      ...(context?.path === undefined ? {} : { path: context.path }),
     };
   }
 
   return {
     code: "UNKNOWN_ERROR",
     message: String(err),
-    path: context?.path,
+    ...(context?.path === undefined ? {} : { path: context.path }),
   };
 };
 

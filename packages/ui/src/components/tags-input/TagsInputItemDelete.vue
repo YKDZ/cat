@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { X } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
 import type { TagsInputItemDeleteProps } from "reka-ui";
+import { TagsInputItemDelete, useForwardProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-import { reactiveOmit } from "@vueuse/core";
-import { X } from "@lucide/vue";
-import { TagsInputItemDelete, useForwardProps } from "reka-ui";
-
-import { cn } from "@/utils/lib/utils";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = defineProps<
   TagsInputItemDeleteProps & { class?: HTMLAttributes["class"] }
@@ -19,7 +19,7 @@ const forwardedProps = useForwardProps(delegatedProps);
 
 <template>
   <TagsInputItemDelete
-    v-bind="forwardedProps"
+    v-bind="exactOptionalProps(forwardedProps)"
     :class="cn('mr-1 flex rounded bg-transparent', props.class)"
   >
     <slot>

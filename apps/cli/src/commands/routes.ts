@@ -1,5 +1,4 @@
 import type { RoutePath } from "../routes.generated.ts";
-
 import { ROUTES } from "../routes.generated.ts";
 
 const HELP = `

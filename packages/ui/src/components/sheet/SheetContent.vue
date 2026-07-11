@@ -1,19 +1,18 @@
 <script setup lang="ts">
-import type { DialogContentEmits, DialogContentProps } from "reka-ui";
-import type { HTMLAttributes } from "vue";
-
-import { reactiveOmit } from "@vueuse/core";
 import { X } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
+import type { DialogContentEmits, DialogContentProps } from "reka-ui";
 import {
   DialogClose,
   DialogContent,
   DialogPortal,
   useForwardPropsEmits,
 } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-import { cn } from "@/utils/lib/utils";
-
-import SheetOverlay from "./SheetOverlay.vue";
+import SheetOverlay from "#/components/sheet/SheetOverlay.vue";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes["class"];
@@ -53,7 +52,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
           props.class,
         )
       "
-      v-bind="{ ...$attrs, ...forwarded }"
+      v-bind="exactOptionalProps({ ...$attrs, ...forwarded })"
     >
       <slot />
 

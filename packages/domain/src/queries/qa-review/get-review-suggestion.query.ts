@@ -1,7 +1,7 @@
 import { eq, getColumns, qaReviewSuggestion } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetQaReviewSuggestionQuerySchema = z.object({
   suggestionId: z.int().positive(),

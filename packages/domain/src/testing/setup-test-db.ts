@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import * as dbExports from "@cat/db";
 import { relations, type DrizzleDB } from "@cat/db";
 import {
@@ -5,7 +7,6 @@ import {
   generateMigration,
 } from "drizzle-kit/api-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { randomUUID } from "node:crypto";
 import { Client } from "pg";
 
 declare global {
@@ -131,7 +132,7 @@ export const setupTestDB = async (): Promise<TestDB> => {
 
   const cleanup = async () => {
     if (globalThis.__DRIZZLE_DB__ === drizzleDB) {
-      delete globalThis.__DRIZZLE_DB__;
+      globalThis.__DRIZZLE_DB__ = undefined;
     }
     try {
       await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);

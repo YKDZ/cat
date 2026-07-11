@@ -1,8 +1,10 @@
 import type { StructuredTranslatableElementInput } from "@cat/shared";
-
 import { Node, Project } from "ts-morph";
 
-import { buildStableSourceRef, buildTextFingerprint } from "./stable-ref.ts";
+import {
+  buildStableSourceRef,
+  buildTextFingerprint,
+} from "#/extractors/stable-ref.ts";
 
 /** Reusable ts-morph Project instance. */
 let sharedProject: Project | undefined;
@@ -152,8 +154,11 @@ export function extractFromScript(
         if (!lineText) break;
         const match = I18N_CONTEXT_RE.exec(lineText);
         if (match) {
-          i18nContext = match[1].trim();
-          break;
+          const context = match[1];
+          if (context !== undefined) {
+            i18nContext = context.trim();
+            break;
+          }
         }
         if (
           !lineText.trim().startsWith("//") &&

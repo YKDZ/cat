@@ -6,18 +6,16 @@ import type {
   NlpToken,
   PluginServiceAvailability,
 } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared";
-
 import {
   NlpWordSegmenter,
   PluginServiceUnavailableError,
 } from "@cat/plugin-core";
+import type { JSONType } from "@cat/shared";
 import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
 
 import type { SpacySegmentResponse, SpacyTokenResponse } from "./types";
-
 import {
   SpacyBatchSegmentResponseSchema,
   SpacyLanguagesResponseSchema,
@@ -203,5 +201,7 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
     };
 
   private mapLanguage = (languageId: string): string =>
-    this.config.languageModelMap?.[languageId] ?? languageId.split("-")[0];
+    this.config.languageModelMap?.[languageId] ??
+    languageId.split("-")[0] ??
+    languageId;
 }

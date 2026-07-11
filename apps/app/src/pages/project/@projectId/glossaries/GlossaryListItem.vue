@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { TableRow, TableCell } from "@cat/ui";
 import { Button } from "@cat/ui";
 import { navigate } from "vike/client/router";
 import { onMounted, ref } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
-import { watchClient } from "@/utils/vue.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
+import { watchClient } from "#/utils/vue.ts";
 
 const { info, rpcWarn } = useToastStore();
 

@@ -21,7 +21,7 @@ import {
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
 
 import type { PickerOption } from "./index.ts";
 
@@ -39,10 +39,16 @@ const props = withDefaults(
   },
 );
 
-const modelValue = defineModel<T>();
+const modelValue = defineModel<T | undefined>();
 const search = defineModel<string>("search", { default: "" });
 
 const selectedOption = ref<PickerOption<T>>();
+
+const getPickerOption = (option: AcceptableInputValue): PickerOption<T> => {
+  const match = props.options.find((candidate) => candidate === option);
+  if (match === undefined) throw new TypeError("Unknown picker option");
+  return match;
+};
 
 const onSelect = (value: PickerOption<T> | undefined) => {
   selectedOption.value =
@@ -59,7 +65,11 @@ const onScroll = (e: Event) => {
 </script>
 
 <template>
-  <Combobox :modelValue="selectedOption" by="label" ignore-filter>
+  <Combobox
+    v-bind="selectedOption === undefined ? {} : { modelValue: selectedOption }"
+    by="label"
+    ignore-filter
+  >
     <ComboboxAnchor class="flex w-fit min-w-48 gap-1">
       <ComboboxTrigger as-child>
         <Button variant="outline" class="w-full">
@@ -104,7 +114,7 @@ const onScroll = (e: Event) => {
           <ComboboxVirtualizer
             v-slot="{ option }"
             :options
-            :text-content="(x) => x.content"
+            :text-content="(option) => getPickerOption(option).content"
             :estimate-size="40"
           >
             <ComboboxItem
@@ -112,10 +122,10 @@ const onScroll = (e: Event) => {
               @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
               :value="option"
             >
-              {{ option.content }}
+              {{ getPickerOption(option).content }}
 
               <ComboboxItemIndicator
-                v-if="selectedOption?.value === option.value"
+                v-if="selectedOption?.value === getPickerOption(option).value"
               >
                 <Check />
               </ComboboxItemIndicator>

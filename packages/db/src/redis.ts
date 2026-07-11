@@ -1,14 +1,12 @@
 import type { RedisClientType } from "redis";
-
 import { createClient } from "redis";
 
 export class RedisConnection {
   public redis: RedisClientType;
 
   constructor() {
-    this.redis = createClient({
-      url: process.env.REDIS_URL,
-    });
+    const url = process.env.REDIS_URL;
+    this.redis = createClient(url ? { url } : {});
   }
 
   async connect(): Promise<void> {

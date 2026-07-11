@@ -1,7 +1,5 @@
 // packages/operations/src/merge-pr-full.ts
 import type { DbContext, DrizzleClient } from "@cat/domain";
-import type { ConflictInfo, MergeResult } from "@cat/vcs";
-
 import {
   executeCommand,
   executeQuery,
@@ -10,6 +8,7 @@ import {
   markBranchConflicted,
   mergePR,
 } from "@cat/domain";
+import type { ConflictInfo, MergeResult } from "@cat/vcs";
 import { ChangeSetService, getDefaultRegistries, mergeBranch } from "@cat/vcs";
 
 /**
@@ -112,7 +111,9 @@ export const mergePRFull = async (
         hasConflicts: false,
         conflicts: [],
         prId: pr.id,
-        mainChangesetId: mergeResult.mainChangesetId,
+        ...(mergeResult.mainChangesetId === undefined
+          ? {}
+          : { mainChangesetId: mergeResult.mainChangesetId }),
       } satisfies MergePRFullResult;
     })
     .catch(async (error: unknown) => {
@@ -140,19 +141,22 @@ export const mergePRFull = async (
 // ─── Error Types ────────────────────────────────────────────────────────────
 
 class MergePRConflictError extends Error {
-  constructor(public readonly conflicts: ConflictInfo[]) {
+  readonly conflicts: ConflictInfo[];
+
+  constructor(conflicts: ConflictInfo[]) {
     super("Merge conflicts detected");
     this.name = "MergePRConflictError";
+    this.conflicts = conflicts;
   }
 }
 
 class MergePRApplyError extends Error {
-  constructor(
-    public readonly changesetId: number,
-    message: string,
-  ) {
+  readonly changesetId: number;
+
+  constructor(changesetId: number, message: string) {
     super(message);
     this.name = "MergePRApplyError";
+    this.changesetId = changesetId;
   }
 }
 

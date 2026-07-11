@@ -1,11 +1,10 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTranslationsByElement } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment";
+import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
 
 // ─── Input / Output Schemas ───
 
@@ -57,7 +56,10 @@ export type StatisticalTermAlignOutput = z.infer<
 
 // ─── Co-occurrence logic ───
 
-type OccurrenceRef = { elementId: number; translationId?: number };
+type OccurrenceRef = {
+  elementId: number;
+  translationId?: number | undefined;
+};
 
 const getOccurrenceKey = (ref: OccurrenceRef): string =>
   ref.translationId !== undefined
@@ -168,7 +170,7 @@ export const statisticalTermAlignOp = async (
     candidateText: string;
     rawOccurrences: Array<{
       elementId: number;
-      translationId?: number;
+      translationId?: number | undefined;
     }>;
   };
 

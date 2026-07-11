@@ -1,5 +1,5 @@
-import { test, expect } from "@/fixtures";
-import { LoginPage } from "@/pages/login-page";
+import { test, expect } from "#/fixtures.ts";
+import { LoginPage } from "#/pages/login-page.ts";
 
 test.describe("Authentication", () => {
   test.describe("Login flow", () => {

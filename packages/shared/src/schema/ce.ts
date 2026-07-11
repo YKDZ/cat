@@ -19,8 +19,9 @@ const isExtendedChar = (cp: number) => cp >= 0x80 && cp <= 0x10ffff;
 const isValidLocalName = (name: string) => {
   if (name.length === 0) return false;
 
-  const cps = Array.from(name, (c) => c.codePointAt(0)!);
+  const cps = Array.from(name, (c) => c.codePointAt(0) ?? 0);
   const first = cps[0];
+  if (first === undefined) return false;
 
   // If first code point is ASCII letter
   if (isAsciiAlpha(first)) {
@@ -47,8 +48,7 @@ const isValidLocalName = (name: string) => {
   }
 
   // Following code points
-  for (let i = 1; i < cps.length; i += 1) {
-    const cp = cps[i];
+  for (const cp of cps.slice(1)) {
     if (
       isAsciiAlpha(cp) ||
       isAsciiDigit(cp) ||
@@ -88,11 +88,12 @@ export const CustomElementNameSchema = z
   .string()
   .refine((name) => isValidLocalName(name), "Not a valid element local name")
   .refine((name) => {
-    const firstCp = name.codePointAt(0)!;
-    return isAsciiLower(firstCp);
+    const firstCp = name.codePointAt(0);
+    return firstCp !== undefined && isAsciiLower(firstCp);
   }, "Custom element name must start with an ASCII lowercase letter")
   .refine(
-    (name) => !Array.from(name, (c) => c.codePointAt(0)!).some(isAsciiUpper),
+    (name) =>
+      !Array.from(name, (c) => c.codePointAt(0) ?? 0).some(isAsciiUpper),
     "Custom element name must not contain ASCII uppercase letters",
   )
   .refine(

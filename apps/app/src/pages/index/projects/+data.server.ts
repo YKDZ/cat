@@ -1,7 +1,6 @@
-import type { PageContextServer } from "vike/types";
-
 import { executeQuery, listOwnedProjects } from "@cat/domain";
 import { render } from "vike/abort";
+import type { PageContextServer } from "vike/types";
 
 export const data = async (ctx: PageContextServer) => {
   const { client: drizzle } = ctx.globalContext.drizzleDB;

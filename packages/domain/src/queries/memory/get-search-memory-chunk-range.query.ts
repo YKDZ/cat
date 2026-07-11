@@ -9,7 +9,7 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetSearchMemoryChunkRangeQuerySchema = z.object({
   memoryIds: z.array(z.uuidv4()),

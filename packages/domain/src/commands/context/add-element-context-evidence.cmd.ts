@@ -6,7 +6,7 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 /**
  * Input schema for adding element context evidence.

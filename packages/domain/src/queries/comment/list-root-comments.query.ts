@@ -1,7 +1,7 @@
 import { and, comment, desc, eq, isNull } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListRootCommentsQuerySchema = z.object({
   targetType: z.custom<typeof comment.$inferSelect.targetType>(),

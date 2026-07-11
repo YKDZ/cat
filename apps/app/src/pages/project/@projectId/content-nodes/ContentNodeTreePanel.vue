@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import type { ContentNode } from "@cat/shared";
 import type { Project } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import ContentNodeTree from "@/components/ContentNodeTree.vue";
-import { orpc } from "@/rpc/orpc";
-import { useBranchStore } from "@/stores/branch";
-import { useToastStore } from "@/stores/toast";
+import ContentNodeTree from "#/components/ContentNodeTree.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useBranchStore } from "#/stores/branch.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const props = defineProps<{
   project: Pick<Project, "id">;

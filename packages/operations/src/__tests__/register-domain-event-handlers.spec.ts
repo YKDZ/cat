@@ -7,17 +7,18 @@
  */
 
 import type { DrizzleClient } from "@cat/domain";
-
 import { domainEvent, domainEventBus } from "@cat/domain";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 // Mock runAutoTranslatePipeline to avoid real DB/AI calls.
-vi.mock("../run-auto-translate-pipeline", () => ({
+vi.mock("../run-auto-translate-pipeline.ts", () => ({
   runAutoTranslatePipeline: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { registerDomainEventHandlers } from "../register-domain-event-handlers";
-import { runAutoTranslatePipeline } from "../run-auto-translate-pipeline";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
+import { registerDomainEventHandlers } from "../register-domain-event-handlers.ts";
+import { runAutoTranslatePipeline } from "../run-auto-translate-pipeline.ts";
 
 const mockPipeline = vi.mocked(runAutoTranslatePipeline);
 
@@ -76,7 +77,7 @@ describe("registerDomainEventHandlers — element:created wiring", () => {
       expect(mockPipeline).toHaveBeenCalled();
     });
 
-    const [ctxArg, inputArg] = mockPipeline.mock.calls[0];
+    const [ctxArg, inputArg] = requireFixtureValue(mockPipeline.mock.calls[0]);
     expect(ctxArg).toEqual({ db: fakeDb });
     expect(inputArg).toEqual({
       projectId: payload.projectId,

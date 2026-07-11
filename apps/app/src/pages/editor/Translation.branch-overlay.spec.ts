@@ -3,13 +3,13 @@ import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 const mocks = vi.hoisted(() => ({
   approvedTranslationId: 1 as number | null,
 }));
 
-vi.mock("@/stores/editor/table", async () => {
+vi.mock("#/stores/editor/table.ts", async () => {
   const { defineStore } = await import("pinia");
 
   return {
@@ -22,20 +22,20 @@ vi.mock("@/stores/editor/table", async () => {
   };
 });
 
-vi.mock("@/components/editor/TokenViewer.vue", () => ({
+vi.mock("#/components/editor/TokenViewer.vue", () => ({
   default: {
     props: ["text"],
     template: '<div data-test="token-viewer">{{ text }}</div>',
   },
 }));
 
-vi.mock("@/components/tooltip/TextTooltip.vue", () => ({
+vi.mock("#/components/tooltip/TextTooltip.vue", () => ({
   default: {
     template: "<div><slot /></div>",
   },
 }));
 
-vi.mock("@/components/UserAvatar.vue", () => ({
+vi.mock("#/components/UserAvatar.vue", () => ({
   default: {
     template: '<div data-test="user-avatar" />',
   },

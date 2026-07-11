@@ -1,10 +1,8 @@
 import type { RecallChannel } from "@cat/shared";
-
 import { assert, describe, expect, it } from "vitest";
 
-import type { RecallCandidate } from "./types";
-
-import { applyDeterministicRanking } from "./deterministic-ranker";
+import { applyDeterministicRanking } from "./deterministic-ranker.ts";
+import type { RecallCandidate } from "./types.ts";
 
 const PROFILE = {
   tokenCount: 2,

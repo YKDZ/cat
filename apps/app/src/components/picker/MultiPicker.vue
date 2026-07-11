@@ -43,6 +43,12 @@ const modalValue = defineModel<T[]>({
 const selectedOptions = shallowRef<PickerOption<T>[]>([]);
 const search = defineModel<string>("search", { default: "" });
 
+const getPickerOption = (option: AcceptableInputValue): PickerOption<T> => {
+  const match = props.options.find((candidate) => candidate === option);
+  if (match === undefined) throw new TypeError("Unknown picker option");
+  return match;
+};
+
 // Resolve modelValue entries that don't yet have a matching selectedOption.
 // Watches both options (pagination / search) and modelValue (async load from server).
 watch(
@@ -147,7 +153,7 @@ const onScroll = (e: Event) => {
           <ComboboxVirtualizer
             v-slot="{ option }"
             :options
-            :text-content="(x) => x.content"
+            :text-content="(option) => getPickerOption(option).content"
             :estimate-size="40"
           >
             <ComboboxItem
@@ -155,7 +161,7 @@ const onScroll = (e: Event) => {
               @select="(e) => onSelect(e.detail.value as PickerOption<T>)"
               :value="option"
             >
-              {{ option.content }}
+              {{ getPickerOption(option).content }}
 
               <ComboboxItemIndicator>
                 <Check />

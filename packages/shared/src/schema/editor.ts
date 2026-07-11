@@ -1,12 +1,12 @@
 import * as z from "zod";
 
-import { TranslatableElementSchema } from "@/schema/drizzle/content.ts";
+import { TranslatableElementSchema } from "#/schema/drizzle/content.ts";
 import {
   ContentBoundaryTypeSchema,
   ContentNodeExportRoleSchema,
   ContentNodeKindSchema,
-} from "@/schema/enum.ts";
-import { ElementTranslationStatusSchema } from "@/schema/misc.ts";
+} from "#/schema/enum.ts";
+import { ElementTranslationStatusSchema } from "#/schema/misc.ts";
 
 /**
  * Supported editor translation-status filter values. `translated` includes approved translations; `unapproved` means translated but not yet approved.

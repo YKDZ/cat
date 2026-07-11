@@ -16,17 +16,15 @@
 
 import type { LLMChunk } from "@cat/plugin-core";
 import type { ParsedAgentDefinition } from "@cat/shared";
-
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import type { LLMGateway } from "@/llm/llm-gateway.ts";
-import type { AgentLogger } from "@/observability/agent-logger.ts";
-import type { PromptEngine } from "@/prompt/prompt-engine.ts";
-import type { ToolRegistry } from "@/tool/tool-registry.ts";
-
-import { createNoopAgentLogger } from "@/observability/agent-logger.ts";
-import { AgentMetrics } from "@/observability/agent-metrics.ts";
-import { AgentRuntime } from "@/runtime/agent-runtime.ts";
+import type { LLMGateway } from "#/llm/llm-gateway.ts";
+import type { AgentLogger } from "#/observability/agent-logger.ts";
+import { createNoopAgentLogger } from "#/observability/agent-logger.ts";
+import { AgentMetrics } from "#/observability/agent-metrics.ts";
+import type { PromptEngine } from "#/prompt/prompt-engine.ts";
+import { AgentRuntime } from "#/runtime/agent-runtime.ts";
+import type { ToolRegistry } from "#/tool/tool-registry.ts";
 
 // ─── Mock @cat/permissions ────────────────────────────────────────────────────
 
@@ -62,7 +60,7 @@ const MOCK_DEFINITION: ParsedAgentDefinition = {
     "You are a professional Chinese-English translator. Use translate_segment then finish.",
 };
 
-vi.mock("@/runtime/session-manager.ts", () => {
+vi.mock("#/runtime/session-manager.ts", () => {
   // Vitest 4.x requires `function` or `class` (not arrow functions) for mocks
   // called with `new`. See https://vitest.dev/api/vi#vi-spyon
   const MockSessionManager = vi

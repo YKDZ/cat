@@ -1,6 +1,6 @@
 import { EditorView, hoverTooltip } from "@codemirror/view";
 
-import { flattenTokens, tokensField } from "./token-decorations";
+import { flattenTokens, tokensField } from "./token-decorations.ts";
 
 // ─── Term Tooltip ─────────────────────────────────────────────────────────────
 

@@ -1,14 +1,13 @@
 <script setup lang="ts">
+import { ChevronDown } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
 import type { NavigationMenuTriggerProps } from "reka-ui";
+import { NavigationMenuTrigger, useForwardProps } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-import { reactiveOmit } from "@vueuse/core";
-import { ChevronDown } from "@lucide/vue";
-import { NavigationMenuTrigger, useForwardProps } from "reka-ui";
-
-import { cn } from "@/utils/lib/utils";
-
-import { navigationMenuTriggerStyle } from ".";
+import { navigationMenuTriggerStyle } from "#/components/navigation-menu/index.ts";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 const props = defineProps<
   NavigationMenuTriggerProps & { class?: HTMLAttributes["class"] }
@@ -22,7 +21,7 @@ const forwardedProps = useForwardProps(delegatedProps);
 <template>
   <NavigationMenuTrigger
     data-slot="navigation-menu-trigger"
-    v-bind="forwardedProps"
+    v-bind="exactOptionalProps(forwardedProps)"
     :class="cn(navigationMenuTriggerStyle(), 'group', props.class)"
   >
     <slot />

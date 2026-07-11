@@ -1,7 +1,7 @@
 import { eq, inArray, translatableElement, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListElementSourceTextsQuerySchema = z.object({
   elementIds: z.array(z.int()),

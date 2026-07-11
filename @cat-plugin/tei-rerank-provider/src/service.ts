@@ -1,10 +1,9 @@
-import type { RerankProviderCall, RerankResponse } from "@cat/shared";
-
 import {
   PluginServiceUnavailableError,
   RerankProvider,
   type PluginServiceAvailability,
 } from "@cat/plugin-core";
+import type { RerankProviderCall, RerankResponse } from "@cat/shared";
 import * as z from "zod";
 
 export const SingleConfigSchema = z.object({

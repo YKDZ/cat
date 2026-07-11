@@ -1,7 +1,7 @@
 import { inArray, translatableElement } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const DeleteElementsByIdsCommandSchema = z.object({
   elementIds: z.array(z.int()),

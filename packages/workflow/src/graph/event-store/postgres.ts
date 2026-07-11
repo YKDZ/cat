@@ -1,7 +1,7 @@
-import type { AgentEvent } from "@/graph/events";
-import type { RunId } from "@/graph/types";
+import type { AgentEvent } from "#/graph/events.ts";
+import type { RunId } from "#/graph/types.ts";
 
-import type { EventStore } from "./types";
+import type { EventStore } from "./types.ts";
 
 /**
  * Postgres EventStore（阶段 1 占位实现）

@@ -2,7 +2,6 @@
 import type { Comment } from "@cat/shared";
 import type { User } from "@cat/shared";
 import type { CommentReactionType } from "@cat/shared";
-
 import { Badge } from "@cat/ui";
 import { Popover, PopoverContent, PopoverTrigger } from "@cat/ui";
 import { Button } from "@cat/ui";
@@ -13,11 +12,11 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Markdown from "@/components/Markdown.vue";
-import TextTooltip from "@/components/tooltip/TextTooltip.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
-import { orpc } from "@/rpc/orpc";
-import { i18nUseTimeAgoMessages } from "@/utils/i18n";
+import Markdown from "#/components/Markdown.vue";
+import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import UserAvatar from "#/components/UserAvatar.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { i18nUseTimeAgoMessages } from "#/utils/i18n.ts";
 
 import CommentReact from "./CommentReact.vue";
 import CommentReaction from "./CommentReaction.vue";

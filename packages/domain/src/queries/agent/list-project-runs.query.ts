@@ -1,7 +1,7 @@
 import { agentRun, agentSession, and, desc, eq, getColumns } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListProjectRunsQuerySchema = z.object({
   projectId: z.uuidv4(),

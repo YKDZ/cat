@@ -10,8 +10,6 @@
  * - listPRs with type filter returns only AUTO_TRANSLATE PRs
  */
 
-import type { TestDB } from "@cat/test-utils";
-
 import {
   createProject,
   createUser,
@@ -21,10 +19,11 @@ import {
   listPRs,
   updateProjectFeatures,
 } from "@cat/domain";
+import type { TestDB } from "@cat/test-utils";
 import { setupTestDB } from "@cat/test-utils";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { findOrCreateAutoTranslatePR } from "../find-or-create-auto-translate-pr";
+import { findOrCreateAutoTranslatePR } from "../find-or-create-auto-translate-pr.ts";
 
 let testDb: TestDB;
 

@@ -6,9 +6,9 @@
  * dependencies between `graph/index.ts` and `graph/dsl/run-graph.ts`.
  */
 
-import type { Checkpointer } from "@/graph/checkpointer";
-import type { AgentEventBus } from "@/graph/event-bus";
-import type { Scheduler } from "@/graph/scheduler";
+import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type { AgentEventBus } from "#/graph/event-bus.ts";
+import type { Scheduler } from "#/graph/scheduler.ts";
 
 export type StoredGraphRuntime = {
   scheduler: Pick<Scheduler, "start" | "getActiveRunIds">;

@@ -32,10 +32,16 @@ export interface VCSContext {
  * - **Isolation Mode**: does not execute the write, only records the change to the branch changeset
  */
 export class VCSMiddleware {
+  private readonly changeSetService: ChangeSetService;
+  private readonly diffRegistry: DiffStrategyRegistry;
+
   constructor(
-    private readonly changeSetService: ChangeSetService,
-    private readonly diffRegistry: DiffStrategyRegistry,
-  ) {}
+    changeSetService: ChangeSetService,
+    diffRegistry: DiffStrategyRegistry,
+  ) {
+    this.changeSetService = changeSetService;
+    this.diffRegistry = diffRegistry;
+  }
 
   /**
    * Intercept a write operation; in Direct Mode, execute the write and record the diff to the ChangeSet (lazy creation);
@@ -82,7 +88,7 @@ export class VCSMiddleware {
     if (ctx.currentChangesetId === undefined) {
       const cs = await this.changeSetService.createChangeSet({
         projectId: ctx.projectId,
-        createdBy: ctx.createdBy,
+        ...(ctx.createdBy === undefined ? {} : { createdBy: ctx.createdBy }),
       });
       ctx.currentChangesetId = cs.id;
     }

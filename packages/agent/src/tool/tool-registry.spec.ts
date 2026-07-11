@@ -1,12 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
+import { ToolRegistry } from "./tool-registry.ts";
 import type {
   AgentToolDefinition,
   ToolExecutionContext,
 } from "./tool-types.ts";
-
-import { ToolRegistry } from "./tool-registry.ts";
 
 const mockCtx: ToolExecutionContext = {
   session: { sessionId: "s1", agentId: "a1", projectId: "p1", runId: "r1" },

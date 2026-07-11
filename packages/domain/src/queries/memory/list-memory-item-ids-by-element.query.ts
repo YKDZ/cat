@@ -1,7 +1,7 @@
 import { and, eq, isNotNull, memoryItem } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListMemoryItemIdsByElementQuerySchema = z.object({
   elementId: z.int(),

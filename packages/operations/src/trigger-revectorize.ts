@@ -1,9 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-
 import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 
-import { revectorizeConceptOp } from "./revectorize-concept";
+import { revectorizeConceptOp } from "./revectorize-concept.ts";
 
 /**
  * 如果两者均就绪，则以 fire-and-forget 方式触发概念重向量化。

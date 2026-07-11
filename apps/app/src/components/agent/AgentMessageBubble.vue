@@ -4,9 +4,8 @@ import { ChevronDown, ChevronRight } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { AgentStepItem } from "@/stores/agent";
-
-import Markdown from "@/components/Markdown.vue";
+import Markdown from "#/components/Markdown.vue";
+import type { AgentStepItem } from "#/stores/agent.ts";
 
 import AgentToolCallCard from "./AgentToolCallCard.vue";
 

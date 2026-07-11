@@ -1,6 +1,7 @@
 {
-  "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
+    "target": "es2023",
+    "lib": ["ES2023"],
     "declaration": true,
     "declarationMap": true,
     "importHelpers": true,
@@ -10,12 +11,18 @@
     "noEmitOnError": true,
     "noEmit": false,
     "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "exactOptionalPropertyTypes": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noImplicitThis": true,
+    "skipLibCheck": true,
     "strict": true,
-    "module": "es2022",
+    "module": "esnext",
     "moduleResolution": "bundler"
   }
 }

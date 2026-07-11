@@ -1,7 +1,7 @@
 import { and, crossReference, eq, issue, pullRequest, sql } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const ParseAndSaveCrossReferencesCommandSchema = z.object({
   projectId: z.uuid(),
@@ -14,10 +14,17 @@ export type ParseAndSaveCrossReferencesCommand = z.infer<
   typeof ParseAndSaveCrossReferencesCommandSchema
 >;
 
-function extractHashReferences(text: string): number[] {
+const extractHashReferences = (text: string): number[] => {
   const matches = text.matchAll(/#(\d+)/g);
-  return [...new Set([...matches].map((m) => parseInt(m[1], 10)))];
-}
+  return [
+    ...new Set(
+      [...matches].flatMap((match) => {
+        const value = match[1];
+        return value === undefined ? [] : [Number.parseInt(value, 10)];
+      }),
+    ),
+  ];
+};
 
 /**
  * Parses #N references in text and saves them to the cross_reference table.

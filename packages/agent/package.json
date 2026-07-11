@@ -1,48 +1,45 @@
 {
   "name": "@cat/agent",
   "version": "0.0.1",
+  "private": true,
   "description": "Agent runtime: DAG loop controller, prompt engine, LLM gateway, definition parser",
   "license": "GPL-3.0-only",
-  "files": [
-    "dist",
-    "src",
-    "package.json"
-  ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
+    "@cat/core": "link:../core",
+    "@cat/domain": "link:../domain",
+    "@cat/graph": "link:../graph",
+    "@cat/operations": "link:../operations",
+    "@cat/permissions": "link:../permissions",
+    "@cat/plugin-core": "link:../plugin-core",
+    "@cat/server-shared": "link:../server-shared",
+    "@cat/shared": "link:../shared",
+    "@cat/vcs": "link:../vcs",
+    "@cat/workflow": "link:../workflow",
     "remark-frontmatter": "catalog:",
     "remark-parse": "catalog:",
     "unified": "catalog:",
-    "yaml": "catalog:"
+    "yaml": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@cat/oxlint-plugin": "workspace:*",
-    "@cat/test-utils": "workspace:*",
+    "@cat/test-utils": "link:../test-utils",
     "@types/mdast": "catalog:",
     "@types/node": "catalog:",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:",
     "vitest": "catalog:"
-  },
-  "peerDependencies": {
-    "@cat/core": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/graph": "workspace:*",
-    "@cat/operations": "workspace:*",
-    "@cat/permissions": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/server-shared": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "@cat/vcs": "workspace:*",
-    "@cat/workflow": "workspace:*",
-    "zod": "catalog:"
   }
 }

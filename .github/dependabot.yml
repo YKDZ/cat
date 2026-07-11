@@ -1,35 +1,66 @@
 version: 2
 
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-    versioning-strategy: widen
-    open-pull-requests-limit: 64
+      interval: weekly
+    versioning-strategy: increase
+    open-pull-requests-limit: 20
     groups:
-      orpc:
+      workspace-toolchain:
         patterns:
-          - "@orpc/*"
-      aws-sdk:
+          - turbo
+          - typescript
+          - "@typescript/*"
+          - oxlint
+          - oxfmt
+          - pnpm
+      frontend:
         patterns:
-          - "@aws-sdk/*"
-      vueuse:
-        patterns:
+          - vue
+          - "@vue/*"
           - "@vueuse/*"
-      moon:
+      backend:
         patterns:
-          - "@moonrepo/*"
-      drizzle:
+          - hono
+          - "@hono/*"
+          - "drizzle-*"
+      testing:
         patterns:
-          - "drizzle*"
-      iconify-json:
-        patterns:
-          - "@iconify-json/*"
+          - vitest
+          - "@vitest/*"
+          - playwright
+          - "@playwright/*"
     ignore:
       - dependency-name: "@types/node"
         update-types:
-          - "version-update:semver-major"
-      - dependency-name: "@types/node"
-        versions:
-          - ">= 25"
+          - version-update:semver-major
+
+  # One multi-directory group keeps both official Node image references together.
+  # The CI config contract requires the same exact patch in package.json engines.
+  - package-ecosystem: docker
+    directories:
+      - /.devcontainer
+      - /apps/app
+    schedule:
+      interval: weekly
+    groups:
+      node-runtime:
+        group-by: dependency-name
+        patterns:
+          - node
+
+  - package-ecosystem: docker
+    directory: /apps/postgres-search-runtime
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"

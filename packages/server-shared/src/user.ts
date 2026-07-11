@@ -1,11 +1,10 @@
-import type { User } from "@cat/shared";
-
 import {
   executeQuery,
   getSessionStore,
   getUser,
   type DbHandle,
 } from "@cat/domain";
+import type { User } from "@cat/shared";
 import { UserSchema } from "@cat/shared";
 
 export const userFromSessionId = async (

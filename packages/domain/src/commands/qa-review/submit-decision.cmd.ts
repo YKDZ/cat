@@ -15,9 +15,8 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 const CLOSED_FINDING_DISPOSITIONS = [
   "FALSE_POSITIVE",
@@ -252,7 +251,9 @@ export const submitQaReviewDecision: Command<
         queueItemId: queueItem.id,
         decisionId: inserted.id,
         decision: inserted.decision,
-        reviewerId: inserted.reviewerId ?? undefined,
+        ...(inserted.reviewerId === null
+          ? {}
+          : { reviewerId: inserted.reviewerId }),
       }),
     ],
   };

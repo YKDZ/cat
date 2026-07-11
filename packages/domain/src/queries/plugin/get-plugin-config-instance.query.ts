@@ -5,12 +5,12 @@ import {
   pluginConfig,
   pluginConfigInstance,
   pluginInstallation,
-} from "@cat/db";
+} from "@cat/db/drizzle";
 import { ScopeTypeSchema } from "@cat/shared";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetPluginConfigInstanceQuerySchema = z.object({
   pluginId: z.string(),

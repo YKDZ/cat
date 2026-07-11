@@ -1,21 +1,20 @@
 import type { Token } from "@cat/plugin-core";
 import type { EditorView } from "@codemirror/view";
-
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { useRefHistory } from "@vueuse/core";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, reactive, ref } from "vue";
 
-import { buildEditorHref } from "@/pages/editor/scope-url";
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
+import { buildEditorHref } from "#/pages/editor/scope-url.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
 import {
   useEditorElementStore,
   type TranslatableElementWithDetails,
-} from "@/stores/editor/element.ts";
-import { useProfileStore } from "@/stores/profile.ts";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability.ts";
+} from "#/stores/editor/element.ts";
+import { useProfileStore } from "#/stores/profile.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
 
 export const useEditorTableStore = defineStore("editorTable", () => {
   const contextStore = useEditorContextStore();

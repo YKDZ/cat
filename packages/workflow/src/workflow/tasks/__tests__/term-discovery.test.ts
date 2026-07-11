@@ -30,10 +30,10 @@ vi.mock("@cat/operations", async () => {
   };
 });
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { termDiscoveryGraph } from "../term-discovery";
+import { termDiscoveryGraph } from "../term-discovery.ts";
 
 describe("termDiscoveryGraph", () => {
   let cleanup: (() => Promise<void>) | undefined;

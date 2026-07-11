@@ -7,7 +7,6 @@ import type {
   PatchMetadata,
   RunId,
 } from "./types.ts";
-
 import {
   BlackboardSnapshotSchema,
   PatchMetadataSchema,
@@ -37,6 +36,7 @@ export const setByPath = (
   let cursor: Record<string, unknown> = target;
   for (let index = 0; index < keys.length - 1; index += 1) {
     const key = keys[index];
+    if (!key) continue;
     const next = cursor[key];
     if (!isRecord(next)) {
       const created: Record<string, unknown> = {};
@@ -47,7 +47,8 @@ export const setByPath = (
     cursor = next;
   }
 
-  const last = keys[keys.length - 1];
+  const last = keys.at(-1);
+  if (!last) return;
   cursor[last] = value;
 };
 
@@ -86,11 +87,7 @@ export class Blackboard {
     });
   }
 
-  /**
-   * Create a `Blackboard` instance from an existing snapshot (synchronous).
-   *
-   * 从已有快照同步地创建 `Blackboard` 实例。
-   */
+  /** Create a `Blackboard` instance from an existing snapshot. */
   static fromSnapshot = (snapshot: BlackboardSnapshot): Blackboard => {
     const parsed = BlackboardSnapshotSchema.parse(snapshot);
     const blackboard = new Blackboard({

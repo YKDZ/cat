@@ -1,7 +1,7 @@
 import { asc, count, inArray, project } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListAccessibleProjectsQuerySchema = z.object({
   projectIds: z.array(z.uuidv4()),

@@ -1,4 +1,4 @@
-import { Membrane } from "./membrane.ts";
+import { Membrane } from "#/client/sce/membrane.ts";
 
 export const UNWRAP = Symbol.for("sce.unwrap");
 
@@ -12,10 +12,13 @@ export function unwrap(value: unknown): unknown {
 }
 
 export class BlueToRedHandler implements ProxyHandler<object> {
-  constructor(
-    private membrane: Membrane,
-    private originalTarget: object,
-  ) {}
+  private membrane: Membrane;
+  private originalTarget: object;
+
+  constructor(membrane: Membrane, originalTarget: object) {
+    this.membrane = membrane;
+    this.originalTarget = originalTarget;
+  }
 
   // 沿原型链查找 Distortion
   private getDistortion(target: object) {
@@ -122,7 +125,11 @@ export class BlueToRedHandler implements ProxyHandler<object> {
 }
 
 export class RedToBlueHandler implements ProxyHandler<object> {
-  constructor(private membrane: Membrane) {}
+  private membrane: Membrane;
+
+  constructor(membrane: Membrane) {
+    this.membrane = membrane;
+  }
 
   get(target: object, key: string | symbol, receiver: unknown): unknown {
     if (key === UNWRAP) return target;

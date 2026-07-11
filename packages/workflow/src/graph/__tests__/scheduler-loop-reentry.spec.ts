@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { GraphDefinition } from "@/graph/types";
-
-import { buildPatch } from "@/graph/blackboard";
-import { MemoryCheckpointer } from "@/graph/checkpointer";
-import { InProcessEventBus } from "@/graph/event-bus";
-import { QueuedExecutorPool } from "@/graph/executor-pool";
-import { GraphRegistry } from "@/graph/graph-registry";
-import { NodeRegistry } from "@/graph/node-registry";
-import { Scheduler } from "@/graph/scheduler";
+import { buildPatch } from "#/graph/blackboard.ts";
+import { MemoryCheckpointer } from "#/graph/checkpointer/index.ts";
+import { InProcessEventBus } from "#/graph/event-bus.ts";
+import { QueuedExecutorPool } from "#/graph/executor-pool.ts";
+import { GraphRegistry } from "#/graph/graph-registry.ts";
+import { NodeRegistry } from "#/graph/node-registry.ts";
+import { Scheduler } from "#/graph/scheduler.ts";
+import type { GraphDefinition } from "#/graph/types.ts";
 
 describe("Scheduler loop re-entry", () => {
   it("allows a completed node to be scheduled again in a loop graph", async () => {

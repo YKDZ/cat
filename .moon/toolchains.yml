@@ -1,6 +1,0 @@
-javascript:
-  inheritAliases: true
-  installDependencies: true
-
-node:
-  versionFromPrototools: false

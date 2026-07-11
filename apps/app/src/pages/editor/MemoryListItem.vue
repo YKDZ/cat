@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared";
 import type { MemorySuggestion } from "@cat/shared";
-
 import { toShortFixed } from "@cat/shared";
 import { Badge } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import TokenViewer from "@/components/editor/TokenViewer.vue";
-import { orpc } from "@/rpc/orpc";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProjectWriteCapabilityStore } from "@/stores/write-capability";
-import { useHotKeys } from "@/utils/magic-keys.ts";
+import TokenViewer from "#/components/editor/TokenViewer.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
+import { useHotKeys } from "#/utils/magic-keys.ts";
 
 const { replace } = useEditorTableStore();
 const { t } = useI18n();

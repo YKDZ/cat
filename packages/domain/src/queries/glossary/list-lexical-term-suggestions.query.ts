@@ -1,5 +1,3 @@
-import type { TermMatch } from "@cat/shared";
-
 import {
   aliasedTable,
   and,
@@ -13,9 +11,10 @@ import {
   termConceptSubject,
   termConceptToSubject,
 } from "@cat/db";
+import type { TermMatch } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListLexicalTermSuggestionsQuerySchema = z.object({
   glossaryIds: z.array(z.uuidv4()),

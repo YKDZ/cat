@@ -12,15 +12,13 @@ import {
 } from "@vue-flow/core";
 import { computed } from "vue";
 
-import type { DagEdgeData } from "./types";
+import type { DagEdgeData } from "#/components/dag-graph/types.ts";
 
 type DagEdgeProps = EdgeProps & {
   data?: DagEdgeData;
 };
 
-
 const props = defineProps<DagEdgeProps>();
-
 
 const pathData = computed(() =>
   getBezierPath({
@@ -33,11 +31,9 @@ const pathData = computed(() =>
   }),
 );
 
-
 const edgePath = computed(() => pathData.value[0]);
 const labelX = computed(() => pathData.value[1]);
 const labelY = computed(() => pathData.value[2]);
-
 
 const isAnimated = computed(
   () => props.animated ?? props.data?.animated ?? false,

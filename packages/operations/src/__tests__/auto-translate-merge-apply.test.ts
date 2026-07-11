@@ -8,10 +8,10 @@
  * - readWithOverlay returns the auto_translation entry before merge
  */
 
-import type { TestDB } from "@cat/test-utils";
-
 import {
+  addChangesetEntry,
   addProjectTargetLanguages,
+  createChangeset,
   createElements,
   createProject,
   createRootContentNode,
@@ -28,12 +28,19 @@ import {
   updateProjectFeatures,
   upsertAutoTranslationEntry,
 } from "@cat/domain";
+import type { TestDB } from "@cat/test-utils";
 import { setupTestDB } from "@cat/test-utils";
-import { readWithOverlay } from "@cat/vcs";
+import {
+  ChangeSetService,
+  getDefaultRegistries,
+  readWithOverlay,
+} from "@cat/vcs";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { findOrCreateAutoTranslatePR } from "../find-or-create-auto-translate-pr";
-import { mergePRFull } from "../merge-pr-full";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
+import { findOrCreateAutoTranslatePR } from "../find-or-create-auto-translate-pr.ts";
+import { mergePRFull } from "../merge-pr-full.ts";
 
 let testDb: TestDB;
 
@@ -109,7 +116,7 @@ async function seedProject(): Promise<SeedResult> {
           sourceRootRef: `project:${project.id}`,
           sourceNodeRef: `test#0`,
           stableSourceRef: `test#0`,
-          stringId: sourceStringId,
+          stringId: requireFixtureValue(sourceStringId),
           creatorId: user.id,
         },
       ],
@@ -120,8 +127,8 @@ async function seedProject(): Promise<SeedResult> {
     projectId: project.id,
     userId: user.id,
     contentNodeId: doc.id,
-    elementId: elementId,
-    sourceStringId: sourceStringId,
+    elementId: requireFixtureValue(elementId),
+    sourceStringId: requireFixtureValue(sourceStringId),
   };
 }
 
@@ -232,7 +239,7 @@ describe("AutoTranslationApplicationMethod — via mergePRFull", () => {
       data: [
         {
           translatableElementId: elementId,
-          stringId: translationStringId,
+          stringId: requireFixtureValue(translationStringId),
         },
       ],
     });
@@ -273,6 +280,51 @@ describe("AutoTranslationApplicationMethod — via mergePRFull", () => {
     // Only one translation (the pre-existing human one), auto-translate skipped
     expect(translations.length).toBe(1);
     expect(translations[0]?.text).toBe("人类翻译文字");
+  });
+
+  test("retrying one translation CREATE reuses its materialized row", async () => {
+    const { projectId, userId, elementId } = await seedProject();
+    const changeset = await executeCommand(
+      { db: testDb.client },
+      createChangeset,
+      { projectId, status: "APPROVED" },
+    );
+    const entityId = `translation:${crypto.randomUUID()}`;
+
+    await executeCommand({ db: testDb.client }, addChangesetEntry, {
+      changesetId: changeset.id,
+      entityType: "translation",
+      entityId,
+      action: "CREATE",
+      after: {
+        translatableElementId: elementId,
+        languageId: "zh-CN",
+        text: "可重试的译文",
+        translatorId: userId,
+      },
+      riskLevel: "LOW",
+    });
+
+    const { diffRegistry, appMethodRegistry } = getDefaultRegistries();
+    const service = new ChangeSetService(
+      testDb.client,
+      diffRegistry,
+      appMethodRegistry,
+    );
+
+    await service.applyChangeSet(changeset.id, { projectId });
+    await service.applyChangeSet(changeset.id, { projectId });
+
+    const translations = await executeQuery(
+      { db: testDb.client },
+      listTranslationsByElement,
+      { elementId, languageId: "zh-CN" },
+    );
+    expect(translations).toHaveLength(1);
+    expect(translations[0]).toMatchObject({
+      text: "可重试的译文",
+      meta: { __catVcsEntityId: entityId },
+    });
   });
 });
 

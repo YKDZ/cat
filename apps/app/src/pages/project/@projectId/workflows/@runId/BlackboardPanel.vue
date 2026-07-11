@@ -3,8 +3,8 @@ import { Badge } from "@cat/ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import JsonViewer from "@/components/JsonViewer.vue";
-import { useWorkflowStore } from "@/stores/workflow";
+import JsonViewer from "#/components/JsonViewer.vue";
+import { useWorkflowStore } from "#/stores/workflow.ts";
 
 const { t } = useI18n();
 const workflowStore = useWorkflowStore();

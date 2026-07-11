@@ -2,9 +2,9 @@
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useEditorTranslationStore } from "@/stores/editor/translation.ts";
-import { watchClient } from "@/utils/vue.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useEditorTranslationStore } from "#/stores/editor/translation.ts";
+import { watchClient } from "#/utils/vue.ts";
 
 import Translation from "./Translation.vue";
 

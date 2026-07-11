@@ -1,10 +1,9 @@
-import type { JSONType } from "@cat/shared";
-
 import { qaResult, qaResultItem } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command, DbHandle } from "@/types";
+import type { Command, DbHandle } from "#/types.ts";
 
 export const CreateQaResultWithItemsCommandSchema = z.object({
   translationId: z.int(),

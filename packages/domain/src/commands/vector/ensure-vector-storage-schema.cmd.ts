@@ -1,7 +1,8 @@
 import { sql } from "@cat/db";
+import { assertFirstNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const EnsureVectorStorageSchemaCommandSchema = z.object({
   dimension: z.int().min(1),
@@ -37,10 +38,9 @@ export const ensureVectorStorageSchema: Command<
       AND a.attnum > 0
   `);
 
+  const dimensionRow = result.rows.at(0);
   const currentDimension =
-    result.rows.length > 0 && result.rows[0].typmod > 0
-      ? result.rows[0].typmod
-      : null;
+    dimensionRow && dimensionRow.typmod > 0 ? dimensionRow.typmod : null;
 
   if (currentDimension !== null && currentDimension !== command.dimension) {
     // Only ALTER if the table is empty; if it has data the dimension change must
@@ -48,7 +48,7 @@ export const ensureVectorStorageSchema: Command<
     const countResult = await ctx.db.execute<{ n: string }>(
       sql`SELECT COUNT(*) AS n FROM "Vector"`,
     );
-    if (parseInt(countResult.rows[0].n) > 0) {
+    if (Number.parseInt(assertFirstNonNullish(countResult.rows).n, 10) > 0) {
       throw new Error(
         `Vector table has data with dimension ${currentDimension} but ensureVectorStorageSchema was called with dimension ${command.dimension}. ` +
           `Call updateVectorDimension(${command.dimension}) explicitly to truncate and re-dimension.`,

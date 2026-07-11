@@ -1,10 +1,4 @@
 <script setup lang="ts">
-/**
- * @shadcn-custom-component
- * description: Custom DAG node for Vue Flow, renders workflow node with status styling
- * lastReviewed: 2026-03-20
- */
-import { Handle, Position, type NodeProps } from "@vue-flow/core";
 import {
   ArrowRightLeft,
   Brain,
@@ -16,11 +10,20 @@ import {
   UserRound,
   Wrench,
 } from "@lucide/vue";
+/**
+ * @shadcn-custom-component
+ * description: Custom DAG node for Vue Flow, renders workflow node with status styling
+ * lastReviewed: 2026-03-20
+ */
+import { Handle, Position, type NodeProps } from "@vue-flow/core";
 import { computed } from "vue";
 
-import { Badge } from "@/components/badge";
-
-import type { DagNodeData, DagNodeStatus, DagNodeType } from "./types";
+import { Badge } from "#/components/badge/index.ts";
+import type {
+  DagNodeData,
+  DagNodeStatus,
+  DagNodeType,
+} from "#/components/dag-graph/types.ts";
 
 type DagNodeProps = NodeProps<DagNodeData>;
 

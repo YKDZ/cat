@@ -1,8 +1,8 @@
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { useBranchStore } from "../branch";
-import { useProfileStore } from "../profile";
+import { useBranchStore } from "../branch.ts";
+import { useProfileStore } from "../profile.ts";
 
 describe("useBranchStore", () => {
   const projectA = "11111111-1111-4111-8111-111111111111";

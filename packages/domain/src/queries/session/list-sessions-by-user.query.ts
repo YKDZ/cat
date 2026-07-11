@@ -1,7 +1,7 @@
 import { sessionRecord as sessionRecordTable } from "@cat/db";
 import { and, eq, gt, isNull } from "@cat/db";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export interface ListSessionsByUserQuery {
   userId: string;

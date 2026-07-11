@@ -1,9 +1,8 @@
-import type { JSONType } from "@cat/shared";
-
 import { agentRun, asc, eq } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListAgentRunSnapshotsBySessionQuerySchema = z.object({
   sessionId: z.int(),

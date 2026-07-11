@@ -3,17 +3,24 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "imports": {
+    "#/*": "./*"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "seed": "node --conditions=source main.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
   "dependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/seed": "workspace:*",
-    "@cat/server-shared": "workspace:*",
-    "@cat/shared": "workspace:*"
+    "@cat/db": "link:../../packages/db",
+    "@cat/domain": "link:../../packages/domain",
+    "@cat/plugin-core": "link:../../packages/plugin-core",
+    "@cat/seed": "link:../../packages/seed",
+    "@cat/server-shared": "link:../../packages/server-shared",
+    "@cat/shared": "link:../../packages/shared"
   },
   "devDependencies": {
-    "@types/node": "catalog:",
-    "tsx": "catalog:",
-    "typescript": "beta"
+    "@types/node": "catalog:"
   }
 }

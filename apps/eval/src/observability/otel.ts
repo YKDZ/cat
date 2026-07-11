@@ -1,6 +1,3 @@
-// oxlint-disable no-console -- intentional diagnostic logging for OTLP export errors
-import type { SpanProcessor } from "@opentelemetry/sdk-trace-node";
-
 import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import {
@@ -10,6 +7,8 @@ import {
   InMemoryMetricExporter,
 } from "@opentelemetry/sdk-metrics";
 import { NodeSDK } from "@opentelemetry/sdk-node";
+// oxlint-disable no-console -- intentional diagnostic logging for OTLP export errors
+import type { SpanProcessor } from "@opentelemetry/sdk-trace-node";
 import {
   BatchSpanProcessor,
   SimpleSpanProcessor,

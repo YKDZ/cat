@@ -1,6 +1,6 @@
 import type { DrizzleClient, DrizzleTransaction } from "@cat/db";
 
-import type { DomainEvent } from "@/events/domain-events";
+import type { DomainEvent } from "#/events/domain-events.ts";
 
 export type DbHandle = DrizzleClient | DrizzleTransaction;
 
@@ -31,6 +31,6 @@ export type Command<C, R = void> = (
  */
 export type OperationContext = {
   traceId: string;
-  signal?: AbortSignal;
+  signal?: AbortSignal | undefined;
   pluginManager?: unknown;
 };

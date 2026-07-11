@@ -17,7 +17,7 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { DbHandle, Query } from "@/types";
+import type { DbHandle, Query } from "#/types.ts";
 
 import { listQaReviewAnnotations } from "./list-review-annotations.query.ts";
 import { listQaReviewFindings } from "./list-review-findings.query.ts";

@@ -1,5 +1,4 @@
 import type { DomainEventMap } from "@cat/domain/events";
-
 import { AsyncMessageQueue } from "@cat/server-shared";
 
 /** Notification push payload. */

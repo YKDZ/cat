@@ -5,7 +5,7 @@ import {
   ExtractionResultSchema,
   NavigationStepSchema,
   RouteManifestSchema,
-} from "../extraction.ts";
+} from "#/schema/extraction.ts";
 
 describe("ExtractionResultSchema", () => {
   it("parses a valid ExtractionResult with metadata", () => {
@@ -132,8 +132,8 @@ describe("RouteManifestSchema", () => {
       ],
     };
     const result = RouteManifestSchema.parse(input);
-    expect(result.routes[0].auth).toBe(false);
-    expect(result.routes[0].steps).toHaveLength(1);
+    expect(result.routes[0]?.auth).toBe(false);
+    expect(result.routes[0]?.steps).toHaveLength(1);
   });
 });
 
@@ -173,7 +173,7 @@ describe("CaptureResultSchema", () => {
       ],
     };
     const result = CaptureResultSchema.parse(input);
-    expect(result.screenshots[0].highlightRegion).toBeUndefined();
+    expect(result.screenshots[0]?.highlightRegion).toBeUndefined();
   });
 
   it("parses empty screenshots array", () => {

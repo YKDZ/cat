@@ -1,13 +1,12 @@
-import type { VectorStorage } from "@cat/plugin-core";
-
 import {
   retrieveEmbeddingsOp,
   RetrieveEmbeddingsInputSchema,
 } from "@cat/operations";
+import type { VectorStorage } from "@cat/plugin-core";
 import { getServiceFromDBId } from "@cat/server-shared";
 import * as z from "zod";
 
-import { defineNode, defineGraph } from "@/graph/dsl";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 const SearchChunkInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),

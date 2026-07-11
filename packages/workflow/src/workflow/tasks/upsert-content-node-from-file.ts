@@ -4,7 +4,7 @@ import {
   upsertContentNodeFromFileOp,
 } from "@cat/operations";
 
-import { defineGraph, defineNode } from "@/graph/dsl";
+import { defineGraph, defineNode } from "#/graph/dsl/index.ts";
 
 export {
   UpsertContentNodeFromFileInputSchema,

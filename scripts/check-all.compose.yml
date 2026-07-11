@@ -1,0 +1,52 @@
+services:
+  postgresql:
+    image: cat-check-all-postgresql:local
+    build:
+      context: ../apps/postgres-search-runtime
+    environment:
+      POSTGRES_DB: ${CAT_CHECK_ALL_POSTGRES_DB:?required}
+      POSTGRES_PASSWORD: ${CAT_CHECK_ALL_POSTGRES_PASSWORD:?required}
+      POSTGRES_USER: ${CAT_CHECK_ALL_POSTGRES_USER:?required}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER} && psql -d $${POSTGRES_DB} -U $${POSTGRES_USER} -v ON_ERROR_STOP=1 -f /usr/local/share/search-runtime/healthcheck/search-runtime.sql
+      interval: 2s
+      retries: 60
+      start_period: 10s
+      timeout: 5s
+    ports:
+      - "${CAT_CHECK_ALL_BIND_HOST:-127.0.0.1}:0:5432"
+
+  redis:
+    image: redis:8-alpine
+    command:
+      - redis-server
+      - --appendonly
+      - "no"
+      - --save
+      - ""
+      - --requirepass
+      - ${CAT_CHECK_ALL_REDIS_PASSWORD:?required}
+    environment:
+      CAT_CHECK_ALL_REDIS_PASSWORD: ${CAT_CHECK_ALL_REDIS_PASSWORD:?required}
+    read_only: true
+    tmpfs:
+      - /data
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli --no-auth-warning -a "$${CAT_CHECK_ALL_REDIS_PASSWORD}" ping
+      interval: 2s
+      retries: 30
+      timeout: 3s
+    ports:
+      - "${CAT_CHECK_ALL_BIND_HOST:-127.0.0.1}:0:6379"

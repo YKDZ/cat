@@ -1,6 +1,6 @@
 import { deleteProject, executeCommand } from "@cat/domain";
 
-import { requireTelefuncPermission } from "@/server/telefunc-auth";
+import { requireTelefuncPermission } from "#/server/telefunc-auth.ts";
 
 export const onProjectDelete = async (projectId: string): Promise<void> => {
   const {

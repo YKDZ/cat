@@ -5,7 +5,7 @@ import type {
   NavigationStep,
   ScreenshotCollectOptions,
   ScreenshotRoute,
-} from "../types.ts";
+} from "#/types.ts";
 
 describe("screenshot collector types", () => {
   it("should accept valid route config with navigation steps", () => {

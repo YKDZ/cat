@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import {
   executeQuery,
@@ -9,7 +8,7 @@ import {
 import { MemorySuggestionSchema, type MemorySuggestion } from "@cat/shared";
 import * as z from "zod";
 
-import { searchChunkOp } from "./search-chunk";
+import { searchChunkOp } from "./search-chunk.ts";
 
 export const SearchMemoryInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1).meta({

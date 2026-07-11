@@ -8,9 +8,8 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const AutoApproveContentNodeTranslationsCommandSchema = z.object({
   contentNodeId: z.uuidv4(),

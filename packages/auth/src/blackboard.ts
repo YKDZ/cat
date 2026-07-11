@@ -1,7 +1,6 @@
 import { deepMerge } from "@cat/graph";
 
 import type { AuthBlackboardData } from "./types.ts";
-
 import { AuthBlackboardDataSchema } from "./types.ts";
 
 export interface AuthBlackboardSnapshot {

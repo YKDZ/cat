@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PullRequest } from "@cat/shared";
-
 import {
   Combobox,
   ComboboxAnchor,
@@ -21,13 +20,13 @@ import { useI18n } from "vue-i18n";
 import {
   buildEditorHref,
   parseEditorScopeFromRoute,
-} from "@/pages/editor/scope-url";
+} from "#/pages/editor/scope-url.ts";
 import {
   buildQaReviewHref,
   parseQaReviewScopeFromRoute,
-} from "@/pages/qa-review/scope-url";
-import { orpc } from "@/rpc/orpc";
-import { useBranchStore } from "@/stores/branch";
+} from "#/pages/qa-review/scope-url.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useBranchStore } from "#/stores/branch.ts";
 
 const props = defineProps<{
   projectId: string;

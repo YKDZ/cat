@@ -10,9 +10,6 @@
  * - Abandon: abandoned branch changes don't affect main
  */
 
-import type { ChangeAction, EntityType } from "@cat/shared";
-import type { TestDB } from "@cat/test-utils";
-
 import {
   addChangesetEntry,
   createBranch,
@@ -25,6 +22,8 @@ import {
   updateBranchBaseChangeset,
   updateBranchStatus,
 } from "@cat/domain";
+import type { ChangeAction, EntityType } from "@cat/shared";
+import type { TestDB } from "@cat/test-utils";
 import { setupTestDB } from "@cat/test-utils";
 import {
   detectConflicts,

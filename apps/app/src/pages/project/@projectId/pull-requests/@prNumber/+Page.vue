@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { IssueComment, IssueCommentThread } from "@cat/shared";
 import type { CrossReference } from "@cat/shared";
-
 import {
   Badge,
   Button,
@@ -24,19 +23,17 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import type { MetadataSection } from "@/components/shared/MetadataSidebar.vue";
-
-import ChangeSetEntityGroup from "@/components/changeset/ChangeSetEntityGroup.vue";
-import MarkdownEditor from "@/components/editor/MarkdownEditor.vue";
-import InlineEdit from "@/components/shared/InlineEdit.vue";
-import MetadataSidebar from "@/components/shared/MetadataSidebar.vue";
-import Timeline from "@/components/shared/Timeline.vue";
-import { orpc } from "@/rpc/orpc";
-import { useBranchStore } from "@/stores/branch";
-
-import type { Data } from "./+data.ts";
+import ChangeSetEntityGroup from "#/components/changeset/ChangeSetEntityGroup.vue";
+import MarkdownEditor from "#/components/editor/MarkdownEditor.vue";
+import InlineEdit from "#/components/shared/InlineEdit.vue";
+import type { MetadataSection } from "#/components/shared/MetadataSidebar.vue";
+import MetadataSidebar from "#/components/shared/MetadataSidebar.vue";
+import Timeline from "#/components/shared/Timeline.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useBranchStore } from "#/stores/branch.ts";
 
 import ProjectPageDataError from "../../ProjectPageDataError.vue";
+import type { Data } from "./+data.ts";
 
 const { t } = useI18n();
 const data = useData<Data>();

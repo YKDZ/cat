@@ -1,12 +1,11 @@
 import type { DbHandle } from "@cat/domain";
-
 import { executeQuery, getUserEmail } from "@cat/domain";
 import { domainEventBus } from "@cat/domain/events";
 
-import { NotificationConnectionManager } from "@/connection-manager";
-import { EmailDispatcher, type EmailProvider } from "@/dispatchers/email";
-import { InAppDispatcher } from "@/dispatchers/in-app";
-import { MessageRouter } from "@/router";
+import { NotificationConnectionManager } from "#/connection-manager.ts";
+import { EmailDispatcher, type EmailProvider } from "#/dispatchers/email.ts";
+import { InAppDispatcher } from "#/dispatchers/in-app.ts";
+import { MessageRouter } from "#/router.ts";
 
 export type MessageGatewayOptions = {
   db: DbHandle;
@@ -19,10 +18,12 @@ export type MessageGatewayOptions = {
 export class MessageGateway {
   readonly router: MessageRouter;
   readonly connections: NotificationConnectionManager;
+  private readonly options: MessageGatewayOptions;
   private unsubSend: (() => void) | null = null;
   private unsubCreated: (() => void) | null = null;
 
-  constructor(private readonly options: MessageGatewayOptions) {
+  constructor(options: MessageGatewayOptions) {
+    this.options = options;
     this.router = new MessageRouter(options.db);
     this.connections = new NotificationConnectionManager();
     this.router.registerDispatcher(new InAppDispatcher(options.db));

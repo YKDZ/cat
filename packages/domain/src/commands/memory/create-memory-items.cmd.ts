@@ -2,7 +2,7 @@ import { memoryItem } from "@cat/db";
 import { safeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 const MemoryItemInputSchema = z.object({
   translationId: z.int().nullable(),

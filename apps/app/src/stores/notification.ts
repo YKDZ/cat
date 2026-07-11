@@ -1,11 +1,10 @@
 import type { NotificationPushPayload } from "@cat/message";
-
 import { defineStore } from "pinia";
 import { ref } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { ws } from "@/rpc/ws";
-import { clientLogger as logger } from "@/utils/logger";
+import { orpc } from "#/rpc/orpc.ts";
+import { ws } from "#/rpc/ws.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 export type NotificationItem = {
   id: number;

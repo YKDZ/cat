@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { PriorityRankableEditorElement } from "./element-priority";
-
+import type { PriorityRankableEditorElement } from "./element-priority.ts";
 import {
   buildElementPriorityPlan,
   MAX_REUSE_FIRST_SCOPE_ROWS,
   orderRowsByPriorityPlan,
-} from "./element-priority";
+} from "./element-priority.ts";
 
 const baseRow = (
   id: number,

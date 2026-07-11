@@ -1,7 +1,7 @@
 import type { PluginServiceType } from "@cat/shared";
 import type { NlpSegmentResult, NlpBatchSegmentResult } from "@cat/shared";
 
-import type { IPluginService } from "./service";
+import type { IPluginService } from "#/services/service.ts";
 
 export type {
   NlpToken,
@@ -78,7 +78,7 @@ export abstract class NlpWordSegmenter implements IPluginService {
         result: await this.segment({
           text: item.text,
           languageId: ctx.languageId,
-          signal: ctx.signal,
+          ...(ctx.signal === undefined ? {} : { signal: ctx.signal }),
         }),
       })),
     );

@@ -1,5 +1,4 @@
 import type { ToolExecutionContext } from "@cat/agent";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({

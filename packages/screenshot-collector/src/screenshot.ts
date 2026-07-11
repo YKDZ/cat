@@ -1,24 +1,23 @@
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
+
 // oxlint-disable no-console
 // oxlint-disable no-await-in-loop -- Playwright browser operations are inherently sequential (single page context)
 // oxlint-disable typescript-eslint/no-unsafe-member-access -- Playwright evaluate() callbacks run in browser context
 import type { CollectionElement } from "@cat/shared";
 import type { CaptureResult, ExtractionResult } from "@cat/shared";
 import type { Page } from "playwright";
-
-import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
 import { chromium } from "playwright";
 
-import type { AuthOptions } from "./auth.ts";
+import type { AuthOptions } from "#/auth.ts";
+import { authenticateBrowser } from "#/auth.ts";
 import type {
   CaptureStrictOptions,
   CapturedScreenshot,
   NavigationStep,
   ScreenshotCollectOptions,
   ScreenshotRoute,
-} from "./types.ts";
-
-import { authenticateBrowser } from "./auth.ts";
+} from "#/types.ts";
 
 /**
  * Find an element by text, first as a text node, then falling back to placeholder attribute.

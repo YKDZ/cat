@@ -24,7 +24,10 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref, onMounted, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { onRequestGlossaries, type GlossaryListItem } from "./Table.telefunc";
+import {
+  onRequestGlossaries,
+  type GlossaryListItem,
+} from "./Table.telefunc.ts";
 import TableItem from "./TableItem.vue";
 
 const { t } = useI18n();

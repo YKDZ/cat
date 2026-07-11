@@ -1,35 +1,35 @@
 {
   "name": "@cat/test-utils",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "pg": "^8.21.0"
+    "@cat/core": "link:../core",
+    "@cat/db": "link:../db",
+    "@cat/domain": "link:../domain",
+    "@cat/plugin-core": "link:../plugin-core",
+    "@cat/server-shared": "link:../server-shared",
+    "@cat/shared": "link:../shared",
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:"
   },
   "devDependencies": {
-    "@cat/domain": "workspace:*",
-    "@types/pg": "^8.20.0",
-    "drizzle-kit": "catalog:",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:"
-  },
-  "peerDependencies": {
-    "@cat/core": "workspace:*",
-    "@cat/db": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/server-shared": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "drizzle-orm": "catalog:",
-    "vitest": "^4.1.0"
-  },
-  "packageManager": "pnpm@10.26.2"
+    "@types/pg": "catalog:",
+    "drizzle-kit": "catalog:"
+  }
 }

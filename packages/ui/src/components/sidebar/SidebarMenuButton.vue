@@ -1,10 +1,24 @@
 <script setup lang="ts">
-import type { Component } from "vue";
-import type { SidebarMenuButtonProps } from "./SidebarMenuButtonChild.vue";
 import { reactiveOmit } from "@vueuse/core";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/tooltip";
-import SidebarMenuButtonChild from "./SidebarMenuButtonChild.vue";
-import { useSidebar } from "./utils";
+import type { PrimitiveProps } from "reka-ui";
+import type { Component } from "vue";
+import type { HTMLAttributes } from "vue";
+
+import SidebarMenuButtonChild from "#/components/sidebar/SidebarMenuButtonChild.vue";
+import { useSidebar } from "#/components/sidebar/utils.ts";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "#/components/tooltip/index.ts";
+
+interface SidebarMenuButtonProps extends PrimitiveProps {
+  variant?: "default" | "outline";
+  size?: "default" | "sm" | "lg";
+  isActive?: boolean;
+  class?: HTMLAttributes["class"];
+  sidebarId: string;
+}
 
 defineOptions({
   inheritAttrs: false,
@@ -29,7 +43,10 @@ const delegatedProps = reactiveOmit(props, "tooltip");
 </script>
 
 <template>
-  <SidebarMenuButtonChild v-if="!tooltip" v-bind="{ ...delegatedProps, ...$attrs }">
+  <SidebarMenuButtonChild
+    v-if="!tooltip"
+    v-bind="{ ...delegatedProps, ...$attrs }"
+  >
     <slot />
   </SidebarMenuButtonChild>
 
@@ -39,7 +56,11 @@ const delegatedProps = reactiveOmit(props, "tooltip");
         <slot />
       </SidebarMenuButtonChild>
     </TooltipTrigger>
-    <TooltipContent side="right" align="center" :hidden="state !== 'collapsed' || isMobile">
+    <TooltipContent
+      side="right"
+      align="center"
+      :hidden="state !== 'collapsed' || isMobile"
+    >
       <template v-if="typeof tooltip === 'string'">
         {{ tooltip }}
       </template>

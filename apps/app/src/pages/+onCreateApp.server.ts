@@ -1,16 +1,16 @@
-import type { GlobalContextServer, PageContextServer } from "vike/types";
-import type { ComputedRef } from "vue";
-
-import { executeQuery, getSetting } from "@cat/domain";
-import { parsePreferredLanguage } from "@cat/shared";
 import { readFile } from "node:fs/promises";
 import { stat } from "node:fs/promises";
 import { join } from "node:path";
+
+import { executeQuery, getSetting } from "@cat/domain";
+import { parsePreferredLanguage } from "@cat/shared";
+import type { GlobalContextServer, PageContextServer } from "vike/types";
+import type { ComputedRef } from "vue";
 import { nextTick } from "vue";
 import { createI18n } from "vue-i18n";
 
-import { vPerm } from "@/directives/v-perm";
-import { i18n } from "@/utils/i18n";
+import { vPerm } from "#/directives/v-perm.ts";
+import { i18n } from "#/utils/i18n.ts";
 
 const getStringSetting = async (
   drizzle: PageContextServer["globalContext"]["drizzleDB"]["client"],

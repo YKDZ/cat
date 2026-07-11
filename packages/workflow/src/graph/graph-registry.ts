@@ -1,6 +1,5 @@
-import type { GraphDefinition } from "@/graph/types";
-
-import { GraphDefinitionSchema } from "@/graph/types";
+import type { GraphDefinition } from "#/graph/types.ts";
+import { GraphDefinitionSchema } from "#/graph/types.ts";
 
 export class GraphRegistry {
   private graphs = new Map<string, GraphDefinition>();

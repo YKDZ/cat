@@ -13,7 +13,7 @@ import { useQuery } from "@pinia/colada";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const { t } = useI18n();
 

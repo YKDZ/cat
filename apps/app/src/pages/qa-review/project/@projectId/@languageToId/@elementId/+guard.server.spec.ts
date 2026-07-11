@@ -1,5 +1,4 @@
 import type { PageContextServer } from "vike/types";
-
 import { describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -15,7 +14,7 @@ const mocks = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock("@/server/ssc", () => ({
+vi.mock("#/server/ssc.ts", () => ({
   ssc: () => ({
     qaReview: {
       getFirstReviewableElement: mocks.getFirstReviewableElement,
@@ -28,7 +27,7 @@ vi.mock("vike/abort", () => ({
   render: mocks.render,
 }));
 
-import { guard } from "./+guard.server";
+import { guard } from "./+guard.server.ts";
 
 const createCtx = (): PageContextServer =>
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- minimal Vike guard context stub for unit tests

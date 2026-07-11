@@ -2,7 +2,7 @@ import { eq, or, user } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const FindUserByIdentifierQuerySchema = z.object({
   identifier: z.string(),

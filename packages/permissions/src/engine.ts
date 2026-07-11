@@ -1,6 +1,4 @@
 import type { CacheStore, DbHandle } from "@cat/domain";
-import type { ObjectType, Relation, SubjectType } from "@cat/shared";
-
 import {
   executeCommand,
   executeQuery,
@@ -10,12 +8,12 @@ import {
   listPermissionSubjects,
   revokePermissionTuple,
 } from "@cat/domain";
+import type { ObjectType, Relation, SubjectType } from "@cat/shared";
 
-import type { AuthContext, ObjectRef, SubjectRef } from "@/types";
-
-import { auditEventBus } from "@/audit";
-import { createPermissionCache } from "@/cache";
-import { isRelationImplied, relationHierarchy } from "@/relations";
+import { auditEventBus } from "#/audit.ts";
+import { createPermissionCache } from "#/cache.ts";
+import { isRelationImplied, relationHierarchy } from "#/relations.ts";
+import type { AuthContext, ObjectRef, SubjectRef } from "#/types.ts";
 
 export type PermissionEngine = {
   check: (
@@ -110,12 +108,18 @@ export const createPermissionEngine = (deps: {
             objectType: object.type,
             objectId: object.id,
             result: true,
-            traceId: authCtx.traceId,
-            ip: authCtx.ip,
-            userAgent: authCtx.userAgent,
+            ...(authCtx.traceId === undefined
+              ? {}
+              : { traceId: authCtx.traceId }),
+            ...(authCtx.ip === undefined ? {} : { ip: authCtx.ip }),
+            ...(authCtx.userAgent === undefined
+              ? {}
+              : { userAgent: authCtx.userAgent }),
           },
           timestamp: new Date().toISOString(),
-          traceId: authCtx.traceId,
+          ...(authCtx.traceId === undefined
+            ? {}
+            : { traceId: authCtx.traceId }),
         });
       }
       return true;
@@ -167,12 +171,16 @@ export const createPermissionEngine = (deps: {
           objectType: object.type,
           objectId: object.id,
           result,
-          traceId: authCtx.traceId,
-          ip: authCtx.ip,
-          userAgent: authCtx.userAgent,
+          ...(authCtx.traceId === undefined
+            ? {}
+            : { traceId: authCtx.traceId }),
+          ...(authCtx.ip === undefined ? {} : { ip: authCtx.ip }),
+          ...(authCtx.userAgent === undefined
+            ? {}
+            : { userAgent: authCtx.userAgent }),
         },
         timestamp: new Date().toISOString(),
-        traceId: authCtx.traceId,
+        ...(authCtx.traceId === undefined ? {} : { traceId: authCtx.traceId }),
       });
     }
 

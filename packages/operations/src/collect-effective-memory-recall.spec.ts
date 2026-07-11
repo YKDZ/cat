@@ -4,10 +4,10 @@ const mocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
 }));
 
-vi.mock("./collect-memory-recall", async () => {
+vi.mock("./collect-memory-recall.ts", async () => {
   const actual = await vi.importActual<
-    typeof import("./collect-memory-recall")
-  >("./collect-memory-recall");
+    typeof import("./collect-memory-recall.ts")
+  >("./collect-memory-recall.ts");
 
   return {
     ...actual,
@@ -15,7 +15,7 @@ vi.mock("./collect-memory-recall", async () => {
   };
 });
 
-import { collectEffectiveMemoryRecallOp } from "./collect-effective-memory-recall";
+import { collectEffectiveMemoryRecallOp } from "./collect-effective-memory-recall.ts";
 
 const projectMemoryId = "11111111-1111-4111-8111-111111111111";
 const personalMemoryId = "22222222-2222-4222-8222-222222222222";

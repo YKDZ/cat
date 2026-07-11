@@ -1,13 +1,16 @@
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { CatPlugin } from "@/entities/plugin";
-
-import { BuiltinPluginLoader } from "@/registry/builtin-loader";
-import { CompositePluginLoader } from "@/registry/composite-loader";
-import { FileSystemPluginLoader, type PluginLoader } from "@/registry/loader";
+import type { CatPlugin } from "#/entities/plugin.ts";
+import { BuiltinPluginLoader } from "#/registry/builtin-loader.ts";
+import { CompositePluginLoader } from "#/registry/composite-loader.ts";
+import {
+  FileSystemPluginLoader,
+  type PluginLoader,
+} from "#/registry/loader.ts";
 
 const plugin = {
   services: vi.fn().mockResolvedValue([]),

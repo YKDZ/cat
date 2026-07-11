@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NonNullJSONType } from "@cat/shared";
-
 import {
   FormControl,
   FormDescription,
@@ -12,9 +11,8 @@ import {
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { PickerOption } from "@/components/picker/index.ts";
-
-import Picker from "@/components/picker/Picker.vue";
+import type { PickerOption } from "#/components/picker/index.ts";
+import Picker from "#/components/picker/Picker.vue";
 
 import { schemaKey, transferDataToString } from "../utils.ts";
 

@@ -6,7 +6,7 @@ import {
   ProjectSeedSchema,
   GlossarySeedSchema,
   TermRecallTestSetSchema,
-} from "./schemas";
+} from "./schemas.ts";
 
 describe("SuiteConfigSchema", () => {
   it("parses a valid suite config", () => {

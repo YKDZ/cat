@@ -2,9 +2,9 @@
 import { useData } from "vike-vue/useData";
 import { provide } from "vue";
 
-import IndexHeader from "@/components/IndexHeader.vue";
-import IndexSidebar from "@/components/IndexSidebar.vue";
-import { pluginKey } from "@/utils/provide.ts";
+import IndexHeader from "#/components/IndexHeader.vue";
+import IndexSidebar from "#/components/IndexSidebar.vue";
+import { pluginKey } from "#/utils/provide.ts";
 
 import type { Data } from "./+data.server.ts";
 

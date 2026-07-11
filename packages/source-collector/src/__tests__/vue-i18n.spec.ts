@@ -1,9 +1,17 @@
 import { parse as parseTemplate } from "@vue/compiler-dom";
 import { describe, expect, it } from "vitest";
 
-import { extractFromScript } from "../extractors/script-extract.ts";
-import { extractFromTemplate } from "../extractors/template-extract.ts";
-import { vueI18nExtractor } from "../extractors/vue-i18n.ts";
+import { extractFromScript } from "#/extractors/script-extract.ts";
+import { extractFromTemplate } from "#/extractors/template-extract.ts";
+import { vueI18nExtractor } from "#/extractors/vue-i18n.ts";
+
+const elementAt = <T>(elements: T[], index: number): T => {
+  const element = elements[index];
+  if (element === undefined) {
+    throw new Error(`Expected element at index ${index}`);
+  }
+  return element;
+};
 
 describe("template extraction", () => {
   const extract = (
@@ -17,8 +25,8 @@ describe("template extraction", () => {
   it("extracts $t() from interpolation", () => {
     const els = extract(`<div>{{ $t("你好世界") }}</div>`);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("你好世界");
-    expect(els[0].meta).toMatchObject({
+    expect(elementAt(els, 0).text).toBe("你好世界");
+    expect(elementAt(els, 0).meta).toMatchObject({
       framework: "vue-i18n",
       file: "test.vue",
     });
@@ -27,13 +35,13 @@ describe("template extraction", () => {
   it("extracts t() from interpolation (without $ prefix)", () => {
     const els = extract(`<div>{{ t("你好") }}</div>`);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("你好");
+    expect(elementAt(els, 0).text).toBe("你好");
   });
 
   it("extracts $t() from attribute binding", () => {
     const els = extract(`<input :placeholder="$t('请输入')" />`);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("请输入");
+    expect(elementAt(els, 0).text).toBe("请输入");
   });
 
   it("extracts $t() with interpolation parameters", () => {
@@ -41,26 +49,26 @@ describe("template extraction", () => {
       `<span>{{ $t("上传 {name} 成功", { name: file.name }) }}</span>`,
     );
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("上传 {name} 成功");
+    expect(elementAt(els, 0).text).toBe("上传 {name} 成功");
   });
 
   it("extracts multiple $t() calls in one expression", () => {
     const els = extract(`<div>{{ condition ? $t("是") : $t("否") }}</div>`);
     expect(els).toHaveLength(2);
-    expect(els[0].text).toBe("是");
-    expect(els[1].text).toBe("否");
+    expect(elementAt(els, 0).text).toBe("是");
+    expect(elementAt(els, 1).text).toBe("否");
   });
 
   it("extracts from single-quoted strings", () => {
     const els = extract(`<div>{{ $t('单引号') }}</div>`);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("单引号");
+    expect(elementAt(els, 0).text).toBe("单引号");
   });
 
   it("handles escaped quotes", () => {
     const els = extract(`<div>{{ $t("it\\'s ok") }}</div>`);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("it's ok");
+    expect(elementAt(els, 0).text).toBe("it's ok");
   });
 
   it("skips empty strings", () => {
@@ -77,14 +85,14 @@ describe("template extraction", () => {
     `;
     const els = extract(template);
     expect(els).toHaveLength(2);
-    expect(els[0].text).toBe("条件文本");
-    expect(els[1].text).toBe("列表项");
+    expect(elementAt(els, 0).text).toBe("条件文本");
+    expect(elementAt(els, 1).text).toBe("列表项");
   });
 
   it("extracts from v-t directive", () => {
     const els = extract(`<div v-t="'直接指令'" />`);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("直接指令");
+    expect(elementAt(els, 0).text).toBe("直接指令");
   });
 
   it("uses the configured source language for template extraction", () => {
@@ -93,13 +101,13 @@ describe("template extraction", () => {
       sourceLanguageId: "zh-Hans",
     });
     expect(els).toHaveLength(1);
-    expect(els[0]?.languageId).toBe("zh-Hans");
+    expect(elementAt(els, 0)?.languageId).toBe("zh-Hans");
   });
 
   it("includes location info", () => {
     const els = extract(`<div>{{ $t("定位测试") }}</div>`);
-    expect(els[0].location).toBeDefined();
-    expect(els[0].location!.startLine).toBeGreaterThan(0);
+    expect(elementAt(els, 0).location).toBeDefined();
+    expect(elementAt(els, 0).location!.startLine).toBeGreaterThan(0);
   });
 });
 
@@ -112,8 +120,8 @@ const label = t("标签文本");
 `;
     const els = extractFromScript(content, "test.vue", "scriptSetup", 0);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("标签文本");
-    expect(els[0].meta).toMatchObject({
+    expect(elementAt(els, 0).text).toBe("标签文本");
+    expect(elementAt(els, 0).meta).toMatchObject({
       framework: "vue-i18n",
       file: "test.vue",
       callSite: expect.stringContaining("scriptSetup"),
@@ -124,7 +132,7 @@ const label = t("标签文本");
     const content = `const msg = $t("全局调用");`;
     const els = extractFromScript(content, "test.ts", "file", 0);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("全局调用");
+    expect(elementAt(els, 0).text).toBe("全局调用");
   });
 
   it("uses the configured source language for script extraction", () => {
@@ -138,7 +146,7 @@ const label = t("标签文本");
       },
     );
     expect(els).toHaveLength(1);
-    expect(els[0]?.languageId).toBe("zh-Hans");
+    expect(elementAt(els, 0)?.languageId).toBe("zh-Hans");
   });
 
   it("extracts multiple calls", () => {
@@ -164,7 +172,7 @@ const msg = t(key);
     const content = `const msg = t("你好 {name}", { name: "world" });`;
     const els = extractFromScript(content, "test.ts", "file", 0);
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("你好 {name}");
+    expect(elementAt(els, 0).text).toBe("你好 {name}");
   });
 
   it("detects @i18n-context comments", () => {
@@ -180,14 +188,16 @@ const msg = t("登录");
       }
       return undefined;
     }
-    expect(getI18nCtx(els[0].location?.custom)).toBe("这是登录按钮的文本");
+    expect(getI18nCtx(elementAt(els, 0).location?.custom)).toBe(
+      "这是登录按钮的文本",
+    );
   });
 
   it("applies line offset for SFC script blocks", () => {
     const content = `const msg = t("偏移测试");`;
     const els = extractFromScript(content, "test.vue", "scriptSetup", 10);
     expect(els).toHaveLength(1);
-    expect(els[0].location!.startLine).toBe(11); // 1 (local) + 10 (offset)
+    expect(elementAt(els, 0).location!.startLine).toBe(11); // 1 (local) + 10 (offset)
   });
 
   it("skips files without t() calls (fast path)", () => {
@@ -203,7 +213,7 @@ const y = someFunction("not i18n");
     const content = `const msg = t("稳定");`;
     const els1 = extractFromScript(content, "test.ts", "file", 0);
     const els2 = extractFromScript(content, "test.ts", "file", 0);
-    expect(els1[0].meta).toEqual(els2[0].meta);
+    expect(elementAt(els1, 0).meta).toEqual(elementAt(els2, 0).meta);
   });
 
   it("keeps stableSourceRef unchanged when harmless lines move", () => {
@@ -233,7 +243,9 @@ const y = someFunction("not i18n");
       0,
     );
     expect(els).toHaveLength(2);
-    expect(els[0]?.stableSourceRef).not.toBe(els[1]?.stableSourceRef);
+    expect(elementAt(els, 0)?.stableSourceRef).not.toBe(
+      elementAt(els, 1)?.stableSourceRef,
+    );
   });
 
   it("keeps stableSourceRef unchanged when source text changes at the same call site", () => {
@@ -286,8 +298,8 @@ export function getLabel(t: ReturnType<typeof useI18n>["t"]) {
       filePath: "src/utils.ts",
     });
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("工具函数文本");
-    expect(els[0].meta).toMatchObject({
+    expect(elementAt(els, 0).text).toBe("工具函数文本");
+    expect(elementAt(els, 0).meta).toMatchObject({
       framework: "vue-i18n",
       file: "src/utils.ts",
       callSite: expect.stringContaining("file"),
@@ -335,7 +347,7 @@ const x = 1;
       filePath: "src/Picker.vue",
     });
     expect(els).toHaveLength(1);
-    expect(els[0].text).toBe("选择一个语言...");
+    expect(elementAt(els, 0).text).toBe("选择一个语言...");
   });
 
   it("handles real-world pattern: array of t() calls in script", () => {

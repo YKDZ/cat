@@ -7,7 +7,7 @@ import { PluginManager } from "@cat/plugin-core";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { statisticalTermExtractOp } from "./statistical-term-extract";
+import { statisticalTermExtractOp } from "./statistical-term-extract.ts";
 
 const setupPluginManager = async (
   loader: TestPluginLoader,

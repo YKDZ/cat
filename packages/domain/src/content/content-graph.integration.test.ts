@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   contentRelation,
   contentRelationType,
@@ -7,7 +9,6 @@ import {
   user,
   vectorizedString,
 } from "@cat/db";
-import { randomUUID } from "node:crypto";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -16,10 +17,14 @@ import {
   createProject,
   createRootContentNode,
   ensureCoreRelationTypes,
-} from "@/commands";
-import { executeCommand, executeQuery } from "@/executor";
-import { getContentNodeElements, listNeighborElements } from "@/queries";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/commands/index.ts";
+import { executeCommand, executeQuery } from "#/executor.ts";
+import {
+  getContentNodeElements,
+  listNeighborElements,
+} from "#/queries/index.ts";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 const CREATOR_ID = randomUUID();
 let testDb: TestDB;
@@ -52,7 +57,9 @@ describe("content graph domain commands", () => {
       ensureCoreRelationTypes,
       {},
     );
-    expect(first["core:contains:1.0.0"]).toBe(second["core:contains:1.0.0"]);
+    expect(requireFixtureValue(first["core:contains:1.0.0"])).toBe(
+      requireFixtureValue(second["core:contains:1.0.0"]),
+    );
 
     const rows = await testDb.client
       .select()
@@ -115,7 +122,7 @@ describe("content graph domain commands", () => {
           sourceRootRef: "upload:1",
           sourceNodeRef: "file:messages.json",
           stableSourceRef: "json:/hello",
-          stringId: vector[0].id,
+          stringId: requireFixtureValue(vector[0]).id,
           localOrder: 0,
         },
         {
@@ -125,7 +132,7 @@ describe("content graph domain commands", () => {
           sourceRootRef: "upload:1",
           sourceNodeRef: "file:messages.json",
           stableSourceRef: "json:/bye",
-          stringId: vector[1].id,
+          stringId: requireFixtureValue(vector[1]).id,
           localOrder: 1,
         },
       ],
@@ -156,11 +163,13 @@ describe("content graph domain commands", () => {
       { db: testDb.client },
       listNeighborElements,
       {
-        elementId: ids[0],
+        elementId: requireFixtureValue(ids[0]),
         before: 1,
         after: 1,
       },
     );
-    expect(neighbors.after.map((row) => row.id)).toEqual([ids[1]]);
+    expect(neighbors.after.map((row) => row.id)).toEqual([
+      requireFixtureValue(ids[1]),
+    ]);
   });
 });

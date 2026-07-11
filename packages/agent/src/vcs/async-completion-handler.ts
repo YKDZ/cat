@@ -1,11 +1,10 @@
 import type { DbHandle } from "@cat/domain";
-import type { ApplicationMethodRegistry } from "@cat/vcs";
-
 import {
   getChangesetEntries,
   updateEntryAsyncStatus,
   updateChangesetAsyncStatus,
 } from "@cat/domain";
+import type { ApplicationMethodRegistry } from "@cat/vcs";
 
 /**
  * 接收任务完成通知，更新对应 ChangesetEntry 的 asyncStatus，

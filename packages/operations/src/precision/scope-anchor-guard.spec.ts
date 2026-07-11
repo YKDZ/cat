@@ -1,13 +1,11 @@
 import type { QueryTopicHypothesis } from "@cat/shared";
-
 import { describe, expect, it } from "vitest";
-
-import type { RecallCandidate } from "./types";
 
 import {
   applyGuardsToCandidates,
   buildAnchorSignature,
-} from "./scope-anchor-guard";
+} from "./scope-anchor-guard.ts";
+import type { RecallCandidate } from "./types.ts";
 
 const HYPOTHESIS_CONFIDENT: QueryTopicHypothesis = {
   topicIds: ["mob"],

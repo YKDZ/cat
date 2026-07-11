@@ -1,4 +1,4 @@
-import type { TypedNodeContext } from "./types";
+import type { TypedNodeContext } from "./types.ts";
 
 export type StepHandler<TIn = unknown, TOut = unknown> = (
   input: TIn,

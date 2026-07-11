@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import {
   createVectorizedStrings,
   domainEvent,
@@ -8,7 +7,7 @@ import {
   getDbHandle,
 } from "@cat/domain";
 import { getVectorizationQueue } from "@cat/server-shared";
-import { UnvectorizedTextData } from "@cat/shared";
+import type { UnvectorizedTextData } from "@cat/shared";
 import * as z from "zod";
 
 export const CreateVectorizedStringInputSchema = z.object({

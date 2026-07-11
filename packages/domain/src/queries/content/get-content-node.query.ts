@@ -1,7 +1,7 @@
 import { contentNode, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetContentNodeQuerySchema = z.object({ id: z.uuidv4() });
 export type GetContentNodeQuery = z.infer<typeof GetContentNodeQuerySchema>;

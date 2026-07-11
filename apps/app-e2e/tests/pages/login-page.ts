@@ -1,7 +1,11 @@
 import { expect, type Page } from "@playwright/test";
 
 export class LoginPage {
-  constructor(private readonly page: Page) {}
+  private readonly page: Page;
+
+  constructor(page: Page) {
+    this.page = page;
+  }
 
   async goto(): Promise<void> {
     await this.page.goto("/auth");

@@ -1,6 +1,6 @@
 import type { PageContextServer } from "vike/types";
 
-import { loadProjectShell } from "./project-shell.server";
+import { loadProjectShell } from "./project-shell.server.ts";
 
 export const data = async (ctx: PageContextServer) => {
   const projectShell = await loadProjectShell(ctx);

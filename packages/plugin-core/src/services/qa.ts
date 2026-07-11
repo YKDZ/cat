@@ -1,10 +1,8 @@
 import type { PluginServiceType } from "@cat/shared";
-
 import z from "zod";
 
-import type { Token } from "@/services/tokenizer.ts";
-
-import type { IPluginService } from "./service";
+import type { IPluginService } from "#/services/service.ts";
+import type { Token } from "#/services/tokenizer.ts";
 
 export const QASeverityValues = ["error", "warning", "info"] as const;
 

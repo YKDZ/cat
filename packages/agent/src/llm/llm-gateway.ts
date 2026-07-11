@@ -5,7 +5,6 @@ import type {
 } from "@cat/plugin-core";
 
 import type { LLMPriority } from "./priority-queue.ts";
-
 import { PriorityQueue } from "./priority-queue.ts";
 import { TokenBucket } from "./token-bucket.ts";
 

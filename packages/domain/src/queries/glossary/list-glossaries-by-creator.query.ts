@@ -1,7 +1,7 @@
 import { asc, count, eq, glossary } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListGlossariesByCreatorQuerySchema = z.object({
   creatorId: z.uuidv4(),

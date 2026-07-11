@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import {
   executeCommand,
@@ -11,7 +10,7 @@ import {
 import { buildConceptVectorizationText } from "@cat/domain";
 import * as z from "zod";
 
-import { createVectorizedStringOp } from "./create-vectorized-string";
+import { createVectorizedStringOp } from "./create-vectorized-string.ts";
 
 export const RevectorizeConceptInputSchema = z.object({
   conceptId: z.int(),
@@ -91,6 +90,9 @@ export const revectorizeConceptOp = async (
       ctx,
     );
     const [stringId] = stringIds;
+    if (stringId === undefined) {
+      throw new Error("vectorized string operation returned no string ID");
+    }
 
     await executeCommand(
       { db: drizzle, collector: noopCollector },

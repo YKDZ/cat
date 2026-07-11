@@ -1,9 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment";
-import { joinTokens, joinLemmas } from "./nlp-normalization";
+import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
+import { joinTokens, joinLemmas } from "./nlp-normalization.ts";
 
 // ─── Types ───
 

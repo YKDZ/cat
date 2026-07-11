@@ -1,5 +1,4 @@
 import type { PageContextServer } from "vike/types";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -12,7 +11,7 @@ const mocks = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock("@/server/ssc", () => ({
+vi.mock("#/server/ssc.ts", () => ({
   ssc: vi.fn(() => ({
     editor: {
       getFirstElement: mocks.getFirstElement,
@@ -25,7 +24,7 @@ vi.mock("vike/abort", () => ({
   render: mocks.render,
 }));
 
-import { guard } from "./+guard.server";
+import { guard } from "./+guard.server.ts";
 
 const projectId = "11111111-1111-4111-8111-111111111111";
 const nodeId = "22222222-2222-4222-8222-222222222222";

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FlattenedContextEvidence } from "@cat/shared";
-
 import {
   Badge,
   Card,
@@ -13,7 +12,7 @@ import { ChevronDownIcon } from "@lucide/vue";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Markdown from "@/components/Markdown.vue";
+import Markdown from "#/components/Markdown.vue";
 
 const props = defineProps<{
   context: FlattenedContextEvidence;

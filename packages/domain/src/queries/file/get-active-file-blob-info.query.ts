@@ -2,7 +2,7 @@ import { and, blob as blobTable, eq, file as fileTable } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetActiveFileBlobInfoQuerySchema = z.object({
   fileId: z.int(),

@@ -1,9 +1,10 @@
-import * as yaml from "js-yaml";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+import * as yaml from "js-yaml";
 import * as z from "zod";
 
-import { interpolateEnvVars } from "./env-interpolation";
+import { interpolateEnvVars } from "./env-interpolation.ts";
 import {
   type ElementsSeed,
   ElementsSeedSchema,
@@ -21,7 +22,7 @@ import {
   TermRecallTestSetSchema,
   type TranslationTestSet,
   TranslationTestSetSchema,
-} from "./schemas";
+} from "./schemas.ts";
 
 export type LoadedSuite = {
   config: SuiteConfig;

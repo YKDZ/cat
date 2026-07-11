@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { assertSafeDatabaseTarget } from "@/safety";
+import { assertSafeDatabaseTarget } from "#/safety.ts";
 
 describe("assertSafeDatabaseTarget", () => {
   it("allows localhost development databases", () => {

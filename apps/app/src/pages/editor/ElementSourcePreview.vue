@@ -5,10 +5,10 @@ import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { BlobView } from "@/components/blob-view";
-import { detectFileType } from "@/components/blob-view/types";
-import { orpc } from "@/rpc/orpc";
-import { useEditorTableStore } from "@/stores/editor/table";
+import { BlobView } from "#/components/blob-view/index.ts";
+import { detectFileType } from "#/components/blob-view/types.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
 import SourcePreviewViewer from "./SourcePreviewViewer.vue";
 

@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { SearchIcon } from "@lucide/vue";
+import { reactiveOmit } from "@vueuse/core";
 import type { ComboboxInputEmits, ComboboxInputProps } from "reka-ui";
+import { ComboboxInput, useForwardPropsEmits } from "reka-ui";
 import type { HTMLAttributes } from "vue";
 
-import { reactiveOmit } from "@vueuse/core";
-import { SearchIcon } from "@lucide/vue";
-import { ComboboxInput, useForwardPropsEmits } from "reka-ui";
-
-import { cn } from "@/utils/lib/utils";
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
 defineOptions({
   inheritAttrs: false,
@@ -39,7 +39,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
           props.class,
         )
       "
-      v-bind="{ ...forwarded, ...$attrs }"
+      v-bind="exactOptionalProps({ ...forwarded, ...$attrs })"
     >
       <slot />
     </ComboboxInput>

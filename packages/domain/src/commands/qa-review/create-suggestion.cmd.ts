@@ -10,9 +10,8 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export type CreateQaReviewSuggestionCommand = z.infer<
   typeof CreateQaReviewSuggestionInputSchema
@@ -64,7 +63,9 @@ export const createQaReviewSuggestion: Command<
         queueItemId: annotation.queueItemId,
         suggestionId: inserted.id,
         annotationId: annotation.id,
-        authorId: annotation.authorId ?? undefined,
+        ...(annotation.authorId === null
+          ? {}
+          : { authorId: annotation.authorId }),
       }),
     ],
   };

@@ -2,7 +2,7 @@ import { eq, memory, memoryToProject, personalMemoryBinding } from "@cat/db";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetMemoryAccessContextQuerySchema = z.object({
   memoryId: z.uuidv4(),

@@ -8,300 +8,193 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
+env:
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  COREPACK_HOME: /tmp/cat-corepack
+  TURBO_TELEMETRY_DISABLED: "1"
+
 jobs:
-  static:
-    name: Static Gateway
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Codegen Check
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run root:codegen-check
-
-      - name: Format Check (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :fmt-check
-
-      - name: Typecheck (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :typecheck
-
-      - name: Lint (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :lint
-
-  unit-tests:
-    name: Unit Tests
-    needs: static
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Unit Tests (affected)
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :test-unit
-
-  pglite-compat:
-    name: PGlite Compatibility (non-blocking)
-    needs: static
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run PGlite Compatibility Gate
-        run: pnpm exec tsx scripts/pglite-compat-gate.ts | tee pglite-compat-report.json
-
-      - name: Upload PGlite Compatibility Report
-        uses: actions/upload-artifact@v5
-        with:
-          name: pglite-compat-report
-          path: pglite-compat-report.json
-
-  integration-tests:
-    name: Integration Tests
-    needs: static
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          cache: pnpm
-
-      - name: Install Dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build Postgres Search Runtime
-        run: docker build -t cat-postgres-search-runtime apps/postgres-search-runtime
-
-      - name: Run Postgres Search Runtime
-        run: |
-          docker run -d --name cat-search-runtime \
-            -e POSTGRES_USER=user \
-            -e POSTGRES_PASSWORD=pass \
-            -e POSTGRES_DB=cat \
-            -p 5432:5432 \
-            cat-postgres-search-runtime
-
-      - name: Wait for Postgres Search Runtime
-        timeout-minutes: 2
-        run: |
-          for _ in $(seq 1 30); do
-            status="$(docker inspect -f '{{.State.Health.Status}}' cat-search-runtime)"
-            if [ "$status" = "healthy" ]; then
-              if python3 -c "import socket; socket.create_connection(('127.0.0.1', 5432), timeout=1).close()" >/dev/null 2>&1; then
-                exit 0
-              fi
-            fi
-            if [ "$status" = "unhealthy" ]; then
-              docker logs cat-search-runtime
-              exit 1
-            fi
-            sleep 2
-          done
-          docker logs cat-search-runtime
-          exit 1
-
-      - name: Run Integration Tests (affected)
-        env:
-          TEST_DATABASE_URL: "postgres://user:pass@localhost:5432/cat"
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon ci :test-integration
-
-  e2e-tests:
-    name: E2E Tests
-    needs: static
+  check:
+    name: Quality (check)
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          filter: tree:0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v5
+      - name: Bootstrap integrity-pinned pnpm for dependency caching
+        run: node scripts/package-manager-pin.ts
 
-      - name: Setup Node.js
+      - name: Setup exact Node.js patch
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version-file: package.json
+          registry-url: https://registry.npmjs.org
           cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
 
-      - name: Install Dependencies
+      - name: Activate integrity-pinned pnpm for the exact Node runtime
+        run: node scripts/package-manager-pin.ts
+
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Postgres Search Runtime
-        run: docker build -t cat-postgres-search-runtime apps/postgres-search-runtime
-
-      - name: Run Postgres Search Runtime
-        run: |
-          docker run -d --name cat-search-runtime-e2e \
-            -e POSTGRES_USER=user \
-            -e POSTGRES_PASSWORD=pass \
-            -e POSTGRES_DB=cat \
-            -p 5432:5432 \
-            cat-postgres-search-runtime
-
-      - name: Wait for Postgres Search Runtime
-        timeout-minutes: 2
-        run: |
-          for _ in $(seq 1 30); do
-            status="$(docker inspect -f '{{.State.Health.Status}}' cat-search-runtime-e2e)"
-            if [ "$status" = "healthy" ]; then
-              if python3 -c "import socket; socket.create_connection(('127.0.0.1', 5432), timeout=1).close()" >/dev/null 2>&1; then
-                exit 0
-              fi
-            fi
-            if [ "$status" = "unhealthy" ]; then
-              docker logs cat-search-runtime-e2e
-              exit 1
-            fi
-            sleep 2
-          done
-          docker logs cat-search-runtime-e2e
-          exit 1
-
-      - name: Push Database Schema
-        run: |
-          set +e
-          pnpm moon run db:push --quiet > /tmp/db-push.log 2>&1
-          status=$?
-          cat /tmp/db-push.log
-          if [ "$status" -ne 0 ]; then
-            summary="$(tail -n 20 /tmp/db-push.log)"
-            summary="${summary//'%'/'%25'}"
-            summary="${summary//$'\n'/'%0A'}"
-            summary="${summary//$'\r'/'%0D'}"
-            echo "::error title=Push Database Schema failed::$summary"
-          fi
-          exit "$status"
-        env:
-          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
-
-      - name: Install Playwright Browsers
-        run: |
-          for attempt in 1 2 3; do
-            pnpm exec playwright install --with-deps && exit 0
-            status=$?
-            if [ "$attempt" -eq 3 ]; then
-              exit "$status"
-            fi
-
-            echo "Playwright browser install failed on attempt $attempt; refreshing apt lists and retrying."
-            sudo rm -rf /var/lib/apt/lists/*
-          done
-
-      - name: Build App
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app:build
-        env:
-          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
-          CAT_RUNTIME_PROFILE: lite
-          CAT_SEARCH_REQUIREMENT: full-search-runtime
-
-      - name: Run App
-        working-directory: apps/app
-        run: |
-          pnpm exec tsx scripts/copy-drizzle.ts
-          NODE_ENV=production node dist/server/index.mjs > ../../app.log 2>&1 &
-        env:
-          PORT: 3000
-          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
-          CAT_RUNTIME_PROFILE: lite
-          CAT_SEARCH_REQUIREMENT: full-search-runtime
-
-      - name: Wait for Healthcheck
-        timeout-minutes: 3
-        run: |
-          echo "Waiting for service to be healthy..."
-          RETRIES=90
-          until curl --output /dev/null --silent --head --fail http://localhost:3000/_health; do
-            printf '.'
-            sleep 2
-            RETRIES=$((RETRIES-1))
-            if [ $RETRIES -le 0 ]; then
-              echo "Timeout waiting for service!"
-              echo "================ APPLICATION LOGS ================"
-              cat app.log
-              echo "=================================================="
-              exit 1
-            fi
-          done
-          echo "Server is up!"
-
-      - name: Run E2E Tests
-        run: MOON_OUTPUT_STYLE=buffer-only-failure pnpm moon run app-e2e:test-e2e
-        env:
-          PORT: 3000
-          DATABASE_URL: postgresql://user:pass@localhost:5432/cat?schema=public
-          CAT_RUNTIME_PROFILE: lite
-          CAT_SEARCH_REQUIREMENT: full-search-runtime
-          PW_REUSE_EXISTING_SERVER: "true"
-          E2E_SKIP_DB_CHECK: "true"
-
-      - name: Upload Playwright Report
-        if: failure()
-        uses: actions/upload-artifact@v5
+      - name: Restore Turbo cache
+        uses: actions/cache/restore@v4
         with:
-          name: playwright-report
-          path: apps/app-e2e/playwright-report/
-          retention-days: 30
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-
+            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-main-
+
+      - name: Run repository quality contract
+        run: pnpm check
+
+      - name: Persist Turbo cache for trusted runs
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/cache/save@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+  check-all:
+    name: Full Graph (check:all)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Bootstrap integrity-pinned pnpm for dependency caching
+        run: node scripts/package-manager-pin.ts
+
+      - name: Setup exact Node.js patch
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Activate integrity-pinned pnpm for the exact Node runtime
+        run: node scripts/package-manager-pin.ts
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install workspace Playwright browsers and system dependencies
+        run: pnpm exec playwright install --with-deps chromium firefox
+
+      - name: Verify the pinned official Node image manifest
+        run: |
+          image=$(sed -n 's/^FROM \(node:[^ ]*\) AS context-contract$/\1/p' apps/app/Dockerfile)
+          test -n "$image"
+          docker buildx imagetools inspect "$image"
+
+      - name: Restore Turbo cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}
+          restore-keys: |
+            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-
+            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-main-
+
+      - name: Run complete repository contract and export validated images
+        env:
+          CAT_CHECK_ALL_EXPORT_IMAGES_DIR: validated-images
+          CAT_CHECK_ALL_PROJECT_NAME: cat-validated-${{ github.sha }}
+        run: |
+          mkdir -p validated-images
+          pnpm check:all
+          cd validated-images
+          sha256sum standalone.tar runtime.tar > SHA256SUMS
+
+      - name: Upload validated container images
+        uses: actions/upload-artifact@v4
+        with:
+          name: validated-images-${{ github.sha }}
+          path: validated-images
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Persist Turbo cache for trusted runs
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/cache/save@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+
+  release-images:
+    name: Publish validated container images
+    needs:
+      - check
+      - check-all
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Bootstrap integrity-pinned pnpm for dependency caching
+        run: node scripts/package-manager-pin.ts
+
+      - name: Setup exact Node.js patch
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: package.json
+          registry-url: https://registry.npmjs.org
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Activate integrity-pinned pnpm for the exact Node runtime
+        run: node scripts/package-manager-pin.ts
+
+      - name: Download validated container images
+        uses: actions/download-artifact@v4
+        with:
+          name: validated-images-${{ github.sha }}
+          path: validated-images
+
+      - name: Verify and load validated container images
+        run: |
+          cd validated-images
+          sha256sum --check SHA256SUMS
+          docker image load --input standalone.tar
+          docker image load --input runtime.tar
+          for target in standalone runtime; do
+            image="cat-validated-${GITHUB_SHA}-app:${target}"
+            test "$(docker image inspect --format '{{ index .Config.Labels \"org.opencontainers.image.version\" }}' "$image")" = "cat-validated-${GITHUB_SHA}"
+            test "$(docker image inspect --format '{{ index .Config.Cmd 0 }}' "$image")" = "$([ "$target" = standalone ] && echo prepare-and-start || echo start-only)"
+          done
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish without rebuilding
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          version=$(node -p "require('./apps/app/package.json').version")
+          for target in standalone runtime; do
+            source="cat-validated-${GITHUB_SHA}-app:${target}"
+            while IFS= read -r tag; do
+              docker image tag "$source" "$tag"
+              docker image push "$tag"
+            done < <(node scripts/release-image-tags.ts "$IMAGE" "$version" "$GITHUB_SHA" "$target")
+          done

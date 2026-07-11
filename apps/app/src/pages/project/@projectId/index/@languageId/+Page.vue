@@ -5,10 +5,9 @@ import { navigate } from "vike/client/router";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useInjectionKey } from "@/utils/provide.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data } from "../../+data.server.ts";
-
 import TranslationProgress from "../TranslationProgress.vue";
 import LanguageContentNodeTree from "./LanguageContentNodeTree.vue";
 

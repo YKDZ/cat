@@ -4,7 +4,7 @@ import { Search } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { useI18n } from "vue-i18n";
 
-import { useEditorTermStore } from "@/stores/editor/term.ts";
+import { useEditorTermStore } from "#/stores/editor/term.ts";
 
 const { t } = useI18n();
 

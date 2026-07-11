@@ -1,20 +1,24 @@
 <script setup lang="ts">
-import type { DialogDescriptionProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DialogDescription } from "reka-ui"
-import { cn } from '@/utils/lib/utils'
+import { reactiveOmit } from "@vueuse/core";
+import type { DialogDescriptionProps } from "reka-ui";
+import { DialogDescription } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-const props = defineProps<DialogDescriptionProps & { class?: HTMLAttributes["class"] }>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
-const delegatedProps = reactiveOmit(props, "class")
+const props = defineProps<
+  DialogDescriptionProps & { class?: HTMLAttributes["class"] }
+>();
+
+const delegatedProps = reactiveOmit(props, "class");
 </script>
 
 <template>
   <DialogDescription
     data-slot="sheet-description"
-    :class="cn('text-muted-foreground text-sm', props.class)"
-    v-bind="delegatedProps"
+    :class="cn('text-sm text-muted-foreground', props.class)"
+    v-bind="exactOptionalProps(delegatedProps)"
   >
     <slot />
   </DialogDescription>

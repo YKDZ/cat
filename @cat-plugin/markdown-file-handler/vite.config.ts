@@ -1,10 +1,17 @@
 import { resolve } from "node:path";
+
 import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core", "@cat/shared", "@cat/db", "zod"],
-    noExternal: ["remark-parse", "remark-stringify", "remark-gfm", "unified"],
+    external: ["@cat/plugin-core", "zod"],
+    noExternal: [
+      /^@cat\//,
+      "remark-parse",
+      "remark-stringify",
+      "remark-gfm",
+      "unified",
+    ],
   },
 
   resolve: {

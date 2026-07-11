@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { FlattenedContextEvidence } from "@cat/shared";
-
 import { Card, CardContent } from "@cat/ui";
 import { computed } from "vue";
 import * as z from "zod";

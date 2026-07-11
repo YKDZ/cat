@@ -1,11 +1,10 @@
 import type { OperationContext } from "@cat/domain";
 import type { LookedUpTerm } from "@cat/domain";
-
 import { AsyncMessageQueue } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
-import { collectTermRecallOp } from "./collect-term-recall";
+import { collectTermRecallOp } from "./collect-term-recall.ts";
 
 export const StreamSearchTermsInputSchema = z.object({
   glossaryIds: z.array(z.string()),

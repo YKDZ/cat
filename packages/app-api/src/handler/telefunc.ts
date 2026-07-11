@@ -1,0 +1,23 @@
+import { Hono } from "hono";
+import { telefunc } from "telefunc";
+
+import { getContext } from "#/utils/context.ts";
+
+const app = new Hono();
+
+app.all("*", async (c) => {
+  const ctx = await getContext(c.req.raw, c.res.headers);
+
+  const httpResponse = await telefunc({
+    context: { ...ctx },
+    url: new URL(c.req.url).pathname,
+    method: c.req.method,
+    body: await c.req.text(),
+  });
+
+  const { body, statusCode } = httpResponse;
+
+  return c.body(body, statusCode);
+});
+
+export default app;

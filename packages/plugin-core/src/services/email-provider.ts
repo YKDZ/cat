@@ -1,4 +1,4 @@
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 /**
  * Base class for the EMAIL_PROVIDER plugin service.

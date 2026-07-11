@@ -1,9 +1,7 @@
 import type { TaskQueue } from "@cat/core";
+import { InMemoryTaskQueue } from "@cat/core";
 import type { DrizzleClient, RedisConnection } from "@cat/db";
 import type { CacheStore, RuntimeProfile, SessionStore } from "@cat/domain";
-import type { VectorizationTask } from "@cat/server-shared";
-
-import { InMemoryTaskQueue } from "@cat/core";
 import {
   getRedisHandle,
   MemoryCacheStore,
@@ -12,6 +10,7 @@ import {
   PostgresSessionStore,
   PostgresTaskQueue,
 } from "@cat/domain";
+import type { VectorizationTask } from "@cat/server-shared";
 import {
   RedisCacheStore,
   RedisSessionStore,
@@ -81,6 +80,6 @@ export const createRuntimeBackends = async (
     cacheStore,
     sessionStore,
     vectorizationQueue,
-    redis,
+    ...(redis === undefined ? {} : { redis }),
   };
 };

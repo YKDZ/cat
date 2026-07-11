@@ -48,11 +48,19 @@ type Specificity = {
 };
 
 class Matcher {
+  public readonly name: string | undefined;
+  private readonly rule: MatcherRule;
+  public readonly renderer: RendererComponent;
+
   constructor(
-    public readonly name: string | undefined,
-    private readonly rule: MatcherRule,
-    public readonly renderer: RendererComponent,
-  ) {}
+    name: string | undefined,
+    rule: MatcherRule,
+    renderer: RendererComponent,
+  ) {
+    this.name = name;
+    this.rule = rule;
+    this.renderer = renderer;
+  }
 
   getSpecificity(schema: JSONSchema): Specificity | null {
     if (!schema || typeof schema !== "object") return null;
@@ -127,7 +135,9 @@ export class MatcherRegistry {
         continue;
       }
 
-      const cmp = specificityComparer(spec, bestMatchers[0].spec);
+      const currentBest = bestMatchers[0];
+      if (currentBest === undefined) continue;
+      const cmp = specificityComparer(spec, currentBest.spec);
       if (cmp > 0) {
         bestMatchers = [{ matcher: m, spec }];
       } else if (cmp === 0) {
@@ -136,7 +146,10 @@ export class MatcherRegistry {
     }
 
     if (bestMatchers.length === 0) return null;
-    if (bestMatchers.length === 1) return bestMatchers[0].matcher;
+    const bestMatcher = bestMatchers[0];
+    if (bestMatchers.length === 1 && bestMatcher !== undefined) {
+      return bestMatcher.matcher;
+    }
 
     throw new Error(
       `MatcherRegistry.match: ambiguous match — multiple equally-specific matchers: ${JSON.stringify(bestMatchers.map((b) => b.matcher.name ?? "no_name"))}`,

@@ -3,7 +3,7 @@ import type { MessageGateway } from "@cat/message";
 import type { PluginManager } from "@cat/plugin-core";
 import type { Hono } from "hono";
 
-import type { RuntimeCleanupHandle } from "@/server/runtime-cleanup";
+import type { RuntimeCleanupHandle } from "#/server/runtime-cleanup.ts";
 
 export {};
 

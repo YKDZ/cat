@@ -1,7 +1,7 @@
-import type { SearchRuntimeLevel } from "@cat/domain";
-
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import type { SearchRuntimeLevel } from "@cat/domain";
 
 type QueryableDatabase = {
   query: (sql: string) => Promise<unknown>;
@@ -26,6 +26,26 @@ export type CapabilityCheck = {
   details?: string;
 };
 
+export type PgliteGateReport = {
+  level: SearchRuntimeLevel;
+  passed: boolean;
+  checks: CapabilityCheck[];
+  failures: CapabilityCheck[];
+  expectedUnsupported: Array<
+    CapabilityCheck & {
+      reason: string;
+    }
+  >;
+};
+
+const REQUIRED_CHECK_NAMES = [
+  "pglite package",
+  "basic sql",
+  "transactions",
+  "on conflict returning",
+  "skip locked",
+] as const;
+
 const FULL_SEARCH_CHECK_NAMES = [
   "pgvector extension",
   "pg_trgm extension",
@@ -35,6 +55,28 @@ const FULL_SEARCH_CHECK_NAMES = [
   "rum ranking",
   "hnsw index",
 ] as const;
+
+const EXPECTED_UNSUPPORTED_REASONS = new Map<string, string>([
+  [
+    "pgvector extension",
+    "PGlite core does not bundle CAT's native pgvector extension runtime.",
+  ],
+  [
+    "pg_trgm extension",
+    "PGlite core does not guarantee CAT's native pg_trgm extension runtime.",
+  ],
+  ["rum extension", "PGlite does not bundle CAT's native RUM extension."],
+  [
+    "zhparser extension",
+    "PGlite does not bundle CAT's native zhparser extension.",
+  ],
+  [
+    "fts parser",
+    "CAT's cat_zh_hans text-search configuration depends on zhparser.",
+  ],
+  ["rum ranking", "CAT's RUM ranking function depends on the RUM extension."],
+  ["hnsw index", "CAT's HNSW operator class depends on pgvector."],
+]);
 
 const checkDefinitions: ReadonlyArray<readonly [string, string | string[]]> = [
   ["basic sql", "SELECT 1"],
@@ -137,45 +179,78 @@ export const classifyFromChecks = (
   return "basic-db-runtime";
 };
 
+export const evaluatePgliteGate = (
+  checks: CapabilityCheck[],
+): PgliteGateReport => {
+  const failures = checks.filter(
+    (check) =>
+      check.status !== "available" &&
+      !EXPECTED_UNSUPPORTED_REASONS.has(check.name),
+  );
+  for (const name of REQUIRED_CHECK_NAMES) {
+    if (checks.some((check) => check.name === name)) continue;
+    failures.push({
+      name,
+      status: "blocked",
+      details: "Required probe did not run.",
+    });
+  }
+  const expectedUnsupported = checks.flatMap((check) => {
+    const reason = EXPECTED_UNSUPPORTED_REASONS.get(check.name);
+    return check.status === "missing" && reason !== undefined
+      ? [{ ...check, reason }]
+      : [];
+  });
+
+  return {
+    level: classifyFromChecks(checks),
+    passed: failures.length === 0,
+    checks,
+    failures,
+    expectedUnsupported,
+  };
+};
+
+export const pgliteGateExitCode = (report: PgliteGateReport): 0 | 1 =>
+  report.passed ? 0 : 1;
+
 /**
  * Execute the PGlite compatibility gate and return structured JSON report data.
  *
  * @returns - Report summary containing search capability level and individual check results
  */
-export const runPgliteCompatGate = async (): Promise<{
-  level: SearchRuntimeLevel;
-  checks: CapabilityCheck[];
-}> => {
+export const runPgliteCompatGate = async (): Promise<PgliteGateReport> => {
   let PGlite: typeof import("@electric-sql/pglite").PGlite;
   try {
     ({ PGlite } = await import("@electric-sql/pglite"));
   } catch (error) {
-    return {
-      level: "basic-db-runtime",
-      checks: [
-        {
-          name: "pglite package",
-          status: "blocked",
-          details: error instanceof Error ? error.message : String(error),
-        },
-      ],
-    };
+    return evaluatePgliteGate([
+      {
+        name: "pglite package",
+        status: "blocked",
+        details: error instanceof Error ? error.message : String(error),
+      },
+    ]);
   }
 
   const db = new PGlite() as QueryableDatabase;
   try {
-    const checks: CapabilityCheck[] = [];
+    const checks: CapabilityCheck[] = [
+      { name: "pglite package", status: "available" },
+    ];
     for (const [name, sqlStatements] of checkDefinitions) {
       checks.push(await checkSql(db, name, sqlStatements));
     }
-    return { level: classifyFromChecks(checks), checks };
+    return evaluatePgliteGate(checks);
   } finally {
     await db.close?.();
   }
 };
 
 const main = async (): Promise<void> => {
-  const result = await runPgliteCompatGate();
+  const report = await runPgliteCompatGate();
+  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+  process.exitCode = pgliteGateExitCode(report);
 };
 
 if (isExecutedDirectly()) {

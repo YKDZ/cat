@@ -1,3 +1,3 @@
-export * from "@/events/domain-events";
-export * from "@/events/domain-event-bus";
-export * from "@/events/event-collector";
+export * from "#/events/domain-events.ts";
+export * from "#/events/domain-event-bus.ts";
+export * from "#/events/event-collector.ts";

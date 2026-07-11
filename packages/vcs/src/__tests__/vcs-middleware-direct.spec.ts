@@ -3,7 +3,6 @@ import { describe, expect, test, vi } from "vitest";
 import type { ChangeSetService } from "../changeset-service.ts";
 import type { DiffStrategyRegistry } from "../diff-strategy-registry.ts";
 import type { VCSContext } from "../vcs-middleware.ts";
-
 import { VCSMiddleware } from "../vcs-middleware.ts";
 
 const mockAddEntry = vi.fn().mockResolvedValue({ id: 1 });

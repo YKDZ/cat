@@ -1,23 +1,23 @@
 import type { JSONObject, NonNullJSONType } from "@cat/shared";
 
-import type { AgentEvent } from "@/graph/events";
+import type { AgentEvent } from "#/graph/events.ts";
 import type {
   BlackboardSnapshot,
   GraphDefinition,
   RunId,
   RunStatus,
-} from "@/graph/types";
+} from "#/graph/types.ts";
 
 export type RunMetadata = {
   runId: RunId;
   graphId: string;
   status: RunStatus;
-  graphDefinition?: GraphDefinition;
-  currentNodeId?: string;
-  deduplicationKey?: string;
+  graphDefinition?: GraphDefinition | undefined;
+  currentNodeId?: string | undefined;
+  deduplicationKey?: string | undefined;
   startedAt: string;
-  completedAt?: string;
-  metadata?: JSONObject | null;
+  completedAt?: string | undefined;
+  metadata?: JSONObject | null | undefined;
 };
 
 export type ExternalOutputRecord = {
@@ -31,7 +31,7 @@ export type ExternalOutputRecord = {
     | "event_publish";
   outputKey: string;
   payload: NonNullJSONType;
-  idempotencyKey?: string;
+  idempotencyKey?: string | undefined;
   createdAt: string;
 };
 

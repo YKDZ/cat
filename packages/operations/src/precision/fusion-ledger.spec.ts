@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import type { RawTermResult } from "./types";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
 
-import { buildFusionLedger } from "./fusion-ledger";
+import { buildFusionLedger } from "./fusion-ledger.ts";
+import type { RawTermResult } from "./types.ts";
 
 const BASE_TERM: RawTermResult = {
   surface: "term",
@@ -30,8 +31,10 @@ describe("buildFusionLedger", () => {
     ];
     const ledger = buildFusionLedger(results);
     expect(ledger).toHaveLength(1);
-    expect(ledger[0].confidence).toBe(0.88);
-    const channels = new Set(ledger[0].evidences.map((e) => e.channel));
+    expect(requireFixtureValue(ledger[0]).confidence).toBe(0.88);
+    const channels = new Set(
+      requireFixtureValue(ledger[0]).evidences.map((e) => e.channel),
+    );
     expect(channels.has("lexical")).toBe(true);
     expect(channels.has("morphological")).toBe(true);
   });
@@ -73,7 +76,7 @@ describe("buildFusionLedger", () => {
       },
     ];
     const ledger = buildFusionLedger(results);
-    const decisions = ledger[0].rankingDecisions;
+    const decisions = requireFixtureValue(ledger[0]).rankingDecisions;
     expect(decisions.some((d) => d.action === "ledger-entered")).toBe(true);
     expect(
       decisions.some((d) => d.action === "ledger-confidence-updated"),

@@ -17,9 +17,8 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command, DbHandle } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command, DbHandle } from "#/types.ts";
 
 import {
   QaReviewBlockingOverrideRequiredError,

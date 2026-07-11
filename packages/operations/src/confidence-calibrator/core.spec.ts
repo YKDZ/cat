@@ -1,8 +1,18 @@
 import type { RecallEvidence } from "@cat/shared";
-
 import { describe, it, expect } from "vitest";
 
-import { calibrateBm25Confidence } from "./core";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
+import { calibrateBm25Confidence } from "./core.ts";
+
+const requireNestedFixtureValue = <T>(
+  values: T[][],
+  outerIndex: number,
+  innerIndex: number,
+): T => {
+  const row = requireFixtureValue(values[outerIndex]);
+  return requireFixtureValue(row[innerIndex]);
+};
 
 const makeBm25Evidence = (
   confidence: number,
@@ -33,7 +43,7 @@ describe("CAL core: calibrateBm25Confidence", () => {
     expect(summary.bm25Count).toBe(1);
     expect(summary.maxRaw).toBe(0.5);
     // 0.5 / 0.5 = 1.0 * 2.5 = 2.5, capped at 0.85
-    expect(calibrated[0][0].confidence).toBe(0.85);
+    expect(requireNestedFixtureValue(calibrated, 0, 0).confidence).toBe(0.85);
   });
 
   it("multiple BM25 results: verify normalization", () => {
@@ -45,11 +55,13 @@ describe("CAL core: calibrateBm25Confidence", () => {
     const { calibrated, summary } = calibrateBm25Confidence(input);
     expect(summary.maxRaw).toBe(0.8);
     // 0.8 / 0.8 = 1.0 * 2.5 = 2.5, capped at 0.85
-    expect(calibrated[0][0].confidence).toBe(0.85);
+    expect(requireNestedFixtureValue(calibrated, 0, 0).confidence).toBe(0.85);
     // 0.4 / 0.8 = 0.5 * 2.5 = 1.25, capped at 0.85
-    expect(calibrated[1][0].confidence).toBe(0.85);
+    expect(requireNestedFixtureValue(calibrated, 1, 0).confidence).toBe(0.85);
     // 0.2 / 0.8 = 0.25 * 2.5 = 0.625
-    expect(calibrated[2][0].confidence).toBeCloseTo(0.625);
+    expect(requireNestedFixtureValue(calibrated, 2, 0).confidence).toBeCloseTo(
+      0.625,
+    );
   });
 
   it("no BM25 evidences: returns unchanged", () => {
@@ -83,7 +95,9 @@ describe("CAL core: calibrateBm25Confidence", () => {
     const { calibrated, summary } = calibrateBm25Confidence(input);
     expect(summary.multiEvidenceCount).toBe(1);
     // Check multi channel was appended
-    const multiEv = calibrated[0].find((e) => e.channel === "multi");
+    const multiEv = requireFixtureValue(calibrated[0]).find(
+      (e) => e.channel === "multi",
+    );
     expect(multiEv).toBeDefined();
     expect(multiEv!.note).toBe("bm25+sparse multi-evidence");
   });
@@ -94,7 +108,9 @@ describe("CAL core: calibrateBm25Confidence", () => {
     ];
     const { calibrated, summary } = calibrateBm25Confidence(input);
     expect(summary.multiEvidenceCount).toBe(0);
-    const multiEv = calibrated[0].find((e) => e.channel === "multi");
+    const multiEv = requireFixtureValue(calibrated[0]).find(
+      (e) => e.channel === "multi",
+    );
     expect(multiEv).toBeUndefined();
   });
 
@@ -105,15 +121,19 @@ describe("CAL core: calibrateBm25Confidence", () => {
     ];
     const { calibrated } = calibrateBm25Confidence(input);
     // Both should cap at 0.85
-    expect(calibrated[0][0].confidence).toBeLessThanOrEqual(0.85);
-    expect(calibrated[1][0].confidence).toBeLessThanOrEqual(0.85);
+    expect(
+      requireNestedFixtureValue(calibrated, 0, 0).confidence,
+    ).toBeLessThanOrEqual(0.85);
+    expect(
+      requireNestedFixtureValue(calibrated, 1, 0).confidence,
+    ).toBeLessThanOrEqual(0.85);
   });
 
   it("low raw scores get proportional calibration", () => {
     const input: RecallEvidence[][] = [[makeBm25Evidence(0.01)]];
     const { calibrated } = calibrateBm25Confidence(input);
     // 0.01 / 0.01 = 1.0 * 2.5 = 2.5, capped at 0.85
-    expect(calibrated[0][0].confidence).toBe(0.85);
+    expect(requireNestedFixtureValue(calibrated, 0, 0).confidence).toBe(0.85);
 
     // With maxRaw=0.5 and raw=0.01: 0.01/0.5=0.02 * 2.5 = 0.05
     const input2: RecallEvidence[][] = [
@@ -121,7 +141,7 @@ describe("CAL core: calibrateBm25Confidence", () => {
       [makeBm25Evidence(0.01)],
     ];
     const { calibrated: cal2 } = calibrateBm25Confidence(input2);
-    expect(cal2[0][0].confidence).toBe(0.85);
-    expect(cal2[1][0].confidence).toBeCloseTo(0.05);
+    expect(requireNestedFixtureValue(cal2, 0, 0).confidence).toBe(0.85);
+    expect(requireNestedFixtureValue(cal2, 1, 0).confidence).toBeCloseTo(0.05);
   });
 });

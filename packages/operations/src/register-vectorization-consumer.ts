@@ -1,11 +1,10 @@
 import type { TaskQueue } from "@cat/core";
-import type { VectorizationTask } from "@cat/server-shared";
-
 import { isLeaseRecoverableTaskQueue } from "@cat/core";
 import { domainEventBus } from "@cat/domain";
+import type { VectorizationTask } from "@cat/server-shared";
 import { serverLogger } from "@cat/server-shared";
 
-import { processVectorizationBatch } from "./vectorization-consumer";
+import { processVectorizationBatch } from "./vectorization-consumer.ts";
 
 let registered = false;
 

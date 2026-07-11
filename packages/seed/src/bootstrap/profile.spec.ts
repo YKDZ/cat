@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { DevSeedConfigSchema } from "@/schemas";
+import { DevSeedConfigSchema } from "#/schemas.ts";
 
 describe("bootstrap profile schema", () => {
   it("accepts an explicit zh-Hans -> en bootstrap profile", () => {

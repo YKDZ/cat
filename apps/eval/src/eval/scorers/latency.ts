@@ -1,4 +1,4 @@
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 /**
  * Latency scorer — passes through durationMs from the case result.

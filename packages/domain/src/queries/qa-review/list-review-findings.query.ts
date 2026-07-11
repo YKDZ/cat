@@ -1,5 +1,3 @@
-import type { QaFindingDisposition } from "@cat/shared";
-
 import {
   and,
   desc,
@@ -10,9 +8,10 @@ import {
   qaReviewQueueItem,
   sql,
 } from "@cat/db";
+import type { QaFindingDisposition } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 const CLOSED_FINDING_DISPOSITIONS = [
   "SUPPRESSED",

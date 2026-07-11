@@ -1,19 +1,22 @@
 import type { DrizzleClient } from "@cat/db";
-
 import { eq, runtimeSessionEntry, sql } from "@cat/db";
 
-import type { SessionStore } from "./types";
+import type { SessionStore } from "./types.ts";
 
 /**
  * PostgreSQL-backed session store implementation.
  */
 export class PostgresSessionStore implements SessionStore {
+  private readonly db: DrizzleClient;
+
   /**
    * Create a PostgreSQL-backed session store.
    *
    * @param db - Drizzle database client
    */
-  public constructor(private readonly db: DrizzleClient) {}
+  public constructor(db: DrizzleClient) {
+    this.db = db;
+  }
 
   /**
    * Create or replace a session record with TTL.

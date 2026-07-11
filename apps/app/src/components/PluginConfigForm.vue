@@ -10,7 +10,7 @@ import {
 } from "@cat/shared";
 import { ref } from "vue";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 import SettingForm from "./SettingForm.vue";
 

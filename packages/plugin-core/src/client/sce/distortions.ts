@@ -1,10 +1,10 @@
 import DOMPurify from "dompurify";
 
-import { Distortion } from "./types.ts";
+import type { BrowserWindow, Distortion } from "#/client/sce/types.ts";
 
 export const createDocumentDistortion = (
   pluginId: string,
-  _win: Window,
+  _win: BrowserWindow,
 ): Distortion => ({
   get: (_target, key) => {
     if (key === "cookie") return () => "";
@@ -19,7 +19,7 @@ export const createDocumentDistortion = (
   },
 });
 
-export const createElementDistortion = (_win: Window): Distortion => ({
+export const createElementDistortion = (_win: BrowserWindow): Distortion => ({
   set: (target, key, value) => {
     if (key === "innerHTML" || key === "outerHTML") {
       // 确保 value 是字符串，否则 sanitize 可能会出错
@@ -34,7 +34,7 @@ export const createElementDistortion = (_win: Window): Distortion => ({
   },
 });
 
-export const createNodeDistortion = (win: Window): Distortion => ({
+export const createNodeDistortion = (win: BrowserWindow): Distortion => ({
   get: (target, key) => {
     if (
       key === "parentNode" ||
@@ -67,7 +67,7 @@ export const createNodeDistortion = (win: Window): Distortion => ({
   },
 });
 
-export const createPrototypeDistortion = (win: Window): Distortion => ({
+export const createPrototypeDistortion = (win: BrowserWindow): Distortion => ({
   set: (target, _key, _value) => {
     if (
       target === win.Object.prototype ||
@@ -100,7 +100,7 @@ export const createVueDistortion = (): Distortion => ({
 
 export const createFetchDistortion = (
   pluginId: string,
-  win: Window,
+  win: BrowserWindow,
 ): Distortion => ({
   apply: (target, _thisArg, argArray) => {
     const [input] = argArray;

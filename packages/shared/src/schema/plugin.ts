@@ -1,7 +1,7 @@
 import * as z from "zod";
 
-import { PluginServiceTypeSchema } from "@/schema/enum";
-import { JSONSchemaSchema, nonNullSafeZDotJson } from "@/schema/json.ts";
+import { PluginServiceTypeSchema } from "#/schema/enum.ts";
+import { JSONSchemaSchema, nonNullSafeZDotJson } from "#/schema/json.ts";
 
 export const PluginManifestSchema = z.object({
   id: z

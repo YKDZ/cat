@@ -1,6 +1,4 @@
 import type { DrizzleClient } from "@cat/domain";
-import type { PluginManager } from "@cat/plugin-core";
-
 import {
   closeIssue,
   domainEventBus,
@@ -11,11 +9,12 @@ import {
 } from "@cat/domain";
 import { sendMessage } from "@cat/message";
 import { getPermissionEngine } from "@cat/permissions";
+import type { PluginManager } from "@cat/plugin-core";
 import { serverLogger as logger } from "@cat/server-shared";
 
-import { runAutoTranslatePipeline } from "./run-auto-translate-pipeline";
-import { triggerConceptRevectorize } from "./trigger-revectorize";
-import { triggerTermRecallReindex } from "./trigger-term-recall-reindex";
+import { runAutoTranslatePipeline } from "./run-auto-translate-pipeline.ts";
+import { triggerConceptRevectorize } from "./trigger-revectorize.ts";
+import { triggerTermRecallReindex } from "./trigger-term-recall-reindex.ts";
 
 let registered = false;
 

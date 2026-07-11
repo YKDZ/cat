@@ -1,5 +1,8 @@
-import type { JSONType } from "@cat/shared";
+import { createReadStream, createWriteStream } from "node:fs";
+import { mkdir, stat, unlink, access, open } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import type { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
 import {
   StorageProvider,
@@ -11,10 +14,7 @@ import {
   type HeadContext,
   type PutStreamContext,
 } from "@cat/plugin-core";
-import { createReadStream, createWriteStream } from "node:fs";
-import { mkdir, stat, unlink, access, open } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
-import { pipeline } from "node:stream/promises";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
 const ConfigSchema = z.object({

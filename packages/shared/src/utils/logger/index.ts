@@ -1,2 +1,2 @@
-export * from "./types.ts";
-export * from "./core.ts";
+export * from "#/utils/logger/types.ts";
+export * from "#/utils/logger/core.ts";

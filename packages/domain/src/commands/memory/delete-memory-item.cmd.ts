@@ -3,7 +3,7 @@ import { assertSingleOrNull } from "@cat/shared";
 import { MemoryDeletionScopeValues } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const DeleteMemoryItemCommandSchema = z.object({
   memoryItemId: z.int(),

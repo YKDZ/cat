@@ -1,5 +1,4 @@
 import type { CliConfig } from "../config.ts";
-
 import { withErrorReporting } from "../errors.ts";
 import { callByPath } from "../rpc.ts";
 

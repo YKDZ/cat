@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
 
-import SettingForm from "@/components/SettingForm.vue";
-import { orpc } from "@/rpc/orpc";
+import SettingForm from "#/components/SettingForm.vue";
+import { orpc } from "#/rpc/orpc.ts";
 
 const props = defineProps<{
   schema: _JSONSchema;

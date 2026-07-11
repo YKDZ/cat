@@ -2,7 +2,7 @@ import { agentEvent } from "@cat/db";
 import { nonNullSafeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const SaveAgentEventCommandSchema = z.object({
   runInternalId: z.int(),

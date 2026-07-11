@@ -14,8 +14,8 @@ import {
   ScopeBindingModeSchema,
   SemanticDiffKindSchema,
   VectorInvalidationReasonSchema,
-} from "@/schema/enum.ts";
-import { safeZDotJson } from "@/schema/json.ts";
+} from "#/schema/enum.ts";
+import { safeZDotJson } from "#/schema/json.ts";
 
 export const StableElementIdentitySchema = z.object({
   importerId: z.string().min(1),

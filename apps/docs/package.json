@@ -3,17 +3,25 @@
   "version": "0.1.0",
   "license": "GPL-3.0-only",
   "type": "module",
+  "scripts": {
+    "build": "vitepress build src",
+    "dev": "vitepress dev src",
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "preview": "vitepress preview src",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json"
+  },
   "dependencies": {
-    "@tailwindcss/vite": "^4.3.0",
-    "tailwindcss": "^4.3.0"
+    "@tailwindcss/vite": "catalog:",
+    "tailwindcss": "catalog:"
   },
   "devDependencies": {
-    "@iconify-json/mdi": "^1.2.3",
-    "@iconify/tailwind4": "^1.2.3",
-    "@mermaid-js/mermaid-zenuml": "^0.2.3",
-    "@vueuse/core": "^14.3.0",
-    "mermaid": "^11.15.0",
-    "vitepress": "2.0.0-alpha.17",
+    "@iconify-json/mdi": "catalog:",
+    "@iconify/tailwind4": "catalog:",
+    "@mermaid-js/mermaid-zenuml": "catalog:",
+    "@vueuse/core": "catalog:",
+    "mermaid": "catalog:",
+    "vitepress": "catalog:",
     "vue": "catalog:",
     "vue-tsc": "catalog:"
   }

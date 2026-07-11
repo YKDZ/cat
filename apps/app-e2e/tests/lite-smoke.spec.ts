@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs";
 
-import { test, expect } from "@/fixtures";
+import { test, expect } from "#/fixtures.ts";
 
 const uploadedFileName = "lite-smoke.json";
 

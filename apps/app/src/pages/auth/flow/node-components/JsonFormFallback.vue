@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { _JSONSchema, NonNullJSONType } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { shallowRef } from "vue";
 import { useI18n } from "vue-i18n";
 
-import JSONForm from "@/components/json-form/JsonForm.vue";
+import JSONForm from "#/components/json-form/JsonForm.vue";
 
 /**
  * Props for the JsonFormFallback node component.

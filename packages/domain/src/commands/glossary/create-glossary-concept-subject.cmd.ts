@@ -2,7 +2,7 @@ import { termConceptSubject } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateGlossaryConceptSubjectCommandSchema = z.object({
   glossaryId: z.uuidv4(),

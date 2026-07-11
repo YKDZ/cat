@@ -1,11 +1,12 @@
-import { and, eq, runtimeCacheEntry, runtimeSessionEntry } from "@cat/db";
 import { randomUUID } from "node:crypto";
+
+import { and, eq, runtimeCacheEntry, runtimeSessionEntry } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
-import { PostgresCacheStore } from "./postgres-cache-store";
-import { PostgresSessionStore } from "./postgres-session-store";
+import { PostgresCacheStore } from "./postgres-cache-store.ts";
+import { PostgresSessionStore } from "./postgres-session-store.ts";
 
 let testDb: TestDB;
 

@@ -3,32 +3,8 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false,
-      "installOhMyZsh": false,
-      "installOhMyZshConfig": false,
-      "upgradePackages": true,
-      "installSsl": true,
-      "username": "automatic",
-      "userUid": "automatic",
-      "userGid": "automatic"
-    },
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
-      "moby": true,
-      "installDockerBuildx": true,
-      "installDockerComposeSwitch": true,
-      "version": "latest",
-      "dockerDashComposeVersion": "v2"
-    },
-    "ghcr.io/devcontainers/features/git-lfs:1": {
-      "autoPull": true,
-      "version": "latest"
-    },
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "installDirectlyFromGitHubRelease": true,
-      "version": "latest"
-    }
+  "containerEnv": {
+    "DOCKER_HOST": "unix:///var/run/docker.sock"
   },
   "customizations": {
     "vscode": {
@@ -39,7 +15,6 @@
         "bradlc.vscode-tailwindcss",
         "ms-playwright.playwright",
         "oxc.oxc-vscode",
-        "GitHub.copilot-chat",
         "ms-azuretools.vscode-docker",
         "ms-azuretools.vscode-containers",
         "vitest.explorer",
@@ -70,7 +45,10 @@
       }
     }
   },
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
   "remoteUser": "root",
-  "postCreateCommand": "pnpm install",
+  "postCreateCommand": "docker version --format '{{.Client.Version}}' && docker buildx version && docker compose version && pnpm install --frozen-lockfile",
   "forwardPorts": []
 }

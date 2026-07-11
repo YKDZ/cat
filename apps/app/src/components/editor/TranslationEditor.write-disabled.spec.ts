@@ -2,7 +2,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 const mocks = vi.hoisted(() => ({
   tokenize: vi.fn(async () => ({ tokens: [] })),
@@ -18,7 +18,7 @@ const mocks = vi.hoisted(() => ({
   anchorPosition: 0,
 }));
 
-vi.mock("@/rpc/ws", () => ({
+vi.mock("#/rpc/ws.ts", () => ({
   ws: {
     tokenizer: {
       tokenize: mocks.tokenize,
@@ -26,7 +26,7 @@ vi.mock("@/rpc/ws", () => ({
   },
 }));
 
-vi.mock("@/stores/editor/context.ts", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
   return {
@@ -36,7 +36,7 @@ vi.mock("@/stores/editor/context.ts", async () => {
   };
 });
 
-vi.mock("@/stores/editor/table.ts", async () => {
+vi.mock("#/stores/editor/table.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
   return {
@@ -49,7 +49,7 @@ vi.mock("@/stores/editor/table.ts", async () => {
   };
 });
 
-vi.mock("@/stores/editor/ghost-text.ts", async () => {
+vi.mock("#/stores/editor/ghost-text.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
   return {
@@ -64,7 +64,7 @@ vi.mock("@/stores/editor/ghost-text.ts", async () => {
   };
 });
 
-vi.mock("@/stores/write-capability", async () => {
+vi.mock("#/stores/write-capability.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
   return {

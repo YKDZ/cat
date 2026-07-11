@@ -1,15 +1,14 @@
 import type { JSONObject } from "@cat/shared";
 import type * as z from "zod";
 
-import type { GraphDefinition, NodeDefinition } from "@/graph/types";
+import type { GraphDefinition, NodeDefinition } from "#/graph/types.ts";
 
+import { registerStepHandler } from "./step-handler-registry.ts";
 import type {
   TypedGraphDefinition,
   TypedGraphOptions,
   TypedNodeDef,
-} from "./types";
-
-import { registerStepHandler } from "./step-handler-registry";
+} from "./types.ts";
 
 /**
  * 声明一个类型安全的 DAG 工作流。

@@ -5,10 +5,10 @@ import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import LanguagePicker from "@/components/LanguagePicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useBranchStore } from "@/stores/branch";
-import { useToastStore } from "@/stores/toast.ts";
+import LanguagePicker from "#/components/LanguagePicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useBranchStore } from "#/stores/branch.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 

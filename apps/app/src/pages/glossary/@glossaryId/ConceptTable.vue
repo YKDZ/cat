@@ -24,12 +24,11 @@ import { navigate } from "vike/client/router";
 import { inject, onMounted, ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { clientLogger as logger } from "@/utils/logger";
-import { useInjectionKey } from "@/utils/provide";
+import { clientLogger as logger } from "#/utils/logger.ts";
+import { useInjectionKey } from "#/utils/provide.ts";
 
-import type { Data } from "./+data.server";
-
-import { onRequestConcept, type ConceptData } from "./ConceptTable.telefunc";
+import type { Data } from "./+data.server.ts";
+import { onRequestConcept, type ConceptData } from "./ConceptTable.telefunc.ts";
 
 const { t } = useI18n();
 

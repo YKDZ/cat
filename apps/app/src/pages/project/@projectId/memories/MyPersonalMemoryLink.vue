@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Memory } from "@cat/shared";
-
 import { Button, Card, CardContent } from "@cat/ui";
 import { UserRound } from "@lucide/vue";
 import { navigate } from "vike/client/router";

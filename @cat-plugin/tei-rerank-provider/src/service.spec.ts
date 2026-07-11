@@ -1,6 +1,5 @@
-import type { RerankProviderCall } from "@cat/shared";
-
 import { PluginServiceUnavailableError } from "@cat/plugin-core";
+import type { RerankProviderCall } from "@cat/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TEIRerankProvider } from "./service";

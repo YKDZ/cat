@@ -2,10 +2,9 @@ import { eq, getColumns, pullRequest } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { updateBranchStatus } from "@/commands/branch/update-branch-status.cmd.ts";
-import { domainEvent } from "@/events/domain-events";
+import { updateBranchStatus } from "#/commands/branch/update-branch-status.cmd.ts";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const ClosePRCommandSchema = z.object({
   prId: z.int().positive(),

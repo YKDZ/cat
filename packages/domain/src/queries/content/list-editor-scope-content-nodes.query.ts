@@ -1,8 +1,8 @@
 import { sql } from "@cat/db";
 import * as z from "zod";
 
-import type { ProjectContentNodeRow } from "@/queries/content/list-project-content-nodes.query";
-import type { Query } from "@/types";
+import type { ProjectContentNodeRow } from "#/queries/content/list-project-content-nodes.query.ts";
+import type { Query } from "#/types.ts";
 
 /**
  * Schema for listing content nodes visible to an editor scope.

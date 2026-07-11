@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { RefResolver } from "./ref-resolver";
+import { RefResolver } from "./ref-resolver.ts";
 
 describe("RefResolver", () => {
   it("stores and retrieves refs", () => {

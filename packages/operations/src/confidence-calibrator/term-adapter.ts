@@ -1,9 +1,8 @@
 import { serverLogger as logger } from "@cat/server-shared";
 
-import type { RawResult } from "../precision/types";
-import type { CalibrationSummary } from "./types";
-
-import { calibrateBm25Confidence } from "./core";
+import type { RawResult } from "../precision/types.ts";
+import { calibrateBm25Confidence } from "./core.ts";
+import type { CalibrationSummary } from "./types.ts";
 
 /**
  * Apply confidence calibration to term recall RawResult[] (currently no-op, reserved for architectural consistency).
@@ -24,7 +23,14 @@ export const calibrateTermBm25 = (
     );
 
     for (let i = 0; i < results.length; i += 1) {
-      results[i].evidences = calibrated[i];
+      const result = results[i];
+      const evidences = calibrated[i];
+      if (!result || !evidences) {
+        throw new Error(
+          "calibration result count did not match candidate count",
+        );
+      }
+      result.evidences = evidences;
     }
 
     return summary;

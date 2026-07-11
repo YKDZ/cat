@@ -1,6 +1,6 @@
 import type { SerializableType } from "@cat/shared";
 
-import type { TypedNodeContext } from "@/graph/dsl/types";
+import type { TypedNodeContext } from "#/graph/dsl/types.ts";
 
 /**
  * Execute a VCS-audited write in a graph node.

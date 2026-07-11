@@ -12,9 +12,8 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 const CreateQaReviewAnnotationCommandSchema =
   CreateQaReviewAnnotationInputSchema.extend({
@@ -130,7 +129,7 @@ export const createQaReviewAnnotation: Command<
         queueItemId: queueItem.id,
         annotationId: inserted.id,
         intent: inserted.intent,
-        authorId: inserted.authorId ?? undefined,
+        ...(inserted.authorId === null ? {} : { authorId: inserted.authorId }),
       }),
     ],
   };

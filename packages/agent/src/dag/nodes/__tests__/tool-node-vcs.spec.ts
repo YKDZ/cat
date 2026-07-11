@@ -4,10 +4,9 @@
 
 import { describe, expect, it, vi } from "vitest";
 
+import { createNoopAgentLogger } from "../../../observability/agent-logger.ts";
 import type { ToolRegistry } from "../../../tool/tool-registry.ts";
 import type { ToolExecutionContext } from "../../../tool/tool-types.ts";
-
-import { createNoopAgentLogger } from "../../../observability/agent-logger.ts";
 import { runToolNode } from "../tool-node.ts";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

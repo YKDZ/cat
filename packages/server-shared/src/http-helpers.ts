@@ -1,14 +1,14 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-import {
+import type {
   delCookie,
   setCookie,
   getCookie,
   getQueryParam,
   getReqHeader,
   setResHeader,
-  getCookieFunc,
 } from "@cat/shared";
+import { getCookieFunc } from "@cat/shared";
 
 export const createHTTPHelpers = (
   req: IncomingMessage,

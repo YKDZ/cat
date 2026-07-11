@@ -7,7 +7,7 @@ import {
   QaReviewProfileConfigSchema,
   QaReviewTextRangeSchema,
   SubmitQaReviewDecisionInputSchema,
-} from "../qa-review.ts";
+} from "#/schema/qa-review.ts";
 
 describe("qa review schemas", () => {
   it("normalizes the default profile to deterministic-only review", () => {

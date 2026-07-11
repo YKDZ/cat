@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import type { TooltipTriggerProps } from "reka-ui"
-import { TooltipTrigger } from "reka-ui"
+import type { TooltipTriggerProps } from "reka-ui";
+import { TooltipTrigger } from "reka-ui";
 
-const props = defineProps<TooltipTriggerProps>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+
+const props = defineProps<TooltipTriggerProps>();
 </script>
 
 <template>
   <TooltipTrigger
     data-slot="tooltip-trigger"
-    v-bind="props"
+    v-bind="exactOptionalProps(props)"
   >
     <slot />
   </TooltipTrigger>

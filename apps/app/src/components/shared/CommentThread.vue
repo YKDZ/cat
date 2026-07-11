@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { IssueComment, IssueCommentThread } from "@cat/shared";
-
 import {
   Button,
   DropdownMenu,
@@ -14,8 +13,8 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UserAvatar from "@/components/UserAvatar.vue";
-import { i18nUseTimeAgoMessages } from "@/utils/i18n";
+import UserAvatar from "#/components/UserAvatar.vue";
+import { i18nUseTimeAgoMessages } from "#/utils/i18n.ts";
 
 import InlineEdit from "./InlineEdit.vue";
 

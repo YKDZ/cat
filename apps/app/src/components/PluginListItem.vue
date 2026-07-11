@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Plugin } from "@cat/shared";
 import type { ScopeType } from "@cat/shared";
-
 import { Card, CardHeader, CardTitle } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { useEventListener } from "@vueuse/core";
@@ -9,7 +8,7 @@ import { navigate } from "vike/client/router";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const { t } = useI18n();
 

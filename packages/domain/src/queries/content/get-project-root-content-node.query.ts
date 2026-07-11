@@ -1,7 +1,7 @@
 import { and, contentNode, eq } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetProjectRootContentNodeQuerySchema = z.object({
   projectId: z.uuidv4(),

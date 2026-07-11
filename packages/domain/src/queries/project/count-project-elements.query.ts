@@ -9,9 +9,8 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
-
-import { buildTranslationStatusConditions } from "@/queries/translation/build-translation-status-conditions";
+import { buildTranslationStatusConditions } from "#/queries/translation/build-translation-status-conditions.ts";
+import type { Query } from "#/types.ts";
 
 export const CountProjectElementsQuerySchema = z.object({
   projectId: z.uuidv4(),

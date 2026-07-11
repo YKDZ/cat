@@ -1,9 +1,11 @@
 import { resolve } from "node:path";
+
 import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: ["@cat/plugin-core", "@cat/shared", "@cat/db"],
+    external: ["@cat/plugin-core"],
+    noExternal: [/^@cat\//],
   },
 
   resolve: {
@@ -15,7 +17,7 @@ export default defineConfig({
   build: {
     ssr: true,
     rolldownOptions: {
-      external: ["@cat/plugin-core", "@cat/shared", "@cat/db"],
+      external: ["@cat/plugin-core"],
     },
 
     lib: {

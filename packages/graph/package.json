@@ -1,31 +1,30 @@
 {
   "name": "@cat/graph",
   "version": "0.0.1",
+  "private": true,
   "description": "Storage-agnostic graph core: types, blackboard, condition evaluation",
   "license": "MIT",
-  "files": [
-    "dist",
-    "src",
-    "package.json"
-  ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@cat/shared": "link:../shared",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:",
-    "vitest": "catalog:",
-    "zod": "catalog:"
-  },
-  "peerDependencies": {
-    "@cat/shared": "workspace:*",
-    "zod": "catalog:"
+    "vitest": "catalog:"
   }
 }

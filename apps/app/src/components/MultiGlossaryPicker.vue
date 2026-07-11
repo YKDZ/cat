@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared";
-
 import { useQuery } from "@pinia/colada";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
-import type { PickerOption } from "./picker";
-
+import type { PickerOption } from "./picker/index.ts";
 import MultiPicker from "./picker/MultiPicker.vue";
 
 const { t } = useI18n();
@@ -31,7 +29,7 @@ const props = withDefaults(
   },
 );
 
-const memoryIds = defineModel<string[]>();
+const memoryIds = defineModel<string[]>({ default: [] });
 
 const { state } = useQuery({
   key: ["glossaries"],

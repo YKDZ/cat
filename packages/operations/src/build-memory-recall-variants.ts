@@ -1,16 +1,15 @@
 import type { DbHandle, OperationContext } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import {
   executeCommand,
   getDbHandle,
   replaceMemoryRecallVariants,
 } from "@cat/domain";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import { placeholderize } from "./memory-template";
-import { buildTokenWindows, joinLemmas } from "./nlp-normalization";
-import { tokenizeOp } from "./tokenize";
+import { placeholderize } from "./memory-template.ts";
+import { buildTokenWindows, joinLemmas } from "./nlp-normalization.ts";
+import { tokenizeOp } from "./tokenize.ts";
 
 export const BuildMemoryRecallVariantsInputSchema = z.object({
   memoryItemId: z.int(),

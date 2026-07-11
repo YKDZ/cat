@@ -13,7 +13,7 @@ import { Images } from "@lucide/vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import Markdown from "@/components/Markdown.vue";
+import Markdown from "#/components/Markdown.vue";
 
 const { t } = useI18n();
 

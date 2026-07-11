@@ -2,7 +2,7 @@ import { changeset, desc, entityBranch, eq, getColumns } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const CreateBranchCommandSchema = z.object({
   projectId: z.uuid(),

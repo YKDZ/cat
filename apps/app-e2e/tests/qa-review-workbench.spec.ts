@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { and, DrizzleDB, eq, vectorizedString } from "@cat/db";
 import {
   createContentNodeUnderParent,
@@ -9,9 +11,8 @@ import {
   executeCommand,
   materializeQaReviewQueueItem,
 } from "@cat/domain";
-import { randomUUID } from "node:crypto";
 
-import { test, expect, type E2ERefs } from "./fixtures";
+import { test, expect, type E2ERefs } from "./fixtures.ts";
 
 type QaScenarioItem = {
   sourceText: string;
@@ -19,6 +20,12 @@ type QaScenarioItem = {
   message: string;
   action: "BLOCK_APPROVAL" | "NEEDS_REVIEW";
   riskScore: number;
+};
+
+const requireFirst = <T>(values: readonly T[], operation: string): T => {
+  const value = values[0];
+  if (value === undefined) throw new Error(`${operation} returned no values`);
+  return value;
 };
 
 const insertString = async (
@@ -101,26 +108,31 @@ const seedQaReviewProject = async (
           item.sourceText,
           "en",
         );
-        const [elementId] = await executeCommand(execCtx, createElements, {
-          data: [
-            {
-              projectId: project.id,
-              primaryContentNodeId: file.id,
-              importerId: "test-json",
-              sourceRootRef: "root",
-              sourceNodeRef: `qa-review-e2e-${index}`,
-              stableSourceRef: `qa-review-e2e-element-${randomUUID()}`,
-              stringId: sourceStringId,
-              localOrder: index,
-            },
-          ],
-        });
+        const createdElementIds = await executeCommand(
+          execCtx,
+          createElements,
+          {
+            data: [
+              {
+                projectId: project.id,
+                primaryContentNodeId: file.id,
+                importerId: "test-json",
+                sourceRootRef: "root",
+                sourceNodeRef: `qa-review-e2e-${index}`,
+                stableSourceRef: `qa-review-e2e-element-${randomUUID()}`,
+                stringId: sourceStringId,
+                localOrder: index,
+              },
+            ],
+          },
+        );
+        const elementId = requireFirst(createdElementIds, "create QA element");
         const candidateStringId = await insertString(
           drizzleDB.client,
           item.candidateText,
           "zh-Hans",
         );
-        const [translationId] = await executeCommand(
+        const translationIds = await executeCommand(
           execCtx,
           createTranslations,
           {
@@ -132,6 +144,10 @@ const seedQaReviewProject = async (
               },
             ],
           },
+        );
+        const translationId = requireFirst(
+          translationIds,
+          "create QA translation",
         );
 
         await executeCommand(execCtx, createQaReviewRunWithFindings, {

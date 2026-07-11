@@ -1,5 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-
 import { executeQuery, listInstalledServicesByType } from "@cat/domain";
 import {
   PluginServiceTypeSchema,
@@ -9,7 +8,7 @@ import {
 import { logger } from "@cat/shared";
 import * as z from "zod";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 export const ReigsteredServiceSchema = z.object({
   pluginId: z.string(),

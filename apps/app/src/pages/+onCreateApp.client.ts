@@ -1,10 +1,9 @@
-import type { PageContextClient } from "vike/types";
-
 import { hydrateQueryCache, PiniaColada } from "@pinia/colada";
 import { useQueryCache } from "@pinia/colada";
+import type { PageContextClient } from "vike/types";
 
-import { vPerm } from "@/directives/v-perm";
-import { deserializePiniaState } from "@/utils/pinia.ts";
+import { vPerm } from "#/directives/v-perm.ts";
+import { deserializePiniaState } from "#/utils/pinia.ts";
 
 export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
   const { app } = ctx;

@@ -5,9 +5,9 @@ import type { JSONType } from "@cat/shared";
 import type { ObjectType, Relation } from "@cat/shared";
 import type { Hono } from "hono";
 
-import type { ComponentData } from "@/registry/component-registry";
-import type { RegisteredService } from "@/registry/service-registry";
-import type { IPluginService } from "@/services/service";
+import type { ComponentData } from "#/registry/component-registry.ts";
+import type { RegisteredService } from "#/registry/service-registry.ts";
+import type { IPluginService } from "#/services/service.ts";
 
 /**
  * 插件鉴权上下文

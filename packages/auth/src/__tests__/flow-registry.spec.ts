@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import type { AuthFlowDefinition } from "../types.ts";
-
 import {
   AuthFlowRegistry,
   AuthFlowValidationError,
@@ -9,6 +7,7 @@ import {
 } from "../flow-registry.ts";
 import { registerFlow } from "../flows/register.ts";
 import { standardLoginFlow } from "../flows/standard-login.ts";
+import type { AuthFlowDefinition } from "../types.ts";
 
 describe("validateAuthFlow", () => {
   it("accepts a valid flow (standardLoginFlow)", () => {

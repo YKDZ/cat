@@ -1,10 +1,9 @@
-import type { RerankRequest, RerankResponse } from "@cat/shared";
-
 import { PluginManager } from "@cat/plugin-core";
 import { RerankProvider } from "@cat/plugin-core";
+import type { RerankRequest, RerankResponse } from "@cat/shared";
 import { describe, expect, it, vi } from "vitest";
 
-import { orchestrateRerank } from "./orchestrator";
+import { orchestrateRerank } from "./orchestrator.ts";
 
 // Minimal stub RerankProvider
 class StubRerankProvider extends RerankProvider {

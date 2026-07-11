@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { Table, TableBody, TableCell, TableRow } from "@cat/ui";
 import { Button } from "@cat/ui";
 import { Spinner } from "@cat/ui";

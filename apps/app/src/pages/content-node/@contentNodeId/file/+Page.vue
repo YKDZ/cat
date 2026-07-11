@@ -3,9 +3,9 @@ import { useData } from "vike-vue/useData";
 import { usePageContext } from "vike-vue/usePageContext";
 import { useI18n } from "vue-i18n";
 
-import { BlobView } from "@/components/blob-view";
+import { BlobView } from "#/components/blob-view/index.ts";
 
-import type { Data } from "./+data.server";
+import type { Data } from "./+data.server.ts";
 
 const { fileInfo, fileUrl } = useData<Data>();
 const pageContext = usePageContext();

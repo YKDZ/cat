@@ -1,7 +1,7 @@
 import type { PluginServiceType } from "@cat/shared";
 import type { JSONSchema } from "@cat/shared";
 
-import type { IPluginService } from "@/services/service";
+import type { IPluginService } from "#/services/service.ts";
 
 // ─── Chat Message Types ───
 

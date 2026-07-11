@@ -1,7 +1,7 @@
 import { eq, permissionTuple, setting } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 const FIRST_USER_SETTING_KEY = "system:first_user_registered";
 

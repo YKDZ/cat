@@ -9,7 +9,7 @@ import {
 import { EntityTypeSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetPRDiffQuerySchema = z.object({
   /** Internal ID of the pull request */

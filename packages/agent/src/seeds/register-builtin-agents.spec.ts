@@ -1,5 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({

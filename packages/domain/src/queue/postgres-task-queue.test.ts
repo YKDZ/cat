@@ -1,10 +1,12 @@
-import { and, eq, runtimeQueueTask } from "@cat/db";
 import { randomUUID } from "node:crypto";
+
+import { and, eq, runtimeQueueTask } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
-import { PostgresTaskQueue } from "./postgres-task-queue";
+import { PostgresTaskQueue } from "./postgres-task-queue.ts";
 
 type TaskPayload = {
   task: string;
@@ -34,14 +36,14 @@ describe("PostgresTaskQueue", () => {
 
     const firstBatch = await queue.dequeue(1);
     expect(firstBatch).toHaveLength(1);
-    expect(typeof firstBatch[0].enqueuedAt).toBe("string");
+    expect(typeof requireFixtureValue(firstBatch[0]).enqueuedAt).toBe("string");
     expect(await queue.pendingCount()).toBe(1);
 
-    await queue.ack(firstBatch[0].id);
+    await queue.ack(requireFixtureValue(firstBatch[0]).id);
 
     const secondBatch = await queue.dequeue(10);
     expect(secondBatch).toHaveLength(1);
-    expect(secondBatch[0].payload.task).toBe("b");
+    expect(requireFixtureValue(secondBatch[0]).payload.task).toBe("b");
     expect(await queue.pendingCount()).toBe(0);
   });
 
@@ -62,7 +64,7 @@ describe("PostgresTaskQueue", () => {
       .where(
         and(
           eq(runtimeQueueTask.queueName, queueName),
-          eq(runtimeQueueTask.taskId, taskId),
+          eq(runtimeQueueTask.taskId, requireFixtureValue(taskId)),
         ),
       );
 
@@ -83,12 +85,12 @@ describe("PostgresTaskQueue", () => {
     const [first] = await queue.dequeue(1);
     expect(first?.id).toBe(taskId);
 
-    await queue.nack(taskId);
+    await queue.nack(requireFixtureValue(taskId));
     expect(await queue.pendingCount()).toBe(1);
 
     const [second] = await queue.dequeue(1);
     expect(second?.id).toBe(taskId);
-    await queue.nack(taskId);
+    await queue.nack(requireFixtureValue(taskId));
     expect(await queue.pendingCount()).toBe(0);
 
     const [row] = await testDb.client
@@ -100,7 +102,7 @@ describe("PostgresTaskQueue", () => {
       .where(
         and(
           eq(runtimeQueueTask.queueName, queueName),
-          eq(runtimeQueueTask.taskId, taskId),
+          eq(runtimeQueueTask.taskId, requireFixtureValue(taskId)),
         ),
       )
       .limit(1);

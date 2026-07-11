@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { ScopeType } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
-import { useToastStore } from "../stores/toast";
+import { useToastStore } from "../stores/toast.ts";
 
 const { t } = useI18n();
 

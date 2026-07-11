@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NonNullJSONType } from "@cat/shared";
-
 import {
   NumberField,
   NumberFieldContent,

@@ -3,38 +3,37 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
+    ".": "./src/index.ts"
   },
   "scripts": {
-    "test": "vitest run --config ../../vitest.config.ts --project=unit-seed",
-    "test:unit": "vitest run --config ../../vitest.config.ts --project=unit-seed"
+    "format": "node ../../tooling/oxlint/run.ts format",
+    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@cat/db": "workspace:*",
-    "@cat/domain": "workspace:*",
-    "@cat/operations": "workspace:*",
-    "@cat/plugin-core": "workspace:*",
-    "@cat/server-shared": "workspace:*",
-    "@cat/shared": "workspace:*",
-    "@cat/source-collector": "workspace:*",
-    "@cat/test-utils": "workspace:*",
-    "better-sqlite3": "^12.10.0",
-    "js-yaml": "^4.2.0",
+    "@cat/db": "link:../db",
+    "@cat/domain": "link:../domain",
+    "@cat/operations": "link:../operations",
+    "@cat/plugin-core": "link:../plugin-core",
+    "@cat/server-shared": "link:../server-shared",
+    "@cat/shared": "link:../shared",
+    "@cat/source-collector": "link:../source-collector",
+    "@cat/test-utils": "link:../test-utils",
+    "better-sqlite3": "catalog:",
+    "js-yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/js-yaml": "^4.0.9",
+    "@types/better-sqlite3": "catalog:",
+    "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
-    "typescript": "beta",
-    "unplugin-dts": "catalog:",
-    "vite": "catalog:",
     "vitest": "catalog:"
   }
 }

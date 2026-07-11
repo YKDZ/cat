@@ -1,18 +1,18 @@
 import type { PluginServiceType } from "@cat/shared";
 
-import type { QAChecker, Tokenizer } from "@/services";
-import type { AgentContextProvider } from "@/services/agent-context-provider";
-import type { AgentToolProvider } from "@/services/agent-tool-provider";
-import type { AuthFactor } from "@/services/auth-factor";
-import type { EmailProviderService } from "@/services/email-provider";
-import type { FileExporter, FileImporter } from "@/services/file-handler";
-import type { LLMProvider } from "@/services/llm-provider";
-import type { NlpWordSegmenter } from "@/services/nlp-word-segmenter";
-import type { RerankProvider } from "@/services/rerank-provider";
-import type { StorageProvider } from "@/services/storage-provider";
-import type { TextVectorizer } from "@/services/text-vectorizer";
-import type { TranslationAdvisor } from "@/services/translation-advisor";
-import type { VectorStorage } from "@/services/vector-storage";
+import type { AgentContextProvider } from "#/services/agent-context-provider.ts";
+import type { AgentToolProvider } from "#/services/agent-tool-provider.ts";
+import type { AuthFactor } from "#/services/auth-factor.ts";
+import type { EmailProviderService } from "#/services/email-provider.ts";
+import type { FileExporter, FileImporter } from "#/services/file-handler.ts";
+import type { QAChecker, Tokenizer } from "#/services/index.ts";
+import type { LLMProvider } from "#/services/llm-provider.ts";
+import type { NlpWordSegmenter } from "#/services/nlp-word-segmenter.ts";
+import type { RerankProvider } from "#/services/rerank-provider.ts";
+import type { StorageProvider } from "#/services/storage-provider.ts";
+import type { TextVectorizer } from "#/services/text-vectorizer.ts";
+import type { TranslationAdvisor } from "#/services/translation-advisor.ts";
+import type { VectorStorage } from "#/services/vector-storage.ts";
 
 export type PluginServiceTypeMap = {
   AUTH_FACTOR: AuthFactor;

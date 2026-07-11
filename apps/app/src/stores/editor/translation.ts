@@ -5,11 +5,11 @@ import { defineStore, storeToRefs } from "pinia";
 import { watch } from "vue";
 import * as z from "zod";
 
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorElementStore } from "@/stores/editor/element.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { clientLogger as logger } from "@/utils/logger";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorElementStore } from "#/stores/editor/element.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 const MainTranslationWithStatusSchema = z.object({
   kind: z.literal("main").default("main"),
@@ -61,7 +61,9 @@ export const useEditorTranslationStore = defineStore(
         orpc.translation.getAll({
           elementId: table.elementId.value!,
           languageId: context.languageToId.value!,
-          branchId: context.scope.value?.branchId,
+          ...(context.scope.value?.branchId === undefined
+            ? {}
+            : { branchId: context.scope.value.branchId }),
         }),
       enabled: () =>
         !import.meta.env.SSR &&

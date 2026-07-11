@@ -6,9 +6,10 @@ import {
   translatableElement,
   vectorizedString,
 } from "@cat/db";
+import { assertFirstNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetElementWithChunkIdsQuerySchema = z.object({
   elementId: z.int(),
@@ -52,7 +53,7 @@ export const getElementWithChunkIds: Query<
 
   if (elementRows.length === 0) return null;
 
-  const elementRow = elementRows[0];
+  const elementRow = assertFirstNonNullish(elementRows);
 
   let chunkIds: number[] = [];
   if (elementRow.chunkSetId !== null) {

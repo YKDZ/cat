@@ -3,7 +3,6 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "dist",
-    "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vite/client"],
     "lib": ["ES2022", "DOM"],
@@ -15,7 +14,6 @@
   "exclude": [
     "dist",
     "dist/**",
-    "oxlint.config.ts",
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/**/*.test.tsx",
@@ -24,13 +22,5 @@
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
     "src/**/*.spec.jsx"
-  ],
-  "references": [
-    {
-      "path": "../../packages/shared/tsconfig.lib.json"
-    },
-    {
-      "path": "../../packages/plugin-core/tsconfig.lib.json"
-    }
   ]
 }

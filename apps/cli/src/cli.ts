@@ -80,6 +80,7 @@ const main = async () => {
   }
 
   const [command, ...rest] = positionals;
+  if (!command) return;
 
   const config = resolveConfig(values);
 

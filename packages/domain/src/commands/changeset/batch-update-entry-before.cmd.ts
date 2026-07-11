@@ -1,9 +1,8 @@
-import type { JSONType } from "@cat/shared";
-
 import { changesetEntry, eq } from "@cat/db";
+import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const BatchUpdateEntryBeforeCommandSchema = z.object({
   updates: z.array(

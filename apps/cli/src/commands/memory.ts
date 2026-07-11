@@ -1,7 +1,6 @@
 import { parseArgs } from "node:util";
 
 import type { CliConfig } from "../config.ts";
-
 import { withErrorReporting } from "../errors.ts";
 import { mergeExtraJson } from "../utils.ts";
 

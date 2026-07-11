@@ -1,8 +1,3 @@
-import type {
-  MemoryRecallBm25CapabilityEntry,
-  MemoryRecallBm25CompressionProfile,
-} from "@cat/shared";
-
 import {
   executeQuery,
   getRuntimeState,
@@ -11,6 +6,10 @@ import {
   type RawMemorySuggestion,
   type RawBm25MemorySuggestion,
 } from "@cat/domain";
+import type {
+  MemoryRecallBm25CapabilityEntry,
+  MemoryRecallBm25CompressionProfile,
+} from "@cat/shared";
 
 export const BM25_DISABLED_REASON = "not-in-bm25-first-rollout";
 export const BM25_DISABLED_BY_RUNTIME_REASON = "search-runtime-unavailable";

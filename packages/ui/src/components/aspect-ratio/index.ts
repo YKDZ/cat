@@ -1,1 +1,1 @@
-export { default as AspectRatio } from "./AspectRatio.vue"
+export { default as AspectRatio } from "#/components/aspect-ratio/AspectRatio.vue";

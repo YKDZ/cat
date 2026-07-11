@@ -10,9 +10,8 @@ apps/app/plugins
 **/build
 **/out
 
-# Moon cache (required by moon Docker integration)
-.moon/cache
-.moon/docker
+# Turbo and local build cache
+**/.turbo
 
 # Test and coverage
 **/coverage

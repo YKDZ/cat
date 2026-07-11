@@ -1,5 +1,4 @@
 import type { EditorElement } from "@cat/shared";
-
 import { EditorElementSchema } from "@cat/shared";
 import {
   ElementTranslationStatusSchema,
@@ -9,9 +8,9 @@ import { defineStore, storeToRefs } from "pinia";
 import { reactive, computed } from "vue";
 import * as z from "zod";
 
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { hashJSON } from "@/utils/hash.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { hashJSON } from "#/utils/hash.ts";
 
 export const TranslatableElementWithDetailsSchema = EditorElementSchema.extend({
   status: ElementTranslationStatusSchema.default("NO"),

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { TableCell, TableRow } from "@cat/ui";
 import { navigate } from "vike/client/router";
 
-import { formatDate } from "@/utils/format";
+import { formatDate } from "#/utils/format.ts";
 
 const props = defineProps<{
   project: Pick<

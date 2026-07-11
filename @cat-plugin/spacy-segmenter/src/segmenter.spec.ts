@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 
 import { PluginServiceUnavailableError } from "@cat/plugin-core";
-import { createServer } from "node:http";
 import { Pool } from "undici";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import * as z from "zod";

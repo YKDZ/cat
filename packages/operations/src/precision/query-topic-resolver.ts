@@ -1,7 +1,7 @@
 // packages/operations/src/precision/query-topic-resolver.ts
 import type { QueryProfile, QueryTopicHypothesis } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
+import type { RecallCandidate } from "./types.ts";
 
 /**
  * Infer a QueryTopicHypothesis from the query profile + the Tier-1 candidates
@@ -51,7 +51,11 @@ export function resolveQueryTopic(
   if (sorted.length === 0) {
     return { topicIds: [], confidence: "unknown" };
   }
-  const [topTopic, topCount] = sorted[0];
+  const topEntry = sorted[0];
+  if (!topEntry) {
+    return { topicIds: [], confidence: "unknown" };
+  }
+  const [topTopic, topCount] = topEntry;
   const [, secondCount] = sorted[1] ?? ["", 0];
 
   if (topCount >= 2) {

@@ -1,12 +1,11 @@
 import type { PullRequest } from "@cat/shared";
-
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, ref } from "vue";
 
-import { useBranchStore } from "@/stores/branch";
-import { i18n } from "@/utils/i18n";
+import { useBranchStore } from "#/stores/branch.ts";
+import { i18n } from "#/utils/i18n.ts";
 
 const queryState = ref<{ status: string; data: PullRequest[] }>({
   status: "pending",

@@ -1,18 +1,29 @@
 import tailwindcss from "@tailwindcss/vite";
 import vue from "@vitejs/plugin-vue";
-import { resolve } from "node:path";
 import { telefunc } from "telefunc/vite";
 import vike from "vike/plugin";
 import { defineConfig } from "vite";
 import vueDevTools from "vite-plugin-vue-devtools";
 
+import { pluginDistReload } from "./src/config/plugin-dist-reload.ts";
+import {
+  serverExternalPackages,
+  serverPluginNoExternal,
+  serverWorkspaceNoExternal,
+} from "./src/config/server-packages.ts";
+
 export default defineConfig({
   ssr: {
-    external: ["@cat/agent", "@cat/plugin-core", "@cat/permissions", "@cat/db"],
+    external: [...serverExternalPackages],
     // vue-i18n and @intlify/* reference compile-time constants like
     // __VUE_PROD_DEVTOOLS__ that must be replaced by Vite's `define` plugin.
     // Forcing them to be bundled (not externalized) ensures the replacements apply.
-    noExternal: ["vue-i18n", /^@intlify\//],
+    noExternal: [
+      "vue-i18n",
+      /^@intlify\//,
+      serverWorkspaceNoExternal,
+      serverPluginNoExternal,
+    ],
   },
 
   define: {
@@ -29,9 +40,7 @@ export default defineConfig({
   },
 
   resolve: {
-    alias: {
-      "@": resolve(import.meta.dirname, "src"),
-    },
+    conditions: ["source"],
   },
 
   server: {
@@ -41,6 +50,7 @@ export default defineConfig({
   },
 
   plugins: [
+    pluginDistReload(),
     // @vueuse/core 14.x dist/index.js contains 2 invalid /* #__PURE__ */ annotations
     // (with '#' instead of '@') placed in syntactically wrong positions that Rolldown
     // rejects. Remove them; the correct /* @__PURE__ */ counterparts (57 of them) still
@@ -65,7 +75,7 @@ export default defineConfig({
     target: "esnext",
     emptyOutDir: true,
     rollupOptions: {
-      external: ["@cat/agent", "@cat/permissions", "@cat/db"],
+      external: [...serverExternalPackages],
     },
   },
 });

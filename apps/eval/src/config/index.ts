@@ -1,5 +1,5 @@
-export { interpolateEnvVars } from "./env-interpolation";
-export { loadSuite, type LoadedSuite } from "./loader";
+export { interpolateEnvVars } from "./env-interpolation.ts";
+export { loadSuite, type LoadedSuite } from "./loader.ts";
 export type {
   SuiteConfig,
   ScenarioConfig,
@@ -12,4 +12,4 @@ export type {
   MemoryRecallTestSet,
   TermRecallTestCase,
   MemoryRecallTestCase,
-} from "./schemas";
+} from "./schemas.ts";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MemorySeedSchema } from "@/schemas";
+import { MemorySeedSchema } from "#/schemas.ts";
 
 describe("MemorySeedSchema", () => {
   it("accepts legacy single-memory format and defaults scope to PROJECT", () => {

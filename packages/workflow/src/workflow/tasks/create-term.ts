@@ -2,11 +2,11 @@ import { createGlossaryTerms, executeCommand, getDbHandle } from "@cat/domain";
 import { TermDataSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { generateCacheKey } from "@/graph/cache";
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
+import { generateCacheKey } from "#/graph/cache.ts";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
 
-import { revectorizeConceptGraph } from "./revectorize-concept";
+import { revectorizeConceptGraph } from "./revectorize-concept.ts";
 
 export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),

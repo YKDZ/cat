@@ -1,10 +1,9 @@
-import type { PluginData, PluginManifest } from "@cat/shared";
-
 import { resolve, sep } from "node:path";
 
-import type { CatPlugin } from "@/entities/plugin";
+import type { PluginData, PluginManifest } from "@cat/shared";
 
-import type { PluginLoader } from "./loader";
+import type { CatPlugin } from "#/entities/plugin.ts";
+import type { PluginLoader } from "#/registry/loader.ts";
 
 /**
  * Single plugin entry inside the builtin plugin catalog.

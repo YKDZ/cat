@@ -4,11 +4,11 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { watch } from "vue";
 
-import WorkbenchShell from "@/pages/editor/WorkbenchShell.vue";
-import { useBranchStore } from "@/stores/branch";
-import { useEditorContextStore } from "@/stores/editor/context";
-import { useQaReviewWorkbenchStore } from "@/stores/qa-review/workbench";
-import { watchClient } from "@/utils/vue";
+import WorkbenchShell from "#/pages/editor/WorkbenchShell.vue";
+import { useBranchStore } from "#/stores/branch.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useQaReviewWorkbenchStore } from "#/stores/qa-review/workbench.ts";
+import { watchClient } from "#/utils/vue.ts";
 
 import QaReviewQueueFilter from "../../../../components/QaReviewQueueFilter.vue";
 import QaReviewSidebar from "../../../../components/QaReviewSidebar.vue";
@@ -16,7 +16,7 @@ import QaReviewWorkbench from "../../../../components/QaReviewWorkbench.vue";
 import {
   buildQaReviewHref,
   parseQaReviewScopeFromRoute,
-} from "../../../../scope-url";
+} from "../../../../scope-url.ts";
 
 const ctx = usePageContext();
 const contextStore = useEditorContextStore();

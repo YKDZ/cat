@@ -1,7 +1,7 @@
 import { eq, issueComment } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const DeleteIssueCommentCommandSchema = z.object({
   commentId: z.int().positive(),

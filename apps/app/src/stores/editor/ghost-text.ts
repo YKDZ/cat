@@ -1,12 +1,12 @@
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref, watch } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorMemoryStore } from "@/stores/editor/memory.ts";
-import { useEditorSuggestionStore } from "@/stores/editor/suggestion.ts";
-import { useEditorTableStore } from "@/stores/editor/table.ts";
-import { useProfileStore } from "@/stores/profile.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorMemoryStore } from "#/stores/editor/memory.ts";
+import { useEditorSuggestionStore } from "#/stores/editor/suggestion.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
+import { useProfileStore } from "#/stores/profile.ts";
 
 // ─── Ghost Text Source Types ───
 

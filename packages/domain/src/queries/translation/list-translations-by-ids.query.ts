@@ -10,7 +10,7 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListTranslationsByIdsQuerySchema = z.object({
   translationIds: z.array(z.int()),

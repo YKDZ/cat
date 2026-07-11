@@ -1,5 +1,6 @@
-import { agentEvent, agentRun, eq } from "@cat/db";
 import { randomUUID } from "node:crypto";
+
+import { agentEvent, agentRun, eq } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -8,13 +9,13 @@ import {
   createAgentSession,
   createUser,
   executeCommand,
-} from "@/index";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/index.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 import {
   createCrashRecoveryEventId,
   recoverCrashedAgentRuns,
-} from "./recover-crashed-agent-runs.cmd";
+} from "./recover-crashed-agent-runs.cmd.ts";
 
 let testDb: TestDB;
 

@@ -1,5 +1,4 @@
 import type { PageContextServer } from "vike/types";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -8,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   listContentNodes: vi.fn(),
 }));
 
-vi.mock("@/server/ssc", () => ({
+vi.mock("#/server/ssc.ts", () => ({
   ssc: vi.fn(() => ({
     project: {
       get: mocks.projectGet,
@@ -20,7 +19,7 @@ vi.mock("@/server/ssc", () => ({
 
 import { render } from "vike/abort";
 
-import { loadProjectShell, withProjectShell } from "./project-shell.server";
+import { loadProjectShell, withProjectShell } from "./project-shell.server.ts";
 
 const makeCtx = (projectId: string) =>
   // oxlint-disable-next-line typescript/no-unsafe-type-assertion

@@ -1,4 +1,5 @@
 import type { ChatMessage, LLMChunk, ToolCall } from "@cat/plugin-core";
+import type { ParsedAgentDefinition } from "@cat/shared";
 
 import type {
   AgentBlackboardData,
@@ -56,7 +57,10 @@ export const collectLLMResponse = async (
         if (!toolCallsMap.has(id)) {
           toolCallsMap.set(id, { id, name: name ?? "", arguments: "" });
         }
-        const tc = toolCallsMap.get(id)!;
+        const tc = toolCallsMap.get(id);
+        if (!tc) {
+          throw new Error(`tool call ${id} was not initialized`);
+        }
         if (name) tc.name = name;
         if (argumentsDelta) tc.arguments += argumentsDelta;
         break;
@@ -121,13 +125,7 @@ export interface ReasoningNodeResult {
 export const runReasoningNode = async (
   data: AgentBlackboardData,
   ctx: AgentNodeContext,
-  definition: {
-    content: string;
-    metadata: {
-      tools: string[];
-      llm?: { temperature?: number; maxTokens?: number };
-    };
-  },
+  definition: ParsedAgentDefinition,
 ): Promise<ReasoningNodeResult> => {
   const { llmGateway, toolRegistry, promptEngine, sessionId, logger } = ctx;
   const startMs = Date.now();
@@ -140,16 +138,12 @@ export const runReasoningNode = async (
 
   // Build prompt from Blackboard data and agent definition
   const builtPrompt = promptEngine.buildPrompt({
-    agentDefinition: {
-      // oxlint-disable-next-line no-unsafe-type-assertion -- structural subtype cast for prompt engine API
-      metadata: definition.metadata as Parameters<
-        typeof promptEngine.buildPrompt
-      >[0]["agentDefinition"]["metadata"],
-      content: definition.content,
-    },
+    agentDefinition: definition,
     messages: (data.messages ?? []) as ChatMessage[],
-    scratchpad: data.scratchpad,
-    precheckNotes: data.precheck_notes,
+    ...(data.scratchpad === undefined ? {} : { scratchpad: data.scratchpad }),
+    ...(data.precheck_notes === undefined
+      ? {}
+      : { precheckNotes: data.precheck_notes }),
     variables: ctx.promptVariables,
     costStatus: {
       remainingTokens: 999_999, // Phase 0a: always report high
@@ -171,9 +165,13 @@ export const runReasoningNode = async (
   const stream = llmGateway.chat({
     request: {
       messages: builtPrompt.messages,
-      tools: llmTools.length > 0 ? llmTools : undefined,
-      temperature: definition.metadata.llm?.temperature,
-      maxTokens: definition.metadata.llm?.maxTokens,
+      ...(llmTools.length > 0 ? { tools: llmTools } : {}),
+      ...(definition.metadata.llm?.temperature === undefined
+        ? {}
+        : { temperature: definition.metadata.llm.temperature }),
+      ...(definition.metadata.llm?.maxTokens === undefined
+        ? {}
+        : { maxTokens: definition.metadata.llm.maxTokens }),
     },
   });
 
@@ -202,17 +200,20 @@ export const runReasoningNode = async (
   const assistantMessage: ChatMessage = {
     role: "assistant",
     content: response.text || null,
-    toolCalls:
-      response.toolCalls.length > 0
-        ? (response.toolCalls.map((tc) => ({
+    ...(response.toolCalls.length > 0
+      ? {
+          toolCalls: response.toolCalls.map((tc) => ({
             id: tc.id,
             name: tc.name,
             arguments: tc.arguments,
-          })) as ToolCall[])
-        : undefined,
+          })) as ToolCall[],
+        }
+      : {}),
     // Echo reasoning content back so thinking-mode providers (e.g. mimo) can
     // continue the conversation in subsequent turns.
-    reasoningContent: response.thinkingText || undefined,
+    ...(response.thinkingText
+      ? { reasoningContent: response.thinkingText }
+      : {}),
   };
 
   const existingMessages = (data.messages ?? []) as ChatMessage[];

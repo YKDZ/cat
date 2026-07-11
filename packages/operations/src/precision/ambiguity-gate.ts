@@ -1,7 +1,7 @@
 // packages/operations/src/precision/ambiguity-gate.ts
 import type { AmbiguityEnvelope, QueryTopicHypothesis } from "@cat/shared";
 
-import type { RecallCandidate } from "./types";
+import type { RecallCandidate } from "./types.ts";
 
 const TIER1_SCORE_GAP_THRESHOLD = 0.05;
 
@@ -41,6 +41,11 @@ export function evaluateAmbiguity(
   // should not be sent to the model just because a distant lower-tier candidate
   // happens to be within the gap threshold.
   const top = ranked[0];
+  if (!top) {
+    throw new Error(
+      "ranked candidates became empty during ambiguity evaluation",
+    );
+  }
   const second = ranked[1];
   if (
     second &&

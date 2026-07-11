@@ -62,7 +62,7 @@ export const useProfileStore = defineStore(
   },
   {
     persist: {
-      storage: import.meta.env.SSR ? undefined : sessionStorage,
+      ...(import.meta.env.SSR ? {} : { storage: sessionStorage }),
     },
   },
 );

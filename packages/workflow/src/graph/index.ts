@@ -1,10 +1,10 @@
 import type { DrizzleClient } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 
-import { PostgresCheckpointer } from "@/graph/checkpointer";
-import { InMemoryCompensationRegistry } from "@/graph/compensation";
-import { InProcessEventBus } from "@/graph/event-bus";
-import { QueuedExecutorPool } from "@/graph/executor-pool";
+import { PostgresCheckpointer } from "#/graph/checkpointer/index.ts";
+import { InMemoryCompensationRegistry } from "#/graph/compensation.ts";
+import { InProcessEventBus } from "#/graph/event-bus.ts";
+import { QueuedExecutorPool } from "#/graph/executor-pool.ts";
 import {
   HumanInputNodeExecutor,
   JoinNodeExecutor,
@@ -13,13 +13,16 @@ import {
   RouterNodeExecutor,
   SubgraphNodeExecutor,
   TransformNodeExecutor,
-} from "@/graph/executors";
-import { GraphRegistry } from "@/graph/graph-registry";
-import { InProcessLeaseManager } from "@/graph/lease";
-import { NodeRegistry } from "@/graph/node-registry";
-import { storeGraphRuntime } from "@/graph/runtime-store";
-import { Scheduler } from "@/graph/scheduler";
-import { termAlignmentGraph, termDiscoveryGraph } from "@/workflow/tasks";
+} from "#/graph/executors/index.ts";
+import { GraphRegistry } from "#/graph/graph-registry.ts";
+import { InProcessLeaseManager } from "#/graph/lease.ts";
+import { NodeRegistry } from "#/graph/node-registry.ts";
+import { storeGraphRuntime } from "#/graph/runtime-store.ts";
+import { Scheduler } from "#/graph/scheduler.ts";
+import {
+  termAlignmentGraph,
+  termDiscoveryGraph,
+} from "#/workflow/tasks/index.ts";
 import {
   autoTranslateGraph,
   batchAutoTranslateGraph,
@@ -44,32 +47,35 @@ import {
   tokenizeGraph,
   upsertContentNodeGraph,
   vectorizeGraph,
-} from "@/workflow/tasks";
+} from "#/workflow/tasks/index.ts";
 
-export type { AgentEventBus } from "@/graph/event-bus";
-export type { ExecutorPool, ExecutorTask } from "@/graph/executor-pool";
-export { InProcessEventBus } from "@/graph/event-bus";
-export { LocalExecutorPool, QueuedExecutorPool } from "@/graph/executor-pool";
-export { GraphRegistry } from "@/graph/graph-registry";
-export { NodeRegistry } from "@/graph/node-registry";
-export { Scheduler, type SchedulerStartOptions } from "@/graph/scheduler";
-export * from "@/graph/cache";
-export * from "@/graph/compensation";
-export * from "@/graph/lease";
-export * from "@/graph/workflow-logger";
-export * from "@/graph/types";
-export * from "@/graph/events";
-export * from "@/graph/blackboard";
-export * from "@/graph/schema-registry";
-export * from "@/graph/checkpointer";
-export * from "@/graph/event-store";
-export * from "@/graph/dsl";
-export * from "@/graph/distributed-extensions";
-export { executeWithVCS } from "@/graph/vcs-write-helper";
+export type { AgentEventBus } from "#/graph/event-bus.ts";
+export type { ExecutorPool, ExecutorTask } from "#/graph/executor-pool.ts";
+export { InProcessEventBus } from "#/graph/event-bus.ts";
+export {
+  LocalExecutorPool,
+  QueuedExecutorPool,
+} from "#/graph/executor-pool.ts";
+export { GraphRegistry } from "#/graph/graph-registry.ts";
+export { NodeRegistry } from "#/graph/node-registry.ts";
+export { Scheduler, type SchedulerStartOptions } from "#/graph/scheduler.ts";
+export * from "#/graph/cache.ts";
+export * from "#/graph/compensation.ts";
+export * from "#/graph/lease.ts";
+export * from "#/graph/workflow-logger.ts";
+export * from "#/graph/types.ts";
+export * from "#/graph/events.ts";
+export * from "#/graph/blackboard.ts";
+export * from "#/graph/schema-registry.ts";
+export * from "#/graph/checkpointer/index.ts";
+export * from "#/graph/event-store/index.ts";
+export * from "#/graph/dsl/index.ts";
+export * from "#/graph/distributed-extensions.ts";
+export { executeWithVCS } from "#/graph/vcs-write-helper.ts";
 export {
   getStoredGraphRuntime as getGlobalGraphRuntime,
   getStoredGraphRuntimeOrNull as getGlobalGraphRuntimeOrNull,
-} from "@/graph/runtime-store";
+} from "#/graph/runtime-store.ts";
 
 export type DefaultGraphRuntime = {
   eventBus: InProcessEventBus;

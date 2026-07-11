@@ -1,7 +1,7 @@
 import { file } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListAllFilesQuerySchema = z.object({});
 

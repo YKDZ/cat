@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   createTranslations,
   executeCommand,
@@ -6,18 +8,18 @@ import {
   getTranslationCreatedEventContext,
 } from "@cat/domain";
 import { insertMemory } from "@cat/operations";
+import type { SerializableType } from "@cat/shared";
 import { safeZDotJson } from "@cat/shared";
 import { zip } from "@cat/shared";
-import { randomUUID } from "node:crypto";
 import * as z from "zod";
 
-import { generateCacheKey } from "@/graph/cache";
-import { defineNode, defineGraph } from "@/graph/dsl";
-import { runGraph } from "@/graph/dsl/run-graph";
-import { executeWithVCS } from "@/graph/vcs-write-helper";
+import { generateCacheKey } from "#/graph/cache.ts";
+import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
+import { runGraph } from "#/graph/dsl/run-graph.ts";
+import { executeWithVCS } from "#/graph/vcs-write-helper.ts";
 
-import { createVectorizedStringGraph } from "./create-vectorized-string";
-import { qaTranslationGraph } from "./qa-translation";
+import { createVectorizedStringGraph } from "./create-vectorized-string.ts";
+import { qaTranslationGraph } from "./qa-translation.ts";
 
 export const CreateTranslationInputSchema = z.object({
   data: z.array(
@@ -88,13 +90,24 @@ export const createTranslationGraph = defineGraph({
 
         const { client: translationDb } = await getDbHandle();
         const batchEntityId = randomUUID();
+        const vcsPayload: SerializableType = {
+          data: input.data.map((item) => ({
+            translatableElementId: item.translatableElementId,
+            text: item.text,
+            languageId: item.languageId,
+            ...(item.translatorId === undefined
+              ? {}
+              : { translatorId: item.translatorId }),
+            ...(item.meta === undefined ? {} : { meta: item.meta }),
+          })),
+        };
         const translationIds = await executeWithVCS(
           ctx,
           "translation",
           batchEntityId,
           "CREATE",
           null,
-          { data: input.data },
+          vcsPayload,
           async () =>
             executeCommand({ db: translationDb }, createTranslations, {
               data: Array.from(zip(input.data, stringIds)).map(

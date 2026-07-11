@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
 
-import { test } from "@/fixtures";
+import { test } from "#/fixtures.ts";
 
 test.describe("Content graph file round-trip", () => {
   test("navigates to seeded content node and shows elements", async ({

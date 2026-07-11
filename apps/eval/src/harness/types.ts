@@ -1,8 +1,8 @@
 import type { DrizzleDB } from "@cat/db";
 import type { PluginManager } from "@cat/plugin-core";
 
-import type { ScenarioConfig } from "@/config/schemas";
-import type { RefResolver } from "@/seeder/ref-resolver";
+import type { ScenarioConfig } from "#/config/schemas.ts";
+import type { RefResolver } from "#/seeder/ref-resolver.ts";
 
 export type HarnessContext = {
   pluginManager: PluginManager;

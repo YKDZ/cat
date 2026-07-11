@@ -6,7 +6,7 @@ import {
 import type {
   PayloadRoutingOptions,
   SourceExtractionGraphResult,
-} from "./types.ts";
+} from "#/types.ts";
 
 /**
  * Assemble SourceExtractionGraphResult + platform routing into StructuredContentPayload.

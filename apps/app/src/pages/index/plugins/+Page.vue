@@ -2,7 +2,7 @@
 import { useData } from "vike-vue/useData";
 import { usePageContext } from "vike-vue/usePageContext";
 
-import PluginList from "@/components/PluginList.vue";
+import PluginList from "#/components/PluginList.vue";
 
 import type { Data } from "./+data.ts";
 

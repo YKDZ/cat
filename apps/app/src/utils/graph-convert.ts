@@ -37,8 +37,10 @@ export const convertGraphDefinition = (def: GraphDefinition): DagGraphData => {
     id: `e-${e.from}-${e.to}-${i}`,
     source: e.from,
     target: e.to,
-    label: e.label,
-    condition: e.condition?.description,
+    ...(e.label === undefined ? {} : { label: e.label }),
+    ...(e.condition?.description === undefined
+      ? {}
+      : { condition: e.condition.description }),
   }));
 
   return { nodes, edges };

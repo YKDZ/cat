@@ -1,5 +1,6 @@
-import type { FullConfig } from "@playwright/test";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 // oxlint-disable no-console -- intentional diagnostic logging in globalSetup
+import { resolve } from "node:path";
 
 import {
   DrizzleDB,
@@ -22,8 +23,7 @@ import {
   runSeedPipeline,
   truncateAllTables,
 } from "@cat/seed";
-import { mkdir, rm, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import type { FullConfig } from "@playwright/test";
 
 const E2E_REFS_PATH = resolve(
   import.meta.dirname,
@@ -57,7 +57,7 @@ const validateDatabaseUrl = (): string => {
   }
 
   // Extract database name from URL: postgresql://user:pass@host:port/DBNAME?params
-  const dbName = new URL(url).pathname.slice(1).split("?")[0];
+  const dbName = new URL(url).pathname.slice(1).split("?")[0] ?? "";
   if (!dbName.includes("e2e") && !dbName.includes("test")) {
     throw new Error(
       `[e2e globalSetup] DATABASE_URL database name "${dbName}" does not contain "e2e" or "test". ` +
@@ -79,6 +79,7 @@ const insertString = async (
     .values({ value, languageId })
     .returning({ id: vectorizedString.id });
 
+  if (row === undefined) throw new Error("Failed to create vectorized string");
   return row.id;
 };
 
@@ -114,6 +115,9 @@ const seedQaReviewWorkbench = async (
       ],
     },
   );
+  if (firstTranslationId === undefined || secondTranslationId === undefined) {
+    throw new Error("Failed to create QA review translations");
+  }
 
   await Promise.all(
     [

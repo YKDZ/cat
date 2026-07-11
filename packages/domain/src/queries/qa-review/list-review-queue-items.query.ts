@@ -6,9 +6,8 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
-
-import { buildEditorScopeElementFilterSql } from "@/queries/content/editor-scope-elements.query";
+import { buildEditorScopeElementFilterSql } from "#/queries/content/editor-scope-elements.query.ts";
+import type { Query } from "#/types.ts";
 
 const CLOSED_FINDING_DISPOSITIONS_SQL = sql`('FALSE_POSITIVE', 'ACCEPTED', 'SUPPRESSED', 'SUPERSEDED')`;
 

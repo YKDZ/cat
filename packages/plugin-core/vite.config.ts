@@ -1,17 +1,11 @@
 import { resolve } from "node:path";
-import dts from "unplugin-dts/vite";
+
 import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    external: [
-      "@cat/db",
-      "@cat/domain",
-      "@cat/shared",
-      "zod",
-      "vue",
-      "dompurify",
-    ],
+    external: ["zod", "vue", "dompurify", "@cat/plugin-core"],
+    noExternal: [/^@cat\//],
   },
 
   resolve: {
@@ -26,18 +20,7 @@ export default defineConfig({
     sourcemap: true,
     minify: false,
     rolldownOptions: {
-      external: [
-        "@cat/db",
-        "@cat/domain",
-        "@cat/shared",
-        "zod",
-        "vue",
-        "dompurify",
-      ],
-      output: {
-        preserveModules: true,
-        preserveModulesRoot: resolve(import.meta.dirname, "src"),
-      },
+      external: ["zod", "vue", "dompurify"],
     },
 
     lib: {
@@ -48,10 +31,4 @@ export default defineConfig({
       formats: ["es"],
     },
   },
-
-  plugins: [
-    dts({
-      tsconfigPath: resolve(import.meta.dirname, "tsconfig.lib.json"),
-    }),
-  ],
 });

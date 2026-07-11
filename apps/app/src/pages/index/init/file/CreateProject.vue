@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
+import { exactOptionalProps } from "@cat/ui";
 import { Textarea } from "@cat/ui";
 import { Button } from "@cat/ui";
 import {
@@ -18,17 +18,17 @@ import { useForm } from "vee-validate";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import MultiGlossaryPicker from "@/components/MultiGlossaryPicker.vue";
-import MultiLanguagePicker from "@/components/MultiLanguagePicker.vue";
-import MultiMemoryPicker from "@/components/MultiMemoryPicker.vue";
-import { orpc } from "@/rpc/orpc";
-import { useToastStore } from "@/stores/toast.ts";
+import MultiGlossaryPicker from "#/components/MultiGlossaryPicker.vue";
+import MultiLanguagePicker from "#/components/MultiLanguagePicker.vue";
+import MultiMemoryPicker from "#/components/MultiMemoryPicker.vue";
+import { orpc } from "#/rpc/orpc.ts";
+import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
 const { info } = useToastStore();
 
 const progress = defineModel("progress", { type: Number, required: true });
-const project = defineModel<Project>("project");
+const project = defineModel<Project | undefined>("project");
 
 const schema = toTypedSchema(
   z.object({
@@ -76,7 +76,7 @@ const onSubmit = handleSubmit(async (values) => {
           <Input
             type="text"
             :placeholder="t('项目名称')"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           /> </FormControl
         ><FormMessage />
       </FormItem> </FormField
@@ -86,7 +86,7 @@ const onSubmit = handleSubmit(async (values) => {
         ><FormControl>
           <Textarea
             :placeholder="t('项目简介')"
-            v-bind="componentField"
+            v-bind="exactOptionalProps(componentField)"
           /> </FormControl
         ><FormMessage />
       </FormItem>

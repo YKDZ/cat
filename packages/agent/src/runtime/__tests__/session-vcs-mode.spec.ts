@@ -9,16 +9,14 @@
 
 import type { LLMChunk } from "@cat/plugin-core";
 import type { ParsedAgentDefinition } from "@cat/shared";
-
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { LLMGateway } from "@/llm/llm-gateway.ts";
-import type { PromptEngine } from "@/prompt/prompt-engine.ts";
-import type { ToolRegistry } from "@/tool/tool-registry.ts";
-import type { ToolExecutionContext } from "@/tool/tool-types.ts";
-
-import { createNoopAgentLogger } from "@/observability/agent-logger.ts";
-import { AgentRuntime } from "@/runtime/agent-runtime.ts";
+import type { LLMGateway } from "#/llm/llm-gateway.ts";
+import { createNoopAgentLogger } from "#/observability/agent-logger.ts";
+import type { PromptEngine } from "#/prompt/prompt-engine.ts";
+import { AgentRuntime } from "#/runtime/agent-runtime.ts";
+import type { ToolRegistry } from "#/tool/tool-registry.ts";
+import type { ToolExecutionContext } from "#/tool/tool-types.ts";
 
 // ─── Mock @cat/permissions ────────────────────────────────────────────────────
 
@@ -57,7 +55,7 @@ const MOCK_DEFINITION: ParsedAgentDefinition = {
   content: "Test agent for vcsMode propagation.",
 };
 
-vi.mock("@/runtime/session-manager.ts", () => {
+vi.mock("#/runtime/session-manager.ts", () => {
   const MockSessionManager = vi
     .fn()
     .mockImplementation(function (this: object) {

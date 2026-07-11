@@ -3,7 +3,7 @@ import { EntityBranchStatusSchema } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const UpdateBranchStatusCommandSchema = z.object({
   branchId: z.int().positive(),

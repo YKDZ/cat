@@ -1,6 +1,6 @@
 import { sessionRecord as sessionRecordTable } from "@cat/db";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export interface CreateSessionRecordCommand {
   id: string;

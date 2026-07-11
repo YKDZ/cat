@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
-import { useProfileStore } from "@/stores/profile";
+import { useProfileStore } from "#/stores/profile.ts";
 
 /**
  * Validation state of the current branch selection.

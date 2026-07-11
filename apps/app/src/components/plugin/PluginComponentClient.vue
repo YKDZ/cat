@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import type { ComponentRecord } from "@cat/plugin-core";
-
 import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
 import { usePageContext } from "vike-vue/usePageContext";
 import { computed, onBeforeMount } from "vue";
 import * as Vue from "vue";
 
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 const props = defineProps<{
   component: ComponentRecord;

@@ -3,7 +3,7 @@ import { PluginServiceTypeSchema } from "@cat/shared";
 import { assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const GetPluginServiceByIdQuerySchema = z.object({
   serviceDbId: z.int(),

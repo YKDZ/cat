@@ -1,4 +1,4 @@
-import type { HnfCandidate, HardNegativeRemoval } from "./types";
+import type { HnfCandidate, HardNegativeRemoval } from "./types.ts";
 
 /**
  * Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased).

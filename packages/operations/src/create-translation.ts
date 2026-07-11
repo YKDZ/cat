@@ -1,5 +1,4 @@
 import type { OperationContext } from "@cat/domain";
-
 import { getDbHandle } from "@cat/domain";
 import {
   createInProcessCollector,
@@ -10,9 +9,9 @@ import {
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
-import { createVectorizedStringOp } from "./create-vectorized-string";
-import { insertMemory } from "./memory";
-import { qaTranslationOp } from "./qa-translation";
+import { createVectorizedStringOp } from "./create-vectorized-string.ts";
+import { insertMemory } from "./memory.ts";
+import { qaTranslationOp } from "./qa-translation.ts";
 
 export const CreateTranslationInputSchema = z.object({
   data: z.array(

@@ -1,6 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-import type { JSONType } from "@cat/shared";
-
 import {
   executeQuery,
   getContentNode,
@@ -10,11 +8,11 @@ import {
   getTranslatableElementRow,
   listTranslationsByIds,
 } from "@cat/domain";
+import type { JSONType } from "@cat/shared";
 
 import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
-import type { EntityStateFetcher } from "./methods/simple-application-method.ts";
-
 import { EditorOverlayTranslationStateSchema } from "./editor-overlay-payload.ts";
+import type { EntityStateFetcher } from "./methods/simple-application-method.ts";
 import { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
 import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 

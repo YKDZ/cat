@@ -1,23 +1,23 @@
 import { describe, expect, it } from "vitest";
 
-import type { CaseResult } from "@/harness/types";
+import type { ScoreValue } from "#/eval/types.ts";
+import type { CaseResult } from "#/harness/types.ts";
+import { RefResolver } from "#/seeder/ref-resolver.ts";
 
-import { RefResolver } from "@/seeder/ref-resolver";
-
-import { agentLatencyScorer } from "./agent-latency";
-import { channelCoverageScorer } from "./channel-coverage";
-import { chrfScorer } from "./chrf";
-import { confidenceScorer } from "./confidence";
-import { f1Scorer } from "./f1";
-import { hitRateScorer } from "./hit-rate";
-import { instructionAdherenceScorer } from "./instruction-adherence";
-import { latencyScorer } from "./latency";
-import { mrrScorer } from "./mrr";
-import { negativeExclusionScorer } from "./negative-exclusion";
-import { precisionScorer } from "./precision";
-import { recallScorer } from "./recall";
-import { termComplianceScorer } from "./term-compliance";
-import { tokenCostScorer } from "./token-cost";
+import { agentLatencyScorer } from "./agent-latency.ts";
+import { channelCoverageScorer } from "./channel-coverage.ts";
+import { chrfScorer } from "./chrf.ts";
+import { confidenceScorer } from "./confidence.ts";
+import { f1Scorer } from "./f1.ts";
+import { hitRateScorer } from "./hit-rate.ts";
+import { instructionAdherenceScorer } from "./instruction-adherence.ts";
+import { latencyScorer } from "./latency.ts";
+import { mrrScorer } from "./mrr.ts";
+import { negativeExclusionScorer } from "./negative-exclusion.ts";
+import { precisionScorer } from "./precision.ts";
+import { recallScorer } from "./recall.ts";
+import { termComplianceScorer } from "./term-compliance.ts";
+import { tokenCostScorer } from "./token-cost.ts";
 
 const makeRefs = (entries: [string, number][]): RefResolver => {
   const r = new RefResolver();
@@ -31,6 +31,12 @@ const okCase = (rawOutput: unknown, durationMs = 100): CaseResult => ({
   durationMs,
   status: "ok",
 });
+
+const firstScore = (scores: readonly ScoreValue[]): ScoreValue => {
+  const score = scores[0];
+  if (score === undefined) throw new Error("Expected scorer output");
+  return score;
+};
 
 describe("precisionScorer", () => {
   it("computes precision@5 correctly", () => {
@@ -49,7 +55,7 @@ describe("precisionScorer", () => {
       refs,
       k: 5,
     });
-    expect(result[0].value).toBeCloseTo(2 / 3);
+    expect(firstScore(result).value).toBeCloseTo(2 / 3);
   });
 });
 
@@ -71,7 +77,7 @@ describe("recallScorer", () => {
       refs,
       k: 5,
     });
-    expect(result[0].value).toBeCloseTo(2 / 3);
+    expect(firstScore(result).value).toBeCloseTo(2 / 3);
   });
 });
 
@@ -85,7 +91,7 @@ describe("f1Scorer", () => {
       refs,
       k: 2,
     });
-    expect(result[0].value).toBeCloseTo(2 / 3);
+    expect(firstScore(result).value).toBeCloseTo(2 / 3);
   });
 });
 
@@ -102,7 +108,7 @@ describe("mrrScorer", () => {
       negativeItems: [],
       refs,
     });
-    expect(result[0].value).toBeCloseTo(1 / 3);
+    expect(firstScore(result).value).toBeCloseTo(1 / 3);
   });
 });
 
@@ -115,7 +121,7 @@ describe("hitRateScorer", () => {
       negativeItems: [],
       refs,
     });
-    expect(hit[0].value).toBe(1);
+    expect(firstScore(hit).value).toBe(1);
 
     const miss = hitRateScorer.score({
       caseResult: okCase([{ conceptId: 99 }]),
@@ -123,7 +129,7 @@ describe("hitRateScorer", () => {
       negativeItems: [],
       refs,
     });
-    expect(miss[0].value).toBe(0);
+    expect(firstScore(miss).value).toBe(0);
   });
 });
 
@@ -136,7 +142,7 @@ describe("negativeExclusionScorer", () => {
       negativeItems: [{ conceptRef: "concept:bad" }],
       refs,
     });
-    expect(result[0].value).toBe(0);
+    expect(firstScore(result).value).toBe(0);
   });
 });
 
@@ -148,7 +154,7 @@ describe("latencyScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(142);
+    expect(firstScore(result).value).toBe(142);
   });
 });
 
@@ -161,7 +167,7 @@ describe("confidenceScorer", () => {
       negativeItems: [],
       refs,
     });
-    expect(result[0].value).toBe(1);
+    expect(firstScore(result).value).toBe(1);
   });
 });
 
@@ -184,7 +190,7 @@ describe("channelCoverageScorer", () => {
       negativeItems: [],
       refs,
     });
-    expect(result[0].value).toBeCloseTo(0.5);
+    expect(firstScore(result).value).toBeCloseTo(0.5);
   });
 });
 
@@ -226,7 +232,7 @@ describe("instructionAdherenceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(1);
+    expect(firstScore(result).value).toBe(1);
   });
 
   it("returns partial coverage when some elements are missing", () => {
@@ -241,7 +247,7 @@ describe("instructionAdherenceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBeCloseTo(0.25);
+    expect(firstScore(result).value).toBeCloseTo(0.25);
   });
 
   it("returns 0 for a failed run", () => {
@@ -251,7 +257,7 @@ describe("instructionAdherenceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0);
+    expect(firstScore(result).value).toBe(0);
   });
 
   it("returns 1 when no elements are requested", () => {
@@ -261,7 +267,7 @@ describe("instructionAdherenceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(1);
+    expect(firstScore(result).value).toBe(1);
   });
 
   it("ignores extra translation rows not in expectedItems", () => {
@@ -274,7 +280,7 @@ describe("instructionAdherenceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(1);
+    expect(firstScore(result).value).toBe(1);
   });
 });
 
@@ -294,7 +300,7 @@ describe("termComplianceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(1);
+    expect(firstScore(result).value).toBe(1);
   });
 
   it("returns partial score for partial compliance", () => {
@@ -312,7 +318,7 @@ describe("termComplianceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0.5);
+    expect(firstScore(result).value).toBe(0.5);
   });
 
   it("returns 0 for a failed run", () => {
@@ -328,7 +334,7 @@ describe("termComplianceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0);
+    expect(firstScore(result).value).toBe(0);
   });
 
   it("counts missing translations as missed required terms", () => {
@@ -344,8 +350,8 @@ describe("termComplianceScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0);
-    expect(result[0].detail).toMatch(/no translation/);
+    expect(firstScore(result).value).toBe(0);
+    expect(firstScore(result).detail).toMatch(/no translation/);
   });
 });
 
@@ -357,7 +363,7 @@ describe("chrfScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBeCloseTo(1);
+    expect(firstScore(result).value).toBeCloseTo(1);
   });
 
   it("returns high score for similar strings", () => {
@@ -369,7 +375,7 @@ describe("chrfScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBeGreaterThan(0.5);
+    expect(firstScore(result).value).toBeGreaterThan(0.5);
   });
 
   it("returns 0 with detail when no translations match", () => {
@@ -379,8 +385,8 @@ describe("chrfScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0);
-    expect(result[0].detail).toContain("no translation");
+    expect(firstScore(result).value).toBe(0);
+    expect(firstScore(result).detail).toContain("no translation");
   });
 
   it("returns 0 for empty candidate against non-empty reference", () => {
@@ -390,7 +396,7 @@ describe("chrfScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0);
+    expect(firstScore(result).value).toBe(0);
   });
 
   it("handles unmatched element refs gracefully", () => {
@@ -400,8 +406,8 @@ describe("chrfScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(0);
-    expect(result[0].detail).toContain("no translation");
+    expect(firstScore(result).value).toBe(0);
+    expect(firstScore(result).detail).toContain("no translation");
   });
 });
 
@@ -442,8 +448,8 @@ describe("agentLatencyScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(3500);
-    expect(result[0].name).toBe("agent_latency_ms");
+    expect(firstScore(result).value).toBe(3500);
+    expect(firstScore(result).name).toBe("agent_latency_ms");
   });
 
   it("falls back to caseResult.durationMs when metrics are missing", () => {
@@ -458,6 +464,6 @@ describe("agentLatencyScorer", () => {
       negativeItems: [],
       refs: new RefResolver(),
     });
-    expect(result[0].value).toBe(2000);
+    expect(firstScore(result).value).toBe(2000);
   });
 });

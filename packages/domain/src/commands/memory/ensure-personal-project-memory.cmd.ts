@@ -1,8 +1,8 @@
 import { and, eq, memory, personalMemoryBinding } from "@cat/db";
-import { assertSingleOrNull } from "@cat/shared";
+import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const EnsurePersonalProjectMemoryCommandSchema = z.object({
   userId: z.uuidv4(),
@@ -42,15 +42,18 @@ export const ensurePersonalProjectMemory: Command<
     return { result: { memoryId: existing.memoryId }, events: [] };
   }
 
-  const [created] = await ctx.db
-    .insert(memory)
-    .values({
-      name: command.name ?? "个人记忆",
-      description: command.description ?? "当前用户在当前项目内的个人翻译记忆",
-      scope: "PERSONAL",
-      creatorId: command.userId,
-    })
-    .returning({ id: memory.id });
+  const created = assertSingleNonNullish(
+    await ctx.db
+      .insert(memory)
+      .values({
+        name: command.name ?? "个人记忆",
+        description:
+          command.description ?? "当前用户在当前项目内的个人翻译记忆",
+        scope: "PERSONAL",
+        creatorId: command.userId,
+      })
+      .returning({ id: memory.id }),
+  );
 
   const insertedBinding = await ctx.db
     .insert(personalMemoryBinding)

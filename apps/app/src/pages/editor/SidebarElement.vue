@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import type { EditorElement, ElementPriorityReasonCode } from "@cat/shared";
 import type { ElementTranslationStatus } from "@cat/shared";
-
 import { SidebarMenuButton } from "@cat/ui";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useEditorContextStore } from "@/stores/editor/context.ts";
-import { useEditorElementStore } from "@/stores/editor/element.ts";
-import { useEditorTableStore } from "@/stores/editor/table";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorElementStore } from "#/stores/editor/element.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
-import { buildEditorHref } from "./scope-url";
+import { buildEditorHref } from "./scope-url.ts";
 
 const { t } = useI18n();
 const { scope } = storeToRefs(useEditorContextStore());

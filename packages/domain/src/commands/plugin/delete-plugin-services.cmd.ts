@@ -1,7 +1,7 @@
 import { inArray, pluginService } from "@cat/db";
 import * as z from "zod";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export const DeletePluginServicesCommandSchema = z.object({
   serviceDbIds: z.array(z.int()),

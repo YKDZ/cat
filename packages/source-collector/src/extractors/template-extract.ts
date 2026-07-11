@@ -7,10 +7,12 @@ import type {
   SimpleExpressionNode,
   TemplateChildNode,
 } from "@vue/compiler-dom";
-
 import { NodeTypes } from "@vue/compiler-dom";
 
-import { buildStableSourceRef, buildTextFingerprint } from "./stable-ref.ts";
+import {
+  buildStableSourceRef,
+  buildTextFingerprint,
+} from "#/extractors/stable-ref.ts";
 
 type TemplateExtractionOptions = {
   sourceLanguageId?: string;

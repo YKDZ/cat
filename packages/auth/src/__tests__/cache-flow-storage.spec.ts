@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AuthBlackboardSnapshot } from "../blackboard.ts";
-
 import { CacheFlowStorage } from "../storage/cache-flow-storage.ts";
 
 class InMemoryCacheStore {

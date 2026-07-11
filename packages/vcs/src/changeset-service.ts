@@ -1,7 +1,4 @@
 import type { DbHandle } from "@cat/domain";
-import type { ChangesetStatus } from "@cat/shared";
-import type { JSONType } from "@cat/shared";
-
 import {
   addChangesetEntry,
   applyChangeset,
@@ -14,6 +11,8 @@ import {
   updateChangesetAsyncStatus,
   updateEntryAsyncStatus,
 } from "@cat/domain";
+import type { ChangesetStatus } from "@cat/shared";
+import type { JSONType } from "@cat/shared";
 import { EntityTypeSchema } from "@cat/shared";
 
 import type { ApplicationMethodRegistry } from "./application-method-registry.ts";
@@ -39,14 +38,39 @@ export interface Changeset {
 // ─── Error Types ─────────────────────────────────────────────────────────────
 
 export class OCCConflictError extends Error {
-  constructor(
-    public readonly entityType: string,
-    public readonly entityId: string,
-  ) {
+  public readonly entityType: string;
+  public readonly entityId: string;
+
+  constructor(entityType: string, entityId: string) {
     super(
       `OCC conflict detected for ${entityType}:${entityId} — entity was modified concurrently`,
     );
+    this.entityType = entityType;
+    this.entityId = entityId;
     this.name = "OCCConflictError";
+  }
+}
+
+export class ChangeSetApplicationError extends Error {
+  readonly changesetId: number;
+  readonly entryId: number;
+  readonly entityType: string;
+  readonly entityId: string;
+  readonly status: "BLOCKED" | "FAILED";
+
+  constructor(
+    changesetId: number,
+    entry: Pick<DBChangesetEntry, "entityId" | "entityType" | "id">,
+    status: "BLOCKED" | "FAILED",
+    message: string,
+  ) {
+    super(message);
+    this.name = "ChangeSetApplicationError";
+    this.changesetId = changesetId;
+    this.entryId = entry.id;
+    this.entityType = entry.entityType;
+    this.entityId = entry.entityId;
+    this.status = status;
   }
 }
 
@@ -111,13 +135,17 @@ const mapChangeset = (row: NonNullable<DBChangeset>): Changeset => ({
  */
 export class ChangeSetService {
   private readonly ctx: { db: DbHandle };
+  private readonly diffRegistry: DiffStrategyRegistry;
+  private readonly appMethodRegistry: ApplicationMethodRegistry;
 
   constructor(
     db: DbHandle,
-    private readonly diffRegistry: DiffStrategyRegistry,
-    private readonly appMethodRegistry: ApplicationMethodRegistry,
+    diffRegistry: DiffStrategyRegistry,
+    appMethodRegistry: ApplicationMethodRegistry,
   ) {
     this.ctx = { db };
+    this.diffRegistry = diffRegistry;
+    this.appMethodRegistry = appMethodRegistry;
   }
 
   //──────────────────────────────────────────────────────────────────────────
@@ -127,9 +155,13 @@ export class ChangeSetService {
   async createChangeSet(params: CreateChangeSetParams): Promise<Changeset> {
     const { result } = await createChangeset(this.ctx, {
       projectId: params.projectId,
-      agentRunId: params.agentRunId,
-      createdBy: params.createdBy,
-      summary: params.summary,
+      ...(params.agentRunId === undefined
+        ? {}
+        : { agentRunId: params.agentRunId }),
+      ...(params.createdBy === undefined
+        ? {}
+        : { createdBy: params.createdBy }),
+      ...(params.summary === undefined ? {} : { summary: params.summary }),
     });
     return mapChangeset(result);
   }
@@ -203,36 +235,79 @@ export class ChangeSetService {
   ): Promise<void> {
     const entries = await getChangesetEntries(this.ctx, { changesetId });
 
-    await Promise.all(
-      entries
-        .filter((row) => this.appMethodRegistry.has(row.entityType))
-        .map(async (row) => {
+    const results = await Promise.all(
+      entries.map(async (row) => {
+        const result = await (async () => {
+          if (!this.appMethodRegistry.has(row.entityType)) {
+            return {
+              status: "BLOCKED" as const,
+              errorMessage: `No application method registered for ${row.entityType}`,
+            };
+          }
+
           const method = this.appMethodRegistry.get(row.entityType);
           const action = row.action;
           const methodCtx = { ...ctx, db: this.ctx.db };
 
-          let result;
-          if (action === "CREATE") {
-            result = await method.applyCreate(mapEntry(row), methodCtx);
-          } else if (action === "UPDATE") {
-            result = await method.applyUpdate(mapEntry(row), methodCtx);
-          } else {
-            result = await method.applyDelete(mapEntry(row), methodCtx);
+          try {
+            if (action === "CREATE") {
+              return await method.applyCreate(mapEntry(row), methodCtx);
+            }
+            if (action === "UPDATE") {
+              return await method.applyUpdate(mapEntry(row), methodCtx);
+            }
+            return await method.applyDelete(mapEntry(row), methodCtx);
+          } catch (error) {
+            return {
+              status: "FAILED" as const,
+              errorMessage:
+                error instanceof Error ? error.message : String(error),
+            };
           }
+        })();
 
-          const entryAsyncStatus =
-            result.status === "ASYNC_PENDING"
-              ? "PENDING"
-              : result.status === "APPLIED"
-                ? "READY"
-                : "FAILED";
+        const entryAsyncStatus =
+          result.status === "ASYNC_PENDING"
+            ? "PENDING"
+            : result.status === "APPLIED"
+              ? "READY"
+              : "FAILED";
 
-          await updateEntryAsyncStatus(this.ctx, {
-            entryId: row.id,
-            asyncStatus: entryAsyncStatus,
-          });
-        }),
+        await updateEntryAsyncStatus(this.ctx, {
+          entryId: row.id,
+          asyncStatus: entryAsyncStatus,
+        });
+
+        return { result, row };
+      }),
     );
+
+    const failed = results.find(
+      ({ result }) => result.status === "FAILED" || result.status === "BLOCKED",
+    );
+    await updateChangesetAsyncStatus(this.ctx, {
+      changesetId,
+      asyncStatus:
+        failed !== undefined
+          ? "HAS_FAILED"
+          : results.some(({ result }) => result.status === "ASYNC_PENDING")
+            ? "HAS_PENDING"
+            : results.length > 0
+              ? "ALL_READY"
+              : null,
+    });
+    if (
+      failed?.result.status === "FAILED" ||
+      failed?.result.status === "BLOCKED"
+    ) {
+      throw new ChangeSetApplicationError(
+        changesetId,
+        failed.row,
+        failed.result.status,
+        failed.result.errorMessage ??
+          `Failed to apply ${failed.row.entityType}:${failed.row.entityId}`,
+      );
+    }
 
     await applyChangeset(this.ctx, { changesetId });
   }

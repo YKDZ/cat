@@ -1,10 +1,19 @@
 <script lang="ts" setup>
-import type { ToasterProps } from "vue-sonner"
-import { CircleCheckIcon, InfoIcon, Loader2Icon, OctagonXIcon, TriangleAlertIcon, XIcon } from "@lucide/vue"
-import { Toaster as Sonner } from "vue-sonner"
-import { cn } from '@/utils/lib/utils'
+import {
+  CircleCheckIcon,
+  InfoIcon,
+  Loader2Icon,
+  OctagonXIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from "@lucide/vue";
+import type { ToasterProps } from "vue-sonner";
+import { Toaster as Sonner } from "vue-sonner";
 
-const props = defineProps<ToasterProps>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
+
+const props = defineProps<ToasterProps>();
 </script>
 
 <template>
@@ -16,7 +25,7 @@ const props = defineProps<ToasterProps>()
       '--normal-border': 'var(--border)',
       '--border-radius': 'var(--radius)',
     }"
-    v-bind="props"
+    v-bind="exactOptionalProps(props)"
   >
     <template #success-icon>
       <CircleCheckIcon class="size-4" />

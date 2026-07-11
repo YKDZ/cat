@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+
 // Simulated: hardcode 276 Minecraft term lengths for offline validation
 // In practice, read from the Minecraft glossary seed data
 const SAMPLE_TERM_LENGTHS = [
@@ -26,7 +28,7 @@ describe("trigram threshold formula validation", () => {
     // Log distribution
     for (const [len, values] of buckets) {
       console.log(
-        `Length ${len}: threshold=${values[0].toFixed(2)}, count=${values.length}`,
+        `Length ${len}: threshold=${requireFixtureValue(values[0]).toFixed(2)}, count=${values.length}`,
       );
     }
 

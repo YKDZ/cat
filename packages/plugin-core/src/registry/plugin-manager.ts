@@ -1,6 +1,6 @@
-import type { DbHandle, DrizzleClient, DrizzleTransaction } from "@cat/domain";
-import type { PluginServiceType, ScopeType } from "@cat/shared";
+import { readFile } from "node:fs/promises";
 
+import type { DbHandle, DrizzleClient, DrizzleTransaction } from "@cat/domain";
 import {
   checkServiceReferences,
   deletePluginServices,
@@ -22,6 +22,7 @@ import {
   getSessionStore,
   type PluginCapabilities,
 } from "@cat/domain";
+import type { PluginServiceType, ScopeType } from "@cat/shared";
 import { JSONSchemaSchema, type JSONObject, type JSONType } from "@cat/shared";
 import {
   getDefaultFromSchema,
@@ -29,25 +30,25 @@ import {
   logger,
 } from "@cat/shared";
 import { Hono } from "hono";
-import { readFile } from "node:fs/promises";
 
-import type { CatPlugin, PluginContext } from "@/entities/plugin";
-import type { IPluginService } from "@/services/service";
-import type { PluginServiceMap } from "@/types/plugin";
-
+import type { CatPlugin, PluginContext } from "#/entities/plugin.ts";
 import {
   ComponentRegistry,
   type ComponentRecord,
-} from "@/registry/component-registry";
-import { PluginRouteRegistry } from "@/registry/plugin-route-registry";
+} from "#/registry/component-registry.ts";
+import {
+  FileSystemPluginLoader,
+  type PluginLoader,
+} from "#/registry/loader.ts";
+import { PluginDiscoveryService } from "#/registry/plugin-discovery.ts";
+import { PluginRouteRegistry } from "#/registry/plugin-route-registry.ts";
 import {
   ServiceRegistry,
   type RegisteredService,
-} from "@/registry/service-registry";
-import { getPluginConfig } from "@/utils/config";
-
-import { FileSystemPluginLoader, type PluginLoader } from "./loader";
-import { PluginDiscoveryService } from "./plugin-discovery";
+} from "#/registry/service-registry.ts";
+import type { IPluginService } from "#/services/service.ts";
+import type { PluginServiceMap } from "#/types/plugin.ts";
+import { getPluginConfig } from "#/utils/config.ts";
 
 export type DefaultPluginSource = string | string[];
 
@@ -571,11 +572,17 @@ export class PluginManager {
         ? await getPluginConfig(drizzle, pluginId, this.scopeType, this.scopeId)
         : configOverride;
 
-    const registeredServices = await executeQuery(
-      { db: drizzle },
-      listPluginServicesForInstallation,
-      { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
-    );
+    // Candidate probes pass an explicit config override and must remain
+    // service-independent: do not read installation state while constructing
+    // transient services. Runtime activation still loads the persisted list.
+    const registeredServices =
+      configOverride === undefined
+        ? await executeQuery(
+            { db: drizzle },
+            listPluginServicesForInstallation,
+            { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
+          )
+        : [];
 
     return {
       config,

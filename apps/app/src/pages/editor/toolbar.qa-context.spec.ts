@@ -3,7 +3,7 @@ import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 import Toolbar from "./Toolbar.vue";
 
@@ -54,7 +54,7 @@ vi.mock("@lucide/vue", () => {
   };
 });
 
-vi.mock("@/components/tooltip/TextTooltip.vue", () => ({
+vi.mock("#/components/tooltip/TextTooltip.vue", () => ({
   default: defineComponent({
     template: "<div><slot /></div>",
   }),
@@ -72,7 +72,7 @@ vi.mock("./CurrentTranslationQaResult.vue", () => ({
   }),
 }));
 
-vi.mock("@/stores/editor/context", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -86,7 +86,7 @@ vi.mock("@/stores/editor/context", async () => {
   };
 });
 
-vi.mock("@/stores/editor/table.ts", async () => {
+vi.mock("#/stores/editor/table.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -118,7 +118,7 @@ vi.mock("@/stores/editor/table.ts", async () => {
   };
 });
 
-vi.mock("@/stores/write-capability", async () => {
+vi.mock("#/stores/write-capability.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 

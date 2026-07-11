@@ -4,9 +4,8 @@ import { AlertTriangle, Play, X } from "@lucide/vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { MaxStepsReachedInfo } from "@/stores/agent";
-
-import { useAgentStore } from "@/stores/agent";
+import type { MaxStepsReachedInfo } from "#/stores/agent.ts";
+import { useAgentStore } from "#/stores/agent.ts";
 
 defineProps<{
   info: MaxStepsReachedInfo;

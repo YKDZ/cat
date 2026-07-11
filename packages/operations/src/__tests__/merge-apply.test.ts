@@ -7,8 +7,6 @@
  * - Empty branch: merge succeeds without creating a main changeset
  */
 
-import type { TestDB } from "@cat/test-utils";
-
 import {
   addChangesetEntry,
   createChangeset,
@@ -19,12 +17,14 @@ import {
   executeQuery,
   getChangeset,
   getChangesetEntries,
+  getBranchById,
   getPR,
 } from "@cat/domain";
+import type { TestDB } from "@cat/test-utils";
 import { setupTestDB } from "@cat/test-utils";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { mergePRFull } from "../merge-pr-full";
+import { mergePRFull } from "../merge-pr-full.ts";
 
 // ─── Test State ───────────────────────────────────────────────────────────────
 
@@ -237,5 +237,54 @@ describe("mergePRFull — integration", () => {
     expect(result.success).toBe(true);
     expect(result.hasConflicts).toBe(false);
     expect(result.mainChangesetId).toBeUndefined();
+  });
+
+  test("failed entry application leaves the changeset, PR, and branch unmerged", async () => {
+    const { projectId, userId } = await seedProject();
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId,
+      title: "Invalid translation payload",
+      body: "",
+      reviewers: [],
+      authorId: userId,
+    });
+    const branchChangeset = await executeCommand(
+      { db: testDb.client },
+      createChangeset,
+      { projectId, branchId: pr.branchId, status: "PENDING" },
+    );
+
+    await executeCommand({ db: testDb.client }, addChangesetEntry, {
+      changesetId: branchChangeset.id,
+      entityType: "translation",
+      entityId: `translation:${crypto.randomUUID()}`,
+      action: "CREATE",
+      after: { text: "missing element and language" },
+      riskLevel: "LOW",
+    });
+
+    const result = await mergePRFull(
+      { db: testDb.client },
+      { prExternalId: pr.externalId, mergedBy: userId },
+    );
+
+    expect(result).toMatchObject({
+      success: false,
+      hasConflicts: false,
+      errorMessage: expect.stringContaining("Invalid translation payload"),
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, getPR, { id: pr.externalId }),
+    ).resolves.toMatchObject({ status: "DRAFT" });
+    await expect(
+      executeQuery({ db: testDb.client }, getBranchById, {
+        branchId: pr.branchId,
+      }),
+    ).resolves.toMatchObject({ status: "ACTIVE" });
+    await expect(
+      executeQuery({ db: testDb.client }, getChangeset, {
+        changesetId: branchChangeset.id,
+      }),
+    ).resolves.toMatchObject({ status: "PENDING" });
   });
 });

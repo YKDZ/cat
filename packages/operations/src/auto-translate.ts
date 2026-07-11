@@ -1,10 +1,9 @@
 import type { OperationContext } from "@cat/domain";
 import type { JSONObject } from "@cat/shared";
-
 import { z } from "zod";
 
-import { createTranslationOp } from "./create-translation";
-import { fetchBestTranslationCandidateOp } from "./fetch-best-translation-candidate";
+import { createTranslationOp } from "./create-translation.ts";
+import { fetchBestTranslationCandidateOp } from "./fetch-best-translation-candidate.ts";
 
 export const AutoTranslateInputSchema = z.object({
   translatableElementId: z.int(),

@@ -1,7 +1,7 @@
 // packages/operations/src/precision/sparse-lane.ts
 import type { RecallEvidence } from "@cat/shared";
 
-import type { RawResult } from "./types";
+import type { RawResult } from "./types.ts";
 
 /**
  * Compute a sparse lexical evidence entry for a candidate.

@@ -1,26 +1,35 @@
 <script setup lang="ts">
-import type { TagsInputRootEmits, TagsInputRootProps } from "reka-ui"
-import type { HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { TagsInputRoot, useForwardPropsEmits } from "reka-ui"
-import { cn } from '@/utils/lib/utils'
+import { reactiveOmit } from "@vueuse/core";
+import type { TagsInputRootEmits, TagsInputRootProps } from "reka-ui";
+import { TagsInputRoot, useForwardPropsEmits } from "reka-ui";
+import type { HTMLAttributes } from "vue";
 
-const props = defineProps<TagsInputRootProps & { class?: HTMLAttributes["class"] }>()
-const emits = defineEmits<TagsInputRootEmits>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
+import { cn } from "#/utils/lib/utils.ts";
 
-const delegatedProps = reactiveOmit(props, "class")
+const props = defineProps<
+  TagsInputRootProps & { class?: HTMLAttributes["class"] }
+>();
+const emits = defineEmits<TagsInputRootEmits>();
 
-const forwarded = useForwardPropsEmits(delegatedProps, emits)
+const delegatedProps = reactiveOmit(props, "class");
+
+const forwarded = useForwardPropsEmits(delegatedProps, emits);
 </script>
 
 <template>
   <TagsInputRoot
-    v-slot="slotProps" v-bind="forwarded" :class="cn(
-      'flex flex-wrap gap-2 items-center rounded-md border border-input bg-background px-2 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none',
-      'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
-      'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
-      props.class)"
+    v-slot="slotProps"
+    v-bind="exactOptionalProps(forwarded)"
+    :class="
+      cn(
+        'flex flex-wrap items-center gap-2 rounded-md border border-input bg-background px-2 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none',
+        'focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50',
+        'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
+        props.class,
+      )
+    "
   >
-    <slot v-bind="slotProps" />
+    <slot v-bind="exactOptionalProps(slotProps)" />
   </TagsInputRoot>
 </template>

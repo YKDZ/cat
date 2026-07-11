@@ -4,10 +4,9 @@ import { ref } from "vue";
 import { inject } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { useInjectionKey } from "@/utils/provide";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data } from "./+data.server.ts";
-
 import ConceptTable from "./ConceptTable.vue";
 import InsertConceptBtn from "./InsertConceptBtn.vue";
 import InsertConceptSubjectBtn from "./InsertConceptSubjectBtn.vue";

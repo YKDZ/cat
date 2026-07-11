@@ -1,13 +1,12 @@
 import type { ToolConfirmResponse } from "@cat/shared";
 import type { AgentSessionMetadata } from "@cat/shared";
 import type { AgentDefinitionType, ScopeType } from "@cat/shared";
-
 import { defineStore } from "pinia";
 import { computed, ref, shallowRef } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { hydrateSessionState } from "@/utils/agent";
-import { clientLogger as logger } from "@/utils/logger";
+import { orpc } from "#/rpc/orpc.ts";
+import { hydrateSessionState } from "#/utils/agent/index.ts";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 // ─── Constants ───
 
@@ -134,8 +133,8 @@ export type GraphEventType =
 export interface GraphEvent {
   eventId: string;
   runId: string;
-  nodeId?: string;
-  parentEventId?: string;
+  nodeId?: string | undefined;
+  parentEventId?: string | undefined;
   type: GraphEventType;
   timestamp: string;
   payload: Record<string, unknown>;
@@ -428,7 +427,9 @@ export const useAgentStore = defineStore("agent", () => {
         if (fullThinking) {
           if (currentSteps.value.length > 0) {
             const steps = [...currentSteps.value];
-            const lastStep = { ...steps[steps.length - 1] };
+            const previousStep = steps[steps.length - 1];
+            if (previousStep === undefined) break;
+            const lastStep = { ...previousStep };
             lastStep.thinkingText = fullThinking;
             steps[steps.length - 1] = lastStep;
             currentSteps.value = steps;
@@ -652,10 +653,12 @@ export const useAgentStore = defineStore("agent", () => {
       activeSessionId.value = result.sessionId;
       activeSessionContext.value = metadata ?? null;
       runId.value = result.runId;
-      if (sessionListFilter.value.projectId || metadata?.projectId) {
+      const projectId =
+        sessionListFilter.value.projectId ?? metadata?.projectId;
+      if (projectId !== undefined) {
         await fetchSessions({
           ...sessionListFilter.value,
-          projectId: sessionListFilter.value.projectId ?? metadata?.projectId,
+          projectId,
         });
       }
       return result.sessionId;

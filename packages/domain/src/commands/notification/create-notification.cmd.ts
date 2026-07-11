@@ -1,13 +1,11 @@
+import { notification } from "@cat/db";
 import type { MessageCategory } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
-
-import { notification } from "@cat/db";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { domainEvent } from "@/events/domain-events";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const CreateNotificationCommandSchema = z.object({
   recipientId: z.uuidv4(),
@@ -49,7 +47,7 @@ export const createNotification: Command<
         category: inserted.category,
         title: inserted.title,
         body: inserted.body,
-        data: inserted.data ?? undefined,
+        ...(inserted.data === null ? {} : { data: inserted.data }),
       }),
     ],
   };

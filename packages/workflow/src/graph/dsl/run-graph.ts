@@ -1,25 +1,25 @@
+import assert from "node:assert";
+
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared";
+import { JSONObjectSchema } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
-import { JSONObjectSchema } from "@cat/shared";
-import assert from "node:assert";
+import { getStoredGraphRuntime } from "#/graph/runtime-store.ts";
 
-import { getStoredGraphRuntime } from "@/graph/runtime-store";
-
-import type { TypedGraphDefinition } from "./types";
+import type { TypedGraphDefinition } from "./types.ts";
 
 export type RunGraphOptions = {
-  signal?: AbortSignal;
-  sessionId?: number;
-  metadata?: JSONObject | null;
+  signal?: AbortSignal | undefined;
+  sessionId?: number | undefined;
+  metadata?: JSONObject | null | undefined;
   /** Override the plugin manager from the global runtime */
-  pluginManager?: PluginManager;
-  /** Optional VCS context for Direct mode audit */
-  vcsContext?: VCSContext;
-  /** Optional VCS middleware instance */
-  vcsMiddleware?: VCSMiddleware;
+  pluginManager?: PluginManager | undefined;
+  /** @zh 可选的 VCS 上下文，用于 Direct 模式审计 @en Optional VCS context for Direct mode audit */
+  vcsContext?: VCSContext | undefined;
+  /** @zh 可选的 VCS 中间件实例 @en Optional VCS middleware instance */
+  vcsMiddleware?: VCSMiddleware | undefined;
 };
 
 /**

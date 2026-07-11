@@ -2,7 +2,7 @@ import { chunk, vectorizedString } from "@cat/db";
 import { and, inArray, isNotNull } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListChunksByStringIdsQuerySchema = z.object({
   stringIds: z.array(z.int()),

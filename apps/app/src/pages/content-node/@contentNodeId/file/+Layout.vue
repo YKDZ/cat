@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
 
-import IndexSidebar from "@/components/IndexSidebar.vue";
+import IndexSidebar from "#/components/IndexSidebar.vue";
 
 import type { Data } from "./+data.server.ts";
-
 import Header from "./Header.vue";
 
 const { contentNode } = useData<Data>();

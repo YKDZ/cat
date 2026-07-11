@@ -5,7 +5,7 @@ import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { Pool } from "pg";
 
-import { relations } from "@/drizzle/schema.ts";
+import { relations } from "#/drizzle/schema.ts";
 
 export class DrizzleDB {
   public client: NodePgDatabase<typeof relations> & { $client: Pool };

@@ -225,24 +225,24 @@ vi.mock("@cat/workflow", () => ({
   getGlobalGraphRuntimeOrNull: mocks.getGlobalGraphRuntimeOrNull,
 }));
 
-vi.mock("./default-plugins/catalog", () => ({
+vi.mock("./default-plugins/catalog.ts", () => ({
   createAppPluginLoader: mocks.createAppPluginLoader,
   getDefaultPluginIds: mocks.getDefaultPluginIds,
 }));
 
-vi.mock("./runtime-backends", () => ({
+vi.mock("./runtime-backends.ts", () => ({
   createRuntimeBackends: mocks.createRuntimeBackends,
 }));
 
-vi.mock("./runtime-cleanup", () => ({
+vi.mock("./runtime-cleanup.ts", () => ({
   startPostgresRuntimeCleanup: mocks.startPostgresRuntimeCleanup,
 }));
 
-vi.mock("./search-runtime-health", () => ({
+vi.mock("./search-runtime-health.ts", () => ({
   assertSearchRuntimeHealth: mocks.assertSearchRuntimeHealth,
 }));
 
-import { initializeApp } from "./initialize";
+import { initializeApp } from "./initialize.ts";
 
 describe("initializeApp", () => {
   beforeEach(() => {

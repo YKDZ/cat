@@ -1,12 +1,12 @@
-import type { RouteManifest } from "@cat/shared";
-
-import { NavigationStepSchema, RouteManifestSchema } from "@cat/shared";
-import { resolveRouteTemplate } from "@cat/shared";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+
+import type { RouteManifest } from "@cat/shared";
+import { NavigationStepSchema, RouteManifestSchema } from "@cat/shared";
+import { resolveRouteTemplate } from "@cat/shared";
 import { z } from "zod";
 
-import type { ScreenshotRoute } from "./types.ts";
+import type { ScreenshotRoute } from "#/types.ts";
 
 /**
  * Load a route manifest from a JSON or YAML file.
@@ -82,9 +82,11 @@ export function resolveRoutes(
 
   return manifest.routes.map((entry) => ({
     path: resolveRouteTemplate(entry.template, bindings),
-    waitAfterLoad: entry.waitAfterLoad,
-    waitUntil: entry.waitUntil,
-    steps: entry.steps,
-    auth: entry.auth,
+    ...(entry.waitAfterLoad === undefined
+      ? {}
+      : { waitAfterLoad: entry.waitAfterLoad }),
+    ...(entry.waitUntil === undefined ? {} : { waitUntil: entry.waitUntil }),
+    ...(entry.steps === undefined ? {} : { steps: entry.steps }),
+    ...(entry.auth === undefined ? {} : { auth: entry.auth }),
   }));
 }

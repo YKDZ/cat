@@ -4,8 +4,8 @@ import {
   defaultFilesystemPluginIds,
   defaultProductPluginIds,
   defaultSystemPluginIds,
-} from "./plugin-defaults";
-import { systemPgVectorEntry } from "./vector";
+} from "./plugin-defaults.ts";
+import { systemPgVectorEntry } from "./vector/index.ts";
 
 describe("plugin defaults", () => {
   it("combines filesystem and system defaults without the legacy pgvector plugin", () => {

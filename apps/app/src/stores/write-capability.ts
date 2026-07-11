@@ -2,9 +2,12 @@ import { useQuery } from "@pinia/colada";
 import { defineStore, storeToRefs } from "pinia";
 import { computed } from "vue";
 
-import { orpc } from "@/rpc/orpc";
-import { type BranchValidationStatus, useBranchStore } from "@/stores/branch";
-import { useEditorContextStore } from "@/stores/editor/context";
+import { orpc } from "#/rpc/orpc.ts";
+import {
+  type BranchValidationStatus,
+  useBranchStore,
+} from "#/stores/branch.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
 
 /**
  * Project write mode.

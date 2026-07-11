@@ -1,9 +1,8 @@
 import type { DrizzleClient } from "@cat/db";
+import { and, eq, runtimeCacheEntry, sql } from "@cat/db";
 import type { JSONType } from "@cat/shared";
 
-import { and, eq, runtimeCacheEntry, sql } from "@cat/db";
-
-import type { CacheStore } from "./types";
+import type { CacheStore } from "./types.ts";
 
 const encodeCacheValue = (value: unknown): JSONType => {
   if (value === null) {
@@ -40,16 +39,19 @@ const decodeCacheValue = <T>(value: JSONType): T | null => {
  * PostgreSQL-backed cache store implementation.
  */
 export class PostgresCacheStore implements CacheStore {
+  private readonly db: DrizzleClient;
+  private readonly namespace: string;
+
   /**
    * Create a PostgreSQL-backed cache store.
    *
    * @param db - Drizzle database client
    * @param namespace - Cache namespace
    */
-  public constructor(
-    private readonly db: DrizzleClient,
-    private readonly namespace = "cache",
-  ) {}
+  public constructor(db: DrizzleClient, namespace = "cache") {
+    this.db = db;
+    this.namespace = namespace;
+  }
 
   /**
    * Read a cached value and delete it automatically when expired.

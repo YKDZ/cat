@@ -4,11 +4,10 @@ import { safeZDotJson } from "@cat/shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
-import type { Command } from "@/types";
-
-import { createBranch } from "@/commands/branch/create-branch.cmd.ts";
-import { allocateNumber } from "@/commands/sequence/allocate-number.cmd.ts";
-import { domainEvent } from "@/events/domain-events";
+import { createBranch } from "#/commands/branch/create-branch.cmd.ts";
+import { allocateNumber } from "#/commands/sequence/allocate-number.cmd.ts";
+import { domainEvent } from "#/events/domain-events.ts";
+import type { Command } from "#/types.ts";
 
 export const CreatePRCommandSchema = z.object({
   projectId: z.uuid(),
@@ -76,7 +75,7 @@ export const createPR: Command<
         projectId: command.projectId,
         prId: inserted.id,
         number,
-        issueId: command.issueId,
+        ...(command.issueId === undefined ? {} : { issueId: command.issueId }),
       }),
     ],
   };

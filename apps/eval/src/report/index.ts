@@ -1,1 +1,5 @@
-export { generateReport, type Report, type ThresholdResult } from "./reporter";
+export {
+  generateReport,
+  type Report,
+  type ThresholdResult,
+} from "./reporter.ts";

@@ -4,7 +4,7 @@ import type {
   RecallCandidate,
   RawTermResult,
   RawMemoryResult,
-} from "../precision/types";
+} from "../precision/types.ts";
 
 /**
  * Normalize a term candidate into a RerankCandidateItem for provider submission.

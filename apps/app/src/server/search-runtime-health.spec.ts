@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   assertSearchRuntimeHealth,
   detectSearchRuntimeHealth,
-} from "./search-runtime-health";
+} from "./search-runtime-health.ts";
 
 type QueryRows = Array<Record<string, string>>;
 type SearchRuntimeDb = Parameters<typeof detectSearchRuntimeHealth>[0];

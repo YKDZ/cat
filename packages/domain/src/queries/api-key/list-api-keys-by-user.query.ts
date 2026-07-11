@@ -1,7 +1,7 @@
 import { apiKey as apiKeyTable } from "@cat/db";
 import { and, eq, isNull } from "@cat/db";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 import type { ApiKeyRow } from "./get-api-key-by-hash.query.ts";
 

@@ -4,10 +4,14 @@
  * lastReviewed:2026-02-25
  */
 
-export { default as FormControl } from "./FormControl.vue";
-export { default as FormDescription } from "./FormDescription.vue";
-export { default as FormItem } from "./FormItem.vue";
-export { default as FormLabel } from "./FormLabel.vue";
-export { default as FormMessage } from "./FormMessage.vue";
-export { FORM_ITEM_INJECTION_KEY } from "./injectionKeys";
-export { Form, Field as FormField, FieldArray as FormFieldArray } from "vee-validate";
+export { default as FormControl } from "#/components/form/FormControl.vue";
+export { default as FormDescription } from "#/components/form/FormDescription.vue";
+export { default as FormItem } from "#/components/form/FormItem.vue";
+export { default as FormLabel } from "#/components/form/FormLabel.vue";
+export { default as FormMessage } from "#/components/form/FormMessage.vue";
+export { FORM_ITEM_INJECTION_KEY } from "#/components/form/injectionKeys.ts";
+export {
+  Form,
+  Field as FormField,
+  FieldArray as FormFieldArray,
+} from "vee-validate";

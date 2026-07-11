@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { Glossary } from "@cat/shared";
 
-import Slash from "@/components/Slash.vue";
-import UserAvatar from "@/components/UserAvatar.vue";
+import Slash from "#/components/Slash.vue";
+import UserAvatar from "#/components/UserAvatar.vue";
 
 defineProps<{
   glossary: Pick<Glossary, "name" | "creatorId">;

@@ -24,7 +24,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref, onMounted, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { onRequestMemories, type MemoryListItem } from "./Table.telefunc";
+import { onRequestMemories, type MemoryListItem } from "./Table.telefunc.ts";
 import TableItem from "./TableItem.vue";
 
 const { t } = useI18n();

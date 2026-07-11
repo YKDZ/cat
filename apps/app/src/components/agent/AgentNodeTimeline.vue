@@ -2,7 +2,7 @@
 import { Badge } from "@cat/ui";
 import { useI18n } from "vue-i18n";
 
-import type { AgentDAGNodeEvent } from "@/stores/agent";
+import type { AgentDAGNodeEvent } from "#/stores/agent.ts";
 
 defineProps<{
   events: AgentDAGNodeEvent[];

@@ -1,7 +1,7 @@
 import { sql } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const SearchChunkCosineSimilarityQuerySchema = z.object({
   vectors: z.array(z.array(z.number())),

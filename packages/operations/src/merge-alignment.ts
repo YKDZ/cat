@@ -128,6 +128,18 @@ type FusedPair = {
 
 const nodeKey = (g: number, c: number): string => `${g}:${c}`;
 
+const requireArrayItem = <T>(
+  items: readonly T[],
+  index: number,
+  label: string,
+): T => {
+  const item = items[index];
+  if (item === undefined) {
+    throw new Error(`${label} index ${index} is out of bounds`);
+  }
+  return item;
+};
+
 const pairKey = (gA: number, cA: number, gB: number, cB: number): string => {
   if (gA < gB || (gA === gB && cA <= cB)) return `${gA}:${cA}|${gB}:${cB}`;
   return `${gB}:${cB}|${gA}:${cA}`;
@@ -299,7 +311,8 @@ export const mergeAlignmentOp = (
 
   // Initialize all nodes
   for (let g = 0; g < data.termGroups.length; g += 1) {
-    for (let c = 0; c < data.termGroups[g].candidates.length; c += 1) {
+    const group = requireArrayItem(data.termGroups, g, "term group");
+    for (let c = 0; c < group.candidates.length; c += 1) {
       uf.find(nodeKey(g, c));
     }
   }
@@ -313,7 +326,8 @@ export const mergeAlignmentOp = (
   const componentMap = new Map<string, Array<{ g: number; c: number }>>();
 
   for (let g = 0; g < data.termGroups.length; g += 1) {
-    for (let c = 0; c < data.termGroups[g].candidates.length; c += 1) {
+    const group = requireArrayItem(data.termGroups, g, "term group");
+    for (let c = 0; c < group.candidates.length; c += 1) {
       const root = uf.find(nodeKey(g, c));
       const arr = componentMap.get(root) ?? [];
       arr.push({ g, c });
@@ -334,11 +348,12 @@ export const mergeAlignmentOp = (
 
   for (const nodes of componentMap.values()) {
     if (nodes.length < 2) {
-      const { g, c } = nodes[0];
-      const cand = data.termGroups[g].candidates[c];
+      const { g, c } = requireArrayItem(nodes, 0, "component node");
+      const group = requireArrayItem(data.termGroups, g, "term group");
+      const cand = requireArrayItem(group.candidates, c, "term candidate");
       unaligned.push({
         text: cand.text,
-        languageId: data.termGroups[g].languageId,
+        languageId: group.languageId,
         reason: "no alignment found",
       });
       continue;
@@ -383,8 +398,8 @@ export const mergeAlignmentOp = (
     for (const [g, arr] of byGroup.entries()) {
       // Keep the candidate with highest degree; push others to unaligned
       const best = arr.reduce((a, b) => (a.degree >= b.degree ? a : b));
-      const group = data.termGroups[g];
-      const cand = group.candidates[best.c];
+      const group = requireArrayItem(data.termGroups, g, "term group");
+      const cand = requireArrayItem(group.candidates, best.c, "term candidate");
       terms.push({
         languageId: group.languageId,
         text: cand.text,
@@ -396,7 +411,11 @@ export const mergeAlignmentOp = (
 
       for (const { c } of arr) {
         if (c === best.c) continue;
-        const conflicted = group.candidates[c];
+        const conflicted = requireArrayItem(
+          group.candidates,
+          c,
+          "term candidate",
+        );
         unaligned.push({
           text: conflicted.text,
           languageId: group.languageId,

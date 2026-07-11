@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { Project } from "@cat/shared";
-
 import { SidebarTrigger } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 
-import NotificationInbox from "@/components/NotificationInbox.vue";
+import NotificationInbox from "#/components/NotificationInbox.vue";
 
 import HeaderBreadcrumb from "./HeaderBreadcrumb.vue";
 

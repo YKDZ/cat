@@ -1,7 +1,7 @@
 import { getCurrentRedisHandle, getDbHandle } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
 
-import type { RuntimeCleanupHandle } from "./runtime-cleanup";
+import type { RuntimeCleanupHandle } from "./runtime-cleanup.ts";
 
 /**
  * Server abstraction that can be closed.

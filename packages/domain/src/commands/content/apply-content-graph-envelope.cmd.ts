@@ -5,7 +5,7 @@ import {
   type StructuredContentPayload,
 } from "@cat/shared";
 
-import type { Command } from "@/types";
+import type { Command } from "#/types.ts";
 
 export type ApplyContentGraphEnvelopeInput = {
   payload: StructuredContentPayload;

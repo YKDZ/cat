@@ -1,14 +1,13 @@
 import type { QaReviewActionResult } from "@cat/shared";
-
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
 import { computed, ref } from "vue";
 
-import { buildQaReviewHref } from "@/pages/qa-review/scope-url";
-import { orpc } from "@/rpc/orpc";
-import { useEditorContextStore } from "@/stores/editor/context";
-import { useEditorTableStore } from "@/stores/editor/table";
+import { buildQaReviewHref } from "#/pages/qa-review/scope-url.ts";
+import { orpc } from "#/rpc/orpc.ts";
+import { useEditorContextStore } from "#/stores/editor/context.ts";
+import { useEditorTableStore } from "#/stores/editor/table.ts";
 
 /**
  * QA review workbench page state.
@@ -113,8 +112,12 @@ export const useQaReviewWorkbenchStore = defineStore(
       const element = elements.value.find((row) => row.elementId === elementId);
       tableStore.setElementContextForExternalWorkbench({
         elementId,
-        primaryContentNodeId: element?.primaryContentNodeId,
-        sourceLanguageId: element?.sourceLanguageId,
+        ...(element?.primaryContentNodeId === undefined
+          ? {}
+          : { primaryContentNodeId: element.primaryContentNodeId }),
+        ...(element?.sourceLanguageId === undefined
+          ? {}
+          : { sourceLanguageId: element.sourceLanguageId }),
       });
 
       if (scope.value) {

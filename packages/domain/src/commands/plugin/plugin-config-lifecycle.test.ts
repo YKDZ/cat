@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import {
   plugin,
   pluginConfig,
@@ -6,15 +8,15 @@ import {
   user,
 } from "@cat/db";
 import { eq } from "drizzle-orm";
-import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
   updatePluginConfigInstanceValue,
   updatePluginConfigInstanceValueIfUnchanged,
-} from "@/commands";
-import { executeCommand } from "@/executor";
-import { setupTestDB, type TestDB } from "@/testing/setup-test-db";
+} from "#/commands/index.ts";
+import { executeCommand } from "#/executor.ts";
+import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
+import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 let testDb: TestDB;
 
@@ -64,8 +66,8 @@ const seedInstalledPlugin = async () => {
   const [instance] = await testDb.client
     .insert(pluginConfigInstance)
     .values({
-      configId: config.id,
-      pluginInstallationId: installation.id,
+      configId: requireFixtureValue(config).id,
+      pluginInstallationId: requireFixtureValue(installation).id,
       creatorId: CREATOR_ID,
       value: { endpoint: "http://old" },
     })
@@ -82,23 +84,23 @@ describe("plugin config lifecycle commands", () => {
       { db: testDb.client },
       updatePluginConfigInstanceValueIfUnchanged,
       {
-        instanceId: instance.id,
-        expectedUpdatedAt: instance.updatedAt,
+        instanceId: requireFixtureValue(instance).id,
+        expectedUpdatedAt: requireFixtureValue(instance).updatedAt,
         value: { endpoint: "http://new" },
       },
     );
 
     expect(updated?.value).toEqual({ endpoint: "http://new" });
     expect(updated?.updatedAt.getTime()).toBeGreaterThan(
-      instance.updatedAt.getTime(),
+      requireFixtureValue(instance).updatedAt.getTime(),
     );
 
     const stale = await executeCommand(
       { db: testDb.client },
       updatePluginConfigInstanceValueIfUnchanged,
       {
-        instanceId: instance.id,
-        expectedUpdatedAt: instance.updatedAt,
+        instanceId: requireFixtureValue(instance).id,
+        expectedUpdatedAt: requireFixtureValue(instance).updatedAt,
         value: { endpoint: "http://stale" },
       },
     );
@@ -112,17 +114,20 @@ describe("plugin config lifecycle commands", () => {
     await executeCommand(
       { db: testDb.client },
       updatePluginConfigInstanceValue,
-      { instanceId: instance.id, value: { endpoint: "http://legacy" } },
+      {
+        instanceId: requireFixtureValue(instance).id,
+        value: { endpoint: "http://legacy" },
+      },
     );
 
     const [row] = await testDb.client
       .select()
       .from(pluginConfigInstance)
-      .where(eq(pluginConfigInstance.id, instance.id));
+      .where(eq(pluginConfigInstance.id, requireFixtureValue(instance).id));
 
     expect(row?.value).toEqual({ endpoint: "http://legacy" });
     expect(row?.updatedAt.getTime()).toBeGreaterThanOrEqual(
-      instance.updatedAt.getTime(),
+      requireFixtureValue(instance).updatedAt.getTime(),
     );
   });
 });

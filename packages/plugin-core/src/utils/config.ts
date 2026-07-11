@@ -1,8 +1,7 @@
 import type { DbHandle } from "@cat/domain";
+import { executeQuery, getPluginConfigInstance } from "@cat/domain";
 import type { ScopeType } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
-
-import { executeQuery, getPluginConfigInstance } from "@cat/domain";
 
 export const getPluginConfig = async (
   drizzle: DbHandle,

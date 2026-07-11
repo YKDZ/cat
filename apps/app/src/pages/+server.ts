@@ -1,13 +1,13 @@
 import "dotenv/config";
-import type { Server as VikeServer } from "vike/types";
+import http from "node:http";
 
 import app, { wsHelper } from "@cat/app-api/app";
 import { serverLogger as logger } from "@cat/server-shared";
 import vike from "@vikejs/hono";
-import http from "node:http";
+import type { Server as VikeServer } from "vike/types";
 
-import { initializeApp } from "@/server/initialize.ts";
-import { createShutdownHandler } from "@/server/shutdown.ts";
+import { initializeApp } from "#/server/initialize.ts";
+import { createShutdownHandler } from "#/server/shutdown.ts";
 
 vike(app);
 
@@ -20,7 +20,7 @@ await initializeApp();
 export default {
   prod: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
-    hostname: process.env.HOST,
+    ...(process.env.HOST === undefined ? {} : { hostname: process.env.HOST }),
 
     onReady(server) {
       logger.withSituation("SERVER").info(`Server is ready at ${server.url}`);

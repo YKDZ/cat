@@ -1,6 +1,5 @@
 import type { Token } from "@cat/plugin-core";
 import type { Extension, Range } from "@codemirror/state";
-
 import { StateEffect, StateField } from "@codemirror/state";
 import {
   Decoration,
@@ -93,10 +92,10 @@ const tokenDecorationsPlugin = ViewPlugin.fromClass(
           : undefined;
 
         decorations.push(
-          Decoration.mark({ class: cls, attributes: attrs }).range(
-            token.start,
-            token.end,
-          ),
+          Decoration.mark({
+            class: cls,
+            ...(attrs === undefined ? {} : { attributes: attrs }),
+          }).range(token.start, token.end),
         );
       }
 

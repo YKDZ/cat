@@ -1,8 +1,7 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
-import type { RouterClient } from "@orpc/server";
-
 import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
+import type { RouterClient } from "@orpc/server";
 
 /**
  * Create an oRPC client authenticated via API Key Bearer token.

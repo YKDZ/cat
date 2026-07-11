@@ -1,5 +1,4 @@
 import type { PluginManager } from "@cat/plugin-core";
-
 import { collectLLMResponse, firstOrGivenService } from "@cat/server-shared";
 import {
   QaReviewSpanSchema,
@@ -66,8 +65,8 @@ export type RunSemanticQaReviewInput = {
   sourceText: string;
   translationText: string;
   profile: QaReviewProfileConfig;
-  pluginManager?: PluginManager;
-  signal?: AbortSignal;
+  pluginManager?: PluginManager | undefined;
+  signal?: AbortSignal | undefined;
 };
 
 export type RunSemanticQaReviewResult = {
@@ -137,7 +136,7 @@ export const runSemanticQaReview = async (
         temperature: input.profile.llm.temperature,
         maxTokens: input.profile.llm.maxTokens,
         thinking: false,
-        signal: input.signal,
+        ...(input.signal ? { signal: input.signal } : {}),
       }),
     );
 

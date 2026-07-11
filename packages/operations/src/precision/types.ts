@@ -22,7 +22,7 @@ export type RawTermResult = {
   translation: string;
   definition: string | null;
   confidence: number;
-  matchedText?: string;
+  matchedText?: string | undefined;
   evidences: RecallEvidence[];
 };
 
@@ -31,36 +31,36 @@ export type RawMemoryResult = {
   surface: "memory";
   id: number;
   memoryId: string;
-  sourceScope?: "PROJECT" | "PERSONAL";
-  translationId?: number | null;
-  sourceTemplate?: string | null;
-  translationTemplate?: string | null;
+  sourceScope?: "PROJECT" | "PERSONAL" | undefined;
+  translationId?: number | null | undefined;
+  sourceTemplate?: string | null | undefined;
+  translationTemplate?: string | null | undefined;
   source: string;
   translation: string;
   confidence: number;
-  matchedText?: string;
-  matchedVariantText?: string;
-  matchedVariantType?: string;
-  adaptedTranslation?: string;
-  adaptationMethod?: string;
+  matchedText?: string | undefined;
+  matchedVariantText?: string | undefined;
+  matchedVariantType?: string | undefined;
+  adaptedTranslation?: string | undefined;
+  adaptationMethod?: string | undefined;
   evidences: RecallEvidence[];
   // For pipeline use — not returned to callers
-  topicBinding?: MemoryTopicBinding;
+  topicBinding?: MemoryTopicBinding | undefined;
 };
 
 export type RawResult = RawTermResult | RawMemoryResult;
 
 // ─── Candidate inside the precision pipeline ──────────────────────
 export type RecallCandidate = RawResult & {
-  budgetClass?: BudgetClass;
-  topicAssignment?: CandidateTopicAssignment;
-  anchorSignature?: AnchorSignature;
+  budgetClass?: BudgetClass | undefined;
+  topicAssignment?: CandidateTopicAssignment | undefined;
+  anchorSignature?: AnchorSignature | undefined;
   rankingDecisions: RankingDecision[];
   /** Tier assigned by DeterministicLayeredRanker. */
-  tier?: "1" | "2" | "3";
+  tier?: "1" | "2" | "3" | undefined;
   /** Hard-filtered candidates are removed from the result list. */
-  hardFiltered?: boolean;
-  hardFilterReason?: string;
+  hardFiltered?: boolean | undefined;
+  hardFilterReason?: string | undefined;
 };
 
 // ─── Pipeline execution context ───────────────────────────────────

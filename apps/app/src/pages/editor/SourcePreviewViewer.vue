@@ -5,7 +5,10 @@ import { codeToHtml } from "shiki";
 import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { detectFileType, detectLanguage } from "@/components/blob-view/types";
+import {
+  detectFileType,
+  detectLanguage,
+} from "#/components/blob-view/types.ts";
 
 const props = defineProps<{
   content: string;

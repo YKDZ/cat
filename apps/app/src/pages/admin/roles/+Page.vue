@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Relation } from "@cat/shared";
-
 import {
   Badge,
   Button,
@@ -16,7 +15,7 @@ import { useQuery, useQueryCache } from "@pinia/colada";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
+import { orpc } from "#/rpc/orpc.ts";
 
 const { t } = useI18n();
 const queryCache = useQueryCache();

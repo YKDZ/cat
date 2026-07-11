@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { CapturedScreenshot } from "../types.ts";
-
-import { resolveElementId, resolveUrl } from "../upload.ts";
+import type { CapturedScreenshot } from "#/types.ts";
+import { resolveElementId, resolveUrl } from "#/upload.ts";
 
 describe("upload URL resolution", () => {
   it("should resolve relative URLs from proxied storage", () => {

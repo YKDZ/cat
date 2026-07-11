@@ -5,7 +5,7 @@ import {
 } from "@cat/domain";
 import * as z from "zod";
 
-import { insertMemory } from "./memory";
+import { insertMemory } from "./memory.ts";
 
 export const WritePersonalTranslationMemoryInputSchema = z.object({
   translationIds: z.array(z.int()).min(1),

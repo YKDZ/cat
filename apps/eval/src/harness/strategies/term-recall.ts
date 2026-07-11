@@ -3,9 +3,9 @@ import { collectTermRecallOp } from "@cat/operations";
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- params from unknown config require casting
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-import type { ScenarioConfig, TermRecallTestSet } from "@/config/schemas";
+import type { ScenarioConfig, TermRecallTestSet } from "#/config/schemas.ts";
 
-import type { CaseResult, HarnessContext, ScenarioResult } from "../types";
+import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
 
@@ -108,7 +108,7 @@ export const termRecallStrategy = {
 
     return {
       scenarioType: "term-recall",
-      scenarioName: scenario.name,
+      ...(scenario.name === undefined ? {} : { scenarioName: scenario.name }),
       testSetName: testSet.name,
       cases,
     };

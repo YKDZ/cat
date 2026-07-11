@@ -1,9 +1,9 @@
-import { eq } from "drizzle-orm";
 import { extname } from "node:path";
 
-import type { DrizzleClient } from "@/drizzle/db.ts";
+import { eq } from "drizzle-orm";
 
-import { setting } from "@/drizzle";
+import type { DrizzleClient } from "#/drizzle/db.ts";
+import { setting } from "#/drizzle/index.ts";
 
 const isStringRecord = (value: unknown): value is Record<string, string> => {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {

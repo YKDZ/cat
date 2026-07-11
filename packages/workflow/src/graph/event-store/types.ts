@@ -1,5 +1,5 @@
-import type { AgentEvent } from "@/graph/events";
-import type { RunId } from "@/graph/types";
+import type { AgentEvent } from "#/graph/events.ts";
+import type { RunId } from "#/graph/types.ts";
 
 export type EventStore = {
   append: (event: AgentEvent) => Promise<void>;

@@ -1,5 +1,4 @@
 import type { DrizzleClient } from "@cat/db";
-
 import {
   MemoryCacheStore,
   MemorySessionStore,
@@ -24,7 +23,7 @@ vi.mock("@cat/domain", async () => {
   };
 });
 
-import { createRuntimeBackends } from "./runtime-backends";
+import { createRuntimeBackends } from "./runtime-backends.ts";
 
 describe("createRuntimeBackends", () => {
   beforeEach(() => {

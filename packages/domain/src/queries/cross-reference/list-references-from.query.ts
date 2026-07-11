@@ -1,7 +1,7 @@
 import { and, crossReference, eq, getColumns } from "@cat/db";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListReferencesFromQuerySchema = z.object({
   sourceType: z.enum(["issue", "pr", "issue_comment"]),

@@ -1,5 +1,5 @@
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- rawOutput requires casting from unknown
-import type { Scorer, ScorerInput, ScoreValue } from "../types";
+import type { Scorer, ScorerInput, ScoreValue } from "../types.ts";
 
 /**
  * MRR scorer — reciprocal rank of the first relevant result.
@@ -29,7 +29,9 @@ export const mrrScorer: Scorer = {
     );
 
     for (let i = 0; i < results.length; i += 1) {
-      const id = results[i].conceptId ?? results[i].id;
+      const result = results[i];
+      if (result === undefined) continue;
+      const id = result.conceptId ?? result.id;
       if (id !== undefined && expectedIds.has(id)) {
         return [{ name: "mrr", value: 1 / (i + 1) }];
       }

@@ -1,11 +1,10 @@
 import type { AppRouter } from "@cat/app-api/orpc/router";
-import type { RouterClient } from "@orpc/server";
-
 import { createORPCClient, onError } from "@orpc/client";
 import { RPCLink } from "@orpc/client/websocket";
+import type { RouterClient } from "@orpc/server";
 import { WebSocket } from "partysocket";
 
-import { clientLogger as logger } from "@/utils/logger";
+import { clientLogger as logger } from "#/utils/logger.ts";
 
 const wsOrigin =
   typeof window === "undefined"

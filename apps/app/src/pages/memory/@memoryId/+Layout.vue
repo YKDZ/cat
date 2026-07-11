@@ -2,11 +2,10 @@
 import { useData } from "vike-vue/useData";
 import { provide } from "vue";
 
-import IndexSidebar from "@/components/IndexSidebar.vue";
-import { useInjectionKey } from "@/utils/provide.ts";
+import IndexSidebar from "#/components/IndexSidebar.vue";
+import { useInjectionKey } from "#/utils/provide.ts";
 
 import type { Data } from "./+data.server.ts";
-
 import Header from "./Header.vue";
 
 const { memory } = useData<Data>();

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { IssueStatus } from "@cat/shared";
-
 import { Button } from "@cat/ui";
 import { CircleDot, CircleCheck } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
@@ -10,11 +9,10 @@ import { navigate } from "vike/client/router";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { orpc } from "@/rpc/orpc";
-
-import type { Data } from "./+data.ts";
+import { orpc } from "#/rpc/orpc.ts";
 
 import ProjectPageDataError from "../ProjectPageDataError.vue";
+import type { Data } from "./+data.ts";
 
 const { t } = useI18n();
 const data = useData<Data>();

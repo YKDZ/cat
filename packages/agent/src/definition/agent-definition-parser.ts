@@ -1,9 +1,8 @@
-import type { Root, Yaml } from "mdast";
-
 import {
   AgentDefinitionMetadataSchema,
   type ParsedAgentDefinition,
 } from "@cat/shared";
+import type { Root, Yaml } from "mdast";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkParse from "remark-parse";
 import { unified } from "unified";

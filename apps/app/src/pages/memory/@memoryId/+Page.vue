@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useData } from "vike-vue/useData";
 
-import type { Data } from "./+data.server";
-
+import type { Data } from "./+data.server.ts";
 import MemoryItemTable from "./MemoryItemTable.vue";
 
 const { memory } = useData<Data>();

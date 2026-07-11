@@ -15,10 +15,10 @@ import {
 } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { createVectorizedStringGraph } from "../create-vectorized-string";
+import { createVectorizedStringGraph } from "../create-vectorized-string.ts";
 
 let cleanup: () => Promise<void>;
 

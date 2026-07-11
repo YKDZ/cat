@@ -3,7 +3,7 @@ import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
-import { i18n } from "@/utils/i18n";
+import { i18n } from "#/utils/i18n.ts";
 
 import AgentChatPanel from "./AgentChatPanel.vue";
 
@@ -99,7 +99,7 @@ vi.mock("@lucide/vue", () => {
   };
 });
 
-vi.mock("@/rpc/orpc", () => ({
+vi.mock("#/rpc/orpc.ts", () => ({
   orpc: {
     agent: {
       listLLMProviders: mocks.listLLMProviders,
@@ -107,7 +107,7 @@ vi.mock("@/rpc/orpc", () => ({
   },
 }));
 
-vi.mock("@/stores/agent", async () => {
+vi.mock("#/stores/agent.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -156,7 +156,7 @@ vi.mock("@/stores/agent", async () => {
   };
 });
 
-vi.mock("@/stores/editor/context.ts", async () => {
+vi.mock("#/stores/editor/context.ts", async () => {
   const { defineStore } = await import("pinia");
   const { computed } = await import("vue");
 
@@ -170,11 +170,11 @@ vi.mock("@/stores/editor/context.ts", async () => {
   };
 });
 
-vi.mock("@/utils/agent/register-client-tools", () => ({
+vi.mock("#/utils/agent/register-client-tools.ts", () => ({
   useRegisterClientTools: vi.fn(),
 }));
 
-vi.mock("@/utils/logger", () => ({
+vi.mock("#/utils/logger.ts", () => ({
   clientLogger: {
     withSituation: vi.fn(() => ({
       error: vi.fn(),

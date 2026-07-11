@@ -3,7 +3,7 @@ import { useSidebar } from "@cat/ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 
-import logoURL from "@/assets/logo.png";
+import logoURL from "#/assets/logo.png";
 
 const props = defineProps<{
   sidebarId: string;

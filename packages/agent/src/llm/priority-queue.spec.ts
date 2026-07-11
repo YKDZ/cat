@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
 import type { LLMPriority } from "./priority-queue.ts";
-
 import { PriorityQueue } from "./priority-queue.ts";
 
 describe("PriorityQueue", () => {

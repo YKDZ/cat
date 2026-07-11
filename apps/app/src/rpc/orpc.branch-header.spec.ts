@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
   createORPCClient: vi.fn((link) => link),
 }));
 
-vi.mock("@/stores/branch", async () => {
+vi.mock("#/stores/branch.ts", async () => {
   const { defineStore } = await import("pinia");
   const { ref } = await import("vue");
 

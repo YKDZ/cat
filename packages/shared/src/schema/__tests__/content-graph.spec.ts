@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { CollectionPayloadSchema } from "../collection.ts";
+import { CollectionPayloadSchema } from "#/schema/collection.ts";
 import {
   CoreRelationTypeDefinitions,
   FlattenedContextEvidenceSchema,
   StructuredContentPayloadSchema,
-} from "../content.ts";
+} from "#/schema/content.ts";
 
 describe("content graph shared schemas", () => {
   it("accepts a minimal flat-file graph payload", () => {

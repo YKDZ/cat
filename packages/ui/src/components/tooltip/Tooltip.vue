@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import type { TooltipRootEmits, TooltipRootProps } from "reka-ui"
-import { TooltipRoot, useForwardPropsEmits } from "reka-ui"
+import type { TooltipRootEmits, TooltipRootProps } from "reka-ui";
+import { TooltipRoot, useForwardPropsEmits } from "reka-ui";
 
-const props = defineProps<TooltipRootProps>()
-const emits = defineEmits<TooltipRootEmits>()
+import { exactOptionalProps } from "#/utils/lib/exact-optional-props.ts";
 
-const forwarded = useForwardPropsEmits(props, emits)
+const props = defineProps<TooltipRootProps>();
+const emits = defineEmits<TooltipRootEmits>();
+
+const forwarded = useForwardPropsEmits(props, emits);
 </script>
 
 <template>
   <TooltipRoot
     v-slot="slotProps"
     data-slot="tooltip"
-    v-bind="forwarded"
+    v-bind="exactOptionalProps(forwarded)"
   >
-    <slot v-bind="slotProps" />
+    <slot v-bind="exactOptionalProps(slotProps)" />
   </TooltipRoot>
 </template>

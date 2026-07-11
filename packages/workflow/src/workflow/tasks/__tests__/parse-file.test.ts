@@ -1,3 +1,5 @@
+import { Readable } from "stream";
+
 import {
   createContentNodeUnderParent,
   createBlob,
@@ -16,19 +18,19 @@ import {
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { firstOrGivenService, readableToString } from "@cat/server-shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import {
   installTestVectorizationQueue,
   setupTestDB,
   TestPluginLoader,
 } from "@cat/test-utils";
-import { Readable } from "stream";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "@/graph";
-import { runGraph } from "@/graph/dsl";
+import { runGraph } from "#/graph/dsl/index.ts";
+import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
-import { parseFileGraph } from "../parse-file";
-import { upsertContentNodeGraph } from "../upsert-content-node-from-file";
+import { parseFileGraph } from "../parse-file.ts";
+import { upsertContentNodeGraph } from "../upsert-content-node-from-file.ts";
 
 const key = "/file/key";
 
@@ -105,7 +107,7 @@ test("worker should parse elements from file", async () => {
   const { client: drizzle } = await getDbHandle();
 
   const files = await executeQuery({ db: drizzle }, listAllFiles, {});
-  const fileId = files[0].id;
+  const fileId = assertSingleNonNullish(files).id;
 
   const { payload } = await runGraph(parseFileGraph, {
     projectId: "00000000-0000-4000-8000-000000000001",

@@ -6,16 +6,15 @@ import { computed, nextTick, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import type { FileInfo } from "../types";
-
-import { detectLanguage } from "../types";
+import type { FileInfo } from "../types.ts";
+import { detectLanguage } from "../types.ts";
 
 const props = defineProps<{
   fileUrl: string;
   fileName: string;
   fileInfo: FileInfo;
-  highlightStartLine?: number | null;
-  highlightEndLine?: number | null;
+  highlightStartLine?: number | null | undefined;
+  highlightEndLine?: number | null | undefined;
 }>();
 
 const { t } = useI18n();

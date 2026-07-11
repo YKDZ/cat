@@ -5,11 +5,10 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 
-import type { SourceExtractor } from "./types.ts";
-
-import { toCollectionPayload } from "./adapter.ts";
-import { extract } from "./extract.ts";
-import { vueI18nExtractor } from "./extractors/vue-i18n.ts";
+import { toCollectionPayload } from "#/adapter.ts";
+import { extract } from "#/extract.ts";
+import { vueI18nExtractor } from "#/extractors/vue-i18n.ts";
+import type { SourceExtractor } from "#/types.ts";
 
 const HELP = `
 source-collector — CAT 源码可翻译文本采集器
@@ -190,6 +189,7 @@ const main = async () => {
   }
 
   const [command] = positionals;
+  if (command === undefined) return;
 
   switch (command) {
     case "extract":

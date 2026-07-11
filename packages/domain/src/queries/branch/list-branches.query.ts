@@ -2,7 +2,7 @@ import { and, entityBranch, eq, getColumns, type SQL } from "@cat/db";
 import { EntityBranchStatusSchema } from "@cat/shared";
 import * as z from "zod";
 
-import type { Query } from "@/types";
+import type { Query } from "#/types.ts";
 
 export const ListBranchesQuerySchema = z.object({
   projectId: z.uuid(),

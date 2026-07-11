@@ -1,4 +1,4 @@
-import type { RunId } from "@/graph/types";
+import type { RunId } from "#/graph/types.ts";
 
 export type CompensationHandler = () => Promise<void>;
 

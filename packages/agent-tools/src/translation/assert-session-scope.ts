@@ -1,5 +1,4 @@
 import type { ToolExecutionContext } from "@cat/agent";
-
 import {
   executeQuery,
   getDbHandle,

@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declarationMap": false,
+    "isolatedDeclarations": true,
+    "outDir": "dist",
+    "rootDir": "declarations",
+    "types": []
+  },
+  "include": ["declarations/index.ts"]
+}

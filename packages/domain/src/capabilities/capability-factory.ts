@@ -1,5 +1,4 @@
-import type { PluginCapabilities } from "@/capabilities/types";
-
+import type { PluginCapabilities } from "#/capabilities/types.ts";
 import {
   createAgentDefinition,
   createAgentSession,
@@ -71,10 +70,10 @@ import {
   getChunkVectors,
   searchChunkCosineSimilarity,
   ensureVectorStorageSchema,
-} from "@/index";
-import { getAccountMetaByIdentity } from "@/queries/auth/get-account-meta-by-identity.query";
-import { getAccountMetaByProviderAndIdentifier } from "@/queries/auth/get-account-meta-by-provider-and-identifier.query";
-import { getMfaPayloadByFactorAndUser } from "@/queries/auth/get-mfa-payload-by-factor-and-user.query";
+} from "#/index.ts";
+import { getAccountMetaByIdentity } from "#/queries/auth/get-account-meta-by-identity.query.ts";
+import { getAccountMetaByProviderAndIdentifier } from "#/queries/auth/get-account-meta-by-provider-and-identifier.query.ts";
+import { getMfaPayloadByFactorAndUser } from "#/queries/auth/get-mfa-payload-by-factor-and-user.query.ts";
 
 type CheckPermissionFn = (
   objectType: string,

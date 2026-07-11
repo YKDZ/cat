@@ -1,19 +1,22 @@
 import type { PluginData, PluginManifest } from "@cat/shared";
 
-import type { CatPlugin } from "@/entities/plugin";
-
-import type { PluginLoader } from "./loader";
+import type { CatPlugin } from "#/entities/plugin.ts";
+import type { PluginLoader } from "#/registry/loader.ts";
 
 /**
  * Compose multiple loaders into a fallback-based loader.
  */
 export class CompositePluginLoader implements PluginLoader {
+  private readonly loaders: PluginLoader[];
+
   /**
    * Create a composite plugin loader.
    *
    * @param loaders - Loaders ordered by priority
    */
-  public constructor(private readonly loaders: PluginLoader[]) {}
+  public constructor(loaders: PluginLoader[]) {
+    this.loaders = loaders;
+  }
 
   private async first<T>(
     pluginId: string,

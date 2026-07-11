@@ -1,12 +1,10 @@
-import type { VectorizedTextData } from "@cat/shared";
-import type { PluginData, PluginManifest } from "@cat/shared";
-import type { TranslationAdvise } from "@cat/shared";
+import { Readable } from "node:stream";
 
 import { and, cosineDistance, desc, gt, inArray, sql } from "@cat/db";
 import { chunk } from "@cat/db";
 import { getDbHandle } from "@cat/domain";
+import type { CatPlugin } from "@cat/plugin-core";
 import {
-  CatPlugin,
   VectorStorage,
   type CosineSimilarityContext,
   type RetrieveContext,
@@ -36,22 +34,24 @@ import {
   type UpdateDimensionContext,
   type InitContext,
 } from "@cat/plugin-core";
+import type { VectorizedTextData } from "@cat/shared";
+import type { PluginData, PluginManifest } from "@cat/shared";
+import type { TranslationAdvise } from "@cat/shared";
 import {
-  pgTable,
+  snakeCase,
   serial,
   integer,
   vector as dbVector,
   index,
   unique,
 } from "drizzle-orm/pg-core";
-import { Readable } from "node:stream";
 
 import {
   testNlpSegmenterManifest,
   testNlpSegmenterPlugin,
 } from "./test-nlp-segmenter.ts";
 
-const vector = pgTable(
+const vector = snakeCase.table(
   "Vector",
   {
     id: serial().primaryKey(),
@@ -136,7 +136,8 @@ export class TestStorageProvider extends StorageProvider {
     // 处理 UTF-8 边界：如果最后一个字节是不完整的 UTF-8 字符，去掉它
     let sliceEnd = slice.length;
     while (sliceEnd > 0) {
-      const lastByte = slice[sliceEnd - 1];
+      const lastByte = slice.at(sliceEnd - 1);
+      if (lastByte === undefined) break;
       // UTF-8 continuation bytes: 10xxxxxx (128-191)
       if (lastByte >= 128 && lastByte < 192) {
         sliceEnd -= 1;
@@ -182,7 +183,7 @@ export class TestTextVectorizer extends TextVectorizer {
         if (!token) return;
         const hash = this.simpleHash(token);
         const index = Math.abs(hash) % 1024;
-        vector[index] += 1;
+        vector[index] = (vector[index] ?? 0) + 1;
       });
 
       // 4. (可选) L2 归一化，这对计算余弦相似度很重要
@@ -217,7 +218,7 @@ export class TestTextVectorizer extends TextVectorizer {
     );
     if (magnitude > 0) {
       for (let i = 0; i < vector.length; i += 1) {
-        vector[i] /= magnitude;
+        vector[i] = (vector[i] ?? 0) / magnitude;
       }
     }
   };

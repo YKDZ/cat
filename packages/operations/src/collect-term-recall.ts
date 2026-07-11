@@ -1,5 +1,4 @@
 import type { LookedUpTerm, OperationContext } from "@cat/domain";
-
 import {
   executeQuery,
   getDbHandle,
@@ -13,18 +12,17 @@ import {
 } from "@cat/server-shared";
 import * as z from "zod";
 
+import { calibrateTermBm25 } from "./confidence-calibrator/index.ts";
+import { applyTermHnfPre } from "./hard-negative-filter/index.ts";
+import { joinLemmas } from "./nlp-normalization.ts";
+import { nlpSegmentOp } from "./nlp-segment.ts";
+import { runPrecisionPipeline } from "./precision/precision-pipeline.ts";
+import { augmentWithSparseLane } from "./precision/sparse-lane.ts";
 import type {
   LookedUpTermWithPrecision,
   RawTermResult,
-} from "./precision/types";
-
-import { calibrateTermBm25 } from "./confidence-calibrator";
-import { applyTermHnfPre } from "./hard-negative-filter";
-import { joinLemmas } from "./nlp-normalization";
-import { nlpSegmentOp } from "./nlp-segment";
-import { runPrecisionPipeline } from "./precision/precision-pipeline";
-import { augmentWithSparseLane } from "./precision/sparse-lane";
-import { semanticSearchTermsOp } from "./semantic-search-terms";
+} from "./precision/types.ts";
+import { semanticSearchTermsOp } from "./semantic-search-terms.ts";
 
 export const CollectTermRecallInputSchema = z.object({
   glossaryIds: z.array(z.uuidv4()),

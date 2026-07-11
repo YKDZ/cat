@@ -3,6 +3,7 @@ import * as z from "zod";
 
 import {
   account,
+  apiKey,
   agentDefinition,
   agentEvent,
   agentExternalOutput,
@@ -53,6 +54,7 @@ import {
   runtimeSessionEntry,
   scopeBinding,
   semanticDiffEntry,
+  sessionRecord,
   setting,
   task,
   term,
@@ -85,6 +87,7 @@ const { createSelectSchema } = createSchemaFactory({ zodInstance: z });
 
 type SelectSchemaTable =
   | typeof account
+  | typeof apiKey
   | typeof agentDefinition
   | typeof agentEvent
   | typeof agentExternalOutput
@@ -135,6 +138,7 @@ type SelectSchemaTable =
   | typeof runtimeSessionEntry
   | typeof scopeBinding
   | typeof semanticDiffEntry
+  | typeof sessionRecord
   | typeof setting
   | typeof task
   | typeof term
@@ -196,6 +200,26 @@ const manualDeclaration = (source: string): ManualDeclaration => ({
 });
 
 export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
+  {
+    outputFile: "api-key.ts",
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "ApiKeySchema",
+        typeExportName: "ApiKey",
+        buildShape: buildSelectShape(apiKey),
+        overrides: {
+          scopes: "z.array(z.string())",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "SessionRecordSchema",
+        typeExportName: "SessionRecord",
+        buildShape: buildSelectShape(sessionRecord),
+      },
+    ],
+  },
   {
     outputFile: "user.ts",
     declarations: [
@@ -348,7 +372,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       },
     ],
     imports: [
-      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "../content.ts";',
+      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "#/schema/content.ts";',
     ],
   },
   {
@@ -435,7 +459,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "memory.ts",
-    imports: ['import { TokenTypeSchema } from "../enum.ts";'],
+    imports: ['import { TokenTypeSchema } from "#/schema/enum.ts";'],
     declarations: [
       manualDeclaration(
         `export const SlotMappingEntrySchema = z.object({\n  placeholder: z.string(),\n  value: z.string(),\n  tokenType: TokenTypeSchema,\n});\n\nexport type SlotMappingEntry = z.infer<typeof SlotMappingEntrySchema>;`,
@@ -741,7 +765,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   {
     outputFile: "qa.ts",
     imports: [
-      'import { QaReviewProfileConfigSchema, QaReviewRunMetaSchema, QaReviewSpanSchema, QaReviewTextRangeSchema } from "../qa-review.ts";',
+      'import { QaReviewProfileConfigSchema, QaReviewRunMetaSchema, QaReviewSpanSchema, QaReviewTextRangeSchema } from "#/schema/qa-review.ts";',
     ],
     declarations: [
       {
