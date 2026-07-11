@@ -4,7 +4,7 @@ ARG DEPLOYMENT_BUILD_ID=local
 
 # check:all builds this target against the real Dockerfile-specific context.
 # Its assertions protect credentials and runtime state before COPY . . is used.
-FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS context-contract
+FROM node:26.5.0-bookworm-slim@sha256:e999d087492c7227c85adc70574cf9d3cce774c3e6d7b8dfe473ee6b142c8f2c AS context-contract
 WORKDIR /context
 COPY . .
 RUN test ! -e .env && \
@@ -16,7 +16,7 @@ RUN test ! -e .env && \
     test ! -e .turbo && \
     test ! -e apps/app/node_modules
 
-FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS base
+FROM node:26.5.0-bookworm-slim@sha256:e999d087492c7227c85adc70574cf9d3cce774c3e6d7b8dfe473ee6b142c8f2c AS base
 ARG PACKAGE_MANAGER_PIN=pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882
 ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
     COREPACK_HOME=/corepack \
@@ -64,7 +64,7 @@ RUN install -d /database-preparation && \
       /application-deploy/scripts/prepare-database.mjs
 
 # Both final targets inherit this exact root-owned application runtime.
-FROM node:24.16.0-bookworm-slim@sha256:2c87ef9bd3c6a3bd4b472b4bec2ce9d16354b0c574f736c476489d09f560a203 AS application-runtime
+FROM node:26.5.0-bookworm-slim@sha256:e999d087492c7227c85adc70574cf9d3cce774c3e6d7b8dfe473ee6b142c8f2c AS application-runtime
 ENV NODE_ENV=production
 WORKDIR /app
 RUN groupadd --system --gid 1001 nodejs && \
