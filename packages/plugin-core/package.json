@@ -23,12 +23,12 @@
     ".": {
       "source": "./src/index.ts",
       "types": "./src/index.ts",
-      "import": "./dist/index.js"
+      "import": "./src/index.ts"
     },
     "./client": {
       "source": "./src/client/index.ts",
       "types": "./src/client/index.ts",
-      "import": "./dist/client.js"
+      "import": "./src/client/index.ts"
     }
   },
   "publishConfig": {
