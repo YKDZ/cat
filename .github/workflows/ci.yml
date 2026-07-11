@@ -175,7 +175,7 @@ jobs:
           docker image load --input runtime.tar
           for target in standalone runtime; do
             image="cat-validated-${GITHUB_SHA}-app:${target}"
-            test "$(docker image inspect --format '{{ index .Config.Labels \"org.opencontainers.image.version\" }}' "$image")" = "cat-validated-${GITHUB_SHA}"
+            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$image")" = "cat-validated-${GITHUB_SHA}"
             test "$(docker image inspect --format '{{ index .Config.Cmd 0 }}' "$image")" = "$([ "$target" = standalone ] && echo prepare-and-start || echo start-only)"
           done
 
