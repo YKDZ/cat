@@ -11,6 +11,13 @@ export type DevelopmentResult = {
 };
 
 const forwardedSignals: NodeJS.Signals[] = ["SIGHUP", "SIGINT", "SIGTERM"];
+const localDatabaseHosts = new Set([
+  "::1",
+  "127.0.0.1",
+  "172.17.0.1",
+  "localhost",
+  "postgresql",
+]);
 
 type PluginBuildState = {
   dirty: boolean;
@@ -112,6 +119,39 @@ const waitForChild = async (child: ChildProcess): Promise<DevelopmentResult> =>
     });
   });
 
+const loadDevelopmentEnvironment = (repositoryRoot: string): void => {
+  if (process.env.DATABASE_URL !== undefined) return;
+  for (const path of [
+    resolve(repositoryRoot, "apps/app/.env"),
+    resolve(repositoryRoot, "packages/db/.env"),
+  ]) {
+    try {
+      process.loadEnvFile(path);
+      if (process.env.DATABASE_URL !== undefined) return;
+    } catch {
+      // Missing local env files are reported by Drizzle with its normal error.
+    }
+  }
+};
+
+const assertDevelopmentDatabaseTarget = (): void => {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Refusing to push the database from a production process");
+  }
+  const databaseUrl = process.env.DATABASE_URL;
+  if (databaseUrl === undefined) return;
+
+  const hostname = new URL(databaseUrl).hostname;
+  if (
+    !localDatabaseHosts.has(hostname) &&
+    process.env.CAT_DEV_DB_PUSH_ALLOW_REMOTE !== "true"
+  ) {
+    throw new Error(
+      `Refusing to push remote development database ${hostname}; set CAT_DEV_DB_PUSH_ALLOW_REMOTE=true to allow it`,
+    );
+  }
+};
+
 export const runDevelopment = async (
   args: string[],
 ): Promise<DevelopmentResult> => {
@@ -148,6 +188,22 @@ export const runDevelopment = async (
   }
 
   try {
+    if (process.env.CAT_DEV_DB_PUSH !== "false") {
+      loadDevelopmentEnvironment(repositoryRoot);
+      assertDevelopmentDatabaseTarget();
+      const databasePush = track(
+        spawn("pnpm", ["--filter", "@cat/db", "drizzle:push"], {
+          cwd: repositoryRoot,
+          stdio: "inherit",
+        }),
+      );
+      const databasePushResult = await waitForChild(databasePush);
+      if (requestedSignal !== null) {
+        return { code: null, signal: requestedSignal };
+      }
+      if (databasePushResult.code !== 0) return databasePushResult;
+    }
+
     const initialBuild = track(
       spawn("pnpm", ["build-plugins"], {
         cwd: repositoryRoot,

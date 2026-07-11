@@ -39,6 +39,7 @@ const runDev = (
       CAT_PLUGIN_DEBOUNCE_MS: "30",
       CAT_PLUGIN_ROOT: join(fixtureDirectory, "plugins"),
       CAT_REPOSITORY_ROOT: fixtureDirectory,
+      FAKE_DB_PUSH_FILE: join(fixtureDirectory, "database-push.txt"),
       FAKE_INITIAL_BUILD_FILE: join(fixtureDirectory, "initial-build.txt"),
       FAKE_PLUGIN_BUILD_LOG: join(fixtureDirectory, "plugin-builds.log"),
     },
@@ -100,7 +101,16 @@ beforeEach(async () => {
 const { appendFileSync, writeFileSync } = require("node:fs");
 
 const args = process.argv.slice(2);
+if (args[0] === "--filter" && args[1] === "@cat/db" && args[2] === "drizzle:push") {
+  if (process.env.FAKE_DB_PUSH_MODE === "fail") process.exit(17);
+  writeFileSync(process.env.FAKE_DB_PUSH_FILE, "pushed");
+  process.exit(0);
+}
+
 if (args[0] === "build-plugins") {
+  if (process.env.FAKE_EXPECT_DB_PUSH !== "false" && !require("node:fs").existsSync(process.env.FAKE_DB_PUSH_FILE)) {
+    process.exit(92);
+  }
   if (process.env.FAKE_INITIAL_BUILD_MODE === "fail") process.exit(19);
   writeFileSync(process.env.FAKE_INITIAL_BUILD_FILE, "built");
   process.exit(0);
@@ -110,6 +120,13 @@ if (args[0] === "exec" && args[1] === "vike") {
   if (!require("node:fs").existsSync(process.env.FAKE_INITIAL_BUILD_FILE)) {
     process.exit(91);
   }
+  if (process.env.FAKE_VIKE_MODE === "hang") {
+    process.on("SIGTERM", () => {
+      writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
+      process.exit(0);
+    });
+  }
+
   writeFileSync(process.env.FAKE_VIKE_ARGS_FILE, JSON.stringify(args.slice(2)));
   process.stdout.write(JSON.stringify({ level: 30, time: Date.now(), msg: "fake vike started" }) + "\\n");
 
@@ -118,10 +135,6 @@ if (args[0] === "exec" && args[1] === "vike") {
   }
 
   if (process.env.FAKE_VIKE_MODE === "hang") {
-    process.on("SIGTERM", () => {
-      writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
-      process.exit(0);
-    });
     setInterval(() => {}, 1_000);
   }
   return;
@@ -151,6 +164,13 @@ const { writeFileSync } = require("node:fs");
 if (!require("node:fs").existsSync(process.env.FAKE_INITIAL_BUILD_FILE)) {
   process.exit(91);
 }
+if (process.env.FAKE_VIKE_MODE === "hang") {
+  process.on("SIGTERM", () => {
+    writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
+    process.exit(0);
+  });
+}
+
 writeFileSync(process.env.FAKE_VIKE_ARGS_FILE, JSON.stringify(process.argv.slice(2)));
 process.stdout.write(JSON.stringify({ level: 30, time: Date.now(), msg: "fake vike started" }) + "\\n");
 
@@ -159,10 +179,6 @@ if (process.env.FAKE_VIKE_MODE === "fail") {
 }
 
 if (process.env.FAKE_VIKE_MODE === "hang") {
-  process.on("SIGTERM", () => {
-    writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
-    process.exit(0);
-  });
   setInterval(() => {}, 1_000);
 }
 `,
@@ -176,6 +192,95 @@ afterEach(async () => {
 });
 
 describe("development runner", () => {
+  it("pushes the development schema before building plugins", async () => {
+    const argsFile = join(fixtureDirectory, "args.json");
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_VIKE_ARGS_FILE: argsFile,
+      FAKE_VIKE_MODE: "success",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    await expect(
+      readFile(join(fixtureDirectory, "database-push.txt"), "utf8"),
+    ).resolves.toBe("pushed");
+    await expect(
+      readFile(join(fixtureDirectory, "initial-build.txt"), "utf8"),
+    ).resolves.toBe("built");
+  });
+
+  it("stops when the development schema push fails", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_DB_PUSH_MODE: "fail",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 17, signal: null });
+    expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
+  });
+
+  it("can skip the development schema push", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      CAT_DEV_DB_PUSH: "false",
+      FAKE_EXPECT_DB_PUSH: "false",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      FAKE_VIKE_MODE: "success",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+  });
+
+  it("requires explicit approval before pushing a remote database", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      DATABASE_URL: "postgresql://user:pass@database.example.com/cat",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 1, signal: null });
+    expect((await result).stderr).toContain(
+      "CAT_DEV_DB_PUSH_ALLOW_REMOTE=true",
+    );
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+  });
+
+  it("refuses to push from a production process", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      DATABASE_URL: "postgresql://user:pass@localhost:25432/cat",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      NODE_ENV: "production",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 1, signal: null });
+    expect((await result).stderr).toContain("production process");
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+  });
+
+  it("pushes an explicitly approved remote development database", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      CAT_DEV_DB_PUSH_ALLOW_REMOTE: "true",
+      DATABASE_URL: "postgresql://user:pass@database.example.com/cat",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      FAKE_VIKE_MODE: "success",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    await expect(
+      readFile(join(fixtureDirectory, "database-push.txt"), "utf8"),
+    ).resolves.toBe("pushed");
+  });
+
   it("forwards every CLI argument to Vike and preserves pretty logging", async () => {
     const argsFile = join(fixtureDirectory, "args.json");
     const { result } = runDev(
@@ -236,9 +341,9 @@ describe("development runner", () => {
       async () => {
         await expect(readFile(cleanupFile, "utf8")).resolves.toBe("cleaned");
       },
-      { interval: 20, timeout: 10_000 },
+      { interval: 20, timeout: 3_000 },
     );
-  }, 15_000);
+  });
 
   it("debounces changes and queues a follow-up build for changes during a build", async () => {
     const argsFile = join(fixtureDirectory, "args.json");
