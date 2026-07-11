@@ -33,7 +33,6 @@ RUN apt-get update && \
 # workspace graph; package manifests remain the only dependency declaration.
 FROM base AS pruner
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
-COPY patches patches
 RUN pnpm fetch
 COPY apps/app/package.json apps/app/package.json
 COPY packages packages
@@ -46,7 +45,6 @@ FROM base AS build
 COPY --from=pruner /repo/out/json/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=pruner /repo/out/json/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=pruner /repo/out/json/package.json ./package.json
-COPY --from=pruner /repo/patches ./patches
 RUN pnpm fetch
 COPY --from=pruner /repo/out/json/ ./
 RUN pnpm install --offline --frozen-lockfile
