@@ -50,7 +50,9 @@ export const streamSearchMemoryOp = (
 
   void run()
     .catch((err: unknown) => {
-      logger.withSituation("OP").error(err, "streamSearchMemoryOp failed");
+      logger
+        .child({ component: "operation" })
+        .error("streamSearchMemoryOp failed", { error: err });
     })
     .finally(() => {
       queue.close();

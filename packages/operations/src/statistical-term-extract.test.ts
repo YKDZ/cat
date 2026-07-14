@@ -31,6 +31,7 @@ const setupPluginManager = async (
         overview: data.overview ?? "",
         iconUrl: data.iconURL ?? null,
         configSchema: data.config,
+        configVersion: data.configVersion,
       });
     }),
   );

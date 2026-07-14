@@ -7,6 +7,7 @@ import { useEditorMemoryStore } from "#/stores/editor/memory.ts";
 import { useEditorSuggestionStore } from "#/stores/editor/suggestion.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { useProfileStore } from "#/stores/profile.ts";
+import { cancelRequest } from "#/utils/request-cancellation.ts";
 
 // ─── Ghost Text Source Types ───
 
@@ -59,7 +60,7 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
 
   const cancelPending = () => {
     isPending.value = false;
-    abortController?.abort();
+    cancelRequest(abortController, "/api/rpc/ghostText/suggest");
     abortController = null;
     // Cancel any active fallback watchers/timers
     cleanupFallback?.();
@@ -326,7 +327,12 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
     clearSuggestion();
     isPending.value = true;
     abortController = new AbortController();
-    const { signal } = abortController;
+    const controller = abortController;
+    const { signal } = controller;
+    const cancelCurrentLoad = () => {
+      cancelRequest(controller, "/api/rpc/ghostText/suggest");
+      if (abortController === controller) abortController = null;
+    };
 
     try {
       const stream = await orpc.ghostText.suggest(
@@ -340,7 +346,10 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
       );
 
       // Verify element hasn't changed
-      if (elementId.value !== snapshotElementId) return;
+      if (elementId.value !== snapshotElementId) {
+        cancelCurrentLoad();
+        return;
+      }
 
       let received = false;
 
@@ -348,6 +357,7 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
         if (signal.aborted) break;
         if (elementId.value !== snapshotElementId) {
           suggestion.value = null;
+          cancelCurrentLoad();
           break;
         }
         if (!received) {
@@ -361,6 +371,7 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
 
       if (received) {
         isPending.value = false;
+        if (abortController === controller) abortController = null;
         return;
       }
 
@@ -368,12 +379,14 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
       if (elementId.value === snapshotElementId && !signal.aborted) {
         executeFallback(snapshotElementId);
       }
+      if (abortController === controller) abortController = null;
     } catch (err) {
       if (err instanceof Error && err.name === "AbortError") return;
       // API failed — try fallback
       if (elementId.value === snapshotElementId) {
         executeFallback(snapshotElementId);
       }
+      if (abortController === controller) abortController = null;
     }
   };
 
@@ -394,6 +407,9 @@ export const useEditorGhostTextStore = defineStore("editorGhostText", () => {
       suppressNextClearFlag = false;
       return;
     }
+
+    // A user edit supersedes a still-streaming suggestion for the old input.
+    if (isPending.value) cancelPending();
 
     if (suggestion.value !== null && !showGhost.value) {
       clearSuggestion();

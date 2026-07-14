@@ -118,7 +118,9 @@ const fetchItems = async () => {
     items.value = result.items;
     total.value = result.total;
   } catch (error) {
-    logger.withSituation("WEB").error(error, "Failed to fetch memory items");
+    logger
+      .child({ component: "web" })
+      .error("Failed to fetch memory items", { error: error });
     rpcWarn(error);
   } finally {
     isLoading.value = false;

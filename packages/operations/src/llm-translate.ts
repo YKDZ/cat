@@ -333,11 +333,11 @@ const loadContext = async (
       return await fn();
     } catch (err: unknown) {
       logger
-        .withSituation("OP")
-        .warn(
-          { err, elementId: input.elementId },
-          `llmTranslateOp: ${label} failed, omitting`,
-        );
+        .child({ component: "operation" })
+        .warn(`llmTranslateOp: ${label} failed, omitting`, {
+          err,
+          elementId: input.elementId,
+        });
       return null;
     }
   };
@@ -449,11 +449,10 @@ export const llmTranslateOp = async (
     resolved = await loadContext(input);
   } catch (err: unknown) {
     logger
-      .withSituation("OP")
-      .error(
-        { err, elementId: input.elementId },
-        "llmTranslateOp: data loading failed, returning null",
-      );
+      .child({ component: "operation" })
+      .error("llmTranslateOp: data loading failed, returning null", {
+        error: { err, elementId: input.elementId },
+      });
     return { suggestion: null };
   }
 
@@ -517,11 +516,11 @@ export const llmTranslateOp = async (
     };
   } catch (err: unknown) {
     logger
-      .withSituation("OP")
-      .warn(
-        { err, elementId: input.elementId },
-        "llmTranslateOp: LLM call failed",
-      );
+      .child({ component: "operation" })
+      .warn("llmTranslateOp: LLM call failed", {
+        err,
+        elementId: input.elementId,
+      });
     return { suggestion: null };
   }
 };

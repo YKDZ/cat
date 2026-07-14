@@ -26,7 +26,6 @@ const { info, rpcWarn } = useToastStore();
 const { t } = useI18n();
 
 const contentNodes = inject(useInjectionKey<Data>()("contentNodes"))!;
-
 const handleEdit = async (node: Pick<ContentNode, "id">) => {
   await navigate(
     `/editor/project/${props.project.id}/${props.language.id}/auto?nodes=${node.id}`,

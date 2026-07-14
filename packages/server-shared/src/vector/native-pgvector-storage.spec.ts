@@ -32,7 +32,7 @@ const createVectorCapabilities = () => {
 };
 
 describe("NativePgVectorStorage", () => {
-  it("lazy ensures the schema before storing chunk vectors", async () => {
+  it("attests the prepared schema before storing chunk vectors", async () => {
     const capabilities = createVectorCapabilities();
     const storage = new NativePgVectorStorage({
       capabilities: { vector: capabilities.vector },
@@ -57,7 +57,7 @@ describe("NativePgVectorStorage", () => {
     expect(capabilities.upsertChunkVectors).not.toHaveBeenCalled();
   });
 
-  it("delegates retrieve, similarity, dimension updates, and init", async () => {
+  it("delegates retrieve, similarity, dimension updates, and schema attestation", async () => {
     const capabilities = createVectorCapabilities();
     const storage = new NativePgVectorStorage({
       capabilities: { vector: capabilities.vector },

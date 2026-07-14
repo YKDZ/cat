@@ -6,13 +6,17 @@ import { orpc } from "#/rpc/orpc.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { useProfileStore } from "#/stores/profile.ts";
+import {
+  createTrackedRequest,
+  type TrackedRequest,
+} from "#/utils/request-cancellation.ts";
 
 export const useEditorMemoryStore = defineStore("editorMemory", () => {
   const { elementId } = storeToRefs(useEditorTableStore());
   const { languageToId } = storeToRefs(useEditorContextStore());
   const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
   const onNew = shallowRef<AsyncGenerator<MemorySuggestion>>();
-  let abortController: AbortController | null = null;
+  let activeRequest: TrackedRequest | null = null;
 
   const memories = ref<MemorySuggestion[]>([]);
   const error = ref<string | null>(null);
@@ -20,12 +24,11 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
   const subMemories = async () => {
     error.value = null;
 
-    if (abortController) {
-      abortController.abort();
-    }
-    abortController = new AbortController();
-
     if (!elementId.value || !languageToId.value) return;
+
+    activeRequest?.cancel();
+    const request = createTrackedRequest();
+    activeRequest = request;
 
     memories.value = [];
 
@@ -36,7 +39,7 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
           translationLanguageId: languageToId.value,
           minConfidence: editorMemoryMinConfidence.value[0],
         },
-        { signal: abortController.signal },
+        { signal: request.signal },
       );
 
       for await (const memory of onNew.value) {
@@ -51,23 +54,31 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
       }
     } catch (err) {
       if (
-        err instanceof Error &&
-        (err.message === "Stream was cancelled" || err.name === "AbortError")
+        request.signal.aborted ||
+        (err instanceof Error &&
+          (err.message === "Stream was cancelled" || err.name === "AbortError"))
       ) {
         return;
       }
       memories.value = [];
       error.value = err instanceof Error ? err.message : "unknown-error";
+    } finally {
+      if (activeRequest === request) activeRequest = null;
     }
   };
 
   const unsubscribe = async () => {
-    if (abortController) {
-      abortController.abort();
-      abortController = null;
-    }
+    activeRequest?.cancel();
+    activeRequest = null;
     onNew.value = undefined;
   };
+
+  if (!import.meta.env.SSR) {
+    const dispose = (): void => {
+      void unsubscribe();
+    };
+    window.addEventListener("beforeunload", dispose, { once: true });
+  }
 
   return { memories, error, subMemories, unsubscribe };
 });

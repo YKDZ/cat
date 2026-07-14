@@ -279,8 +279,8 @@ export const llmTermEnhanceOp = async (
         };
       } catch (err: unknown) {
         logger
-          .withSituation("OP")
-          .error(err, "llmTermEnhanceOp: LLM batch failed");
+          .child({ component: "operation" })
+          .error("llmTermEnhanceOp: LLM batch failed", { error: err });
         return {
           batch,
           results: [],
@@ -391,8 +391,8 @@ Return ONLY a valid JSON array:
           };
         } catch (err: unknown) {
           logger
-            .withSituation("OP")
-            .error(err, "llmTermEnhanceOp: definition batch failed");
+            .child({ component: "operation" })
+            .error("llmTermEnhanceOp: definition batch failed", { error: err });
           return {
             batch,
             results: [],

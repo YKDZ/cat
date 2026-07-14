@@ -176,7 +176,7 @@ export const collectTermRecallOp = async (
   const calSummary = calibrateTermBm25(rawTermResults);
   if (calSummary.bm25Count > 0) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .info(
         `CAL(term): ${calSummary.bm25Count} evidences calibrated (maxRaw=${calSummary.maxRaw.toFixed(4)})`,
       );
@@ -211,7 +211,7 @@ export const collectTermRecallOp = async (
 
     if (hnfPreResult.length > 0) {
       logger
-        .withSituation("OP")
+        .child({ component: "operation" })
         .info(`HNF_pre(term): removed ${hnfPreResult.length} hard negatives`);
     }
   }

@@ -4,6 +4,7 @@ import type {
   NlpSegmentContext,
   NlpSegmentResult,
   NlpToken,
+  PluginLogger,
   PluginServiceAvailability,
 } from "@cat/plugin-core";
 import {
@@ -11,7 +12,6 @@ import {
   PluginServiceUnavailableError,
 } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared";
-import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
 
@@ -39,18 +39,20 @@ const normalizeServerUrl = (value: string | undefined): string => {
 export class SpacyWordSegmenter extends NlpWordSegmenter {
   private readonly pool: Pool;
   private readonly config: SpacyConfig;
+  private readonly logger: PluginLogger | undefined;
 
-  constructor(config: JSONType) {
+  constructor(config: JSONType, logger?: PluginLogger) {
     // oxlint-disable-next-line no-unsafe-call
     super();
 
     this.config = SpacyConfigSchema.parse(config);
+    this.logger = logger;
     this.pool = new Pool(this.config.serverUrl);
   }
 
   getId = (): string => "spacy-word-segmenter";
 
-  getSupportedLanguages = async (): Promise<string[]> => {
+  getSupportedLanguages = async (signal?: AbortSignal): Promise<string[]> => {
     if (this.getMissingConfigAvailability()) {
       return [];
     }
@@ -61,6 +63,7 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
         path: "/languages",
         headersTimeout: this.config.timeout,
         bodyTimeout: this.config.timeout,
+        signal,
       });
 
       const data = SpacyLanguagesResponseSchema.parse(
@@ -68,9 +71,13 @@ export class SpacyWordSegmenter extends NlpWordSegmenter {
       );
       return data.languages;
     } catch (err) {
-      logger
-        .withSituation("PLUGIN")
-        .error(err, "Failed to fetch supported languages from spaCy server");
+      this.logger?.error(
+        "Failed to fetch supported languages from spaCy server",
+        {
+          code: "SPACY_LANGUAGES_UNAVAILABLE",
+          error: err,
+        },
+      );
       return [];
     }
   };

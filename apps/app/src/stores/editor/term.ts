@@ -5,6 +5,10 @@ import { computed, ref } from "vue";
 import { orpc } from "#/rpc/orpc.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
+import {
+  createTrackedRequest,
+  type TrackedRequest,
+} from "#/utils/request-cancellation.ts";
 
 import { useProfileStore } from "../profile.ts";
 
@@ -33,17 +37,16 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
   const error = ref<string | null>(null);
-  let abortController: AbortController | null = null;
+  let activeRequest: TrackedRequest | null = null;
 
   const updateTerms = async () => {
     error.value = null;
 
-    if (abortController) {
-      abortController.abort();
-    }
-    abortController = new AbortController();
-
     if (!elementId.value || !languageToId.value) return;
+
+    activeRequest?.cancel();
+    const request = createTrackedRequest();
+    activeRequest = request;
 
     try {
       const result = await orpc.glossary.findTerm(
@@ -52,7 +55,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
           translationLanguageId: languageToId.value,
           minConfidence: editorTermMinConfidence.value[0],
         },
-        { signal: abortController.signal },
+        { signal: request.signal },
       );
 
       terms.value = [];
@@ -61,11 +64,16 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
         if (term) terms.value.push(term);
       }
     } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
+      if (
+        request.signal.aborted ||
+        (err instanceof Error && err.name === "AbortError")
+      ) {
         return;
       }
       terms.value = [];
       error.value = err instanceof Error ? err.message : "unknown-error";
+    } finally {
+      if (activeRequest === request) activeRequest = null;
     }
   };
 
@@ -93,6 +101,16 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
     return count;
   };
+
+  const unsubscribe = (): void => {
+    activeRequest?.cancel();
+    activeRequest = null;
+  };
+
+  if (!import.meta.env.SSR) {
+    const dispose = (): void => unsubscribe();
+    window.addEventListener("beforeunload", dispose, { once: true });
+  }
 
   const addTerms = (...termsToAdd: TermRelationWithDetails[]) => {
     termsToAdd.forEach((relation) => {
@@ -137,5 +155,6 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
     updateTerms,
     addTerms,
     searchTerm,
+    unsubscribe,
   };
 });

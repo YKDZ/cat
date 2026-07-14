@@ -132,7 +132,9 @@ const enrichFromTranslation = async (
 
     return matchingTranslationIds;
   } catch (err: unknown) {
-    logger.withSituation("OP").error(err, "enrichFromTranslation failed");
+    logger
+      .child({ component: "operation" })
+      .error("enrichFromTranslation failed", { error: err });
     return [];
   }
 };

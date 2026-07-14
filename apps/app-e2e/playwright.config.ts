@@ -1,71 +1,57 @@
 import { resolve } from "node:path";
 
-import dotenv from "dotenv";
-
-// Load .env from the app-e2e directory (not CWD, which may differ)
-dotenv.config({ path: resolve(import.meta.dirname, ".env") });
-
 import {
   defineConfig,
   devices,
   type ReporterDescription,
 } from "@playwright/test";
+import dotenv from "dotenv";
 
+dotenv.config({ path: resolve(import.meta.dirname, ".env") });
+
+const port = process.env.PORT ?? "3000";
+const baseURL = process.env.CAT_E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
 const reporters: ReporterDescription[] = process.env.CI
   ? [["html", { open: "never" }]]
   : [["line"], ["html", { open: "never" }]];
-
-const reuseExistingServer = process.env.PW_REUSE_EXISTING_SERVER === "true";
-
-const webServerEnv = {
-  PORT: process.env.PORT ?? "3000",
-  REDIS_URL: process.env.REDIS_URL ?? "",
-  ...(process.env.DATABASE_URL
-    ? { DATABASE_URL: process.env.DATABASE_URL }
-    : {}),
-};
 
 export default defineConfig({
   testDir: "./tests",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: 0,
   workers: 1,
   reporter: reporters,
   timeout: 90_000,
-
-  globalSetup: "./global-setup.ts",
-  globalTeardown: "./global-teardown.ts",
-
-  /* Ignore old spec files pending Phase 2 migration */
-  testIgnore: ["**/project-crud.spec.ts", "**/agent-phase2.spec.ts"],
-
+  outputDir: process.env.CAT_E2E_OUTPUT_DIR ?? "test-results/playwright",
   use: {
-    baseURL: `http://localhost:${process.env.PORT ?? 3000}`,
-    trace: "on-first-retry",
-    // Force zh-CN locale so the server reads Accept-Language: zh-CN and
-    // serves Chinese i18n strings. Without this, Chromium defaults to en-US
-    // and the app renders English text ("Submit", "Showing … of …") which
-    // breaks assertions that check for Chinese strings ("提交", "共 N 条").
+    baseURL,
     locale: "zh-CN",
+    trace: "retain-on-failure",
   },
-
-  webServer: {
-    command:
-      "pnpm turbo run build --filter=@cat/app && pnpm --filter @cat/app preview",
-    url: `http://localhost:${process.env.PORT ?? 3000}/_health`,
-    reuseExistingServer,
-    timeout: 300_000,
-    env: webServerEnv,
-  },
-
   projects: [
     {
-      name: "chromium",
+      name: "dev-chromium",
       use: { ...devices["Desktop Chrome"] },
     },
     {
-      name: "firefox",
+      name: "standalone-chromium",
+      grepInvert: /@dev-mechanism/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "standalone-firefox",
+      grepInvert: /@dev-mechanism/,
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "runtime-chromium",
+      grepInvert: /@dev-mechanism/,
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "runtime-firefox",
+      grepInvert: /@dev-mechanism/,
       use: { ...devices["Desktop Firefox"] },
     },
   ],

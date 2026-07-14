@@ -466,8 +466,10 @@ export const onCreate = authed
         );
         if (!parsed.success) {
           logger
-            .withSituation("RPC")
-            .error(parsed.error, "Invalid create translation payload");
+            .child({ component: "rpc" })
+            .error("Invalid create translation payload", {
+              error: parsed.error,
+            });
           return;
         }
 
@@ -726,10 +728,10 @@ export const autoApprove = authed
           });
         } catch (error) {
           logger
-            .withSituation("RPC")
+            .child({ component: "rpc" })
             .error(
-              error,
               `approved translation memory promotion failed: ${translationId}`,
+              { error: error },
             );
         }
       }),
@@ -760,10 +762,10 @@ export const approve = authed
       });
     } catch (error) {
       logger
-        .withSituation("RPC")
+        .child({ component: "rpc" })
         .error(
-          error,
           `approved translation memory promotion failed: ${input.translationId}`,
+          { error: error },
         );
     }
   });

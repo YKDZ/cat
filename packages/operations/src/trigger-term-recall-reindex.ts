@@ -17,10 +17,10 @@ export const triggerTermRecallReindex = (
 ): void => {
   void buildTermRecallVariantsOp({ conceptId }, ctx).catch((err: unknown) => {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .error(
-        err,
         `Failed to reindex term recall variants for concept ${conceptId}`,
+        { error: err },
       );
   });
 };

@@ -8,9 +8,9 @@ import {
   isPluginInstalled,
   listPluginServiceIdsByType,
   listPlugins,
-  upsertPluginConfigInstance,
+  writePluginConfigInstance,
 } from "@cat/domain";
-import { ComponentRecordSchema, PluginManager } from "@cat/plugin-core";
+import { ComponentRecordSchema } from "@cat/plugin-core";
 import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
@@ -31,7 +31,9 @@ import { authed, base, checkPermission } from "#/orpc/server.ts";
 import {
   installPluginToScope,
   getPluginDetailModel,
+  migratePluginConfigAndApply,
   reloadPluginRuntime,
+  resolvePluginManager,
   savePluginConfigAndApply,
   uninstallPluginFromScope,
 } from "#/services/plugin-management.ts";
@@ -39,6 +41,7 @@ import { probePluginConfig } from "#/services/plugin-probe.ts";
 import {
   PluginActionResultSchema,
   PluginDetailSchema,
+  MigratePluginConfigAndApplyInputSchema,
   PluginProbeResultSchema,
   PluginScopeInputSchema,
   ProbePluginConfigInputSchema,
@@ -77,6 +80,14 @@ export const saveConfigAndApply = authed
     return await savePluginConfigAndApply(context, input);
   });
 
+export const migrateConfigAndApply = authed
+  .input(MigratePluginConfigAndApplyInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginActionResultSchema)
+  .handler(async ({ context, input }) => {
+    return await migratePluginConfigAndApply(context, input);
+  });
+
 export const probeConfig = authed
   .input(ProbePluginConfigInputSchema)
   .use(checkPermission("system", "admin"), () => "*")
@@ -99,7 +110,7 @@ export const reload = authed
     } = context;
     const { scopeType, scopeId } = input;
 
-    const registry = PluginManager.get(scopeType, scopeId);
+    const registry = resolvePluginManager(context, { scopeType, scopeId });
 
     await registry.restore(drizzle);
   });
@@ -149,16 +160,19 @@ export const upsertConfigInstance = authed
       scopeType: ScopeTypeSchema,
       scopeId: z.string(),
       value: nonNullSafeZDotJson,
+      expectedSchemaVersion: z.string().min(1),
+      expectedSchemaDigest: z.string().length(64),
+      expectedRevision: z.int().positive().nullable().optional(),
     }),
   )
   .use(checkPermission("system", "admin"), () => "*")
-  .output(PluginConfigInstanceSchema)
+  .output(PluginConfigInstanceSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
       user,
     } = context;
-    return executeCommand({ db: drizzle }, upsertPluginConfigInstance, {
+    return executeCommand({ db: drizzle }, writePluginConfigInstance, {
       ...input,
       creatorId: user.id,
     });

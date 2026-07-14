@@ -82,7 +82,7 @@ export const vectorTermAlignOp = async (
 
   if (!vectorizerService || !vectorStorageService) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn(
         "vectorTermAlignOp: TEXT_VECTORIZER or VECTOR_STORAGE not available, skipping vector alignment",
       );

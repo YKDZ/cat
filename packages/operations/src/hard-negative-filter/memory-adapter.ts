@@ -51,7 +51,7 @@ export const applyMemoryHnfPre = (
   if (contentWords.length === 0) {
     // NLP tokens not available — skip rules 1 and 3, only apply rule 2
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn("HNF(memory): no content words, skipping rules 1 and 3");
     return [];
   }
@@ -108,7 +108,7 @@ export const applyMemoryHnfPost = (
   const { contentWords } = extractContentWordsFromTokens(sourceNlpTokens);
   if (contentWords.length === 0) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn("HNF(memory,post): no content words, skipping");
     return [];
   }

@@ -38,11 +38,10 @@ export const calibrateMemoryBm25 = (
     return summary;
   } catch (err) {
     logger
-      .withSituation("OP")
-      .warn(
-        { err },
-        "CAL memory adapter: calibration failed, returning unchanged",
-      );
+      .child({ component: "operation" })
+      .warn("CAL memory adapter: calibration failed, returning unchanged", {
+        err,
+      });
     return {
       bm25Count: 0,
       maxRaw: 0,

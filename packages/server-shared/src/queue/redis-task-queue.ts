@@ -242,12 +242,11 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
       return JSON.parse(item) as QueueTask<T>;
     } catch (err: unknown) {
       serverLogger
-        .withSituation("QUEUE")
-        .error(
-          { queueKey: this.processingKey },
-          err,
-          "Invalid Redis task JSON",
-        );
+        .child({ component: "queue" })
+        .error("Invalid Redis task JSON", {
+          ...{ queueKey: this.processingKey },
+          error: err,
+        });
       return null;
     }
   }

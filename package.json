@@ -7,6 +7,7 @@
     "build": "turbo run build",
     "build-plugins": "turbo run build --filter=@cat/plugin-core --filter='@cat-plugin/*'",
     "build:all": "turbo run build",
+    "build:images": "node scripts/image-builder.ts",
     "check": "pnpm boundaries && pnpm format && pnpm lint && pnpm typecheck && pnpm test:unit && pnpm codegen:check && pnpm test:tooling",
     "check:all": "node scripts/check-all.ts",
     "codegen:check": "node scripts/check-generated.ts",

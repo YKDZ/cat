@@ -9,10 +9,15 @@ import { join } from "node:path";
  * mocked via the root __mocks__/@cat/domain.ts.
  */
 import type { DrizzleClient } from "@cat/domain";
-import type { PluginData, PluginManifest } from "@cat/shared";
+import {
+  Logger,
+  type DiagnosticEvent,
+  type PluginData,
+  type PluginManifest,
+} from "@cat/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CatPlugin } from "#/entities/plugin.ts";
+import type { CatPlugin, PluginLogger } from "#/entities/plugin.ts";
 import type { PluginLoader } from "#/registry/loader.ts";
 
 /* ─── Module mocks (hoisted) ───────────────────────────────────────────────── */
@@ -67,6 +72,7 @@ function createManager(
   loader: PluginLoader,
   serviceRegistry?: ServiceRegistry,
   componentRegistry?: ComponentRegistry,
+  diagnosticLogger?: PluginLogger,
 ): PluginManager {
   mockDiscovery.getLoader.mockReturnValue(loader);
 
@@ -78,6 +84,7 @@ function createManager(
     mockDiscovery as unknown as PluginDiscoveryService,
     serviceRegistry,
     componentRegistry,
+    diagnosticLogger,
   );
 }
 
@@ -96,7 +103,7 @@ function setupActivateMocks(overrides?: {
   const mc = vi.mocked(executeQuery);
   mc.mockReset();
 
-  // 1. mergeConfigDefaults → getPluginConfigInstanceByInstallation → null
+  // 1. loadPlugin → getPluginConfig definition → null
   mc.mockResolvedValueOnce(null);
   // 2. loadPlugin → getPluginConfigInstance → null (config = {})
   mc.mockResolvedValueOnce(null);
@@ -167,6 +174,29 @@ describe("PluginManager — static instance management", () => {
     }).toThrow(/different loader/i);
   });
 
+  it("throws when the same scope is requested with a different diagnostic logger", () => {
+    const loader = makeLoader(makePlugin());
+    const firstLogger = new Logger({ runtime: "first" });
+    const secondLogger = new Logger({ runtime: "second" });
+
+    PluginManager.get(SCOPE_TYPE, SCOPE_ID, loader, firstLogger);
+
+    expect(() => {
+      PluginManager.get(SCOPE_TYPE, SCOPE_ID, loader, secondLogger);
+    }).toThrow(/different diagnostic logger/i);
+  });
+
+  it("keeps the explicitly injected diagnostic logger on cached instances", () => {
+    const loader = makeLoader(makePlugin());
+    const hostLogger = new Logger({ runtime: "server" });
+
+    const created = PluginManager.get(SCOPE_TYPE, SCOPE_ID, loader, hostLogger);
+    const cached = PluginManager.get(SCOPE_TYPE, SCOPE_ID);
+
+    expect(cached).toBe(created);
+    expect(cached.getDiagnosticLogger()).toBe(hostLogger);
+  });
+
   it("PluginManager.clear() removes all cached instances", () => {
     const loader = makeLoader(makePlugin());
     const a = PluginManager.get(SCOPE_TYPE, SCOPE_ID, loader);
@@ -202,6 +232,41 @@ describe("PluginManager — install()", () => {
 });
 
 describe("PluginManager — activate() → deactivate()", () => {
+  it("delivers plugin diagnostics to an explicitly registered host observer", async () => {
+    const events: DiagnosticEvent[] = [];
+    const hostLogger = new Logger({ runtime: "server" });
+    hostLogger.observe((event) => events.push(event));
+    const plugin = makePlugin({
+      services: (context) => {
+        context.logger.error("plugin failed to connect", {
+          code: "PLUGIN_CONNECTION_FAILED",
+          password: "must-not-leak",
+        });
+        return [];
+      },
+    });
+    setupActivateMocks();
+
+    await createManager(
+      makeLoader(plugin),
+      undefined,
+      undefined,
+      hostLogger,
+    ).activate(FAKE_DB, PLUGIN_ID);
+
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        code: "PLUGIN_CONNECTION_FAILED",
+        context: expect.objectContaining({
+          pluginId: PLUGIN_ID,
+          runtime: "server",
+          component: "plugin",
+        }),
+        fields: { password: "[REDACTED]" },
+      }),
+    );
+  });
+
   it("activate() marks plugin as active and registers it in the service registry", async () => {
     const svc = {
       getId: () => "svc-1",
@@ -254,6 +319,36 @@ describe("PluginManager — activate() → deactivate()", () => {
       FAKE_DB,
       PLUGIN_ID,
     );
+  });
+
+  it("activate() rejects a stale configuration until it is explicitly migrated", async () => {
+    const loader = makeLoader(makePlugin());
+    vi.mocked(executeQuery)
+      .mockResolvedValueOnce({ schemaVersion: "2", isAvailable: true })
+      .mockResolvedValueOnce({ appliedVersion: "1", value: {} });
+
+    await expect(
+      createManager(loader).activate(FAKE_DB, PLUGIN_ID),
+    ).rejects.toThrow("requires an explicit schema migration");
+  });
+
+  it("activate() rejects a required definition without a configuration instance", async () => {
+    const loader = makeLoader(makePlugin());
+    vi.mocked(executeQuery)
+      .mockResolvedValueOnce({
+        schemaVersion: "1",
+        isAvailable: true,
+        schema: {
+          type: "object",
+          properties: { endpoint: { type: "string" } },
+          required: ["endpoint"],
+        },
+      })
+      .mockResolvedValueOnce(null);
+
+    await expect(
+      createManager(loader).activate(FAKE_DB, PLUGIN_ID),
+    ).rejects.toThrow("requires an explicit configuration instance");
   });
 
   it("activate() is a no-op when the plugin is already active", async () => {

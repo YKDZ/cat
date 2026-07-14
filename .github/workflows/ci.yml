@@ -115,7 +115,7 @@ jobs:
           mkdir -p validated-images
           pnpm check:all
           cd validated-images
-          sha256sum standalone.tar runtime.tar > SHA256SUMS
+          sha256sum manifest.json standalone.tar runtime.tar > SHA256SUMS
 
       - name: Upload validated container images
         uses: actions/upload-artifact@v4
@@ -174,9 +174,14 @@ jobs:
           docker image load --input standalone.tar
           docker image load --input runtime.tar
           for target in standalone runtime; do
-            image="cat-validated-${GITHUB_SHA}-app:${target}"
-            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$image")" = "cat-validated-${GITHUB_SHA}"
-            test "$(docker image inspect --format '{{ index .Config.Cmd 0 }}' "$image")" = "$([ "$target" = standalone ] && echo prepare-and-start || echo start-only)"
+            image="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].imageId)")"
+            version="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.versionLabel)")"
+            command="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.command)")"
+            description="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.description)")"
+            test "$(docker image inspect --format '{{.Id}}' "$image")" = "$image"
+            test "$(docker image inspect --format '{{ index .Config.Labels \"org.opencontainers.image.version\" }}' "$image")" = "$version"
+            test "$(docker image inspect --format '{{ index .Config.Labels \"org.opencontainers.image.description\" }}' "$image")" = "$description"
+            test "$(docker image inspect --format '{{ index .Config.Cmd 0 }}' "$image")" = "$command"
           done
 
       - name: Log in to GHCR
@@ -192,7 +197,7 @@ jobs:
         run: |
           version=$(node -p "require('./apps/app/package.json').version")
           for target in standalone runtime; do
-            source="cat-validated-${GITHUB_SHA}-app:${target}"
+            source="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('validated-images/manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].imageId)")"
             while IFS= read -r tag; do
               docker image tag "$source" "$tag"
               docker image push "$tag"

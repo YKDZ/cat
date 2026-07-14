@@ -1,6 +1,31 @@
 import { test, expect } from "#/fixtures.ts";
 
 test.describe("Plugin management", () => {
+  test("administrator probes the official spaCy segmenter candidate through the product API", async ({
+    page,
+  }) => {
+    await page.goto("/admin/plugin/spacy-segmenter");
+    await expect(
+      page.getByRole("heading", { name: "spacy-segmenter" }),
+    ).toBeVisible();
+
+    const probeResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/plugin/probeConfig") &&
+        response.request().method() === "POST",
+    );
+    await page
+      .getByRole("button", { name: "检测当前配置", exact: true })
+      .click();
+    expect((await probeResponse).ok()).toBe(true);
+
+    await expect(page.getByText("检测结果：SUCCESS")).toBeVisible();
+    await expect(
+      page.getByText("NLP_WORD_SEGMENTER · spacy-word-segmenter").last(),
+    ).toBeVisible();
+    await expect(page.locator("pre")).toContainText(/"tokenCount":\s*[1-9]/);
+  });
+
   test("admin can open a no-config plugin without being redirected home", async ({
     page,
   }) => {

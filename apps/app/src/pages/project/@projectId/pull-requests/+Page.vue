@@ -6,7 +6,7 @@ import { useQuery } from "@pinia/colada";
 import { useDebounceFn } from "@vueuse/core";
 import { useData } from "vike-vue/useData";
 import { navigate } from "vike/client/router";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
@@ -21,12 +21,15 @@ const projectId = computed(
   () => data.projectId ?? data.projectShell.project.id,
 );
 const initialPullRequests = computed(() => data.pullRequests ?? []);
+const hydrated = ref(false);
+onMounted(() => {
+  hydrated.value = true;
+});
 
 const PAGE_SIZE = 30;
 const activeTab = ref<PullRequestStatus | "">("");
 const searchQuery = ref("");
 const page = ref(0);
-
 const queryParams = computed(() => ({
   projectId: projectId.value,
   status: (activeTab.value || undefined) as PullRequestStatus | undefined,
@@ -48,8 +51,15 @@ const { state } = useQuery({
   enabled: !import.meta.env.SSR,
 });
 
-const prs = computed(() => state.value.data ?? initialPullRequests.value);
+const prs = computed(() =>
+  hydrated.value && state.value.status === "success"
+    ? (state.value.data ?? [])
+    : initialPullRequests.value,
+);
 const hasMore = computed(() => prs.value.length >= PAGE_SIZE);
+const isLoading = computed(
+  () => state.value.status === "pending" && prs.value.length === 0,
+);
 
 const setTab = (tab: PullRequestStatus | "") => {
   activeTab.value = tab;
@@ -134,7 +144,7 @@ const statusIcon = (status: string) => {
 
     <!-- Loading -->
     <div
-      v-if="state.status === 'pending'"
+      v-if="isLoading"
       class="py-8 text-center text-sm text-muted-foreground"
     >
       {{ t("加载中...") }}

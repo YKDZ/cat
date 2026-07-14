@@ -10,7 +10,6 @@ export default defineConfig({
     environment: "happy-dom",
     include: [
       "scripts/**/*.spec.ts",
-      "scripts/plugin-reload.test.ts",
       "src/**/*.spec.ts",
       "src/**/*.test.ts",
       "src/components/plugin/plugin-component-artifacts.test.ts",

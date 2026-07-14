@@ -1,8 +1,9 @@
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent } from "vue";
 
+import { ExpectedRequestCancellationError } from "#/rpc/request-cancellation.ts";
 import { i18n } from "#/utils/i18n.ts";
 
 import Toolbar from "./Toolbar.vue";
@@ -198,5 +199,28 @@ describe("Toolbar QA context", () => {
         .findAll("button")
         .every((button) => button.attributes("disabled") !== undefined),
     ).toBe(true);
+  });
+
+  it("does not surface an expected navigation cancellation from submission", async () => {
+    mocks.translate.mockRejectedValueOnce(
+      new ExpectedRequestCancellationError({
+        expected: true,
+        id: "cancelled-request",
+        kind: "navigation",
+        time: 5_000,
+        url: "/api/rpc/translation/onCreate",
+        version: 1,
+      }),
+    );
+    const wrapper = mount(Toolbar, {
+      global: {
+        plugins: [createPinia(), i18n],
+      },
+    });
+
+    await wrapper.get('button[title="提交"]').trigger("click");
+    await flushPromises();
+
+    expect(mocks.toNextUntranslated).not.toHaveBeenCalled();
   });
 });

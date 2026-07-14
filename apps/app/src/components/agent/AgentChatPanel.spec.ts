@@ -176,7 +176,7 @@ vi.mock("#/utils/agent/register-client-tools.ts", () => ({
 
 vi.mock("#/utils/logger.ts", () => ({
   clientLogger: {
-    withSituation: vi.fn(() => ({
+    child: vi.fn(() => ({
       error: vi.fn(),
     })),
   },

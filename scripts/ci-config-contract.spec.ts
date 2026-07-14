@@ -191,7 +191,14 @@ describe("CI configuration contract", () => {
       .map((step) => step.run ?? "")
       .join("\n");
     expect(releaseCommands).toContain("sha256sum --check SHA256SUMS");
+    expect(releaseCommands).toContain("manifest.json");
     expect(releaseCommands).toContain("docker image load");
+    expect(releaseCommands).toContain(
+      "docker image inspect --format '{{.Id}}' \"$image\"",
+    );
+    expect(releaseCommands).toContain("manifest.images['$target'].imageId");
+    expect(releaseCommands).toContain("manifest.images['$target'].identity");
+    expect(releaseCommands).not.toContain("cat-image-build-cat-validated-");
     expect(releaseCommands).toContain("scripts/release-image-tags.ts");
     expect(releaseCommands).not.toMatch(/docker (?:build|buildx build)/);
     expect(

@@ -76,14 +76,14 @@ const handleReload = async () => {
 
 const handleSaveConfig = async (
   value: NonNullJSONType,
-  expectedUpdatedAt: string | null,
+  expectedRevision: number | null,
 ) => {
   isSaving.value = true;
   try {
     const result = await orpc.plugin.saveConfigAndApply({
       ...scopeInput(),
       value,
-      expectedUpdatedAt,
+      expectedRevision,
     });
     if (result.status === "APPLIED") {
       toast.info(t(result.message));
@@ -97,6 +97,31 @@ const handleSaveConfig = async (
     await refreshDetail();
   } catch (error) {
     warnRpc(error);
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const handleMigrateConfig = async (value: NonNullJSONType) => {
+  const config = detail.value.config;
+  const instance = config.instance;
+  if (!config.config || !instance) return;
+
+  isSaving.value = true;
+  try {
+    const result = await orpc.plugin.migrateConfigAndApply({
+      ...scopeInput(),
+      instanceId: instance.id,
+      fromVersion: instance.appliedVersion,
+      expectedSchemaDigest: config.config.schemaDigest,
+      expectedRevision: instance.revision,
+      value,
+    });
+    toast.info(t(result.message));
+    await refreshDetail();
+  } catch (error) {
+    warnRpc(error);
+    await refreshDetail().catch(() => undefined);
   } finally {
     isSaving.value = false;
   }
@@ -145,6 +170,7 @@ const handleCancelProbe = () => {
     @uninstall="handleUninstall"
     @reload="handleReload"
     @save-config="handleSaveConfig"
+    @migrate-config="handleMigrateConfig"
     @probe-candidate="(value) => runProbe('CANDIDATE', value)"
     @probe-runtime="() => runProbe('RUNTIME')"
     @cancel-probe="handleCancelProbe"

@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import {
-  appendFile,
   chmod,
   mkdir,
   mkdtemp,
@@ -36,12 +35,9 @@ const runDev = (
     cwd: resolve(import.meta.dirname, ".."),
     env: {
       ...env,
-      CAT_PLUGIN_DEBOUNCE_MS: "30",
-      CAT_PLUGIN_ROOT: join(fixtureDirectory, "plugins"),
       CAT_REPOSITORY_ROOT: fixtureDirectory,
       FAKE_DB_PUSH_FILE: join(fixtureDirectory, "database-push.txt"),
       FAKE_INITIAL_BUILD_FILE: join(fixtureDirectory, "initial-build.txt"),
-      FAKE_PLUGIN_BUILD_LOG: join(fixtureDirectory, "plugin-builds.log"),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -87,18 +83,11 @@ const waitForFile = async (path: string): Promise<void> => {
 beforeEach(async () => {
   fixtureDirectory = await mkdtemp(join(tmpdir(), "cat-dev-runner-"));
   await mkdir(join(fixtureDirectory, "apps/app"), { recursive: true });
-  await mkdir(join(fixtureDirectory, "plugins/example/src"), {
-    recursive: true,
-  });
-  await writeFile(
-    join(fixtureDirectory, "plugins/example/src/index.ts"),
-    "export const value = 1;\n",
-  );
   const fakePnpm = join(fixtureDirectory, "pnpm");
   await writeFile(
     fakePnpm,
     `#!/usr/bin/env node
-const { appendFileSync, writeFileSync } = require("node:fs");
+const { writeFileSync } = require("node:fs");
 
 const args = process.argv.slice(2);
 if (args[0] === "--filter" && args[1] === "@cat/db" && args[2] === "drizzle:push") {
@@ -140,17 +129,7 @@ if (args[0] === "exec" && args[1] === "vike") {
   return;
 }
 
-appendFileSync(process.env.FAKE_PLUGIN_BUILD_LOG, JSON.stringify(args) + "\\n");
-if (process.env.FAKE_PLUGIN_BUILD_MODE === "fail") process.exit(29);
-if (process.env.FAKE_PLUGIN_BUILD_MODE === "hang") {
-  process.on("SIGTERM", () => {
-    writeFileSync(process.env.FAKE_PLUGIN_BUILD_CLEANUP_FILE, "cleaned");
-    process.exit(0);
-  });
-  setInterval(() => {}, 1_000);
-} else {
-  setTimeout(() => process.exit(0), Number(process.env.FAKE_PLUGIN_BUILD_DELAY ?? 0));
-}
+process.exit(93);
 `,
     "utf8",
   );
@@ -307,6 +286,20 @@ describe("development runner", () => {
     expect((await result).stdout).toContain("fake vike started");
   });
 
+  it("preserves Vike NDJSON when diagnostic capture is enabled", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      CAT_DIAGNOSTIC_NDJSON: "true",
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      FAKE_VIKE_MODE: "success",
+    });
+
+    const output = await result;
+    expect(output).toMatchObject({ code: 0, signal: null });
+    expect(output.stdout).toContain('{"level":30');
+  });
+
   it("returns Vike's failure status", async () => {
     const { result } = runDev([], {
       ...process.env,
@@ -343,97 +336,5 @@ describe("development runner", () => {
       },
       { interval: 20, timeout: 3_000 },
     );
-  });
-
-  it("debounces changes and queues a follow-up build for changes during a build", async () => {
-    const argsFile = join(fixtureDirectory, "args.json");
-    const buildLog = join(fixtureDirectory, "plugin-builds.log");
-    const source = join(fixtureDirectory, "plugins/example/src/index.ts");
-    const { child, result } = runDev([], {
-      ...process.env,
-      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
-      FAKE_PLUGIN_BUILD_DELAY: "250",
-      FAKE_VIKE_ARGS_FILE: argsFile,
-      FAKE_VIKE_CLEANUP_FILE: join(fixtureDirectory, "cleanup.txt"),
-      FAKE_VIKE_MODE: "hang",
-    });
-
-    await waitForFile(argsFile);
-    await Promise.all([
-      appendFile(source, "// first\n"),
-      appendFile(source, "// debounced\n"),
-    ]);
-    await vi.waitFor(
-      async () => {
-        expect(
-          (await readFile(buildLog, "utf8")).trim().split("\n"),
-        ).toHaveLength(1);
-      },
-      { interval: 20, timeout: 2_000 },
-    );
-    await appendFile(source, "// queued\n");
-    await vi.waitFor(
-      async () => {
-        expect(
-          (await readFile(buildLog, "utf8")).trim().split("\n"),
-        ).toHaveLength(2);
-      },
-      { interval: 20, timeout: 2_000 },
-    );
-
-    child.kill("SIGTERM");
-    await expect(result).resolves.toMatchObject({ signal: "SIGTERM" });
-  });
-
-  it("reports plugin build failures without stopping Vike", async () => {
-    const argsFile = join(fixtureDirectory, "args.json");
-    const source = join(fixtureDirectory, "plugins/example/src/index.ts");
-    const { child, result } = runDev([], {
-      ...process.env,
-      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
-      FAKE_PLUGIN_BUILD_MODE: "fail",
-      FAKE_VIKE_ARGS_FILE: argsFile,
-      FAKE_VIKE_CLEANUP_FILE: join(fixtureDirectory, "cleanup.txt"),
-      FAKE_VIKE_MODE: "hang",
-    });
-
-    await waitForFile(argsFile);
-    await appendFile(source, "// fail\n");
-    await vi.waitFor(
-      async () => {
-        expect(
-          await readFile(join(fixtureDirectory, "plugin-builds.log"), "utf8"),
-        ).toContain("@cat-plugin/example");
-      },
-      { interval: 20, timeout: 2_000 },
-    );
-    expect(child.exitCode).toBeNull();
-    child.kill("SIGTERM");
-    const output = await result;
-    expect(output.signal).toBe("SIGTERM");
-    expect(output.stderr).toContain("Plugin example build failed");
-  });
-
-  it("terminates an active plugin build during shutdown", async () => {
-    const argsFile = join(fixtureDirectory, "args.json");
-    const buildCleanup = join(fixtureDirectory, "build-cleanup.txt");
-    const source = join(fixtureDirectory, "plugins/example/src/index.ts");
-    const { child, result } = runDev([], {
-      ...process.env,
-      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
-      FAKE_PLUGIN_BUILD_CLEANUP_FILE: buildCleanup,
-      FAKE_PLUGIN_BUILD_MODE: "hang",
-      FAKE_VIKE_ARGS_FILE: argsFile,
-      FAKE_VIKE_CLEANUP_FILE: join(fixtureDirectory, "cleanup.txt"),
-      FAKE_VIKE_MODE: "hang",
-    });
-
-    await waitForFile(argsFile);
-    await appendFile(source, "// hang\n");
-    await waitForFile(join(fixtureDirectory, "plugin-builds.log"));
-    child.kill("SIGTERM");
-
-    await expect(result).resolves.toMatchObject({ signal: "SIGTERM" });
-    await expect(readFile(buildCleanup, "utf8")).resolves.toBe("cleaned");
   });
 });

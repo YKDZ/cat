@@ -10,6 +10,10 @@ import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorElementStore } from "#/stores/editor/element.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { clientLogger as logger } from "#/utils/logger.ts";
+import {
+  createTrackedRequest,
+  type TrackedRequest,
+} from "#/utils/request-cancellation.ts";
 
 const MainTranslationWithStatusSchema = z.object({
   kind: z.literal("main").default("main"),
@@ -71,75 +75,111 @@ export const useEditorTranslationStore = defineStore(
         !!context.languageToId.value,
     });
 
-    let abortController: AbortController | null = null;
-    watch(
-      () => context.scope.value,
-      async (scope) => {
-        if (abortController) {
-          abortController.abort();
-          abortController = null;
+    let activeSubscription:
+      | {
+          request: TrackedRequest;
+          scope: NonNullable<typeof context.scope.value>;
         }
+      | undefined;
 
-        if (!scope || import.meta.env.SSR) return;
+    const unsubscribe = (): void => {
+      activeSubscription?.request.cancel();
+      activeSubscription = undefined;
+    };
 
-        abortController = new AbortController();
+    const consumeSubscription = async (
+      scope: NonNullable<typeof context.scope.value>,
+      request: TrackedRequest,
+    ): Promise<void> => {
+      try {
+        const stream = await orpc.translation.onCreate(scope, {
+          signal: request.signal,
+        });
 
-        try {
-          const stream = await orpc.translation.onCreate(scope, {
-            signal: abortController.signal,
+        for await (const translation of stream) {
+          const nextTranslation = MainTranslationWithStatusSchema.parse({
+            kind: "main",
+            ...translation,
           });
 
-          for await (const translation of stream) {
-            const nextTranslation = MainTranslationWithStatusSchema.parse({
-              kind: "main",
-              ...translation,
-            });
+          elementStore.setElementPending(
+            translation.translatableElementId,
+            false,
+          );
 
-            elementStore.setElementPending(
-              translation.translatableElementId,
-              false,
-            );
+          await elementStore.updateElementStatus(
+            translation.translatableElementId,
+          );
 
-            await elementStore.updateElementStatus(
-              translation.translatableElementId,
-            );
+          const queryKey = [
+            "translations",
+            translation.translatableElementId,
+            scope.languageToId,
+            scope.branchId ?? null,
+          ];
 
-            const queryKey = [
-              "translations",
-              translation.translatableElementId,
-              scope.languageToId,
-              scope.branchId ?? null,
-            ];
-
-            queryCache.setQueryData(
-              queryKey,
-              (old: TranslationWithStatus[] | undefined) => {
-                if (!old) return [nextTranslation];
-                if (
-                  old.some(
-                    (item) =>
-                      item.kind === "main" && item.id === nextTranslation.id,
-                  )
-                ) {
-                  return old;
-                }
-                return [...old, nextTranslation];
-              },
-            );
-          }
-        } catch (err) {
-          logger
-            .withSituation("WEB")
-            .error(err, "Translation subscription error");
+          queryCache.setQueryData(
+            queryKey,
+            (old: TranslationWithStatus[] | undefined) => {
+              if (!old) return [nextTranslation];
+              if (
+                old.some(
+                  (item) =>
+                    item.kind === "main" && item.id === nextTranslation.id,
+                )
+              ) {
+                return old;
+              }
+              return [...old, nextTranslation];
+            },
+          );
         }
-      },
+      } catch (err) {
+        if (
+          request.signal.aborted ||
+          (err instanceof Error && err.name === "AbortError")
+        ) {
+          return;
+        }
+        logger
+          .child({ component: "web" })
+          .error("Translation subscription error", { error: err });
+      } finally {
+        if (activeSubscription?.request === request)
+          activeSubscription = undefined;
+      }
+    };
+
+    const subscribe = (scope = context.scope.value): void => {
+      if (!scope || import.meta.env.SSR) {
+        unsubscribe();
+        return;
+      }
+      if (activeSubscription?.scope === scope) return;
+
+      unsubscribe();
+      const request = createTrackedRequest();
+      activeSubscription = { request, scope };
+      void consumeSubscription(scope, request);
+    };
+
+    watch(
+      () => context.scope.value,
+      (scope) => subscribe(scope),
       { immediate: true },
     );
+
+    if (!import.meta.env.SSR) {
+      const dispose = (): void => unsubscribe();
+      window.addEventListener("beforeunload", dispose, { once: true });
+    }
 
     return {
       state,
       refresh,
       refetch,
+      subscribe,
+      unsubscribe,
     };
   },
 );

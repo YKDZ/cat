@@ -19,7 +19,7 @@ import {
 } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
 import { useData } from "vike-vue/useData";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
@@ -72,6 +72,11 @@ watch(
 );
 
 const activeTab = ref("conversation");
+const isHydrated = ref(false);
+
+onMounted(() => {
+  isHydrated.value = true;
+});
 
 // ─── Status helpers ───
 
@@ -422,13 +427,17 @@ const handleDeleteComment = async (commentId: number) => {
 
           <!-- Timeline -->
           <div
-            v-if="threadsState.status === 'pending'"
+            v-if="!isHydrated"
+            class="py-4 text-center text-sm text-muted-foreground"
+          />
+          <div
+            v-else-if="threadsState.status === 'pending'"
             class="py-4 text-center text-sm text-muted-foreground"
           >
             {{ t("加载评论中...") }}
           </div>
           <Timeline
-            v-else
+            v-else-if="isHydrated"
             :threads="threads"
             @comment:edit="handleEditComment"
             @comment:delete="handleDeleteComment"

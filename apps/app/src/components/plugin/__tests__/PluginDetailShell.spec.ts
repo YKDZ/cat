@@ -67,11 +67,12 @@ const createDetail = (overrides?: {
   },
   config: {
     hasConfig: false,
+    isStale: false,
     schema: null,
     config: null,
     instance: null,
     value: {},
-    expectedUpdatedAt: null,
+    expectedRevision: null,
   },
   capabilities: {
     services: [
@@ -94,6 +95,7 @@ const createDetail = (overrides?: {
     canInstall: false,
     canUninstall: true,
     canSaveConfig: false,
+    canMigrateConfig: false,
     canReload: true,
     canRetryApply: overrides?.canRetryApply ?? false,
     canProbeCandidate: false,

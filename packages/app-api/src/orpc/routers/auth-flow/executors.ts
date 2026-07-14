@@ -9,14 +9,23 @@ import {
   countRecentAttempts,
   type DbHandle,
 } from "@cat/domain";
-import type { AuthFactorExecutionContext } from "@cat/plugin-core";
-import { PluginManager } from "@cat/plugin-core";
+import type {
+  AuthFactorExecutionContext,
+  PluginManager,
+} from "@cat/plugin-core";
 
 /**
  * Extract a strongly-typed DbHandle from services.db (typed unknown in the auth package).
  */
 // oxlint-disable-next-line no-unsafe-type-assertion -- services.db is always DrizzleClient passed in by buildScheduler
 const dbFrom = (services: { db: unknown }) => services.db as DbHandle;
+
+// Vite can execute the host and this router in separate module realms. A
+// host-owned PluginManager therefore cannot use this realm's instanceof check.
+const isPluginManager = (value: unknown): value is PluginManager =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof Reflect.get(value, "getServices") === "function";
 
 // ====== Identity Resolver ======
 
@@ -110,7 +119,7 @@ export const passwordFactorExecutor: AuthNodeExecutor = async (
     };
   }
 
-  if (!(ctx.services.pluginManager instanceof PluginManager)) {
+  if (!isPluginManager(ctx.services.pluginManager)) {
     return {
       updates: {},
       status: "failed",
@@ -195,7 +204,7 @@ export const appDecisionRouterExecutor: AuthNodeExecutor = async (
   nodeDef,
 ) => {
   if (nodeDef.config?.["checkMfaRequired"]) {
-    if (!(ctx.services.pluginManager instanceof PluginManager)) {
+    if (!isPluginManager(ctx.services.pluginManager)) {
       return {
         updates: {
           [`nodeOutputs.${nodeDef.id}`]: { mfaRequired: false },
@@ -238,7 +247,7 @@ export const totpFactorExecutor: AuthNodeExecutor = async (ctx, nodeDef) => {
     };
   }
 
-  if (!(ctx.services.pluginManager instanceof PluginManager)) {
+  if (!isPluginManager(ctx.services.pluginManager)) {
     return {
       updates: {},
       status: "failed",

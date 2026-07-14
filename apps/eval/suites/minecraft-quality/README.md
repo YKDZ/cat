@@ -59,7 +59,7 @@ CAT 平台的翻译记忆召回与术语匹配在 Minecraft 数据集上暴露�
 pnpm --filter @cat/eval eval -- env up --suite minecraft-quality
 ```
 
-这会通过 Docker Compose `include:` 引用 `apps/app/docker-compose.yml`，启动 PostgreSQL（pgvector）、Redis、Ollama 和 spaCy 服务。
+这会通过 Docker Compose `include:` 引用 `apps/app/compose.local.yaml`，启动 PostgreSQL（pgvector）、Redis 和 spaCy 服务；可选的 Ollama 通过 `optional` profile 启动。
 
 ### 运行评测
 

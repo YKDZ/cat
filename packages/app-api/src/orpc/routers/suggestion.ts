@@ -118,10 +118,10 @@ export const onNew = authed
       { elementId },
     ).catch((err: unknown) => {
       logger
-        .withSituation("RPC")
+        .child({ component: "rpc" })
         .warn(
-          { err },
           "suggestion.onNew: listMemoryItemIdsByElement failed, skipping self-exclusion",
+          { err },
         );
       return [] as string[];
     });
@@ -135,8 +135,8 @@ export const onNew = authed
       { pluginManager, traceId: crypto.randomUUID() },
     ).catch((err: unknown) => {
       logger
-        .withSituation("RPC")
-        .warn({ err }, "suggestion.onNew: nlpSegmentOp failed");
+        .child({ component: "rpc" })
+        .warn("suggestion.onNew: nlpSegmentOp failed", { err });
       return null;
     });
     const sourceNlpTokens = nlpResult?.tokens;
@@ -158,10 +158,10 @@ export const onNew = authed
             { pluginManager, traceId: crypto.randomUUID() },
           ).catch((err: unknown) => {
             logger
-              .withSituation("RPC")
+              .child({ component: "rpc" })
               .warn(
-                { err },
                 "suggestion.onNew: memory recall failed, continuing without",
+                { err },
               );
             return [] as MemorySuggestionWithPrecision[];
           })
@@ -177,10 +177,10 @@ export const onNew = authed
             { pluginManager, traceId: crypto.randomUUID() },
           ).catch((err: unknown) => {
             logger
-              .withSituation("RPC")
+              .child({ component: "rpc" })
               .warn(
-                { err },
                 "suggestion.onNew: term recall failed, continuing without",
+                { err },
               );
             return { terms: [] };
           })
@@ -213,8 +213,8 @@ export const onNew = authed
         );
         if (!parsed.success) {
           logger
-            .withSituation("RPC")
-            .error(parsed.error, "Invalid suggestion format");
+            .child({ component: "rpc" })
+            .error("Invalid suggestion format", { error: parsed.error });
           return;
         }
 
@@ -256,8 +256,8 @@ export const onNew = authed
       })
       .catch((err: unknown) => {
         logger
-          .withSituation("RPC")
-          .warn({ err }, "suggestion.onNew: LLM Translate failed, continuing");
+          .child({ component: "rpc" })
+          .warn("suggestion.onNew: LLM Translate failed, continuing", { err });
       });
 
     const advisorTasks = advisors.map(async (advisor) => {
@@ -308,7 +308,9 @@ export const onNew = authed
         suggestionsQueue.close();
       })
       .catch((err: unknown) => {
-        logger.withSituation("RPC").error(err, "Error processing suggestions");
+        logger
+          .child({ component: "rpc" })
+          .error("Error processing suggestions", { error: err });
         suggestionsQueue.close();
       });
 

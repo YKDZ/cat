@@ -838,8 +838,11 @@ export const pluginConfig = snakeCase.table(
       .references(() => plugin.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
-      }),
+    }),
     schema: jsonb().notNull().$type<_JSONSchema>(),
+    schemaVersion: text().notNull().default("legacy-unverified"),
+    schemaDigest: text().notNull().default(""),
+    isAvailable: boolean().notNull().default(true),
     ...timestamps,
   },
   (table) => [uniqueIndex().using("btree", table.pluginId.asc().nullsLast())],
@@ -851,9 +854,11 @@ export const pluginConfigInstance = snakeCase.table(
     id: serial().primaryKey(),
     value: jsonb().notNull().$type<NonNullJSONType>(),
     creatorId: uuid().references(() => user.id, {
-      onDelete: "cascade",
+      onDelete: "set null",
       onUpdate: "cascade",
     }),
+    appliedVersion: text().notNull().default("legacy-unverified"),
+    revision: integer().notNull().default(1),
     configId: integer()
       .notNull()
       .references(() => pluginConfig.id, {
@@ -900,6 +905,20 @@ export const pluginInstallation = snakeCase.table(
       table.pluginId.asc().nullsLast(),
     ),
   ],
+);
+
+/** A one-shot deployment plan receipt. Configuration remains operator-owned. */
+export const bootstrapReceipt = snakeCase.table(
+  "BootstrapReceipt",
+  {
+    id: serial().primaryKey(),
+    idempotencyKey: text().notNull().unique(),
+    planVersion: text().notNull(),
+    inputDigest: text().notNull(),
+    schemaDigest: text().notNull(),
+    pluginDigest: text().notNull(),
+    appliedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
 );
 
 export const pluginService = snakeCase.table(

@@ -24,6 +24,8 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref, onMounted, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { clientLogger } from "#/utils/logger.ts";
+
 import { onRequestProjects, type ProjectListItem } from "./Table.telefunc.ts";
 import TableItem from "./TableItem.vue";
 
@@ -62,8 +64,9 @@ const fetchProjects = async () => {
     projects.value = result.data;
     total.value = result.total;
   } catch (err) {
-    // oxlint-disable-next-line no-console
-    console.error("Failed to fetch projects:", err);
+    clientLogger
+      .child({ component: "project-table" })
+      .error("Failed to fetch projects", { error: err });
   } finally {
     isLoading.value = false;
   }

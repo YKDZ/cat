@@ -13,7 +13,7 @@ const levelRank: Record<SearchRuntimeLevel, number> = {
   "full-search-runtime": 2,
 };
 
-type SearchRuntimeDb = Pick<DrizzleClient, "execute">;
+export type SearchRuntimeDb = Pick<DrizzleClient, "execute">;
 
 const classifySearchLevel = (
   extensions: DatabaseRuntimeSummary["extensions"],

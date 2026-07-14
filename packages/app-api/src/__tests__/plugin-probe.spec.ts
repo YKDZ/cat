@@ -111,6 +111,7 @@ const mockDetailQueries = (options?: {
     id: number;
     pluginId: string;
     schema: Record<string, unknown>;
+    isAvailable?: boolean;
   } | null;
   installation?: { id: number } | null;
   configInstance?: {
@@ -174,6 +175,17 @@ describe("plugin redaction helpers", () => {
     expect(redactJson({ nested: { secretAccessKey: "minio-secret" } })).toEqual(
       { nested: { secretAccessKey: "[REDACTED]" } },
     );
+    expect(
+      redactJson({
+        csrfToken: "csrf-secret",
+        tokenCount: 2,
+        tokens: ["Hello", "world"],
+      }),
+    ).toEqual({
+      csrfToken: "[REDACTED]",
+      tokenCount: 2,
+      tokens: ["Hello", "world"],
+    });
   });
 
   it("redacts secret-bearing error messages", () => {
@@ -192,6 +204,36 @@ describe("plugin probe service", () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     PluginManager.clear();
+  });
+
+  it("uses the request runtime manager loader for candidate probes", async () => {
+    const segment = vi.fn().mockResolvedValue({ tokens: [{ text: "Hello" }] });
+    const segmenter = {
+      getId: () => "runtime-segmenter",
+      getType: () => "NLP_WORD_SEGMENTER" as const,
+      getSupportedLanguages: async () => ["en"],
+      segment,
+    };
+    const manager = makeManager(
+      async () => [segmenter],
+      [{ id: "runtime-segmenter", type: "NLP_WORD_SEGMENTER" }],
+    );
+    vi.spyOn(PluginManager, "get").mockImplementation(() => {
+      throw new Error("candidate probes must not create a default manager");
+    });
+    mockDetailQueries();
+
+    const result = await probePluginConfig(createContext(manager), {
+      pluginId: PLUGIN_ID,
+      scopeType: "GLOBAL",
+      scopeId: "",
+      target: "CANDIDATE",
+    });
+
+    expect(result.overallStatus).toBe("SUCCESS");
+    expect(segment).toHaveBeenCalledWith(
+      expect.objectContaining({ languageId: "en", text: "Hello world" }),
+    );
   });
 
   it("candidate LLM probe succeeds without mutating runtime state", async () => {
@@ -567,6 +609,7 @@ describe("plugin probe service", () => {
           properties: { endpoint: { type: "string" } },
           required: ["endpoint"],
         },
+        isAvailable: true,
       },
       installation: { id: 1 },
       configInstance: null,

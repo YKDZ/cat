@@ -38,8 +38,8 @@ export const matchTemplateStructure = async (
     }
   } catch (err) {
     logger
-      .withSituation("OP")
-      .warn({ err }, "TMPL: tokenizeOp failed, falling back to pg_trgm");
+      .child({ component: "operation" })
+      .warn("TMPL: tokenizeOp failed, falling back to pg_trgm", { err });
     return null;
   }
 

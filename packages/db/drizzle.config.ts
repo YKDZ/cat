@@ -34,7 +34,7 @@ export default defineConfig({
   },
 
   schemaFilter: ["public"],
-  // "Vector" table is managed at runtime by ensureVectorStorageSchema (dimension is dynamic per plugin config)
+  // Vector DDL is prepared explicitly because pgvector is supplied by the database runtime.
   tablesFilter: ["!Vector"],
 
   verbose: true,

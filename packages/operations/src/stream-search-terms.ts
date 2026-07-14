@@ -77,7 +77,9 @@ export const streamSearchTermsOp = (
 
   void run()
     .catch((err: unknown) => {
-      logger.withSituation("OP").error(err, "streamSearchTermsOp failed");
+      logger
+        .child({ component: "operation" })
+        .error("streamSearchTermsOp failed", { error: err });
     })
     .finally(() => {
       queue.close();

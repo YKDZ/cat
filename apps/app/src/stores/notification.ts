@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 import { orpc } from "#/rpc/orpc.ts";
-import { ws } from "#/rpc/ws.ts";
+import { setNotificationStreamSignal, waitForWsOpen, ws } from "#/rpc/ws.ts";
 import { clientLogger as logger } from "#/utils/logger.ts";
 
 export type NotificationItem = {
@@ -42,6 +42,17 @@ export const useNotificationStore = defineStore("notification", () => {
   const recentNotifications = ref<NotificationItem[]>([]);
   const isStreaming = ref(false);
   let abortController: AbortController | null = null;
+  let navigationStopInstalled = false;
+
+  const stopStreaming = () => {
+    abortController?.abort();
+    abortController = null;
+    isStreaming.value = false;
+    if (navigationStopInstalled && typeof window !== "undefined") {
+      window.removeEventListener("beforeunload", stopStreaming);
+      navigationStopInstalled = false;
+    }
+  };
 
   /** Load recent notifications and unread count. */
   const loadInitial = async () => {
@@ -57,12 +68,21 @@ export const useNotificationStore = defineStore("notification", () => {
   const startStreaming = async () => {
     if (isStreaming.value) return;
     isStreaming.value = true;
-    abortController = new AbortController();
+    const controller = new AbortController();
+    abortController = controller;
+    setNotificationStreamSignal(controller.signal);
+    if (!navigationStopInstalled && typeof window !== "undefined") {
+      window.addEventListener("beforeunload", stopStreaming, { once: true });
+      navigationStopInstalled = true;
+    }
 
     try {
-      const stream = await ws.notification.stream();
+      await waitForWsOpen(controller.signal);
+      const stream = await ws.notification.stream(undefined, {
+        signal: controller.signal,
+      });
       for await (const payload of stream) {
-        if (abortController?.signal.aborted) break;
+        if (controller.signal.aborted) break;
         if (!isNotificationPushPayload(payload)) continue;
         const item = payload;
         unreadCount.value += 1;
@@ -81,19 +101,15 @@ export const useNotificationStore = defineStore("notification", () => {
         }
       }
     } catch (err) {
-      if (!abortController?.signal.aborted) {
-        logger.withSituation("WEB").error(err, "Notification stream error");
+      if (!controller.signal.aborted) {
+        logger
+          .child({ component: "web" })
+          .error("Notification stream error", { error: err });
       }
     } finally {
+      setNotificationStreamSignal(undefined);
       isStreaming.value = false;
     }
-  };
-
-  /** Stop the stream. */
-  const stopStreaming = () => {
-    abortController?.abort();
-    abortController = null;
-    isStreaming.value = false;
   };
 
   /** Mark a notification as read. */

@@ -11,12 +11,17 @@ import {
   DialogTrigger,
 } from "@cat/ui";
 import { Check } from "@lucide/vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
+const hydrated = ref(false);
+onMounted(() => {
+  hydrated.value = true;
+});
 
 const props = defineProps<{
   contentNode: Pick<ContentNode, "id" | "projectId">;
@@ -43,7 +48,7 @@ const handleAutoApprove = async () => {
 </script>
 
 <template>
-  <Dialog>
+  <Dialog v-if="hydrated">
     <DialogTrigger>
       <Button variant="outline" size="icon"><Check /></Button>
     </DialogTrigger>

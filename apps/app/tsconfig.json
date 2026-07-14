@@ -15,6 +15,7 @@
     "src/**/*.vue",
     "scripts/**/*.ts",
     "vite.config.ts",
+    "vite.bootstrap.config.ts",
     "vitest.config.ts"
   ],
   "exclude": ["dist", "out-tsc"]

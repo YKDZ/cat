@@ -1,0 +1,41 @@
+# Stable local/test service capabilities. Entry files own credentials, ports,
+# persistence, and lifecycle policy through Compose extends.
+services:
+  postgresql:
+    image: cat-postgres-search-runtime:local
+    build:
+      context: ../postgres-search-runtime
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER} && psql -d $${POSTGRES_DB} -U $${POSTGRES_USER} -v ON_ERROR_STOP=1 -f /usr/local/share/search-runtime/healthcheck/search-runtime.sql
+      interval: 10s
+      retries: 12
+      start_period: 20s
+      timeout: 5s
+
+  redis:
+    image: redis:8-alpine
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli --no-auth-warning -a "$${REDIS_PASSWORD}" ping | grep PONG
+      interval: 10s
+      retries: 12
+      start_period: 10s
+      timeout: 3s
+
+  spacy:
+    image: cat-spacy-server:local
+    build:
+      context: ../spacy-server
+      args:
+        SPACY_MODELS: en_core_web_sm zh_core_web_sm ja_core_news_sm de_core_news_sm
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl -f http://localhost:8000/health
+      interval: 10s
+      retries: 18
+      start_period: 60s
+      timeout: 5s

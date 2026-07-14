@@ -24,6 +24,8 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { ref, onMounted, watch, computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { clientLogger } from "#/utils/logger.ts";
+
 import { onRequestMemories, type MemoryListItem } from "./Table.telefunc.ts";
 import TableItem from "./TableItem.vue";
 
@@ -62,8 +64,9 @@ const fetchMemories = async () => {
     memories.value = result.data;
     total.value = result.total;
   } catch (err) {
-    // oxlint-disable-next-line no-console
-    console.error("Failed to fetch memories:", err);
+    clientLogger
+      .child({ component: "memory-table" })
+      .error("Failed to fetch memories", { error: err });
   } finally {
     isLoading.value = false;
   }

@@ -65,8 +65,8 @@ export const check = authed
         const parsed = QAPubPayloadSchema.safeParse(event.payload);
         if (!parsed.success) {
           logger
-            .withSituation("RPC")
-            .error(parsed.error, "Invalid issue format");
+            .child({ component: "rpc" })
+            .error("Invalid issue format", { error: parsed.error });
           return;
         }
 
@@ -85,7 +85,9 @@ export const check = authed
         issuesQueue.close();
       })
       .catch((err: unknown) => {
-        logger.withSituation("RPC").error(err, "QA graph failed");
+        logger
+          .child({ component: "rpc" })
+          .error("QA graph failed", { error: err });
         issuesQueue.close();
       });
 

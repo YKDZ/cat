@@ -4,6 +4,7 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { watch } from "vue";
 
+import { isExpectedNavigationCancellation } from "#/rpc/request-cancellation.ts";
 import { useBranchStore } from "#/stores/branch.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorElementStore } from "#/stores/editor/element.ts";
@@ -82,8 +83,13 @@ watchClient(
   scope,
   async (nextScope) => {
     if (!nextScope) return;
-    await contextStore.refresh();
-    await elementStore.clearAndLoadCurrentPage();
+    try {
+      await contextStore.refresh();
+      await elementStore.clearAndLoadCurrentPage();
+    } catch (error) {
+      if (isExpectedNavigationCancellation(error)) return;
+      throw error;
+    }
   },
   { deep: true, immediate: true },
 );

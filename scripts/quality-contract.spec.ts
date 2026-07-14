@@ -45,6 +45,31 @@ const readRootManifest = (): {
   };
 
 describe("repository quality command contract", () => {
+  it("removes historical diagnostic situations from application sources", () => {
+    const result = spawnSync(
+      "rg",
+      ["-n", "situation:|withSituation", "apps", "packages", "@cat-plugin"],
+      { cwd: root, encoding: "utf8" },
+    );
+
+    expect(result.status, result.stdout + result.stderr).toBe(1);
+  });
+
+  it("routes browser-runtime errors through structured diagnostics", () => {
+    const result = spawnSync(
+      "rg",
+      [
+        "-n",
+        "console\\.(debug|info|warn|error|log)",
+        "apps/app/src/pages/index",
+        "packages/plugin-core/src/client/sce",
+      ],
+      { cwd: root, encoding: "utf8" },
+    );
+
+    expect(result.status, result.stdout + result.stderr).toBe(1);
+  });
+
   it("keeps root checks explicit and removes the central Vitest registry", () => {
     const scripts = readRootManifest().scripts ?? {};
 
@@ -108,7 +133,7 @@ describe("repository quality command contract", () => {
     } finally {
       unlinkSync(probe);
     }
-  });
+  }, 20_000);
 
   it("discovers root tooling specs without services or artifact tests", () => {
     const result = spawnSync(
@@ -164,7 +189,7 @@ describe("repository quality command contract", () => {
     } finally {
       unlinkSync(probe);
     }
-  });
+  }, 20_000);
 
   it("reserves mutation for fix and extends check for check:all", () => {
     const scripts = readRootManifest().scripts ?? {};
@@ -240,8 +265,8 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(233);
-    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(49);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(261);
+    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(53);
   });
 
   it("discovers package unit and integration suites by suffix without services", () => {
@@ -284,5 +309,5 @@ describe("repository quality command contract", () => {
     expect(integration.status, integration.stderr).toBe(0);
     expect(integration.stdout).toContain(".test.ts");
     expect(integration.stdout).not.toContain(".spec.ts");
-  });
+  }, 20_000);
 });

@@ -29,7 +29,9 @@ const props = defineProps<{
  */
 const emit = defineEmits<{
   /** Save the edited config and request backend hot-apply. */
-  save: [value: NonNullJSONType, expectedUpdatedAt: string | null];
+  save: [value: NonNullJSONType, expectedRevision: number | null];
+  /** Explicitly migrate the stale config and request backend hot-apply. */
+  migrate: [value: NonNullJSONType];
   /** Probe the current form value as candidate config. */
   probeCandidate: [value: NonNullJSONType];
 }>();
@@ -86,12 +88,17 @@ const handleUpdate = (value: NonNullJSONType) => {
 
 const handleSave = () => {
   if (!validate()) return;
-  emit("save", localData.value, props.detail.config.expectedUpdatedAt);
+  emit("save", localData.value, props.detail.config.expectedRevision);
 };
 
 const handleProbeCandidate = () => {
   if (!validate()) return;
   emit("probeCandidate", localData.value);
+};
+
+const handleMigrate = () => {
+  if (!validate()) return;
+  emit("migrate", localData.value);
 };
 </script>
 
@@ -109,6 +116,12 @@ const handleProbeCandidate = () => {
       </div>
 
       <template v-else>
+        <div
+          v-if="detail.config.isStale"
+          class="border-warning text-warning rounded-md border p-3 text-sm"
+        >
+          {{ t("此配置使用旧 schema，必须显式迁移后才能激活") }}
+        </div>
         <JsonForm
           v-if="
             detail.config.schema && typeof detail.config.schema !== 'boolean'
@@ -132,6 +145,14 @@ const handleProbeCandidate = () => {
         </div>
 
         <div class="flex flex-wrap gap-2">
+          <Button
+            v-if="detail.config.isStale"
+            :disabled="isSaving || !detail.actions.canMigrateConfig"
+            @click="handleMigrate"
+          >
+            <Save class="mr-2 size-4" />
+            {{ isSaving ? t("迁移并应用中…") : t("迁移并应用") }}
+          </Button>
           <Button
             :disabled="!isDirty || isSaving || !detail.actions.canSaveConfig"
             @click="handleSave"

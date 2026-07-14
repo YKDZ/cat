@@ -38,7 +38,9 @@ const emit = defineEmits<{
   /** Reload the plugin. */
   reload: [];
   /** Save plugin configuration. */
-  saveConfig: [value: NonNullJSONType, expectedUpdatedAt: string | null];
+  saveConfig: [value: NonNullJSONType, expectedRevision: number | null];
+  /** Explicitly migrate a stale plugin configuration. */
+  migrateConfig: [value: NonNullJSONType];
   /** Probe candidate configuration. */
   probeCandidate: [value: NonNullJSONType];
   /** Probe the current runtime configuration. */
@@ -142,9 +144,9 @@ const simpleName = computed(() =>
       :is-saving="isSaving"
       :is-probing="isProbing"
       @save="
-        (value, expectedUpdatedAt) =>
-          emit('saveConfig', value, expectedUpdatedAt)
+        (value, expectedRevision) => emit('saveConfig', value, expectedRevision)
       "
+      @migrate="(value) => emit('migrateConfig', value)"
       @probe-candidate="(value) => emit('probeCandidate', value)"
     />
 

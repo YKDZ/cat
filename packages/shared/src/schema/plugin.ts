@@ -3,7 +3,7 @@ import * as z from "zod";
 import { PluginServiceTypeSchema } from "#/schema/enum.ts";
 import { JSONSchemaSchema, nonNullSafeZDotJson } from "#/schema/json.ts";
 
-export const PluginManifestSchema = z.object({
+const PluginManifestBaseSchema = z.object({
   id: z
     .string()
     .regex(
@@ -38,13 +38,34 @@ export const PluginManifestSchema = z.object({
     )
     .optional(),
   config: JSONSchemaSchema.optional(),
+  configVersion: z
+    .string()
+    .min(1)
+    .refine((version) => version !== "legacy-unverified")
+    .optional(),
 });
 
-export const PluginDataSchema = PluginManifestSchema.extend({
+const requireConfigVersion = (
+  manifest: z.infer<typeof PluginManifestBaseSchema>,
+  context: z.RefinementCtx,
+): void => {
+  if (manifest.config !== undefined && manifest.configVersion === undefined) {
+    context.addIssue({
+      code: "custom",
+      message: "Plugins that declare configuration must declare configVersion",
+      path: ["configVersion"],
+    });
+  }
+};
+
+export const PluginManifestSchema =
+  PluginManifestBaseSchema.superRefine(requireConfigVersion);
+
+export const PluginDataSchema = PluginManifestBaseSchema.extend({
   name: z.string().lowercase(),
   version: z.string(),
   overview: z.string().nullable(),
-});
+}).superRefine(requireConfigVersion);
 
 export const TranslationAdviseSchema = z.object({
   translation: z.string(),

@@ -24,11 +24,13 @@ import {
   ensureVectorStorageSchema,
   executeCommand,
   executeQuery,
+  getPluginConfigInstance,
+  getPluginConfigSchemaDigest,
   findAgentDefinitionByDefinitionIdAndScope,
   installPlugin,
   MemoryCacheStore,
   registerPluginDefinition,
-  upsertPluginConfigInstance,
+  writePluginConfigInstance,
 } from "@cat/domain";
 import {
   buildMemoryRecallVariantsOp,
@@ -97,7 +99,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     const { TestPluginLoader } = await import("@cat/test-utils");
     loader = new TestPluginLoader();
   } else {
-    loader = new FileSystemPluginLoader(pluginsDir);
+    loader = new FileSystemPluginLoader({ pluginsDir });
   }
   const pluginManager = PluginManager.get("GLOBAL", "", loader);
 
@@ -121,6 +123,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       overview: data.overview ?? "",
       iconUrl: data.iconURL ?? null,
       configSchema: data.config,
+      configVersion: data.configVersion,
     });
     await executeCommand(execCtx, installPlugin, {
       pluginId: data.id,
@@ -128,12 +131,29 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       scopeId: override.scopeId ?? "",
     });
     if (data.config !== undefined) {
-      await executeCommand(execCtx, upsertPluginConfigInstance, {
+      if (!data.configVersion) {
+        throw new Error(
+          `Plugin ${data.id} declares config without configVersion`,
+        );
+      }
+      const instance = await executeQuery(execCtx, getPluginConfigInstance, {
+        pluginId: override.plugin,
+        scopeType: override.scope,
+        scopeId: override.scopeId ?? "",
+      });
+      if (!instance)
+        throw new Error(
+          `Plugin ${override.plugin} config instance was not created`,
+        );
+      await executeCommand(execCtx, writePluginConfigInstance, {
         pluginId: override.plugin,
         scopeType: override.scope,
         scopeId: override.scopeId ?? "",
         creatorId: userId,
         value: override.config,
+        expectedSchemaVersion: data.configVersion,
+        expectedSchemaDigest: getPluginConfigSchemaDigest(data.config),
+        expectedRevision: instance.revision,
       });
     }
     await pluginManager.activate(testDb.client, data.id);

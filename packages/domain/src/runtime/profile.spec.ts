@@ -10,7 +10,7 @@ describe("resolveRuntimeProfile", () => {
     expect(profile.cache.backend).toBe("memory");
     expect(profile.session.backend).toBe("memory");
     expect(profile.queue.backend).toBe("memory");
-    expect(profile.requiredSearchLevel).toBe("basic-db-runtime");
+    expect(profile.requiredSearchLevel).toBe("full-search-runtime");
   });
 
   it("defaults to production redis backends in production", () => {

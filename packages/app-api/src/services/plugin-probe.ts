@@ -21,6 +21,7 @@ import type { Context } from "#/utils/context.ts";
 import {
   assertConfigValueMatchesSchema,
   getPluginDetailModel,
+  resolvePluginManager,
 } from "./plugin-management.ts";
 import { errorMessage, redactJson } from "./plugin-redaction.ts";
 import type {
@@ -713,7 +714,7 @@ export const probePluginConfig = async (
   const {
     drizzleDB: { client: drizzle },
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
   const signal = combineSignals(
     context.requestSignal,
     input.timeoutMs ?? DEFAULT_TIMEOUT_MS,

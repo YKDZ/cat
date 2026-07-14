@@ -6,12 +6,13 @@ import { describe, expect, it } from "vitest";
 const root = resolve(import.meta.dirname, "../../../..");
 
 const redisComposeFiles = [
-  "apps/app/docker-compose.yml",
-  "apps/app-e2e/docker-compose.yml",
-  "apps/eval/suites/smoke/docker-compose.yml",
-  "apps/eval/suites/minecraft-term-recall/docker-compose.yml",
-  "apps/eval/suites/minecraft-memory-recall/docker-compose.yml",
-  "apps/eval/suites/minecraft-agent-translate/docker-compose.yml",
+  "apps/app/compose.yaml",
+  "apps/app/compose.local.yaml",
+  "apps/app-e2e/compose.e2e.yaml",
+  "apps/eval/suites/smoke/compose.eval.yaml",
+  "apps/eval/suites/minecraft-term-recall/compose.eval.yaml",
+  "apps/eval/suites/minecraft-memory-recall/compose.eval.yaml",
+  "apps/eval/suites/minecraft-agent-translate/compose.eval.yaml",
 ] as const;
 
 const readText = (relativePath: string): string => {
@@ -68,8 +69,7 @@ describe("Redis AOF compose config", () => {
       const redisBlock = extractRedisServiceBlock(text);
       const tokens = extractCommandTokens(redisBlock);
 
-      expect(redisBlock).toMatch(/^\s*image:\s*redis\s*$/mu);
-      expect(tokens).toEqual([
+      expect(tokens.slice(0, 5)).toEqual([
         "redis-server",
         "--appendonly",
         "yes",
@@ -78,4 +78,11 @@ describe("Redis AOF compose config", () => {
       ]);
     },
   );
+
+  it("keeps the shared Redis capability on the official image", () => {
+    const text = readText("apps/app/compose.services.yaml");
+    const redisBlock = extractRedisServiceBlock(text);
+
+    expect(redisBlock).toMatch(/^\s*image:\s*redis:8-alpine\s*$/mu);
+  });
 });

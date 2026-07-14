@@ -40,26 +40,20 @@ export class MemoryCacheStore implements CacheStore {
       ...(expires === undefined ? {} : { expires }),
     });
 
-    logger.debug(
-      {
-        key: fullKey,
-        ttl,
-        expires,
-      },
-      "Cache set",
-    );
+    logger.debug("Cache set", {
+      key: fullKey,
+      ttl,
+      expires,
+    });
   }
 
   async delete(key: string): Promise<void> {
     const fullKey = `${this.keyPrefix}:${key}`;
     this.storage.delete(fullKey);
 
-    logger.debug(
-      {
-        key: fullKey,
-      },
-      "Cache deleted",
-    );
+    logger.debug("Cache deleted", {
+      key: fullKey,
+    });
   }
 
   async has(key: string): Promise<boolean> {
