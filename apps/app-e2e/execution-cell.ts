@@ -52,6 +52,7 @@ const searchRuntimeInitializationPath = join(
 );
 const startupTimeoutMs = 300_000;
 const cleanupTimeoutMs = 60_000;
+const playwrightTimeoutMs = 480_000;
 
 export type ExecutionTarget = "dev" | "standalone" | "runtime";
 export type ExecutionBrowser = "chromium" | "firefox";
@@ -245,6 +246,7 @@ export type AbortableCommandOptions = {
   outputPath?: string;
   signal?: AbortSignal;
   spawnProcess?: AbortableProcessSpawner;
+  timeoutMs?: number;
 };
 
 export type AbortableProcessSpawner = (
@@ -300,7 +302,7 @@ export const runAbortableCommand = async (
     const timeout = setTimeout(() => {
       child.kill("SIGTERM");
       finish(new Error(`Timed out during ${label}`));
-    }, startupTimeoutMs);
+    }, options.timeoutMs ?? startupTimeoutMs);
     options.signal?.addEventListener("abort", abort, { once: true });
     if (output !== undefined) {
       child.stdout?.pipe(output, { end: false });
@@ -338,6 +340,7 @@ type CellCommandRunner = (
   label: string,
   outputPath?: string,
   signal?: AbortSignal,
+  timeoutMs?: number,
 ) => Promise<void>;
 
 const runCommand: CellCommandRunner = async (
@@ -347,10 +350,12 @@ const runCommand: CellCommandRunner = async (
   label: string,
   outputPath?: string,
   signal?: AbortSignal,
+  timeoutMs?: number,
 ): Promise<void> =>
   await runAbortableCommand(command, args, environment, label, {
     ...(outputPath === undefined ? {} : { outputPath }),
     ...(signal === undefined ? {} : { signal }),
+    ...(timeoutMs === undefined ? {} : { timeoutMs }),
   });
 
 const runCommandCapture = async (
@@ -2256,6 +2261,7 @@ export class ExecutionCell {
       `${this.input.target}-${this.input.browser} Playwright`,
       undefined,
       this.signal,
+      playwrightTimeoutMs,
     );
   }
 

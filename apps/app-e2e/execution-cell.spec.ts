@@ -85,6 +85,42 @@ describe("ExecutionCell scheduler", () => {
     expect(child.kill).toHaveBeenCalledWith("SIGTERM");
   });
 
+  it("uses the command-specific timeout when provided", async () => {
+    vi.useFakeTimers();
+    try {
+      const child = new EventEmitter() as EventEmitter & {
+        kill: ReturnType<typeof vi.fn>;
+        stderr: undefined;
+        stdout: undefined;
+      };
+      child.kill = vi.fn(() => true);
+      child.stdout = undefined;
+      child.stderr = undefined;
+
+      const running = runAbortableCommand(
+        "pnpm",
+        ["exec", "playwright", "test"],
+        {},
+        "fake Playwright",
+        {
+          spawnProcess: () => child as unknown as ChildProcess,
+          timeoutMs: 10_000,
+        },
+      );
+      const rejection = expect(running).rejects.toThrow(
+        "Timed out during fake Playwright",
+      );
+
+      await vi.advanceTimersByTimeAsync(9_999);
+      expect(child.kill).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+      await rejection;
+      expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("preserves Docker exit state and logs in container phase failures", () => {
     expect(
       formatDockerContainerPhaseFailure(
