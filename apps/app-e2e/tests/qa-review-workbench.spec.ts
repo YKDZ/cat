@@ -71,8 +71,12 @@ test.describe("QA review workbench", () => {
     await qaReviewPage.defer();
     await page.waitForLoadState("networkidle");
 
-    await page.goto(
-      `/qa-review/project/${projectId}/zh-Hans/${deferElementId}`,
+    await qaReviewPage.navigateToQa(projectId, "zh-Hans");
+    await page.waitForURL(
+      new RegExp(
+        `/qa-review/project/${projectId}/zh-Hans/${deferElementId}(?:\\?.*)?$`,
+      ),
+      { timeout: 15_000 },
     );
     await expect(
       page.getByRole("button", { name: /选择候选/ }).first(),
