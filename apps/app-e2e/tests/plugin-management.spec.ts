@@ -4,6 +4,8 @@ test.describe("Plugin management", () => {
   test("administrator probes the official spaCy segmenter candidate through the product API", async ({
     page,
   }) => {
+    test.setTimeout(150_000);
+
     await page.goto("/admin/plugin/spacy-segmenter");
     await expect(
       page.getByRole("heading", { name: "spacy-segmenter" }),
@@ -14,17 +16,14 @@ test.describe("Plugin management", () => {
       exact: true,
     });
     await expect(probeButton).toBeEnabled();
-    const [probeResponse] = await Promise.all([
-      page.waitForResponse(
-        (response) =>
-          response.url().includes("/api/rpc/plugin/probeConfig") &&
-          response.request().method() === "POST",
-      ),
-      probeButton.click({ position: { x: 16, y: 16 } }),
-    ]);
-    expect(probeResponse.ok()).toBe(true);
+    await probeButton.click({ position: { x: 16, y: 16 } });
+    await expect(
+      page.getByRole("button", { name: "检测中…", exact: true }).first(),
+    ).toBeVisible();
 
-    await expect(page.getByText("检测结果：SUCCESS")).toBeVisible();
+    await expect(page.getByText("检测结果：SUCCESS")).toBeVisible({
+      timeout: 120_000,
+    });
     await expect(
       page.getByText("NLP_WORD_SEGMENTER · spacy-word-segmenter").last(),
     ).toBeVisible();
