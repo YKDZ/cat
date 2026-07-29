@@ -18,11 +18,7 @@ test.describe("QA review workbench", () => {
         `/qa-review/project/${projectId}/zh-Hans/${approveElementId}(?:\\?.*)?$`,
       ),
     );
-    await expect(
-      page.getByRole("button", { name: /选择候选/ }).first(),
-    ).toBeVisible({
-      timeout: 30_000,
-    });
+    await qaReviewPage.expectFirstCandidateVisible();
     await expect(page.getByText("阻断批准").first()).toBeVisible({
       timeout: 30_000,
     });
@@ -76,8 +72,6 @@ test.describe("QA review workbench", () => {
       ),
       { timeout: 15_000 },
     );
-    await expect(
-      page.getByRole("button", { name: /选择候选/ }).first(),
-    ).toBeVisible({ timeout: 15_000 });
+    await qaReviewPage.expectFirstCandidateVisible(30_000);
   });
 });

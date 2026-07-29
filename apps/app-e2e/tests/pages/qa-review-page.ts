@@ -26,6 +26,27 @@ export class QaReviewPage {
     ).toBeVisible();
   }
 
+  async expectFirstCandidateVisible(timeout = 60_000): Promise<void> {
+    const candidate = this.page
+      .getByRole("button", { name: /选择候选/ })
+      .first();
+    try {
+      await expect(candidate).toBeVisible({ timeout });
+    } catch (error) {
+      const bodyText = await this.page
+        .locator("body")
+        .innerText({ timeout: 1_000 })
+        .catch(() => "");
+      throw new Error(
+        [
+          `QA review candidate did not render at ${this.page.url()}.`,
+          bodyText.slice(0, 2_000),
+        ].join("\n"),
+        { cause: error },
+      );
+    }
+  }
+
   async addNote(text: string): Promise<void> {
     await this.page.getByPlaceholder("写入审校批注").fill(text);
   }
