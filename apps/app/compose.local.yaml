@@ -1,0 +1,77 @@
+name: cat-local
+
+# Local development dependencies for `app:dev`. Their high host ports allow
+# the disposable E2E stack to retain its conventional 5432 and 6379 bindings.
+services:
+  postgresql:
+    extends:
+      file: ./compose.services.yaml
+      service: postgresql
+    environment:
+      POSTGRES_DB: cat
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+    ports:
+      - "127.0.0.1:${CAT_LOCAL_POSTGRES_HOST_PORT:-25432}:5432"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - local-postgresql-data:/var/lib/postgresql/data
+
+  redis:
+    extends:
+      file: ./compose.services.yaml
+      service: redis
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --requirepass
+      - ${CAT_LOCAL_REDIS_PASSWORD:-cat-local-redis}
+    environment:
+      REDIS_PASSWORD: ${CAT_LOCAL_REDIS_PASSWORD:-cat-local-redis}
+    ports:
+      - "127.0.0.1:${CAT_LOCAL_REDIS_HOST_PORT:-26379}:6379"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - local-redis-data:/data
+
+  spacy:
+    extends:
+      file: ./compose.services.yaml
+      service: spacy
+    ports:
+      - "127.0.0.1:${CAT_LOCAL_SPACY_HOST_PORT:-28000}:8000"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+
+  libretranslate:
+    image: libretranslate/libretranslate
+    profiles: ["optional"]
+    environment:
+      LT_LOAD_ONLY: zh,en
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - ./venv/bin/python scripts/healthcheck.py
+    ports:
+      - "127.0.0.1:${CAT_LOCAL_LIBRETRANSLATE_HOST_PORT:-25000}:5000"
+
+  ollama:
+    image: ollama/ollama
+    profiles: ["optional"]
+    ports:
+      - "127.0.0.1:${CAT_LOCAL_OLLAMA_HOST_PORT:-21434}:11434"
+    volumes:
+      - local-ollama-data:/root/.ollama
+
+volumes:
+  local-ollama-data:
+  local-postgresql-data:
+  local-redis-data:

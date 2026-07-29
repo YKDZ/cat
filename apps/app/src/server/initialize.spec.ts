@@ -79,16 +79,19 @@ const mocks = vi.hoisted(() => {
   const serverError = vi.fn();
   const serverInfo = vi.fn();
   const serverWarn = vi.fn();
+  const configureReadinessReporter = vi.fn();
+  const createReadinessReporter = vi.fn((options) => options);
+  const ReadinessProbeFailure = class extends Error {};
 
   return {
     activeRunIds,
     assertSearchRuntimeHealth: vi.fn().mockResolvedValue(fakeDatabaseSummary),
     calls,
+    configureReadinessReporter,
+    createReadinessReporter,
     createAppPluginLoader: vi.fn(() => fakePluginLoader),
     createDefaultGraphRuntime: vi.fn(),
     createRuntimeBackends: vi.fn().mockResolvedValue(fakeBackends),
-    ensureDB: vi.fn().mockResolvedValue(undefined),
-    ensureRootUser: vi.fn().mockResolvedValue(undefined),
     executeCommand: vi.fn(),
     executeQuery: vi.fn(),
     fakeApp,
@@ -103,18 +106,18 @@ const mocks = vi.hoisted(() => {
     fakeProfile,
     fakeRecoverCrashedAgentRuns,
     fakeRouteRegistry,
+    getCacheStore: vi.fn(() => fakeBackends.cacheStore),
     getCurrentRedisHandle: vi.fn().mockReturnValue(undefined),
     getDbHandle: vi.fn().mockResolvedValue(fakeDrizzleDB),
     getDefaultPluginIds: vi.fn(() => defaultPluginIds),
     getDefaultRegistries: vi.fn(() => ({
       appMethodRegistry: { id: "registry" },
     })),
-    getFirstRegisteredUser: Symbol("getFirstRegisteredUser"),
     getGlobalGraphRuntimeOrNull: vi.fn(() => ({
       scheduler: { getActiveRunIds: vi.fn(() => activeRunIds) },
     })),
     getSetting: Symbol("getSetting"),
-    grantFirstUserSuperadmin: vi.fn().mockResolvedValue(undefined),
+    getSessionStore: vi.fn(() => fakeBackends.sessionStore),
     initCacheStore: vi.fn(),
     initPermissionEngine: vi.fn(),
     initRuntimeState: vi.fn(),
@@ -128,14 +131,13 @@ const mocks = vi.hoisted(() => {
     pluginManagerClear: vi.fn(),
     pluginManagerInstallDefaults: vi.fn().mockResolvedValue(undefined),
     registerAuditHandler: vi.fn(),
-    registerBuiltinAgents: vi.fn().mockResolvedValue(undefined),
     registerDomainEventHandlers: vi.fn(),
     registerVectorizationConsumer: vi.fn().mockResolvedValue(undefined),
+    ReadinessProbeFailure,
     recoverCrashedAgentRuns: fakeRecoverCrashedAgentRuns,
     resolveRuntimeProfile: vi.fn(() => fakeProfile),
-    seedSystemRoles: vi.fn().mockResolvedValue(undefined),
     serverLogger: {
-      withSituation: () => ({
+      child: () => ({
         error: serverError,
         info: serverInfo,
         warn: serverWarn,
@@ -150,26 +152,22 @@ const mocks = vi.hoisted(() => {
   };
 });
 
-vi.mock("@cat/agent", () => ({
-  registerBuiltinAgents: mocks.registerBuiltinAgents,
-}));
-
 vi.mock("@cat/app-api/app", () => ({
+  configureReadinessReporter: mocks.configureReadinessReporter,
+  createReadinessReporter: mocks.createReadinessReporter,
   default: mocks.fakeApp,
-}));
-
-vi.mock("@cat/db", () => ({
-  ensureDB: mocks.ensureDB,
-  ensureRootUser: mocks.ensureRootUser,
+  ReadinessProbeFailure: mocks.ReadinessProbeFailure,
 }));
 
 vi.mock("@cat/domain", () => ({
   executeCommand: mocks.executeCommand,
   executeQuery: mocks.executeQuery,
+  getCacheStore: mocks.getCacheStore,
   getCurrentRedisHandle: mocks.getCurrentRedisHandle,
+  getRuntimeState: vi.fn(),
   getDbHandle: mocks.getDbHandle,
-  getFirstRegisteredUser: mocks.getFirstRegisteredUser,
   getSetting: mocks.getSetting,
+  getSessionStore: mocks.getSessionStore,
   initCacheStore: mocks.initCacheStore,
   initRuntimeState: mocks.initRuntimeState,
   initSessionStore: mocks.initSessionStore,
@@ -187,10 +185,8 @@ vi.mock("@cat/operations", () => ({
 }));
 
 vi.mock("@cat/permissions", () => ({
-  grantFirstUserSuperadmin: mocks.grantFirstUserSuperadmin,
   initPermissionEngine: mocks.initPermissionEngine,
   registerAuditHandler: mocks.registerAuditHandler,
-  seedSystemRoles: mocks.seedSystemRoles,
 }));
 
 vi.mock("@cat/plugin-core", () => ({
@@ -227,7 +223,10 @@ vi.mock("@cat/workflow", () => ({
 
 vi.mock("./default-plugins/catalog.ts", () => ({
   createAppPluginLoader: mocks.createAppPluginLoader,
-  getDefaultPluginIds: mocks.getDefaultPluginIds,
+}));
+
+vi.mock("./application-data-bootstrap.ts", () => ({
+  bootstrapApplicationData: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("./runtime-backends.ts", () => ({
@@ -243,6 +242,7 @@ vi.mock("./search-runtime-health.ts", () => ({
 }));
 
 import { initializeApp } from "./initialize.ts";
+import { resetRuntimeCapabilitiesForTest } from "./runtime-capabilities.ts";
 
 describe("initializeApp", () => {
   beforeEach(() => {
@@ -269,6 +269,8 @@ describe("initializeApp", () => {
       mocks.calls.push("graph-runtime");
     });
     Reflect.deleteProperty(globalThis, "app");
+    Reflect.deleteProperty(process, "__CAT_INITIALIZATION_PROMISE__");
+    resetRuntimeCapabilitiesForTest();
     globalThis.inited = false;
     globalThis.redis = undefined;
     Reflect.deleteProperty(globalThis, "messageGateway");
@@ -317,15 +319,13 @@ describe("initializeApp", () => {
       "GLOBAL",
       "",
       mocks.fakePluginLoader,
+      mocks.serverLogger,
     );
-    expect(mocks.fakeDiscovery.syncDefinitions).toHaveBeenCalledWith(
-      mocks.fakeDrizzleClient,
+    expect(mocks.createAppPluginLoader).toHaveBeenCalledWith(
+      mocks.serverLogger,
     );
-    expect(mocks.pluginManagerInstallDefaults).toHaveBeenCalledWith(
-      mocks.fakeDrizzleClient,
-      mocks.fakePluginManager,
-      mocks.getDefaultPluginIds(),
-    );
+    expect(mocks.fakeApp.all).not.toHaveBeenCalled();
+    expect(mocks.fakeDrizzleDB.migrate).not.toHaveBeenCalled();
     expect(mocks.calls).toEqual([
       "domain-handlers",
       "recover-runs",
@@ -338,8 +338,8 @@ describe("initializeApp", () => {
       { activeRunIds: mocks.activeRunIds },
     );
     expect(mocks.serverWarn).toHaveBeenCalledWith(
-      { recoveredRunIds: ["run-1"] },
       "Recovered crashed workflow runs",
+      { recoveredRunIds: ["run-1"] },
     );
     expect(mocks.initAllVectorStorage).not.toHaveBeenCalled();
     expect(mocks.registerVectorizationConsumer).toHaveBeenCalledWith(
@@ -350,26 +350,38 @@ describe("initializeApp", () => {
     expect(globalThis.redis).toBeUndefined();
     expect(globalThis.pluginManager).toBe(mocks.fakePluginManager);
     expect(globalThis.runtimeCleanup).toBe(mocks.fakeCleanupHandle);
+    expect(mocks.configureReadinessReporter).toHaveBeenCalledTimes(2);
     expect(globalThis.inited).toBe(true);
     expect(exitSpy).not.toHaveBeenCalled();
 
     exitSpy.mockRestore();
   });
 
-  it("exits before readiness when run recovery fails", async () => {
-    const exitError = new Error("process.exit called");
-    const exitSpy = vi
-      .spyOn(process, "exit")
-      .mockImplementation(
-        (_code?: Parameters<typeof process.exit>[0]): never => {
-          throw exitError;
-        },
-      );
+  it("never runs migrations when a legacy migration environment variable is set", async () => {
+    const previous = process.env.DRIZZLE_MIGRATE;
+    process.env.DRIZZLE_MIGRATE = "true";
+
+    await initializeApp();
+
+    expect(mocks.fakeDrizzleDB.migrate).not.toHaveBeenCalled();
+    if (previous === undefined) delete process.env.DRIZZLE_MIGRATE;
+    else process.env.DRIZZLE_MIGRATE = previous;
+  });
+
+  it("coalesces concurrent startup callers into one application bootstrap", async () => {
+    await Promise.all([initializeApp(), initializeApp()]);
+
+    expect(mocks.getDbHandle).toHaveBeenCalledOnce();
+    expect(mocks.createRuntimeBackends).toHaveBeenCalledOnce();
+  });
+
+  it("keeps HTTP liveness available and reports bootstrap failure when run recovery fails", async () => {
+    const exitSpy = vi.spyOn(process, "exit");
     mocks.executeCommand.mockRejectedValueOnce(new Error("db recovery failed"));
 
-    await expect(initializeApp()).rejects.toBe(exitError);
+    await expect(initializeApp()).resolves.toBeUndefined();
 
-    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(exitSpy).not.toHaveBeenCalled();
     expect(globalThis.inited).not.toBe(true);
     expect(mocks.registerVectorizationConsumer).not.toHaveBeenCalled();
     expect(mocks.createDefaultGraphRuntime).not.toHaveBeenCalled();
@@ -378,22 +390,15 @@ describe("initializeApp", () => {
     exitSpy.mockRestore();
   });
 
-  it("exits before readiness when queue recovery fails", async () => {
-    const exitError = new Error("process.exit called");
-    const exitSpy = vi
-      .spyOn(process, "exit")
-      .mockImplementation(
-        (_code?: Parameters<typeof process.exit>[0]): never => {
-          throw exitError;
-        },
-      );
+  it("keeps HTTP liveness available and reports bootstrap failure when queue recovery fails", async () => {
+    const exitSpy = vi.spyOn(process, "exit");
     mocks.registerVectorizationConsumer.mockRejectedValueOnce(
       new Error("redis recovery failed"),
     );
 
-    await expect(initializeApp()).rejects.toBe(exitError);
+    await expect(initializeApp()).resolves.toBeUndefined();
 
-    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(exitSpy).not.toHaveBeenCalled();
     expect(globalThis.inited).not.toBe(true);
     expect(mocks.createDefaultGraphRuntime).not.toHaveBeenCalled();
     expect(mocks.messageGatewayStart).not.toHaveBeenCalled();

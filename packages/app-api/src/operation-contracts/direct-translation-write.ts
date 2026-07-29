@@ -712,8 +712,8 @@ export const directTranslationWriteContract = defineOperationContract({
           });
         } catch (error) {
           logger
-            .withSituation("RPC")
-            .error(error, "personal memory write failed");
+            .child({ component: "rpc" })
+            .error("personal memory write failed", { error: error });
         }
       }
 

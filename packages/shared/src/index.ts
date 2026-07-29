@@ -795,13 +795,15 @@ export {
 
 export { getDefaultFromSchema } from "#/utils/json-schema.ts";
 
-export { Logger, TypedLogger, logger } from "#/utils/logger/core.ts";
+export { Logger, logger } from "#/utils/logger/core.ts";
 
 export {
-  type LogEntry,
+  type DiagnosticContext,
+  type DiagnosticEvent,
+  type DiagnosticFields,
+  type DiagnosticObserver,
+  type DiagnosticTransport,
   type LogLevel,
-  type LoggerTransport,
-  type OutputSituation,
 } from "#/utils/logger/types.ts";
 
 export { summarize } from "#/utils/object.ts";

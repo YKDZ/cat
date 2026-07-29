@@ -9,7 +9,8 @@
   "scripts": {
     "format": "node ../../tooling/oxlint/run.ts format",
     "lint": "node ../../tooling/oxlint/run.ts lint",
-    "test:e2e": "playwright test",
+    "test:e2e": "node test-e2e.ts",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --passWithNoTests",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
@@ -18,6 +19,10 @@
     "@cat/seed": "link:../../packages/seed",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
-    "dotenv": "catalog:"
+    "@types/pg": "catalog:",
+    "dotenv": "catalog:",
+    "pg": "catalog:",
+    "redis": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -306,6 +306,9 @@ describe("public package artifact matrix", () => {
         expect(declaration, artifact.manifest.name).not.toMatch(
           /@cat\/(?:domain|shared)|#\//,
         );
+        if (artifact.directory === "packages/plugin-core") {
+          expect(declaration).toContain("logger: PluginLogger;");
+        }
       }),
     );
 
@@ -351,15 +354,21 @@ describe("public package artifact matrix", () => {
       .join("\n");
     await writeFile(
       join(consumer, "consumer.ts"),
-      `import type { CatPlugin, ComponentData, Token } from "@cat/plugin-core";
-import { AuthFactor, FileImporter, QAChecker } from "@cat/plugin-core";
+      `import type { CatPlugin, ComponentData, PluginContext, PluginLogger, Token } from "@cat/plugin-core";
+import { AuthFactor, FileImporter, PluginManager, QAChecker, ServiceRegistry } from "@cat/plugin-core";
 import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
 ${pluginImports}
 
 const plugins: CatPlugin[] = [${pluginNames.map((_, index) => `plugin${index}`).join(", ")}];
 const component: ComponentData = { name: "example", slot: "example", url: "example.js" };
 const token: Token = { type: "text", value: "x", start: 0, end: 1 };
-void [plugins, component, token, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];
+declare const pluginContext: PluginContext;
+pluginContext.logger.error("plugin diagnostic", { code: "PLUGIN_DIAGNOSTIC" });
+declare const pluginLogger: PluginLogger;
+const pluginManager = PluginManager.get("GLOBAL", "", undefined, pluginLogger);
+pluginManager.getDiagnosticLogger().info("host diagnostic");
+const serviceRegistry = new ServiceRegistry([], pluginLogger);
+void [plugins, component, token, serviceRegistry, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];
 `,
     );
     await writeFile(
@@ -394,9 +403,30 @@ for (const name of names) plugins.set(name, await import(name));
 const qa = plugins.get("@cat-plugin/basic-qa-checker").default.services({})[0];
 const file = plugins.get("@cat-plugin/json-file-handler").default.services({})[0];
 const auth = plugins.get("@cat-plugin/totp-mfa-provider").default.services({ capabilities: {} })[0];
+const diagnostics = [];
+const pluginLogger = {
+  child: () => pluginLogger,
+  debug: () => undefined,
+  info: () => undefined,
+  warn: () => undefined,
+  error: (message, fields) => diagnostics.push({ message, fields }),
+  fatal: () => undefined,
+};
+const serviceRegistry = new core.ServiceRegistry([], pluginLogger);
+if (!(serviceRegistry instanceof core.ServiceRegistry)) {
+  throw new Error("plugin service registry did not cross the packaged boundary");
+}
+const spacy = plugins.get("@cat-plugin/spacy-segmenter").default.services({
+  config: { serverUrl: "http://127.0.0.1:1" },
+  logger: pluginLogger,
+})[0];
 if (!(qa instanceof core.QAChecker)) throw new Error("duplicate QA plugin-core instance");
 if (!(file instanceof core.FileImporter)) throw new Error("duplicate file plugin-core instance");
 if (!(auth instanceof core.AuthFactor)) throw new Error("duplicate auth plugin-core instance");
+await spacy.getSupportedLanguages();
+if (diagnostics[0]?.fields?.code !== "SPACY_LANGUAGES_UNAVAILABLE") {
+  throw new Error("plugin diagnostics did not cross the packaged plugin boundary");
+}
 if (plugins.get("@cat-plugin/tiny-widget").default.components({}).length !== 1) {
   throw new Error("browser plugin runtime failed");
 }

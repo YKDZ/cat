@@ -130,7 +130,7 @@ describe("FileSystemPluginLoader.resolveAssetPath", () => {
     tempDir = await mkdtemp(join(tmpdir(), "fs-loader-"));
     await mkdir(join(tempDir, "plugin-a", "dist"), { recursive: true });
 
-    const loader = new FileSystemPluginLoader(tempDir);
+    const loader = new FileSystemPluginLoader({ pluginsDir: tempDir });
 
     await expect(
       loader.resolveAssetPath?.("plugin-a", "dist/index.js"),

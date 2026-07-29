@@ -10,6 +10,7 @@ import {
   agentRun,
   agentSession,
   blob,
+  bootstrapReceipt,
   chunk,
   chunkSet,
   comment,
@@ -94,6 +95,7 @@ type SelectSchemaTable =
   | typeof agentRun
   | typeof agentSession
   | typeof blob
+  | typeof bootstrapReceipt
   | typeof chunk
   | typeof chunkSet
   | typeof comment
@@ -517,6 +519,12 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   {
     outputFile: "plugin.ts",
     declarations: [
+      {
+        kind: "table",
+        schemaExportName: "BootstrapReceiptSchema",
+        typeExportName: "BootstrapReceipt",
+        buildShape: buildSelectShape(bootstrapReceipt),
+      },
       {
         kind: "table",
         schemaExportName: "PluginSchema",

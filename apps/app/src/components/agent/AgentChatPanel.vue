@@ -165,7 +165,9 @@ const fetchLLMProviders = async () => {
       selectedProviderId.value = llmProviders.value[0]?.id ?? null;
     }
   } catch (err) {
-    logger.withSituation("WEB").error(err, "Failed to fetch LLM providers");
+    logger
+      .child({ component: "web" })
+      .error("Failed to fetch LLM providers", { error: err });
   }
 };
 

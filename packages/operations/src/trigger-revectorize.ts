@@ -32,7 +32,7 @@ export const triggerConceptRevectorize = (
     ctx,
   ).catch((err: unknown) => {
     logger
-      .withSituation("OP")
-      .error(err, `Failed to revectorize concept ${conceptId}`);
+      .child({ component: "operation" })
+      .error(`Failed to revectorize concept ${conceptId}`, { error: err });
   });
 };

@@ -22,7 +22,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
@@ -37,6 +37,10 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const hydrated = ref(false);
+onMounted(() => {
+  hydrated.value = true;
+});
 
 const schema = toTypedSchema(
   z.object({
@@ -132,7 +136,7 @@ const { state: llmState } = useQuery({
 </script>
 
 <template>
-  <Dialog>
+  <Dialog v-if="hydrated">
     <DialogTrigger>
       <Button variant="outline" size="icon">
         <div class="icon-[mdi--translate] size-4" />

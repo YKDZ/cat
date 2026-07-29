@@ -55,11 +55,13 @@ export const createShutdownHandler = (
     }
 
     const handler = async () => {
-      logger.withSituation("SERVER").info("Shutting down...");
+      logger.child({ component: "server" }).info("Shutting down...");
 
       // Hard deadline: never hang longer than SHUTDOWN_TIMEOUT_MS.
       const timer = setTimeout(() => {
-        logger.withSituation("SERVER").warn("Shutdown timed out, forcing exit");
+        logger
+          .child({ component: "server" })
+          .warn("Shutdown timed out, forcing exit");
         process.exit(1);
       }, SHUTDOWN_TIMEOUT_MS);
       timer.unref();
@@ -88,8 +90,8 @@ export const createShutdownHandler = (
 
     handler().catch((err: unknown) => {
       logger
-        .withSituation("SERVER")
-        .error(err, "Error occurred during server shutdown");
+        .child({ component: "server" })
+        .error("Error occurred during server shutdown", { error: err });
       process.exit(1);
     });
   };

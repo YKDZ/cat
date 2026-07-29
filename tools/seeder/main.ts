@@ -77,7 +77,7 @@ const main = async (): Promise<void> => {
   const cacheDir = resolve(absoluteDir, "../../.vector-cache");
   const pluginLoader = new CompositePluginLoader([
     new BuiltinPluginLoader([systemPgVectorEntry]),
-    new FileSystemPluginLoader(pluginsDir),
+    new FileSystemPluginLoader({ pluginsDir }),
   ]);
 
   const runtimeEnv = loadSeedRuntimeEnv({

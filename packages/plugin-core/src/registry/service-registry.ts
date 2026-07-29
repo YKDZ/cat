@@ -8,6 +8,7 @@ import {
 import { logger } from "@cat/shared";
 import * as z from "zod";
 
+import type { PluginLogger } from "#/entities/plugin.ts";
 import type { IPluginService } from "#/services/service.ts";
 
 export const ReigsteredServiceSchema = z.object({
@@ -21,8 +22,13 @@ export type RegisteredService = z.infer<typeof ReigsteredServiceSchema>;
 
 export class ServiceRegistry {
   private services: RegisteredService[] = [];
+  private readonly diagnosticLogger: PluginLogger;
 
-  public constructor(initialServices: RegisteredService[] = []) {
+  public constructor(
+    initialServices: RegisteredService[] = [],
+    diagnosticLogger: PluginLogger = logger,
+  ) {
+    this.diagnosticLogger = diagnosticLogger;
     this.services = initialServices;
   }
 
@@ -77,8 +83,8 @@ export class ServiceRegistry {
 
       const dbId = dbRecord?.dbId;
       if (dbId === undefined) {
-        logger
-          .withSituation("PLUGIN")
+        this.diagnosticLogger
+          .child({ component: "plugin" })
           .warn(
             `Service ${type}:${id} has no DB record, skipping registration`,
           );

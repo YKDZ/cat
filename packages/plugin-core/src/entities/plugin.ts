@@ -9,6 +9,19 @@ import type { ComponentData } from "#/registry/component-registry.ts";
 import type { RegisteredService } from "#/registry/service-registry.ts";
 import type { IPluginService } from "#/services/service.ts";
 
+export type DiagnosticContext = Readonly<Record<string, unknown>>;
+export type DiagnosticFields = Readonly<Record<string, unknown>>;
+
+/** Structured diagnostics exposed to plugin-facing composition boundaries. */
+export type PluginLogger = {
+  child: (context: DiagnosticContext) => PluginLogger;
+  debug: (message: string, fields?: DiagnosticFields) => void;
+  info: (message: string, fields?: DiagnosticFields) => void;
+  warn: (message: string, fields?: DiagnosticFields) => void;
+  error: (message: string, fields?: DiagnosticFields) => void;
+  fatal: (message: string, fields?: DiagnosticFields) => void;
+};
+
 /**
  * 插件鉴权上下文
  * 用于在 capability 层做权限拦截
@@ -39,6 +52,8 @@ export type PluginContext = {
   registeredServices: Omit<RegisteredService, "service" | "pluginId">[];
   /** 插件能力边界：通过 capability 访问基础能力，不直接触达底层 command/query */
   capabilities: PluginCapabilities;
+  /** Host-owned diagnostics logger shared with application observers. */
+  logger: PluginLogger;
   /** 缓存存储（K-V 语义） */
   cacheStore: CacheStore;
   /** 会话存储（Hash 语义，支持 TTL） */

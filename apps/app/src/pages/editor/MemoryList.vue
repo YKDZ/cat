@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEditorMemoryStore } from "#/stores/editor/memory.ts";
@@ -28,6 +29,8 @@ watchClient(
 );
 
 watchClientThrottled(editorMemoryMinConfidence, subMemories);
+
+onBeforeUnmount(unsubscribe);
 </script>
 
 <template>

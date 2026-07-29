@@ -1,7 +1,7 @@
 import type { NonNullJSONType } from "@cat/shared";
 
 const SECRET_KEY_PATTERN =
-  /(api[-_]?key|authorization|bearer|token|password|secret|secret[-_]?access[-_]?key|access[-_]?key)/i;
+  /^(?:api[-_]?key|authorization|bearer|(?:access|auth|refresh|id|session|csrf)?[-_]?token|(?:[a-z]+[-_])?password|(?:[a-z]+[-_])?secret(?:[-_]?access)?(?:[-_]?key)?|access[-_]?key)$/;
 
 const SECRET_ASSIGNMENT_PATTERN =
   /\b(api[-_ ]?key|authorization|token|password|secret|secret[-_ ]?access[-_ ]?key|access[-_ ]?key)([\s:=]+)(Bearer\s+)?([^\s,;"']+)/gi;
@@ -9,6 +9,11 @@ const SECRET_ASSIGNMENT_PATTERN =
 const BEARER_TOKEN_PATTERN = /\b(Bearer\s+)([^\s,;"']+)/gi;
 
 const REDACTED = "[REDACTED]";
+
+const isSecretKey = (key: string): boolean => {
+  const normalized = key.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
+  return SECRET_KEY_PATTERN.test(normalized);
+};
 
 /**
  * Redact common secret keys and values from a message string.
@@ -42,7 +47,7 @@ export const redactJson = (value: unknown): NonNullJSONType => {
     return Object.fromEntries(
       Object.entries(value).map(([key, entry]) => [
         key,
-        SECRET_KEY_PATTERN.test(key) ? REDACTED : redactJson(entry),
+        isSecretKey(key) ? REDACTED : redactJson(entry),
       ]),
     );
   }

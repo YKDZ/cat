@@ -97,8 +97,8 @@ export const registerDomainEventHandlers = (
       await onConceptUpdated(event.payload, options?.pluginManager);
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle concept:updated event");
+        .child({ component: "server" })
+        .error("Failed to handle concept:updated event", { error: error });
     }
   });
 
@@ -107,8 +107,8 @@ export const registerDomainEventHandlers = (
       await onProjectCreated(event.payload);
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle project:created event");
+        .child({ component: "server" })
+        .error("Failed to handle project:created event", { error: error });
     }
   });
 
@@ -117,8 +117,8 @@ export const registerDomainEventHandlers = (
       await onGlossaryCreated(event.payload);
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle glossary:created event");
+        .child({ component: "server" })
+        .error("Failed to handle glossary:created event", { error: error });
     }
   });
 
@@ -127,8 +127,8 @@ export const registerDomainEventHandlers = (
       await onMemoryCreated(event.payload);
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle memory:created event");
+        .child({ component: "server" })
+        .error("Failed to handle memory:created event", { error: error });
     }
   });
 
@@ -148,22 +148,22 @@ export const registerDomainEventHandlers = (
       });
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle comment:created event");
+        .child({ component: "server" })
+        .error("Failed to handle comment:created event", { error: error });
     }
   });
 
   domainEventBus.subscribe("issue:closed", async (event) => {
     try {
       logger
-        .withSituation("SERVER")
+        .child({ component: "server" })
         .info(
           `Issue ${event.payload.issueId} closed${event.payload.closedByPRId ? ` by PR ${event.payload.closedByPRId}` : ""}`,
         );
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle issue:closed event");
+        .child({ component: "server" })
+        .error("Failed to handle issue:closed event", { error: error });
     }
   });
 
@@ -178,8 +178,8 @@ export const registerDomainEventHandlers = (
       }
     } catch (error) {
       logger
-        .withSituation("SERVER")
-        .error(error, "Failed to handle pr:merged event");
+        .child({ component: "server" })
+        .error("Failed to handle pr:merged event", { error: error });
     }
   });
 
@@ -192,8 +192,10 @@ export const registerDomainEventHandlers = (
       },
     ).catch((error: unknown) => {
       logger
-        .withSituation("SERVER")
-        .error(error, "Auto-translate pipeline failed for element:created");
+        .child({ component: "server" })
+        .error("Auto-translate pipeline failed for element:created", {
+          error: error,
+        });
     });
   });
 

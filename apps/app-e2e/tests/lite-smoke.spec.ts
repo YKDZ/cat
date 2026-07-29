@@ -17,6 +17,17 @@ const getCreatedProjectId = () => {
 test.describe("CAT Lite smoke", () => {
   test.describe.configure({ mode: "serial" });
 
+  test("confirms the official spaCy segment operation through application readiness", async ({
+    page,
+  }) => {
+    const response = await page.request.get("/_health/ready");
+    expect(response.ok()).toBe(true);
+    await expect(response.json()).resolves.toMatchObject({
+      components: { spacy: { code: "OK", status: "ready" } },
+      status: "ready",
+    });
+  });
+
   test("@lite-smoke creates a project and imports a JSON file", async ({
     page,
   }) => {
@@ -107,7 +118,10 @@ test.describe("CAT Lite smoke", () => {
     await editorPage.submitTranslation();
     await editorPage.expectTranslationVisible("Lite smoke translation");
 
-    await page.goto(`/project/${projectId}/zh-Hans`);
+    const projectResponse = await page.goto(`/project/${projectId}/zh-Hans`);
+    if (!projectResponse)
+      throw new Error("Imported content page did not return an SSR response");
+    expect(await projectResponse.text()).toContain(uploadedFileName);
     const fileRow = page
       .getByText(uploadedFileName, { exact: true })
       .locator(

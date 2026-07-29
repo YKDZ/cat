@@ -300,8 +300,8 @@ export const collectMemoryRecallOp = async (
     await Promise.all(exactResults.map(async (r) => pushResult(r.id, r)));
   } catch (err) {
     logger
-      .withSituation("OP")
-      .error(err, "collectMemoryRecallOp: exact match failed");
+      .child({ component: "operation" })
+      .error("collectMemoryRecallOp: exact match failed", { error: err });
   }
 
   // Channel 2: trgm similarity
@@ -314,8 +314,8 @@ export const collectMemoryRecallOp = async (
     await Promise.all(trgmResults.map(async (r) => pushResult(r.id, r)));
   } catch (err) {
     logger
-      .withSituation("OP")
-      .error(err, "collectMemoryRecallOp: trgm match failed");
+      .child({ component: "operation" })
+      .error("collectMemoryRecallOp: trgm match failed", { error: err });
   }
 
   // Channel 3: Variant-based (morphological / template / fragment)
@@ -372,8 +372,8 @@ export const collectMemoryRecallOp = async (
     );
   } catch (err) {
     logger
-      .withSituation("OP")
-      .error(err, "collectMemoryRecallOp: variant match failed");
+      .child({ component: "operation" })
+      .error("collectMemoryRecallOp: variant match failed", { error: err });
   }
 
   // Channel 4: Template equality match
@@ -418,8 +418,8 @@ export const collectMemoryRecallOp = async (
     }
   } catch (err) {
     logger
-      .withSituation("OP")
-      .error(err, "TMPL: template equality channel skipped");
+      .child({ component: "operation" })
+      .error("TMPL: template equality channel skipped", { error: err });
   }
 
   // Channel 5: BM25
@@ -437,8 +437,8 @@ export const collectMemoryRecallOp = async (
     await Promise.all(bm25Results.map(async (r) => pushResult(r.id, r)));
   } catch (err) {
     logger
-      .withSituation("OP")
-      .error(err, "collectMemoryRecallOp: bm25 match failed");
+      .child({ component: "operation" })
+      .error("collectMemoryRecallOp: bm25 match failed", { error: err });
   }
 
   const vectorStorage =
@@ -486,8 +486,8 @@ export const collectMemoryRecallOp = async (
       );
     } catch (err) {
       logger
-        .withSituation("OP")
-        .error(err, "collectMemoryRecallOp: semantic match failed");
+        .child({ component: "operation" })
+        .error("collectMemoryRecallOp: semantic match failed", { error: err });
     }
   }
 
@@ -522,7 +522,7 @@ export const collectMemoryRecallOp = async (
   const calSummary = calibrateMemoryBm25(rawMemoryResults);
   if (calSummary.bm25Count > 0) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .info(
         `CAL(memory): ${calSummary.bm25Count} BM25 evidences calibrated (maxRaw=${calSummary.maxRaw.toFixed(4)}, boost=${calSummary.boostFactor}, multi=${calSummary.multiEvidenceCount})`,
       );
@@ -554,7 +554,7 @@ export const collectMemoryRecallOp = async (
 
     if (hnfPreResult.length > 0) {
       logger
-        .withSituation("OP")
+        .child({ component: "operation" })
         .info(
           `HNF_pre(memory): removed ${hnfPreResult.length} hard negatives (reasons: ${[...new Set(hnfPreResult.map((r) => r.reason))].join(", ")})`,
         );
@@ -585,7 +585,7 @@ export const collectMemoryRecallOp = async (
 
     if (hnfPostRemovals.length > 0) {
       logger
-        .withSituation("OP")
+        .child({ component: "operation" })
         .info(
           `HNF_post(memory): removed ${hnfPostRemovals.length} tier-3 isolated semantic candidates`,
         );

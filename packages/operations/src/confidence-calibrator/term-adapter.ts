@@ -36,11 +36,10 @@ export const calibrateTermBm25 = (
     return summary;
   } catch (err) {
     logger
-      .withSituation("OP")
-      .warn(
-        { err },
-        "CAL term adapter: calibration failed, returning unchanged",
-      );
+      .child({ component: "operation" })
+      .warn("CAL term adapter: calibration failed, returning unchanged", {
+        err,
+      });
     return {
       bm25Count: 0,
       maxRaw: 0,

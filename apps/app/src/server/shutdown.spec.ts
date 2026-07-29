@@ -15,7 +15,7 @@ vi.mock("@cat/domain", () => ({
 
 vi.mock("@cat/server-shared", () => ({
   serverLogger: {
-    withSituation: () => ({
+    child: () => ({
       info: mockInfo,
       error: mockError,
     }),

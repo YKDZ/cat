@@ -1,11 +1,11 @@
 import {
   type PluginServiceAvailability,
+  type PluginLogger,
   TranslationAdvisor,
   type GetSuggestionsContext,
 } from "@cat/plugin-core";
 import type { JSONType } from "@cat/shared";
 import type { TranslationAdvise } from "@cat/shared";
-import { logger } from "@cat/shared";
 import { Pool } from "undici";
 import * as z from "zod";
 
@@ -39,12 +39,14 @@ type Config = z.infer<typeof ConfigSchema>;
 export class Advisor extends TranslationAdvisor {
   private pool: Pool;
   private config: Config;
+  private logger: PluginLogger | undefined;
 
-  constructor(config: JSONType) {
+  constructor(config: JSONType, logger?: PluginLogger) {
     // oxlint-disable-next-line no-unsafe-call
     super();
 
     this.config = ConfigSchema.parse(config);
+    this.logger = logger;
     this.pool = new Pool(this.config.api.url);
   }
 
@@ -80,9 +82,10 @@ export class Advisor extends TranslationAdvisor {
     try {
       return await this.translate(text, sourceLang, targetLang);
     } catch (e) {
-      logger
-        .withSituation("PLUGIN")
-        .error(e, `LibreTranslate API 请求或解析错误`);
+      this.logger?.error(`LibreTranslate API 请求或解析错误`, {
+        code: "LIBRETRANSLATE_REQUEST_FAILED",
+        error: e,
+      });
       return [
         {
           translation: "LibreTranslate API 请求或解析错误。",

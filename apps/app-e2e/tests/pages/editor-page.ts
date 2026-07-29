@@ -8,7 +8,7 @@ export class EditorPage {
   }
 
   private getEditorSidebar(): ReturnType<Page["locator"]> {
-    return this.page.locator('[data-sidebar="sidebar"]').filter({
+    return this.page.locator('[data-sidebar="sidebar"]:visible').filter({
       has: this.page.locator('[data-sidebar="footer"] .tabular-nums'),
     });
   }

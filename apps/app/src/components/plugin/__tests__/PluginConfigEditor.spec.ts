@@ -65,11 +65,12 @@ const createNoConfigDetail = (): NonNullPluginDetail => ({
   },
   config: {
     hasConfig: false,
+    isStale: false,
     schema: null,
     config: null,
     instance: null,
     value: {},
-    expectedUpdatedAt: null,
+    expectedRevision: null,
   },
   capabilities: {
     services: [],
@@ -81,6 +82,7 @@ const createNoConfigDetail = (): NonNullPluginDetail => ({
     canInstall: false,
     canUninstall: true,
     canSaveConfig: false,
+    canMigrateConfig: false,
     canReload: true,
     canRetryApply: false,
     canProbeCandidate: false,
@@ -125,6 +127,9 @@ const createConfigDetail = (): NonNullPluginDetail => ({
         type: "object",
         properties: { endpoint: { type: "string" } },
       },
+      schemaVersion: "1",
+      schemaDigest: "a".repeat(64),
+      isAvailable: true,
       createdAt: NOW,
       updatedAt: NOW,
     },
@@ -134,11 +139,14 @@ const createConfigDetail = (): NonNullPluginDetail => ({
       creatorId: null,
       configId: 1,
       pluginInstallationId: 1,
+      appliedVersion: "1",
+      revision: 1,
       createdAt: NOW,
       updatedAt: NOW,
     },
     value: { endpoint: "http://old" },
-    expectedUpdatedAt: NOW.toISOString(),
+    expectedRevision: 1,
+    isStale: false,
   },
   capabilities: {
     services: [],
@@ -150,6 +158,7 @@ const createConfigDetail = (): NonNullPluginDetail => ({
     canInstall: false,
     canUninstall: true,
     canSaveConfig: true,
+    canMigrateConfig: false,
     canReload: true,
     canRetryApply: false,
     canProbeCandidate: true,
@@ -174,7 +183,7 @@ describe("PluginConfigEditor", () => {
     expect(wrapper.emitted("save")).toBeUndefined();
   });
 
-  it("emits save with the edited value and expectedUpdatedAt", async () => {
+  it("emits save with the edited value and expected revision", async () => {
     const wrapper = mount(PluginConfigEditor, {
       props: {
         detail: createConfigDetail(),
@@ -193,8 +202,26 @@ describe("PluginConfigEditor", () => {
     expect(saveButton).toBeDefined();
     await saveButton!.trigger("click");
 
-    expect(wrapper.emitted("save")).toEqual([
-      [{ endpoint: "http://new" }, NOW.toISOString()],
-    ]);
+    expect(wrapper.emitted("save")).toEqual([[{ endpoint: "http://new" }, 1]]);
+  });
+
+  it("offers explicit migration instead of a normal save for stale config", async () => {
+    const detail = createConfigDetail();
+    detail.config.isStale = true;
+    detail.actions.canSaveConfig = false;
+    detail.actions.canMigrateConfig = true;
+    const wrapper = mount(PluginConfigEditor, {
+      props: { detail, isSaving: false, isProbing: false },
+      global: { plugins: [i18n] },
+    });
+
+    const migrateButton = wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("迁移并应用"));
+    expect(migrateButton).toBeDefined();
+    await migrateButton?.trigger("click");
+
+    expect(wrapper.emitted("migrate")).toEqual([[{ endpoint: "http://old" }]]);
+    expect(wrapper.text()).toContain("必须显式迁移后才能激活");
   });
 });

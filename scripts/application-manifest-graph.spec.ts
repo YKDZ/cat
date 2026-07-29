@@ -134,7 +134,9 @@ describe("application manifest graph", () => {
       );
       const manifest = readJson<Manifest>(join(root, "package.json"));
       expect(manifest.scripts?.build).toBeUndefined();
-      expect(manifest.devDependencies?.["unplugin-" + "dts"]).toBeUndefined();
+      expect(
+        manifest.devDependencies?.[["unplugin", "dts"].join("-")],
+      ).toBeUndefined();
       expect(manifest.devDependencies?.vite).toBeUndefined();
     }
   });

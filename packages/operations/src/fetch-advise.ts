@@ -158,7 +158,7 @@ export const fetchAdviseOp = async (
 
   if (!advisor) {
     logger
-      .withSituation("WORKER")
+      .child({ component: "worker" })
       .warn(
         `Translation advisor service ${data.advisorId} not found while no default service is available. No suggestion will be given.`,
       );

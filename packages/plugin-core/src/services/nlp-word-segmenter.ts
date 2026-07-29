@@ -58,7 +58,7 @@ export abstract class NlpWordSegmenter implements IPluginService {
    * 查询此分词器支持的语言列表
    * @returns BCP 47 语言代码数组（如 ["en", "zh-Hans", "ja", "de"]）
    */
-  abstract getSupportedLanguages(): Promise<string[]>;
+  abstract getSupportedLanguages(signal?: AbortSignal): Promise<string[]>;
 
   /**
    * 单文本分词

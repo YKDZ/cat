@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import * as dbExports from "@cat/db";
-import { relations, type DrizzleDB } from "@cat/db";
+import { relations, type DrizzleClient, type DrizzleDB } from "@cat/db";
 import {
   generateDrizzleJson,
   generateMigration,
@@ -14,7 +14,15 @@ declare global {
   var __DRIZZLE_DB__: DrizzleDB | undefined;
 }
 
-export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
+export type ConcurrentTestDbClient = {
+  client: DrizzleClient;
+  cleanup: () => Promise<void>;
+};
+
+export type TestDB = DrizzleDB & {
+  cleanup: () => Promise<void>;
+  openConcurrentClient: () => Promise<ConcurrentTestDbClient>;
+};
 
 const getPgErrorCode = (error: unknown): string | undefined => {
   if (typeof error !== "object" || error === null) return undefined;
@@ -130,6 +138,18 @@ export const setupTestDB = async (): Promise<TestDB> => {
   } as unknown as DrizzleDB;
   globalThis.__DRIZZLE_DB__ = drizzleDB;
 
+  const openConcurrentClient = async (): Promise<ConcurrentTestDbClient> => {
+    const concurrentClient = new Client({ connectionString });
+    await concurrentClient.connect();
+    await concurrentClient.query(`SET search_path TO "${schemaName}", public`);
+    return {
+      // DrizzleDB's public client deliberately hides the raw driver client.
+      // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
+      client: drizzle({ client: concurrentClient, relations }) as DrizzleClient,
+      cleanup: async () => await concurrentClient.end(),
+    };
+  };
+
   const cleanup = async () => {
     if (globalThis.__DRIZZLE_DB__ === drizzleDB) {
       globalThis.__DRIZZLE_DB__ = undefined;
@@ -141,5 +161,5 @@ export const setupTestDB = async (): Promise<TestDB> => {
     }
   };
 
-  return Object.assign(drizzleDB, { cleanup });
+  return Object.assign(drizzleDB, { cleanup, openConcurrentClient });
 };

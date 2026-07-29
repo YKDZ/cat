@@ -1,32 +1,36 @@
 import type { GlobalContextServer } from "vike/types";
 
-// setGlobalContext_prodBuildEntry fires at module init (before initializeApp completes).
-// We use getters so ctx.globalContext.* always reads the live globalThis.* value,
-// which is guaranteed to be set by the time any HTTP request arrives
-// (requests only arrive after startServer(), which runs after initializeApp()).
-export const onCreateGlobalContext = (ctx: GlobalContextServer) => {
+import { initializeApp } from "#/server/initialize.ts";
+import { getRuntimeCapabilities } from "#/server/runtime-capabilities.ts";
+
+// Production initializes from +server.ts before accepting traffic, while Vite
+// development creates its rendering context lazily. The initializer is
+// single-flight, so awaiting it here makes both modes expose the same globals.
+export const onCreateGlobalContext = async (ctx: GlobalContextServer) => {
+  await initializeApp();
+  const runtime = getRuntimeCapabilities();
   Object.defineProperty(ctx, "drizzleDB", {
-    get: () => globalThis.drizzleDB,
+    get: () => runtime.drizzleDB,
     enumerable: true,
     configurable: true,
   });
   Object.defineProperty(ctx, "redis", {
-    get: () => globalThis.redis,
+    get: () => runtime.redis,
     enumerable: true,
     configurable: true,
   });
   Object.defineProperty(ctx, "pluginManager", {
-    get: () => globalThis.pluginManager,
+    get: () => runtime.pluginManager,
     enumerable: true,
     configurable: true,
   });
   Object.defineProperty(ctx, "name", {
-    get: () => globalThis.serverName ?? "CAT",
+    get: () => runtime.name,
     enumerable: true,
     configurable: true,
   });
   Object.defineProperty(ctx, "baseURL", {
-    get: () => globalThis.serverBaseURL ?? "http://localhost:3000/",
+    get: () => runtime.baseURL,
     enumerable: true,
     configurable: true,
   });

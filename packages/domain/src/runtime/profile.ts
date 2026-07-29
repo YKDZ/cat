@@ -90,7 +90,7 @@ export const resolveRuntimeProfile = (
   const queue = parseBackend(env.CAT_QUEUE_BACKEND, defaults[name]);
   const requiredSearchLevel = parseSearchRequirement(
     env.CAT_SEARCH_REQUIREMENT,
-    name === "production" ? "full-search-runtime" : "basic-db-runtime",
+    "full-search-runtime",
   );
 
   assertSafeProductionBackends(name, cache, session, queue);

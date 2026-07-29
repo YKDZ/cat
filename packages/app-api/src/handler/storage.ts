@@ -1,7 +1,6 @@
 import { Readable } from "node:stream";
 
-import { getSessionStore } from "@cat/domain";
-import { PluginManager, type StorageProvider } from "@cat/plugin-core";
+import { type StorageProvider } from "@cat/plugin-core";
 import {
   FileDownloadPayloadSchema,
   getServiceFromDBId,
@@ -11,12 +10,13 @@ import { serverLogger as logger } from "@cat/server-shared";
 import { Hono } from "hono";
 import { stream } from "hono/streaming";
 
+import { getRuntimeCapabilities } from "#/utils/runtime-capabilities.ts";
+
 const app = new Hono();
 
 app.put("/upload/:sessionId", async (c) => {
   const sessionId = c.req.param("sessionId");
-  const sessionStore = getSessionStore();
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const { pluginManager, sessionStore } = getRuntimeCapabilities();
 
   const redisKey = `file:client:put:${sessionId}`;
   const { key, storageProviderId } = PresignedPutFileSessionPayloadSchema.parse(
@@ -39,15 +39,16 @@ app.put("/upload/:sessionId", async (c) => {
 
     return c.text("OK");
   } catch (e) {
-    logger.withSituation("SERVER").error(e, "Upload file error");
+    logger
+      .child({ component: "server" })
+      .error("Upload file error", { error: e });
     return c.text("Upload failed", 500);
   }
 });
 
 app.get("/download/:token", async (c) => {
   const token = c.req.param("token");
-  const sessionStore = getSessionStore();
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const { pluginManager, sessionStore } = getRuntimeCapabilities();
 
   const redisKey = `file:download:${token}`;
 
@@ -106,7 +107,9 @@ app.get("/download/:token", async (c) => {
       await stream.pipe(Readable.toWeb(fileStream));
     });
   } catch (e) {
-    logger.withSituation("SERVER").error(e, "Download file error");
+    logger
+      .child({ component: "server" })
+      .error("Download file error", { error: e });
     return c.text("File not found", 404);
   }
 });

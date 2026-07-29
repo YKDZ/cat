@@ -13,7 +13,13 @@ const wsOrigin =
         .replace(/^https:\/\//, "wss://")
         .replace(/^http:\/\//, "ws://");
 
-const socket = new WebSocket(`${wsOrigin}/api/ws`);
+const socket = new WebSocket(`${wsOrigin}/api/ws`, undefined, {
+  startClosed: true,
+});
+let notificationStreamSignal: AbortSignal | undefined;
+
+const isExpectedQueueAbort = (error: unknown): boolean =>
+  error instanceof Error && error.name === "AbortError";
 
 const link = new RPCLink({
   // oxlint-disable-next-line no-unsafe-type-assertion -- partysocket types readyState as number instead of 0|1|2|3
@@ -24,7 +30,11 @@ const link = new RPCLink({
   headers: () => ({}),
   interceptors: [
     onError((error) => {
-      logger.withSituation("WEB").error(error, "Error when orpc");
+      if (notificationStreamSignal?.aborted || isExpectedQueueAbort(error))
+        return;
+      logger
+        .child({ component: "web" })
+        .error("Error when orpc", { error: error });
     }),
   ],
 });
@@ -32,8 +42,46 @@ const link = new RPCLink({
 export const ws: RouterClient<AppRouter> = createORPCClient(link);
 
 /**
- * Reconnect the WebSocket after login so the new connection carries the session cookie.
+ * Start the WebSocket once an authenticated session is available.
  */
-export const reconnectWs = (): void => {
+export const connectWs = (): void => {
+  if (
+    socket.readyState === WebSocket.CONNECTING ||
+    socket.readyState === WebSocket.OPEN
+  ) {
+    return;
+  }
   socket.reconnect();
+};
+
+/**
+ * Wait until a reconnecting socket can accept an RPC frame. Streams must not
+ * be started while PartySocket is still negotiating the authenticated upgrade.
+ */
+export const waitForWsOpen = async (signal: AbortSignal): Promise<void> => {
+  if (signal.aborted) throw signal.reason;
+  if (socket.readyState === WebSocket.OPEN) return;
+  await new Promise<void>((resolveOpen, rejectOpen) => {
+    const cleanup = (): void => {
+      socket.removeEventListener("open", open);
+      signal.removeEventListener("abort", abort);
+    };
+    const open = (): void => {
+      cleanup();
+      resolveOpen();
+    };
+    const abort = (): void => {
+      cleanup();
+      rejectOpen(signal.reason ?? new DOMException("Aborted", "AbortError"));
+    };
+    socket.addEventListener("open", open, { once: true });
+    signal.addEventListener("abort", abort, { once: true });
+    connectWs();
+  });
+};
+
+export const setNotificationStreamSignal = (
+  signal: AbortSignal | undefined,
+): void => {
+  notificationStreamSignal = signal;
 };

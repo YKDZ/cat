@@ -10,6 +10,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./app": "./src/app.ts",
+    "./readiness": "./src/handler/readiness.ts",
     "./orpc/router": "./src/orpc/router.ts",
     "./context": "./src/utils/context.ts"
   },

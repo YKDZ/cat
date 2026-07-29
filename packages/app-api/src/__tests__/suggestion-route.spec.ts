@@ -375,7 +375,7 @@ describe("ghost-text.suggest", () => {
     );
   });
 
-  it("yields nothing when both auto-translate and Smart Suggestion produce no result", async () => {
+  it("yields an explicit empty chunk when no suggestion is available", async () => {
     opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
 
     const stream = await call(
@@ -390,7 +390,7 @@ describe("ghost-text.suggest", () => {
     );
 
     const results = await collect(stream);
-    expect(results).toHaveLength(0);
-    // Frontend handles fallback
+    expect(results).toEqual([{ text: "" }]);
+    // The explicit empty chunk lets clients complete the SSE stream cleanly.
   });
 });

@@ -34,7 +34,7 @@ export const applyTermHnfPre = (
 
   if (contentWords.length === 0) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn("HNF(term): no content words, skipping rules 1 and 3");
     return [];
   }

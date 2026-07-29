@@ -63,7 +63,9 @@ export const putBufferToStorage = async (
         });
       });
 
-      serverLogger.withSituation("WORKER").error(error, "Error putting file");
+      serverLogger
+        .child({ component: "worker" })
+        .error("Error putting file", { error: error });
       throw error;
     }
 

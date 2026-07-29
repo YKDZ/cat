@@ -113,12 +113,25 @@ export type PluginAuthContext = {
   ): Promise<boolean>;
 };
 
+export type DiagnosticFields = Readonly<Record<string, unknown>>;
+export type DiagnosticContext = Readonly<Record<string, unknown>>;
+
+export type PluginLogger = {
+  child(context: DiagnosticContext): PluginLogger;
+  debug(message: string, fields?: DiagnosticFields): void;
+  info(message: string, fields?: DiagnosticFields): void;
+  warn(message: string, fields?: DiagnosticFields): void;
+  error(message: string, fields?: DiagnosticFields): void;
+  fatal(message: string, fields?: DiagnosticFields): void;
+};
+
 export type PluginContext = {
   config: JsonValue;
   scopeType: string;
   scopeId: string;
   registeredServices: Omit<RegisteredService, "pluginId" | "service">[];
   capabilities: PluginCapabilities;
+  logger: PluginLogger;
   cacheStore: CacheStore;
   sessionStore: SessionStore;
   auth: PluginAuthContext;
@@ -534,7 +547,7 @@ export type NlpBatchSegmentContext = {
 export declare abstract class NlpWordSegmenter implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType;
-  abstract getSupportedLanguages(): Promise<string[]>;
+  abstract getSupportedLanguages(signal?: AbortSignal): Promise<string[]>;
   abstract segment(ctx: NlpSegmentContext): Promise<NlpSegmentResult>;
   batchSegment(ctx: NlpBatchSegmentContext): Promise<NlpBatchSegmentResult>;
 }
@@ -613,8 +626,12 @@ export interface PluginLoader {
     relativePath: string,
   ): Promise<string | null>;
 }
+export type FileSystemPluginLoaderOptions = {
+  diagnosticLogger?: PluginLogger;
+  pluginsDir?: string;
+};
 export declare class FileSystemPluginLoader implements PluginLoader {
-  constructor(pluginsDir?: string);
+  constructor(options?: FileSystemPluginLoaderOptions);
   getManifest(pluginId: string): Promise<PluginManifest>;
   getData(pluginId: string): Promise<PluginData>;
   getInstance(pluginId: string): Promise<CatPlugin>;
@@ -661,7 +678,10 @@ export declare class ComponentRegistry {
 }
 export declare const ReigsteredServiceSchema: ZodType<RegisteredService>;
 export declare class ServiceRegistry {
-  constructor(initialServices?: RegisteredService[]);
+  constructor(
+    initialServices?: RegisteredService[],
+    diagnosticLogger?: PluginLogger,
+  );
   get(
     pluginId: string,
     type: PluginServiceType,
@@ -708,11 +728,13 @@ export declare class PluginManager {
     discovery?: PluginDiscoveryService,
     serviceRegistry?: ServiceRegistry,
     componentRegistry?: ComponentRegistry,
+    diagnosticLogger?: PluginLogger,
   );
   static get(
     scopeType: ScopeType,
     scopeId: string,
     loader?: PluginLoader,
+    diagnosticLogger?: PluginLogger,
   ): PluginManager;
   static clear(): void;
   static installDefaults(
@@ -744,5 +766,6 @@ export declare class PluginManager {
   getComponents(pluginId: string): ComponentRecord[];
   getComponentOfSlot(slot: string): ComponentRecord[];
   getLoader(): PluginLoader;
+  getDiagnosticLogger(): PluginLogger;
   getDiscovery(): PluginDiscoveryService;
 }

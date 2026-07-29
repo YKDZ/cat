@@ -46,9 +46,12 @@ describe("orpc branch header isolation", () => {
 
     const headers = mocks.rpcLinkOptions?.headers() ?? {};
 
-    expect(headers).toEqual({
+    expect(headers).toMatchObject({
       "x-csrf-token": "test-csrf-token",
     });
+    expect(headers["x-cat-request-id"]).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    );
     expect(headers).not.toHaveProperty("x-branch-id");
     expect(headers).not.toHaveProperty("x-branch-project-id");
   });

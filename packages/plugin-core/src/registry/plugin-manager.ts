@@ -6,7 +6,6 @@ import {
   deletePluginServices,
   executeCommand,
   executeQuery,
-  getPluginConfigInstanceByInstallation,
   getPluginInstallation,
   installPlugin,
   listInstalledPlugins,
@@ -14,7 +13,6 @@ import {
   listPluginServicesForInstallation,
   syncPluginServices,
   uninstallPlugin,
-  updatePluginConfigInstanceValue,
 } from "@cat/domain";
 import {
   createPluginCapabilities,
@@ -23,15 +21,15 @@ import {
   type PluginCapabilities,
 } from "@cat/domain";
 import type { PluginServiceType, ScopeType } from "@cat/shared";
-import { JSONSchemaSchema, type JSONObject, type JSONType } from "@cat/shared";
-import {
-  getDefaultFromSchema,
-  assertSingleNonNullish,
-  logger,
-} from "@cat/shared";
+import type { JSONType } from "@cat/shared";
+import { assertSingleNonNullish, logger } from "@cat/shared";
 import { Hono } from "hono";
 
-import type { CatPlugin, PluginContext } from "#/entities/plugin.ts";
+import type {
+  CatPlugin,
+  PluginContext,
+  PluginLogger,
+} from "#/entities/plugin.ts";
 import {
   ComponentRegistry,
   type ComponentRecord,
@@ -84,21 +82,25 @@ export class PluginManager {
   private discovery: PluginDiscoveryService;
   private readonly serviceRegistry: ServiceRegistry;
   private readonly componentRegistry: ComponentRegistry;
+  private readonly diagnosticLogger: PluginLogger;
 
   public constructor(
     scopeType: ScopeType,
     scopeId: string,
-    loader: PluginLoader = new FileSystemPluginLoader(),
-    discovery: PluginDiscoveryService = new PluginDiscoveryService(loader),
-    serviceRegistry: ServiceRegistry = new ServiceRegistry(),
+    loader?: PluginLoader,
+    discovery?: PluginDiscoveryService,
+    serviceRegistry?: ServiceRegistry,
     componentRegistry: ComponentRegistry = new ComponentRegistry(),
+    diagnosticLogger: PluginLogger = logger,
   ) {
     this.scopeType = scopeType;
     this.scopeId = scopeId;
-    this.loader = loader;
-    this.discovery = discovery;
-    this.serviceRegistry = serviceRegistry;
+    this.loader = loader ?? new FileSystemPluginLoader({ diagnosticLogger });
+    this.discovery = discovery ?? new PluginDiscoveryService(this.loader);
+    this.serviceRegistry =
+      serviceRegistry ?? new ServiceRegistry([], diagnosticLogger);
     this.componentRegistry = componentRegistry;
+    this.diagnosticLogger = diagnosticLogger;
   }
 
   private createCapabilities = (
@@ -137,6 +139,7 @@ export class PluginManager {
     scopeType: ScopeType,
     scopeId: string,
     loader?: PluginLoader,
+    diagnosticLogger?: PluginLogger,
   ): PluginManager {
     const key = `${scopeType}:${scopeId}`;
     let instance = PluginManager.instances.get(key);
@@ -146,11 +149,27 @@ export class PluginManager {
           `PluginManager for scope ${key} already exists with a different loader; call PluginManager.clear() before replacing loaders`,
         );
       }
+      if (
+        diagnosticLogger &&
+        diagnosticLogger !== instance.getDiagnosticLogger()
+      ) {
+        throw new Error(
+          `PluginManager for scope ${key} already exists with a different diagnostic logger; call PluginManager.clear() before replacing diagnostic loggers`,
+        );
+      }
 
       return instance;
     }
 
-    instance = new PluginManager(scopeType, scopeId, loader);
+    instance = new PluginManager(
+      scopeType,
+      scopeId,
+      loader,
+      undefined,
+      undefined,
+      undefined,
+      diagnosticLogger,
+    );
     PluginManager.instances.set(key, instance);
 
     return instance;
@@ -217,8 +236,8 @@ export class PluginManager {
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    logger
-      .withSituation("PLUGIN")
+    this.diagnosticLogger
+      .child({ component: "plugin" })
       .info(
         `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
       );
@@ -279,20 +298,19 @@ export class PluginManager {
   /**
    * 激活插件
    * 拆分为多个私有方法，职责清晰：
-   *  ensureDefinitionSynced → mergeConfigDefaults → loadPlugin →
+   *  ensureDefinitionSynced → loadPlugin →
    *  invokeOnActivate → syncDynamicServices → registerServices →
    *  registerComponents → mountRoutes
    */
   public async activate(drizzle: DbHandle, pluginId: string): Promise<void> {
     if (this.activePlugins.has(pluginId)) {
-      logger
-        .withSituation("PLUGIN")
+      this.diagnosticLogger
+        .child({ component: "plugin" })
         .warn(`Plugin ${pluginId} is already active, skipping.`);
       return;
     }
 
     await this.ensureDefinitionSynced(drizzle, pluginId);
-    await this.mergeConfigDefaults(drizzle, pluginId);
     const { pluginObj, context } = await this.loadPlugin(drizzle, pluginId);
     await this.invokeOnActivate(pluginObj, context);
     await this.syncDynamicServices(drizzle, pluginId, pluginObj, context);
@@ -302,8 +320,8 @@ export class PluginManager {
 
     this.activePlugins.set(pluginId, pluginObj);
 
-    logger
-      .withSituation("PLUGIN")
+    this.diagnosticLogger
+      .child({ component: "plugin" })
       .info(
         `Plugin ${pluginId} activated in ${this.scopeType}:${this.scopeId}`,
       );
@@ -330,8 +348,8 @@ export class PluginManager {
 
     this.activePlugins.delete(pluginId);
 
-    logger
-      .withSituation("PLUGIN")
+    this.diagnosticLogger
+      .child({ component: "plugin" })
       .info(
         `Plugin ${pluginId} deactivated in ${this.scopeType}:${this.scopeId}`,
       );
@@ -464,6 +482,10 @@ export class PluginManager {
     return this.loader;
   }
 
+  public getDiagnosticLogger(): PluginLogger {
+    return this.diagnosticLogger;
+  }
+
   public getDiscovery(): PluginDiscoveryService {
     return this.discovery;
   }
@@ -480,83 +502,6 @@ export class PluginManager {
     pluginId: string,
   ): Promise<void> {
     await this.discovery.registerDefinition(drizzle, pluginId);
-  }
-
-  /**
-   * 合并配置默认值到现有配置实例
-   */
-  private async mergeConfigDefaults(
-    drizzle: DbHandle,
-    pluginId: string,
-  ): Promise<void> {
-    const data = await executeQuery(
-      { db: drizzle },
-      getPluginConfigInstanceByInstallation,
-      { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
-    );
-
-    if (!data) return;
-
-    const schema = JSONSchemaSchema.parse(data.schema);
-    const defaults = getDefaultFromSchema(schema);
-
-    // Object-merge defaults only applies to object-typed configs.
-    // For arrays or other non-object types, keep the instance value as-is
-    // (there is no sensible "merge" for arrays).
-    const isObjectSchema =
-      typeof schema !== "boolean" && schema.type === "object";
-
-    const instanceValue = data.value;
-
-    if (!isObjectSchema || Array.isArray(instanceValue)) {
-      // If there is no stored value yet, seed with schema defaults
-      if (
-        instanceValue === null ||
-        instanceValue === undefined ||
-        (typeof instanceValue === "object" &&
-          !Array.isArray(instanceValue) &&
-          Object.keys(instanceValue).length === 0)
-      ) {
-        const schemaType =
-          typeof schema !== "boolean" ? schema.type : undefined;
-        const fallback = defaults ?? (schemaType === "array" ? [] : {});
-        if (JSON.stringify(fallback) !== JSON.stringify(instanceValue)) {
-          await executeCommand(
-            { db: drizzle },
-            updatePluginConfigInstanceValue,
-            { instanceId: data.instanceId, value: fallback },
-          );
-        }
-      }
-      return;
-    }
-
-    const defaultsObj =
-      defaults && typeof defaults === "object" && !Array.isArray(defaults)
-        ? defaults
-        : {};
-
-    const instanceObj =
-      instanceValue &&
-      typeof instanceValue === "object" &&
-      !Array.isArray(instanceValue)
-        ? instanceValue
-        : {};
-
-    const newValue: JSONObject = {
-      ...defaultsObj,
-      ...instanceObj,
-    };
-
-    if (JSON.stringify(newValue) !== JSON.stringify(instanceValue)) {
-      logger
-        .withSituation("PLUGIN")
-        .info(`Updating config instance for ${pluginId}`);
-      await executeCommand({ db: drizzle }, updatePluginConfigInstanceValue, {
-        instanceId: data.instanceId,
-        value: newValue,
-      });
-    }
   }
 
   /**
@@ -590,6 +535,12 @@ export class PluginManager {
       scopeId: this.scopeId,
       registeredServices,
       capabilities: this.createCapabilities(drizzle, pluginId),
+      logger: this.diagnosticLogger.child({
+        component: "plugin",
+        pluginId,
+        scopeId: this.scopeId,
+        scopeType: this.scopeType,
+      }),
       cacheStore: getCacheStore(),
       sessionStore: getSessionStore(),
       auth: {
@@ -721,8 +672,8 @@ export class PluginManager {
       );
 
       if (hasRef) {
-        logger
-          .withSituation("PLUGIN")
+        this.diagnosticLogger
+          .child({ component: "plugin" })
           .warn(
             `Service ${svc.serviceType}:${svc.serviceId} (dbId=${svc.id}) is referenced, keeping as orphaned`,
           );
@@ -818,6 +769,12 @@ export class PluginManager {
         scopeId: this.scopeId,
         registeredServices: [],
         capabilities: this.createCapabilities(drizzle, pluginId),
+        logger: this.diagnosticLogger.child({
+          component: "plugin",
+          pluginId,
+          scopeId: this.scopeId,
+          scopeType: this.scopeType,
+        }),
         cacheStore: getCacheStore(),
         sessionStore: getSessionStore(),
         auth: {
@@ -828,7 +785,9 @@ export class PluginManager {
         },
       });
     } catch (e) {
-      logger.withSituation("PLUGIN").error(e, `Error deactivating ${pluginId}`);
+      this.diagnosticLogger
+        .child({ component: "plugin" })
+        .error(`Error deactivating ${pluginId}`, { error: e });
     }
   }
 }

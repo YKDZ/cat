@@ -176,6 +176,7 @@ describe("EditorScopeBar", () => {
         plugins: [createPinia(), i18n],
       },
     });
+    await wrapper.vm.$nextTick();
 
     await wrapper
       .get('button[aria-label="移除内容节点过滤器"]')

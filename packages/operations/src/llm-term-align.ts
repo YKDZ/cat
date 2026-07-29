@@ -226,8 +226,8 @@ export const llmTermAlignOp = async (
         };
       } catch (err: unknown) {
         logger
-          .withSituation("OP")
-          .error(err, "llmTermAlignOp: LLM batch failed");
+          .child({ component: "operation" })
+          .error("llmTermAlignOp: LLM batch failed", { error: err });
         return { batch, results: [] };
       }
     }),

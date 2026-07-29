@@ -6,7 +6,12 @@ import type { CatPlugin, ComponentRecord } from "@cat/plugin-core";
 import { BuiltinPluginLoader, PluginManager } from "@cat/plugin-core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import rootApp from "#/app.ts";
 import app from "#/handler/plugin.ts";
+import {
+  publishRuntimeCapabilities,
+  resetRuntimeCapabilitiesForTest,
+} from "#/utils/context.ts";
 
 const PLUGIN_ID = "tiny-widget";
 const COMPONENT_NAME = "daily-quote-widget";
@@ -56,10 +61,20 @@ const createManager = async (componentUrl: string): Promise<PluginManager> => {
   ] satisfies ComponentRecord[];
 
   vi.spyOn(manager, "getComponents").mockReturnValue(components);
+  publishRuntimeCapabilities({
+    baseURL: "http://localhost:3000/",
+    cacheStore: {} as never,
+    drizzleDB: {} as never,
+    name: "CAT",
+    pluginManager: manager,
+    redis: undefined,
+    sessionStore: {} as never,
+  });
   return manager;
 };
 
 afterEach(async () => {
+  resetRuntimeCapabilitiesForTest();
   PluginManager.clear();
   vi.restoreAllMocks();
   if (tempDir) {
@@ -69,6 +84,20 @@ afterEach(async () => {
 });
 
 describe("plugin component handler", () => {
+  it("keeps plugin assets routable after liveness freezes the route matcher", async () => {
+    const liveness = await rootApp.request("http://localhost/_health/live");
+    expect(liveness.status).toBe(200);
+
+    await createManager("dist/daily-quote-widget.js");
+
+    const asset = await rootApp.request(
+      `http://localhost/_plugin/GLOBAL//${PLUGIN_ID}/?path=dist/daily-quote-widget.js`,
+    );
+
+    expect(asset.status).toBe(200);
+    await expect(asset.text()).resolves.toContain("widget");
+  });
+
   it("serves builtin component modules from loader-resolved asset roots", async () => {
     await createManager("dist/daily-quote-widget.js");
 

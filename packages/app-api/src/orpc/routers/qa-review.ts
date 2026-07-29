@@ -267,10 +267,10 @@ export const submitAction = authed
         });
       } catch (error) {
         logger
-          .withSituation("RPC")
+          .child({ component: "rpc" })
           .error(
-            error,
             `qa-review promotion failed: ${result.approvedTranslationId}`,
+            { error: error },
           );
       }
     }

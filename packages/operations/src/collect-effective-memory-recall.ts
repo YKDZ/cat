@@ -57,8 +57,10 @@ export const collectEffectiveMemoryRecallOp = async (
           ctx,
         ).catch((error: unknown) => {
           logger
-            .withSituation("OP")
-            .error(error, "effective memory recall: project recall failed");
+            .child({ component: "operation" })
+            .error("effective memory recall: project recall failed", {
+              error: error,
+            });
           return [];
         })
       : Promise.resolve([]),
@@ -72,8 +74,8 @@ export const collectEffectiveMemoryRecallOp = async (
           ctx,
         ).catch((error: unknown) => {
           logger
-            .withSituation("OP")
-            .warn({ error }, "effective memory recall: personal recall failed");
+            .child({ component: "operation" })
+            .warn("effective memory recall: personal recall failed", { error });
           return [];
         })
       : Promise.resolve([]),

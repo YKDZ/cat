@@ -1,15 +1,15 @@
-import {
-  eq,
-  pluginConfig,
-  pluginConfigInstance,
-  pluginInstallation,
-} from "@cat/db";
+import { and, eq, pluginConfig, pluginInstallation } from "@cat/db";
 import { ScopeTypeSchema } from "@cat/shared";
-import { JSONSchemaSchema } from "@cat/shared";
-import { assertSingleNonNullish, getDefaultFromSchema } from "@cat/shared";
+import { assertSingleNonNullish } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
+
+import {
+  getValidatedPluginConfigDefault,
+  lockPluginConfigDefinition,
+} from "./plugin-config-contract.ts";
+import { writePluginConfigInstanceInTransaction } from "./write-plugin-config-instance.cmd.ts";
 
 export const InstallPluginCommandSchema = z.object({
   pluginId: z.string(),
@@ -24,33 +24,59 @@ export const installPlugin: Command<InstallPluginCommand> = async (
   command,
 ) => {
   await ctx.db.transaction(async (tx) => {
-    const installation = assertSingleNonNullish(
-      await tx
-        .insert(pluginInstallation)
-        .values([
-          {
-            pluginId: command.pluginId,
-            scopeType: command.scopeType,
-            scopeId: command.scopeId,
-          },
-        ])
-        .returning({ id: pluginInstallation.id }),
-    );
+    await lockPluginConfigDefinition(tx, command.pluginId);
+    const inserted = await tx
+      .insert(pluginInstallation)
+      .values([
+        {
+          pluginId: command.pluginId,
+          scopeType: command.scopeType,
+          scopeId: command.scopeId,
+        },
+      ])
+      .onConflictDoNothing()
+      .returning({ id: pluginInstallation.id });
+    if (!inserted[0]) {
+      assertSingleNonNullish(
+        await tx
+          .select({ id: pluginInstallation.id })
+          .from(pluginInstallation)
+          .where(
+            and(
+              eq(pluginInstallation.pluginId, command.pluginId),
+              eq(pluginInstallation.scopeType, command.scopeType),
+              eq(pluginInstallation.scopeId, command.scopeId),
+            ),
+          )
+          .limit(1),
+      );
+      return;
+    }
 
     const pluginConfigs = await tx
-      .select({ id: pluginConfig.id, schema: pluginConfig.schema })
+      .select({
+        id: pluginConfig.id,
+        schema: pluginConfig.schema,
+        schemaVersion: pluginConfig.schemaVersion,
+        schemaDigest: pluginConfig.schemaDigest,
+        isAvailable: pluginConfig.isAvailable,
+      })
       .from(pluginConfig)
       .where(eq(pluginConfig.pluginId, command.pluginId));
 
-    if (pluginConfigs.length > 0) {
-      await tx.insert(pluginConfigInstance).values(
-        pluginConfigs.map((config) => ({
-          configId: config.id,
-          pluginInstallationId: installation.id,
-          value:
-            getDefaultFromSchema(JSONSchemaSchema.parse(config.schema)) ?? {},
-        })),
-      );
+    for (const config of pluginConfigs.filter((item) => item.isAvailable)) {
+      const created = await writePluginConfigInstanceInTransaction(tx, {
+        pluginId: command.pluginId,
+        scopeType: command.scopeType,
+        scopeId: command.scopeId,
+        value: getValidatedPluginConfigDefault(config.schema),
+        expectedSchemaVersion: config.schemaVersion,
+        expectedSchemaDigest: config.schemaDigest,
+        expectedRevision: null,
+      });
+      if (!created) {
+        throw new Error("Plugin configuration instance creation conflicted");
+      }
     }
   });
 

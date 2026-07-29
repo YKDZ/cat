@@ -1,16 +1,18 @@
-import { access } from "fs/promises";
-import { join } from "path";
-
-import { registerBuiltinAgents } from "@cat/agent";
+import {
+  configureReadinessReporter,
+  createReadinessReporter,
+  ReadinessProbeFailure,
+} from "@cat/app-api/app";
 import app from "@cat/app-api/app";
-import { ensureDB, ensureRootUser } from "@cat/db";
 import {
   executeCommand,
   executeQuery,
-  getFirstRegisteredUser,
   getSetting,
   getDbHandle,
   getCurrentRedisHandle,
+  getCacheStore,
+  getSessionStore,
+  getRuntimeState,
   initRuntimeState,
   recoverCrashedAgentRuns,
   resolveRuntimeProfile,
@@ -23,31 +25,32 @@ import {
   registerDomainEventHandlers,
   registerVectorizationConsumer,
 } from "@cat/operations";
-import {
-  grantFirstUserSuperadmin,
-  initPermissionEngine,
-  registerAuditHandler,
-  seedSystemRoles,
-} from "@cat/permissions";
+import { initPermissionEngine, registerAuditHandler } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import {
   serverLogger as logger,
   setVectorizationQueue,
 } from "@cat/server-shared";
-import { assertPromise } from "@cat/shared";
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import {
   createDefaultGraphRuntime,
   getGlobalGraphRuntimeOrNull,
 } from "@cat/workflow";
 
-import {
-  createAppPluginLoader,
-  getDefaultPluginIds,
-} from "./default-plugins/catalog.ts";
+import { bootstrapApplicationData } from "./application-data-bootstrap.ts";
+import { createAppPluginLoader } from "./default-plugins/catalog.ts";
+import { createApplicationReadinessReporter } from "./readiness.ts";
 import { createRuntimeBackends } from "./runtime-backends.ts";
+import {
+  getRuntimeCapabilities,
+  hasRuntimeCapabilities,
+  publishRuntimeCapabilities,
+} from "./runtime-capabilities.ts";
 import { startPostgresRuntimeCleanup } from "./runtime-cleanup.ts";
-import { assertSearchRuntimeHealth } from "./search-runtime-health.ts";
+import {
+  assertSearchRuntimeHealth,
+  detectSearchRuntimeHealth,
+} from "./search-runtime-health.ts";
 
 const getStringSetting = async (
   drizzle: DrizzleClient,
@@ -58,34 +61,31 @@ const getStringSetting = async (
   return typeof value === "string" ? value : fallback;
 };
 
-export const initializeApp = async (): Promise<void> => {
+const initializeAppOnce = async (): Promise<void> => {
+  const profile = resolveRuntimeProfile();
+  configureReadinessReporter(
+    createReadinessReporter({
+      profile: profile.name,
+      probes: [
+        {
+          cost: "cheap",
+          id: "bootstrap",
+          required: true,
+          run: async (): Promise<void> => {
+            if (!globalThis.inited) {
+              throw new ReadinessProbeFailure("BOOTSTRAP_PENDING");
+            }
+          },
+        },
+      ],
+    }),
+  );
   try {
     globalThis.app ??= app;
 
     const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
-    if (process.env.DRIZZLE_MIGRATE === "true") {
-      const migrations = join(process.cwd(), "drizzle");
-      await assertPromise(
-        async () => access(migrations),
-        "Does not found drizzle migration folder.",
-      );
-
-      logger.withSituation("SERVER").info("Start to migrate database...");
-
-      const failure = await drizzleDB.migrate(migrations);
-      if (failure) {
-        throw new Error(
-          `Database migration failed with exit code: ${failure.exitCode}`,
-        );
-      }
-
-      logger.withSituation("SERVER").info("Successfully migrated database!");
-    }
-
-    await ensureDB(drizzleDB);
-    const profile = resolveRuntimeProfile();
     const database = await assertSearchRuntimeHealth(drizzleDB.client, profile);
     initRuntimeState({
       profile,
@@ -115,36 +115,10 @@ export const initializeApp = async (): Promise<void> => {
     // would otherwise cause PluginManager.get() to throw because the existing
     // GLOBAL instance was created with a different (previous) loader reference.
     PluginManager.clear();
-    const pluginLoader = createAppPluginLoader();
-    const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader);
+    const pluginLoader = createAppPluginLoader(logger);
+    const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader, logger);
 
-    const routeRegistry = pluginManager.getRouteRegistry();
-    globalThis.app.all(
-      "/_plugin/:scopeType/:scopeId/:pluginId/*",
-      async (c) => {
-        const { pluginId } = c.req.param();
-        const pluginApp = routeRegistry.resolve(pluginId);
-        if (!pluginApp) return c.notFound();
-        return pluginApp.fetch(c.req.raw);
-      },
-    );
-
-    await pluginManager.getDiscovery().syncDefinitions(drizzleDB.client);
-    await PluginManager.installDefaults(
-      drizzleDB.client,
-      pluginManager,
-      getDefaultPluginIds(),
-    );
-
-    // restore() 必须在事务外用 pool client 调用，确保 capabilities 持有的
-    // DB 句柄是长期有效的 pool 连接，而非已提交/关闭的事务句柄。
-    await pluginManager.restore(drizzleDB.client);
-
-    // ensureRootUser 依赖插件服务已被 restore() 写入 DB（PASSWORD 服务），
-    // 因此必须在 restore() 之后的独立事务中调用。
-    await drizzleDB.client.transaction(async (tx) => {
-      await ensureRootUser(tx);
-    });
+    await bootstrapApplicationData({ database: drizzleDB, pluginManager });
 
     registerDomainEventHandlers(drizzleDB.client, { pluginManager });
 
@@ -157,11 +131,10 @@ export const initializeApp = async (): Promise<void> => {
     );
     if (crashRecovery.recoveredRunIds.length > 0) {
       logger
-        .withSituation("SERVER")
-        .warn(
-          { recoveredRunIds: crashRecovery.recoveredRunIds },
-          "Recovered crashed workflow runs",
-        );
+        .child({ component: "server" })
+        .warn("Recovered crashed workflow runs", {
+          recoveredRunIds: crashRecovery.recoveredRunIds,
+        });
     }
 
     await registerVectorizationConsumer(backends.vectorizationQueue);
@@ -184,19 +157,6 @@ export const initializeApp = async (): Promise<void> => {
       auditEnabled: true,
     });
 
-    await seedSystemRoles(drizzleDB.client);
-
-    await registerBuiltinAgents(drizzleDB.client);
-
-    const firstUser = await executeQuery(
-      { db: drizzleDB.client },
-      getFirstRegisteredUser,
-      {},
-    );
-    if (firstUser !== null) {
-      await grantFirstUserSuperadmin(drizzleDB.client, firstUser.id);
-    }
-
     registerAuditHandler(drizzleDB.client);
 
     const { appMethodRegistry } = getDefaultRegistries();
@@ -216,12 +176,83 @@ export const initializeApp = async (): Promise<void> => {
       "server.url",
       "http://localhost:3000/",
     );
+    configureReadinessReporter(
+      createApplicationReadinessReporter({
+        backends,
+        database: drizzleDB,
+        getRuntimeState,
+        profile,
+        redis: backends.redis,
+        detectSearchRuntime: async () =>
+          detectSearchRuntimeHealth(drizzleDB.client),
+        spaCyServices: () =>
+          pluginManager
+            .getServices("NLP_WORD_SEGMENTER")
+            .map(({ id, pluginId, service }) => ({ id, pluginId, service })),
+        storageServices: () =>
+          pluginManager
+            .getServices("STORAGE_PROVIDER")
+            .map(({ service }) => service),
+      }),
+    );
 
+    publishRuntimeCapabilities({
+      baseURL: globalThis.serverBaseURL,
+      cacheStore: getCacheStore(),
+      drizzleDB,
+      name: globalThis.serverName,
+      pluginManager,
+      redis: backends.redis,
+      sessionStore: getSessionStore(),
+    });
     globalThis.inited = true;
   } catch (err) {
     logger
-      .withSituation("SERVER")
-      .error(err, "Failed to initialize server. Process will exit with code 1");
-    process.exit(1);
+      .child({ component: "server" })
+      .error("Failed to initialize server. Readiness will remain failed.", {
+        error: err,
+      });
+    configureReadinessReporter(
+      createReadinessReporter({
+        profile: profile.name,
+        probes: [
+          {
+            cost: "cheap",
+            id: "bootstrap",
+            required: true,
+            run: async (): Promise<void> => {
+              throw new ReadinessProbeFailure("BOOTSTRAP_FAILED");
+            },
+          },
+        ],
+      }),
+    );
   }
+};
+
+const initializationPromiseKey = "__CAT_INITIALIZATION_PROMISE__";
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof Reflect.get(value, "then") === "function";
+
+/**
+ * Vite may evaluate the server entry more than once while optimizing modules.
+ * Keep initialization single-flight across those module instances so a fresh
+ * database cannot observe concurrent bootstrap writes.
+ */
+export const initializeApp = async (): Promise<void> => {
+  if (hasRuntimeCapabilities()) {
+    getRuntimeCapabilities();
+    return;
+  }
+  const existing = Reflect.get(process, initializationPromiseKey);
+  if (isPromiseLike(existing)) {
+    await existing;
+    return;
+  }
+  const initialization = initializeAppOnce();
+  Reflect.set(process, initializationPromiseKey, initialization);
+  await initialization;
 };

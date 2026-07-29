@@ -1,10 +1,22 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import { join, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const retiredRunner = ["m", "oon"].join("");
+const removedPrecommitCommand = ["pre", "commit"].join("");
+const removedTsxPackage = ["t", "sx"].join("");
+const removedDtsPackage = ["unplugin", "dts"].join("-");
+const removedLegacyDeployCommand = ["pnpm deploy --", "legacy"].join("");
 const retiredRunnerPackage = `@${retiredRunner}repo/cli`;
 const retiredRunnerConfig = `${retiredRunner}.yml`;
 const retiredRunnerReference = new RegExp(
@@ -16,37 +28,24 @@ const retiredRunnerReference = new RegExp(
   ].join("|"),
   "i",
 );
-const excludedDirectories = new Set([
-  ".git",
-  ".pnpm-store",
-  "dist",
-  "node_modules",
-]);
-
 type RepositoryEntry = {
   path: string;
   isFile: boolean;
 };
 
-const repositoryEntries = (): RepositoryEntry[] => {
-  const entries: RepositoryEntry[] = [];
-  const directories = [root];
-  while (directories.length > 0) {
-    const directory = directories.pop()!;
-    for (const entry of readdirSync(directory, { withFileTypes: true })) {
-      const path = join(directory, entry.name);
-      if (entry.isDirectory() && excludedDirectories.has(entry.name)) continue;
-      entries.push({ path, isFile: entry.isFile() });
-      if (entry.isDirectory()) {
-        directories.push(path);
-      }
-    }
-  }
-  return entries;
-};
-
 const repositoryFiles = (): string[] =>
-  repositoryEntries().flatMap(({ isFile, path }) => (isFile ? [path] : []));
+  execFileSync(
+    "git",
+    ["ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+    { cwd: root, encoding: "utf8" },
+  )
+    .split("\0")
+    .filter(Boolean)
+    .map((path) => join(root, path))
+    .filter((path) => existsSync(path) && statSync(path).isFile());
+
+const repositoryEntries = (): RepositoryEntry[] =>
+  repositoryFiles().map((path) => ({ path, isFile: true }));
 
 const manifests = (): string[] =>
   repositoryFiles().filter(
@@ -83,6 +82,26 @@ const legacyGuidanceReference = new RegExp(
 );
 
 describe("toolchain retirement contract", () => {
+  it("does not scan ignored runtime artifacts as repository source", () => {
+    const artifactDirectory = join(
+      root,
+      ".tmp",
+      `toolchain-retirement-${process.pid}`,
+    );
+    const artifact = join(artifactDirectory, `${retiredRunner}.txt`);
+    mkdirSync(artifactDirectory, { recursive: true });
+    writeFileSync(artifact, `${retiredRunner} run stale-artifact\n`);
+
+    try {
+      expect(repositoryFiles()).not.toContain(artifact);
+      expect(repositoryEntries().map(({ path }) => path)).not.toContain(
+        artifact,
+      );
+    } finally {
+      rmSync(artifactDirectory, { recursive: true, force: true });
+    }
+  });
+
   it("removes retired runner files, directories, and active references", () => {
     const offenders = repositoryEntries().filter(({ isFile, path }) => {
       const repositoryPath = relative(root, path);
@@ -120,10 +139,10 @@ describe("toolchain retirement contract", () => {
 
   it("does not retain removed quality or generic task command surfaces", () => {
     const removedCommands = [
-      "pre" + "commit",
-      "t" + "sx",
-      "unplugin-" + "dts",
-      "pnpm deploy --" + "legacy",
+      removedPrecommitCommand,
+      removedTsxPackage,
+      removedDtsPackage,
+      removedLegacyDeployCommand,
     ];
 
     for (const path of manifests()) {
@@ -152,7 +171,7 @@ describe("toolchain retirement contract", () => {
       ).toBeUndefined();
 
       for (const [name, command] of commands) {
-        expect(name, path).not.toBe("w" + "atch");
+        expect(name, path).not.toBe(["w", "atch"].join(""));
         expect(command, `${path} ${name}`).not.toContain(removedCommands[3]!);
         expect(command, `${path} ${name}`).not.toMatch(/\bwatch\b/);
       }
@@ -164,8 +183,8 @@ describe("toolchain retirement contract", () => {
       [
         `pnpm\\s+${["t", "sx"].join("")}\\b`,
         ["unplugin", "dts"].join("-"),
-        "pre" + "commit",
-        "pnpm\\s+deploy\\s+--" + "legacy",
+        removedPrecommitCommand,
+        ["pnpm\\s+deploy\\s+--", "legacy"].join(""),
       ].join("|"),
       "i",
     );
@@ -179,11 +198,13 @@ describe("toolchain retirement contract", () => {
   it("keeps contributor guidance aligned with available command surfaces", () => {
     const unavailableGuidance = new RegExp(
       [
-        "pnpm\\s+" + "eval\\s+run\\b",
-        "pnpm\\s+" + "preview\\b",
-        "packages/screenshot-collector/src/cli\\.ts\\s+collect\\b(?:(?!\\n\\n)[\\s\\S])*?--" +
+        ["pnpm\\s+", "eval\\s+run\\b"].join(""),
+        ["pnpm\\s+", "preview\\b"].join(""),
+        [
+          "packages/screenshot-collector/src/cli\\.ts\\s+collect\\b(?:(?!\\n\\n)[\\s\\S])*?--",
           "upload\\b",
-        "datasets/" + "default\\b",
+        ].join(""),
+        ["datasets/", "default\\b"].join(""),
       ].join("|"),
       "i",
     );

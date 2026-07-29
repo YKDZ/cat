@@ -8,6 +8,7 @@ test.describe("Project shell SSR refresh", () => {
     const projectId = refs["project"];
 
     await page.goto(`/project/${projectId}/pull-requests`);
+    await page.waitForLoadState("networkidle");
     await page.reload({ waitUntil: "networkidle" });
 
     await expect(page.getByRole("navigation")).toContainText("拉取请求");
@@ -21,6 +22,7 @@ test.describe("Project shell SSR refresh", () => {
     const projectId = refs["project"];
 
     await page.goto(`/project/${projectId}/workflows`);
+    await page.waitForLoadState("networkidle");
     await page.reload({ waitUntil: "networkidle" });
 
     await expect(page.getByRole("navigation")).toContainText("工作流");

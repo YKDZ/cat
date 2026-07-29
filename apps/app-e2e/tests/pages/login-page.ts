@@ -22,13 +22,13 @@ export class LoginPage {
     const emailInput = this.page.locator('input[type="email"]');
     await emailInput.waitFor({ state: "visible" });
     await emailInput.fill(email);
-    await this.page.getByRole("button", { name: "继续" }).click();
+    await emailInput.press("Enter");
 
     // Step 2: Password input
     const passwordInput = this.page.locator('input[type="password"]');
     await passwordInput.waitFor({ state: "visible" });
     await passwordInput.fill(password);
-    await this.page.getByRole("button", { name: "验证" }).click();
+    await passwordInput.press("Enter");
   }
 
   async expectLoggedIn(): Promise<void> {

@@ -83,11 +83,12 @@ const PermissionRecordSchema = z.object({
  */
 export const PluginConfigDetailSchema = z.object({
   hasConfig: z.boolean(),
+  isStale: z.boolean(),
   schema: PluginConfigSchema.shape.schema.nullable(),
   config: PluginConfigSchema.nullable(),
   instance: PluginConfigInstanceSchema.nullable(),
   value: nonNullSafeZDotJson,
-  expectedUpdatedAt: z.string().nullable(),
+  expectedRevision: z.int().nullable(),
 });
 
 /**
@@ -118,6 +119,7 @@ export const PluginDetailSchema = z.object({
     canInstall: z.boolean(),
     canUninstall: z.boolean(),
     canSaveConfig: z.boolean(),
+    canMigrateConfig: z.boolean(),
     canReload: z.boolean(),
     canRetryApply: z.boolean(),
     canProbeCandidate: z.boolean(),
@@ -137,6 +139,7 @@ export const PluginActionStatusSchema = z.enum([
   "NO_CONFIG",
   "ROLLED_BACK",
   "ROLLBACK_FAILED",
+  "MIGRATED",
 ]);
 
 /**
@@ -154,7 +157,16 @@ export const PluginActionResultSchema = z.object({
 export const SavePluginConfigAndApplyInputSchema =
   PluginScopeInputSchema.extend({
     value: nonNullSafeZDotJson,
-    expectedUpdatedAt: z.iso.datetime().nullable().optional(),
+    expectedRevision: z.int().positive().nullable().optional(),
+  });
+
+export const MigratePluginConfigAndApplyInputSchema =
+  PluginScopeInputSchema.extend({
+    instanceId: z.int(),
+    fromVersion: z.string().min(1),
+    expectedSchemaDigest: z.string().length(64),
+    expectedRevision: z.int().positive(),
+    value: nonNullSafeZDotJson,
   });
 
 /**

@@ -3,6 +3,7 @@
   "id": "libretranslate-advisor",
   "entry": "dist/index.js",
   "version": "0.1.0",
+  "configVersion": "1",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
