@@ -68,7 +68,7 @@ onMounted(() => {
     async (value) => {
       if (value === "auto" || value === "empty") return;
 
-      await workbench.selectElement(value);
+      await workbench.syncRouteElement(value);
     },
     { immediate: true },
   );

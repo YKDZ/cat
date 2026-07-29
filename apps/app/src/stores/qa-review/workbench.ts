@@ -101,7 +101,7 @@ export const useQaReviewWorkbenchStore = defineStore(
         ) ?? null,
     );
 
-    const selectElement = async (elementId: number) => {
+    const setSelectedElement = (elementId: number) => {
       selectedElementId.value = elementId;
       selectedQueueItemId.value = null;
       selectedTranslationId.value = null;
@@ -119,10 +119,18 @@ export const useQaReviewWorkbenchStore = defineStore(
           ? {}
           : { sourceLanguageId: element.sourceLanguageId }),
       });
+    };
 
+    const selectElement = async (elementId: number) => {
+      setSelectedElement(elementId);
       if (scope.value) {
         await navigate(buildQaReviewHref(scope.value, elementId));
       }
+    };
+
+    const syncRouteElement = async (elementId: number) => {
+      setSelectedElement(elementId);
+      await refreshDetail();
     };
 
     const selectCandidate = (input: {
@@ -226,6 +234,7 @@ export const useQaReviewWorkbenchStore = defineStore(
       submitError,
       isSubmitting,
       selectElement,
+      syncRouteElement,
       selectCandidate,
       submitAction,
       refreshAll,
