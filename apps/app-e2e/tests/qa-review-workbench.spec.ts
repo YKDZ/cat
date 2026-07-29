@@ -59,9 +59,7 @@ test.describe("QA review workbench", () => {
     if (!projectId || !deferElementId)
       throw new Error("Missing QA defer fixture refs");
 
-    await page.goto(
-      `/qa-review/project/${projectId}/zh-Hans/${deferElementId}`,
-    );
+    await qaReviewPage.navigateToQa(projectId, "zh-Hans");
     await page.waitForURL(
       new RegExp(
         `/qa-review/project/${projectId}/zh-Hans/${deferElementId}(?:\\?.*)?$`,
