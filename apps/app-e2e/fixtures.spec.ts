@@ -19,6 +19,7 @@ import {
   isControlledCancellation,
   isExternalDynamicImportPageError,
   isExternalNetworkChange,
+  isHandledQaSubmitActionFetchConsole,
   isNavigationOwnedCancellationPageError,
   isReplacedNavigationAbort,
 } from "./tests/fixtures.ts";
@@ -298,6 +299,31 @@ describe("browser diagnostics request failures", () => {
         exactUrls,
         true,
       ),
+    ).toBe(false);
+  });
+
+  it("classifies handled QA submitAction fetch console output narrowly", () => {
+    expect(
+      isHandledQaSubmitActionFetchConsole({
+        documentUrl: "http://localhost/project/one",
+        epoch: 3,
+        kind: "framework-warning",
+        occurredAt: 5_000,
+        source: "console",
+        value:
+          "Unstructured console.error: TypeError: Failed to fetch\n    at async Proxy.submitAction (http://127.0.0.1/assets/entry.js:1:1)",
+      }),
+    ).toBe(true);
+    expect(
+      isHandledQaSubmitActionFetchConsole({
+        documentUrl: "http://localhost/project/one",
+        epoch: 3,
+        kind: "framework-warning",
+        occurredAt: 5_000,
+        source: "console",
+        value:
+          "Unstructured console.error: TypeError: Failed to fetch\n    at async loadDashboard (http://127.0.0.1/assets/entry.js:1:1)",
+      }),
     ).toBe(false);
   });
 });

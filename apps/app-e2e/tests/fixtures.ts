@@ -350,6 +350,16 @@ export const isExternalDynamicImportPageError = (
   );
 };
 
+export const isHandledQaSubmitActionFetchConsole = (
+  failure: RecordedDiagnosticFailure,
+): boolean =>
+  failure.source === "console" &&
+  failure.kind === "framework-warning" &&
+  failure.value.startsWith(
+    "Unstructured console.error: TypeError: Failed to fetch",
+  ) &&
+  failure.value.includes("Proxy.submitAction");
+
 export const isControlledCancellation = (
   failure: RecordedDiagnosticFailure,
   cancellation: ControlledCancellation,
@@ -1294,6 +1304,7 @@ export const test = baseTest.extend<
             externalNetworkChangeUrls,
             sawExternalNetworkChange,
           ) &&
+          !isHandledQaSubmitActionFetchConsole(failure) &&
           !isReplacedNavigationAbort(
             failure,
             navigation.committedNavigationIds,
