@@ -12,6 +12,24 @@ export type QaReviewElementRouteTarget = number | "auto" | "empty";
 
 export { parseEditorScopeFromRoute as parseQaReviewScopeFromRoute };
 
+export const parseQaReviewElementTarget = (
+  value: string | number | undefined,
+): QaReviewElementRouteTarget => {
+  if (value === "empty" || value === "auto") return value;
+
+  const parsed = Number.parseInt(String(value ?? "auto"), 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : "auto";
+};
+
+export const parseQaReviewElementTargetFromPathname = (
+  pathname: string,
+): QaReviewElementRouteTarget => {
+  const target = /^\/qa-review\/project\/[^/]+\/[^/]+\/([^/?#]+)/.exec(
+    pathname,
+  )?.[1];
+  return parseQaReviewElementTarget(target);
+};
+
 /**
  * Build a QA review workbench href while reusing editor-scope query params.
  *

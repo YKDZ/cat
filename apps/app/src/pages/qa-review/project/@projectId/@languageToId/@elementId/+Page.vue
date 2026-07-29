@@ -14,6 +14,8 @@ import QaReviewSidebar from "../../../../components/QaReviewSidebar.vue";
 import QaReviewWorkbench from "../../../../components/QaReviewWorkbench.vue";
 import {
   buildQaReviewHref,
+  parseQaReviewElementTarget,
+  parseQaReviewElementTargetFromPathname,
   parseQaReviewScopeFromRoute,
 } from "../../../../scope-url.ts";
 
@@ -25,11 +27,12 @@ const { scope } = storeToRefs(contextStore);
 const { currentBranchId } = storeToRefs(branchStore);
 
 const routeElementTarget = () => {
-  const value = ctx.routeParams.elementId;
-  if (value === "empty" || value === "auto") return value;
+  const target = parseQaReviewElementTarget(ctx.routeParams.elementId);
+  if (target !== "auto") return target;
 
-  const parsed = Number.parseInt(String(value ?? "auto"), 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : "auto";
+  // Vike can briefly retain the pre-redirect "auto" route param while the
+  // browser URL already points at the resolved element during cold hydration.
+  return parseQaReviewElementTargetFromPathname(ctx.urlPathname);
 };
 
 watch(
