@@ -619,6 +619,33 @@ export const test = baseTest.extend<
       if (pageError !== undefined)
         pageErrors.set(pageError.recordId, pageError);
     };
+    const readStoredRecords = async (storageKey: string): Promise<unknown[]> =>
+      page.evaluate((key) => {
+        try {
+          const stored = JSON.parse(sessionStorage.getItem(key) ?? "[]");
+          return Array.isArray(stored) ? stored : [];
+        } catch {
+          return [];
+        }
+      }, storageKey);
+    const replayStoredDiagnostics = async (): Promise<void> => {
+      for (const intent of await readStoredRecords(
+        "__CAT_E2E_NAVIGATION_INTENT_RECORDS__",
+      ))
+        recordNavigationIntent(intent);
+      for (const cancellation of await readStoredRecords(
+        "__CAT_E2E_CANCELLATION_RECORDS__",
+      ))
+        recordCancellation(cancellation);
+      for (const cancellationError of await readStoredRecords(
+        "__CAT_E2E_CANCELLATION_ERROR_RECORDS__",
+      ))
+        recordCancellationError(cancellationError);
+      for (const pageError of await readStoredRecords(
+        "__CAT_E2E_PAGE_ERROR_RECORDS__",
+      ))
+        recordPageError(pageError);
+    };
     const record = (
       failure: DiagnosticFailure | undefined,
       source: DiagnosticSource,
@@ -1104,56 +1131,7 @@ export const test = baseTest.extend<
         }
       }
     }
-    const storedNavigationIntents = await page.evaluate(() => {
-      try {
-        const stored = JSON.parse(
-          sessionStorage.getItem("__CAT_E2E_NAVIGATION_INTENT_RECORDS__") ??
-            "[]",
-        );
-        return Array.isArray(stored) ? stored : [];
-      } catch {
-        return [];
-      }
-    });
-    for (const intent of storedNavigationIntents)
-      recordNavigationIntent(intent);
-    const storedCancellations = await page.evaluate(() => {
-      try {
-        const stored = JSON.parse(
-          sessionStorage.getItem("__CAT_E2E_CANCELLATION_RECORDS__") ?? "[]",
-        );
-        return Array.isArray(stored) ? stored : [];
-      } catch {
-        return [];
-      }
-    });
-    for (const cancellation of storedCancellations) {
-      recordCancellation(cancellation);
-    }
-    const storedCancellationErrors = await page.evaluate(() => {
-      try {
-        const stored = JSON.parse(
-          sessionStorage.getItem("__CAT_E2E_CANCELLATION_ERROR_RECORDS__") ??
-            "[]",
-        );
-        return Array.isArray(stored) ? stored : [];
-      } catch {
-        return [];
-      }
-    });
-    for (const cancellationError of storedCancellationErrors)
-      recordCancellationError(cancellationError);
-    const storedPageErrors = await page.evaluate(() => {
-      try {
-        const stored = JSON.parse(
-          sessionStorage.getItem("__CAT_E2E_PAGE_ERROR_RECORDS__") ?? "[]",
-        );
-        return Array.isArray(stored) ? stored : [];
-      } catch {
-        return [];
-      }
-    });
-    for (const pageError of storedPageErrors) recordPageError(pageError);
+    await replayStoredDiagnostics();
     await page.evaluate(async () => {
       const pending = Reflect.get(
         globalThis,
@@ -1161,6 +1139,7 @@ export const test = baseTest.extend<
       );
       if (pending instanceof Set) await Promise.all([...pending]);
     });
+    await replayStoredDiagnostics();
     for (const pageError of pageErrors.values()) {
       const cancellation =
         pageError.cancellationRecordId === undefined
