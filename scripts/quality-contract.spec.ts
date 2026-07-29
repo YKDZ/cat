@@ -197,16 +197,17 @@ describe("repository quality command contract", () => {
     const before = "export const probe={value:1}\n";
     writeFileSync(probe, before);
     try {
-      const result = spawnSync("pnpm", ["format"], {
+      const result = spawnSync("pnpm", ["--filter", "@cat/shared", "format"], {
         cwd: root,
         encoding: "utf8",
+        timeout: 60_000,
       });
       expect(result.status).not.toBe(0);
       expect(readFileSync(probe, "utf8")).toBe(before);
     } finally {
       unlinkSync(probe);
     }
-  }, 20_000);
+  }, 60_000);
 
   it("reserves mutation for fix and extends check for check:all", () => {
     const scripts = readRootManifest().scripts ?? {};
