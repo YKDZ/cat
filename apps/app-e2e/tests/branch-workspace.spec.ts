@@ -55,6 +55,7 @@ test.describe("Branch workspace", () => {
     await editorPage.selectElement(0, { waitForWritable: true });
     await editorPage.inputTranslation(translationText);
     await editorPage.submitTranslation();
+    await editorPage.expectTranslationVisible(translationText);
 
     await page.goto(`/project/${projectId}/pull-requests/${prNumber}`);
     await page.getByRole("tab", { name: "变更" }).click();
