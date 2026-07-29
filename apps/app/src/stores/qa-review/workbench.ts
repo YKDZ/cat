@@ -2,7 +2,7 @@ import type { QaReviewActionResult } from "@cat/shared";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 
 import { buildQaReviewHref } from "#/pages/qa-review/scope-url.ts";
 import { orpc } from "#/rpc/orpc.ts";
@@ -130,6 +130,7 @@ export const useQaReviewWorkbenchStore = defineStore(
 
     const syncRouteElement = async (elementId: number) => {
       setSelectedElement(elementId);
+      await nextTick();
       await refreshDetail();
     };
 
