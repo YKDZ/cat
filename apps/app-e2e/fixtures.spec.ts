@@ -13,6 +13,7 @@ import {
 } from "./navigation-transaction.ts";
 import {
   consumeControlledCancellation,
+  consumeMatchingNavigationOwnedCancellationPageError,
   consumeNavigationOwnedCancellationPageError,
   externalNetworkChangeUrl,
   isControlledCancellation,
@@ -614,6 +615,25 @@ describe("browser diagnostics navigation transaction", () => {
         cancellation,
         transaction.committedNavigationIds,
         consumedCancellationRecordIds,
+      ),
+    ).toBe(false);
+
+    const unmatchedPageError = { ...failure, occurredAt: 5_003 };
+    const lateConsumedCancellationRecordIds = new Set<string>();
+    expect(
+      consumeMatchingNavigationOwnedCancellationPageError(
+        unmatchedPageError,
+        [cancellation],
+        transaction.committedNavigationIds,
+        lateConsumedCancellationRecordIds,
+      ),
+    ).toBe(true);
+    expect(
+      consumeMatchingNavigationOwnedCancellationPageError(
+        { ...unmatchedPageError, occurredAt: 5_004 },
+        [cancellation],
+        transaction.committedNavigationIds,
+        lateConsumedCancellationRecordIds,
       ),
     ).toBe(false);
   });

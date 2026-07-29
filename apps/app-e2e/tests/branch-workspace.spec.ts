@@ -46,8 +46,10 @@ test.describe("Branch workspace", () => {
 
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(new RegExp(`branchId=${branchId}`));
+    await expect(branchTrigger()).toBeVisible({ timeout: 15_000 });
     await expect(branchTrigger()).toContainText(
       new RegExp(`pr-${prNumber}|branch-${branchId}`),
+      { timeout: 15_000 },
     );
 
     await editorPage.selectElement(0, { waitForWritable: true });

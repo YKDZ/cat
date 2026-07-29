@@ -444,6 +444,27 @@ export const consumeNavigationOwnedCancellationPageError = (
   return true;
 };
 
+export const consumeMatchingNavigationOwnedCancellationPageError = (
+  failure: RecordedDiagnosticFailure,
+  cancellations: Iterable<BoundCancellationError>,
+  committedNavigationIds: ReadonlySet<NavigationTransactionId>,
+  consumedCancellationRecordIds: Set<string>,
+): boolean => {
+  for (const cancellation of cancellations) {
+    if (
+      consumeNavigationOwnedCancellationPageError(
+        failure,
+        cancellation,
+        committedNavigationIds,
+        consumedCancellationRecordIds,
+      )
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
 interface E2EWorkerFixtures {
   /** Path to the admin user's storageState file (worker-scoped, reused across tests) */
   adminStorageState: string;
@@ -1285,6 +1306,12 @@ export const test = baseTest.extend<
           !consumeNavigationOwnedCancellationPageError(
             failure,
             pageErrorCancellations.get(failure),
+            navigation.committedNavigationIds,
+            consumedCancellationRecordIds,
+          ) &&
+          !consumeMatchingNavigationOwnedCancellationPageError(
+            failure,
+            cancellationErrors.values(),
             navigation.committedNavigationIds,
             consumedCancellationRecordIds,
           ),
