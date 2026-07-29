@@ -85,7 +85,7 @@ describe("CI configuration contract", () => {
     for (const job of [check, checkAll]) {
       expect(JSON.stringify(job)).not.toContain("secrets.");
       expect(JSON.stringify(job)).not.toMatch(
-        new RegExp(["affected", "base-branch", "m" + "oon"].join("|"), "i"),
+        new RegExp(["affected", "base-branch", "moon"].join("|"), "i"),
       );
     }
   });
@@ -196,6 +196,10 @@ describe("CI configuration contract", () => {
     expect(releaseCommands).toContain(
       "docker image inspect --format '{{.Id}}' \"$image\"",
     );
+    expect(releaseCommands).toContain(
+      'docker image inspect --format \'{{ index .Config.Labels "org.opencontainers.image.version" }}\' "$image"',
+    );
+    expect(releaseCommands).not.toContain('\\"org.opencontainers.image');
     expect(releaseCommands).toContain("manifest.images['$target'].imageId");
     expect(releaseCommands).toContain("manifest.images['$target'].identity");
     expect(releaseCommands).not.toContain("cat-image-build-cat-validated-");

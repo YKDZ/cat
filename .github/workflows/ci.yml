@@ -179,8 +179,8 @@ jobs:
             command="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.command)")"
             description="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.description)")"
             test "$(docker image inspect --format '{{.Id}}' "$image")" = "$image"
-            test "$(docker image inspect --format '{{ index .Config.Labels \"org.opencontainers.image.version\" }}' "$image")" = "$version"
-            test "$(docker image inspect --format '{{ index .Config.Labels \"org.opencontainers.image.description\" }}' "$image")" = "$description"
+            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$image")" = "$version"
+            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.description" }}' "$image")" = "$description"
             test "$(docker image inspect --format '{{ index .Config.Cmd 0 }}' "$image")" = "$command"
           done
 
