@@ -13,6 +13,10 @@ import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const retiredRunner = ["m", "oon"].join("");
+const removedPrecommitCommand = ["pre", "commit"].join("");
+const removedTsxPackage = ["t", "sx"].join("");
+const removedDtsPackage = ["unplugin", "dts"].join("-");
+const removedLegacyDeployCommand = ["pnpm deploy --", "legacy"].join("");
 const retiredRunnerPackage = `@${retiredRunner}repo/cli`;
 const retiredRunnerConfig = `${retiredRunner}.yml`;
 const retiredRunnerReference = new RegExp(
@@ -135,10 +139,10 @@ describe("toolchain retirement contract", () => {
 
   it("does not retain removed quality or generic task command surfaces", () => {
     const removedCommands = [
-      "pre" + "commit",
-      "t" + "sx",
-      "unplugin-" + "dts",
-      "pnpm deploy --" + "legacy",
+      removedPrecommitCommand,
+      removedTsxPackage,
+      removedDtsPackage,
+      removedLegacyDeployCommand,
     ];
 
     for (const path of manifests()) {
@@ -167,7 +171,7 @@ describe("toolchain retirement contract", () => {
       ).toBeUndefined();
 
       for (const [name, command] of commands) {
-        expect(name, path).not.toBe("w" + "atch");
+        expect(name, path).not.toBe(["w", "atch"].join(""));
         expect(command, `${path} ${name}`).not.toContain(removedCommands[3]!);
         expect(command, `${path} ${name}`).not.toMatch(/\bwatch\b/);
       }
@@ -179,8 +183,8 @@ describe("toolchain retirement contract", () => {
       [
         `pnpm\\s+${["t", "sx"].join("")}\\b`,
         ["unplugin", "dts"].join("-"),
-        "pre" + "commit",
-        "pnpm\\s+deploy\\s+--" + "legacy",
+        removedPrecommitCommand,
+        ["pnpm\\s+deploy\\s+--", "legacy"].join(""),
       ].join("|"),
       "i",
     );
@@ -194,11 +198,13 @@ describe("toolchain retirement contract", () => {
   it("keeps contributor guidance aligned with available command surfaces", () => {
     const unavailableGuidance = new RegExp(
       [
-        "pnpm\\s+" + "eval\\s+run\\b",
-        "pnpm\\s+" + "preview\\b",
-        "packages/screenshot-collector/src/cli\\.ts\\s+collect\\b(?:(?!\\n\\n)[\\s\\S])*?--" +
+        ["pnpm\\s+", "eval\\s+run\\b"].join(""),
+        ["pnpm\\s+", "preview\\b"].join(""),
+        [
+          "packages/screenshot-collector/src/cli\\.ts\\s+collect\\b(?:(?!\\n\\n)[\\s\\S])*?--",
           "upload\\b",
-        "datasets/" + "default\\b",
+        ].join(""),
+        ["datasets/", "default\\b"].join(""),
       ].join("|"),
       "i",
     );

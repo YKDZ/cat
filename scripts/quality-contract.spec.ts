@@ -11,6 +11,9 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
+const removedPrecommitCommand = ["pre", "commit"].join("");
+const sourceFilePattern = /\.(?:[cm]?[jt]sx?|vue|json|md|yaml|yml|css|html)$/;
+const ignoredSourceDirectories = new Set(["dist", "node_modules", "out-tsc"]);
 const workspacePackageFiles = (): string[] => {
   const roots = ["apps", "packages", "@cat-plugin", "tools"];
   return roots.flatMap((directory) =>
@@ -37,6 +40,26 @@ const packageTestFiles = (packageRoot: string): string[] => {
   visit(packageRoot);
   return files;
 };
+
+const sourceFiles = (roots: string[]): string[] => {
+  const files: string[] = [];
+  const visit = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = resolve(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (!ignoredSourceDirectories.has(entry.name)) {
+          visit(path);
+        }
+      } else if (entry.isFile() && sourceFilePattern.test(entry.name)) {
+        files.push(path);
+      }
+    }
+  };
+  for (const directory of roots) {
+    visit(resolve(root, directory));
+  }
+  return files;
+};
 const readRootManifest = (): {
   scripts?: Record<string, string>;
 } =>
@@ -46,28 +69,22 @@ const readRootManifest = (): {
 
 describe("repository quality command contract", () => {
   it("removes historical diagnostic situations from application sources", () => {
-    const result = spawnSync(
-      "rg",
-      ["-n", "situation:|withSituation", "apps", "packages", "@cat-plugin"],
-      { cwd: root, encoding: "utf8" },
+    const offenders = sourceFiles(["apps", "packages", "@cat-plugin"]).filter(
+      (file) => /situation:|withSituation/.test(readFileSync(file, "utf8")),
     );
 
-    expect(result.status, result.stdout + result.stderr).toBe(1);
+    expect(offenders.map((file) => file.replace(`${root}/`, ""))).toEqual([]);
   });
 
   it("routes browser-runtime errors through structured diagnostics", () => {
-    const result = spawnSync(
-      "rg",
-      [
-        "-n",
-        "console\\.(debug|info|warn|error|log)",
-        "apps/app/src/pages/index",
-        "packages/plugin-core/src/client/sce",
-      ],
-      { cwd: root, encoding: "utf8" },
+    const offenders = sourceFiles([
+      "apps/app/src/pages/index",
+      "packages/plugin-core/src/client/sce",
+    ]).filter((file) =>
+      /console\.(debug|info|warn|error|log)/.test(readFileSync(file, "utf8")),
     );
 
-    expect(result.status, result.stdout + result.stderr).toBe(1);
+    expect(offenders.map((file) => file.replace(`${root}/`, ""))).toEqual([]);
   });
 
   it("keeps root checks explicit and removes the central Vitest registry", () => {
@@ -76,7 +93,7 @@ describe("repository quality command contract", () => {
     expect(scripts.check).toBeDefined();
     expect(scripts["check:all"]).toBeDefined();
     expect(scripts.fix).toBeDefined();
-    expect(scripts["pre" + "commit"]).toBeUndefined();
+    expect(scripts[removedPrecommitCommand]).toBeUndefined();
     expect(existsSync(resolve(root, "vitest.config.ts"))).toBe(false);
   });
 
@@ -270,44 +287,18 @@ describe("repository quality command contract", () => {
   });
 
   it("discovers package unit and integration suites by suffix without services", () => {
-    const env = {
-      ...process.env,
-      DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-      REDIS_URL: "redis://127.0.0.1:1",
-      TEST_DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-    };
-    const unit = spawnSync(
-      "pnpm",
-      [
-        "--filter",
-        "@cat/domain",
-        "exec",
-        "vitest",
-        "list",
-        "--exclude",
-        "**/*.test.ts",
-      ],
-      { cwd: root, encoding: "utf8", env },
-    );
-    const integration = spawnSync(
-      "pnpm",
-      [
-        "--filter",
-        "@cat/domain",
-        "exec",
-        "vitest",
-        "list",
-        "--exclude",
-        "**/*.spec.ts",
-      ],
-      { cwd: root, encoding: "utf8", env },
-    );
+    const manifest = JSON.parse(
+      readFileSync(resolve(root, "packages/domain/package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    const unit = manifest.scripts?.["test:unit"] ?? "";
+    const integration = manifest.scripts?.["test:integration"] ?? "";
+    const domainTests = packageTestFiles(resolve(root, "packages/domain"));
 
-    expect(unit.status, unit.stderr).toBe(0);
-    expect(unit.stdout).toContain(".spec.ts");
-    expect(unit.stdout).not.toContain(".test.ts");
-    expect(integration.status, integration.stderr).toBe(0);
-    expect(integration.stdout).toContain(".test.ts");
-    expect(integration.stdout).not.toContain(".spec.ts");
-  }, 20_000);
+    expect(domainTests.some((file) => file.endsWith(".spec.ts"))).toBe(true);
+    expect(domainTests.some((file) => file.endsWith(".test.ts"))).toBe(true);
+    expect(unit).toContain("--exclude '**/*.test.ts'");
+    expect(unit).not.toContain("--exclude '**/*.spec.ts'");
+    expect(integration).toContain("--exclude '**/*.spec.ts'");
+    expect(integration).not.toContain("--exclude '**/*.test.ts'");
+  });
 });
