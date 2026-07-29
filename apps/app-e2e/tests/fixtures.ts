@@ -278,6 +278,26 @@ export const isReplacedNavigationAbort = (
     failure.value,
   );
 
+export const isExternalNetworkChange = (
+  failure: RecordedDiagnosticFailure,
+): boolean => {
+  if (
+    failure.source === "request" &&
+    failure.kind === "critical-resource" &&
+    /^(?:document|fetch|script|stylesheet|xhr) .+: net::ERR_NETWORK_CHANGED$/.test(
+      failure.value,
+    )
+  ) {
+    return true;
+  }
+  return (
+    failure.source === "console" &&
+    failure.kind === "framework-warning" &&
+    failure.value ===
+      "Unstructured console.error: Failed to load resource: net::ERR_NETWORK_CHANGED"
+  );
+};
+
 export const isControlledCancellation = (
   failure: RecordedDiagnosticFailure,
   cancellation: ControlledCancellation,
@@ -1188,6 +1208,7 @@ export const test = baseTest.extend<
     await assertDiagnostics(
       failures.filter(
         (failure) =>
+          !isExternalNetworkChange(failure) &&
           !isReplacedNavigationAbort(
             failure,
             navigation.committedNavigationIds,

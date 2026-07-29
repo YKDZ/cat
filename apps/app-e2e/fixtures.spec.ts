@@ -15,6 +15,7 @@ import {
   consumeControlledCancellation,
   consumeNavigationOwnedCancellationPageError,
   isControlledCancellation,
+  isExternalNetworkChange,
   isNavigationOwnedCancellationPageError,
   isReplacedNavigationAbort,
 } from "./tests/fixtures.ts";
@@ -200,6 +201,46 @@ describe("browser diagnostics request failures", () => {
     ]) {
       expect(isControlledCancellation(failure, cancellation)).toBe(false);
     }
+  });
+
+  it("classifies browser network-change resource failures as external", () => {
+    expect(
+      isExternalNetworkChange({
+        ...requestFailure(
+          3,
+          "script http://localhost/assets/chunk.js: net::ERR_NETWORK_CHANGED",
+        ),
+      }),
+    ).toBe(true);
+    expect(
+      isExternalNetworkChange({
+        documentUrl: "http://localhost/project/one",
+        epoch: 3,
+        kind: "framework-warning",
+        occurredAt: 5_000,
+        source: "console",
+        value:
+          "Unstructured console.error: Failed to load resource: net::ERR_NETWORK_CHANGED",
+      }),
+    ).toBe(true);
+    expect(
+      isExternalNetworkChange({
+        ...requestFailure(
+          3,
+          "script http://localhost/assets/chunk.js: net::ERR_FAILED",
+        ),
+      }),
+    ).toBe(false);
+    expect(
+      isExternalNetworkChange({
+        documentUrl: "http://localhost/project/one",
+        epoch: 3,
+        kind: "app-error",
+        occurredAt: 5_000,
+        source: "browser-event",
+        value: "CAT_ERROR: failure",
+      }),
+    ).toBe(false);
   });
 });
 
