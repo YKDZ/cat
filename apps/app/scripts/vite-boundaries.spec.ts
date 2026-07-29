@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -25,9 +25,18 @@ describe("development module boundaries", () => {
     expect(config).toContain('"../../@cat-plugin/$1/dist/index.js"');
     expect(config).not.toContain('"../../@cat-plugin/$1/src/index.ts"');
     for (const entry of readdirSync(resolve(root, "@cat-plugin"))) {
-      expect(
-        existsSync(resolve(root, "@cat-plugin", entry, "dist/index.js")),
-      ).toBe(true);
+      const packageJson = JSON.parse(
+        readFileSync(
+          resolve(root, "@cat-plugin", entry, "package.json"),
+          "utf8",
+        ),
+      ) as {
+        main: string;
+        exports: { ".": { import: string } };
+      };
+
+      expect(packageJson.main).toBe("./dist/index.js");
+      expect(packageJson.exports["."].import).toBe("./dist/index.js");
     }
   });
 });
