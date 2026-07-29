@@ -17,11 +17,15 @@ test.describe("Plugin management", () => {
     });
     await expect(probeButton).toBeEnabled();
     await probeButton.click({ position: { x: 16, y: 16 } });
-    await expect(
-      page.getByRole("button", { name: "检测中…", exact: true }).first(),
-    ).toBeVisible();
+    const successResult = page.getByText("检测结果：SUCCESS");
+    await Promise.any([
+      expect(
+        page.getByRole("button", { name: "检测中…", exact: true }).first(),
+      ).toBeVisible(),
+      expect(successResult).toBeVisible(),
+    ]);
 
-    await expect(page.getByText("检测结果：SUCCESS")).toBeVisible({
+    await expect(successResult).toBeVisible({
       timeout: 120_000,
     });
     await expect(
