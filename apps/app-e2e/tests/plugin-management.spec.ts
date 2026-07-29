@@ -9,15 +9,20 @@ test.describe("Plugin management", () => {
       page.getByRole("heading", { name: "spacy-segmenter" }),
     ).toBeVisible();
 
-    const probeResponse = page.waitForResponse(
-      (response) =>
-        response.url().includes("/api/rpc/plugin/probeConfig") &&
-        response.request().method() === "POST",
-    );
-    await page
-      .getByRole("button", { name: "检测当前配置", exact: true })
-      .click();
-    expect((await probeResponse).ok()).toBe(true);
+    const probeButton = page.getByRole("button", {
+      name: "检测当前配置",
+      exact: true,
+    });
+    await expect(probeButton).toBeEnabled();
+    const [probeResponse] = await Promise.all([
+      page.waitForResponse(
+        (response) =>
+          response.url().includes("/api/rpc/plugin/probeConfig") &&
+          response.request().method() === "POST",
+      ),
+      probeButton.click({ position: { x: 16, y: 16 } }),
+    ]);
+    expect(probeResponse.ok()).toBe(true);
 
     await expect(page.getByText("检测结果：SUCCESS")).toBeVisible();
     await expect(
