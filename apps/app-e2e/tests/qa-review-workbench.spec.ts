@@ -6,10 +6,10 @@ test.describe("QA review workbench", () => {
     qaReviewPage,
     page,
   }) => {
-    const projectId = refs.project;
+    const projectId = refs["qa:project"];
     const approveElementId = refs["qa:element:approve"];
     const rejectElementId = refs["qa:element:reject"];
-    if (!approveElementId || !rejectElementId)
+    if (!projectId || !approveElementId || !rejectElementId)
       throw new Error("Missing QA fixture refs");
 
     await qaReviewPage.navigateToQa(projectId, "zh-Hans");

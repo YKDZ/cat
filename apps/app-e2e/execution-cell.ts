@@ -1770,8 +1770,53 @@ const seedQaReviewWorkbench = async (
   refs: RefResolver,
 ): Promise<void> => {
   const adminId = refs.getStringId("user:admin");
-  const projectId = refs.getStringId("project");
-  const elementIds = [refs.getNumericId("el:001"), refs.getNumericId("el:002")];
+  const project = await executeCommand({ db }, createProject, {
+    creatorId: adminId,
+    description: "E2E QA review fixture",
+    name: "E2E QA review",
+  });
+  const contentRoot = await executeCommand({ db }, createRootContentNode, {
+    creatorId: adminId,
+    projectId: project.id,
+  });
+  const file = await executeCommand({ db }, createContentNodeUnderParent, {
+    boundaryType: "FILE",
+    creatorId: adminId,
+    displayLabel: "qa-review.json",
+    exportRole: "FILE",
+    importerId: "e2e",
+    kind: "FILE",
+    localOrder: 0,
+    parentContentNodeId: contentRoot.id,
+    projectId: project.id,
+    sourceRootRef: "qa-review-root",
+    stableSourceNodeRef: "qa-review-file",
+  });
+  const sourceStrings = await Promise.all(
+    ["QA approval source", "QA rejection source"].map(async (value) => {
+      const [row] = await db
+        .insert(vectorizedString)
+        .values({ languageId: "en", value })
+        .returning({ id: vectorizedString.id });
+      if (!row) throw new Error("Could not create QA fixture source string");
+      return row.id;
+    }),
+  );
+  const elementIds = await executeCommand({ db }, createElements, {
+    data: sourceStrings.map((stringId, index) => ({
+      importerId: "e2e",
+      localOrder: index,
+      primaryContentNodeId: file.id,
+      projectId: project.id,
+      sourceNodeRef: `qa-review-element-${index}`,
+      sourceRootRef: "qa-review-root",
+      stableSourceRef: `qa-review-element-${index}`,
+      stringId,
+    })),
+  });
+  if (elementIds.length !== 2 || elementIds.some((id) => id === undefined)) {
+    throw new Error("Could not create QA fixture elements");
+  }
   const strings = await Promise.all(
     ["QA approved candidate", "QA rejected candidate"].map(async (value) => {
       const [row] = await db
@@ -1835,7 +1880,7 @@ const seedQaReviewWorkbench = async (
         },
       ],
       layer: "DETERMINISTIC",
-      projectId,
+      projectId: project.id,
       riskScore: item.riskScore,
       status: "COMPLETED",
       summary: item.message,
@@ -1845,10 +1890,11 @@ const seedQaReviewWorkbench = async (
       branchId: null,
       elementId,
       languageId: "zh-Hans",
-      projectId,
+      projectId: project.id,
       translationId: item.id,
     });
   }
+  refs.set("qa:project", project.id);
   refs.set("qa:element:approve", elementIds[0]!);
   refs.set("qa:element:reject", elementIds[1]!);
 };
