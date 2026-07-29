@@ -266,6 +266,14 @@ const failureUrl = (value: string): string | null => {
   return match?.[1] ?? null;
 };
 
+const normalisedUrl = (value: string): string | null => {
+  try {
+    return new URL(value).href;
+  } catch {
+    return null;
+  }
+};
+
 export const isReplacedNavigationAbort = (
   failure: RecordedDiagnosticFailure,
   committedNavigationIds: ReadonlySet<NavigationTransactionId>,
@@ -295,6 +303,50 @@ export const isExternalNetworkChange = (
     failure.kind === "framework-warning" &&
     failure.value ===
       "Unstructured console.error: Failed to load resource: net::ERR_NETWORK_CHANGED"
+  );
+};
+
+export const externalNetworkChangeUrl = (
+  failure: RecordedDiagnosticFailure,
+): string | null => {
+  if (failure.source !== "request" || failure.kind !== "critical-resource")
+    return null;
+  const match =
+    /^(?:document|fetch|script|stylesheet|xhr) (.+): net::ERR_NETWORK_CHANGED$/.exec(
+      failure.value,
+    );
+  return match?.[1] === undefined ? null : normalisedUrl(match[1]);
+};
+
+const dynamicImportFailureUrl = (
+  failure: RecordedDiagnosticFailure,
+): string | null => {
+  if (failure.source !== "page" || failure.kind !== "page-error") return null;
+  const match = /^Failed to fetch dynamically imported module: (.+)$/.exec(
+    failure.value,
+  );
+  if (match?.[1] === undefined) return null;
+  try {
+    const url = new URL(match[1]);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    if (url.hostname !== "127.0.0.1" && url.hostname !== "localhost")
+      return null;
+    if (!/^\/assets\/.+\.js$/.test(url.pathname)) return null;
+    return url.href;
+  } catch {
+    return null;
+  }
+};
+
+export const isExternalDynamicImportPageError = (
+  failure: RecordedDiagnosticFailure,
+  externalNetworkChangeUrls: ReadonlySet<string>,
+  sawExternalNetworkChange: boolean,
+): boolean => {
+  const url = dynamicImportFailureUrl(failure);
+  return (
+    url !== null &&
+    (externalNetworkChangeUrls.has(url) || sawExternalNetworkChange)
   );
 };
 
@@ -1205,10 +1257,22 @@ export const test = baseTest.extend<
         pageErrorCancellations.set(failure, boundCancellation);
     }
     const consumedCancellationRecordIds = new Set<string>();
+    const externalNetworkChangeUrls = new Set(
+      failures.flatMap((failure) => {
+        const url = externalNetworkChangeUrl(failure);
+        return url === null ? [] : [url];
+      }),
+    );
+    const sawExternalNetworkChange = failures.some(isExternalNetworkChange);
     await assertDiagnostics(
       failures.filter(
         (failure) =>
           !isExternalNetworkChange(failure) &&
+          !isExternalDynamicImportPageError(
+            failure,
+            externalNetworkChangeUrls,
+            sawExternalNetworkChange,
+          ) &&
           !isReplacedNavigationAbort(
             failure,
             navigation.committedNavigationIds,

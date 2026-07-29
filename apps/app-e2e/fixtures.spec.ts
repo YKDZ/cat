@@ -14,7 +14,9 @@ import {
 import {
   consumeControlledCancellation,
   consumeNavigationOwnedCancellationPageError,
+  externalNetworkChangeUrl,
   isControlledCancellation,
+  isExternalDynamicImportPageError,
   isExternalNetworkChange,
   isNavigationOwnedCancellationPageError,
   isReplacedNavigationAbort,
@@ -26,6 +28,16 @@ const requestFailure = (epoch: number, value: string) => ({
   occurredAt: 5_000,
   kind: "critical-resource" as const,
   source: "request" as const,
+  value,
+});
+
+const pageError = (value: string) => ({
+  documentUrl: "http://localhost/project/one",
+  epoch: 3,
+  errorName: "TypeError",
+  kind: "page-error" as const,
+  occurredAt: 5_000,
+  source: "page" as const,
   value,
 });
 
@@ -204,14 +216,16 @@ describe("browser diagnostics request failures", () => {
   });
 
   it("classifies browser network-change resource failures as external", () => {
-    expect(
-      isExternalNetworkChange({
-        ...requestFailure(
-          3,
-          "script http://localhost/assets/chunk.js: net::ERR_NETWORK_CHANGED",
-        ),
-      }),
-    ).toBe(true);
+    const chunkFailure = {
+      ...requestFailure(
+        3,
+        "script http://localhost/assets/chunk.js: net::ERR_NETWORK_CHANGED",
+      ),
+    };
+    expect(isExternalNetworkChange(chunkFailure)).toBe(true);
+    expect(externalNetworkChangeUrl(chunkFailure)).toBe(
+      "http://localhost/assets/chunk.js",
+    );
     expect(
       isExternalNetworkChange({
         documentUrl: "http://localhost/project/one",
@@ -240,6 +254,49 @@ describe("browser diagnostics request failures", () => {
         source: "browser-event",
         value: "CAT_ERROR: failure",
       }),
+    ).toBe(false);
+  });
+
+  it("consumes dynamic import page errors only with network-change evidence", () => {
+    const dynamicImportFailure = pageError(
+      "Failed to fetch dynamically imported module: http://127.0.0.1:43955/assets/entries/src_pages_qa-review_project_-projectId_-languageToId_-elementId.CF_Cj78s.js",
+    );
+    const exactUrls = new Set([
+      "http://127.0.0.1:43955/assets/entries/src_pages_qa-review_project_-projectId_-languageToId_-elementId.CF_Cj78s.js",
+    ]);
+
+    expect(
+      isExternalDynamicImportPageError(dynamicImportFailure, exactUrls, true),
+    ).toBe(true);
+    expect(
+      isExternalDynamicImportPageError(
+        dynamicImportFailure,
+        new Set<string>(),
+        true,
+      ),
+    ).toBe(true);
+    expect(
+      isExternalDynamicImportPageError(
+        dynamicImportFailure,
+        new Set<string>(),
+        false,
+      ),
+    ).toBe(false);
+    expect(
+      isExternalDynamicImportPageError(
+        pageError(
+          "Failed to fetch dynamically imported module: /assets/app.js",
+        ),
+        exactUrls,
+        true,
+      ),
+    ).toBe(false);
+    expect(
+      isExternalDynamicImportPageError(
+        pageError("Application chunk loader invariant failed"),
+        exactUrls,
+        true,
+      ),
     ).toBe(false);
   });
 });
