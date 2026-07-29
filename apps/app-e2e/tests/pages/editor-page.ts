@@ -149,14 +149,31 @@ export class EditorPage {
    * Click the "提交" (Submit) button to submit the current translation.
    */
   async submitTranslation(): Promise<void> {
-    await this.page.getByRole("button", { name: "提交", exact: true }).click();
+    await this.submitTranslationAction(async () => {
+      await this.page
+        .getByRole("button", { name: "提交", exact: true })
+        .click();
+    });
   }
 
   /**
    * Click the "提交并继续" (Submit & Continue) button.
    */
   async submitAndContinue(): Promise<void> {
-    await this.page.getByRole("button", { name: "提交并继续" }).click();
+    await this.submitTranslationAction(async () => {
+      await this.page.getByRole("button", { name: "提交并继续" }).click();
+    });
+  }
+
+  private async submitTranslationAction(click: () => Promise<void>) {
+    const response = this.page.waitForResponse(
+      (candidate) => candidate.url().includes("/api/rpc/translation/onCreate"),
+      { timeout: 15_000 },
+    );
+    await click();
+    const result = await response;
+    if (!result.ok())
+      throw new Error(`Translation submit failed with HTTP ${result.status()}`);
   }
 
   /**

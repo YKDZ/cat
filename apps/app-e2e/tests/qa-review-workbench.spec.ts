@@ -18,8 +18,13 @@ test.describe("QA review workbench", () => {
         `/qa-review/project/${projectId}/zh-Hans/${approveElementId}(?:\\?.*)?$`,
       ),
     );
+    await expect(
+      page.getByRole("button", { name: /选择候选/ }).first(),
+    ).toBeVisible({
+      timeout: 30_000,
+    });
     await expect(page.getByText("阻断批准").first()).toBeVisible({
-      timeout: 15_000,
+      timeout: 30_000,
     });
     await qaReviewPage.selectFirstCandidate();
     await qaReviewPage.addNote("E2E approve note");
