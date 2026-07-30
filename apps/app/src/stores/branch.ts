@@ -131,6 +131,32 @@ export const useBranchStore = defineStore("branch", () => {
   };
 
   /**
+   * Restore the exact branch encoded in a route without consulting profile.
+   */
+  const restoreRouteBranch = (input: {
+    projectId: string;
+    branchIdFromRoute: number | null;
+  }) => {
+    if (input.branchIdFromRoute === null) {
+      applyMain(input.projectId);
+      return;
+    }
+
+    if (
+      currentProjectId.value === input.projectId &&
+      currentBranchId.value === input.branchIdFromRoute
+    ) {
+      return;
+    }
+
+    enterBranch({
+      projectId: input.projectId,
+      branchId: input.branchIdFromRoute,
+      persist: false,
+    });
+  };
+
+  /**
    * Restore branch ID from URL; BranchCombobox can hydrate PR metadata later.
    */
   const setBranchIdFromRoute = (branchIdFromRoute: number | null) => {
@@ -178,6 +204,7 @@ export const useBranchStore = defineStore("branch", () => {
     isOnMainBranch,
     enterBranch,
     restoreProjectBranch,
+    restoreRouteBranch,
     setBranchIdFromRoute,
     leaveBranch,
     markStale,

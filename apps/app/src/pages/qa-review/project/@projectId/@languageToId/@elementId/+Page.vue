@@ -77,14 +77,14 @@ watch(
     });
 
     const routeBranchId = nextScope.branchId ?? null;
-    branchStore.restoreProjectBranch({
+    branchStore.restoreRouteBranch({
       projectId: nextScope.projectId,
       branchIdFromRoute: routeBranchId,
     });
 
     const restoredScope = {
       ...nextScope,
-      branchId: branchStore.currentBranchId ?? undefined,
+      branchId: routeBranchId ?? undefined,
     };
     contextStore.setScope(restoredScope);
   },
