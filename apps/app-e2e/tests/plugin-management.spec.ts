@@ -16,7 +16,8 @@ test.describe("Plugin management", () => {
       exact: true,
     });
     await expect(probeButton).toBeEnabled();
-    await probeButton.click({ position: { x: 16, y: 16 } });
+    await probeButton.scrollIntoViewIfNeeded();
+    await probeButton.click();
     const successResult = page.getByText("检测结果：SUCCESS");
     await Promise.any([
       expect(
