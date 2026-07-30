@@ -95,7 +95,7 @@ jobs:
           TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
         run: |
           mkdir -p validated-images
-          pnpm check:all
+          pnpm check:all -- --e2e-concurrency 1
           cd validated-images
           sha256sum manifest.json standalone.tar runtime.tar > SHA256SUMS
 

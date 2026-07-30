@@ -120,6 +120,15 @@ describe("CI configuration contract", () => {
     expect(steps[installIndex]?.run).toContain("pnpm exec playwright");
   });
 
+  it("runs CI E2E cells serially on the shared GitHub runner", () => {
+    const steps = workflow.jobs?.["check-all"]?.steps ?? [];
+    const checkAllStep = steps.find((step) =>
+      step.run?.includes("pnpm check:all"),
+    );
+
+    expect(checkAllStep?.run).toContain("--e2e-concurrency 1");
+  });
+
   it("uses the integrity-aware package manager installer in every build job", () => {
     for (const name of ["check", "check-all"] as const) {
       const steps = workflow.jobs?.[name]?.steps ?? [];
