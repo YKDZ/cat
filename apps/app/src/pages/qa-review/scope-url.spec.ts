@@ -5,6 +5,7 @@ import {
   parseQaReviewElementTarget,
   parseQaReviewElementTargetFromPathname,
   parseQaReviewScopeFromRoute,
+  resolveQaReviewElementTarget,
 } from "./scope-url.ts";
 
 describe("qa review scope url", () => {
@@ -34,5 +35,17 @@ describe("qa review scope url", () => {
         "/qa-review/project/11111111-1111-4111-8111-111111111111/zh-Hans/42",
       ),
     ).toBe(42);
+  });
+
+  it("uses the browser pathname when cold hydration still exposes the auto route context", () => {
+    expect(
+      resolveQaReviewElementTarget({
+        browserPathname:
+          "/qa-review/project/11111111-1111-4111-8111-111111111111/zh-Hans/21",
+        contextPathname:
+          "/qa-review/project/11111111-1111-4111-8111-111111111111/zh-Hans/auto",
+        routeParam: "auto",
+      }),
+    ).toBe(21);
   });
 });

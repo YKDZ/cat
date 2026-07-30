@@ -30,6 +30,23 @@ export const parseQaReviewElementTargetFromPathname = (
   return parseQaReviewElementTarget(target);
 };
 
+export const resolveQaReviewElementTarget = (input: {
+  browserPathname?: string;
+  contextPathname: string;
+  routeParam: string | number | undefined;
+}): QaReviewElementRouteTarget => {
+  const routeTarget = parseQaReviewElementTarget(input.routeParam);
+  if (routeTarget !== "auto") return routeTarget;
+
+  const browserTarget =
+    input.browserPathname === undefined
+      ? "auto"
+      : parseQaReviewElementTargetFromPathname(input.browserPathname);
+  if (browserTarget !== "auto") return browserTarget;
+
+  return parseQaReviewElementTargetFromPathname(input.contextPathname);
+};
+
 /**
  * Build a QA review workbench href while reusing editor-scope query params.
  *

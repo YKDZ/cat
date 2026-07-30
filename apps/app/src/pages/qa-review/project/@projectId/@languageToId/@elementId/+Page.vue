@@ -15,7 +15,7 @@ import QaReviewWorkbench from "../../../../components/QaReviewWorkbench.vue";
 import {
   buildQaReviewHref,
   parseQaReviewElementTarget,
-  parseQaReviewElementTargetFromPathname,
+  resolveQaReviewElementTarget,
   parseQaReviewScopeFromRoute,
 } from "../../../../scope-url.ts";
 
@@ -32,7 +32,11 @@ const routeElementTarget = () => {
 
   // Vike can briefly retain the pre-redirect "auto" route param while the
   // browser URL already points at the resolved element during cold hydration.
-  return parseQaReviewElementTargetFromPathname(ctx.urlPathname);
+  return resolveQaReviewElementTarget({
+    browserPathname: globalThis.location?.pathname,
+    contextPathname: ctx.urlPathname,
+    routeParam: ctx.routeParams.elementId,
+  });
 };
 
 watch(
