@@ -26,13 +26,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bootstrap integrity-pinned pnpm for dependency caching
         run: node scripts/package-manager-pin.ts
 
       - name: Setup exact Node.js patch
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org
@@ -58,13 +58,13 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bootstrap integrity-pinned pnpm for dependency caching
         run: node scripts/package-manager-pin.ts
 
       - name: Setup exact Node.js patch
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org
@@ -100,7 +100,7 @@ jobs:
           sha256sum manifest.json standalone.tar runtime.tar > SHA256SUMS
 
       - name: Upload validated container images
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: validated-images-${{ github.sha }}
           path: validated-images
@@ -120,13 +120,13 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bootstrap integrity-pinned pnpm for dependency caching
         run: node scripts/package-manager-pin.ts
 
       - name: Setup exact Node.js patch
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org
@@ -137,7 +137,7 @@ jobs:
         run: node scripts/package-manager-pin.ts
 
       - name: Download validated container images
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: validated-images-${{ github.sha }}
           path: validated-images
@@ -160,7 +160,7 @@ jobs:
           done
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
