@@ -234,6 +234,7 @@ export const useQaReviewWorkbenchStore = defineStore(
       overrideReason,
       submitError,
       isSubmitting,
+      primeRouteElement: setSelectedElement,
       selectElement,
       syncRouteElement,
       selectCandidate,
