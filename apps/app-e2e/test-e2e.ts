@@ -1,10 +1,11 @@
 // oxlint-disable no-console -- the E2E command reports child-process failures directly
-import { spawn } from "node:child_process";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { runExecutionCells } from "./execution-cell.ts";
+import { redactDiagnosticText } from "@cat/shared";
+
+import { runExecutionCells, runManagedCommand } from "./execution-cell.ts";
 import type { ExecutionBrowser, ExecutionCellInput } from "./execution-cell.ts";
 import {
   assertReleaseE2eImage,
@@ -29,44 +30,33 @@ class DirectE2EInterruptedError extends Error {
   }
 }
 
-const runDocker: ServiceLeaseCommandRunner = async (command, args, options) =>
-  await new Promise((resolveRun, reject) => {
-    if (options.signal.aborted) {
-      reject(options.signal.reason ?? new Error("Docker command aborted"));
-      return;
-    }
-    const child = spawn(command, args, {
-      cwd: options.cwd,
-      env: options.env,
-      stdio:
-        options.stdio === "pipe"
-          ? ["ignore", "pipe", "inherit"]
-          : ["inherit", "inherit", "inherit"],
-    });
-    let stdout = "";
-    const abort = (): void => {
-      child.kill("SIGTERM");
-    };
-    options.signal.addEventListener("abort", abort, { once: true });
-    child.stdout?.setEncoding("utf8");
-    child.stdout?.on("data", (chunk: string) => {
-      stdout += chunk;
-    });
-    child.once("error", (error) => {
-      options.signal.removeEventListener("abort", abort);
-      reject(error);
-    });
-    child.once("close", (code, signal) => {
-      options.signal.removeEventListener("abort", abort);
-      if (code === 0) resolveRun({ stdout });
-      else
-        reject(
-          new Error(
-            `${command} ${args.join(" ")} exited with ${signal ?? String(code)}`,
-          ),
-        );
-    });
-  });
+export const runDocker: ServiceLeaseCommandRunner = async (
+  command,
+  args,
+  options,
+) => {
+  try {
+    const result = await runManagedCommand(
+      command,
+      args,
+      options.env,
+      `${command} ${args.join(" ")}`,
+      {
+        cwd: options.cwd,
+        signal: options.signal,
+        stdio: options.stdio === "pipe" ? "capture" : "inherit",
+      },
+    );
+    return { stdout: result.stdout };
+  } catch (error) {
+    throw new Error(
+      redactDiagnosticText(
+        error instanceof Error ? error.message : String(error),
+      ),
+      { cause: error },
+    );
+  }
+};
 
 type RequestedTarget = "all" | "dev" | "standalone" | "runtime";
 
@@ -401,13 +391,16 @@ const directExecution = (): boolean =>
   process.argv[1] !== undefined &&
   fileURLToPath(import.meta.url) === resolve(process.argv[1]);
 
+export const formatE2EDiagnostic = (error: unknown): string =>
+  redactDiagnosticText(
+    error instanceof Error ? (error.stack ?? error.message) : String(error),
+  );
+
 if (directExecution()) {
   try {
     await directMain();
   } catch (error) {
-    process.stderr.write(
-      `${error instanceof Error ? error.stack : String(error)}\n`,
-    );
+    process.stderr.write(`${formatE2EDiagnostic(error)}\n`);
     process.exitCode =
       error instanceof DirectE2EInterruptedError
         ? error.signal === "SIGINT"

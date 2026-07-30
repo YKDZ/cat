@@ -1,5 +1,14 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -22,10 +31,14 @@ type TurboDryTask = {
 };
 
 const dryTasks = (...args: string[]): TurboDryTask[] => {
+  return dryTasksAt(root, ...args);
+};
+
+const dryTasksAt = (cwd: string, ...args: string[]): TurboDryTask[] => {
   const output = execFileSync(
     "pnpm",
     ["turbo", "run", ...args, "--dry=json", "--no-color"],
-    { cwd: root, encoding: "utf8" },
+    { cwd, encoding: "utf8" },
   );
   return (
     JSON.parse(output.slice(output.indexOf("{"))) as {
@@ -34,27 +47,67 @@ const dryTasks = (...args: string[]): TurboDryTask[] => {
   ).tasks;
 };
 
+const createLintHashFixture = (): string => {
+  const fixtureRoot = mkdtempSync(resolve(tmpdir(), "cat-turbo-lint-hash-"));
+  for (const file of [
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "turbo.json",
+    "oxfmt.config.ts",
+    "oxlint.config.ts",
+    "tsconfig.base.json",
+    "tsconfig.node-base.json",
+    "tsconfig.node.json",
+    "tsconfig.web.json",
+    "tsconfig.vue.json",
+  ]) {
+    cpSync(resolve(root, file), resolve(fixtureRoot, file));
+  }
+  mkdirSync(resolve(fixtureRoot, "packages/shared"), { recursive: true });
+  cpSync(
+    resolve(root, "packages/shared/package.json"),
+    resolve(fixtureRoot, "packages/shared/package.json"),
+  );
+  cpSync(
+    resolve(root, "tooling/oxlint"),
+    resolve(fixtureRoot, "tooling/oxlint"),
+    { recursive: true },
+  );
+  symlinkSync(
+    resolve(root, "node_modules"),
+    resolve(fixtureRoot, "node_modules"),
+  );
+  return fixtureRoot;
+};
+
 describe("Turbo workspace contract", () => {
-  it("runs real docs build, typecheck, dev, and preview tasks", () => {
+  it("signs remote cache artifacts when CI injects the signature key", () => {
+    const config = JSON.parse(
+      readFileSync(resolve(root, "turbo.json"), "utf8"),
+    ) as { remoteCache?: { signature?: boolean } };
+    const workflow = readFileSync(
+      resolve(root, ".github/workflows/ci.yml"),
+      "utf8",
+    );
+
+    expect(config.remoteCache?.signature).toBe(true);
+    expect(workflow).toContain("TURBO_REMOTE_CACHE_SIGNATURE_KEY");
+  });
+
+  it("runs real docs build, typecheck, and dev tasks", () => {
     const manifest = JSON.parse(
       readFileSync(resolve(root, "apps/docs/package.json"), "utf8"),
     ) as { scripts?: Record<string, string> };
     expect(manifest.scripts).toMatchObject({
       build: "vitepress build src",
       dev: "vitepress dev src",
-      preview: "vitepress preview src",
       typecheck:
         "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
     });
 
-    const tasks = dryTasks(
-      "build",
-      "typecheck",
-      "dev",
-      "preview",
-      "--filter=@cat/docs",
-    );
-    for (const name of ["build", "typecheck", "dev", "preview"]) {
+    const tasks = dryTasks("build", "typecheck", "dev", "--filter=@cat/docs");
+    for (const name of ["build", "typecheck", "dev"]) {
       const task = tasks.find(({ taskId }) => taskId === `@cat/docs#${name}`);
       expect(task?.command, name).not.toBe("<NONEXISTENT>");
     }
@@ -62,10 +115,9 @@ describe("Turbo workspace contract", () => {
       tasks.find(({ taskId }) => taskId === "@cat/docs#dev")
         ?.resolvedTaskDefinition,
     ).toMatchObject({ cache: false, persistent: true });
-    expect(
-      tasks.find(({ taskId }) => taskId === "@cat/docs#preview")
-        ?.resolvedTaskDefinition,
-    ).toMatchObject({ cache: false, persistent: true, dependsOn: ["build"] });
+    expect(tasks.some(({ taskId }) => taskId === "@cat/docs#preview")).toBe(
+      false,
+    );
   });
 
   it("owns CLI route generation with cross-package inputs and one output", () => {
@@ -101,7 +153,9 @@ describe("Turbo workspace contract", () => {
 
     expect(turbo.globalDependencies).toContain("tooling/oxlint/**");
     expect(turbo.globalDependencies).toContain("tsconfig.base.json");
-    expect(turbo.tasks.format?.dependsOn ?? []).not.toContain("^format");
+    expect(turbo.tasks["format:check"]?.dependsOn ?? []).not.toContain(
+      "^format:check",
+    );
     expect(turbo.tasks.lint?.dependsOn ?? []).not.toContain("^lint");
     expect(turbo.tasks["test:unit"]?.env).toContain("CI");
     expect(turbo.tasks["pack:artifact"]?.inputs).toEqual(
@@ -110,7 +164,7 @@ describe("Turbo workspace contract", () => {
         "$TURBO_ROOT$/pnpm-workspace.yaml",
       ]),
     );
-    for (const task of ["format", "lint", "typecheck", "test:unit"]) {
+    for (const task of ["format:check", "lint", "typecheck", "test:unit"]) {
       expect(turbo.tasks[task]?.outputs ?? []).toEqual([]);
     }
 
@@ -120,18 +174,47 @@ describe("Turbo workspace contract", () => {
     expect(lint?.hashOfExternalDependencies).toMatch(/^[0-9a-f]+$/);
   });
 
-  it("invalidates task hashes when root lint tooling changes", () => {
-    const probe = resolve(root, "tooling/oxlint/turbo-global-input-probe.ts");
+  it("runs root quality tasks directly through explicit root task definitions", () => {
+    const manifest = JSON.parse(
+      readFileSync(resolve(root, "package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    const turbo = JSON.parse(
+      readFileSync(resolve(root, "turbo.json"), "utf8"),
+    ) as { tasks: Record<string, unknown> };
+
+    for (const task of [
+      "boundaries",
+      "codegen:check",
+      "format:check",
+      "lint",
+      "test:tooling",
+      "typecheck",
+    ]) {
+      expect(turbo.tasks[`//#${task}`], task).toBeDefined();
+      expect(manifest.scripts?.[task], task).not.toMatch(/\bturbo\s+run\b/);
+    }
+    expect(manifest.scripts?.boundaries).toBe(
+      "node scripts/workspace-boundaries.ts",
+    );
+    expect(
+      readFileSync(resolve(root, "scripts/workspace-boundaries.ts"), "utf8"),
+    ).toContain('"node_modules", "turbo", "bin", "turbo"');
+  });
+
+  it("invalidates lint hashes when an Oxc implementation dependency changes", () => {
+    const fixtureRoot = createLintHashFixture();
+    const probe = resolve(fixtureRoot, "tooling/oxlint/no-server-import.ts");
+    const beforeSource = readFileSync(probe, "utf8");
     const hash = (): string | undefined =>
-      dryTasks("lint", "--filter=@cat/shared").find(
+      dryTasksAt(fixtureRoot, "lint", "--filter=@cat/shared").find(
         ({ taskId }) => taskId === "@cat/shared#lint",
       )?.hash;
-    const before = hash();
-    writeFileSync(probe, "export const turboGlobalInputProbe = true;\n");
     try {
+      const before = hash();
+      writeFileSync(probe, `${beforeSource}\n`);
       expect(hash()).not.toBe(before);
     } finally {
-      unlinkSync(probe);
+      rmSync(fixtureRoot, { recursive: true, force: true });
     }
   });
 });

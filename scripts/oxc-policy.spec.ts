@@ -7,6 +7,12 @@ import oxfmtConfig from "../oxfmt.config.ts";
 import oxlintConfig from "../oxlint.config.ts";
 
 const root = resolve(import.meta.dirname, "..");
+const rootScopedOxcWorkspaces = new Set([
+  "apps/app",
+  "@cat-plugin/tiny-widget",
+  "packages/plugin-core",
+  "packages/ui",
+]);
 
 describe("root OXC policy", () => {
   it("keeps correctness strict and suspicious diagnostics visible", () => {
@@ -76,7 +82,7 @@ describe("root OXC policy", () => {
     ).toBe(false);
   });
 
-  it("gives every active workspace package root-owned quality tasks", () => {
+  it("gives every active workspace package direct root-configured Oxc tasks", () => {
     const manifests = globSync(
       [
         "apps/*/package.json",
@@ -92,11 +98,23 @@ describe("root OXC policy", () => {
       const packageJson = JSON.parse(
         readFileSync(resolve(root, manifest), "utf8"),
       ) as { scripts?: Record<string, string> };
-      expect(packageJson.scripts?.["lint"], manifest).toBe(
-        "node ../../tooling/oxlint/run.ts lint",
+      const rootScopedTarget = manifest.replace("/package.json", "");
+      const useRootScopedCommand =
+        rootScopedOxcWorkspaces.has(rootScopedTarget);
+      const prefix = useRootScopedCommand ? "cd ../.. && " : "";
+      const config = useRootScopedCommand ? "" : "../../";
+      const target = useRootScopedCommand ? rootScopedTarget : ".";
+      expect(packageJson.scripts?.["format:check"], manifest).toBe(
+        `${prefix}oxfmt --list-different --config ${config}oxfmt.config.ts ${target}`,
       );
-      expect(packageJson.scripts?.["format"], manifest).toBe(
-        "node ../../tooling/oxlint/run.ts format",
+      expect(packageJson.scripts?.["format:write"], manifest).toBe(
+        `${prefix}oxfmt --write --config ${config}oxfmt.config.ts ${target}`,
+      );
+      expect(packageJson.scripts?.lint, manifest).toBe(
+        `${prefix}oxlint --quiet --format=unix --type-aware --config ${config}oxlint.config.ts --no-error-on-unmatched-pattern ${target}`,
+      );
+      expect(packageJson.scripts?.["lint:fix"], manifest).toBe(
+        `${prefix}oxlint --fix --format=unix --type-aware --config ${config}oxlint.config.ts --no-error-on-unmatched-pattern ${target}`,
       );
     }
   });

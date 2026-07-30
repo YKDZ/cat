@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { Logger } from "./core.ts";
+import {
+  formatDiagnosticErrorTree,
+  Logger,
+  redactDiagnosticText,
+} from "./core.ts";
 import type { DiagnosticEvent, DiagnosticTransport } from "./types.ts";
 
 const captureTransport = (events: DiagnosticEvent[]): DiagnosticTransport => ({
@@ -100,6 +104,84 @@ describe("Logger", () => {
       },
     });
     expect(JSON.stringify(events[0])).not.toContain("top-secret");
+  });
+
+  it("redacts URL credentials and session identifiers from diagnostic text", () => {
+    const redacted = redactDiagnosticText(
+      "request failed for https://admin:top-secret@example.test/path?sessionId=session-secret csrfToken=csrf-secret Authorization: Bearer bearer-secret",
+    );
+
+    expect(redacted).toContain("https://[REDACTED]@example.test/path");
+    expect(redacted).toContain("sessionId=[REDACTED]");
+    expect(redacted).toContain("csrfToken=[REDACTED]");
+    expect(redacted).toContain("Authorization: [REDACTED]");
+    expect(redacted).not.toContain("top-secret");
+    expect(redacted).not.toContain("session-secret");
+    expect(redacted).not.toContain("csrf-secret");
+    expect(redacted).not.toContain("bearer-secret");
+  });
+
+  it("redacts password-only Redis URL credentials", () => {
+    const redacted = redactDiagnosticText(
+      "Redis connection failed for redis://:redis-password@example.test:6379/0",
+    );
+
+    expect(redacted).toContain("redis://[REDACTED]@example.test:6379/0");
+    expect(redacted).not.toContain("redis-password");
+  });
+
+  it("does not treat query or fragment email addresses as URL credentials", () => {
+    const diagnostic =
+      "query=https://example.test?email=user@example.org fragment=https://example.test#owner=user@example.org";
+
+    expect(redactDiagnosticText(diagnostic)).toBe(diagnostic);
+  });
+
+  it("recursively formats bounded error trees without exposing credentials", () => {
+    const cleanup = new Error("cleanup password=cleanup-secret");
+    const root = new AggregateError(
+      [
+        new Error(
+          "stdout DATABASE_URL=postgresql://admin:database-secret@example.test/cat",
+        ),
+        cleanup,
+      ],
+      "primary token=primary-secret",
+    );
+    Object.assign(cleanup, { cause: root });
+
+    const formatted = formatDiagnosticErrorTree(root);
+
+    expect(formatted).toContain("primary token=[REDACTED]");
+    expect(formatted).toContain("stdout DATABASE_URL=postgresql://[REDACTED]@");
+    expect(formatted).toContain("cleanup password=[REDACTED]");
+    expect(formatted).toContain("failure-tree-cycle");
+    expect(formatted).not.toMatch(
+      /primary-secret|database-secret|cleanup-secret/,
+    );
+  });
+
+  it("resolves and inherits a redacted annotation for every error-tree node", () => {
+    const playwright = new Error("browser failed");
+    const stop = new Error("server stop failed");
+    const root = new AggregateError([playwright, stop], "validation failed");
+    const annotations = new Map<unknown, string>([
+      [root, "phase=validation"],
+      [playwright, "phase=playwright token=annotation-secret"],
+      [stop, "phase=stop"],
+    ]);
+
+    const formatted = formatDiagnosticErrorTree(root, {
+      resolveAnnotation: (error, inherited) =>
+        annotations.get(error) ?? inherited,
+    });
+
+    expect(formatted).toContain("phase=validation error=validation failed");
+    expect(formatted).toContain(
+      "phase=playwright token=[REDACTED] error=browser failed",
+    );
+    expect(formatted).toContain("phase=stop error=server stop failed");
+    expect(formatted).not.toContain("annotation-secret");
   });
 
   it("isolates failed transports and observers without changing application behavior", () => {

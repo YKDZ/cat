@@ -795,7 +795,14 @@ export {
 
 export { getDefaultFromSchema } from "#/utils/json-schema.ts";
 
-export { Logger, logger } from "#/utils/logger/core.ts";
+export {
+  type DiagnosticErrorTreeAnnotationResolver,
+  formatDiagnosticErrorTree,
+  type FormatDiagnosticErrorTreeOptions,
+  Logger,
+  logger,
+  redactDiagnosticText,
+} from "#/utils/logger/core.ts";
 
 export {
   type DiagnosticContext,

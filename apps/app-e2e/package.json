@@ -7,8 +7,10 @@
     "#/*": "./tests/*"
   },
   "scripts": {
-    "format": "node ../../tooling/oxlint/run.ts format",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",
+    "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
+    "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
+    "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test:e2e": "node test-e2e.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --passWithNoTests",
     "typecheck": "tsc --noEmit -p tsconfig.json"
@@ -17,6 +19,7 @@
     "@cat/db": "link:../../packages/db",
     "@cat/domain": "link:../../packages/domain",
     "@cat/seed": "link:../../packages/seed",
+    "@cat/shared": "link:../../packages/shared",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

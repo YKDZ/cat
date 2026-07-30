@@ -7,13 +7,20 @@ import {
 } from "@playwright/test";
 import dotenv from "dotenv";
 
-dotenv.config({ path: resolve(import.meta.dirname, ".env") });
+dotenv.config({ path: resolve(import.meta.dirname, ".env"), quiet: true });
 
 const port = process.env.PORT ?? "3000";
 const baseURL = process.env.CAT_E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
-const reporters: ReporterDescription[] = process.env.CI
-  ? [["html", { open: "never" }]]
-  : [["line"], ["html", { open: "never" }]];
+const reporters: ReporterDescription[] = [
+  ["dot"],
+  [
+    "html",
+    {
+      open: "never",
+      outputFolder: process.env.CAT_E2E_REPORT_DIR ?? "playwright-report",
+    },
+  ],
+];
 
 export default defineConfig({
   testDir: "./tests",

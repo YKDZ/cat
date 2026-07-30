@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 
@@ -294,6 +295,40 @@ export const auditWorkspacePackages = (
 
 const workspaceRoots = ["packages", "apps", "@cat-plugin", "tools"];
 
+type NativeCommandResult = {
+  error?: Error;
+  signal: NodeJS.Signals | null;
+  status: number | null;
+};
+
+type NativeCommandRunner = (
+  command: string,
+  args: string[],
+  options: { cwd: string; stdio: "inherit" },
+) => NativeCommandResult;
+
+export const runNativeTurboBoundaries = (
+  workspaceRoot: string,
+  runCommand: NativeCommandRunner = spawnSync,
+): void => {
+  const result = runCommand(
+    process.execPath,
+    [
+      resolve(workspaceRoot, "node_modules", "turbo", "bin", "turbo"),
+      "boundaries",
+      "--no-color",
+    ],
+    { cwd: workspaceRoot, stdio: "inherit" },
+  );
+  if (result.error !== undefined) throw result.error;
+  if (result.signal !== null) {
+    throw new Error(`turbo boundaries terminated by signal ${result.signal}`);
+  }
+  if (result.status !== 0) {
+    throw new Error(`turbo boundaries exited with status ${result.status}`);
+  }
+};
+
 export const loadWorkspacePackages = (
   workspaceRoot: string,
 ): WorkspacePackage[] => {
@@ -361,6 +396,7 @@ const isDirectExecution =
     resolve(dirname(import.meta.filename), "workspace-boundaries.ts");
 
 if (isDirectExecution) {
+  runNativeTurboBoundaries(process.cwd());
   const errors = auditWorkspacePackages(loadWorkspacePackages(process.cwd()));
   if (errors.length > 0) {
     throw new Error(errors.join("\n"));

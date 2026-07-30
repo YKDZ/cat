@@ -9,11 +9,13 @@ import type {
 
 const REDACTED = "[REDACTED]";
 const SENSITIVE_FIELD =
-  /(?:authorization|cookie|password|secret|token|api[-_]?key|credential)/i;
+  /(?:authorization|cookie|password|secret|token|api[-_]?key|credential|session(?:[-_]?id)?|csrf(?:[-_]?token)?)/i;
 const EVENT_CODE = /^[A-Z][A-Z0-9_]*$/;
 const SENSITIVE_TEXT =
-  /(["']?(?:authorization|cookie|password|secret|token|api[-_]?key|credential)["']?)(\s*[:=]\s*)(?:Bearer\s+[^\s,;}&]+|"[^"]*"|'[^']*'|[^\s,;}&]+)/gi;
+  /(["']?(?:authorization|cookie|password|secret|token|api[-_]?key|credential|session(?:[-_]?id)?|csrf(?:[-_]?token)?)["']?)(\s*[:=]\s*)(?:Bearer\s+[^\s,;}&]+|"[^"]*"|'[^']*'|[^\s,;}&]+)/gi;
 const BEARER_TOKEN = /\bBearer\s+[^\s,;}&]+/gi;
+const URL_USERINFO =
+  /([a-z][a-z\d+.-]*:\/\/)(?:[^\s/@:?#]*:[^\s/@?#]*|[^\s/@:?#]+)@/gi;
 
 type LoggerState = {
   readonly transports: readonly DiagnosticTransport[];
@@ -40,14 +42,99 @@ const isCustomEventConstructor = (
   value: unknown,
 ): value is CustomEventConstructor => typeof value === "function";
 
-const redactText = (value: string): string =>
+/** Redacts credentials before diagnostic text crosses a process boundary. */
+export const redactDiagnosticText = (value: string): string =>
   value
+    .replace(URL_USERINFO, `$1${REDACTED}@`)
     .replace(
       SENSITIVE_TEXT,
       (_match, key: string, separator: string) =>
         `${key}${separator}${REDACTED}`,
     )
     .replace(BEARER_TOKEN, `Bearer ${REDACTED}`);
+
+const diagnosticErrorTreeLimits = {
+  childrenPerNode: 16,
+  depth: 8,
+  nodes: 64,
+} as const;
+
+const diagnosticErrorChildren = (error: unknown): readonly unknown[] => {
+  try {
+    if (error instanceof AggregateError) return error.errors;
+    if (error instanceof Error && error.cause !== undefined) {
+      return [error.cause];
+    }
+  } catch {
+    return [];
+  }
+  return [];
+};
+
+export type DiagnosticErrorTreeAnnotationResolver = (
+  error: unknown,
+  inheritedAnnotation: string | undefined,
+) => string | undefined;
+
+export type FormatDiagnosticErrorTreeOptions = {
+  resolveAnnotation?: DiagnosticErrorTreeAnnotationResolver;
+};
+
+/** Formats bounded, recursively expanded, redacted failure diagnostics. */
+export const formatDiagnosticErrorTree = (
+  error: unknown,
+  options: FormatDiagnosticErrorTreeOptions = {},
+): string => {
+  const seen = new WeakSet<object>();
+  let remainingNodes = diagnosticErrorTreeLimits.nodes;
+  const format = (
+    current: unknown,
+    depth: number,
+    inheritedAnnotation: string | undefined,
+  ): string => {
+    if (remainingNodes <= 0) return "failure-tree-truncated=nodes";
+    remainingNodes -= 1;
+    if (typeof current === "object" && current !== null) {
+      if (seen.has(current)) return "failure-tree-cycle";
+      seen.add(current);
+    }
+    let message: string;
+    try {
+      message = redactDiagnosticText(
+        current instanceof Error ? current.message : String(current),
+      );
+    } catch {
+      message = "[unavailable error details]";
+    }
+    let annotation = inheritedAnnotation;
+    try {
+      annotation =
+        options.resolveAnnotation?.(current, inheritedAnnotation) ??
+        inheritedAnnotation;
+    } catch {
+      annotation = inheritedAnnotation;
+    }
+    const parts = [
+      `${annotation === undefined ? "" : `${redactDiagnosticText(annotation)} `}error=${message}`,
+    ];
+    if (depth >= diagnosticErrorTreeLimits.depth) {
+      parts.push("failure-tree-truncated=depth");
+      return parts.join("; ");
+    }
+    const children = diagnosticErrorChildren(current);
+    for (const child of children.slice(
+      0,
+      diagnosticErrorTreeLimits.childrenPerNode,
+    )) {
+      parts.push(format(child, depth + 1, annotation));
+    }
+    if (children.length > diagnosticErrorTreeLimits.childrenPerNode) {
+      parts.push("failure-tree-truncated=children");
+    }
+    return parts.join("; ");
+  };
+  return format(error, 0, undefined);
+};
 
 const normalizeValue = (
   value: unknown,
@@ -57,8 +144,8 @@ const normalizeValue = (
     const cause = Reflect.get(value, "cause");
     return {
       ...(cause === undefined ? {} : { cause: normalizeValue(cause, seen) }),
-      name: redactText(value.name),
-      message: redactText(value.message),
+      name: redactDiagnosticText(value.name),
+      message: redactDiagnosticText(value.message),
     };
   }
   if (
@@ -66,7 +153,7 @@ const normalizeValue = (
     typeof value === "string" ||
     typeof value === "boolean"
   ) {
-    return typeof value === "string" ? redactText(value) : value;
+    return typeof value === "string" ? redactDiagnosticText(value) : value;
   }
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : String(value);
@@ -185,7 +272,7 @@ export class Logger {
           ? code
           : `CAT_${level.toUpperCase()}`,
       level,
-      message: redactText(message),
+      message: redactDiagnosticText(message),
       context: this.context,
       fields: normalizeFields(eventFields),
       timestamp: new Date().toISOString(),

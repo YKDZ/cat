@@ -101,8 +101,18 @@ describe("TestServiceLease", () => {
       .mocked(run)
       .mock.calls.find(([, args]) => args.includes("up"));
     expect(up?.[2].env.CAT_E2E_LEASE_TOKEN).toBe(observed.ownership.token);
+    expect(up?.[1]).toEqual(
+      expect.arrayContaining(["compose", "--progress", "quiet"]),
+    );
     expect(vi.mocked(run).mock.calls.at(-1)?.[1]).toEqual(
-      expect.arrayContaining(["down", "--volumes", "--remove-orphans"]),
+      expect.arrayContaining([
+        "compose",
+        "--progress",
+        "quiet",
+        "down",
+        "--volumes",
+        "--remove-orphans",
+      ]),
     );
   });
 

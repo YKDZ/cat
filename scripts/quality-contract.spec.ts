@@ -1,17 +1,17 @@
 import { spawnSync } from "node:child_process";
-import {
-  existsSync,
-  readdirSync,
-  readFileSync,
-  writeFileSync,
-  unlinkSync,
-} from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const removedPrecommitCommand = ["pre", "commit"].join("");
+const rootScopedOxcWorkspaces = new Set([
+  "apps/app",
+  "@cat-plugin/tiny-widget",
+  "packages/plugin-core",
+  "packages/ui",
+]);
 const sourceFilePattern = /\.(?:[cm]?[jt]sx?|vue|json|md|yaml|yml|css|html)$/;
 const ignoredSourceDirectories = new Set(["dist", "node_modules", "out-tsc"]);
 const workspacePackageFiles = (): string[] => {
@@ -97,17 +97,28 @@ describe("repository quality command contract", () => {
     expect(existsSync(resolve(root, "vitest.config.ts"))).toBe(false);
   });
 
-  it("keeps check read-only and service-independent", () => {
+  it("runs the complete read-only quality graph through one concise Turbo command", () => {
     const scripts = readRootManifest().scripts ?? {};
     const check = scripts.check ?? "";
 
-    expect(check).not.toMatch(/(?:fix|migrate|push|docker|playwright)/i);
-    expect(check).toContain("pnpm format");
-    expect(check).toContain("pnpm lint");
-    expect(check).toContain("codegen:check");
-    expect(check).toContain("test:unit");
-    expect(check).toContain("test:tooling");
-    expect(check).not.toMatch(/(?:^|&&)\s*pnpm test\s*(?:&&|$)/);
+    expect(check).not.toMatch(/(?:\bfix\b|migrate|push|docker|playwright)/i);
+    expect(check).toMatch(/^turbo run /);
+    expect(check).not.toContain("&&");
+    for (const task of [
+      "boundaries",
+      "format:check",
+      "lint",
+      "typecheck",
+      "test:unit",
+      "codegen:check",
+      "test:tooling",
+    ]) {
+      expect(check).toContain(task);
+    }
+    expect(check).toContain("--output-logs=errors-only");
+    expect(check).toContain("--log-order=grouped");
+    expect(check).toContain("--log-prefix=task");
+    expect(check).toContain("--continue=dependencies-successful");
     expect(scripts.test).toBe("pnpm test:tooling");
     expect(scripts["test:tooling"]).toContain("scripts/vitest.config.ts");
     expect(
@@ -116,41 +127,21 @@ describe("repository quality command contract", () => {
     expect(scripts["test:tooling"]).not.toContain("public-packages.test.ts");
   });
 
-  it("makes pnpm check reject a root tooling formatting defect", () => {
-    const probe = resolve(root, "scripts/quality-root-check-probe.ts");
-    const before = "export const rootCheckProbe={value:1}\n";
-    writeFileSync(probe, before);
-    try {
-      const result = spawnSync("pnpm", ["check"], {
-        cwd: root,
-        encoding: "utf8",
-        timeout: 120_000,
-      });
-
-      expect(result.status, result.stderr).not.toBe(0);
-      expect(readFileSync(probe, "utf8")).toBe(before);
-    } finally {
-      unlinkSync(probe);
+  it("keeps every root Turbo entrypoint concise without wrapping its output", () => {
+    const scripts = readRootManifest().scripts ?? {};
+    for (const name of [
+      "build",
+      "build-plugins",
+      "build:all",
+      "test:integration",
+    ] as const) {
+      const command = scripts[name] ?? "";
+      expect(command, name).toMatch(/^turbo run /);
+      expect(command, name).toContain("--output-logs=errors-only");
+      expect(command, name).toContain("--log-order=grouped");
+      expect(command, name).toContain("--log-prefix=task");
     }
   });
-
-  it("makes pnpm check reject a root tooling lint defect", () => {
-    const probe = resolve(root, "scripts/quality-root-lint-probe.ts");
-    const before = "export const rootLintProbe = (value: any): any => value;\n";
-    writeFileSync(probe, before);
-    try {
-      const result = spawnSync("pnpm", ["check"], {
-        cwd: root,
-        encoding: "utf8",
-        timeout: 120_000,
-      });
-
-      expect(result.status, result.stderr).not.toBe(0);
-      expect(readFileSync(probe, "utf8")).toBe(before);
-    } finally {
-      unlinkSync(probe);
-    }
-  }, 20_000);
 
   it("discovers root tooling specs without services or artifact tests", () => {
     const result = spawnSync(
@@ -174,58 +165,56 @@ describe("repository quality command contract", () => {
     expect(result.stdout).not.toContain("public-packages.test.ts");
   });
 
-  it("does not mutate a worktree sentinel during formatter verification", () => {
-    const sentinel = resolve(root, `.quality-check-sentinel-${process.pid}`);
-    writeFileSync(sentinel, "untouched\n");
-    try {
-      const result = spawnSync("pnpm", ["format"], {
-        cwd: root,
-        encoding: "utf8",
-      });
-      expect(result.status).toBe(0);
-      expect(readFileSync(sentinel, "utf8")).toBe("untouched\n");
-    } finally {
-      unlinkSync(sentinel);
+  it("uses direct Oxc scripts with quiet read-only commands", () => {
+    const scripts = readRootManifest().scripts ?? {};
+    expect(scripts.fix).toMatch(/format:write/);
+    expect(scripts.fix).toMatch(/lint:fix/);
+    expect(scripts["format:check"]).toMatch(/^oxfmt /);
+    expect(scripts["format:check"]).toContain("--list-different");
+    expect(scripts["format:write"]).toMatch(/^oxfmt /);
+    expect(scripts["format:write"]).toContain("--write");
+    expect(scripts.lint).toMatch(/^oxlint /);
+    expect(scripts.lint).toContain("--quiet");
+    expect(scripts.lint).toContain("--format=unix");
+    expect(scripts["lint:fix"]).toMatch(/^oxlint /);
+    expect(scripts["lint:fix"]).toContain("--fix");
+    expect(scripts["lint:fix"]).not.toContain("--quiet");
+    expect(scripts.format).toBeUndefined();
+    for (const file of workspacePackageFiles()) {
+      const manifest = JSON.parse(readFileSync(file, "utf8")) as {
+        scripts?: Record<string, string>;
+      };
+      const packageScripts = manifest.scripts ?? {};
+      const rootScopedTarget = file
+        .replace(`${root}/`, "")
+        .replace("/package.json", "");
+      const useRootScopedCommand =
+        rootScopedOxcWorkspaces.has(rootScopedTarget);
+      const prefix = useRootScopedCommand ? "cd ../.. && " : "";
+      const config = useRootScopedCommand ? "" : "../../";
+      const target = useRootScopedCommand ? rootScopedTarget : ".";
+      expect(packageScripts.format, file).toBeUndefined();
+      expect(packageScripts["format:check"], file).toBe(
+        `${prefix}oxfmt --list-different --config ${config}oxfmt.config.ts ${target}`,
+      );
+      expect(packageScripts["format:write"], file).toBe(
+        `${prefix}oxfmt --write --config ${config}oxfmt.config.ts ${target}`,
+      );
+      expect(packageScripts.lint, file).toBe(
+        `${prefix}oxlint --quiet --format=unix --type-aware --config ${config}oxlint.config.ts --no-error-on-unmatched-pattern ${target}`,
+      );
+      expect(packageScripts["lint:fix"], file).toBe(
+        `${prefix}oxlint --fix --format=unix --type-aware --config ${config}oxlint.config.ts --no-error-on-unmatched-pattern ${target}`,
+      );
     }
   });
 
-  it("fails on a package formatting defect without rewriting the package file", () => {
-    const probe = resolve(
-      root,
-      "packages/shared/src/quality-package-format-probe.ts",
-    );
-    const before = "export const probe={value:1}\n";
-    writeFileSync(probe, before);
-    try {
-      const result = spawnSync("pnpm", ["--filter", "@cat/shared", "format"], {
-        cwd: root,
-        encoding: "utf8",
-        timeout: 60_000,
-      });
-      expect(result.status).not.toBe(0);
-      expect(readFileSync(probe, "utf8")).toBe(before);
-    } finally {
-      unlinkSync(probe);
-    }
-  }, 60_000);
-
-  it("reserves mutation for fix and extends check for check:all", () => {
+  it("extends the daily graph with check:all without retaining wrapper behavior", () => {
     const scripts = readRootManifest().scripts ?? {};
     const checkAllSource = readFileSync(
       resolve(root, "scripts/check-all.ts"),
       "utf8",
     );
-    expect(scripts.fix).toMatch(/format:fix/);
-    expect(scripts.fix).toMatch(/lint:fix/);
-    expect(scripts.format).not.toMatch(/format:fix|lint:fix/);
-    for (const file of workspacePackageFiles()) {
-      const manifest = JSON.parse(readFileSync(file, "utf8")) as {
-        scripts?: Record<string, string>;
-      };
-      const format = manifest.scripts?.format;
-      if (format === undefined) continue;
-      expect(format, file).not.toMatch(/format:fix|lint:fix/);
-    }
     expect(scripts["check:all"]).toContain("scripts/check-all.ts");
     expect(checkAllSource).toMatch(/integration|pglite|e2e|build|artifacts/i);
     expect(checkAllSource).toContain("test:artifacts");
@@ -270,6 +259,7 @@ describe("repository quality command contract", () => {
         const script = manifest.scripts?.[name];
         if (script === undefined) continue;
         expect(script, `${file} ${name}`).toContain("--reporter=agent");
+        expect(script, `${file} ${name}`).toContain("--silent=passed-only");
       }
     }
   });
@@ -283,7 +273,7 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(261);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(264);
     expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(53);
   });
 

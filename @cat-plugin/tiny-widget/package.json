@@ -39,8 +39,10 @@
   },
   "scripts": {
     "build": "vite build && tsc -p tsconfig.build.json",
-    "format": "node ../../tooling/oxlint/run.ts format",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "format:check": "cd ../.. && oxfmt --list-different --config oxfmt.config.ts @cat-plugin/tiny-widget",
+    "format:write": "cd ../.. && oxfmt --write --config oxfmt.config.ts @cat-plugin/tiny-widget",
+    "lint": "cd ../.. && oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern @cat-plugin/tiny-widget",
+    "lint:fix": "cd ../.. && oxlint --fix --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern @cat-plugin/tiny-widget",
     "pack:artifact": "node ../../scripts/pack-public-package.ts",
     "test": "vitest run --reporter=agent --silent=passed-only --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --passWithNoTests",

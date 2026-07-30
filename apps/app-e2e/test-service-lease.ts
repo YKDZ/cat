@@ -66,6 +66,8 @@ type ComposeService = {
 
 const composeArguments = (projectName: string): string[] => [
   "compose",
+  "--progress",
+  "quiet",
   "--project-name",
   projectName,
   "--file",

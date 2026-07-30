@@ -63,8 +63,8 @@ const actionStep = (name: string): WorkflowStep => {
 };
 
 const expectTurboRemoteCacheEnv = (env: Record<string, string> | undefined) => {
-  expect(env?.TURBO_TEAM).toBe("${{ vars.TURBO_TEAM }}");
   for (const name of [
+    "TURBO_TEAM",
     "TURBO_TOKEN",
     "TURBO_REMOTE_CACHE_SIGNATURE_KEY",
   ] as const) {
@@ -72,7 +72,8 @@ const expectTurboRemoteCacheEnv = (env: Record<string, string> | undefined) => {
     expect(value).toContain("github.event_name == 'push'");
     expect(value).toContain("github.ref == 'refs/heads/main'");
     expect(value).toContain("github.event_name == 'workflow_dispatch'");
-    expect(value).toContain("secrets.");
+    if (name === "TURBO_TEAM") expect(value).toContain("vars.TURBO_TEAM");
+    else expect(value).toContain("secrets.");
     expect(value).toContain("|| ''");
     expect(value).not.toContain("pull_request");
   }
@@ -97,7 +98,7 @@ describe("CI configuration contract", () => {
     expect(checkAll?.if).toBeUndefined();
     expect(check?.steps?.some((step) => step.run === "pnpm check")).toBe(true);
     expect(
-      checkAll?.steps?.some((step) => step.run?.includes("pnpm check:all")),
+      checkAll?.steps?.some((step) => step.run === "pnpm check:all:ci"),
     ).toBe(true);
     for (const job of [check, checkAll]) {
       expect(JSON.stringify(job)).not.toMatch(
@@ -108,25 +109,34 @@ describe("CI configuration contract", () => {
 
   it("installs every configured Playwright browser from the workspace before check:all", () => {
     const steps = workflow.jobs?.["check-all"]?.steps ?? [];
-    const installIndex = steps.findIndex((step) =>
-      step.run?.includes("playwright install --with-deps chromium firefox"),
+    const installIndex = steps.findIndex(
+      (step) => step.run === "pnpm test:e2e:install-browsers",
     );
-    const checkAllIndex = steps.findIndex((step) =>
-      step.run?.includes("pnpm check:all"),
+    const checkAllIndex = steps.findIndex(
+      (step) => step.run === "pnpm check:all:ci",
     );
 
     expect(installIndex).toBeGreaterThan(-1);
     expect(checkAllIndex).toBeGreaterThan(installIndex);
-    expect(steps[installIndex]?.run).toContain("pnpm exec playwright");
+    expect(steps[installIndex]?.run).not.toContain("playwright install");
   });
 
-  it("runs CI E2E cells serially on the shared GitHub runner", () => {
+  it("uploads rich Playwright evidence only when the E2E matrix fails", () => {
     const steps = workflow.jobs?.["check-all"]?.steps ?? [];
-    const checkAllStep = steps.find((step) =>
-      step.run?.includes("pnpm check:all"),
+    const diagnostics = steps.find(
+      (step) => step.name === "Upload failed E2E diagnostics",
     );
 
-    expect(checkAllStep?.run).toContain("--e2e-concurrency 1");
+    expect(diagnostics).toMatchObject({
+      if: "failure()",
+      uses: "actions/upload-artifact@v4",
+      with: {
+        "include-hidden-files": true,
+        "if-no-files-found": "ignore",
+        path: ".tmp/e2e\n!.tmp/e2e/**/playwright/.auth/**\n",
+      },
+    });
+    expect(diagnostics?.with?.name).toBe("e2e-diagnostics-${{ github.sha }}");
   });
 
   it("uses the integrity-aware package manager installer in every build job", () => {
@@ -166,11 +176,12 @@ describe("CI configuration contract", () => {
     }
   });
 
-  it("uses Turbo remote cache in CI without persisting the local .turbo cache", () => {
+  it("uses Turbo and Buildx caches in CI without persisting .turbo", () => {
     for (const name of ["check", "check-all"] as const) {
       const steps = workflow.jobs?.[name]?.steps ?? [];
-      const runStep = steps.find((step) =>
-        step.run?.includes(name === "check" ? "pnpm check" : "pnpm check:all"),
+      const runStep = steps.find(
+        (step) =>
+          step.run === (name === "check" ? "pnpm check" : "pnpm check:all:ci"),
       );
       expectTurboRemoteCacheEnv(runStep?.env);
       expect(
@@ -191,6 +202,23 @@ describe("CI configuration contract", () => {
         "github.event.pull_request.head.repo.full_name",
       );
     }
+    const checkAllSteps = workflow.jobs?.["check-all"]?.steps ?? [];
+    const restore = checkAllSteps.find(
+      (step) => step.uses === "actions/cache/restore@v4",
+    );
+    const save = checkAllSteps.find(
+      (step) => step.uses === "actions/cache/save@v4",
+    );
+    expect(
+      checkAllSteps.some(
+        (step) => step.uses === "docker/setup-buildx-action@v3",
+      ),
+    ).toBe(true);
+    expect(restore?.with?.path).toBe(".cache/buildx");
+    expect(restore?.with?.["restore-keys"]).toContain("-main-");
+    expect(save?.with?.path).toBe(".cache/buildx");
+    expect(save?.if).toContain("github.ref == 'refs/heads/main'");
+    expect(save?.if).not.toContain("pull_request");
   });
 
   it("publishes only images exported by the successful main-branch gate", () => {
@@ -223,24 +251,27 @@ describe("CI configuration contract", () => {
     const releaseCommands = releaseSteps
       .map((step) => step.run ?? "")
       .join("\n");
-    expect(releaseCommands).toContain("sha256sum --check SHA256SUMS");
-    expect(releaseCommands).toContain("manifest.json");
-    expect(releaseCommands).toContain("docker image load");
-    expect(releaseCommands).toContain(
-      "docker image inspect --format '{{.Id}}' \"$image\"",
-    );
-    expect(releaseCommands).toContain(
-      'docker image inspect --format \'{{ index .Config.Labels "org.opencontainers.image.version" }}\' "$image"',
-    );
-    expect(releaseCommands).not.toContain('\\"org.opencontainers.image');
-    expect(releaseCommands).toContain("manifest.images['$target'].imageId");
-    expect(releaseCommands).toContain("manifest.images['$target'].identity");
-    expect(releaseCommands).not.toContain("cat-image-build-cat-validated-");
-    expect(releaseCommands).toContain("scripts/release-image-tags.ts");
-    expect(releaseCommands).not.toMatch(/docker (?:build|buildx build)/);
+    expect(releaseCommands).toContain("pnpm container:verify-artifacts");
+    expect(releaseCommands).toContain("pnpm release:images");
+    expect(releaseCommands).not.toMatch(/(?:docker|sha256sum) /);
+    expect(releaseCommands).not.toContain("pnpm ci:install");
     expect(
       releaseSteps.some((step) => step.uses === "docker/build-push-action@v6"),
     ).toBe(false);
+  });
+
+  it("uses package scripts for every post-activation CI shell command", () => {
+    for (const job of Object.values(workflow.jobs ?? {})) {
+      const activationIndex = (job.steps ?? []).findIndex(
+        (step) =>
+          step.name ===
+          "Activate integrity-pinned pnpm for the exact Node runtime",
+      );
+      for (const step of (job.steps ?? []).slice(activationIndex + 1)) {
+        if (step.run === undefined) continue;
+        expect(step.run).toMatch(/^pnpm [A-Za-z0-9:_-]+$/);
+      }
+    }
   });
 
   it("aligns the exact Node patch and official image digest across every environment", () => {

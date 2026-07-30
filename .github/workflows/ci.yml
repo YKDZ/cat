@@ -43,13 +43,13 @@ jobs:
         run: node scripts/package-manager-pin.ts
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm ci:install
 
       - name: Run repository quality contract
         env:
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_TOKEN || '' }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
+          TURBO_TEAM: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && vars.TURBO_TEAM || '' }}
+          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
         run: pnpm check
 
   check-all:
@@ -75,29 +75,57 @@ jobs:
         run: node scripts/package-manager-pin.ts
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm ci:install
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Restore trusted Buildx cache
+        id: buildx-cache
+        continue-on-error: true
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/buildx
+          key: buildx-${{ runner.os }}-main-${{ github.sha }}
+          restore-keys: |
+            buildx-${{ runner.os }}-main-
 
       - name: Install workspace Playwright browsers and system dependencies
-        run: pnpm exec playwright install --with-deps chromium firefox
+        run: pnpm test:e2e:install-browsers
 
       - name: Verify the pinned official Node image manifest
-        run: |
-          image=$(sed -n 's/^FROM \(node:[^ ]*\) AS context-contract$/\1/p' apps/app/Dockerfile)
-          test -n "$image"
-          docker buildx imagetools inspect "$image"
+        run: pnpm container:verify-base-image
 
       - name: Run complete repository contract and export validated images
         env:
           CAT_CHECK_ALL_EXPORT_IMAGES_DIR: validated-images
           CAT_CHECK_ALL_PROJECT_NAME: cat-validated-${{ github.sha }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_TOKEN || '' }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
-        run: |
-          mkdir -p validated-images
-          pnpm check:all -- --e2e-concurrency 1
-          cd validated-images
-          sha256sum manifest.json standalone.tar runtime.tar > SHA256SUMS
+          TURBO_TEAM: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && vars.TURBO_TEAM || '' }}
+          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
+          CAT_BUILDX_CACHE_SOURCE: .cache/buildx
+          CAT_BUILDX_CACHE_OUTPUT: .cache/buildx-next
+        run: pnpm check:all:ci
+
+      - name: Upload failed E2E diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-diagnostics-${{ github.sha }}
+          path: |
+            .tmp/e2e
+            !.tmp/e2e/**/playwright/.auth/**
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Save Buildx cache from trusted builds
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/buildx
+          key: buildx-${{ runner.os }}-main-${{ github.sha }}
 
       - name: Upload validated container images
         uses: actions/upload-artifact@v4
@@ -143,21 +171,7 @@ jobs:
           path: validated-images
 
       - name: Verify and load validated container images
-        run: |
-          cd validated-images
-          sha256sum --check SHA256SUMS
-          docker image load --input standalone.tar
-          docker image load --input runtime.tar
-          for target in standalone runtime; do
-            image="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].imageId)")"
-            version="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.versionLabel)")"
-            command="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.command)")"
-            description="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].identity.description)")"
-            test "$(docker image inspect --format '{{.Id}}' "$image")" = "$image"
-            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "$image")" = "$version"
-            test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.description" }}' "$image")" = "$description"
-            test "$(docker image inspect --format '{{ index .Config.Cmd 0 }}' "$image")" = "$command"
-          done
+        run: pnpm container:verify-artifacts
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -169,12 +183,4 @@ jobs:
       - name: Publish without rebuilding
         env:
           IMAGE: ghcr.io/${{ github.repository }}
-        run: |
-          version=$(node -p "require('./apps/app/package.json').version")
-          for target in standalone runtime; do
-            source="$(node -e "const manifest = JSON.parse(require('node:fs').readFileSync('validated-images/manifest.json', 'utf8')); process.stdout.write(manifest.images['$target'].imageId)")"
-            while IFS= read -r tag; do
-              docker image tag "$source" "$tag"
-              docker image push "$tag"
-            done < <(node scripts/release-image-tags.ts "$IMAGE" "$version" "$GITHUB_SHA" "$target")
-          done
+        run: pnpm release:images

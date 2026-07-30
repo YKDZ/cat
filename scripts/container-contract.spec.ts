@@ -69,6 +69,29 @@ describe("application container contract", () => {
     expect(dockerfile).not.toContain("--legacy");
     expect(dockerfile).not.toContain("m" + "oon");
     expect(dockerfile).not.toMatch(/COPY\s+--from=build\s+--chown=/);
+    expect(dockerfile.startsWith("# syntax=docker/dockerfile:1\n")).toBe(true);
+    expect(dockerfile).toContain("COPY --parents apps/*/package.json");
+    expect(dockerfile).toContain("packages/*/package.json");
+    expect(dockerfile).toContain("@cat-plugin/*/package.json");
+    expect(dockerfile).not.toContain("COPY packages packages");
+    expect(dockerfile).toContain("pnpm exec turbo prune @cat/app --docker");
+    expect(dockerfile).toContain("pnpm install --filter=cat-root");
+    expect(dockerfile).toContain("pnpm install --frozen-lockfile\n");
+    expect(dockerfile).not.toContain(
+      "pnpm install --frozen-lockfile --ignore-scripts\nCOPY --from=pruner /repo/out/full",
+    );
+    expect(dockerfile).toContain("COPY --from=pruner /repo/out/json/ ./");
+    expect(dockerfile).toContain("COPY --from=pruner /repo/out/full/ ./");
+    expect(dockerfile).toContain("pnpm exec turbo run build --filter=@cat/app");
+    expect(dockerfile).not.toContain("pnpm build-plugins");
+    for (const secret of [
+      "turbo_team",
+      "turbo_token",
+      "turbo_remote_cache_signature_key",
+    ]) {
+      expect(dockerfile).toContain(`--mount=type=secret,id=${secret}`);
+    }
+    expect(dockerfile).not.toContain("--build-arg TURBO_");
   });
 
   it("filters credentials, persistent data, daemon state, and build caches before context transfer", async () => {
@@ -96,6 +119,8 @@ describe("application container contract", () => {
     ]) {
       expect(rules.has(rule), `missing Docker context rule ${rule}`).toBe(true);
     }
+    expect(rules.has("tools/**")).toBe(true);
+    expect(rules.has("!tools/*/package.json")).toBe(true);
   });
 
   it("checks the real application readiness route", async () => {

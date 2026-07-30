@@ -82,6 +82,7 @@ const lifecycleRunner = (
     if (args.includes("{{json .Config}}")) {
       const mode = args.includes(standaloneImageId) ? "standalone" : "runtime";
       return {
+        stderr: "",
         stdout: JSON.stringify({
           Cmd: [mode === "standalone" ? "prepare-and-start" : "start-only"],
           Entrypoint: ["/usr/local/bin/container-entrypoint"],
@@ -97,7 +98,7 @@ const lifecycleRunner = (
       };
     }
     if (args.includes("inspect") && args.includes("{{.State.Health.Status}}")) {
-      return { stdout: "healthy\n" };
+      return { stderr: "", stdout: "healthy\n" };
     }
     if (
       args[0] === "run" &&
@@ -145,7 +146,7 @@ const lifecycleRunner = (
         null,
       );
     }
-    return { stdout: "" };
+    return { stderr: "", stdout: "" };
   };
   return vi.fn(runner);
 };
@@ -153,6 +154,7 @@ const lifecycleRunner = (
 describe("application container lifecycle", () => {
   it("validates supplied images against an explicit release build ID", async () => {
     const run = lifecycleRunner(undefined, "release-identity");
+    const reportError = vi.fn();
     await runLifecycle({
       buildId: "release-identity",
       env: {
@@ -160,9 +162,11 @@ describe("application container lifecycle", () => {
         REDIS_URL: "redis://127.0.0.1:49153",
       },
       projectName: "cat-container-explicit-build-id",
+      reportError,
       run,
       signal: new AbortController().signal,
     });
+    expect(reportError).not.toHaveBeenCalled();
   });
 
   it("builds only the context contract and verifies the supplied immutable final images", async () => {
@@ -189,6 +193,14 @@ describe("application container lifecycle", () => {
           args.find((arg) => arg.startsWith("DEPLOYMENT_BUILD_ID=")),
         ),
     ).toEqual(["DEPLOYMENT_BUILD_ID=cat-container-contract"]);
+    expect(calls.find((args) => args[0] === "build")).toContain(
+      "--progress=quiet",
+    );
+    expect(
+      vi
+        .mocked(run)
+        .mock.calls.every(([, , options]) => options.stdio === "pipe"),
+    ).toBe(true);
     expect(
       calls.some(
         (args) => args.includes("--entrypoint") && args.includes("/bin/sh"),
@@ -617,6 +629,78 @@ describe("application container lifecycle", () => {
     });
   });
 
+  it("replays container diagnostics before cleanup when a server fails readiness", async () => {
+    const baseRun = lifecycleRunner();
+    const run = vi.fn(async (command, args, options) => {
+      if (args.includes("{{.State.Health.Status}}")) {
+        return { stderr: "", stdout: "unhealthy\n" };
+      }
+      if (args[0] === "logs") {
+        return {
+          stderr: "sidecar password=diagnostic-secret\n",
+          stdout: "application startup failure\n",
+        };
+      }
+      return await baseRun(command, args, options);
+    });
+    const stderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await expect(
+        runLifecycle({
+          env: {
+            DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
+            REDIS_URL: "redis://127.0.0.1:49153",
+          },
+          projectName: "cat-container-diagnostics",
+          run,
+          signal: new AbortController().signal,
+        }),
+      ).rejects.toThrow("became unhealthy");
+
+      const calls = vi.mocked(run).mock.calls.map(([, args]) => args);
+      const container = "cat-container-diagnostics-standalone";
+      const logsIndex = calls.findIndex(
+        (args) => args[0] === "logs" && args.includes(container),
+      );
+      const inspectIndex = calls.findIndex(
+        (args) =>
+          args[0] === "inspect" &&
+          args.includes(container) &&
+          args.includes(
+            "status={{.State.Status}} exit-code={{.State.ExitCode}} oom-killed={{.State.OOMKilled}} error={{.State.Error}}",
+          ),
+      );
+      const cleanupIndex = calls.findIndex(
+        (args) => args[0] === "rm" && args.includes(container),
+      );
+      expect(logsIndex).toBeGreaterThan(-1);
+      expect(inspectIndex).toBeGreaterThan(logsIndex);
+      expect(cleanupIndex).toBeGreaterThan(inspectIndex);
+      const logsCall = vi.mocked(run).mock.calls[logsIndex];
+      expect(logsCall?.[2].stdio).toBe("pipe");
+      expect(stderr).toHaveBeenCalledWith("application startup failure\n");
+      expect(stderr).toHaveBeenCalledWith("sidecar password=[REDACTED]\n");
+      expect(stderr).not.toHaveBeenCalledWith(
+        expect.stringContaining("diagnostic-secret"),
+      );
+      expect(stdout).not.toHaveBeenCalledWith("application startup failure\n");
+      expect(stderr).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `container lifecycle cleanup container=${container} result=passed`,
+        ),
+      );
+    } finally {
+      stdout.mockRestore();
+      stderr.mockRestore();
+    }
+  });
+
   it("preserves the primary lifecycle failure alongside storage, database, and temporary-image cleanup failures", async () => {
     const baseRun = lifecycleRunner();
     const run = vi.fn(async (command, args, options) => {
@@ -778,11 +862,23 @@ describe("application container lifecycle", () => {
 
   it("uses a fresh bounded signal to remove a server after the lifecycle is aborted", async () => {
     const controller = new AbortController();
+    const errors: string[] = [];
     let cleanupSignal: AbortSignal | undefined;
-    const run = lifecycleRunner((args, signal) => {
+    const baseRun = lifecycleRunner((args, signal) => {
       if (args.includes("{{.State.Health.Status}}")) controller.abort();
       if (args[0] === "rm" && args.includes("--force")) cleanupSignal = signal;
     });
+    const run: CommandRunner = async (command, args, options) => {
+      if (args[0] === "logs") {
+        return { stderr: "", stdout: "application startup failed\n" };
+      }
+      if (
+        args.some((argument) => argument.startsWith("status={{.State.Status}}"))
+      ) {
+        return { stderr: "", stdout: "status=exited exit-code=1\n" };
+      }
+      return await baseRun(command, args, options);
+    };
 
     await expect(
       runLifecycle({
@@ -791,6 +887,7 @@ describe("application container lifecycle", () => {
           REDIS_URL: "redis://127.0.0.1:49153",
         },
         projectName: "cat-container-abort",
+        reportError: (message) => errors.push(message),
         run,
         signal: controller.signal,
       }),
@@ -799,13 +896,27 @@ describe("application container lifecycle", () => {
     expect(cleanupSignal).toBeDefined();
     expect(cleanupSignal).not.toBe(controller.signal);
     expect(cleanupSignal?.aborted).toBe(false);
+    expect(errors.join("")).toContain(
+      "container lifecycle failure container=cat-container-abort-standalone",
+    );
+    expect(errors.join("")).toContain("application startup failed");
+    expect(errors.join("")).toContain("status=exited exit-code=1");
+    expect(errors.join("")).toContain(
+      "container lifecycle cleanup container=cat-container-abort-standalone result=passed",
+    );
   });
 
   it("accepts only exit code 64 as runtime preparation rejection", async () => {
     const baseRun = lifecycleRunner();
     const runner: CommandRunner = async (command, args, options) => {
       if (args.includes("prepare-only") && args.includes(runtimeImageId)) {
-        throw new CommandExecutionError("runtime crashed", 1, null);
+        throw new CommandExecutionError(
+          "runtime crashed",
+          1,
+          null,
+          "docker stderr password=stderr-secret",
+          "docker stdout token=stdout-secret",
+        );
       }
       return await baseRun(command, args, options);
     };
@@ -821,6 +932,12 @@ describe("application container lifecycle", () => {
         run,
         signal: new AbortController().signal,
       }),
-    ).rejects.toThrow("runtime crashed");
+    ).rejects.toSatisfy((error: unknown) => {
+      expect(error).toBeInstanceOf(CommandExecutionError);
+      expect(String(error)).toContain("docker stderr password=[REDACTED]");
+      expect(String(error)).toContain("docker stdout token=[REDACTED]");
+      expect(String(error)).not.toMatch(/stderr-secret|stdout-secret/);
+      return true;
+    });
   });
 });

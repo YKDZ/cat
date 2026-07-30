@@ -214,8 +214,19 @@ export const evaluatePgliteGate = (
 export const pgliteGateExitCode = (report: PgliteGateReport): 0 | 1 =>
   report.passed ? 0 : 1;
 
+export const formatPgliteGateSuccess = (report: PgliteGateReport): string =>
+  `pglite compatibility passed level=${report.level} checks=${report.checks.length} expected-unsupported=${report.expectedUnsupported.length}`;
+
+export const formatPgliteGateFailure = (report: PgliteGateReport): string =>
+  [
+    `pglite compatibility failed level=${report.level} failures=${report.failures.length}`,
+    ...report.failures.map(
+      (failure) => `${failure.name}: ${failure.details ?? failure.status}`,
+    ),
+  ].join("\n");
+
 /**
- * Execute the PGlite compatibility gate and return structured JSON report data.
+ * Execute the PGlite compatibility gate and return structured probe data.
  *
  * @returns - Report summary containing search capability level and individual check results
  */
@@ -249,8 +260,12 @@ export const runPgliteCompatGate = async (): Promise<PgliteGateReport> => {
 
 const main = async (): Promise<void> => {
   const report = await runPgliteCompatGate();
-  process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
-  process.exitCode = pgliteGateExitCode(report);
+  if (report.passed) {
+    process.stdout.write(`${formatPgliteGateSuccess(report)}\n`);
+    return;
+  }
+  process.stderr.write(`${formatPgliteGateFailure(report)}\n`);
+  process.exitCode = 1;
 };
 
 if (isExecutedDirectly()) {

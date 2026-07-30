@@ -1,11 +1,16 @@
 import { EventEmitter } from "node:events";
 import { writeFileSync } from "node:fs";
+import { inspect } from "node:util";
 
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  CommandExecutionError,
+  CommandStartError,
   CheckAllInterruptedError,
   parseCheckAllCommand,
+  runCheckAllCli,
+  runCheckAllCommand,
   type CommandRunner,
   runCheckAll,
   type SignalSource,
@@ -65,11 +70,12 @@ const successfulRunner = (): CommandRunner => {
           },
         }),
       );
-      return { stdout: "" };
+      return { stderr: "", stdout: "" };
     }
     if (command === "docker" && args.includes("up")) servicesStarted = true;
     if (command === "docker" && args.includes("ps")) {
       return {
+        stderr: "",
         stdout: servicesStarted
           ? JSON.stringify([
               { Service: "postgresql", State: "running", Health: "healthy" },
@@ -81,15 +87,16 @@ const successfulRunner = (): CommandRunner => {
     }
     if (command === "docker" && args.includes("ls")) {
       if (args[0] === "container")
-        return { stdout: "postgres\nredis\nspacy\n" };
-      if (args[0] === "network") return { stdout: "network\n" };
-      return { stdout: "postgres-data\nredis-data\n" };
+        return { stderr: "", stdout: "postgres\nredis\nspacy\n" };
+      if (args[0] === "network") return { stderr: "", stdout: "network\n" };
+      return { stderr: "", stdout: "postgres-data\nredis-data\n" };
     }
     if (command === "docker" && args.includes("inspect")) {
-      return { stdout: `${options.env.CAT_E2E_LEASE_TOKEN}\n` };
+      return { stderr: "", stdout: `${options.env.CAT_E2E_LEASE_TOKEN}\n` };
     }
     if (command === "docker" && args.includes("port")) {
       return {
+        stderr: "",
         stdout: args.includes("postgresql")
           ? "0.0.0.0:49152\n"
           : args.includes("redis")
@@ -100,7 +107,7 @@ const successfulRunner = (): CommandRunner => {
     if (options.signal !== undefined) {
       expect(options.signal.aborted).toBe(false);
     }
-    return { stdout: "" };
+    return { stderr: "", stdout: "" };
   });
 };
 
@@ -111,7 +118,159 @@ const builtImages = {
   ],
 };
 
+const discardCheckAllLog = (_message: string): void => undefined;
+
 describe("check:all service lifecycle", () => {
+  it("normalizes a real spawn failure without retaining secret arguments", async () => {
+    const secret = "spawn-argument-secret";
+    let failure: unknown;
+    try {
+      await runCheckAllCommand(
+        "cat-check-all-command-that-does-not-exist",
+        [
+          `PGPASSWORD=${secret}`,
+          `DATABASE_URL=postgresql://admin:${secret}@example.test/cat`,
+        ],
+        {
+          cwd: process.cwd(),
+          env: process.env,
+          stdio: "pipe",
+        },
+      );
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toBeInstanceOf(CommandStartError);
+    expect((failure as CommandStartError).code).toBe("ENOENT");
+    const inspected = inspect(failure, { depth: Number.POSITIVE_INFINITY });
+    const serialized = JSON.stringify(failure);
+    expect(inspected).not.toContain(secret);
+    expect(serialized).not.toContain(secret);
+    expect(String(failure)).not.toContain(secret);
+    expect(inspected).not.toContain("spawnargs");
+    expect(serialized).not.toContain("spawnargs");
+    expect(Reflect.ownKeys(Object(failure))).not.toContain("spawnargs");
+  });
+
+  it("preserves recognizable abort semantics without retaining command arguments", async () => {
+    const controller = new AbortController();
+    const secret = "aborted-argument-secret";
+    const running = runCheckAllCommand(
+      process.execPath,
+      ["-e", "setInterval(() => undefined, 1000)", `PGPASSWORD=${secret}`],
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        signal: controller.signal,
+        stdio: "pipe",
+      },
+    );
+    controller.abort();
+
+    let failure: unknown;
+    try {
+      await running;
+    } catch (error) {
+      failure = error;
+    }
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).name).toBe("AbortError");
+    expect(Reflect.get(Object(failure), "code")).toBe("ABORT_ERR");
+    expect(inspect(failure, { depth: Number.POSITIVE_INFINITY })).not.toContain(
+      secret,
+    );
+  });
+
+  it("redacts both output streams and omits secret-bearing arguments at the process boundary", async () => {
+    const databaseSecret = "database-process-secret";
+    const redisSecret = "redis-process-secret";
+    const bootstrapSecret = "bootstrap-process-secret";
+    let failure: unknown;
+    try {
+      await runCheckAllCommand(
+        process.execPath,
+        [
+          "-e",
+          `process.stdout.write("DATABASE_URL=postgresql://admin:${databaseSecret}@example.test/cat\\n"); process.stderr.write("REDIS_URL=redis://:${redisSecret}@example.test:6379 CAT_BOOTSTRAP_PLAN={\\"token\\":\\"${bootstrapSecret}\\"}\\n"); process.exit(7)`,
+        ],
+        {
+          cwd: process.cwd(),
+          env: process.env,
+          stdio: "pipe",
+        },
+      );
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toBeInstanceOf(CommandExecutionError);
+    const commandFailure = failure as CommandExecutionError;
+    expect(commandFailure.exitCode).toBe(7);
+    expect(commandFailure.stdout).toContain(
+      "DATABASE_URL=postgresql://[REDACTED]@",
+    );
+    expect(commandFailure.stderr).toContain("REDIS_URL=redis://[REDACTED]@");
+    expect(commandFailure.message).toContain("stdout:");
+    expect(commandFailure.message).toContain("stderr:");
+    expect(commandFailure.message).not.toContain("process.stdout.write");
+    expect(commandFailure.message).not.toMatch(
+      /database-process-secret|redis-process-secret|bootstrap-process-secret/,
+    );
+
+    const successful = await runCheckAllCommand(
+      process.execPath,
+      [
+        "-e",
+        'process.stdout.write("token=successful-stdout-secret\\n"); process.stderr.write("password=successful-stderr-secret\\n")',
+      ],
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: "pipe",
+      },
+    );
+    expect(successful).toEqual({
+      stderr: "password=[REDACTED]\n",
+      stdout: "token=[REDACTED]\n",
+    });
+  });
+
+  it("expands and redacts primary and cleanup failures at the CLI boundary", async () => {
+    const output: string[] = [];
+    const exitCode = await runCheckAllCli({
+      args: [],
+      execute: async () => {
+        throw new AggregateError(
+          [
+            new CommandExecutionError(
+              "docker command failed",
+              1,
+              null,
+              "stderr password=stderr-secret",
+              "stdout token=stdout-secret",
+            ),
+            new Error("cleanup REDIS_URL=redis://:cleanup-secret@example.test"),
+          ],
+          "validation DATABASE_URL=postgresql://admin:primary-secret@example.test/cat",
+        );
+      },
+      writeError: (message) => output.push(message),
+    });
+
+    expect(exitCode).toBe(1);
+    expect(output).toHaveLength(1);
+    expect(output[0]).toContain(
+      "validation DATABASE_URL=postgresql://[REDACTED]@",
+    );
+    expect(output[0]).toContain("stdout token=[REDACTED]");
+    expect(output[0]).toContain("stderr password=[REDACTED]");
+    expect(output[0]).toContain("cleanup REDIS_URL=redis://[REDACTED]@");
+    expect(output[0]).not.toMatch(
+      /primary-secret|stdout-secret|stderr-secret|cleanup-secret/,
+    );
+  });
+
   it("accepts fixed release identities and explicit E2E concurrency", () => {
     expect(
       parseCheckAllCommand([
@@ -132,61 +291,51 @@ describe("check:all service lifecycle", () => {
   it("uses one injected lease from the canonical E2E service template", async () => {
     const run = successfulRunner();
     const applicationLifecycle = vi.fn().mockResolvedValue(undefined);
-    const imageBuilder = vi.fn().mockResolvedValue(builtImages);
-
-    const report = await runCheckAll({
-      applicationLifecycle,
-      appPort: 49154,
-      dockerHost: "127.0.0.1",
-      env: {
-        CAT_CHECK_ALL_POSTGRES_DB: "cat_contract_db",
-        CAT_CHECK_ALL_POSTGRES_PASSWORD: "contract-password",
-        CAT_CHECK_ALL_POSTGRES_USER: "contract_user",
-        CAT_CHECK_ALL_REDIS_PASSWORD: "test-only-password",
-      },
-      imageBuilder,
-      projectName: "cat-check-all-contract",
-      run,
-      signals: signalSource(),
+    const errors: string[] = [];
+    const imageBuilder = vi.fn(async (context) => {
+      context.reportError?.("plain Buildx history\n");
+      return builtImages;
     });
+    const logs: string[] = [];
 
-    expect(report.projectName).toBe("cat-check-all-contract");
-    expect(report.databaseUrl).toBe(
-      "postgresql://contract_user:contract-password@127.0.0.1:49152/postgres",
-    );
-    expect(report.redisUrl).toBe("redis://:test-only-password@127.0.0.1:49153");
-    expect(report.images).toMatchObject({
-      buildId: "cat-check-all-contract",
-      e2eAttestedImageIds: {
-        runtime: builtImages.images[1]?.imageId,
-        standalone: builtImages.images[0]?.imageId,
-      },
-      e2eAttestation: { cells: expect.any(Array) },
-      lifecycleValidatedImageIds: {
-        runtime: builtImages.images[1]?.imageId,
-        standalone: builtImages.images[0]?.imageId,
-      },
-      releaseIdentity: "cat-check-all-contract",
-      targetImageIds: {
-        runtime: builtImages.images[1]?.imageId,
-        standalone: builtImages.images[0]?.imageId,
-      },
-    });
-    expect(report.images.e2eAttestation.cells).toHaveLength(5);
-    expect(report.stages.map((stage) => stage.name)).toEqual([
-      "check",
-      "database",
-      "integration",
-      "compose-contract",
-      "pglite",
-      "build",
-      "image-build",
-      "e2e",
-      "container-lifecycle",
-      "image-artifact",
-      "image-artifact-contract",
-      "artifacts",
-    ]);
+    await expect(
+      runCheckAll({
+        applicationLifecycle,
+        appPort: 49154,
+        dockerHost: "127.0.0.1",
+        env: {
+          CAT_CHECK_ALL_POSTGRES_DB: "cat_contract_db",
+          CAT_CHECK_ALL_POSTGRES_PASSWORD: "contract-password",
+          CAT_CHECK_ALL_POSTGRES_USER: "contract_user",
+          CAT_CHECK_ALL_REDIS_PASSWORD: "test-only-password",
+        },
+        imageBuilder,
+        log: (message) => logs.push(message),
+        reportError: (message) => errors.push(message),
+        projectName: "cat-check-all-contract",
+        run,
+        signals: signalSource(),
+      }),
+    ).resolves.toBeUndefined();
+    expect(logs).toContain("check:all stage=check status=started");
+    expect(
+      logs.some((message) =>
+        /^check:all stage=check status=passed duration=\d+ms$/.test(message),
+      ),
+    ).toBe(true);
+    expect(
+      logs.some((message) =>
+        message.startsWith(
+          `check:all images build-id=cat-check-all-contract standalone=${builtImages.images[0]?.imageId} runtime=${builtImages.images[1]?.imageId}`,
+        ),
+      ),
+    ).toBe(true);
+    expect(logs.some((message) => message.startsWith("{"))).toBe(false);
+    expect(logs.join("\n")).not.toContain("plain Buildx history");
+    expect(errors).toEqual(["plain Buildx history\n"]);
+    expect(
+      logs.filter((message) => message.includes("status=passed")),
+    ).toHaveLength(13);
 
     const calls = vi.mocked(run).mock.calls;
     const composeCalls = calls.filter(
@@ -223,6 +372,34 @@ describe("check:all service lifecycle", () => {
           command === "pnpm" && args.includes("test:artifacts:verify"),
       ),
     ).toBe(true);
+    expect(
+      calls.some(
+        ([command, args]) =>
+          command === "pnpm" &&
+          args.length === 1 &&
+          args[0] === "test:compose-contract",
+      ),
+    ).toBe(true);
+    expect(
+      calls.some(
+        ([command, args]) =>
+          command === "pnpm" &&
+          args.length === 1 &&
+          args[0] === "test:image-artifact-contract",
+      ),
+    ).toBe(true);
+    expect(
+      calls.some(
+        ([command, args]) =>
+          command === "pnpm" && args.includes("container:check-dockerfile"),
+      ),
+    ).toBe(true);
+    expect(
+      calls.some(
+        ([command, args]) =>
+          command === "pnpm" && args.includes("container:check-context"),
+      ),
+    ).toBe(false);
     expect(
       calls.some(
         ([command, args]) =>
@@ -268,19 +445,17 @@ describe("check:all service lifecycle", () => {
   it("binds and reaches services through the Docker gateway for socket clients", async () => {
     const run = successfulRunner();
 
-    const report = await runCheckAll({
+    await runCheckAll({
       applicationLifecycle: vi.fn().mockResolvedValue(undefined),
       appPort: 49154,
       dockerGateway: "172.17.0.1",
       imageBuilder: vi.fn().mockResolvedValue(builtImages),
+      log: discardCheckAllLog,
       projectName: "cat-check-all-socket-client",
       run,
       signals: signalSource(),
     });
 
-    expect(report.databaseUrl).toContain("@172.17.0.1:49152/");
-    expect(new URL(report.databaseUrl).pathname).toBe("/postgres");
-    expect(report.redisUrl).toContain("@172.17.0.1:49153");
     const composeUpCall = vi
       .mocked(run)
       .mock.calls.find(
@@ -307,6 +482,7 @@ describe("check:all service lifecycle", () => {
       runCheckAll({
         appPort: 49154,
         dockerHost: "127.0.0.1",
+        log: discardCheckAllLog,
         projectName: "cat-check-all-failure",
         run,
         signals: signalSource(),
@@ -322,6 +498,69 @@ describe("check:all service lifecycle", () => {
         .mock.calls.some(
           ([command, args]) => command === "pnpm" && args.includes("test:e2e"),
         ),
+    ).toBe(false);
+  });
+
+  it("does not report image or E2E stages as passed before their release evidence validates", async () => {
+    const imageLogs: string[] = [];
+    await expect(
+      runCheckAll({
+        appPort: 49154,
+        dockerHost: "127.0.0.1",
+        imageBuilder: vi.fn().mockResolvedValue({
+          images: [builtImages.images[0]!],
+        }),
+        log: (message) => imageLogs.push(message),
+        projectName: "cat-check-all-missing-runtime",
+        run: successfulRunner(),
+        signals: signalSource(),
+      }),
+    ).rejects.toThrow("both immutable release targets");
+    expect(
+      imageLogs.some((message) =>
+        /^check:all stage=image-build status=failed duration=\d+ms$/.test(
+          message,
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      imageLogs.some((message) =>
+        /^check:all stage=image-build status=passed /.test(message),
+      ),
+    ).toBe(false);
+
+    const e2eLogs: string[] = [];
+    const baseRun = successfulRunner();
+    const run: CommandRunner = async (command, args, options) => {
+      const result = await baseRun(command, args, options);
+      if (command === "pnpm" && args.includes("test:e2e")) {
+        writeFileSync(
+          options.env.CAT_E2E_ATTESTATION_PATH!,
+          JSON.stringify({ cells: [], releaseImages: {} }),
+        );
+      }
+      return result;
+    };
+    await expect(
+      runCheckAll({
+        appPort: 49154,
+        dockerHost: "127.0.0.1",
+        imageBuilder: vi.fn().mockResolvedValue(builtImages),
+        log: (message) => e2eLogs.push(message),
+        projectName: "cat-check-all-invalid-attestation",
+        run,
+        signals: signalSource(),
+      }),
+    ).rejects.toThrow("does not match the built images");
+    expect(
+      e2eLogs.some((message) =>
+        /^check:all stage=e2e status=failed duration=\d+ms$/.test(message),
+      ),
+    ).toBe(true);
+    expect(
+      e2eLogs.some((message) =>
+        /^check:all stage=e2e status=passed /.test(message),
+      ),
     ).toBe(false);
   });
 
@@ -349,6 +588,7 @@ describe("check:all service lifecycle", () => {
       runCheckAll({
         appPort: 49154,
         dockerHost: "127.0.0.1",
+        log: discardCheckAllLog,
         projectName: "cat-check-all-signal",
         run,
         signals,

@@ -6,6 +6,8 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { formatDiagnosticErrorTree, redactDiagnosticText } from "@cat/shared";
+
 import {
   runWithTestServiceLease,
   serializeTestServiceLease,
@@ -34,62 +36,108 @@ export interface CommandRunnerOptions {
   stdio?: "inherit" | "pipe";
 }
 
+export type CommandExecutionResult = { stderr: string; stdout: string };
+
 export type CommandRunner = (
   command: string,
   args: string[],
   options: CommandRunnerOptions,
-) => Promise<{ stdout: string }>;
+) => Promise<CommandExecutionResult>;
 
 export class CommandExecutionError extends Error {
   readonly exitCode: number | null;
   readonly signal: string | null;
+  readonly stderr: string;
+  readonly stdout: string;
 
-  constructor(message: string, exitCode: number | null, signal: string | null) {
-    super(message);
+  constructor(
+    message: string,
+    exitCode: number | null,
+    signal: string | null,
+    stderr = "",
+    stdout = "",
+  ) {
+    const safeMessage = redactDiagnosticText(message);
+    const safeStderr = redactDiagnosticText(stderr);
+    const safeStdout = redactDiagnosticText(stdout);
+    super(
+      [
+        safeMessage,
+        ...(safeStdout === "" ? [] : [`stdout:\n${safeStdout.trimEnd()}`]),
+        ...(safeStderr === "" ? [] : [`stderr:\n${safeStderr.trimEnd()}`]),
+      ].join("\n"),
+    );
     this.name = "CommandExecutionError";
     this.exitCode = exitCode;
     this.signal = signal;
+    this.stderr = safeStderr;
+    this.stdout = safeStdout;
   }
 }
 
-export interface CheckAllStageResult {
-  name: string;
-  durationMs: number;
+export class CommandStartError extends Error {
+  readonly code: string | undefined;
+  readonly path: string | undefined;
+
+  constructor(command: string, error: unknown) {
+    const code =
+      typeof Reflect.get(Object(error), "code") === "string"
+        ? redactDiagnosticText(String(Reflect.get(Object(error), "code")))
+        : undefined;
+    const path =
+      typeof Reflect.get(Object(error), "path") === "string"
+        ? redactDiagnosticText(String(Reflect.get(Object(error), "path")))
+        : undefined;
+    const safeCommand = redactDiagnosticText(command);
+    super(
+      `${safeCommand} command could not start${code === undefined ? "" : ` code=${code}`}${path === undefined ? "" : ` path=${path}`}`,
+    );
+    this.name = "CommandStartError";
+    this.code = code;
+    this.path = path;
+  }
 }
 
-export interface CheckAllReport {
-  projectName: string;
-  databaseUrl: string;
-  images: {
-    buildId: string;
-    e2eAttestation: {
-      cells: Array<{
-        browser: "chromium" | "firefox";
-        imageId?: string;
-        preparerImageId?: string;
-        target: "dev" | "runtime" | "standalone";
-      }>;
-    };
-    e2eAttestedImageIds: Record<"runtime" | "standalone", string>;
-    export?: {
-      manifestDigest: string;
-      manifestPath: string;
-    };
-    lifecycleValidatedImageIds: Record<"runtime" | "standalone", string>;
-    releaseIdentity: string;
-    targetImageIds: Record<"runtime" | "standalone", string>;
-  };
-  redisUrl: string;
-  stages: CheckAllStageResult[];
-}
+const safeCommandStartError = (
+  command: string,
+  error: unknown,
+  signal: AbortSignal | undefined,
+): Error => {
+  const errorName =
+    typeof Reflect.get(Object(error), "name") === "string"
+      ? String(Reflect.get(Object(error), "name"))
+      : undefined;
+  const errorCode = Reflect.get(Object(error), "code");
+  if (
+    signal?.aborted === true ||
+    errorName === "AbortError" ||
+    errorCode === "ABORT_ERR"
+  ) {
+    const abortError = new Error(
+      `${redactDiagnosticText(command)} command aborted`,
+    );
+    abortError.name = "AbortError";
+    Object.defineProperty(abortError, "code", {
+      configurable: true,
+      enumerable: true,
+      value: "ABORT_ERR",
+    });
+    return abortError;
+  }
+  return new CommandStartError(command, error);
+};
 
 export interface ApplicationLifecycleContext {
   buildId?: string;
   env: NodeJS.ProcessEnv;
   projectName: string;
+  report?: (message: string) => void;
+  reportError?: (message: string) => void;
   run: CommandRunner;
   signal: AbortSignal;
 }
+
+const formatStageDuration = (durationMs: number): string => `${durationMs}ms`;
 
 export type ImageBuilder = (
   context: ApplicationLifecycleContext,
@@ -107,6 +155,7 @@ export interface RunCheckAllOptions {
   env?: NodeJS.ProcessEnv;
   buildId?: string;
   log?: (message: string) => void;
+  reportError?: (message: string) => void;
   imageBuilder?: ImageBuilder;
   projectName?: string;
   run?: CommandRunner;
@@ -117,32 +166,11 @@ const workspaceRoot = resolve(import.meta.dirname, "..");
 const checkAllStages = [
   ["database", ["--filter", "@cat/db", "drizzle:push"]],
   ["integration", ["test:integration"]],
-  [
-    "compose-contract",
-    [
-      "exec",
-      "vitest",
-      "run",
-      "scripts/compose-contract.test.ts",
-      "--config",
-      "scripts/vitest.integration.config.ts",
-      "--reporter=agent",
-    ],
-  ],
+  ["compose-contract", ["test:compose-contract"]],
   ["pglite", ["test:pglite"]],
+  ["dockerfile", ["container:check-dockerfile"]],
   ["build", ["build:all"]],
-  [
-    "image-artifact-contract",
-    [
-      "exec",
-      "vitest",
-      "run",
-      "scripts/image-artifact-contract.test.ts",
-      "--config",
-      "scripts/vitest.integration.config.ts",
-      "--reporter=agent",
-    ],
-  ],
+  ["image-artifact-contract", ["test:image-artifact-contract"]],
   ["artifacts", ["test:artifacts:verify"]],
 ] as const;
 
@@ -150,6 +178,10 @@ const defaultImageBuilder: ImageBuilder = async (context) =>
   await buildReleaseImages({
     buildId: context.buildId ?? context.projectName,
     env: context.env,
+    report: context.report,
+    ...(context.reportError === undefined
+      ? {}
+      : { reportError: context.reportError }),
     run: context.run,
     signal: context.signal,
   });
@@ -171,7 +203,14 @@ const targetImageIds = (
   return { runtime, standalone };
 };
 
-type E2EAttestationEvidence = CheckAllReport["images"]["e2eAttestation"];
+type E2EAttestationEvidence = {
+  cells: Array<{
+    browser: "chromium" | "firefox";
+    imageId?: string;
+    preparerImageId?: string;
+    target: "dev" | "runtime" | "standalone";
+  }>;
+};
 
 const readE2eAttestation = async (
   path: string,
@@ -287,41 +326,53 @@ const directExecution = (): boolean => {
   );
 };
 
-const defaultRunner: CommandRunner = async (
+export const runCheckAllCommand: CommandRunner = async (
   command,
   args,
   options,
-): Promise<{ stdout: string }> =>
+): Promise<{ stderr: string; stdout: string }> =>
   await new Promise((resolvePromise, reject) => {
+    const pipeOutput = options.stdio === "pipe";
     const child = spawn(command, args, {
       cwd: options.cwd,
       env: options.env,
       signal: options.signal,
-      stdio:
-        options.stdio === "pipe"
-          ? ["ignore", "pipe", "inherit"]
-          : ["inherit", "inherit", "inherit"],
+      stdio: pipeOutput
+        ? ["ignore", "pipe", "pipe"]
+        : ["inherit", "inherit", "inherit"],
     });
     let stdout = "";
+    let stderr = "";
     child.stdout?.setEncoding("utf8");
     child.stdout?.on("data", (chunk: string) => {
       stdout += chunk;
     });
-    child.once("error", reject);
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.once("error", (error) => {
+      reject(safeCommandStartError(command, error, options.signal));
+    });
     child.once("close", (code, signal) => {
       if (code === 0) {
-        resolvePromise({ stdout });
+        resolvePromise({
+          stderr: redactDiagnosticText(stderr),
+          stdout: redactDiagnosticText(stdout),
+        });
         return;
       }
       reject(
         new CommandExecutionError(
-          `${command} ${args.join(" ")} failed${
+          `${command} command failed${
             signal === null
               ? ` with exit code ${String(code)}`
               : ` from ${signal}`
           }`,
           code,
           signal,
+          stderr,
+          stdout,
         ),
       );
     });
@@ -391,11 +442,16 @@ export const parseCheckAllCommand = (args: string[]): CheckAllCommand => {
 
 export const runCheckAll = async (
   options: RunCheckAllOptions = {},
-): Promise<CheckAllReport> => {
-  const run = options.run ?? defaultRunner;
+): Promise<void> => {
+  const run = options.run ?? runCheckAllCommand;
   const signals = options.signals ?? process;
   const log =
     options.log ?? ((message) => process.stdout.write(`${message}\n`));
+  const writeError =
+    options.reportError ?? ((message: string) => process.stderr.write(message));
+  const reportError = (message: string): void => {
+    writeError(redactDiagnosticText(message));
+  };
   const baseEnv = { ...process.env, ...options.env };
   const dockerHost =
     options.dockerHost ??
@@ -428,35 +484,26 @@ export const runCheckAll = async (
       throw new CheckAllInterruptedError(interruptedBy);
     }
   };
-  const stages: CheckAllStageResult[] = [];
   const runOperationStage = async <Result>(
     name: string,
     operation: () => Promise<Result>,
   ): Promise<Result> => {
     throwIfInterrupted();
     const startedAt = performance.now();
-    log(
-      JSON.stringify({
-        event: "check-all.stage",
-        stage: name,
-        status: "started",
-      }),
-    );
+    log(`check:all stage=${name} status=started`);
     try {
       const result = await operation();
       throwIfInterrupted();
       const durationMs = Math.round(performance.now() - startedAt);
-      stages.push({ name, durationMs });
       log(
-        JSON.stringify({
-          durationMs,
-          event: "check-all.stage",
-          stage: name,
-          status: "passed",
-        }),
+        `check:all stage=${name} status=passed duration=${formatStageDuration(durationMs)}`,
       );
       return result;
     } catch (error) {
+      const durationMs = Math.round(performance.now() - startedAt);
+      log(
+        `check:all stage=${name} status=failed duration=${formatStageDuration(durationMs)}`,
+      );
       // Node reports an AbortError from spawn before the signal handler's
       // lifecycle cleanup has returned; normalize it after release completes.
       throwIfInterrupted();
@@ -479,7 +526,7 @@ export const runCheckAll = async (
 
   try {
     await runStage("check", ["check"], baseEnv);
-    const report = await runWithTestServiceLease(
+    await runWithTestServiceLease(
       {
         environment: {
           ...baseEnv,
@@ -521,6 +568,8 @@ export const runCheckAll = async (
           buildId,
           env: integrationEnv,
           projectName,
+          report: (message: string): void => log(message.trimEnd()),
+          reportError,
           run,
           signal: abortController.signal,
         };
@@ -531,27 +580,20 @@ export const runCheckAll = async (
         let exportResult:
           | Awaited<ReturnType<typeof exportValidatedImages>>
           | undefined;
-        let e2eAttestation: E2EAttestationEvidence | undefined;
         let lifecycleReport: ApplicationLifecycleReport | void;
         for (const [name, args] of checkAllStages) {
           await runStage(name, [...args], integrationEnv);
           if (name === "build") {
-            images = await runOperationStage(
-              "image-build",
-              async () =>
-                await (options.imageBuilder ?? defaultImageBuilder)(
-                  lifecycleContext,
-                ),
-            );
+            images = await runOperationStage("image-build", async () => {
+              const result = await (
+                options.imageBuilder ?? defaultImageBuilder
+              )(lifecycleContext);
+              targetImageIds(result);
+              return result;
+            });
             imageIds = targetImageIds(images);
             log(
-              JSON.stringify({
-                buildId,
-                event: "check-all.image-mapping",
-                releaseIdentity: buildId,
-                stage: "image-build",
-                targetImageIds: imageIds,
-              }),
+              `check:all images build-id=${buildId} standalone=${imageIds.standalone} runtime=${imageIds.runtime}`,
             );
             const attestationDirectory = await mkdtemp(
               join(tmpdir(), "cat-check-all-e2e-attestation-"),
@@ -561,88 +603,59 @@ export const runCheckAll = async (
               "release-e2e.json",
             );
             try {
-              await runStage(
-                "e2e",
-                ["test:e2e", "--", "--concurrency", String(e2eConcurrency)],
-                {
-                  ...integrationEnv,
-                  CAT_E2E_ATTESTATION_PATH: attestationPath,
-                  CAT_E2E_RUNTIME_IMAGE_ID: imageIds.runtime,
-                  CAT_E2E_STANDALONE_IMAGE_ID: imageIds.standalone,
-                },
-              );
-              e2eAttestation = await readE2eAttestation(
-                attestationPath,
-                imageIds,
-                buildId,
-              );
+              await runOperationStage("e2e", async () => {
+                await run(
+                  "pnpm",
+                  ["test:e2e", "--", "--concurrency", String(e2eConcurrency)],
+                  {
+                    cwd: workspaceRoot,
+                    env: {
+                      ...integrationEnv,
+                      CAT_E2E_ATTESTATION_PATH: attestationPath,
+                      CAT_E2E_RUNTIME_IMAGE_ID: imageIds.runtime,
+                      CAT_E2E_STANDALONE_IMAGE_ID: imageIds.standalone,
+                    },
+                    signal: abortController.signal,
+                    stdio: "inherit",
+                  },
+                );
+                await readE2eAttestation(attestationPath, imageIds, buildId);
+              });
             } finally {
               await rm(attestationDirectory, { force: true, recursive: true });
             }
             log(
-              JSON.stringify({
-                e2eAttestation,
-                event: "check-all.image-mapping",
-                releaseIdentity: buildId,
-                stage: "e2e",
-                targetImageIds: imageIds,
-              }),
+              `check:all e2e release-matrix=attested standalone=${imageIds.standalone} runtime=${imageIds.runtime}`,
             );
             lifecycleReport = await runOperationStage(
               "container-lifecycle",
               async () => await applicationLifecycle(lifecycleContext, images),
             );
+            const lifecycleImageIds =
+              lifecycleReport?.validatedImageIds ?? imageIds;
             log(
-              JSON.stringify({
-                event: "check-all.image-mapping",
-                releaseIdentity: buildId,
-                stage: "container-lifecycle",
-                targetImageIds: lifecycleReport?.validatedImageIds ?? imageIds,
-              }),
+              `check:all lifecycle standalone=${lifecycleImageIds.standalone} runtime=${lifecycleImageIds.runtime}`,
             );
             exportResult = await runOperationStage(
               "image-artifact",
               async () => await exportValidatedImages(lifecycleContext, images),
             );
-            log(
-              JSON.stringify({
-                event: "check-all.image-mapping",
-                export: exportResult,
-                releaseIdentity: buildId,
-                stage: "image-artifact",
-                targetImageIds: lifecycleReport?.validatedImageIds ?? imageIds,
-              }),
-            );
+            if (exportResult !== undefined) {
+              log(
+                `check:all image-artifact manifest=${exportResult.manifestPath} digest=${exportResult.manifestDigest}`,
+              );
+            }
           }
           throwIfInterrupted();
         }
-        if (
-          images === undefined ||
-          imageIds === undefined ||
-          e2eAttestation === undefined
-        ) {
+        if (images === undefined || imageIds === undefined) {
           throw new Error("check:all did not complete image construction");
         }
-        return {
-          databaseUrl: lease.coordinates.databaseUrl,
-          images: {
-            buildId,
-            e2eAttestation,
-            e2eAttestedImageIds: imageIds,
-            ...(exportResult === undefined ? {} : { export: exportResult }),
-            lifecycleValidatedImageIds:
-              lifecycleReport?.validatedImageIds ?? imageIds,
-            releaseIdentity: buildId,
-            targetImageIds: imageIds,
-          },
-          projectName,
-          redisUrl: lease.coordinates.redisUrl,
-          stages,
-        };
+        void exportResult;
+        void lifecycleReport;
       },
     );
     throwIfInterrupted();
-    return report;
   } catch (error) {
     throwIfInterrupted();
     throw error;
@@ -653,24 +666,31 @@ export const runCheckAll = async (
   }
 };
 
-const main = async (): Promise<void> => {
+export interface RunCheckAllCliOptions {
+  args?: string[];
+  execute?: (options: RunCheckAllOptions) => Promise<void>;
+  writeError?: (message: string) => void;
+}
+
+export const runCheckAllCli = async (
+  options: RunCheckAllCliOptions = {},
+): Promise<number> => {
   try {
-    const report = await runCheckAll({
+    await (options.execute ?? runCheckAll)({
       applicationLifecycle: runApplicationLifecycle,
-      ...parseCheckAllCommand(process.argv.slice(2)),
+      ...parseCheckAllCommand(options.args ?? process.argv.slice(2)),
     });
-    process.stdout.write(`${JSON.stringify(report)}\n`);
+    return 0;
   } catch (error) {
-    process.stderr.write(
-      `${error instanceof Error ? error.stack : String(error)}\n`,
+    (options.writeError ?? ((message) => process.stderr.write(message)))(
+      `${formatDiagnosticErrorTree(error)}\n`,
     );
-    process.exitCode =
-      error instanceof CheckAllInterruptedError
-        ? error.signal === "SIGINT"
-          ? 130
-          : 143
-        : 1;
+    return error instanceof CheckAllInterruptedError
+      ? error.signal === "SIGINT"
+        ? 130
+        : 143
+      : 1;
   }
 };
 
-if (directExecution()) await main();
+if (directExecution()) process.exitCode = await runCheckAllCli();

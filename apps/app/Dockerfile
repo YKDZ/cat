@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.7
+# syntax=docker/dockerfile:1
 
 ARG DEPLOYMENT_BUILD_ID=local
 
@@ -29,30 +29,30 @@ RUN apt-get update && \
     corepack enable && \
     corepack install --global "${PACKAGE_MANAGER_PIN}"
 
-# Keep dependency resolution in a small, cacheable stage. Turbo owns the
-# workspace graph; package manifests remain the only dependency declaration.
+# Keep the package graph separate from application sources so dependency
+# installation remains reusable across source-only changes.
 FROM base AS pruner
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
-RUN pnpm fetch
-COPY apps/app/package.json apps/app/package.json
-COPY packages packages
-COPY @cat-plugin @cat-plugin
-RUN pnpm install --offline --frozen-lockfile
+COPY --parents package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY --parents apps/*/package.json packages/*/package.json @cat-plugin/*/package.json tools/*/package.json ./
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --filter=cat-root --frozen-lockfile --ignore-scripts
 COPY . .
 RUN pnpm exec turbo prune @cat/app --docker
 
 FROM base AS build
-COPY --from=pruner /repo/out/json/pnpm-lock.yaml ./pnpm-lock.yaml
-COPY --from=pruner /repo/out/json/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=pruner /repo/out/json/package.json ./package.json
-RUN pnpm fetch
 COPY --from=pruner /repo/out/json/ ./
-RUN pnpm install --offline --frozen-lockfile
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ ./
 COPY --from=pruner /repo/tsconfig*.json ./
 COPY --from=pruner /repo/oxlint.config.ts /repo/oxfmt.config.ts ./
-RUN pnpm build-plugins && \
-    pnpm --filter @cat/app build && \
+RUN --mount=type=secret,id=turbo_team,required=false \
+    --mount=type=secret,id=turbo_token,required=false \
+    --mount=type=secret,id=turbo_remote_cache_signature_key,required=false \
+    export TURBO_TEAM="$(cat /run/secrets/turbo_team 2>/dev/null || true)" && \
+    export TURBO_TOKEN="$(cat /run/secrets/turbo_token 2>/dev/null || true)" && \
+    export TURBO_REMOTE_CACHE_SIGNATURE_KEY="$(cat /run/secrets/turbo_remote_cache_signature_key 2>/dev/null || true)" && \
+    pnpm exec turbo run build --filter=@cat/app && \
     pnpm --filter @cat/app copy-drizzle && \
     pnpm --filter @cat/app deploy --prod /application-release && \
     install -d /standalone-deployment && \

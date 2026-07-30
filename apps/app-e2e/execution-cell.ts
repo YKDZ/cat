@@ -31,6 +31,7 @@ import {
   updatePRStatus,
 } from "@cat/domain";
 import { loadDevSeed, runFixtureHydration, type RefResolver } from "@cat/seed";
+import { formatDiagnosticErrorTree, redactDiagnosticText } from "@cat/shared";
 import { Client } from "pg";
 import { createClient } from "redis";
 
@@ -52,6 +53,10 @@ const searchRuntimeInitializationPath = join(
 );
 const startupTimeoutMs = 300_000;
 const cleanupTimeoutMs = 60_000;
+const cleanupSettlementTimeoutMs = 10_000;
+const processTerminationGraceMs = 5_000;
+const forcedProcessExitTimeoutMs = 5_000;
+const logDrainTimeoutMs = 5_000;
 const playwrightTimeoutMs = 480_000;
 
 export type ExecutionTarget = "dev" | "standalone" | "runtime";
@@ -102,6 +107,7 @@ export type StartedProcess = {
   diagnostics: Error[];
   drainLogs?: () => Promise<void>;
   environment?: NodeJS.ProcessEnv;
+  forceDrainLogs?: () => void;
   label: string;
   ownedPids: Set<number>;
   processIdentities: Map<number, ProcessIdentity>;
@@ -121,22 +127,26 @@ export type TargetAdapter = {
     runtime: CellRuntime,
     attempt: "bootstrap" | "validation",
   ) => Promise<StartedProcess>;
-  stop: (process: StartedProcess) => Promise<void>;
+  stop: (process: StartedProcess, signal?: AbortSignal) => Promise<void>;
 };
 
-type Disposer = () => Promise<void>;
+type Disposer = (signal: AbortSignal) => Promise<void>;
 
 type RegisteredDisposer = {
   active: boolean;
   dispose: Disposer;
+  label: string;
 };
 
 export type ExecutionCellDependencies = {
   createRuntime?: (
-    register: (disposer: () => Promise<void>) => () => void,
+    register: (label: string, disposer: Disposer) => () => void,
   ) => Promise<CellRuntime>;
+  cleanupSettlementTimeoutMs?: number;
+  cleanupTimeoutMs?: number;
   createTarget?: (input: ExecutionCellInput) => TargetAdapter;
   hydrateFixtures?: (runtime: CellRuntime) => Promise<void>;
+  removeArtifacts?: (directory: string) => Promise<void>;
   runPlaywright?: (
     environment: NodeJS.ProcessEnv,
     target: ExecutionTarget,
@@ -147,10 +157,53 @@ export type ExecutionCellDependencies = {
     runtime: CellRuntime,
     process: StartedProcess,
   ) => Promise<void>;
+  write?: (message: string) => void;
+  writeError?: (message: string) => void;
 };
 
 const toError = (error: unknown): Error =>
   error instanceof Error ? error : new Error(String(error));
+
+type ExecutionCellPhase =
+  | "prepare"
+  | "bootstrap"
+  | "external-service"
+  | "hydrate"
+  | "start"
+  | "attest"
+  | "playwright"
+  | "stop"
+  | "server-diagnostics"
+  | "cleanup"
+  | "artifact-cleanup";
+
+const formatFailureTree = (
+  error: unknown,
+  phases: ReadonlyMap<Error, ExecutionCellPhase>,
+  fallbackPhase: ExecutionCellPhase,
+): string => {
+  return formatDiagnosticErrorTree(error, {
+    resolveAnnotation: (current, inheritedAnnotation) => {
+      const inheritedPhase = inheritedAnnotation?.startsWith("phase=")
+        ? (inheritedAnnotation.slice("phase=".length) as ExecutionCellPhase)
+        : fallbackPhase;
+      const phase =
+        current instanceof Error
+          ? (phases.get(current) ?? inheritedPhase)
+          : inheritedPhase;
+      return `phase=${phase}`;
+    },
+  });
+};
+
+const cellImageIdentity = (input: ExecutionCellInput): string =>
+  "imageId" in input ? input.imageId : "development";
+
+const cellIdentity = (input: ExecutionCellInput): string =>
+  `target=${input.target} browser=${input.browser}`;
+
+const cellDuration = (startedAt: number): string =>
+  `${Math.round(performance.now() - startedAt)}ms`;
 
 const waitForAbortableDelay = async (
   milliseconds: number,
@@ -208,7 +261,7 @@ const attachServerDiagnostics = (
   child: ChildProcess,
   log: ReturnType<typeof createWriteStream>,
   diagnostics: Error[],
-): (() => Promise<void>) => {
+): Pick<StartedProcess, "drainLogs" | "forceDrainLogs"> => {
   const flushes: Array<() => void> = [];
   for (const stream of [child.stdout, child.stderr]) {
     let pending = "";
@@ -228,24 +281,37 @@ const attachServerDiagnostics = (
     });
     stream?.pipe(log, { end: false });
     flushes.push(() => {
-      if (pending !== "") consume(pending);
+      if (pending !== "") {
+        consume(pending);
+        pending = "";
+      }
     });
   }
+  let ended = false;
+  const endLog = (): void => {
+    if (ended) return;
+    ended = true;
+    for (const stream of [child.stdout, child.stderr]) stream?.unpipe(log);
+    for (const flush of flushes) flush();
+    log.end();
+  };
   const drained = new Promise<void>((resolveDrain, rejectDrain) => {
-    child.once("close", () => {
-      for (const flush of flushes) flush();
-      log.end();
-    });
+    child.once("close", endLog);
     log.once("finish", resolveDrain);
     log.once("error", rejectDrain);
   });
-  return async () => await drained;
+  return {
+    drainLogs: async () => await drained,
+    forceDrainLogs: endLog,
+  };
 };
 
 export type AbortableCommandOptions = {
   outputPath?: string;
   signal?: AbortSignal;
   spawnProcess?: AbortableProcessSpawner;
+  stdio?: "capture" | "inherit";
+  terminationGraceMs?: number;
   timeoutMs?: number;
 };
 
@@ -258,6 +324,250 @@ export type AbortableProcessSpawner = (
 const abortReason = (signal: AbortSignal, label: string): Error =>
   toError(signal.reason ?? new Error(`${label} aborted`));
 
+export type ManagedCommandOptions = AbortableCommandOptions & {
+  cwd?: string;
+  stdio?: "capture" | "inherit";
+};
+
+export type ManagedCommandResult = {
+  stderr: string;
+  stdout: string;
+};
+
+const childHasExited = (child: ChildProcess): boolean =>
+  (child.exitCode !== null && child.exitCode !== undefined) ||
+  (child.signalCode !== null && child.signalCode !== undefined);
+
+const signalManagedProcessTree = (
+  child: ChildProcess,
+  signal: NodeJS.Signals,
+): Error | undefined => {
+  if (child.pid !== undefined && process.platform !== "win32") {
+    try {
+      process.kill(-child.pid, signal);
+      return undefined;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
+        return new Error(
+          `Could not signal process group for ${String(child.pid)} with ${signal}: ${toError(error).message}`,
+          { cause: error },
+        );
+      }
+    }
+  }
+  try {
+    if (child.kill(signal)) return undefined;
+    return new Error(`Could not signal child process with ${signal}`);
+  } catch (error) {
+    return new Error(
+      `Could not signal child process with ${signal}: ${toError(error).message}`,
+      { cause: error },
+    );
+  }
+};
+
+const managedProcessGroupIsAlive = (child: ChildProcess): boolean => {
+  if (child.pid === undefined || process.platform === "win32") return false;
+  try {
+    process.kill(-child.pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+};
+
+const closeOutputStream = async (
+  output: ReturnType<typeof createWriteStream> | undefined,
+): Promise<Error | undefined> => {
+  if (
+    output === undefined ||
+    output.writableFinished ||
+    output.closed ||
+    output.destroyed
+  )
+    return undefined;
+  return await new Promise<Error | undefined>((resolveClose) => {
+    const finish = (error?: Error): void => {
+      output.removeListener("finish", finish);
+      output.removeListener("error", fail);
+      resolveClose(error);
+    };
+    const fail = (error: Error): void => finish(error);
+    output.once("finish", finish);
+    output.once("error", fail);
+    output.end();
+  });
+};
+
+export const runManagedCommand = async (
+  command: string,
+  args: string[],
+  environment: NodeJS.ProcessEnv,
+  label: string,
+  options: ManagedCommandOptions = {},
+): Promise<ManagedCommandResult> =>
+  await new Promise<ManagedCommandResult>((resolveRun, reject) => {
+    if (options.signal?.aborted) {
+      reject(abortReason(options.signal, label));
+      return;
+    }
+    const output =
+      options.outputPath === undefined
+        ? undefined
+        : createWriteStream(options.outputPath, { flags: "a" });
+    let outputFailure: Error | undefined;
+    let spawnedChild: ChildProcess | undefined;
+    const failOutput = (error: Error): void => {
+      outputFailure ??= new Error(
+        `Could not write output for ${label}: ${error.message}`,
+        { cause: error },
+      );
+      if (spawnedChild !== undefined) beginTermination(outputFailure);
+    };
+    output?.once("error", failOutput);
+    const stdio =
+      options.stdio ??
+      (options.outputPath === undefined ? "inherit" : "capture");
+    try {
+      spawnedChild = (options.spawnProcess ?? spawn)(command, args, {
+        cwd: options.cwd ?? root,
+        detached: process.platform !== "win32",
+        env: environment,
+        stdio:
+          stdio === "inherit"
+            ? ["inherit", "inherit", "inherit"]
+            : ["ignore", "pipe", "pipe"],
+      });
+    } catch (error) {
+      output?.removeListener("error", failOutput);
+      void closeOutputStream(output).then(() => reject(toError(error)));
+      return;
+    }
+    const child = spawnedChild;
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let requestedFailure: Error | undefined;
+    let closed:
+      | { code: number | null; signal: NodeJS.Signals | null }
+      | undefined;
+    let terminationEscalated = false;
+    let terminationTimeout: NodeJS.Timeout | undefined;
+    const commandTimeout = setTimeout(() => {
+      beginTermination(new Error(`Timed out during ${label}`));
+    }, options.timeoutMs ?? startupTimeoutMs);
+    const cleanup = (): void => {
+      clearTimeout(commandTimeout);
+      if (terminationTimeout !== undefined) clearTimeout(terminationTimeout);
+      options.signal?.removeEventListener("abort", abort);
+      output?.removeListener("error", failOutput);
+      child.removeListener("error", failSpawn);
+      child.removeListener("close", close);
+    };
+    const finish = async (
+      code: number | null,
+      closeSignal: NodeJS.Signals | null,
+      failure = requestedFailure,
+    ): Promise<void> => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      const closeFailure = await closeOutputStream(output);
+      const finalFailure =
+        failure ?? requestedFailure ?? outputFailure ?? closeFailure;
+      if (finalFailure !== undefined) {
+        reject(finalFailure);
+        return;
+      }
+      if (code === 0) {
+        resolveRun({ stderr, stdout });
+        return;
+      }
+      const diagnostic = stderr.trim();
+      reject(
+        new Error(
+          `${label} exited with ${closeSignal ?? String(code)}${
+            options.outputPath === undefined
+              ? diagnostic === ""
+                ? ""
+                : `: ${diagnostic}`
+              : `; see ${options.outputPath}`
+          }`,
+        ),
+      );
+    };
+    function beginTermination(failure: Error): void {
+      requestedFailure ??= failure;
+      const termFailure = signalManagedProcessTree(child, "SIGTERM");
+      if (termFailure !== undefined) {
+        void finish(
+          null,
+          null,
+          new AggregateError(
+            [requestedFailure, termFailure],
+            `Could not terminate ${label}`,
+          ),
+        );
+        return;
+      }
+      if (terminationTimeout !== undefined) return;
+      terminationTimeout = setTimeout(() => {
+        terminationEscalated = true;
+        const killFailure = signalManagedProcessTree(child, "SIGKILL");
+        if (killFailure !== undefined) {
+          void finish(
+            null,
+            null,
+            new AggregateError(
+              [requestedFailure!, killFailure],
+              `Could not force-stop ${label}`,
+            ),
+          );
+          return;
+        }
+        if (closed !== undefined) void finish(closed.code, closed.signal);
+      }, options.terminationGraceMs ?? processTerminationGraceMs);
+    }
+    const abort = (): void => {
+      beginTermination(abortReason(options.signal!, label));
+    };
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (stdio === "capture") {
+      child.stdout?.setEncoding("utf8");
+      child.stdout?.on("data", (chunk: string) => {
+        stdout += chunk;
+      });
+      child.stderr?.setEncoding("utf8");
+      child.stderr?.on("data", (chunk: string) => {
+        stderr += chunk;
+      });
+    }
+    if (output !== undefined && stdio === "capture") {
+      child.stdout?.pipe(output, { end: false });
+      child.stderr?.pipe(output, { end: false });
+    }
+    function failSpawn(error: Error): void {
+      void finish(null, null, error);
+    }
+    function close(
+      code: number | null,
+      closeSignal: NodeJS.Signals | null,
+    ): void {
+      if (
+        requestedFailure !== undefined &&
+        !terminationEscalated &&
+        managedProcessGroupIsAlive(child)
+      ) {
+        closed = { code, signal: closeSignal };
+        return;
+      }
+      void finish(code, closeSignal);
+    }
+    child.once("error", failSpawn);
+    child.once("close", close);
+    if (outputFailure !== undefined) beginTermination(outputFailure);
+  });
+
 export const runAbortableCommand = async (
   command: string,
   args: string[],
@@ -265,72 +575,7 @@ export const runAbortableCommand = async (
   label: string,
   options: AbortableCommandOptions = {},
 ): Promise<void> => {
-  await new Promise<void>((resolveRun, reject) => {
-    const output =
-      options.outputPath === undefined
-        ? undefined
-        : createWriteStream(options.outputPath, { flags: "a" });
-    if (options.signal?.aborted) {
-      output?.end();
-      reject(abortReason(options.signal, label));
-      return;
-    }
-    const child = (options.spawnProcess ?? spawn)(command, args, {
-      cwd: root,
-      env: environment,
-      stdio: output === undefined ? "inherit" : ["ignore", "pipe", "pipe"],
-    });
-    let settled = false;
-    let abortTimeout: NodeJS.Timeout | undefined;
-    const finish = (failure?: Error): void => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timeout);
-      if (abortTimeout !== undefined) clearTimeout(abortTimeout);
-      options.signal?.removeEventListener("abort", abort);
-      output?.end();
-      if (failure === undefined) resolveRun();
-      else reject(failure);
-    };
-    const abort = (): void => {
-      child.kill("SIGTERM");
-      abortTimeout = setTimeout(
-        () => finish(abortReason(options.signal!, label)),
-        cleanupTimeoutMs,
-      );
-    };
-    const timeout = setTimeout(() => {
-      child.kill("SIGTERM");
-      finish(new Error(`Timed out during ${label}`));
-    }, options.timeoutMs ?? startupTimeoutMs);
-    options.signal?.addEventListener("abort", abort, { once: true });
-    if (output !== undefined) {
-      child.stdout?.pipe(output, { end: false });
-      child.stderr?.pipe(output, { end: false });
-    }
-    child.once("error", (error) => {
-      finish(
-        options.signal?.aborted ? abortReason(options.signal, label) : error,
-      );
-    });
-    child.once("close", (code, signal) => {
-      if (options.signal?.aborted) {
-        finish(abortReason(options.signal, label));
-      } else if (code === 0) {
-        finish();
-      } else {
-        finish(
-          new Error(
-            `${label} exited with ${signal ?? String(code)}${
-              options.outputPath === undefined
-                ? ""
-                : `; see ${options.outputPath}`
-            }`,
-          ),
-        );
-      }
-    });
-  });
+  await runManagedCommand(command, args, environment, label, options);
 };
 
 type CellCommandRunner = (
@@ -366,91 +611,36 @@ const runCommandCapture = async (
   outputPath?: string,
   signal?: AbortSignal,
 ): Promise<string> =>
-  await new Promise<string>((resolveRun, reject) => {
-    const output =
-      outputPath === undefined
-        ? undefined
-        : createWriteStream(outputPath, { flags: "a" });
-    if (signal?.aborted) {
-      output?.end();
-      reject(abortReason(signal, label));
-      return;
-    }
-    const child = spawn(command, args, {
-      cwd: root,
-      env: environment,
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let settled = false;
-    let timeout: NodeJS.Timeout | undefined;
-    let abortTimeout: NodeJS.Timeout | undefined;
-    const finish = (
-      code: number | null,
-      closeSignal: NodeJS.Signals | null,
-    ): void => {
-      if (settled) return;
-      settled = true;
-      if (timeout !== undefined) clearTimeout(timeout);
-      if (abortTimeout !== undefined) clearTimeout(abortTimeout);
-      signal?.removeEventListener("abort", abort);
-      output?.end();
-      if (signal?.aborted) reject(abortReason(signal, label));
-      else if (code === 0) resolveRun(stdout);
-      else
-        reject(
-          new Error(
-            `${label} exited with ${closeSignal ?? String(code)}${
-              outputPath === undefined ? "" : `; see ${outputPath}`
-            }`,
-          ),
-        );
-    };
-    child.stdout?.setEncoding("utf8");
-    child.stdout?.on("data", (chunk: string) => {
-      stdout += chunk;
-    });
-    if (output !== undefined) {
-      child.stdout?.pipe(output, { end: false });
-      child.stderr?.pipe(output, { end: false });
-    }
-    child.once("error", (error) => {
-      if (settled) return;
-      settled = true;
-      if (timeout !== undefined) clearTimeout(timeout);
-      if (abortTimeout !== undefined) clearTimeout(abortTimeout);
-      signal?.removeEventListener("abort", abort);
-      output?.end();
-      reject(signal?.aborted ? abortReason(signal, label) : error);
-    });
-    child.once("exit", finish);
-    timeout = setTimeout(() => {
-      child.kill("SIGTERM");
-      finish(null, "SIGTERM");
-    }, startupTimeoutMs);
-    const abort = (): void => {
-      child.kill("SIGTERM");
-      abortTimeout = setTimeout(
-        () => finish(null, "SIGTERM"),
-        cleanupTimeoutMs,
-      );
-    };
-    signal?.addEventListener("abort", abort, { once: true });
-  });
+  (
+    await runManagedCommand(command, args, environment, label, {
+      ...(outputPath === undefined ? {} : { outputPath }),
+      ...(signal === undefined ? {} : { signal }),
+      stdio: "capture",
+    })
+  ).stdout;
 
 const clearRedisNamespace = async (
   url: string,
   namespace: string,
+  signal: AbortSignal,
 ): Promise<void> => {
   const redis = createClient({ url });
-  await redis.connect();
+  const abort = (): void => {
+    redis.destroy();
+  };
+  if (signal.aborted) throw abortReason(signal, "Redis namespace cleanup");
+  signal.addEventListener("abort", abort, { once: true });
   try {
+    await redis.connect();
     const keys: string[] = [];
     for await (const batch of redis.scanIterator({
       MATCH: `${namespace}:*`,
     })) {
+      if (signal.aborted) throw abortReason(signal, "Redis namespace cleanup");
       keys.push(...batch);
       while (keys.length >= 100) {
+        if (signal.aborted)
+          throw abortReason(signal, "Redis namespace cleanup");
         await Promise.all(
           keys.splice(0, 100).map(async (key) => await redis.del(key)),
         );
@@ -460,6 +650,7 @@ const clearRedisNamespace = async (
       await Promise.all(keys.map(async (key) => await redis.del(key)));
     }
   } finally {
+    signal.removeEventListener("abort", abort);
     redis.destroy();
   }
 };
@@ -522,18 +713,27 @@ const createCellDatabase = async (
 const dropCellDatabase = async (
   adminUrl: string,
   databaseName: string,
+  signal: AbortSignal,
 ): Promise<void> => {
   const client = new Client({ connectionString: adminUrl });
-  await client.connect();
+  const abort = (): void => {
+    void client.end().catch(() => undefined);
+  };
+  if (signal.aborted) throw abortReason(signal, "Database cleanup");
+  signal.addEventListener("abort", abort, { once: true });
   try {
+    await client.connect();
+    if (signal.aborted) throw abortReason(signal, "Database cleanup");
     await client.query(
       "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()",
       [databaseName],
     );
+    if (signal.aborted) throw abortReason(signal, "Database cleanup");
     await client.query(
       `DROP DATABASE IF EXISTS ${quoteIdentifier(databaseName)}`,
     );
   } finally {
+    signal.removeEventListener("abort", abort);
     await client.end();
   }
 };
@@ -576,21 +776,215 @@ const sameProcess = async (
   return processIdentityMatches(expected, actual);
 };
 
+const signalOwnedProcesses = async (
+  started: StartedProcess,
+  signal: NodeJS.Signals,
+): Promise<void> => {
+  if (started.child.pid !== undefined) {
+    for (const pid of await descendantsOf(started.child.pid)) {
+      started.ownedPids.add(pid);
+      const identity = await readProcessIdentity(pid);
+      if (identity !== undefined) started.processIdentities.set(pid, identity);
+    }
+  }
+  for (const pid of [...started.ownedPids].reverse()) {
+    if (!(await sameProcess(pid, started.processIdentities.get(pid)))) continue;
+    try {
+      process.kill(pid, signal);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error;
+    }
+  }
+};
+
+type ChildExitWait = "aborted" | "closed" | "timed-out";
+
 const waitForExit = async (
   child: ChildProcess,
   timeoutMs: number,
-): Promise<boolean> =>
+  signal?: AbortSignal,
+): Promise<ChildExitWait> =>
   await new Promise((resolveExit) => {
-    if (child.exitCode !== null || child.signalCode !== null) {
-      resolveExit(true);
+    if (childHasExited(child)) {
+      resolveExit("closed");
       return;
     }
-    const timeout = setTimeout(() => resolveExit(false), timeoutMs);
-    child.once("close", () => {
+    let settled = false;
+    const finish = (result: ChildExitWait): void => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timeout);
-      resolveExit(true);
-    });
+      child.removeListener("close", close);
+      signal?.removeEventListener("abort", abort);
+      resolveExit(result);
+    };
+    const close = (): void => finish("closed");
+    const abort = (): void => finish("aborted");
+    const timeout = setTimeout(() => finish("timed-out"), timeoutMs);
+    child.once("close", close);
+    if (signal?.aborted) abort();
+    else signal?.addEventListener("abort", abort, { once: true });
   });
+
+const waitForPromise = async (
+  promise: Promise<void>,
+  timeoutMs: number,
+): Promise<boolean> =>
+  await new Promise<boolean>((resolveWait) => {
+    let settled = false;
+    const finish = (result: boolean): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolveWait(result);
+    };
+    const timeout = setTimeout(() => finish(false), timeoutMs);
+    void promise.then(
+      () => finish(true),
+      () => finish(true),
+    );
+  });
+
+export type StopStartedProcessOptions = {
+  callbackSettlementTimeoutMs?: number;
+  callbackTimeoutMs?: number;
+  drainTimeoutMs?: number;
+  forceExitTimeoutMs?: number;
+  forceStop: (signal: AbortSignal) => Promise<void>;
+  gracefulStop: (signal: AbortSignal) => Promise<void>;
+  gracefulTimeoutMs?: number;
+  signal: AbortSignal;
+};
+
+const runBoundedStopCallback = async (
+  label: string,
+  callback: (signal: AbortSignal) => Promise<void>,
+  timeoutMs: number,
+  settlementTimeoutMs: number,
+  parentSignal?: AbortSignal,
+): Promise<Error | undefined> => {
+  const controller = new AbortController();
+  const signal =
+    parentSignal === undefined
+      ? controller.signal
+      : AbortSignal.any([controller.signal, parentSignal]);
+  const operation = (async () => {
+    try {
+      await callback(signal);
+      return { status: "fulfilled" } as const;
+    } catch (error) {
+      return { error, status: "rejected" } as const;
+    }
+  })();
+  let softTimeout: NodeJS.Timeout | undefined;
+  let resolveSoftTimeout: (() => void) | undefined;
+  const softDeadline = new Promise<"soft-timeout">((resolveTimeout) => {
+    resolveSoftTimeout = () => resolveTimeout("soft-timeout");
+    softTimeout = setTimeout(resolveSoftTimeout, timeoutMs);
+  });
+  const abort = (): void => resolveSoftTimeout?.();
+  if (parentSignal?.aborted) abort();
+  else parentSignal?.addEventListener("abort", abort, { once: true });
+  const softOutcome = await Promise.race([operation, softDeadline]);
+  if (softTimeout !== undefined) clearTimeout(softTimeout);
+  parentSignal?.removeEventListener("abort", abort);
+  if (softOutcome !== "soft-timeout") {
+    return softOutcome.status === "rejected"
+      ? new Error(`${label} failed: ${toError(softOutcome.error).message}`, {
+          cause: softOutcome.error,
+        })
+      : undefined;
+  }
+  const softFailure = new Error(
+    parentSignal?.aborted
+      ? `${label} was aborted`
+      : `${label} timed out after ${timeoutMs}ms`,
+  );
+  controller.abort(softFailure);
+  let hardTimeout: NodeJS.Timeout | undefined;
+  const hardDeadline = new Promise<"hard-timeout">((resolveTimeout) => {
+    hardTimeout = setTimeout(
+      () => resolveTimeout("hard-timeout"),
+      settlementTimeoutMs,
+    );
+  });
+  const hardOutcome = await Promise.race([operation, hardDeadline]);
+  if (hardTimeout !== undefined) clearTimeout(hardTimeout);
+  if (hardOutcome === "hard-timeout") {
+    return new Error(
+      `${label} did not settle within ${settlementTimeoutMs}ms after cancellation`,
+      { cause: softFailure },
+    );
+  }
+  return new Error(`${label} exceeded its ${timeoutMs}ms deadline`, {
+    cause: hardOutcome.status === "rejected" ? hardOutcome.error : softFailure,
+  });
+};
+
+export const stopStartedProcess = async (
+  started: StartedProcess,
+  options: StopStartedProcessOptions,
+): Promise<void> => {
+  let gracefulFailure: unknown;
+  let forceFailure: unknown;
+  let mustForce = options.signal.aborted;
+  if (!mustForce) {
+    gracefulFailure = await runBoundedStopCallback(
+      `${redactDiagnosticText(started.label)} graceful stop`,
+      options.gracefulStop,
+      options.callbackTimeoutMs ?? cleanupTimeoutMs,
+      options.callbackSettlementTimeoutMs ?? cleanupSettlementTimeoutMs,
+      options.signal,
+    );
+    mustForce = gracefulFailure !== undefined || options.signal.aborted;
+  }
+  if (!mustForce) {
+    const result = await waitForExit(
+      started.child,
+      options.gracefulTimeoutMs ?? cleanupTimeoutMs,
+      options.signal,
+    );
+    mustForce = result !== "closed";
+  }
+  if (mustForce) {
+    forceFailure = await runBoundedStopCallback(
+      `${redactDiagnosticText(started.label)} force stop`,
+      options.forceStop,
+      options.callbackTimeoutMs ?? cleanupTimeoutMs,
+      options.callbackSettlementTimeoutMs ?? cleanupSettlementTimeoutMs,
+    );
+    const result = await waitForExit(
+      started.child,
+      options.forceExitTimeoutMs ?? forcedProcessExitTimeoutMs,
+    );
+    if (result !== "closed") {
+      throw new Error(`Could not force-stop ${started.label}`);
+    }
+  }
+  if (started.drainLogs !== undefined) {
+    const drain = started.drainLogs();
+    if (
+      !(await waitForPromise(
+        drain,
+        options.drainTimeoutMs ?? logDrainTimeoutMs,
+      ))
+    ) {
+      started.forceDrainLogs?.();
+      if (
+        !(await waitForPromise(
+          drain,
+          options.forceExitTimeoutMs ?? forcedProcessExitTimeoutMs,
+        ))
+      ) {
+        throw new Error(`Could not drain logs for ${started.label}`);
+      }
+    }
+    await drain;
+  }
+  if (forceFailure !== undefined) throw forceFailure;
+  if (gracefulFailure !== undefined) throw gracefulFailure;
+  if (options.signal.aborted) throw abortReason(options.signal, started.label);
+};
 
 const descendantsOf = async (pid: number): Promise<Set<number>> => {
   const { readFile } = await import("node:fs/promises");
@@ -748,9 +1142,7 @@ const createServiceBootstrapPlan = (
     version: "1",
   });
 
-const createLoopbackProxy = async (
-  runtime: CellRuntime,
-): Promise<() => Promise<void>> => {
+const createLoopbackProxy = async (runtime: CellRuntime): Promise<Disposer> => {
   const sockets = new Set<Socket>();
   const server: Server = createServer((client) => {
     sockets.add(client);
@@ -790,10 +1182,20 @@ const createLoopbackProxy = async (
       resolveListen();
     });
   });
-  return async () => {
+  return async (signal) => {
     for (const socket of sockets) socket.destroy();
     await new Promise<void>((resolveClose, reject) => {
+      const abort = (): void => {
+        server.close();
+        reject(abortReason(signal, "Cell loopback proxy cleanup"));
+      };
+      if (signal.aborted) {
+        abort();
+        return;
+      }
+      signal.addEventListener("abort", abort, { once: true });
       server.close((error) => {
+        signal.removeEventListener("abort", abort);
         if (
           error &&
           (error as NodeJS.ErrnoException).code !== "ERR_SERVER_NOT_RUNNING"
@@ -879,6 +1281,17 @@ export const developmentRuntimeEnvironment = (
   CAT_E2E_VITE_CACHE_DIR: join(runtime.probeWorkspace.cacheDirectory, attempt),
 });
 
+export const playwrightChildEnvironment = (
+  environment: NodeJS.ProcessEnv,
+): NodeJS.ProcessEnv => {
+  const childEnvironment = { ...environment };
+  if ("NO_COLOR" in childEnvironment) {
+    delete childEnvironment.NO_COLOR;
+    childEnvironment.FORCE_COLOR = "0";
+  }
+  return childEnvironment;
+};
+
 export class DevTargetAdapter implements TargetAdapter {
   private readonly run: CellCommandRunner;
   private readonly signal: AbortSignal;
@@ -962,10 +1375,9 @@ export class DevTargetAdapter implements TargetAdapter {
       ownedPids: new Set(child.pid === undefined ? [] : [child.pid]),
       processIdentities: new Map(),
     };
-    started.drainLogs = attachServerDiagnostics(
-      child,
-      log,
-      started.diagnostics,
+    Object.assign(
+      started,
+      attachServerDiagnostics(child, log, started.diagnostics),
     );
     if (child.pid !== undefined) {
       void readProcessIdentity(child.pid).then((identity) => {
@@ -1006,48 +1418,26 @@ export class DevTargetAdapter implements TargetAdapter {
     assertReadiness(report, "lite");
   }
 
-  public async stop(started: StartedProcess): Promise<void> {
-    if (started.child.pid !== undefined) {
-      for (const pid of await descendantsOf(started.child.pid)) {
-        started.ownedPids.add(pid);
-        const identity = await readProcessIdentity(pid);
-        if (identity !== undefined)
-          started.processIdentities.set(pid, identity);
-      }
-    }
-    const pids = [...started.ownedPids].reverse();
-    for (const pid of pids) {
-      if (await sameProcess(pid, started.processIdentities.get(pid))) {
-        process.kill(pid, "SIGTERM");
-      }
-    }
-    await waitForExit(started.child, cleanupTimeoutMs);
-    await started.drainLogs?.();
-    const survivors = (
-      await Promise.all(
-        pids.map(async (pid) =>
-          (await sameProcess(pid, started.processIdentities.get(pid)))
-            ? pid
-            : undefined,
-        ),
-      )
-    ).filter((pid): pid is number => pid !== undefined);
-    for (const pid of survivors) {
-      process.kill(pid, "SIGKILL");
-    }
+  public async stop(
+    started: StartedProcess,
+    signal?: AbortSignal,
+  ): Promise<void> {
+    const cleanupSignal = signal ?? this.signal;
+    await stopStartedProcess(started, {
+      forceStop: async () => await signalOwnedProcesses(started, "SIGKILL"),
+      gracefulStop: async () => await signalOwnedProcesses(started, "SIGTERM"),
+      signal: cleanupSignal,
+    });
+    await signalOwnedProcesses(started, "SIGKILL");
     await new Promise((resolveWait) => setTimeout(resolveWait, 50));
-    if (
-      (
-        await Promise.all(
-          pids.map(
-            async (pid) =>
-              await sameProcess(pid, started.processIdentities.get(pid)),
-          ),
-        )
-      ).some(Boolean)
-    ) {
+    const survivors = await Promise.all(
+      [...started.ownedPids].map(
+        async (pid) =>
+          await sameProcess(pid, started.processIdentities.get(pid)),
+      ),
+    );
+    if (survivors.some(Boolean))
       throw new Error(`Could not stop ${started.label}`);
-    }
   }
 }
 
@@ -1078,6 +1468,27 @@ type OneShotPreparerAttestation = {
   imageId: string;
   inspectedImage: string;
   releaseIdentity: string;
+};
+
+type OneShotPreparerAttestationInput = Omit<
+  OneShotPreparerAttestation,
+  "inspectedImage"
+>;
+
+export const persistOneShotPreparerAttestation = async (
+  path: string,
+  inspection: DockerContainerInspection,
+  input: OneShotPreparerAttestationInput,
+): Promise<OneShotPreparerAttestation> => {
+  if (typeof inspection.Image !== "string") {
+    throw new Error("Docker inspection does not expose an immutable image ID");
+  }
+  const attestation = {
+    ...input,
+    inspectedImage: inspection.Image,
+  } satisfies OneShotPreparerAttestation;
+  await writeFile(path, JSON.stringify(attestation, null, 2));
+  return attestation;
 };
 
 const containerServiceUrl = (
@@ -1215,11 +1626,15 @@ class ReleaseTargetAdapter implements TargetAdapter {
   private readonly browser: ExecutionBrowser;
   private readonly imageId: string;
   private readonly preparerImageId: string;
+  private artifactDirectory: string | undefined;
   private readonly plans = new Map<string, string>();
   private readonly containers = new Map<string, () => void>();
   private readonly preparerAttestations: OneShotPreparerAttestation[] = [];
   private preparerReleaseIdentity: string | undefined;
-  private readonly registerDisposer: (disposer: Disposer) => () => void;
+  private readonly registerDisposer: (
+    label: string,
+    disposer: Disposer,
+  ) => () => void;
   private readonly signal: AbortSignal;
   private readonly target: "runtime" | "standalone";
 
@@ -1228,7 +1643,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
     imageId: string,
     preparerImageId: string,
     browser: ExecutionBrowser,
-    registerDisposer: (disposer: Disposer) => () => void,
+    registerDisposer: (label: string, disposer: Disposer) => () => void,
     signal: AbortSignal,
   ) {
     this.target = target;
@@ -1302,10 +1717,9 @@ class ReleaseTargetAdapter implements TargetAdapter {
       ownedPids: new Set(child.pid === undefined ? [] : [child.pid]),
       processIdentities: new Map(),
     };
-    started.drainLogs = attachServerDiagnostics(
-      child,
-      log,
-      started.diagnostics,
+    Object.assign(
+      started,
+      attachServerDiagnostics(child, log, started.diagnostics),
     );
     if (child.pid !== undefined) {
       void readProcessIdentity(child.pid).then((identity) => {
@@ -1434,20 +1848,30 @@ class ReleaseTargetAdapter implements TargetAdapter {
     assertReadiness(report, "production");
   }
 
-  public async stop(started: StartedProcess): Promise<void> {
+  public async stop(
+    started: StartedProcess,
+    signal?: AbortSignal,
+  ): Promise<void> {
     const containerName = started.containerName;
     if (containerName === undefined) {
       throw new Error(
         `Could not determine container identity for ${started.label}`,
       );
     }
-    await this.removeContainer(
-      containerName,
-      started.environment ?? process.env,
-    );
-    if (!(await waitForExit(started.child, cleanupTimeoutMs)))
-      throw new Error(`Timed out stopping ${started.label}`);
-    await started.drainLogs?.();
+    const environment = started.environment ?? process.env;
+    const cleanupSignal = signal ?? this.signal;
+    await stopStartedProcess(started, {
+      forceStop: async (forceSignal) => {
+        try {
+          await this.removeContainer(containerName, environment, forceSignal);
+        } finally {
+          if (!childHasExited(started.child)) started.child.kill("SIGKILL");
+        }
+      },
+      gracefulStop: async (gracefulSignal) =>
+        await this.removeContainer(containerName, environment, gracefulSignal),
+      signal: cleanupSignal,
+    });
   }
 
   private containerName(runtime: CellRuntime, attempt: string): string {
@@ -1542,6 +1966,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
     publish: boolean,
     imageId = this.imageId,
   ): Promise<void> {
+    this.artifactDirectory ??= runtime.artifactDirectory;
     const args = this.containerArguments(runtime, containerName, plan, publish);
     await runCommandCapture(
       "docker",
@@ -1552,8 +1977,9 @@ class ReleaseTargetAdapter implements TargetAdapter {
       this.signal,
     );
     const unregister = this.registerDisposer(
-      async () =>
-        await this.removeContainer(containerName, runtime.environment),
+      `release container ${containerName}`,
+      async (signal) =>
+        await this.removeContainer(containerName, runtime.environment, signal),
     );
     this.containers.set(containerName, unregister);
   }
@@ -1561,14 +1987,17 @@ class ReleaseTargetAdapter implements TargetAdapter {
   private async removeContainer(
     containerName: string,
     environment: NodeJS.ProcessEnv,
+    signal: AbortSignal = this.signal,
   ): Promise<void> {
     await runCommand(
       "docker",
       ["rm", "-f", "-v", containerName],
       environment,
       `remove ${containerName}`,
-      undefined,
-      AbortSignal.timeout(cleanupTimeoutMs),
+      this.artifactDirectory === undefined
+        ? undefined
+        : join(this.artifactDirectory, `${containerName}.remove.log`),
+      AbortSignal.any([signal, AbortSignal.timeout(cleanupTimeoutMs)]),
     );
     this.containers.get(containerName)?.();
     this.containers.delete(containerName);
@@ -1696,7 +2125,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
         ["container", "inspect", "--format", "{{json .}}", containerName],
         runtime.environment,
         `inspect ${containerName}`,
-        join(runtime.artifactDirectory, `${containerName}.inspect.json`),
+        undefined,
         this.signal,
       ),
       containerName,
@@ -1720,18 +2149,17 @@ class ReleaseTargetAdapter implements TargetAdapter {
       );
     }
     this.preparerReleaseIdentity = releaseIdentity;
-    const attestation = {
-      command,
-      containerName,
-      imageId: this.preparerImageId,
-      inspectedImage: inspection.Image,
-      releaseIdentity,
-    } satisfies OneShotPreparerAttestation;
-    this.preparerAttestations.push(attestation);
-    await writeFile(
+    const attestation = await persistOneShotPreparerAttestation(
       join(runtime.artifactDirectory, `${containerName}.attestation.json`),
-      JSON.stringify(attestation, null, 2),
+      inspection,
+      {
+        command,
+        containerName,
+        imageId: this.preparerImageId,
+        releaseIdentity,
+      },
     );
+    this.preparerAttestations.push(attestation);
   }
 }
 
@@ -1739,7 +2167,7 @@ class StandaloneTargetAdapter extends ReleaseTargetAdapter {
   public constructor(
     imageId: string,
     browser: ExecutionBrowser,
-    registerDisposer: (disposer: Disposer) => () => void,
+    registerDisposer: (label: string, disposer: Disposer) => () => void,
     signal: AbortSignal,
   ) {
     super("standalone", imageId, imageId, browser, registerDisposer, signal);
@@ -1751,7 +2179,7 @@ class RuntimeTargetAdapter extends ReleaseTargetAdapter {
     runtimeImageId: string,
     preparerImageId: string,
     browser: ExecutionBrowser,
-    registerDisposer: (disposer: Disposer) => () => void,
+    registerDisposer: (label: string, disposer: Disposer) => () => void,
     signal: AbortSignal,
   ) {
     super(
@@ -2054,7 +2482,7 @@ const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
 
 const adapterFor = (
   input: ExecutionCellInput,
-  registerDisposer: (disposer: Disposer) => () => void,
+  registerDisposer: (label: string, disposer: Disposer) => () => void,
   signal: AbortSignal,
 ): TargetAdapter => {
   if (input.target === "dev") return new DevTargetAdapter(signal);
@@ -2080,58 +2508,97 @@ export class ExecutionCell {
   private readonly dependencies: ExecutionCellDependencies;
   private readonly disposers: RegisteredDisposer[] = [];
   private readonly input: ExecutionCellInput;
+  private readonly reportFatalFailure: (error: Error) => void;
   private readonly signal: AbortSignal;
 
   public constructor(
     input: ExecutionCellInput,
     dependencies: ExecutionCellDependencies = {},
     signal: AbortSignal = new AbortController().signal,
+    reportFatalFailure: (error: Error) => void = () => undefined,
   ) {
     this.input = input;
     this.dependencies = dependencies;
     this.signal = signal;
+    this.reportFatalFailure = reportFatalFailure;
   }
 
   public async run(): Promise<void> {
+    const startedAt = performance.now();
+    const write =
+      this.dependencies.write ??
+      ((message: string): void => {
+        process.stdout.write(`${message}\n`);
+      });
+    const writeError =
+      this.dependencies.writeError ??
+      ((message: string): void => {
+        process.stderr.write(`${message}\n`);
+      });
+    const identity = cellIdentity(this.input);
+    write(
+      `e2e cell ${identity} image=${cellImageIdentity(this.input)} status=started`,
+    );
     let primaryFailure: unknown;
+    let primaryFailurePhase: ExecutionCellPhase = "prepare";
+    const failurePhases = new Map<Error, ExecutionCellPhase>();
+    let runtime: CellRuntime | undefined;
     try {
       this.throwIfAborted();
-      const runtime =
+      runtime =
         (await this.dependencies.createRuntime?.(this.register.bind(this))) ??
         (await this.createRuntime());
+      this.artifactDirectory ??= runtime.artifactDirectory;
       this.throwIfAborted();
       const target =
         this.dependencies.createTarget?.(this.input) ??
         adapterFor(this.input, this.register.bind(this), this.signal);
+      primaryFailurePhase = "prepare";
       await target.prepare(runtime);
       this.throwIfAborted();
+      primaryFailurePhase = "bootstrap";
       await target.bootstrap(runtime);
       this.throwIfAborted();
+      primaryFailurePhase = "external-service";
       await target.applyExternalServicePlan(runtime);
       this.throwIfAborted();
+      primaryFailurePhase = "hydrate";
       await (this.dependencies.hydrateFixtures ?? hydrateFixtures)(runtime);
       this.throwIfAborted();
+      primaryFailurePhase = "start";
       const validation = await target.start(runtime, "validation");
-      const unregisterValidation = this.register(() => target.stop(validation));
+      const unregisterValidation = this.register(
+        "validation application process",
+        async (signal) => await target.stop(validation, signal),
+      );
       if (this.input.target !== "dev") {
-        this.register(await createLoopbackProxy(runtime));
+        this.register(
+          "cell loopback proxy",
+          await createLoopbackProxy(runtime),
+        );
       }
+      primaryFailurePhase = "attest";
       await target.attest(runtime, validation);
       this.throwIfAborted();
       let playwrightFailure: unknown;
       try {
+        primaryFailurePhase = "playwright";
         await this.runPlaywright(runtime.environment);
       } catch (error) {
         playwrightFailure = error;
+        failurePhases.set(toError(error), "playwright");
       }
 
       let stopFailure: unknown;
       try {
+        primaryFailurePhase = "stop";
         await target.stop(validation);
         unregisterValidation();
       } catch (error) {
         stopFailure = error;
+        failurePhases.set(toError(error), "stop");
       }
+      primaryFailurePhase = "server-diagnostics";
       const serverFailure =
         validation.diagnostics.length === 0
           ? undefined
@@ -2139,14 +2606,34 @@ export class ExecutionCell {
               validation.diagnostics,
               "Server emitted structured error diagnostics during browser validation",
             );
+      if (serverFailure !== undefined) {
+        failurePhases.set(serverFailure, "server-diagnostics");
+        for (const diagnostic of validation.diagnostics) {
+          failurePhases.set(diagnostic, "server-diagnostics");
+        }
+      }
       const validationFailures = [playwrightFailure, stopFailure, serverFailure]
         .filter(
           (failure): failure is NonNullable<typeof failure> =>
             failure !== undefined,
         )
         .map(toError);
-      if (validationFailures.length === 1) throw validationFailures[0];
+      if (validationFailures.length === 1) {
+        primaryFailurePhase =
+          playwrightFailure !== undefined
+            ? "playwright"
+            : stopFailure !== undefined
+              ? "stop"
+              : "server-diagnostics";
+        throw validationFailures[0];
+      }
       if (validationFailures.length > 1) {
+        primaryFailurePhase =
+          playwrightFailure !== undefined
+            ? "playwright"
+            : stopFailure !== undefined
+              ? "stop"
+              : "server-diagnostics";
         throw new AggregateError(
           validationFailures,
           "Playwright validation, application shutdown, or server diagnostics failed",
@@ -2154,11 +2641,61 @@ export class ExecutionCell {
       }
     } catch (error) {
       primaryFailure = error;
+      failurePhases.set(toError(error), primaryFailurePhase);
     }
-    const cleanupFailures = await this.cleanup();
+    const cleanupFailures = await this.cleanup(writeError);
+    const outputDirectory = runtime?.environment.CAT_E2E_OUTPUT_DIR;
+    if (outputDirectory !== undefined) {
+      try {
+        await rm(join(outputDirectory, ".auth"), {
+          force: true,
+          recursive: true,
+        });
+      } catch (error) {
+        const failure = toError(error);
+        cleanupFailures.push(failure);
+        failurePhases.set(failure, "artifact-cleanup");
+      }
+    }
+    for (const failure of cleanupFailures) {
+      if (!failurePhases.has(failure)) failurePhases.set(failure, "cleanup");
+    }
     if (primaryFailure === undefined && cleanupFailures.length === 0) {
-      await this.removeArtifacts();
+      try {
+        await this.removeArtifacts();
+        write(
+          `e2e cell ${identity} result=passed duration=${cellDuration(startedAt)} cleanup=passed`,
+        );
+        return;
+      } catch (error) {
+        const failure = toError(error);
+        cleanupFailures.push(failure);
+        failurePhases.set(failure, "artifact-cleanup");
+      }
     }
+    const cleanup = cleanupFailures.length === 0 ? "passed" : "failed";
+    const artifact = this.artifactDirectory ?? "<not-created>";
+    write(
+      `e2e cell ${identity} result=failed duration=${cellDuration(startedAt)} cleanup=${cleanup}`,
+    );
+    const cleanupFailureDetails = cleanupFailures
+      .map((failure) => formatFailureTree(failure, failurePhases, "cleanup"))
+      .join("; ");
+    writeError(
+      `e2e cell ${identity} result=failed artifact=${artifact} cleanup=${cleanup} failure=${
+        primaryFailure === undefined
+          ? cleanupFailureDetails
+          : formatFailureTree(
+              primaryFailure,
+              failurePhases,
+              primaryFailurePhase,
+            )
+      }${
+        primaryFailure !== undefined && cleanupFailureDetails !== ""
+          ? ` cleanup-failure=${cleanupFailureDetails}`
+          : ""
+      }`,
+    );
     if (primaryFailure !== undefined && cleanupFailures.length > 0) {
       throw new AggregateError(
         [primaryFailure, ...cleanupFailures],
@@ -2185,7 +2722,10 @@ export class ExecutionCell {
     );
     this.artifactDirectory = artifactDirectory;
     const probeWorkspace = await createDevProbeWorkspace(root, cellId);
-    this.register(async () => await removeDevProbeWorkspace(probeWorkspace));
+    this.register(
+      "development probe workspace",
+      async () => await removeDevProbeWorkspace(probeWorkspace),
+    );
     const storageDirectory = join(artifactDirectory, "storage");
     await mkdir(storageDirectory, { recursive: true });
     await chmod(storageDirectory, 0o777);
@@ -2195,18 +2735,22 @@ export class ExecutionCell {
       this.input.lease.coordinates.databaseUrl,
     );
     this.register(
-      async () =>
+      "cell database",
+      async (signal) =>
         await dropCellDatabase(
           this.input.lease.coordinates.databaseUrl,
           database.databaseName,
+          signal,
         ),
     );
     const redisNamespace = `cat-e2e:${this.input.target}:${this.input.browser}:${cellId}`;
     this.register(
-      async () =>
+      "cell Redis namespace",
+      async (signal) =>
         await clearRedisNamespace(
           this.input.lease.coordinates.redisUrl,
           redisNamespace,
+          signal,
         ),
     );
     const storageVolumeName =
@@ -2217,18 +2761,19 @@ export class ExecutionCell {
         ["volume", "create", storageVolumeName],
         process.env,
         `create ${storageVolumeName}`,
-        undefined,
+        join(artifactDirectory, `${storageVolumeName}.create.log`),
         this.signal,
       );
       this.register(
-        async () =>
+        "cell storage volume",
+        async (signal) =>
           await runCommand(
             "docker",
             ["volume", "rm", storageVolumeName],
             process.env,
             `remove ${storageVolumeName}`,
-            undefined,
-            AbortSignal.timeout(cleanupTimeoutMs),
+            join(artifactDirectory, `${storageVolumeName}.remove.log`),
+            AbortSignal.any([signal, AbortSignal.timeout(cleanupTimeoutMs)]),
           ),
       );
     }
@@ -2248,6 +2793,7 @@ export class ExecutionCell {
       CAT_E2E_BASE_URL: baseUrl,
       CAT_E2E_HMR_PROBE_DIRECTORY: probeWorkspace.directory,
       CAT_E2E_OUTPUT_DIR: outputDirectory,
+      CAT_E2E_REPORT_DIR: join(artifactDirectory, "playwright-report"),
       CAT_E2E_REFS_PATH: join(artifactDirectory, "e2e-refs.json"),
       CAT_QUEUE_BACKEND: "memory",
       CAT_REDIS_NAMESPACE: redisNamespace,
@@ -2299,7 +2845,7 @@ export class ExecutionCell {
         "--project",
         `${this.input.target}-${this.input.browser}`,
       ],
-      environment,
+      playwrightChildEnvironment(environment),
       `${this.input.target}-${this.input.browser} Playwright`,
       undefined,
       this.signal,
@@ -2307,8 +2853,12 @@ export class ExecutionCell {
     );
   }
 
-  private register(disposer: Disposer): () => void {
-    const registered: RegisteredDisposer = { active: true, dispose: disposer };
+  private register(label: string, disposer: Disposer): () => void {
+    const registered: RegisteredDisposer = {
+      active: true,
+      dispose: disposer,
+      label,
+    };
     this.disposers.push(registered);
     return () => {
       registered.active = false;
@@ -2323,28 +2873,76 @@ export class ExecutionCell {
 
   private async removeArtifacts(): Promise<void> {
     if (this.artifactDirectory === undefined) return;
+    if (this.dependencies.removeArtifacts !== undefined) {
+      await this.dependencies.removeArtifacts(this.artifactDirectory);
+      return;
+    }
     await rm(this.artifactDirectory, { force: true, recursive: true });
   }
 
-  private async cleanup(): Promise<Error[]> {
+  private async cleanup(
+    writeError: (message: string) => void,
+  ): Promise<Error[]> {
     const failures: Error[] = [];
     for (const disposer of this.disposers.reverse()) {
       if (!disposer.active) continue;
-      let timeout: NodeJS.Timeout | undefined;
-      try {
-        await Promise.race([
-          disposer.dispose(),
-          new Promise<never>((_, reject) => {
-            timeout = setTimeout(
-              () => reject(new Error("Execution cell cleanup timed out")),
-              cleanupTimeoutMs,
-            );
-          }),
-        ]);
-      } catch (error) {
-        failures.push(toError(error));
-      } finally {
-        if (timeout !== undefined) clearTimeout(timeout);
+      const controller = new AbortController();
+      const startedAt = performance.now();
+      const label = redactDiagnosticText(disposer.label);
+      let softFailure: Error | undefined;
+      let hardTimeout: NodeJS.Timeout | undefined;
+      let resolveHardTimeout: (() => void) | undefined;
+      const hardDeadline = new Promise<"hard-timeout">((resolveHard) => {
+        resolveHardTimeout = () => resolveHard("hard-timeout");
+      });
+      const softTimeout = setTimeout(() => {
+        softFailure = new Error(
+          `Execution cell cleanup timed out label=${label} duration=${cellDuration(startedAt)}`,
+        );
+        controller.abort(softFailure);
+        writeError(
+          `e2e cleanup label=${label} status=timed-out duration=${cellDuration(startedAt)} waiting=resource-settlement`,
+        );
+        hardTimeout = setTimeout(
+          () => resolveHardTimeout?.(),
+          this.dependencies.cleanupSettlementTimeoutMs ??
+            cleanupSettlementTimeoutMs,
+        );
+      }, this.dependencies.cleanupTimeoutMs ?? cleanupTimeoutMs);
+      const disposal = Promise.resolve()
+        .then(async () => await disposer.dispose(controller.signal))
+        .then(
+          () => ({ status: "fulfilled" }) as const,
+          (error: unknown) => ({ error, status: "rejected" }) as const,
+        );
+      const outcome = await Promise.race([disposal, hardDeadline]);
+      clearTimeout(softTimeout);
+      if (hardTimeout !== undefined) clearTimeout(hardTimeout);
+      if (outcome === "hard-timeout") {
+        const hardFailure = new Error(
+          `Execution cell cleanup hard timeout label=${label} duration=${cellDuration(startedAt)}`,
+        );
+        writeError(
+          `e2e cleanup label=${label} status=hard-timeout duration=${cellDuration(startedAt)}`,
+        );
+        this.reportFatalFailure(hardFailure);
+        failures.push(hardFailure);
+        // The transformed promise is rejection-handled. The matrix fails
+        // closed, so no later cell starts after this last-resort breach.
+        continue;
+      }
+      if (softFailure !== undefined) {
+        failures.push(softFailure);
+        continue;
+      }
+      if (outcome.status === "rejected") {
+        const failure = toError(outcome.error);
+        failures.push(
+          new Error(
+            `Execution cell cleanup failed label=${label} duration=${cellDuration(startedAt)}: ${failure.message}`,
+            { cause: failure },
+          ),
+        );
       }
     }
     return failures;
@@ -2353,7 +2951,10 @@ export class ExecutionCell {
 
 export type ScheduleOptions = {
   concurrency?: 1 | 2;
-  createCell?: (input: ExecutionCellInput) => {
+  createCell?: (
+    input: ExecutionCellInput,
+    reportFatalFailure: (error: Error) => void,
+  ) => {
     run: (signal: AbortSignal) => Promise<void>;
   };
   retryFailedCells?: boolean;
@@ -2370,8 +2971,6 @@ export const runExecutionCells = async (
   options: ScheduleOptions = {},
 ): Promise<ExecutionCellInput[]> => {
   const signal = options.signal ?? new AbortController().signal;
-  const createCell =
-    options.createCell ?? ((input) => new ExecutionCell(input, {}, signal));
   const concurrency = options.concurrency ?? 2;
   if (concurrency !== 1 && concurrency !== 2) {
     throw new Error("Execution cell concurrency must be 1 or 2");
@@ -2383,18 +2982,22 @@ export const runExecutionCells = async (
   const stopScheduling = (): void => {
     stopped = true;
   };
+  const createCell =
+    options.createCell ??
+    ((input: ExecutionCellInput, reportFatalFailure: (error: Error) => void) =>
+      new ExecutionCell(input, {}, signal, reportFatalFailure));
   signal.addEventListener("abort", stopScheduling, { once: true });
 
   const runCell = async (input: ExecutionCellInput): Promise<void> => {
     try {
-      await createCell(input).run(signal);
+      await createCell(input, stopScheduling).run(signal);
     } catch (firstFailure) {
-      if (signal.aborted) throw firstFailure;
       if (!options.retryFailedCells) throw firstFailure;
+      if (signal.aborted || stopped) throw firstFailure;
       try {
         // Creating a new ExecutionCell gives the retry fresh database, storage,
         // port, process, and artifact ownership rather than reusing failed state.
-        await createCell(input).run(signal);
+        await createCell(input, stopScheduling).run(signal);
       } catch (retryFailure) {
         throw new AggregateError(
           [firstFailure, retryFailure],

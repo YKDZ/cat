@@ -1,12 +1,15 @@
-import { readFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { resolve } from "node:path";
+import { delimiter, join, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 import {
   assertRuntimeImagePair,
   cellsForSelection,
+  formatE2EDiagnostic,
   parseE2ECommand,
   parseE2ESelection,
   writeE2eAttestation,
@@ -17,7 +20,87 @@ const lease = {} as Parameters<typeof cellsForSelection>[1];
 const standaloneImageId = `sha256:${"a".repeat(64)}`;
 const runtimeImageId = `sha256:${"b".repeat(64)}`;
 
+const runDirectE2E = async (
+  env: NodeJS.ProcessEnv,
+): Promise<{ code: number | null; stderr: string; stdout: string }> => {
+  const child = spawn(process.execPath, ["test-e2e.ts", "--target", "dev"], {
+    cwd: import.meta.dirname,
+    env,
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let stdout = "";
+  let stderr = "";
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", (chunk: string) => {
+    stdout += chunk;
+  });
+  child.stderr.on("data", (chunk: string) => {
+    stderr += chunk;
+  });
+  const [code] = await once(child, "close");
+  return { code: code as number | null, stderr, stdout };
+};
+
+const serializedLease = (redisUrl: string): string =>
+  JSON.stringify({
+    coordinates: {
+      databaseUrl: "postgresql://postgres:postgres@127.0.0.1:5432/cat",
+      redisUrl,
+      spacyUrl: "http://127.0.0.1:8000",
+    },
+    ownership: { projectName: "cat-e2e-redaction", token: "lease-token" },
+    version: 1,
+  });
+
 describe("release E2E selection", () => {
+  it("redacts credentials from the direct-command diagnostic without hiding the safe stack", () => {
+    const error = new Error(
+      "request failed for https://operator:password@example.test/auth?token=secret-token",
+    );
+    error.stack = `Error: ${error.message}\n    at safeFrame (/app/test-e2e.ts:1:1)\n    sessionId=session-secret csrfToken=csrf-secret`;
+
+    const diagnostic = formatE2EDiagnostic(error);
+
+    expect(diagnostic).toContain("Error: request failed");
+    expect(diagnostic).toContain("at safeFrame (/app/test-e2e.ts:1:1)");
+    expect(diagnostic).toContain("https://[REDACTED]@example.test/auth");
+    expect(diagnostic).toContain("token=[REDACTED]");
+    expect(diagnostic).toContain("sessionId=[REDACTED]");
+    expect(diagnostic).toContain("csrfToken=[REDACTED]");
+    expect(diagnostic).not.toContain("operator");
+    expect(diagnostic).not.toContain("password");
+    expect(diagnostic).not.toContain("secret-token");
+    expect(diagnostic).not.toContain("session-secret");
+    expect(diagnostic).not.toContain("csrf-secret");
+  });
+
+  it("redacts a password-only Redis URL from a direct CLI child failure", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-cli-redaction-"));
+    const docker = join(directory, "docker");
+    const redisUrl = "redis://:redis-password@127.0.0.1:6379";
+    await writeFile(
+      docker,
+      `#!/usr/bin/env node\nprocess.stderr.write('Docker rejected ${redisUrl}\\n');\nprocess.exit(1);\n`,
+    );
+    await chmod(docker, 0o755);
+
+    try {
+      const result = await runDirectE2E({
+        ...process.env,
+        CAT_TEST_SERVICE_LEASE: serializedLease(redisUrl),
+        PATH: `${directory}${delimiter}${process.env.PATH ?? ""}`,
+      });
+
+      expect(result.code).toBe(1);
+      expect(result.stdout).not.toContain("redis-password");
+      expect(result.stderr).toContain("redis://[REDACTED]@127.0.0.1:6379");
+      expect(result.stderr).not.toContain("redis-password");
+    } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
   it("keeps required matrix runs retry-free unless a whole-cell retry is explicitly requested", () => {
     expect(parseE2ECommand([])).toEqual({
       concurrency: 2,
@@ -187,6 +270,9 @@ describe("release E2E selection", () => {
     expect(config).toContain('name: "runtime-firefox"');
     expect(config).toContain("retries: 0");
     expect(config).toContain("workers: 1");
+    expect(config).toContain('["dot"]');
+    expect(config).toContain("outputFolder: process.env.CAT_E2E_REPORT_DIR");
+    expect(config).toContain('trace: "retain-on-failure"');
     expect(tests.join("\n").match(/\btest\(/g)).toHaveLength(28);
     expect(tests.join("\n").match(/@dev-mechanism/g)).toHaveLength(2);
     expect(tests.join("\n")).not.toMatch(/\btest\.(?:only|skip)\b/);

@@ -3,6 +3,11 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  validateBuildxCachePaths,
+  type BuildxCacheTarget,
+} from "./buildx-cache.ts";
+
 export const releaseImageTargets = ["standalone", "runtime"] as const;
 
 export type ReleaseImageTarget = (typeof releaseImageTargets)[number];
@@ -18,7 +23,7 @@ export type ImageBuildCommandRunner = (
   command: string,
   args: string[],
   options: ImageBuildCommandOptions,
-) => Promise<{ stdout: string }>;
+) => Promise<{ stderr?: string; stdout: string }>;
 
 export type ReleaseImage = {
   imageId: string;
@@ -49,6 +54,8 @@ export type BuildReleaseImagesOptions = {
   buildId: string;
   cwd?: string;
   env: NodeJS.ProcessEnv;
+  report?: (value: string) => void;
+  reportError?: (value: string) => void;
   run: ImageBuildCommandRunner;
   signal: AbortSignal;
   targets?: ReleaseImageTarget[];
@@ -56,15 +63,28 @@ export type BuildReleaseImagesOptions = {
 
 export type ImageBuildCliOptions = Omit<
   BuildReleaseImagesOptions,
-  "targets"
+  "report" | "targets"
 > & {
   args: string[];
   write: (value: string) => void;
+  writeError: (value: string) => void;
+};
+
+type BuildxMetadata = {
+  "buildx.build.warnings"?: unknown;
+};
+
+type BuildxCache = {
+  from?: string;
+  inputAvailable: boolean;
+  outputConfigured: boolean;
+  to?: string;
 };
 
 const workspaceRoot = resolve(import.meta.dirname, "..");
 const dockerfile = "apps/app/Dockerfile";
 const immutableImageId = /^sha256:[a-f0-9]{64}$/;
+const writeProcessStderr = (value: string): void => process.stderr.write(value);
 
 const isReleaseImageTarget = (value: string): value is ReleaseImageTarget =>
   value === "standalone" || value === "runtime";
@@ -137,6 +157,115 @@ const preexistingImageIds = (value: string): Set<string> =>
     value.split(/\s+/).filter((candidate) => immutableImageId.test(candidate)),
   );
 
+const optionalBuildxCache = (
+  paths: { output?: string; source?: string },
+  sourceScopes: Record<BuildxCacheTarget, boolean>,
+  target: BuildxCacheTarget,
+): BuildxCache => {
+  const sourceScope =
+    paths.source === undefined ? undefined : join(paths.source, target);
+  const outputScope =
+    paths.output === undefined ? undefined : join(paths.output, target);
+  const inputAvailable = sourceScope !== undefined && sourceScopes[target];
+  return {
+    ...(inputAvailable ? { from: `type=local,src=${sourceScope}` } : {}),
+    inputAvailable,
+    outputConfigured: outputScope !== undefined,
+    ...(outputScope === undefined
+      ? {}
+      : { to: `type=local,dest=${outputScope},mode=max,ignore-error=true` }),
+  };
+};
+
+const buildxSecrets = (env: NodeJS.ProcessEnv): string[] => {
+  const entries = [
+    ["turbo_team", "TURBO_TEAM"],
+    ["turbo_token", "TURBO_TOKEN"],
+    ["turbo_remote_cache_signature_key", "TURBO_REMOTE_CACHE_SIGNATURE_KEY"],
+  ] as const;
+  return entries.flatMap(([id, name]) =>
+    env[name] === undefined || env[name] === ""
+      ? []
+      : ["--secret", `id=${id},env=${name}`],
+  );
+};
+
+const readBuildxWarnings = async (path: string): Promise<unknown[]> => {
+  let value: BuildxMetadata;
+  try {
+    value = JSON.parse(await readFile(path, "utf8")) as BuildxMetadata;
+  } catch {
+    return [];
+  }
+  const warnings = value["buildx.build.warnings"];
+  if (Array.isArray(warnings)) return warnings;
+  if (typeof warnings === "object" && warnings !== null) {
+    return Object.values(warnings);
+  }
+  return [];
+};
+
+const replayFailedBuildHistory = async (
+  options: BuildReleaseImagesOptions,
+  cwd: string,
+): Promise<void> => {
+  try {
+    const history = await options.run(
+      "docker",
+      [
+        "buildx",
+        "history",
+        "ls",
+        "--filter",
+        "status=error",
+        "--format",
+        "{{.Ref}}",
+      ],
+      { cwd, env: options.env, signal: options.signal, stdio: "pipe" },
+    );
+    const reference = history.stdout.trim().split("\n")[0];
+    if (reference === undefined || reference === "") return;
+    const historyLogs = await options.run(
+      "docker",
+      ["buildx", "history", "logs", "--progress=plain", reference],
+      { cwd, env: options.env, signal: options.signal, stdio: "pipe" },
+    );
+    if (historyLogs.stdout !== "") {
+      (options.reportError ?? writeProcessStderr)(historyLogs.stdout);
+    }
+  } catch {
+    // Build history is advisory evidence. Preserve the original build failure.
+  }
+};
+
+const buildxArguments = (
+  target: ReleaseImageTarget,
+  buildId: string,
+  iidfile: string,
+  metadataFile: string,
+  cache: BuildxCache,
+  env: NodeJS.ProcessEnv,
+): string[] => [
+  "buildx",
+  "build",
+  "--file",
+  dockerfile,
+  "--target",
+  target,
+  "--load",
+  "--progress=quiet",
+  "--iidfile",
+  iidfile,
+  "--metadata-file",
+  metadataFile,
+  "--build-arg",
+  `DEPLOYMENT_BUILD_ID=${buildId}`,
+  ...(cache.from === undefined ? [] : ["--cache-from", cache.from]),
+  ...(cache.to === undefined ? [] : ["--cache-to", cache.to]),
+  ...buildxSecrets(env),
+  ".",
+];
+
 export const buildReleaseImages = async (
   options: BuildReleaseImagesOptions,
 ): Promise<ReleaseImageBuildResult> => {
@@ -148,6 +277,22 @@ export const buildReleaseImages = async (
     throw new Error("Each release image target may only be selected once");
   }
   const cwd = options.cwd ?? workspaceRoot;
+  const turboRemoteCacheConfigured =
+    options.env.TURBO_TEAM !== undefined &&
+    options.env.TURBO_TEAM !== "" &&
+    options.env.TURBO_TOKEN !== undefined &&
+    options.env.TURBO_TOKEN !== "";
+  const cachePaths = await validateBuildxCachePaths({
+    allowedCacheRoot: ".cache",
+    cwd,
+    output: options.env.CAT_BUILDX_CACHE_OUTPUT,
+    source: options.env.CAT_BUILDX_CACHE_SOURCE,
+  });
+  if (!cachePaths.valid) {
+    options.report?.(
+      `container cache warning: invalid Buildx cache configuration: ${cachePaths.message}\n`,
+    );
+  }
   const images: ReleaseImage[] = [];
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "cat-image-build-"));
   let preexisting = new Set<string>();
@@ -159,30 +304,51 @@ export const buildReleaseImages = async (
     );
     preexisting = preexistingImageIds(existing.stdout);
     for (const target of targets) {
-      const iidfile = join(temporaryDirectory, `${target}.iid`);
-      await options.run(
-        "docker",
-        [
-          "build",
-          "--file",
-          dockerfile,
-          "--target",
-          target,
-          "--build-arg",
-          `DEPLOYMENT_BUILD_ID=${options.buildId}`,
-          "--iidfile",
-          iidfile,
-          ".",
-        ],
-        {
-          cwd,
-          env: options.env,
-          signal: options.signal,
-          stdio: "inherit",
-        },
+      const cache = optionalBuildxCache(
+        cachePaths.paths,
+        cachePaths.valid
+          ? cachePaths.sourceScopes
+          : { runtime: false, standalone: false },
+        target,
       );
-      const iid = await readFile(iidfile, "utf8");
-      images.push({ imageId: readImageId(iid, target), target });
+      const iidfile = join(temporaryDirectory, `${target}.iid`);
+      const metadataFile = join(temporaryDirectory, `${target}.metadata.json`);
+      const startedAt = performance.now();
+      try {
+        await options.run(
+          "docker",
+          buildxArguments(
+            target,
+            options.buildId,
+            iidfile,
+            metadataFile,
+            cache,
+            options.env,
+          ),
+          {
+            cwd,
+            env: { ...options.env, BUILDX_METADATA_WARNINGS: "1" },
+            signal: options.signal,
+            stdio: "pipe",
+          },
+        );
+      } catch (error) {
+        await replayFailedBuildHistory(options, cwd);
+        throw error;
+      }
+      const imageId = readImageId(await readFile(iidfile, "utf8"), target);
+      images.push({ imageId, target });
+      const durationSeconds = ((performance.now() - startedAt) / 1_000).toFixed(
+        1,
+      );
+      options.report?.(
+        `image target=${target} duration=${durationSeconds}s image=${imageId} external-cache-input=${cache.inputAvailable ? "available" : "unavailable"} external-cache-output=${cache.outputConfigured ? "configured" : "not-configured"} turbo-remote-cache=${turboRemoteCacheConfigured ? "configured" : "not-configured"}\n`,
+      );
+      for (const warning of await readBuildxWarnings(metadataFile)) {
+        options.report?.(
+          `image warning target=${target} ${JSON.stringify(warning)}\n`,
+        );
+      }
     }
     return { images };
   } catch (error) {
@@ -212,14 +378,13 @@ export const buildReleaseImages = async (
 
 export const runImageBuildCli = async (
   options: ImageBuildCliOptions,
-): Promise<ReleaseImageBuildResult> => {
-  const result = await buildReleaseImages({
+): Promise<ReleaseImageBuildResult> =>
+  await buildReleaseImages({
     ...options,
+    report: options.write,
+    reportError: options.writeError,
     targets: parseImageBuildArguments(options.args),
   });
-  options.write(`${JSON.stringify(result)}\n`);
-  return result;
-};
 
 const directExecution = (): boolean =>
   process.argv[1] !== undefined &&
@@ -236,21 +401,28 @@ if (directExecution()) {
         stdio: ["ignore", "pipe", "pipe"],
       });
       let stdout = "";
+      let stderr = "";
       child.stdout?.setEncoding("utf8");
+      child.stderr?.setEncoding("utf8");
       child.stdout?.on("data", (chunk: string) => {
         stdout += chunk;
         if (commandOptions.stdio === "inherit") process.stderr.write(chunk);
       });
-      child.stderr?.pipe(process.stderr, { end: false });
+      child.stderr?.on("data", (chunk: string) => {
+        stderr += chunk;
+        if (commandOptions.stdio === "inherit") process.stderr.write(chunk);
+      });
       child.once("error", reject);
       child.once("close", (code) => {
-        if (code === 0) resolveResult({ stdout });
-        else
+        if (code === 0) resolveResult({ stderr, stdout });
+        else {
+          if (stderr !== "") process.stderr.write(stderr);
           reject(
             new Error(
               `${command} ${args.join(" ")} exited with ${String(code)}`,
             ),
           );
+        }
       });
     });
   try {
@@ -261,6 +433,7 @@ if (directExecution()) {
       run,
       signal: new AbortController().signal,
       write: (value) => process.stdout.write(value),
+      writeError: (value) => process.stderr.write(value),
     });
   } catch (error) {
     process.stderr.write(

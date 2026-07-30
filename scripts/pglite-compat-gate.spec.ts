@@ -5,6 +5,8 @@ import {
   checkSql,
   classifyFromChecks,
   evaluatePgliteGate,
+  formatPgliteGateFailure,
+  formatPgliteGateSuccess,
   pgliteGateExitCode,
 } from "./pglite-compat-gate.ts";
 
@@ -105,5 +107,34 @@ describe("pglite compatibility gate", () => {
       }),
     ]);
     expect(pgliteGateExitCode(report)).toBe(1);
+  });
+
+  it("uses one concise success line and retains failed capability context", () => {
+    const passed = evaluatePgliteGate([
+      available("pglite package"),
+      available("basic sql"),
+      available("transactions"),
+      available("on conflict returning"),
+      available("skip locked"),
+      missing("pgvector extension"),
+    ]);
+    expect(formatPgliteGateSuccess(passed)).toBe(
+      "pglite compatibility passed level=basic-db-runtime checks=6 expected-unsupported=1",
+    );
+
+    const failed = evaluatePgliteGate([
+      available("pglite package"),
+      available("basic sql"),
+      missing("transactions"),
+      available("on conflict returning"),
+      available("skip locked"),
+    ]);
+    expect(formatPgliteGateFailure(failed)).toContain(
+      "pglite compatibility failed level=basic-db-runtime failures=1",
+    );
+    expect(formatPgliteGateFailure(failed)).toContain(
+      "transactions: transactions is unavailable",
+    );
+    expect(formatPgliteGateFailure(failed)).not.toContain('"');
   });
 });

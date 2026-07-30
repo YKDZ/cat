@@ -415,6 +415,9 @@ importers:
       '@cat/cli':
         specifier: link:apps/cli
         version: link:apps/cli
+      '@cat/shared':
+        specifier: link:packages/shared
+        version: link:packages/shared
       '@electric-sql/pglite':
         specifier: 'catalog:'
         version: 0.5.2
@@ -1154,6 +1157,9 @@ importers:
       '@cat/seed':
         specifier: link:../../packages/seed
         version: link:../../packages/seed
+      '@cat/shared':
+        specifier: link:../../packages/shared
+        version: link:../../packages/shared
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.60.0

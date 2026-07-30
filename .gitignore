@@ -114,6 +114,7 @@ vitest.config.*.timestamp*
 # Local AI/agent assistant files
 .agents/
 .claude/
+.codex/
 AGENTS.md
 CLAUDE.md
 
@@ -127,7 +128,6 @@ test-results.json
 .mcp.json
 
 # Local context documents generated for agent navigation
-CONTEXT-MAP.md
-**/CONTEXT.md
+**/CONTEXT*.md
 
 .turbo

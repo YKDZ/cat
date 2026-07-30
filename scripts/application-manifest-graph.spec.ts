@@ -117,7 +117,14 @@ describe("application manifest graph", () => {
   it("owns Turbo tasks and direct Node maintenance commands in manifests", () => {
     for (const root of migratedRoots) {
       const manifest = readJson<Manifest>(join(root, "package.json"));
-      expect(manifest.scripts?.format, `${root} format`).toBeDefined();
+      expect(
+        manifest.scripts?.["format:check"],
+        `${root} format:check`,
+      ).toBeDefined();
+      expect(
+        manifest.scripts?.["format:write"],
+        `${root} format:write`,
+      ).toBeDefined();
       expect(manifest.scripts?.lint, `${root} lint`).toBeDefined();
       expect(manifest.scripts?.typecheck, `${root} typecheck`).toBeDefined();
 

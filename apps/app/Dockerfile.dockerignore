@@ -54,5 +54,7 @@ apps/docs
 apps/eval
 docs
 docs/**
-tools
+tools/**
+!tools/*/
+!tools/*/package.json
 .template

@@ -3,10 +3,13 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { redactDiagnosticText } from "@cat/shared";
+
 import { parseTestServiceLease } from "../apps/app-e2e/test-service-lease.ts";
 import {
   CommandExecutionError,
   type ApplicationLifecycleContext,
+  type CommandExecutionResult,
 } from "./check-all.ts";
 import {
   createValidatedImageManifest,
@@ -61,26 +64,82 @@ type ImageConfig = {
   Volumes?: Record<string, unknown>;
 };
 
+const runDocker = async (
+  context: ApplicationLifecycleContext,
+  args: string[],
+  stdio: "inherit" | "pipe" = "pipe",
+  signal: AbortSignal = context.signal,
+): Promise<CommandExecutionResult> =>
+  await context.run("docker", args, {
+    cwd: process.cwd(),
+    env: context.env,
+    signal,
+    stdio,
+  });
+
 const docker = async (
   context: ApplicationLifecycleContext,
   args: string[],
-  stdio: "inherit" | "pipe" = "inherit",
+  stdio: "inherit" | "pipe" = "pipe",
   signal: AbortSignal = context.signal,
-): Promise<string> =>
-  (
-    await context.run("docker", args, {
-      cwd: process.cwd(),
-      env: context.env,
-      signal,
-      stdio,
-    })
-  ).stdout;
+): Promise<string> => (await runDocker(context, args, stdio, signal)).stdout;
 
 const cleanupDocker = async (
   context: ApplicationLifecycleContext,
   args: string[],
 ): Promise<string> =>
-  await docker(context, args, "inherit", AbortSignal.timeout(cleanupTimeoutMs));
+  await docker(context, args, "pipe", AbortSignal.timeout(cleanupTimeoutMs));
+
+const reportError = (
+  context: ApplicationLifecycleContext,
+  message: string,
+): void => {
+  (context.reportError ?? ((value: string) => process.stderr.write(value)))(
+    redactDiagnosticText(message),
+  );
+};
+
+const reportServerFailure = async (
+  context: ApplicationLifecycleContext,
+  container: string,
+): Promise<void> => {
+  reportError(context, `container lifecycle failure container=${container}\n`);
+  try {
+    const logs = await runDocker(
+      context,
+      ["logs", "--tail", "200", container],
+      "pipe",
+    );
+    if (logs.stdout !== "") reportError(context, logs.stdout);
+    if (logs.stderr !== "") reportError(context, logs.stderr);
+  } catch (error) {
+    reportError(
+      context,
+      `container lifecycle logs container=${container} unavailable=${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  }
+  try {
+    const state = await docker(
+      context,
+      [
+        "inspect",
+        "--format",
+        "status={{.State.Status}} exit-code={{.State.ExitCode}} oom-killed={{.State.OOMKilled}} error={{.State.Error}}",
+        container,
+      ],
+      "pipe",
+    );
+    reportError(
+      context,
+      `container lifecycle state container=${container} ${state.trim() || "<empty>"}\n`,
+    );
+  } catch (error) {
+    reportError(
+      context,
+      `container lifecycle inspect container=${container} unavailable=${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  }
+};
 
 const cleanupLifecycleDatabase = async (
   context: ApplicationLifecycleContext,
@@ -89,7 +148,7 @@ const cleanupLifecycleDatabase = async (
   await docker(
     context,
     args,
-    "inherit",
+    "pipe",
     AbortSignal.timeout(lifecycleDatabaseCleanupTimeoutMs),
   );
 
@@ -122,6 +181,7 @@ const buildContextContract = async (
   const image = contextContractImageName(context);
   await docker(context, [
     "build",
+    "--progress=quiet",
     "--file",
     dockerfile,
     "--target",
@@ -458,7 +518,6 @@ const waitForHealthy = async (
     context.signal.throwIfAborted();
     if (status === "healthy") return;
     if (status === "unhealthy") {
-      await docker(context, ["logs", container]);
       throw new Error(`Container ${container} became unhealthy`);
     }
     await sleep(2_000, undefined, { signal: context.signal });
@@ -494,11 +553,37 @@ const runServer = async (
     ],
     "pipe",
   );
+  let failure: unknown;
   try {
     await waitForHealthy(context, container);
-  } finally {
-    await cleanupDocker(context, ["rm", "--force", "--volumes", container]);
+  } catch (error) {
+    failure = error;
+    await reportServerFailure(context, container);
   }
+  let cleanupFailure: unknown;
+  try {
+    await cleanupDocker(context, ["rm", "--force", "--volumes", container]);
+    if (failure !== undefined) {
+      reportError(
+        context,
+        `container lifecycle cleanup container=${container} result=passed\n`,
+      );
+    }
+  } catch (error) {
+    cleanupFailure = error;
+    reportError(
+      context,
+      `container lifecycle cleanup container=${container} result=failed failure=${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  }
+  if (failure !== undefined && cleanupFailure !== undefined) {
+    throw new AggregateError(
+      [failure, cleanupFailure],
+      "Application container validation and cleanup failed",
+    );
+  }
+  if (failure !== undefined) throw failure;
+  if (cleanupFailure !== undefined) throw cleanupFailure;
 };
 
 const assertRejectedLifecycleCommand = async (

@@ -10,6 +10,9 @@
     "oxfmt.config.ts",
     "tooling/oxlint/**"
   ],
+  "remoteCache": {
+    "signature": true
+  },
   "boundaries": {
     "tags": {
       "browser": {},
@@ -41,16 +44,21 @@
       "cache": false,
       "persistent": true
     },
-    "preview": {
-      "cache": false,
-      "dependsOn": ["build"],
-      "persistent": true
+    "format:check": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
     },
-    "format": {
+    "format:write": {
+      "cache": false,
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
     "lint": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "lint:fix": {
+      "cache": false,
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     },
@@ -96,6 +104,40 @@
     },
     "typecheck": {
       "dependsOn": ["^typecheck"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#boundaries": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#codegen:check": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#format:check": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#format:write": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#lint": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#lint:fix": {
+      "cache": false,
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#test:tooling": {
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": []
+    },
+    "//#typecheck": {
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": []
     }
