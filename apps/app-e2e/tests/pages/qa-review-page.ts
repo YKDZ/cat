@@ -17,6 +17,7 @@ export class QaReviewPage {
   }
 
   async selectFirstCandidate(): Promise<void> {
+    await this.expectFirstCandidateVisible();
     await this.page
       .getByRole("button", { name: /选择候选/ })
       .first()

@@ -39,6 +39,13 @@ const routeElementTarget = () => {
   });
 };
 
+const syncConcreteRouteElement = async () => {
+  const value = routeElementTarget();
+  if (value === "auto" || value === "empty") return;
+
+  await workbench.syncRouteElement(value);
+};
+
 watch(
   () => [
     ctx.routeParams.projectId,
@@ -72,11 +79,7 @@ watch(
 onMounted(() => {
   watch(
     () => routeElementTarget(),
-    async (value) => {
-      if (value === "auto" || value === "empty") return;
-
-      await workbench.syncRouteElement(value);
-    },
+    () => syncConcreteRouteElement(),
     { immediate: true },
   );
 
@@ -85,6 +88,7 @@ onMounted(() => {
     async (nextScope) => {
       if (!nextScope) return;
       await contextStore.refresh();
+      await syncConcreteRouteElement();
       await workbench.refreshAll();
     },
     { deep: true, immediate: true },
