@@ -2027,9 +2027,7 @@ const seedBranchWorkspace = async (
 };
 
 const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
-  const previousDatabaseUrl = process.env.DATABASE_URL;
-  process.env.DATABASE_URL = runtime.databaseUrl;
-  const database = new DrizzleDB();
+  const database = new DrizzleDB(runtime.databaseUrl);
   await database.connect();
   try {
     const seedDirectory = resolve(root, "tools/seeder/datasets/e2e");
@@ -2051,8 +2049,6 @@ const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
     await writeFile(runtime.refsPath, JSON.stringify(refs, null, 2));
   } finally {
     await database.disconnect();
-    if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
-    else process.env.DATABASE_URL = previousDatabaseUrl;
   }
 };
 

@@ -1,6 +1,6 @@
 import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -55,6 +55,16 @@ const createTestRuntime = (
 });
 
 describe("ExecutionCell scheduler", () => {
+  it("does not mutate DATABASE_URL while hydrating fixtures", () => {
+    const source = readFileSync(
+      join(import.meta.dirname, "execution-cell.ts"),
+      "utf8",
+    );
+
+    expect(source).not.toContain("process.env.DATABASE_URL =");
+    expect(source).not.toContain("delete process.env.DATABASE_URL");
+  });
+
   it("terminates an active child process when its execution signal aborts", async () => {
     const controller = new AbortController();
     const child = new EventEmitter() as EventEmitter & {
