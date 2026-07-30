@@ -286,6 +286,32 @@ export const isReplacedNavigationAbort = (
     failure.value,
   );
 
+export const isFirefoxReplacedAssetScriptAbort = (
+  failure: RecordedDiagnosticFailure,
+  committedNavigationIds: ReadonlySet<NavigationTransactionId>,
+): boolean => {
+  if (
+    failure.source !== "request" ||
+    failure.kind !== "critical-resource" ||
+    committedNavigationIds.size === 0
+  ) {
+    return false;
+  }
+
+  const match = /^script (.+): NS_BINDING_ABORTED$/.exec(failure.value);
+  if (match?.[1] === undefined) return false;
+
+  try {
+    const url = new URL(match[1]);
+    return (
+      (url.hostname === "127.0.0.1" || url.hostname === "localhost") &&
+      /^\/assets\/.+\.js$/.test(url.pathname)
+    );
+  } catch {
+    return false;
+  }
+};
+
 export const isExternalNetworkChange = (
   failure: RecordedDiagnosticFailure,
 ): boolean => {
@@ -1306,6 +1332,10 @@ export const test = baseTest.extend<
           ) &&
           !isHandledQaSubmitActionFetchConsole(failure) &&
           !isReplacedNavigationAbort(
+            failure,
+            navigation.committedNavigationIds,
+          ) &&
+          !isFirefoxReplacedAssetScriptAbort(
             failure,
             navigation.committedNavigationIds,
           ) &&

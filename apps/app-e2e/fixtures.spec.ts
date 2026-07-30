@@ -19,6 +19,7 @@ import {
   isControlledCancellation,
   isExternalDynamicImportPageError,
   isExternalNetworkChange,
+  isFirefoxReplacedAssetScriptAbort,
   isHandledQaSubmitActionFetchConsole,
   isNavigationOwnedCancellationPageError,
   isReplacedNavigationAbort,
@@ -925,6 +926,59 @@ describe("browser diagnostics navigation transaction", () => {
         transaction.committedNavigationIds,
       ),
     ).toBe(true);
+  });
+
+  it("allows Firefox's unbound local asset script abort after a document commit", () => {
+    const navigationRequest = {};
+    let transaction = createNavigationTransaction();
+    transaction = startMainFrameDocumentNavigation(
+      transaction,
+      navigationRequest,
+    );
+    transaction = commitMainFrameDocumentNavigation(transaction);
+
+    expect(
+      isFirefoxReplacedAssetScriptAbort(
+        requestFailure(
+          1,
+          "script http://127.0.0.1:39005/assets/entries/src_pages_index_projects.BRB5hlcG.js: NS_BINDING_ABORTED",
+        ),
+        transaction.committedNavigationIds,
+      ),
+    ).toBe(true);
+    expect(
+      isFirefoxReplacedAssetScriptAbort(
+        requestFailure(
+          1,
+          "script http://127.0.0.1:39005/assets/chunks/chunk-D_hWmUmk.js: NS_BINDING_ABORTED",
+        ),
+        transaction.committedNavigationIds,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps Firefox asset abort suppression limited to committed local scripts", () => {
+    const navigationRequest = {};
+    let transaction = createNavigationTransaction();
+    transaction = startMainFrameDocumentNavigation(
+      transaction,
+      navigationRequest,
+    );
+    transaction = commitMainFrameDocumentNavigation(transaction);
+
+    for (const value of [
+      "script http://127.0.0.1:39005/assets/app.css: NS_BINDING_ABORTED",
+      "script https://example.com/assets/app.js: NS_BINDING_ABORTED",
+      "script http://127.0.0.1:39005/assets/app.js: net::ERR_ABORTED",
+      "fetch http://127.0.0.1:39005/assets/app.js: NS_BINDING_ABORTED",
+    ]) {
+      expect(
+        isFirefoxReplacedAssetScriptAbort(
+          requestFailure(0, value),
+          transaction.committedNavigationIds,
+        ),
+      ).toBe(false);
+    }
   });
 
   it("keeps a failed navigation and its old document request failures fatal", () => {
