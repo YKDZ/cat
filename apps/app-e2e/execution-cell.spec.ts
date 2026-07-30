@@ -11,6 +11,7 @@ import {
   ExecutionCell,
   DevTargetAdapter,
   developmentRuntimeEnvironment,
+  dropCellDatabase,
   formatDockerContainerPhaseFailure,
   isServerErrorDiagnostic,
   playwrightChildEnvironment,
@@ -18,6 +19,7 @@ import {
   processIdentityMatches,
   runAbortableCommand,
   runExecutionCells,
+  StandaloneTargetAdapter,
   stopStartedProcess,
   type CellRuntime,
   type ExecutionCellInput,
@@ -80,6 +82,147 @@ const createTestRuntime = (
 });
 
 describe("ExecutionCell scheduler", () => {
+  it("passes the cell deployment plan to standalone aggregate startup", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-docker-"));
+    const docker = join(directory, "docker");
+    const recorder = join(directory, "docker-recorder.mjs");
+    const record = join(directory, "docker-arguments");
+    const registered: Array<() => Promise<void>> = [];
+    try {
+      await writeFile(
+        recorder,
+        [
+          'import { appendFileSync } from "node:fs";',
+          "const args = process.argv.slice(2);",
+          'appendFileSync(process.env.CAT_E2E_DOCKER_ARGUMENTS, JSON.stringify(args) + "\\n");',
+          'if (args[0] === "container" && args[1] === "inspect") {',
+          '  const container = args.at(-1) ?? "";',
+          '  const command = container.endsWith("-prepare") ? "prepare-only" : "bootstrap-only";',
+          "  process.stdout.write(JSON.stringify({",
+          '    Image: "sha256:standalone",',
+          "    Config: {",
+          "      Cmd: [command],",
+          '      Image: "sha256:standalone",',
+          "      Labels: {",
+          '        "org.opencontainers.image.description": "CAT standalone application with database preparation",',
+          '        "org.opencontainers.image.version": "release-test",',
+          "      },",
+          "    },",
+          "  }));",
+          "}",
+          'if (args[0] === "start") {',
+          '  const container = args.at(-1) ?? "";',
+          '  if (container.endsWith("-first")) process.stdout.write(\'{"status":"applied"}\\n\');',
+          '  if (container.endsWith("-repeat")) process.stdout.write(\'{"status":"noop"}\\n\');',
+          "}",
+        ].join("\n"),
+      );
+      await writeFile(
+        docker,
+        '#!/bin/sh\nexec node "$CAT_E2E_DOCKER_RECORDER" "$@"\n',
+        { mode: 0o755 },
+      );
+      const runtime = createTestRuntime({
+        applicationPort: 4100,
+        artifactDirectory: directory,
+        databaseUrl: "postgresql://user:password@localhost/cat",
+        environment: {
+          CAT_E2E_DOCKER_ARGUMENTS: record,
+          CAT_E2E_DOCKER_RECORDER: recorder,
+          PATH: `${directory}:${process.env.PATH ?? ""}`,
+          REDIS_URL: "redis://localhost:6379/0",
+          SPACY_SERVER_URL: "http://localhost:8000",
+        },
+      });
+      const adapter = new StandaloneTargetAdapter(
+        "sha256:standalone",
+        "chromium",
+        (_label, disposer) => {
+          registered.push(
+            async () => await disposer(new AbortController().signal),
+          );
+          return () => undefined;
+        },
+        new AbortController().signal,
+      );
+
+      await adapter.bootstrap(runtime);
+      await adapter.start(runtime, "validation");
+
+      await vi.waitFor(() => expect(existsSync(record)).toBe(true));
+      const invocations = (await readFile(record, "utf8"))
+        .trim()
+        .split("\n")
+        .map((line): string[] => JSON.parse(line));
+      const planArgument = (args: string[]): string | undefined => {
+        const index = args.findIndex((argument) => argument === "--env");
+        const environment = args
+          .slice(index + 1)
+          .find((argument) => argument.startsWith("CAT_BOOTSTRAP_PLAN="));
+        return environment?.slice("CAT_BOOTSTRAP_PLAN=".length);
+      };
+      const bootstrapCreates = invocations.filter(
+        (args) => args[0] === "create" && args.at(-1) === "bootstrap-only",
+      );
+      const aggregateCreate = invocations.find(
+        (args) => args[0] === "create" && args.at(-1) === "prepare-and-start",
+      );
+
+      expect(bootstrapCreates).toHaveLength(2);
+      expect(aggregateCreate).toBeDefined();
+      const aggregatePlan = planArgument(aggregateCreate!);
+      expect(aggregatePlan).toBeDefined();
+      expect(bootstrapCreates.map(planArgument)).toEqual([
+        aggregatePlan,
+        aggregatePlan,
+      ]);
+      expect(JSON.parse(aggregatePlan!)).toMatchObject({
+        operations: expect.arrayContaining([
+          expect.objectContaining({
+            pluginId: "spacy-segmenter",
+            value: { serverUrl: "http://spacy:8000/" },
+          }),
+        ]),
+      });
+    } finally {
+      await Promise.all(
+        registered.map(async (unregister) => await unregister()),
+      );
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("closes a database cleanup client only once when abort races its finalizer", async () => {
+    const controller = new AbortController();
+    let completeDrop: (() => void) | undefined;
+    const query = vi.fn(async (statement: string) => {
+      if (statement.startsWith("DROP DATABASE")) {
+        await new Promise<void>((resolveDrop) => {
+          completeDrop = resolveDrop;
+        });
+      }
+      return { rows: [] };
+    });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const cleanup = dropCellDatabase(
+      "postgresql://example.test/postgres",
+      "cat_e2e_cell_test",
+      controller.signal,
+      client as never,
+    );
+
+    await vi.waitFor(() => expect(query).toHaveBeenCalledTimes(2));
+    controller.abort(new Error("database cleanup timeout"));
+    completeDrop?.();
+    await cleanup;
+
+    expect(client.end).toHaveBeenCalledTimes(1);
+  });
+
   it("reports one concise successful cell lifecycle and removes its diagnostics", async () => {
     const artifactDirectory = await mkdtemp(join(tmpdir(), "cat-e2e-cell-"));
     const output: string[] = [];
@@ -847,11 +990,16 @@ describe("ExecutionCell scheduler", () => {
       controller.abort(new Error("stop process group"));
       await rejection;
 
-      for (const pid of pids) {
-        expect(() => process.kill(pid, 0)).toThrow(
-          expect.objectContaining({ code: "ESRCH" }),
-        );
-      }
+      await vi.waitFor(
+        () => {
+          for (const pid of pids) {
+            expect(() => process.kill(pid, 0)).toThrow(
+              expect.objectContaining({ code: "ESRCH" }),
+            );
+          }
+        },
+        { timeout: 2_000 },
+      );
     } finally {
       killRecordedProcesses(
         pids.length > 0 ? pids : recordedProcessIds([marker, grandchildMarker]),
@@ -905,6 +1053,67 @@ describe("ExecutionCell scheduler", () => {
       controller.abort(new Error("stop inherited process group"));
       await rejection;
 
+      await vi.waitFor(
+        () => {
+          for (const pid of pids) {
+            expect(() => process.kill(pid, 0)).toThrow(
+              expect.objectContaining({ code: "ESRCH" }),
+            );
+          }
+        },
+        { timeout: 2_000 },
+      );
+    } finally {
+      killRecordedProcesses(
+        pids.length > 0 ? pids : recordedProcessIds([marker, grandchildMarker]),
+      );
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("does not report a force-stop failure when a detached process group exits during the grace period", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-process-group-"));
+    const marker = join(directory, "pids");
+    const grandchildMarker = join(directory, "grandchild");
+    const controller = new AbortController();
+    let pids: number[] = [];
+    const grandchild = [
+      "const fs = require('node:fs');",
+      "fs.writeFileSync(process.argv[1], String(process.pid));",
+      "process.on('SIGTERM', () => setTimeout(() => process.exit(0), 10));",
+      "setInterval(() => {}, 1_000);",
+    ].join(" ");
+    const parent = [
+      "const fs = require('node:fs');",
+      "const { spawn } = require('node:child_process');",
+      `const child = spawn(process.execPath, ['-e', ${JSON.stringify(grandchild)}, process.argv[2]], { stdio: 'inherit' });`,
+      "fs.writeFileSync(process.argv[1], `${process.pid},${child.pid}`);",
+      "setInterval(() => {}, 1_000);",
+    ].join(" ");
+    try {
+      const running = runAbortableCommand(
+        process.execPath,
+        ["-e", parent, marker, grandchildMarker],
+        process.env,
+        "cooperative inherited process group",
+        {
+          signal: controller.signal,
+          stdio: "inherit",
+          terminationGraceMs: 100,
+          timeoutMs: 5_000,
+        },
+      );
+      await vi.waitFor(() => expect(existsSync(marker)).toBe(true), {
+        timeout: 2_000,
+      });
+      await vi.waitFor(() => expect(existsSync(grandchildMarker)).toBe(true), {
+        timeout: 2_000,
+      });
+      pids = readFileSync(marker, "utf8").split(",").map(Number);
+      const stopReason = new Error("stop cooperative process group");
+      controller.abort(stopReason);
+
+      await expect(running).rejects.toBe(stopReason);
       await vi.waitFor(
         () => {
           for (const pid of pids) {

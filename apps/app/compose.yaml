@@ -2,6 +2,9 @@ name: cat
 
 # This is the distributable production artifact. It deliberately does not
 # inherit repository-local service definitions so operators can copy it alone.
+# `docker compose up -d` runs the self-contained standalone aggregate. To use
+# a runtime image, first target `bootstrap` with the runtime-preparation
+# profile, then set CAT_APPLICATION_IMAGE and CAT_APPLICATION_COMMAND=start-only.
 services:
   postgresql:
     image: ${CAT_POSTGRES_IMAGE:-ghcr.io/ykdz/cat-postgres-search-runtime:latest}
@@ -60,6 +63,7 @@ services:
   prepare:
     image: ${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}
     command: ["prepare-only"]
+    profiles: ["runtime-preparation"]
     depends_on:
       postgresql:
         condition: service_healthy
@@ -89,6 +93,7 @@ services:
     image: ${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}
     # The published standalone image contains the versioned official spaCy plan.
     command: ["bootstrap-only"]
+    profiles: ["runtime-preparation"]
     depends_on:
       prepare:
         condition: service_completed_successfully
@@ -105,11 +110,15 @@ services:
     restart: "no"
 
   app:
-    image: ${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}
-    command: ["prepare-and-start"]
+    image: ${CAT_APPLICATION_IMAGE:-${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}}
+    command: ["${CAT_APPLICATION_COMMAND:-prepare-and-start}"]
     depends_on:
-      bootstrap:
-        condition: service_completed_successfully
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      spacy:
+        condition: service_healthy
     environment: *app-environment
     read_only: true
     tmpfs:

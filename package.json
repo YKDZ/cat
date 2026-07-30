@@ -36,7 +36,7 @@
     "test:pglite": "node scripts/pglite-compat-gate.ts",
     "test:tooling": "vitest run --config scripts/vitest.config.ts --reporter=agent --silent=passed-only",
     "test:unit": "turbo run test:unit --output-logs=errors-only --log-order=grouped --log-prefix=task",
-    "typecheck": "tsc --noEmit -p tsconfig.node.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p tsconfig.node.json"
   },
   "devDependencies": {
     "@cat/cli": "link:apps/cli",

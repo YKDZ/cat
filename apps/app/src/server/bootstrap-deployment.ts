@@ -34,8 +34,9 @@ export const resolveDeploymentBootstrapPlan = (
 };
 
 /**
- * The standalone bootstrap-only lifecycle uses this path before any HTTP
- * runtime exists. Normal startup deliberately never receives a deployment plan.
+ * The standalone bootstrap-only and prepare-and-start lifecycle commands use
+ * this path before HTTP runtime exists. The runtime start-only command never
+ * receives a deployment plan.
  */
 export const bootstrapDeployment = async (
   options: ApplicationDataBootstrapOptions,

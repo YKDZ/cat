@@ -9,11 +9,34 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
+
+type TypecheckManifest = {
+  devDependencies?: Record<string, string>;
+  scripts?: Record<string, string>;
+};
+
+const typecheckManifests = (): Array<{
+  manifest: TypecheckManifest;
+  path: string;
+}> =>
+  execFileSync("rg", ["--files", "-g", "package.json"], {
+    cwd: root,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .map((path) => ({
+      manifest: JSON.parse(
+        readFileSync(resolve(root, path), "utf8"),
+      ) as TypecheckManifest,
+      path,
+    }))
+    .filter(({ manifest }) => manifest.scripts?.typecheck !== undefined);
 
 type TurboDryTask = {
   taskId: string;
@@ -82,6 +105,36 @@ const createLintHashFixture = (): string => {
 };
 
 describe("Turbo workspace contract", () => {
+  it("runs every plain TypeScript compiler command through root-native TS7", () => {
+    const manifests = typecheckManifests();
+    let nativeTscCommands = 0;
+
+    for (const { manifest, path } of manifests) {
+      for (const command of Object.values(manifest.scripts ?? {})) {
+        for (const segment of command.split(" && ")) {
+          if (!/(?:^|[\s;&|])tsc(?:\s|$)/.test(segment)) continue;
+          nativeTscCommands += 1;
+          const match =
+            /^pnpm --workspace-root exec tsc(?: --noEmit)? -p (\S+)$/.exec(
+              segment,
+            );
+          expect(match, `${path}: ${segment}`).not.toBeNull();
+          const configPath = match?.[1];
+          if (path !== "package.json") {
+            expect(configPath, `${path}: ${segment}`).toMatch(
+              new RegExp(`^${dirname(path)}/tsconfig(?:\\.[\\w-]+)?\\.json$`),
+            );
+          }
+        }
+      }
+      if (manifest.scripts?.typecheck?.includes("vue-tsc")) {
+        expect(manifest.devDependencies?.typescript, path).toBe("catalog:");
+      }
+    }
+
+    expect(nativeTscCommands).toBeGreaterThan(0);
+  });
+
   it("signs remote cache artifacts when CI injects the signature key", () => {
     const config = JSON.parse(
       readFileSync(resolve(root, "turbo.json"), "utf8"),
@@ -103,7 +156,7 @@ describe("Turbo workspace contract", () => {
       build: "vitepress build src",
       dev: "vitepress dev src",
       typecheck:
-        "tsc --noEmit -p tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
+        "pnpm --workspace-root exec tsc --noEmit -p apps/docs/tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
     });
 
     const tasks = dryTasks("build", "typecheck", "dev", "--filter=@cat/docs");

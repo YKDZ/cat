@@ -48,7 +48,7 @@
     }
   },
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.lib.json",
+    "build": "vite build && pnpm --workspace-root exec tsc -p packages/plugin-core/tsconfig.lib.json",
     "format:check": "cd ../.. && oxfmt --list-different --config oxfmt.config.ts packages/plugin-core",
     "format:write": "cd ../.. && oxfmt --write --config oxfmt.config.ts packages/plugin-core",
     "lint": "cd ../.. && oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern packages/plugin-core",
@@ -56,7 +56,7 @@
     "pack:artifact": "node ../../scripts/pack-public-package.ts",
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts' --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/plugin-core/tsconfig.json"
   },
   "dependencies": {
     "cldr-core": "catalog:",

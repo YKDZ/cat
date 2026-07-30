@@ -18,7 +18,7 @@
     "test": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
     "test:integration": "vitest run --exclude '**/*.spec.ts' --no-file-parallelism --reporter=agent --silent=passed-only --passWithNoTests",
     "test:unit": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/file-parsers/tsconfig.json"
   },
   "dependencies": {
     "@cat/shared": "link:../shared",

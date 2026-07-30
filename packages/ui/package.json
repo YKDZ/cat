@@ -17,7 +17,7 @@
     "lint:fix": "cd ../.. && oxlint --fix --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern packages/ui",
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/ui/tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@lucide/vue": "catalog:",
@@ -42,6 +42,7 @@
     "@vue/test-utils": "catalog:",
     "happy-dom": "catalog:",
     "shadcn-vue": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:"

@@ -533,6 +533,7 @@ const runServer = async (
   container: string,
   command: string,
   storage: LifecycleStorage,
+  bootstrapPlan?: string,
 ): Promise<void> => {
   await docker(
     context,
@@ -548,6 +549,9 @@ const runServer = async (
       network,
       ...storage.mountArgs,
       ...environmentArgs(serviceUrls),
+      ...(bootstrapPlan === undefined
+        ? []
+        : ["--env", `CAT_BOOTSTRAP_PLAN=${bootstrapPlan}`]),
       image,
       command,
     ],
@@ -694,6 +698,7 @@ export const runApplicationLifecycle = async (
       "prepare-only",
       { storage: lifecycleStorage },
     );
+    const bootstrapPlan = lifecycleBootstrapPlan(context);
     await runOneShot(
       context,
       standaloneImage,
@@ -709,10 +714,7 @@ export const runApplicationLifecycle = async (
       lifecycleDatabase.serviceUrls,
       "bootstrap-only",
       {
-        environment: [
-          "--env",
-          `CAT_BOOTSTRAP_PLAN=${lifecycleBootstrapPlan(context)}`,
-        ],
+        environment: ["--env", `CAT_BOOTSTRAP_PLAN=${bootstrapPlan}`],
         storage: lifecycleStorage,
       },
     );
@@ -724,6 +726,7 @@ export const runApplicationLifecycle = async (
       `${context.projectName}-standalone`,
       "prepare-and-start",
       lifecycleStorage,
+      bootstrapPlan,
     );
     await runServer(
       context,

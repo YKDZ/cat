@@ -38,7 +38,7 @@
     }
   },
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
+    "build": "vite build && pnpm --workspace-root exec tsc -p @cat-plugin/tiny-widget/tsconfig.build.json",
     "format:check": "cd ../.. && oxfmt --list-different --config oxfmt.config.ts @cat-plugin/tiny-widget",
     "format:write": "cd ../.. && oxfmt --write --config oxfmt.config.ts @cat-plugin/tiny-widget",
     "lint": "cd ../.. && oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern @cat-plugin/tiny-widget",
@@ -51,6 +51,7 @@
   "devDependencies": {
     "@cat/plugin-core": "link:../../packages/plugin-core",
     "@vitejs/plugin-vue": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:",
     "vue": "catalog:",

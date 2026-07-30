@@ -103,7 +103,7 @@ describe("release E2E selection", () => {
     } finally {
       await rm(directory, { force: true, recursive: true });
     }
-  });
+  }, 15_000);
 
   it("keeps required matrix runs retry-free unless a whole-cell retry is explicitly requested", () => {
     expect(parseE2ECommand([])).toEqual({

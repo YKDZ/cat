@@ -207,6 +207,42 @@ describe("Logger", () => {
     expect(observer).toHaveBeenCalledWith(transportEvents[0]);
   });
 
+  it("normalizes circular fields and self-caused errors before isolated delivery", () => {
+    const events: DiagnosticEvent[] = [];
+    const circularArray: unknown[] = [];
+    circularArray.push(circularArray);
+    const selfCausedError = Object.assign(new Error("token=error-secret"), {
+      cause: undefined as unknown,
+    });
+    selfCausedError.cause = selfCausedError;
+    const logger = new Logger({}, [
+      {
+        emit: () => {
+          throw new Error("unavailable transport");
+        },
+      },
+      captureTransport(events),
+    ]);
+
+    expect(() =>
+      logger.info("continuing", {
+        code: "CIRCULAR_DIAGNOSTIC",
+        circularArray,
+        selfCausedError,
+      }),
+    ).not.toThrow();
+    expect(events).toHaveLength(1);
+    expect(events[0]?.fields).toEqual({
+      circularArray: ["[CIRCULAR]"],
+      selfCausedError: {
+        cause: "[CIRCULAR]",
+        message: "token=[REDACTED]",
+        name: "Error",
+      },
+    });
+    expect(Object.isFrozen(events[0]?.fields.circularArray)).toBe(true);
+  });
+
   it("contains asynchronous transport and observer failures without unhandled rejections", async () => {
     const runtimeProcess = Reflect.get(globalThis, "process");
     if (!isUnhandledRejectionProcess(runtimeProcess)) {

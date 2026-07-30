@@ -39,7 +39,7 @@
     }
   },
   "scripts": {
-    "build": "vite build && tsc -p tsconfig.build.json",
+    "build": "vite build && pnpm --workspace-root exec tsc -p @cat-plugin/spacy-segmenter/tsconfig.build.json",
     "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",
     "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
     "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
@@ -47,7 +47,7 @@
     "pack:artifact": "node ../../scripts/pack-public-package.ts",
     "test": "vitest run --reporter=agent --silent=passed-only --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p @cat-plugin/spacy-segmenter/tsconfig.app.json"
   },
   "dependencies": {
     "undici": "catalog:peer",

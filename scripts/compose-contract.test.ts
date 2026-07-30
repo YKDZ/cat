@@ -19,7 +19,10 @@ const composeEnvironment = {
   CAT_REDIS_PASSWORD: "redis /#@: password",
 };
 
-const runComposeConfig = async (file: string): Promise<string> => {
+const runComposeConfig = async (
+  file: string,
+  profiles: readonly string[] = [],
+): Promise<string> => {
   const child = spawn(
     "docker",
     [
@@ -28,6 +31,7 @@ const runComposeConfig = async (file: string): Promise<string> => {
       file,
       "--project-directory",
       resolve(file, ".."),
+      ...profiles.flatMap((profile) => ["--profile", profile]),
       "config",
       "--format",
       "json",
@@ -72,7 +76,7 @@ describe("Compose deployment contracts", () => {
     );
   });
 
-  it("publishes a self-contained standalone deployment with ordered core lifecycle services", async () => {
+  it("publishes self-contained standalone and externally prepared runtime deployment modes", async () => {
     const raw = await readFile(productionCompose, "utf8");
     expect(raw).not.toMatch(/^\s*(build|configs|extends|include):/mu);
     expect(raw).not.toContain("../");
@@ -83,7 +87,9 @@ describe("Compose deployment contracts", () => {
     };
     expect(compose.services).toEqual(
       expect.objectContaining({
-        app: expect.objectContaining({ command: ["prepare-and-start"] }),
+        app: expect.objectContaining({
+          command: ["${CAT_APPLICATION_COMMAND:-prepare-and-start}"],
+        }),
         bootstrap: expect.objectContaining({ command: ["bootstrap-only"] }),
         postgresql: expect.objectContaining({}),
         prepare: expect.objectContaining({ command: ["prepare-only"] }),
@@ -96,6 +102,7 @@ describe("Compose deployment contracts", () => {
     );
     expect(compose.services.prepare).toEqual(
       expect.objectContaining({
+        profiles: ["runtime-preparation"],
         depends_on: expect.objectContaining({
           postgresql: { condition: "service_healthy" },
           redis: { condition: "service_healthy" },
@@ -105,31 +112,46 @@ describe("Compose deployment contracts", () => {
     );
     expect(compose.services.bootstrap).toEqual(
       expect.objectContaining({
+        profiles: ["runtime-preparation"],
         depends_on: {
           prepare: { condition: "service_completed_successfully" },
         },
       }),
     );
-    expect(compose.services.app).toEqual(
-      expect.objectContaining({
-        depends_on: {
-          bootstrap: { condition: "service_completed_successfully" },
-        },
-      }),
-    );
+    expect(compose.services.app).toMatchObject({
+      command: ["${CAT_APPLICATION_COMMAND:-prepare-and-start}"],
+      image:
+        "${CAT_APPLICATION_IMAGE:-${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}}",
+    });
+    expect(compose.services.app).toMatchObject({
+      depends_on: {
+        postgresql: { condition: "service_healthy" },
+        redis: { condition: "service_healthy" },
+        spacy: { condition: "service_healthy" },
+      },
+    });
+    expect(compose.services.app).not.toHaveProperty("depends_on.bootstrap");
 
     const resolved = JSON.parse(await runComposeConfig(productionCompose)) as {
       services: Record<string, Record<string, unknown>>;
       volumes: Record<string, unknown>;
     };
-    for (const service of Object.values(resolved.services)) {
+    const prepared = JSON.parse(
+      await runComposeConfig(productionCompose, ["runtime-preparation"]),
+    ) as {
+      services: Record<string, Record<string, unknown>>;
+      volumes: Record<string, unknown>;
+    };
+    expect(resolved.services).not.toHaveProperty("prepare");
+    expect(resolved.services).not.toHaveProperty("bootstrap");
+    for (const service of Object.values(prepared.services)) {
       expect(service).not.toHaveProperty("build");
       expect(service).not.toHaveProperty("extends");
       expect(service).not.toHaveProperty("configs");
       expect(JSON.stringify(service)).not.toContain('type":"bind');
       expect(service.image).toEqual(expect.any(String));
     }
-    expect(resolved.volumes).toEqual(
+    expect(prepared.volumes).toEqual(
       expect.objectContaining({
         "cat-data": expect.any(Object),
         "postgresql-data": expect.any(Object),
@@ -137,7 +159,7 @@ describe("Compose deployment contracts", () => {
       }),
     );
     for (const name of ["prepare", "bootstrap", "app"]) {
-      const service = resolved.services[name];
+      const service = prepared.services[name];
       expect(service).toMatchObject({
         read_only: true,
         tmpfs: ["/tmp:rw,nosuid,nodev,noexec,mode=1777"],
@@ -152,15 +174,17 @@ describe("Compose deployment contracts", () => {
         CAT_RUNTIME_PROFILE: "production",
       });
     }
-    expect(resolved.services.prepare).not.toHaveProperty(
+    expect(prepared.services.prepare).not.toHaveProperty(
       "environment.CAT_BOOTSTRAP_PLAN",
     );
-    expect(resolved.services.app).not.toHaveProperty(
+    expect(prepared.services.app).not.toHaveProperty(
       "environment.CAT_BOOTSTRAP_PLAN",
     );
-    expect(resolved.services.bootstrap?.environment).toHaveProperty(
+    expect(prepared.services.bootstrap?.environment).toHaveProperty(
       "CAT_BOOTSTRAP_PLAN",
     );
+    expect(resolved.services.app?.command).toEqual(["prepare-and-start"]);
+    expect(resolved.services.app?.image).toBe("ghcr.io/ykdz/cat:latest");
     expect(resolved.services.redis).toMatchObject({
       environment: { REDIS_PASSWORD: composeEnvironment.CAT_REDIS_PASSWORD },
     });

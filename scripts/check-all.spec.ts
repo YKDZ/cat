@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { inspect } from "node:util";
 
 import { describe, expect, it, vi } from "vitest";
@@ -121,6 +122,25 @@ const builtImages = {
 const discardCheckAllLog = (_message: string): void => undefined;
 
 describe("check:all service lifecycle", () => {
+  it("keeps successful schema pushes concise while preserving strict forced migration", () => {
+    const drizzleConfig = readFileSync(
+      resolve(import.meta.dirname, "../packages/db/drizzle.config.ts"),
+      "utf8",
+    );
+    const packageManifest = JSON.parse(
+      readFileSync(
+        resolve(import.meta.dirname, "../packages/db/package.json"),
+        "utf8",
+      ),
+    ) as { scripts?: Record<string, string> };
+
+    expect(drizzleConfig).toContain("verbose: false");
+    expect(drizzleConfig).toContain("strict: true");
+    expect(packageManifest.scripts?.["drizzle:push"]).toBe(
+      "drizzle-kit push --force",
+    );
+  });
+
   it("normalizes a real spawn failure without retaining secret arguments", async () => {
     const secret = "spawn-argument-secret";
     let failure: unknown;

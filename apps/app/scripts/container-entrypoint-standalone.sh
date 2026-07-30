@@ -14,6 +14,7 @@ case "${1:-}" in
   bootstrap-only) bootstrap_deployment ;;
   prepare-and-start)
     prepare_database
+    bootstrap_deployment
     exec node /usr/local/bin/container-runner.mjs node /app/dist/server/index.mjs
     ;;
   *)

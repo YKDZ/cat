@@ -376,6 +376,37 @@ const managedProcessGroupIsAlive = (child: ChildProcess): boolean => {
   }
 };
 
+const managedChildIsAlive = (child: ChildProcess): boolean => {
+  if (childHasExited(child)) return false;
+  if (child.pid === undefined) return true;
+  try {
+    process.kill(child.pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+};
+
+const managedProcessTreeIsAlive = (child: ChildProcess): boolean =>
+  managedProcessGroupIsAlive(child) || managedChildIsAlive(child);
+
+const waitForManagedProcessGroupExit = async (
+  child: ChildProcess,
+  label: string,
+): Promise<void> => {
+  const deadline = Date.now() + forcedProcessExitTimeoutMs;
+  while (managedProcessGroupIsAlive(child)) {
+    if (Date.now() >= deadline) {
+      throw new Error(
+        `Process group for ${label} remained alive after SIGKILL`,
+      );
+    }
+    await new Promise<void>((resolveDelay) => {
+      setTimeout(resolveDelay, 10);
+    });
+  }
+};
+
 const closeOutputStream = async (
   output: ReturnType<typeof createWriteStream> | undefined,
 ): Promise<Error | undefined> => {
@@ -473,8 +504,23 @@ export const runManagedCommand = async (
       settled = true;
       cleanup();
       const closeFailure = await closeOutputStream(output);
-      const finalFailure =
+      let processGroupExitFailure: Error | undefined;
+      if (requestedFailure !== undefined && terminationEscalated) {
+        try {
+          await waitForManagedProcessGroupExit(child, label);
+        } catch (error) {
+          processGroupExitFailure = toError(error);
+        }
+      }
+      const initialFailure =
         failure ?? requestedFailure ?? outputFailure ?? closeFailure;
+      const finalFailure =
+        initialFailure === undefined || processGroupExitFailure === undefined
+          ? (initialFailure ?? processGroupExitFailure)
+          : new AggregateError(
+              [initialFailure, processGroupExitFailure],
+              `Could not confirm ${label} stopped`,
+            );
       if (finalFailure !== undefined) {
         reject(finalFailure);
         return;
@@ -512,9 +558,17 @@ export const runManagedCommand = async (
       }
       if (terminationTimeout !== undefined) return;
       terminationTimeout = setTimeout(() => {
+        if (!managedProcessTreeIsAlive(child)) {
+          void finish(closed?.code ?? null, closed?.signal ?? null);
+          return;
+        }
         terminationEscalated = true;
         const killFailure = signalManagedProcessTree(child, "SIGKILL");
         if (killFailure !== undefined) {
+          if (!managedProcessTreeIsAlive(child)) {
+            void finish(closed?.code ?? null, closed?.signal ?? null);
+            return;
+          }
           void finish(
             null,
             null,
@@ -710,14 +764,21 @@ const createCellDatabase = async (
   return { databaseName, databaseUrl };
 };
 
-const dropCellDatabase = async (
+export const dropCellDatabase = async (
   adminUrl: string,
   databaseName: string,
   signal: AbortSignal,
+  client: Pick<Client, "connect" | "end" | "query"> = new Client({
+    connectionString: adminUrl,
+  }),
 ): Promise<void> => {
-  const client = new Client({ connectionString: adminUrl });
+  let ending: Promise<void> | undefined;
+  const closeClient = (): Promise<void> => {
+    ending ??= Promise.resolve().then(async () => await client.end());
+    return ending;
+  };
   const abort = (): void => {
-    void client.end().catch(() => undefined);
+    void closeClient().catch(() => undefined);
   };
   if (signal.aborted) throw abortReason(signal, "Database cleanup");
   signal.addEventListener("abort", abort, { once: true });
@@ -734,7 +795,7 @@ const dropCellDatabase = async (
     );
   } finally {
     signal.removeEventListener("abort", abort);
-    await client.end();
+    await closeClient();
   }
 };
 
@@ -1699,7 +1760,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
       runtime,
       containerName,
       this.target === "standalone" ? "prepare-and-start" : "start-only",
-      undefined,
+      this.target === "standalone" ? this.bootstrapPlan(runtime) : undefined,
       true,
     );
     const child = spawn("docker", ["start", "--attach", containerName], {
@@ -2163,7 +2224,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
   }
 }
 
-class StandaloneTargetAdapter extends ReleaseTargetAdapter {
+export class StandaloneTargetAdapter extends ReleaseTargetAdapter {
   public constructor(
     imageId: string,
     browser: ExecutionBrowser,

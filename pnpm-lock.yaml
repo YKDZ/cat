@@ -749,6 +749,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: 'catalog:'
         version: 6.0.7(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3))
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -792,6 +795,9 @@ importers:
       hono:
         specifier: 'catalog:'
         version: 4.12.25
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -1133,6 +1139,9 @@ importers:
       pino-pretty:
         specifier: 'catalog:'
         version: 13.1.3
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -1225,6 +1234,9 @@ importers:
       mermaid:
         specifier: 'catalog:'
         version: 11.15.0
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
       vitepress:
         specifier: 'catalog:'
         version: 2.0.0-alpha.17(@types/node@25.9.3)(jiti@2.7.0)(lightningcss@1.32.0)(postcss@8.5.15)(qrcode@1.5.4)(stylus@0.57.0)(tsx@4.22.4)(typescript@6.0.3)(universal-cookie@8.1.2)(yaml@2.9.0)
@@ -1734,7 +1746,7 @@ importers:
         version: 4.12.25
       vue:
         specifier: 'catalog:'
-        version: 3.5.38(typescript@7.0.2)
+        version: 3.5.38(typescript@6.0.3)
       yaml:
         specifier: 'catalog:'
         version: 2.9.0
@@ -1995,6 +2007,9 @@ importers:
       shadcn-vue:
         specifier: 'catalog:'
         version: 2.7.4(eslint@9.37.0(jiti@2.7.0))(vue@3.5.38(typescript@6.0.3))
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -13115,12 +13130,6 @@ snapshots:
       '@vue/shared': 3.5.38
       vue: 3.5.38(typescript@6.0.3)
 
-  '@vue/server-renderer@3.5.38(vue@3.5.38(typescript@7.0.2))':
-    dependencies:
-      '@vue/compiler-ssr': 3.5.38
-      '@vue/shared': 3.5.38
-      vue: 3.5.38(typescript@7.0.2)
-
   '@vue/shared@3.5.38': {}
 
   '@vue/test-utils@2.4.11(@vue/compiler-dom@3.5.38)(@vue/server-renderer@3.5.38(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
@@ -17140,16 +17149,6 @@ snapshots:
       '@vue/shared': 3.5.38
     optionalDependencies:
       typescript: 6.0.3
-
-  vue@3.5.38(typescript@7.0.2):
-    dependencies:
-      '@vue/compiler-dom': 3.5.38
-      '@vue/compiler-sfc': 3.5.38
-      '@vue/runtime-dom': 3.5.38
-      '@vue/server-renderer': 3.5.38(vue@3.5.38(typescript@7.0.2))
-      '@vue/shared': 3.5.38
-    optionalDependencies:
-      typescript: 7.0.2
 
   w3c-keyname@2.2.8: {}
 

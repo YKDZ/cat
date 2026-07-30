@@ -19,7 +19,7 @@
     "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
     "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/auth/tsconfig.json"
   },
   "dependencies": {
     "@cat/core": "link:../core",

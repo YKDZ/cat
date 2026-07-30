@@ -141,6 +141,8 @@ const normalizeValue = (
   seen: WeakSet<object> = new WeakSet(),
 ): unknown => {
   if (value instanceof Error) {
+    if (seen.has(value)) return "[CIRCULAR]";
+    seen.add(value);
     const cause = Reflect.get(value, "cause");
     return {
       ...(cause === undefined ? {} : { cause: normalizeValue(cause, seen) }),
@@ -164,8 +166,11 @@ const normalizeValue = (
     return String(value);
   }
   if (value instanceof Date) return value.toISOString();
-  if (Array.isArray(value))
+  if (Array.isArray(value)) {
+    if (seen.has(value)) return "[CIRCULAR]";
+    seen.add(value);
     return value.map((item) => normalizeValue(item, seen));
+  }
   if (typeof value === "object") {
     if (seen.has(value)) return "[CIRCULAR]";
     seen.add(value);
@@ -183,10 +188,12 @@ const normalizeValue = (
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 
-const deepFreeze = <T>(value: T): T => {
+const deepFreeze = <T>(value: T, seen: WeakSet<object> = new WeakSet()): T => {
   if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
+    if (seen.has(value)) return value;
+    seen.add(value);
     for (const child of Object.values(value)) {
-      deepFreeze(child);
+      deepFreeze(child, seen);
     }
     Object.freeze(value);
   }

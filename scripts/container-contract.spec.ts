@@ -200,6 +200,7 @@ describe("application container contract", () => {
       code: 0,
       stdout: [
         "/usr/local/bin/container-runner.mjs node /app/.preparation/prepare-database.mjs",
+        "/usr/local/bin/container-runner.mjs node /app/dist/bootstrap-only/bootstrap-only-cli.js",
         "/usr/local/bin/container-runner.mjs node /app/dist/server/index.mjs",
         "",
       ].join("\n"),

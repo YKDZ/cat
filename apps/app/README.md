@@ -21,6 +21,17 @@ read-only. The runtime target contains neither migration files, the
 database-preparation program, nor the deployment bootstrap CLI. Those
 artifacts are added only to the standalone target.
 
+Production `compose.yaml` defaults to the standalone aggregate, so one
+`docker compose up -d` performs preparation, the versioned deployment plan,
+and normal startup exactly once. To use the runtime image, first run the
+profiled standalone bootstrap as a targeted one-shot service, then select the
+runtime image and its start-only command for `app`:
+
+```sh
+docker compose --profile runtime-preparation up --abort-on-container-exit --exit-code-from bootstrap bootstrap
+CAT_APPLICATION_IMAGE=ghcr.io/ykdz/cat:latest-runtime CAT_APPLICATION_COMMAND=start-only docker compose up -d app
+```
+
 ## Local service bootstrap
 
 For a fresh local database, start `compose.local.yaml`, then run

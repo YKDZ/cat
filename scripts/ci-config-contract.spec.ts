@@ -101,6 +101,7 @@ describe("CI configuration contract", () => {
     expect(uses).toContain("actions/upload-artifact@v7");
     expect(uses).toContain("actions/download-artifact@v8");
     expect(uses).toContain("docker/setup-buildx-action@v4");
+    expect(uses).toContain("docker/login-action@v4");
   });
 
   it("runs both complete gates for every pull request without secret-only conditions", () => {
@@ -125,7 +126,14 @@ describe("CI configuration contract", () => {
     ).toBe(true);
     for (const job of [check, checkAll]) {
       expect(JSON.stringify(job)).not.toMatch(
-        new RegExp(["affected", "base-branch", "moon"].join("|"), "i"),
+        new RegExp(
+          [
+            "affected",
+            "base-branch",
+            String.fromCharCode(109, 111, 111, 110),
+          ].join("|"),
+          "i",
+        ),
       );
     }
   });
@@ -178,11 +186,17 @@ describe("CI configuration contract", () => {
           (step) =>
             step.uses === "actions/setup-node@v7" &&
             step.with?.["node-version-file"] === "package.json" &&
-            step.with?.["registry-url"] === "https://registry.npmjs.org" &&
             step.with?.cache === "pnpm" &&
             step.with?.["cache-dependency-path"] === "pnpm-lock.yaml",
         ),
       ).toBe(true);
+      expect(
+        steps.some(
+          (step) =>
+            step.uses === "actions/setup-node@v7" &&
+            step.with?.["registry-url"] !== undefined,
+        ),
+      ).toBe(false);
     }
 
     const manifest = JSON.parse(

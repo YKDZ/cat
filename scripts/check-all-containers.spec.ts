@@ -381,6 +381,23 @@ describe("application container lifecycle", () => {
       argument.startsWith("CAT_BOOTSTRAP_PLAN="),
     );
     expect(plan).toBeDefined();
+    const standaloneAggregate = calls.find(
+      (args) =>
+        args[0] === "run" &&
+        args.includes("prepare-and-start") &&
+        args.includes(standaloneImageId),
+    );
+    if (standaloneAggregate === undefined) {
+      throw new Error("Expected standalone prepare-and-start command");
+    }
+    expect(standaloneAggregate).toEqual(
+      expect.arrayContaining(["--env", plan!]),
+    );
+    expect(
+      standaloneAggregate.find((argument) =>
+        argument.startsWith("CAT_BOOTSTRAP_PLAN="),
+      ),
+    ).toBe(plan);
     expect(JSON.parse(plan?.slice("CAT_BOOTSTRAP_PLAN=".length) ?? "")).toEqual(
       {
         idempotencyKey: "cat-container-lifecycle-storage-lifecycle-services-v1",

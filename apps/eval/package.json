@@ -14,7 +14,7 @@
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p apps/eval/tsconfig.json"
   },
   "dependencies": {
     "@cat/agent": "link:../../packages/agent",

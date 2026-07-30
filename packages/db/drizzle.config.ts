@@ -37,6 +37,6 @@ export default defineConfig({
   // Vector DDL is prepared explicitly because pgvector is supplied by the database runtime.
   tablesFilter: ["!Vector"],
 
-  verbose: true,
+  verbose: false,
   strict: true,
 });
