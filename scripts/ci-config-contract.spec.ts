@@ -8,6 +8,7 @@ import { parse } from "yaml";
 const root = resolve(import.meta.dirname, "..");
 
 type WorkflowStep = {
+  env?: Record<string, string>;
   if?: string;
   name?: string;
   run?: string;
@@ -61,8 +62,24 @@ const actionStep = (name: string): WorkflowStep => {
   return step!;
 };
 
+const expectTurboRemoteCacheEnv = (env: Record<string, string> | undefined) => {
+  expect(env?.TURBO_TEAM).toBe("${{ vars.TURBO_TEAM }}");
+  for (const name of [
+    "TURBO_TOKEN",
+    "TURBO_REMOTE_CACHE_SIGNATURE_KEY",
+  ] as const) {
+    const value = env?.[name] ?? "";
+    expect(value).toContain("github.event_name == 'push'");
+    expect(value).toContain("github.ref == 'refs/heads/main'");
+    expect(value).toContain("github.event_name == 'workflow_dispatch'");
+    expect(value).toContain("secrets.");
+    expect(value).toContain("|| ''");
+    expect(value).not.toContain("pull_request");
+  }
+};
+
 describe("CI configuration contract", () => {
-  it("runs both complete secret-free gates for every pull request", () => {
+  it("runs both complete gates for every pull request without secret-only conditions", () => {
     expect(workflow.on).toMatchObject({
       pull_request: null,
       push: { branches: ["main"] },
@@ -83,7 +100,6 @@ describe("CI configuration contract", () => {
       checkAll?.steps?.some((step) => step.run?.includes("pnpm check:all")),
     ).toBe(true);
     for (const job of [check, checkAll]) {
-      expect(JSON.stringify(job)).not.toContain("secrets.");
       expect(JSON.stringify(job)).not.toMatch(
         new RegExp(["affected", "base-branch", "moon"].join("|"), "i"),
       );
@@ -141,22 +157,30 @@ describe("CI configuration contract", () => {
     }
   });
 
-  it("lets forks restore cache while only main and internal pull requests save it", () => {
+  it("uses Turbo remote cache in CI without persisting the local .turbo cache", () => {
     for (const name of ["check", "check-all"] as const) {
       const steps = workflow.jobs?.[name]?.steps ?? [];
-      const restore = steps.find(
-        (step) => step.uses === "actions/cache/restore@v4",
+      const runStep = steps.find((step) =>
+        step.run?.includes(name === "check" ? "pnpm check" : "pnpm check:all"),
       );
-      const save = steps.find((step) => step.uses === "actions/cache/save@v4");
-      expect(restore?.if).toBeUndefined();
-      expect(restore?.with?.path).toBe(".turbo");
-      expect(save?.with?.path).toBe(".turbo");
-      expect(save?.if).toContain("github.event_name != 'pull_request'");
-      expect(save?.if).toContain(
-        "github.event.pull_request.head.repo.full_name == github.repository",
+      expectTurboRemoteCacheEnv(runStep?.env);
+      expect(
+        steps.some(
+          (step) =>
+            step.uses === "actions/cache/restore@v4" &&
+            step.with?.path === ".turbo",
+        ),
+      ).toBe(false);
+      expect(
+        steps.some(
+          (step) =>
+            step.uses === "actions/cache/save@v4" &&
+            step.with?.path === ".turbo",
+        ),
+      ).toBe(false);
+      expect(JSON.stringify(workflow.jobs?.[name])).not.toContain(
+        "github.event.pull_request.head.repo.full_name",
       );
-      expect(save?.with?.key).toContain("github.run_id");
-      expect(save?.with?.key).toContain("github.run_attempt");
     }
   });
 
