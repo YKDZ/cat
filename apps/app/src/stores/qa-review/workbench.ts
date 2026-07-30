@@ -9,6 +9,15 @@ import { orpc } from "#/rpc/orpc.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 
+const retryRouteDetailDelayMs = 100;
+const routeDetailAttemptCount = 3;
+
+const waitForRouteDetailRetry = async () => {
+  await new Promise<void>((resolve) => {
+    globalThis.setTimeout(resolve, retryRouteDetailDelayMs);
+  });
+};
+
 /**
  * QA review workbench page state.
  */
@@ -131,7 +140,11 @@ export const useQaReviewWorkbenchStore = defineStore(
     const syncRouteElement = async (elementId: number) => {
       setSelectedElement(elementId);
       await nextTick();
-      await refreshDetail();
+      for (let attempt = 1; attempt <= routeDetailAttemptCount; attempt += 1) {
+        await refreshDetail();
+        if ((detail.value?.candidates.length ?? 0) > 0) return;
+        if (attempt < routeDetailAttemptCount) await waitForRouteDetailRetry();
+      }
     };
 
     const selectCandidate = (input: {

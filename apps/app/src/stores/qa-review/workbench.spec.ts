@@ -152,6 +152,30 @@ describe("useQaReviewWorkbenchStore", () => {
     expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
+  it("retries route detail when the first refresh has no candidates", async () => {
+    mocks.getReviewableElement
+      .mockResolvedValueOnce({ sourceText: "Apple", candidates: [] })
+      .mockResolvedValueOnce({
+        sourceText: "Apple",
+        candidates: [
+          {
+            queueItem: {
+              id: 1,
+              optimisticVersion: 1,
+            },
+            translation: { id: 2, text: "苹果" },
+            findings: [],
+            annotations: [],
+          },
+        ],
+      });
+    const store = useQaReviewWorkbenchStore();
+
+    await store.syncRouteElement(7);
+
+    expect(mocks.getReviewableElement).toHaveBeenCalledTimes(2);
+  });
+
   it("navigates when selecting an element from the workbench", async () => {
     const store = useQaReviewWorkbenchStore();
 
