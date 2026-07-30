@@ -63,7 +63,6 @@ test.describe("QA review workbench", () => {
     );
     await qaReviewPage.selectFirstCandidate();
     await qaReviewPage.defer();
-    await page.waitForLoadState("networkidle");
 
     await qaReviewPage.navigateToQa(projectId, "zh-Hans");
     await page.waitForURL(

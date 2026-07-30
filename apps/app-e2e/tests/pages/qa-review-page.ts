@@ -73,6 +73,10 @@ export class QaReviewPage {
     await this.submitAction(async () => {
       await this.page.getByRole("button", { name: /批注并跳过|跳过/ }).click();
     });
+    await expect(
+      this.page.getByRole("button", { name: /同意|批注并同意/ }),
+    ).toBeHidden({ timeout: 15_000 });
+    await this.expectFirstCandidateVisible(30_000);
   }
 
   private async submitAction(click: () => Promise<void>): Promise<void> {
