@@ -9,9 +9,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { loadWorkspacePackages } from "./workspace-boundaries.ts";
 
 const root = resolve(import.meta.dirname, "..");
 
@@ -24,17 +26,14 @@ const typecheckManifests = (): Array<{
   manifest: TypecheckManifest;
   path: string;
 }> =>
-  execFileSync("rg", ["--files", "-g", "package.json"], {
-    cwd: root,
-    encoding: "utf8",
-  })
-    .trim()
-    .split("\n")
+  [
+    resolve(root, "package.json"),
+    ...loadWorkspacePackages(root).map(({ manifestPath }) => manifestPath),
+  ]
+    .sort((left, right) => left.localeCompare(right))
     .map((path) => ({
-      manifest: JSON.parse(
-        readFileSync(resolve(root, path), "utf8"),
-      ) as TypecheckManifest,
-      path,
+      manifest: JSON.parse(readFileSync(path, "utf8")) as TypecheckManifest,
+      path: relative(root, path),
     }))
     .filter(({ manifest }) => manifest.scripts?.typecheck !== undefined);
 
@@ -105,6 +104,26 @@ const createLintHashFixture = (): string => {
 };
 
 describe("Turbo workspace contract", () => {
+  it("discovers workspace manifests without a shell search dependency", () => {
+    const directory = mkdtempSync(resolve(tmpdir(), "cat-no-rg-"));
+    const previousPath = process.env.PATH;
+    try {
+      process.env.PATH = directory;
+      expect(typecheckManifests().map(({ path }) => path)).toEqual(
+        expect.arrayContaining([
+          "package.json",
+          "apps/app/package.json",
+          "apps/docs/package.json",
+          "packages/shared/package.json",
+        ]),
+      );
+    } finally {
+      if (previousPath === undefined) delete process.env.PATH;
+      else process.env.PATH = previousPath;
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
   it("runs every plain TypeScript compiler command through root-native TS7", () => {
     const manifests = typecheckManifests();
     let nativeTscCommands = 0;
