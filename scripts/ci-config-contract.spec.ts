@@ -74,12 +74,35 @@ const expectTurboRemoteCacheEnv = (env: Record<string, string> | undefined) => {
     expect(value).toContain("github.event_name == 'workflow_dispatch'");
     if (name === "TURBO_TEAM") expect(value).toContain("vars.TURBO_TEAM");
     else expect(value).toContain("secrets.");
+    if (name === "TURBO_REMOTE_CACHE_SIGNATURE_KEY") {
+      expect(value).toContain("secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY");
+      expect(value).not.toContain("TURBO_TOKEN");
+    }
     expect(value).toContain("|| ''");
     expect(value).not.toContain("pull_request");
   }
 };
 
 describe("CI configuration contract", () => {
+  it("uses the supported action majors without Node 20 runtime fallbacks", () => {
+    const steps = Object.values(workflow.jobs ?? {}).flatMap(
+      (job) => job.steps ?? [],
+    );
+    const uses = steps.map((step) => step.uses);
+
+    expect(
+      uses.filter((value) => value === "actions/checkout@v7"),
+    ).toHaveLength(3);
+    expect(
+      uses.filter((value) => value === "actions/setup-node@v7"),
+    ).toHaveLength(3);
+    expect(uses).toContain("actions/cache/restore@v6");
+    expect(uses).toContain("actions/cache/save@v6");
+    expect(uses).toContain("actions/upload-artifact@v7");
+    expect(uses).toContain("actions/download-artifact@v8");
+    expect(uses).toContain("docker/setup-buildx-action@v4");
+  });
+
   it("runs both complete gates for every pull request without secret-only conditions", () => {
     expect(workflow.on).toMatchObject({
       pull_request: null,
@@ -129,7 +152,7 @@ describe("CI configuration contract", () => {
 
     expect(diagnostics).toMatchObject({
       if: "failure()",
-      uses: "actions/upload-artifact@v4",
+      uses: "actions/upload-artifact@v7",
       with: {
         "include-hidden-files": true,
         "if-no-files-found": "ignore",
@@ -153,7 +176,7 @@ describe("CI configuration contract", () => {
       expect(
         steps.some(
           (step) =>
-            step.uses === "actions/setup-node@v6" &&
+            step.uses === "actions/setup-node@v7" &&
             step.with?.["node-version-file"] === "package.json" &&
             step.with?.["registry-url"] === "https://registry.npmjs.org" &&
             step.with?.cache === "pnpm" &&
@@ -187,14 +210,14 @@ describe("CI configuration contract", () => {
       expect(
         steps.some(
           (step) =>
-            step.uses === "actions/cache/restore@v4" &&
+            step.uses === "actions/cache/restore@v6" &&
             step.with?.path === ".turbo",
         ),
       ).toBe(false);
       expect(
         steps.some(
           (step) =>
-            step.uses === "actions/cache/save@v4" &&
+            step.uses === "actions/cache/save@v6" &&
             step.with?.path === ".turbo",
         ),
       ).toBe(false);
@@ -204,14 +227,14 @@ describe("CI configuration contract", () => {
     }
     const checkAllSteps = workflow.jobs?.["check-all"]?.steps ?? [];
     const restore = checkAllSteps.find(
-      (step) => step.uses === "actions/cache/restore@v4",
+      (step) => step.uses === "actions/cache/restore@v6",
     );
     const save = checkAllSteps.find(
-      (step) => step.uses === "actions/cache/save@v4",
+      (step) => step.uses === "actions/cache/save@v6",
     );
     expect(
       checkAllSteps.some(
-        (step) => step.uses === "docker/setup-buildx-action@v3",
+        (step) => step.uses === "docker/setup-buildx-action@v4",
       ),
     ).toBe(true);
     expect(restore?.with?.path).toBe(".cache/buildx");
@@ -229,7 +252,7 @@ describe("CI configuration contract", () => {
     expect(
       checkAllSteps.some(
         (step) =>
-          step.uses === "actions/upload-artifact@v4" &&
+          step.uses === "actions/upload-artifact@v7" &&
           step.with?.name === "validated-images-${{ github.sha }}",
       ),
     ).toBe(true);
@@ -244,7 +267,7 @@ describe("CI configuration contract", () => {
     expect(
       releaseSteps.some(
         (step) =>
-          step.uses === "actions/download-artifact@v4" &&
+          step.uses === "actions/download-artifact@v8" &&
           step.with?.name === "validated-images-${{ github.sha }}",
       ),
     ).toBe(true);

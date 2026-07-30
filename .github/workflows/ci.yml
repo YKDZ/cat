@@ -26,13 +26,13 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bootstrap integrity-pinned pnpm for dependency caching
         run: node scripts/package-manager-pin.ts
 
       - name: Setup exact Node.js patch
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org
@@ -58,13 +58,13 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bootstrap integrity-pinned pnpm for dependency caching
         run: node scripts/package-manager-pin.ts
 
       - name: Setup exact Node.js patch
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org
@@ -78,12 +78,12 @@ jobs:
         run: pnpm ci:install
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Restore trusted Buildx cache
         id: buildx-cache
         continue-on-error: true
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: .cache/buildx
           key: buildx-${{ runner.os }}-main-${{ github.sha }}
@@ -109,7 +109,7 @@ jobs:
 
       - name: Upload failed E2E diagnostics
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-diagnostics-${{ github.sha }}
           path: |
@@ -122,13 +122,13 @@ jobs:
       - name: Save Buildx cache from trusted builds
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: .cache/buildx
           key: buildx-${{ runner.os }}-main-${{ github.sha }}
 
       - name: Upload validated container images
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: validated-images-${{ github.sha }}
           path: validated-images
@@ -148,13 +148,13 @@ jobs:
       packages: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bootstrap integrity-pinned pnpm for dependency caching
         run: node scripts/package-manager-pin.ts
 
       - name: Setup exact Node.js patch
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version-file: package.json
           registry-url: https://registry.npmjs.org
@@ -165,7 +165,7 @@ jobs:
         run: node scripts/package-manager-pin.ts
 
       - name: Download validated container images
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: validated-images-${{ github.sha }}
           path: validated-images

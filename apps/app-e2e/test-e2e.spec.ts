@@ -23,11 +23,15 @@ const runtimeImageId = `sha256:${"b".repeat(64)}`;
 const runDirectE2E = async (
   env: NodeJS.ProcessEnv,
 ): Promise<{ code: number | null; stderr: string; stdout: string }> => {
-  const child = spawn(process.execPath, ["test-e2e.ts", "--target", "dev"], {
-    cwd: import.meta.dirname,
-    env,
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const child = spawn(
+    process.execPath,
+    ["--conditions=source", "test-e2e.ts", "--target", "dev"],
+    {
+      cwd: import.meta.dirname,
+      env,
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
   let stdout = "";
   let stderr = "";
   child.stdout.setEncoding("utf8");
