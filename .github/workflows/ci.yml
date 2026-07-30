@@ -45,24 +45,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Restore Turbo cache
-        uses: actions/cache/restore@v4
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}
-          restore-keys: |
-            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-
-            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-main-
-
       - name: Run repository quality contract
+        env:
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
         run: pnpm check
-
-      - name: Persist Turbo cache for trusted runs
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/cache/save@v4
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
 
   check-all:
     name: Full Graph (check:all)
@@ -98,19 +86,13 @@ jobs:
           test -n "$image"
           docker buildx imagetools inspect "$image"
 
-      - name: Restore Turbo cache
-        uses: actions/cache/restore@v4
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}
-          restore-keys: |
-            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-
-            turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-main-
-
       - name: Run complete repository contract and export validated images
         env:
           CAT_CHECK_ALL_EXPORT_IMAGES_DIR: validated-images
           CAT_CHECK_ALL_PROJECT_NAME: cat-validated-${{ github.sha }}
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
         run: |
           mkdir -p validated-images
           pnpm check:all
@@ -125,13 +107,6 @@ jobs:
           compression-level: 0
           if-no-files-found: error
           retention-days: 1
-
-      - name: Persist Turbo cache for trusted runs
-        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
-        uses: actions/cache/save@v4
-        with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ hashFiles('package.json', 'pnpm-lock.yaml') }}-${{ github.ref_name }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
 
   release-images:
     name: Publish validated container images
