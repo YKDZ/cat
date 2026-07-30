@@ -172,7 +172,7 @@ describe("PluginConfigEditor", () => {
       props: {
         detail: createNoConfigDetail(),
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -188,7 +188,7 @@ describe("PluginConfigEditor", () => {
       props: {
         detail: createConfigDetail(),
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -211,7 +211,7 @@ describe("PluginConfigEditor", () => {
     detail.actions.canSaveConfig = false;
     detail.actions.canMigrateConfig = true;
     const wrapper = mount(PluginConfigEditor, {
-      props: { detail, isSaving: false, isProbing: false },
+      props: { detail, isSaving: false, activeProbeTarget: null },
       global: { plugins: [i18n] },
     });
 

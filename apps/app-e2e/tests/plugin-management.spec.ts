@@ -11,7 +11,8 @@ test.describe("Plugin management", () => {
       page.getByRole("heading", { name: "spacy-segmenter" }),
     ).toBeVisible();
 
-    const probeButton = page.getByRole("button", {
+    const configPanel = page.getByTestId("plugin-config-editor");
+    const probeButton = configPanel.getByRole("button", {
       name: "检测当前配置",
       exact: true,
     });
@@ -21,7 +22,7 @@ test.describe("Plugin management", () => {
     const successResult = page.getByText("检测结果：SUCCESS");
     await Promise.any([
       expect(
-        page.getByRole("button", { name: "检测中…", exact: true }).first(),
+        configPanel.getByRole("button", { name: "检测中…" }),
       ).toBeVisible(),
       expect(successResult).toBeVisible(),
     ]);

@@ -131,7 +131,7 @@ describe("PluginDetailShell", () => {
         probeResult: null,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -158,7 +158,7 @@ describe("PluginDetailShell", () => {
         probeResult: null,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -195,7 +195,7 @@ describe("PluginDetailShell", () => {
         probeResult: null,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -219,7 +219,7 @@ describe("PluginDetailShell", () => {
         probeResult: unsupportedProbeResult,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],

@@ -7,7 +7,11 @@ import { useI18n } from "vue-i18n";
 import PluginConfigEditor from "./PluginConfigEditor.vue";
 import PluginLifecycleActions from "./PluginLifecycleActions.vue";
 import PluginProbePanel from "./PluginProbePanel.vue";
-import type { NonNullPluginDetail, PluginProbeResult } from "./types.ts";
+import type {
+  NonNullPluginDetail,
+  PluginProbeResult,
+  PluginProbeTarget,
+} from "./types.ts";
 
 const { t } = useI18n();
 
@@ -23,8 +27,8 @@ const props = defineProps<{
   isBusy: boolean;
   /** Whether a save request is in progress. */
   isSaving: boolean;
-  /** Whether a probe request is in progress. */
-  isProbing: boolean;
+  /** Target currently being probed, if any. */
+  activeProbeTarget: PluginProbeTarget | null;
 }>();
 
 /**
@@ -142,7 +146,7 @@ const simpleName = computed(() =>
     <PluginConfigEditor
       :detail="detail"
       :is-saving="isSaving"
-      :is-probing="isProbing"
+      :active-probe-target="activeProbeTarget"
       @save="
         (value, expectedRevision) => emit('saveConfig', value, expectedRevision)
       "
@@ -153,7 +157,7 @@ const simpleName = computed(() =>
     <PluginProbePanel
       :detail="detail"
       :result="probeResult"
-      :is-probing="isProbing"
+      :active-probe-target="activeProbeTarget"
       @probe-runtime="emit('probeRuntime')"
       @cancel-probe="emit('cancelProbe')"
     />

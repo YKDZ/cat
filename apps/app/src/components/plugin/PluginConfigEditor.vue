@@ -8,7 +8,7 @@ import * as z from "zod";
 
 import JsonForm from "#/components/json-form/JsonForm.vue";
 
-import type { NonNullPluginDetail } from "./types.ts";
+import type { NonNullPluginDetail, PluginProbeTarget } from "./types.ts";
 
 const { t } = useI18n();
 
@@ -20,8 +20,8 @@ const props = defineProps<{
   detail: NonNullPluginDetail;
   /** Whether a save request is in progress. */
   isSaving: boolean;
-  /** Whether a probe request is in progress. */
-  isProbing: boolean;
+  /** Target currently being probed, if any. */
+  activeProbeTarget: PluginProbeTarget | null;
 }>();
 
 /**
@@ -49,6 +49,10 @@ const errors = ref<string[]>([]);
 const isDirty = computed(() => {
   return JSON.stringify(localData.value) !== JSON.stringify(savedData.value);
 });
+const isCandidateProbing = computed(
+  () => props.activeProbeTarget === "CANDIDATE",
+);
+const isProbeInProgress = computed(() => props.activeProbeTarget !== null);
 
 watch(
   () => props.detail.config.value,
@@ -103,7 +107,7 @@ const handleMigrate = () => {
 </script>
 
 <template>
-  <Card>
+  <Card data-testid="plugin-config-editor">
     <CardHeader>
       <CardTitle>{{ t("配置") }}</CardTitle>
     </CardHeader>
@@ -162,11 +166,11 @@ const handleMigrate = () => {
           </Button>
           <Button
             variant="outline"
-            :disabled="isProbing || !detail.actions.canProbeCandidate"
+            :disabled="isProbeInProgress || !detail.actions.canProbeCandidate"
             @click="handleProbeCandidate"
           >
             <TestTube2 class="mr-2 size-4" />
-            {{ isProbing ? t("检测中…") : t("检测当前配置") }}
+            {{ isCandidateProbing ? t("检测中…") : t("检测当前配置") }}
           </Button>
           <p v-if="isDirty" class="self-center text-xs text-muted-foreground">
             {{ t("当前表单有未保存修改") }}
