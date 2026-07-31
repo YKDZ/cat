@@ -89,16 +89,20 @@ describe("application manifest graph", () => {
     }
   });
 
-  it("uses one alias-free validation config per migrated workspace", () => {
+  it("uses alias-free validation configs owned by each migrated workspace", () => {
     for (const root of migratedRoots) {
       const configs = listFiles(root).filter((path) =>
         /(^|\/)tsconfig(?:\.[^/]+)?\.json$/.test(path),
       );
-      expect(configs, root).toEqual([join(root, "tsconfig.json")]);
+      expect(configs, root).toContain(join(root, "tsconfig.json"));
 
-      const config = readFileSync(join(workspaceRoot, configs[0]!), "utf8");
-      expect(config, `${root} paths`).not.toMatch(/"paths"/);
-      expect(config, `${root} references`).not.toMatch(/"references"/);
+      for (const path of configs) {
+        const config = readFileSync(join(workspaceRoot, path), "utf8");
+        expect(config, `${path} paths`).not.toMatch(/"paths"/);
+        if (root !== "apps/app") {
+          expect(config, `${path} references`).not.toMatch(/"references"/);
+        }
+      }
     }
   });
 

@@ -19,4 +19,6 @@ class Plugin implements CatPlugin {
   }
 }
 
-export default new Plugin();
+const plugin = new Plugin() satisfies CatPlugin;
+
+export default plugin;

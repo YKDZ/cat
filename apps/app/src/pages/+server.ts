@@ -15,7 +15,7 @@ vike(app);
 // rejects business traffic until readiness reports a fully initialized runtime.
 void initializeApp();
 
-export default {
+const serverConfig: VikeServer = {
   prod: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
     ...(process.env.HOST === undefined ? {} : { hostname: process.env.HOST }),
@@ -53,4 +53,6 @@ export default {
   },
 
   fetch: app.fetch,
-} satisfies VikeServer;
+};
+
+export default serverConfig;

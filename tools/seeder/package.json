@@ -12,7 +12,7 @@
     "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "seed": "node --conditions=source main.ts",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p tools/seeder/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p tools/seeder/tsconfig.json"
   },
   "dependencies": {
     "@cat/db": "link:../../packages/db",
@@ -23,6 +23,7 @@
     "@cat/shared": "link:../../packages/shared"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@types/node": "catalog:"
   }
 }

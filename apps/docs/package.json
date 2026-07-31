@@ -10,16 +10,18 @@
     "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
     "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p apps/docs/tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "pnpm --workspace-root exec tsc --build apps/docs/tsconfig.json --noEmit --pretty false && vue-tsc --noEmit --pretty false -p tsconfig.app.json"
   },
   "dependencies": {
     "@tailwindcss/vite": "catalog:",
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@iconify-json/mdi": "catalog:",
     "@iconify/tailwind4": "catalog:",
     "@mermaid-js/mermaid-zenuml": "catalog:",
+    "@vue/tsconfig": "catalog:",
     "@vueuse/core": "catalog:",
     "mermaid": "catalog:",
     "typescript": "catalog:",

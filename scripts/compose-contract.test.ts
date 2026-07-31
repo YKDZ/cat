@@ -19,6 +19,21 @@ const composeEnvironment = {
   CAT_REDIS_PASSWORD: "redis /#@: password",
 };
 
+type ComposeService = Record<string, unknown> & {
+  environment?: Record<string, string>;
+  healthcheck?: unknown;
+  labels?: Record<string, string>;
+  ports?: Array<{ host_ip?: string }>;
+  restart?: string;
+  security_opt?: string[];
+};
+
+type ComposeConfig = {
+  name?: string;
+  services: Record<string, ComposeService>;
+  volumes: Record<string, unknown>;
+};
+
 const runComposeConfig = async (
   file: string,
   profiles: readonly string[] = [],
@@ -82,9 +97,7 @@ describe("Compose deployment contracts", () => {
     expect(raw).not.toContain("../");
     expect(raw).not.toContain("./");
 
-    const compose = parse(raw) as {
-      services: Record<string, Record<string, unknown>>;
-    };
+    const compose = parse(raw) as ComposeConfig;
     expect(compose.services).toEqual(
       expect.objectContaining({
         app: expect.objectContaining({
@@ -132,16 +145,12 @@ describe("Compose deployment contracts", () => {
     });
     expect(compose.services.app).not.toHaveProperty("depends_on.bootstrap");
 
-    const resolved = JSON.parse(await runComposeConfig(productionCompose)) as {
-      services: Record<string, Record<string, unknown>>;
-      volumes: Record<string, unknown>;
-    };
+    const resolved = JSON.parse(
+      await runComposeConfig(productionCompose),
+    ) as ComposeConfig;
     const prepared = JSON.parse(
       await runComposeConfig(productionCompose, ["runtime-preparation"]),
-    ) as {
-      services: Record<string, Record<string, unknown>>;
-      volumes: Record<string, unknown>;
-    };
+    ) as ComposeConfig;
     expect(resolved.services).not.toHaveProperty("prepare");
     expect(resolved.services).not.toHaveProperty("bootstrap");
     for (const service of Object.values(prepared.services)) {
@@ -160,6 +169,9 @@ describe("Compose deployment contracts", () => {
     );
     for (const name of ["prepare", "bootstrap", "app"]) {
       const service = prepared.services[name];
+      if (service === undefined) {
+        throw new Error(`Expected prepared service ${name}`);
+      }
       expect(service).toMatchObject({
         read_only: true,
         tmpfs: ["/tmp:rw,nosuid,nodev,noexec,mode=1777"],
@@ -188,7 +200,7 @@ describe("Compose deployment contracts", () => {
     expect(resolved.services.redis).toMatchObject({
       environment: { REDIS_PASSWORD: composeEnvironment.CAT_REDIS_PASSWORD },
     });
-    expect(JSON.stringify(resolved.services.redis.healthcheck)).toContain(
+    expect(JSON.stringify(resolved.services.redis?.healthcheck)).toContain(
       "REDIS_PASSWORD",
     );
   });
@@ -216,30 +228,12 @@ describe("Compose deployment contracts", () => {
     }
     await expect(runComposeConfig(template)).resolves.toContain('"spacy"');
 
-    const localResolved = JSON.parse(await runComposeConfig(local)) as {
-      name: string;
-      services: Record<
-        string,
-        {
-          environment?: Record<string, string>;
-          ports?: Array<{ host_ip?: string }>;
-          restart?: string;
-          security_opt?: string[];
-        }
-      >;
-    };
-    const e2eResolved = JSON.parse(await runComposeConfig(e2e)) as {
-      name: string;
-      services: Record<
-        string,
-        {
-          environment?: Record<string, string>;
-          ports?: Array<{ host_ip?: string }>;
-          restart?: string;
-          security_opt?: string[];
-        }
-      >;
-    };
+    const localResolved = JSON.parse(
+      await runComposeConfig(local),
+    ) as ComposeConfig;
+    const e2eResolved = JSON.parse(
+      await runComposeConfig(e2e),
+    ) as ComposeConfig;
     expect(localResolved.name).toBe("cat-local");
     expect(e2eResolved.name).toBe("cat-e2e");
     expect(localResolved.services.postgresql?.ports).not.toEqual(

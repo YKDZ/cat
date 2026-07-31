@@ -44,7 +44,7 @@ COPY --from=pruner /repo/out/json/ ./
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ ./
-COPY --from=pruner /repo/tsconfig*.json ./
+COPY --from=pruner /repo/tsconfig.json ./
 COPY --from=pruner /repo/oxlint.config.ts /repo/oxfmt.config.ts ./
 RUN --mount=type=secret,id=turbo_team,required=false \
     --mount=type=secret,id=turbo_token,required=false \

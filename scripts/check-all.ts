@@ -178,7 +178,7 @@ const defaultImageBuilder: ImageBuilder = async (context) =>
   await buildReleaseImages({
     buildId: context.buildId ?? context.projectName,
     env: context.env,
-    report: context.report,
+    ...(context.report === undefined ? {} : { report: context.report }),
     ...(context.reportError === undefined
       ? {}
       : { reportError: context.reportError }),
@@ -225,6 +225,7 @@ const readE2eAttestation = async (
       `E2E did not produce a readable release attestation: ${
         error instanceof Error ? error.message : String(error)
       }`,
+      { cause: error },
     );
   }
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -314,7 +315,8 @@ const resolveE2eConcurrency = (
   if (options.e2eConcurrency !== undefined) return options.e2eConcurrency;
   const configured = environment.CAT_CHECK_ALL_E2E_CONCURRENCY;
   if (configured === undefined || configured === "") return 2;
-  if (configured === "1" || configured === "2") return Number(configured);
+  if (configured === "1") return 1;
+  if (configured === "2") return 2;
   throw new Error("CAT_CHECK_ALL_E2E_CONCURRENCY must be 1 or 2");
 };
 
@@ -575,23 +577,18 @@ export const runCheckAll = async (
         };
         const applicationLifecycle =
           options.applicationLifecycle ?? runApplicationLifecycle;
-        let images: ReleaseImageBuildResult | undefined;
-        let imageIds: Record<"runtime" | "standalone", string> | undefined;
-        let exportResult:
-          | Awaited<ReturnType<typeof exportValidatedImages>>
-          | undefined;
-        let lifecycleReport: ApplicationLifecycleReport | void;
+        let imageConstructionCompleted = false;
         for (const [name, args] of checkAllStages) {
           await runStage(name, [...args], integrationEnv);
           if (name === "build") {
-            images = await runOperationStage("image-build", async () => {
+            const images = await runOperationStage("image-build", async () => {
               const result = await (
                 options.imageBuilder ?? defaultImageBuilder
               )(lifecycleContext);
               targetImageIds(result);
               return result;
             });
-            imageIds = targetImageIds(images);
+            const imageIds = targetImageIds(images);
             log(
               `check:all images build-id=${buildId} standalone=${imageIds.standalone} runtime=${imageIds.runtime}`,
             );
@@ -627,7 +624,7 @@ export const runCheckAll = async (
             log(
               `check:all e2e release-matrix=attested standalone=${imageIds.standalone} runtime=${imageIds.runtime}`,
             );
-            lifecycleReport = await runOperationStage(
+            const lifecycleReport = await runOperationStage(
               "container-lifecycle",
               async () => await applicationLifecycle(lifecycleContext, images),
             );
@@ -636,7 +633,7 @@ export const runCheckAll = async (
             log(
               `check:all lifecycle standalone=${lifecycleImageIds.standalone} runtime=${lifecycleImageIds.runtime}`,
             );
-            exportResult = await runOperationStage(
+            const exportResult = await runOperationStage(
               "image-artifact",
               async () => await exportValidatedImages(lifecycleContext, images),
             );
@@ -645,14 +642,13 @@ export const runCheckAll = async (
                 `check:all image-artifact manifest=${exportResult.manifestPath} digest=${exportResult.manifestDigest}`,
               );
             }
+            imageConstructionCompleted = true;
           }
           throwIfInterrupted();
         }
-        if (images === undefined || imageIds === undefined) {
+        if (!imageConstructionCompleted) {
           throw new Error("check:all did not complete image construction");
         }
-        void exportResult;
-        void lifecycleReport;
       },
     );
     throwIfInterrupted();

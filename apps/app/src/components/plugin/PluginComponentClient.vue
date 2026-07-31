@@ -53,7 +53,7 @@ const load = async () => {
     const code = await response.text();
 
     const sandbox = createSandbox(props.component.pluginId, window, {
-      globalContextBuilder: (pluginId, win) => ({
+      globalContextBuilder: () => ({
         customElements: safeCustomElements(registry),
         Vue: { ...Vue },
         fetch: window.fetch,

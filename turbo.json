@@ -1,11 +1,8 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
-    "tsconfig.base.json",
-    "tsconfig.node-base.json",
-    "tsconfig.node.json",
-    "tsconfig.web.json",
-    "tsconfig.vue.json",
+    "tsconfig.json",
+    "packages/typescript-config/*.json",
     "oxlint.config.ts",
     "oxfmt.config.ts",
     "tooling/oxlint/**"
@@ -84,7 +81,7 @@
       "dependsOn": ["build"],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/scripts/pack-public-package.ts",
+        "$TURBO_ROOT$/scripts/pack-package-artifact.ts",
         "$TURBO_ROOT$/pnpm-workspace.yaml"
       ],
       "outputs": ["*.tgz"]

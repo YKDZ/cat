@@ -22,7 +22,7 @@
     "test": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
     "test:integration": "vitest run --exclude '**/*.spec.ts' --no-file-parallelism --reporter=agent --silent=passed-only --passWithNoTests",
     "test:unit": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/source-collector/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p packages/source-collector/tsconfig.json"
   },
   "dependencies": {
     "@cat/shared": "link:../shared",
@@ -33,6 +33,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../typescript-config",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   }

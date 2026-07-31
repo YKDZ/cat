@@ -122,15 +122,21 @@ const resolveDependencyRange = (name: string, range: string): string => {
     return version;
   }
   if (range.startsWith("link:")) {
-    throw new Error(`Public runtime dependency ${name} cannot use ${range}`);
+    throw new Error(
+      `Publishable package artifact dependency ${name} cannot use ${range}`,
+    );
   }
   return range;
 };
 
-const cleanDependencySection = (
+function cleanDependencySection(
+  dependencies: DependencySection,
+): DependencySection;
+function cleanDependencySection(dependencies: undefined): undefined;
+function cleanDependencySection(
   dependencies: DependencySection | undefined,
-): DependencySection | undefined =>
-  dependencies === undefined
+): DependencySection | undefined {
+  return dependencies === undefined
     ? undefined
     : Object.fromEntries(
         Object.entries(dependencies).map(([name, range]) => [
@@ -138,9 +144,10 @@ const cleanDependencySection = (
           resolveDependencyRange(name, range),
         ]),
       );
+}
 
 const sourceManifest = await readManifest(join(packageRoot, "package.json"));
-const stageRoot = await mkdtemp(join(tmpdir(), "cat-public-pack-"));
+const stageRoot = await mkdtemp(join(tmpdir(), "cat-package-artifact-"));
 const stagePackageRoot = join(stageRoot, "package");
 
 try {
@@ -159,11 +166,25 @@ try {
   const cleanManifest: PackageManifest = {
     ...sourceManifest,
     ...(sourceManifest.publishConfig ?? {}),
-    dependencies: cleanDependencySection(sourceManifest.dependencies),
-    optionalDependencies: cleanDependencySection(
-      sourceManifest.optionalDependencies,
-    ),
-    peerDependencies: cleanDependencySection(sourceManifest.peerDependencies),
+    ...(sourceManifest.dependencies === undefined
+      ? {}
+      : {
+          dependencies: cleanDependencySection(sourceManifest.dependencies),
+        }),
+    ...(sourceManifest.optionalDependencies === undefined
+      ? {}
+      : {
+          optionalDependencies: cleanDependencySection(
+            sourceManifest.optionalDependencies,
+          ),
+        }),
+    ...(sourceManifest.peerDependencies === undefined
+      ? {}
+      : {
+          peerDependencies: cleanDependencySection(
+            sourceManifest.peerDependencies,
+          ),
+        }),
   };
   delete cleanManifest.devDependencies;
   delete cleanManifest.publishConfig;
@@ -191,7 +212,7 @@ try {
   );
 
   if (process.env.CAT_PACK_INDUCE_FAILURE === "1") {
-    throw new Error("Induced public package staging failure");
+    throw new Error("Induced package artifact staging failure");
   }
 
   const { stdout } = await execFileAsync(

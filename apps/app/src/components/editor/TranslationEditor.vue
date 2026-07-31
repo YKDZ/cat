@@ -181,7 +181,7 @@ const createEditor = () => {
 
   // Expose the EditorView to the table store so other stores can call
   // view.dispatch() for cursor-aware insert, undo, etc.
-  tableStore.editorView = editorView;
+  tableStore.setEditorView(editorView);
 };
 
 // ─── Debounced tokenize：译文变化时更新 token 装饰 ───────────────────────────
@@ -275,7 +275,7 @@ watch(isReadOnly, (value) => {
 onUnmounted(() => {
   editorView?.destroy();
   editorView = null;
-  tableStore.editorView = null;
+  tableStore.setEditorView(null);
 });
 
 // ─── Public API (exposed for parent components) ───

@@ -13,13 +13,14 @@
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test:e2e": "node test-e2e.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p apps/app-e2e/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p apps/app-e2e/tsconfig.json"
   },
   "devDependencies": {
     "@cat/db": "link:../../packages/db",
     "@cat/domain": "link:../../packages/domain",
     "@cat/seed": "link:../../packages/seed",
     "@cat/shared": "link:../../packages/shared",
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@playwright/test": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",

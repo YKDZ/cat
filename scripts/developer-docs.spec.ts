@@ -115,7 +115,7 @@ describe("developer documentation", () => {
     const linkedRoutes = [
       ...homepage.matchAll(/link: (\/[\w/-]+)/gu),
       ...vitepressConfig.matchAll(/link: "(\/[\w/-]+)"/gu),
-    ].map((match) => match[1]);
+    ].flatMap((match) => (match[1] === undefined ? [] : [match[1]]));
 
     await Promise.all(linkedRoutes.map((route) => routeExists(route)));
   });

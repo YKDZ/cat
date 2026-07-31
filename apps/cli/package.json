@@ -20,7 +20,7 @@
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test": "vitest run --reporter=agent --silent=passed-only --config package.json",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config package.json",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p apps/cli/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p apps/cli/tsconfig.json"
   },
   "dependencies": {
     "@cat/app-api": "link:../../packages/app-api",
@@ -28,6 +28,7 @@
     "@orpc/server": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   }

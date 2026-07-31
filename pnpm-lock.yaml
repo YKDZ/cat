@@ -415,9 +415,15 @@ importers:
       '@cat/cli':
         specifier: link:apps/cli
         version: link:apps/cli
+      '@cat/domain':
+        specifier: link:packages/domain
+        version: link:packages/domain
       '@cat/shared':
         specifier: link:packages/shared
         version: link:packages/shared
+      '@cat/typescript-config':
+        specifier: link:packages/typescript-config
+        version: link:packages/typescript-config
       '@electric-sql/pglite':
         specifier: 'catalog:'
         version: 0.5.2
@@ -478,6 +484,9 @@ importers:
       '@cat/plugin-core':
         specifier: link:../../packages/plugin-core
         version: link:../../packages/plugin-core
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -490,6 +499,9 @@ importers:
       '@cat/plugin-core':
         specifier: link:../../packages/plugin-core
         version: link:../../packages/plugin-core
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -515,6 +527,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -540,6 +555,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -559,6 +577,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -584,6 +605,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -606,6 +630,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -628,6 +655,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -644,6 +674,9 @@ importers:
       '@cat/plugin-core':
         specifier: link:../../packages/plugin-core
         version: link:../../packages/plugin-core
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -662,6 +695,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -690,6 +726,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -715,6 +754,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -734,6 +776,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -746,9 +791,15 @@ importers:
       '@cat/plugin-core':
         specifier: link:../../packages/plugin-core
         version: link:../../packages/plugin-core
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@vitejs/plugin-vue':
         specifier: 'catalog:'
         version: 6.0.7(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3))
+      '@vue/tsconfig':
+        specifier: 'catalog:'
+        version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -783,6 +834,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@types/qrcode':
         specifier: 'catalog:'
         version: 1.5.6
@@ -792,6 +846,9 @@ importers:
       '@vitejs/plugin-vue':
         specifier: 'catalog:'
         version: 6.0.7(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3))
+      '@vue/tsconfig':
+        specifier: 'catalog:'
+        version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
       hono:
         specifier: 'catalog:'
         version: 4.12.25
@@ -826,6 +883,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -1097,6 +1157,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@iconify-json/codicon':
         specifier: 'catalog:'
         version: 1.2.60
@@ -1169,6 +1232,9 @@ importers:
       '@cat/shared':
         specifier: link:../../packages/shared
         version: link:../../packages/shared
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.60.0
@@ -1203,6 +1269,9 @@ importers:
         specifier: 'catalog:'
         version: 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1219,6 +1288,9 @@ importers:
         specifier: 'catalog:'
         version: 4.3.0
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@iconify-json/mdi':
         specifier: 'catalog:'
         version: 1.2.3
@@ -1228,6 +1300,9 @@ importers:
       '@mermaid-js/mermaid-zenuml':
         specifier: 'catalog:'
         version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.0)
+      '@vue/tsconfig':
+        specifier: 'catalog:'
+        version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 14.3.0(vue@3.5.38(typescript@6.0.3))
@@ -1310,6 +1385,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@types/js-yaml':
         specifier: 'catalog:'
         version: 4.0.9
@@ -1371,6 +1449,9 @@ importers:
       '@cat/test-utils':
         specifier: link:../test-utils
         version: link:../test-utils
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/mdast':
         specifier: 'catalog:'
         version: 4.0.4
@@ -1408,6 +1489,9 @@ importers:
       '@cat/test-utils':
         specifier: link:../test-utils
         version: link:../test-utils
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1478,6 +1562,9 @@ importers:
       '@cat/test-utils':
         specifier: link:../test-utils
         version: link:../test-utils
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       vitest:
         specifier: 'catalog:'
         version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(@vitest/ui@4.1.8)(happy-dom@20.10.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -1500,6 +1587,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1509,6 +1599,9 @@ importers:
 
   packages/core:
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1540,6 +1633,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1574,6 +1670,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1617,6 +1716,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/mdast':
         specifier: 'catalog:'
         version: 4.0.4
@@ -1639,6 +1741,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1667,6 +1772,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1707,6 +1815,9 @@ importers:
       '@cat/test-utils':
         specifier: link:../test-utils
         version: link:../test-utils
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       vitest:
         specifier: 'catalog:'
         version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(@vitest/ui@4.1.8)(happy-dom@20.10.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -1726,6 +1837,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1760,6 +1874,9 @@ importers:
       '@cat/shared':
         specifier: link:../shared
         version: link:../shared
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       vite:
         specifier: 'catalog:'
         version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -1782,6 +1899,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1825,6 +1945,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/better-sqlite3':
         specifier: 'catalog:'
         version: 7.6.13
@@ -1862,6 +1985,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       pino-pretty:
         specifier: 'catalog:'
         version: 13.1.3
@@ -1878,6 +2004,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       vitest:
         specifier: 'catalog:'
         version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@24.13.3)(@vitest/ui@4.1.8)(happy-dom@20.10.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -1903,6 +2032,9 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1937,12 +2069,24 @@ importers:
         specifier: 'catalog:'
         version: 8.21.0
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/pg':
         specifier: 'catalog:'
         version: 8.20.0
       drizzle-kit:
         specifier: 'catalog:'
         version: 1.0.0-rc.4-273829f
+
+  packages/typescript-config:
+    devDependencies:
+      oxfmt:
+        specifier: 'catalog:'
+        version: 0.54.0
+      oxlint:
+        specifier: 'catalog:'
+        version: 1.69.0(oxlint-tsgolint@0.23.0)
 
   packages/ui:
     dependencies:
@@ -1995,12 +2139,18 @@ importers:
         specifier: 'catalog:'
         version: 4.4.3
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@vitejs/plugin-vue':
         specifier: 'catalog:'
         version: 6.0.7(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue@3.5.38(typescript@6.0.3))
       '@vue/test-utils':
         specifier: 'catalog:'
         version: 2.4.11(@vue/compiler-dom@3.5.38)(@vue/server-renderer@3.5.38(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))
+      '@vue/tsconfig':
+        specifier: 'catalog:'
+        version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
       happy-dom:
         specifier: 'catalog:'
         version: 20.10.2
@@ -2035,6 +2185,9 @@ importers:
       '@cat/test-utils':
         specifier: link:../test-utils
         version: link:../test-utils
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -2075,6 +2228,9 @@ importers:
       '@cat/test-utils':
         specifier: link:../test-utils
         version: link:../test-utils
+      '@cat/typescript-config':
+        specifier: link:../typescript-config
+        version: link:../typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -2106,6 +2262,9 @@ importers:
         specifier: link:../../packages/shared
         version: link:../../packages/shared
     devDependencies:
+      '@cat/typescript-config':
+        specifier: link:../../packages/typescript-config
+        version: link:../../packages/typescript-config
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3

@@ -19,7 +19,7 @@
     "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
     "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/vcs/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p packages/vcs/tsconfig.json"
   },
   "dependencies": {
     "@cat/domain": "link:../domain",
@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@cat/test-utils": "link:../test-utils",
+    "@cat/typescript-config": "link:../typescript-config",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   }

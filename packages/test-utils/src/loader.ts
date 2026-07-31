@@ -290,11 +290,11 @@ export class TestVectorStorage extends VectorStorage {
       .slice(0, maxAmount);
   }
 
-  override async updateDimension(ctx: UpdateDimensionContext): Promise<void> {
+  override async updateDimension(_ctx: UpdateDimensionContext): Promise<void> {
     return;
   }
 
-  override async init(ctx: InitContext): Promise<void> {
+  override async init(_ctx: InitContext): Promise<void> {
     return;
   }
 }

@@ -17,7 +17,7 @@
     "test": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
     "test:integration": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --exclude '**/*.test.ts' --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/seed/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p packages/seed/tsconfig.json"
   },
   "dependencies": {
     "@cat/db": "link:../db",
@@ -33,6 +33,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../typescript-config",
     "@types/better-sqlite3": "catalog:",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",

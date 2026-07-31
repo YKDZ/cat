@@ -96,7 +96,7 @@ export class Vectorizer extends TextVectorizer {
       { signal },
     );
 
-    return elements.map((element, index) => [
+    return elements.map((_element, index) => [
       {
         meta: {
           modelId: this.config["model-id"],

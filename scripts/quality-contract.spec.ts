@@ -124,7 +124,7 @@ describe("repository quality command contract", () => {
     expect(
       readFileSync(resolve(root, "scripts/vitest.config.ts"), "utf8"),
     ).toMatch(/include:[\s\S]+\.spec\.ts/);
-    expect(scripts["test:tooling"]).not.toContain("public-packages.test.ts");
+    expect(scripts["test:tooling"]).not.toContain("package-artifacts.test.ts");
   });
 
   it("keeps every root Turbo entrypoint concise without wrapping its output", () => {
@@ -162,7 +162,7 @@ describe("repository quality command contract", () => {
 
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain("scripts/quality-contract.spec.ts");
-    expect(result.stdout).not.toContain("public-packages.test.ts");
+    expect(result.stdout).not.toContain("package-artifacts.test.ts");
   });
 
   it("uses direct Oxc scripts with quiet read-only commands", () => {
@@ -220,11 +220,11 @@ describe("repository quality command contract", () => {
     expect(checkAllSource).toContain("test:artifacts");
     expect(scripts["test:artifacts"]).toContain("test:artifacts:verify");
     expect(scripts["test:artifacts:verify"]).toContain(
-      "public-packages.test.ts",
+      "package-artifacts.test.ts",
     );
     for (const [name, command] of Object.entries(scripts)) {
       if (name === "test:artifacts:verify" || name === "check:all") continue;
-      expect(command, name).not.toContain("public-packages.test.ts");
+      expect(command, name).not.toContain("package-artifacts.test.ts");
     }
   });
 
@@ -273,7 +273,7 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(264);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(265);
     expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(53);
   });
 

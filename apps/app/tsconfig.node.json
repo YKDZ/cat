@@ -1,0 +1,24 @@
+{
+  "extends": "@cat/typescript-config/bundler.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2023"],
+    "noEmit": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.node.tsbuildinfo",
+    "types": ["node"]
+  },
+  "include": [
+    "scripts/**/*.ts",
+    "src/**/*.d.ts",
+    "src/config/server-packages.ts",
+    "src/server/**/*.ts",
+    "vite.bootstrap.config.ts",
+    "vite.config.ts"
+  ],
+  "exclude": [
+    "scripts/**/*.spec.ts",
+    "scripts/**/*.test.ts",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ]
+}

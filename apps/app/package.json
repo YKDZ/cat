@@ -31,7 +31,7 @@
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:integration": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts' --no-file-parallelism --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p apps/app/tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --build apps/app/tsconfig.json --noEmit --pretty false && vue-tsc --noEmit --pretty false -p tsconfig.app.json"
   },
   "dependencies": {
     "@cat-plugin/basic-qa-checker": "link:../../@cat-plugin/basic-qa-checker",
@@ -123,6 +123,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@iconify-json/codicon": "catalog:",
     "@iconify-json/file-icons": "catalog:",
     "@iconify-json/flag": "catalog:",
