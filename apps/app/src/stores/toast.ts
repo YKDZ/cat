@@ -33,7 +33,7 @@ export const useToastStore = defineStore("toast", () => {
     });
   };
 
-  const zWarn = (e: ZodError, icon: Component, duration = defaultDuration) => {
+  const zWarn = (e: ZodError, duration = defaultDuration) => {
     e.issues.forEach((issue) => {
       toast(issue.message, {
         duration,

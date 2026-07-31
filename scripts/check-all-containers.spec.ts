@@ -53,7 +53,7 @@ const sourceFilesUnder = (directory: string): string[] => {
 
 const runLifecycle = async (
   context: Parameters<typeof runApplicationLifecycle>[0],
-): Promise<void> =>
+): Promise<void> => {
   await runApplicationLifecycle(
     {
       ...context,
@@ -64,6 +64,7 @@ const runLifecycle = async (
     },
     releaseImages,
   );
+};
 
 const lifecycleRunner = (
   onCall?: (args: string[], signal: AbortSignal | undefined) => void,
@@ -275,7 +276,11 @@ describe("application container lifecycle", () => {
     );
     expect(dropIndex).toBeGreaterThan(calls.indexOf(secondPreparation));
 
-    const databaseUrl = standalonePreparations[0].find((arg) =>
+    const firstPreparation = standalonePreparations[0];
+    if (firstPreparation === undefined) {
+      throw new Error("Expected a first standalone preparation");
+    }
+    const databaseUrl = firstPreparation.find((arg) =>
       arg.startsWith("DATABASE_URL="),
     );
     expect(databaseUrl).toMatch(
@@ -595,7 +600,7 @@ describe("application container lifecycle", () => {
   it("retries a transient lifecycle database drop failure", async () => {
     const baseRun = lifecycleRunner();
     let dropAttempts = 0;
-    const run = vi.fn(async (command, args, options) => {
+    const run = vi.fn<CommandRunner>(async (command, args, options) => {
       if (args.some((arg) => arg.startsWith("DROP DATABASE "))) {
         dropAttempts += 1;
         if (dropAttempts === 1) {
@@ -620,7 +625,7 @@ describe("application container lifecycle", () => {
 
   it("propagates a lifecycle database cleanup failure", async () => {
     const baseRun = lifecycleRunner();
-    const run = vi.fn(async (command, args, options) => {
+    const run = vi.fn<CommandRunner>(async (command, args, options) => {
       if (args.some((arg) => arg.startsWith("DROP DATABASE "))) {
         throw new CommandExecutionError("drop failed", 1, null);
       }
@@ -648,7 +653,7 @@ describe("application container lifecycle", () => {
 
   it("replays container diagnostics before cleanup when a server fails readiness", async () => {
     const baseRun = lifecycleRunner();
-    const run = vi.fn(async (command, args, options) => {
+    const run = vi.fn<CommandRunner>(async (command, args, options) => {
       if (args.includes("{{.State.Health.Status}}")) {
         return { stderr: "", stdout: "unhealthy\n" };
       }
@@ -720,7 +725,7 @@ describe("application container lifecycle", () => {
 
   it("preserves the primary lifecycle failure alongside storage, database, and temporary-image cleanup failures", async () => {
     const baseRun = lifecycleRunner();
-    const run = vi.fn(async (command, args, options) => {
+    const run = vi.fn<CommandRunner>(async (command, args, options) => {
       if (args.includes("prepare-only") && args.includes(standaloneImageId)) {
         throw new Error("primary preparation failure");
       }
@@ -765,7 +770,7 @@ describe("application container lifecycle", () => {
   it("removes the lifecycle database when preparation fails", async () => {
     const baseRun = lifecycleRunner();
     let standalonePreparations = 0;
-    const run = vi.fn(async (command, args, options) => {
+    const run = vi.fn<CommandRunner>(async (command, args, options) => {
       if (args.includes("prepare-only") && args.includes(standaloneImageId)) {
         standalonePreparations += 1;
         if (standalonePreparations === 2) {

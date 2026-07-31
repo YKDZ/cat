@@ -37,7 +37,7 @@ export const createElementDistortion = (_win: BrowserWindow): Distortion => ({
 });
 
 export const createNodeDistortion = (win: BrowserWindow): Distortion => ({
-  get: (target, key) => {
+  get: (_target, key) => {
     if (
       key === "parentNode" ||
       key === "parentElement" ||

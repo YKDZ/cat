@@ -22,12 +22,11 @@
     "format:write": "oxfmt --write --config oxfmt.config.ts package.json turbo.json tsconfig*.json scripts/vitest.config.ts oxlint.config.ts oxfmt.config.ts pnpm-workspace.yaml scripts tooling",
     "lint": "oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern scripts/vitest.config.ts oxlint.config.ts oxfmt.config.ts scripts tooling",
     "lint:fix": "oxlint --fix --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern scripts/vitest.config.ts oxlint.config.ts oxfmt.config.ts scripts tooling",
-    "load-plugins": "node scripts/load-plugins.js",
     "release:images": "node scripts/image-artifacts.ts publish validated-images",
     "seed": "node --conditions=source tools/seeder/main.ts tools/seeder/datasets/minecraft",
     "test": "pnpm test:tooling",
     "test:artifacts": "pnpm build:all && pnpm test:artifacts:verify",
-    "test:artifacts:verify": "vitest run scripts/public-packages.test.ts --config scripts/vitest.artifacts.config.ts --reporter=agent --silent=passed-only",
+    "test:artifacts:verify": "vitest run scripts/package-artifacts.test.ts --config scripts/vitest.artifacts.config.ts --reporter=agent --silent=passed-only",
     "test:compose-contract": "vitest run scripts/compose-contract.test.ts --config scripts/vitest.integration.config.ts --reporter=agent --silent=passed-only",
     "test:e2e": "pnpm --filter @cat/app-e2e test:e2e",
     "test:e2e:install-browsers": "pnpm exec playwright install --with-deps chromium firefox",
@@ -36,11 +35,13 @@
     "test:pglite": "node scripts/pglite-compat-gate.ts",
     "test:tooling": "vitest run --config scripts/vitest.config.ts --reporter=agent --silent=passed-only",
     "test:unit": "turbo run test:unit --output-logs=errors-only --log-order=grouped --log-prefix=task",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p tsconfig.node.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p tsconfig.json"
   },
   "devDependencies": {
     "@cat/cli": "link:apps/cli",
+    "@cat/domain": "link:packages/domain",
     "@cat/shared": "link:packages/shared",
+    "@cat/typescript-config": "link:packages/typescript-config",
     "@electric-sql/pglite": "catalog:",
     "@oxlint/plugins": "catalog:",
     "@playwright/test": "catalog:",

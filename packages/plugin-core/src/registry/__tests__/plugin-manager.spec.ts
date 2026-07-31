@@ -235,7 +235,9 @@ describe("PluginManager — activate() → deactivate()", () => {
   it("delivers plugin diagnostics to an explicitly registered host observer", async () => {
     const events: DiagnosticEvent[] = [];
     const hostLogger = new Logger({ runtime: "server" });
-    hostLogger.observe((event) => events.push(event));
+    hostLogger.observe((event) => {
+      events.push(event);
+    });
     const plugin = makePlugin({
       services: (context) => {
         context.logger.error("plugin failed to connect", {

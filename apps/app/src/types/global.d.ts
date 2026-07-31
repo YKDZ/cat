@@ -10,7 +10,7 @@ export {};
 declare global {
   var inited: boolean;
   var app: Hono;
-  var messageGateway: MessageGateway;
+  var messageGateway: MessageGateway | undefined;
   // Set by server/initialize.ts at startup; consumed by +onCreateGlobalContext.server.ts
   var drizzleDB: DrizzleDB;
   var redis: RedisConnection | undefined;

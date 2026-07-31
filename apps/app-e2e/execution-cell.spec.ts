@@ -1666,7 +1666,7 @@ describe("ExecutionCell scheduler", () => {
     const createCell = vi.fn(() => ({
       run: async (signal: AbortSignal) => {
         events.push("start");
-        await new Promise<void>((resolveRun, rejectRun) => {
+        await new Promise<void>((_resolveRun, rejectRun) => {
           signal.addEventListener(
             "abort",
             () => {

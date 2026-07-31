@@ -4,14 +4,20 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { Provider as LocalStorageProvider } from "@cat-plugin/local-storage-provider";
-import { SpacyWordSegmenter } from "@cat-plugin/spacy-segmenter";
+import localStoragePlugin from "@cat-plugin/local-storage-provider";
+import spacyPlugin from "@cat-plugin/spacy-segmenter";
 import app, { configureReadinessReporter } from "@cat/app-api/app";
 import { DrizzleDB, RedisConnection } from "@cat/db";
 import {
   resolveRuntimeProfile,
   type DatabaseRuntimeSummary,
 } from "@cat/domain";
+import {
+  NlpWordSegmenter,
+  StorageProvider,
+  type CatPlugin,
+  type PluginContext,
+} from "@cat/plugin-core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createApplicationReadinessReporter } from "./readiness.ts";
@@ -24,6 +30,33 @@ const requireSpacyServerUrl = (): string => {
     throw new Error("SPACY_SERVER_URL is required for readiness integration");
   }
   return spacyServerUrl;
+};
+
+const pluginServices = (plugin: CatPlugin, config: PluginContext["config"]) => {
+  // These Plugin Entries only consume config in this runtime-boundary test.
+  const services = plugin.services?.({ config } as PluginContext);
+  if (services === undefined || services instanceof Promise) {
+    throw new Error("Expected a synchronous Plugin Entry services hook");
+  }
+  return services;
+};
+
+const createStorageService = (rootPath: string): StorageProvider => {
+  const service = pluginServices(localStoragePlugin, {
+    "root-path": rootPath,
+  }).find((candidate) => candidate instanceof StorageProvider);
+  if (service === undefined) throw new Error("Storage Plugin Entry is missing");
+  return service;
+};
+
+const createSpacyService = (
+  config: PluginContext["config"],
+): NlpWordSegmenter => {
+  const service = pluginServices(spacyPlugin, config).find(
+    (candidate) => candidate instanceof NlpWordSegmenter,
+  );
+  if (service === undefined) throw new Error("spaCy Plugin Entry is missing");
+  return service;
 };
 
 type HealthServer = {
@@ -81,8 +114,8 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
   let redis: RedisConnection;
   let server: HealthServer;
   let storageDirectory: string;
-  let storage: LocalStorageProvider;
-  let spacy: SpacyWordSegmenter;
+  let storage: StorageProvider;
+  let spacy: NlpWordSegmenter;
 
   const configure = (): void => {
     const profile = resolveRuntimeProfile({
@@ -168,9 +201,9 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
     storageDirectory = await mkdtemp(
       join(tmpdir(), "cat-readiness-integration-"),
     );
-    storage = new LocalStorageProvider({ "root-path": storageDirectory });
+    storage = createStorageService(storageDirectory);
     await storage.connect();
-    spacy = new SpacyWordSegmenter({ serverUrl: requireSpacyServerUrl() });
+    spacy = createSpacyService({ serverUrl: requireSpacyServerUrl() });
     configure();
     server = await startHealthServer();
   });
@@ -222,13 +255,13 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
     await expectUnavailableThenRecovered(
       "spacy",
       async () => {
-        spacy = new SpacyWordSegmenter({
+        spacy = createSpacyService({
           serverUrl: "http://127.0.0.1:1",
           timeout: 100,
         });
       },
       async () => {
-        spacy = new SpacyWordSegmenter({
+        spacy = createSpacyService({
           serverUrl: requireSpacyServerUrl(),
         });
       },

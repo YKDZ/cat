@@ -84,7 +84,9 @@ type BuildxCache = {
 const workspaceRoot = resolve(import.meta.dirname, "..");
 const dockerfile = "apps/app/Dockerfile";
 const immutableImageId = /^sha256:[a-f0-9]{64}$/;
-const writeProcessStderr = (value: string): void => process.stderr.write(value);
+const writeProcessStderr = (value: string): void => {
+  process.stderr.write(value);
+};
 
 const isReleaseImageTarget = (value: string): value is ReleaseImageTarget =>
   value === "standalone" || value === "runtime";
@@ -285,8 +287,12 @@ export const buildReleaseImages = async (
   const cachePaths = await validateBuildxCachePaths({
     allowedCacheRoot: ".cache",
     cwd,
-    output: options.env.CAT_BUILDX_CACHE_OUTPUT,
-    source: options.env.CAT_BUILDX_CACHE_SOURCE,
+    ...(options.env.CAT_BUILDX_CACHE_OUTPUT === undefined
+      ? {}
+      : { output: options.env.CAT_BUILDX_CACHE_OUTPUT }),
+    ...(options.env.CAT_BUILDX_CACHE_SOURCE === undefined
+      ? {}
+      : { source: options.env.CAT_BUILDX_CACHE_SOURCE }),
   });
   if (!cachePaths.valid) {
     options.report?.(

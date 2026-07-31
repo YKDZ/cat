@@ -78,18 +78,26 @@ const createLintHashFixture = (): string => {
     "turbo.json",
     "oxfmt.config.ts",
     "oxlint.config.ts",
-    "tsconfig.base.json",
-    "tsconfig.node-base.json",
-    "tsconfig.node.json",
-    "tsconfig.web.json",
-    "tsconfig.vue.json",
+    "tsconfig.json",
   ]) {
     cpSync(resolve(root, file), resolve(fixtureRoot, file));
   }
+  mkdirSync(resolve(fixtureRoot, "packages/typescript-config"), {
+    recursive: true,
+  });
+  cpSync(
+    resolve(root, "packages/typescript-config"),
+    resolve(fixtureRoot, "packages/typescript-config"),
+    { recursive: true },
+  );
   mkdirSync(resolve(fixtureRoot, "packages/shared"), { recursive: true });
   cpSync(
     resolve(root, "packages/shared/package.json"),
     resolve(fixtureRoot, "packages/shared/package.json"),
+  );
+  cpSync(
+    resolve(root, "packages/shared/tsconfig.json"),
+    resolve(fixtureRoot, "packages/shared/tsconfig.json"),
   );
   cpSync(
     resolve(root, "tooling/oxlint"),
@@ -134,11 +142,11 @@ describe("Turbo workspace contract", () => {
           if (!/(?:^|[\s;&|])tsc(?:\s|$)/.test(segment)) continue;
           nativeTscCommands += 1;
           const match =
-            /^pnpm --workspace-root exec tsc(?: --noEmit)? -p (\S+)$/.exec(
+            /^pnpm --workspace-root exec tsc (?:(?:--noEmit --pretty false -p)|(?:--pretty false -p)|--build) (\S+)(?: --noEmit --pretty false)?$/.exec(
               segment,
             );
           expect(match, `${path}: ${segment}`).not.toBeNull();
-          const configPath = match?.[1];
+          const configPath = match?.[1]?.replace(/^\.\//u, "");
           if (path !== "package.json") {
             expect(configPath, `${path}: ${segment}`).toMatch(
               new RegExp(`^${dirname(path)}/tsconfig(?:\\.[\\w-]+)?\\.json$`),
@@ -175,7 +183,7 @@ describe("Turbo workspace contract", () => {
       build: "vitepress build src",
       dev: "vitepress dev src",
       typecheck:
-        "pnpm --workspace-root exec tsc --noEmit -p apps/docs/tsconfig.app.json && vue-tsc --noEmit -p tsconfig.app.json",
+        "pnpm --workspace-root exec tsc --build apps/docs/tsconfig.json --noEmit --pretty false && vue-tsc --noEmit --pretty false -p tsconfig.app.json",
     });
 
     const tasks = dryTasks("build", "typecheck", "dev", "--filter=@cat/docs");
@@ -224,7 +232,9 @@ describe("Turbo workspace contract", () => {
     };
 
     expect(turbo.globalDependencies).toContain("tooling/oxlint/**");
-    expect(turbo.globalDependencies).toContain("tsconfig.base.json");
+    expect(turbo.globalDependencies).toContain(
+      "packages/typescript-config/*.json",
+    );
     expect(turbo.tasks["format:check"]?.dependsOn ?? []).not.toContain(
       "^format:check",
     );
@@ -232,7 +242,7 @@ describe("Turbo workspace contract", () => {
     expect(turbo.tasks["test:unit"]?.env).toContain("CI");
     expect(turbo.tasks["pack:artifact"]?.inputs).toEqual(
       expect.arrayContaining([
-        "$TURBO_ROOT$/scripts/pack-public-package.ts",
+        "$TURBO_ROOT$/scripts/pack-package-artifact.ts",
         "$TURBO_ROOT$/pnpm-workspace.yaml",
       ]),
     );
@@ -287,6 +297,31 @@ describe("Turbo workspace contract", () => {
       expect(hash()).not.toBe(before);
     } finally {
       rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("invalidates typecheck and build hashes when shared TS policy changes", () => {
+    const fixtureRoot = createLintHashFixture();
+    const preset = resolve(fixtureRoot, "packages/typescript-config/base.json");
+    const hashes = (): Record<string, string> =>
+      Object.fromEntries(
+        dryTasksAt(fixtureRoot, "typecheck", "build", "--filter=@cat/shared")
+          .filter(({ taskId }) =>
+            ["@cat/shared#build", "@cat/shared#typecheck"].includes(taskId),
+          )
+          .map(({ hash, taskId }) => [taskId, hash]),
+      );
+
+    try {
+      const before = hashes();
+      writeFileSync(preset, `${readFileSync(preset, "utf8")}\n`);
+      const after = hashes();
+      expect(after["@cat/shared#typecheck"]).not.toBe(
+        before["@cat/shared#typecheck"],
+      );
+      expect(after["@cat/shared#build"]).not.toBe(before["@cat/shared#build"]);
+    } finally {
+      rmSync(fixtureRoot, { force: true, recursive: true });
     }
   });
 });

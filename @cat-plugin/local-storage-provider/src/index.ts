@@ -2,14 +2,12 @@ import type { CatPlugin, PluginContext } from "@cat/plugin-core";
 
 import { Provider } from "./provider.ts";
 
-export { Provider } from "./provider.ts";
-
 class Plugin implements CatPlugin {
   services(ctx: PluginContext) {
     return [new Provider(ctx.config ?? {})];
   }
 }
 
-const plugin = new Plugin();
+const plugin = new Plugin() satisfies CatPlugin;
 
 export default plugin;

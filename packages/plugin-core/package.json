@@ -48,15 +48,15 @@
     }
   },
   "scripts": {
-    "build": "vite build && pnpm --workspace-root exec tsc -p packages/plugin-core/tsconfig.lib.json",
+    "build": "vite build && pnpm --workspace-root exec tsc --pretty false -p packages/plugin-core/tsconfig.lib.json",
     "format:check": "cd ../.. && oxfmt --list-different --config oxfmt.config.ts packages/plugin-core",
     "format:write": "cd ../.. && oxfmt --write --config oxfmt.config.ts packages/plugin-core",
     "lint": "cd ../.. && oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern packages/plugin-core",
     "lint:fix": "cd ../.. && oxlint --fix --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern packages/plugin-core",
-    "pack:artifact": "node ../../scripts/pack-public-package.ts",
+    "pack:artifact": "node ../../scripts/pack-package-artifact.ts",
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts' --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p packages/plugin-core/tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --build packages/plugin-core/tsconfig.json --noEmit --pretty false"
   },
   "dependencies": {
     "cldr-core": "catalog:",
@@ -67,6 +67,7 @@
   "devDependencies": {
     "@cat/domain": "link:../domain",
     "@cat/shared": "link:../shared",
+    "@cat/typescript-config": "link:../typescript-config",
     "vite": "catalog:",
     "vitest": "catalog:"
   },

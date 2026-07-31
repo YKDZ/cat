@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "keywords": [
     "cat",
-    "plugins",
-    "types",
-    "typescript"
+    "plugins"
   ],
   "license": "MIT",
   "files": [
@@ -14,23 +12,17 @@
     "package.json"
   ],
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "source": "./src/index.ts",
-      "development": "./src/index.ts",
-      "types": "./src/index.ts",
       "import": "./dist/index.js"
     },
     "./manifest.json": "./manifest.json",
     "./package.json": "./package.json"
   },
   "publishConfig": {
-    "types": "./dist/index.d.ts",
     "exports": {
       ".": {
-        "types": "./dist/index.d.ts",
         "import": "./dist/index.js"
       },
       "./manifest.json": "./manifest.json",
@@ -38,15 +30,15 @@
     }
   },
   "scripts": {
-    "build": "vite build && pnpm --workspace-root exec tsc -p @cat-plugin/json-file-handler/tsconfig.build.json",
+    "build": "vite build",
     "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",
     "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
     "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
-    "pack:artifact": "node ../../scripts/pack-public-package.ts",
+    "pack:artifact": "node ../../scripts/pack-package-artifact.ts",
     "test": "vitest run --reporter=agent --silent=passed-only --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --passWithNoTests",
-    "typecheck": "pnpm --workspace-root exec tsc --noEmit -p @cat-plugin/json-file-handler/tsconfig.app.json"
+    "typecheck": "pnpm --workspace-root exec tsc --build ./@cat-plugin/json-file-handler/tsconfig.json --noEmit --pretty false"
   },
   "dependencies": {
     "yaml": "catalog:",
@@ -56,6 +48,7 @@
     "@cat/file-parsers": "link:../../packages/file-parsers",
     "@cat/plugin-core": "link:../../packages/plugin-core",
     "@cat/shared": "link:../../packages/shared",
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "vite": "catalog:",
     "vitest": "catalog:"
   },
