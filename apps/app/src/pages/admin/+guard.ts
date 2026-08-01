@@ -1,6 +1,14 @@
 import { render } from "vike/abort";
-import type { PageContext } from "vike/types";
+import type { PageContextServer } from "vike/types";
 
-export const guard = async (ctx: PageContext) => {
+import { ssc } from "#/server/ssc.ts";
+
+export const guard = async (ctx: PageContextServer) => {
   if (!ctx.user) throw render("/auth", `You must login to access`);
+  const allowed = await ssc(ctx).permission.check({
+    objectId: "*",
+    objectType: "system",
+    relation: "admin",
+  });
+  if (!allowed) throw render(403, `No permission to access administration`);
 };

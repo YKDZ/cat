@@ -8,7 +8,7 @@ import {
   type BuildxCacheTarget,
 } from "./buildx-cache.ts";
 
-export const releaseImageTargets = ["standalone", "runtime"] as const;
+export const releaseImageTargets = ["standalone", "runtime", "spacy"] as const;
 
 export type ReleaseImageTarget = (typeof releaseImageTargets)[number];
 
@@ -82,14 +82,13 @@ type BuildxCache = {
 };
 
 const workspaceRoot = resolve(import.meta.dirname, "..");
-const dockerfile = "apps/app/Dockerfile";
 const immutableImageId = /^sha256:[a-f0-9]{64}$/;
 const writeProcessStderr = (value: string): void => {
   process.stderr.write(value);
 };
 
 const isReleaseImageTarget = (value: string): value is ReleaseImageTarget =>
-  value === "standalone" || value === "runtime";
+  value === "standalone" || value === "runtime" || value === "spacy";
 
 export const releaseImageCapability = (
   target: ReleaseImageTarget,
@@ -99,10 +98,15 @@ export const releaseImageCapability = (
         command: "prepare-and-start",
         description: "CAT standalone application with database preparation",
       }
-    : {
-        command: "start-only",
-        description: "CAT start-only application runtime",
-      };
+    : target === "runtime"
+      ? {
+          command: "start-only",
+          description: "CAT start-only application runtime",
+        }
+      : {
+          command: "provision-and-serve",
+          description: "CAT spaCy language analysis runtime",
+        };
 
 export const createValidatedImageManifest = (
   images: ReleaseImageBuildResult,
@@ -123,6 +127,7 @@ export const createValidatedImageManifest = (
   return {
     images: {
       runtime: artifact("runtime"),
+      spacy: artifact("spacy"),
       standalone: artifact("standalone"),
     },
     schemaVersion: 1,
@@ -135,7 +140,9 @@ export const parseImageBuildArguments = (
   const commandArgs = args[0] === "--" ? args.slice(1) : args;
   if (commandArgs.length === 0) return [...releaseImageTargets];
   if (commandArgs.length !== 2 || commandArgs[0] !== "--target") {
-    throw new Error("Usage: image-builder.ts [--target <standalone|runtime>]");
+    throw new Error(
+      "Usage: image-builder.ts [--target <standalone|runtime|spacy>]",
+    );
   }
   const target = commandArgs[1];
   if (target === undefined || !isReleaseImageTarget(target)) {
@@ -247,26 +254,29 @@ const buildxArguments = (
   metadataFile: string,
   cache: BuildxCache,
   env: NodeJS.ProcessEnv,
-): string[] => [
-  "buildx",
-  "build",
-  "--file",
-  dockerfile,
-  "--target",
-  target,
-  "--load",
-  "--progress=quiet",
-  "--iidfile",
-  iidfile,
-  "--metadata-file",
-  metadataFile,
-  "--build-arg",
-  `DEPLOYMENT_BUILD_ID=${buildId}`,
-  ...(cache.from === undefined ? [] : ["--cache-from", cache.from]),
-  ...(cache.to === undefined ? [] : ["--cache-to", cache.to]),
-  ...buildxSecrets(env),
-  ".",
-];
+): string[] => {
+  const spacy = target === "spacy";
+  return [
+    "buildx",
+    "build",
+    "--file",
+    spacy ? "apps/spacy-server/Dockerfile" : "apps/app/Dockerfile",
+    "--target",
+    target,
+    "--load",
+    "--progress=quiet",
+    "--iidfile",
+    iidfile,
+    "--metadata-file",
+    metadataFile,
+    "--build-arg",
+    `DEPLOYMENT_BUILD_ID=${buildId}`,
+    ...(cache.from === undefined ? [] : ["--cache-from", cache.from]),
+    ...(cache.to === undefined ? [] : ["--cache-to", cache.to]),
+    ...buildxSecrets(env),
+    spacy ? "apps/spacy-server" : ".",
+  ];
+};
 
 export const buildReleaseImages = async (
   options: BuildReleaseImagesOptions,
@@ -314,7 +324,7 @@ export const buildReleaseImages = async (
         cachePaths.paths,
         cachePaths.valid
           ? cachePaths.sourceScopes
-          : { runtime: false, standalone: false },
+          : { runtime: false, spacy: false, standalone: false },
         target,
       );
       const iidfile = join(temporaryDirectory, `${target}.iid`);

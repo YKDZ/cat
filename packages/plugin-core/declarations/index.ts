@@ -17,7 +17,7 @@ export type PluginServiceType =
   | "FILE_EXPORTER"
   | "FILE_IMPORTER"
   | "LLM_PROVIDER"
-  | "NLP_WORD_SEGMENTER"
+  | "LANGUAGE_ANALYZER"
   | "QA_CHECKER"
   | "RERANK_PROVIDER"
   | "STORAGE_PROVIDER"
@@ -530,36 +530,98 @@ export declare abstract class VectorStorage implements IPluginService {
   abstract init(ctx: InitContext): Promise<void>;
 }
 
-export type NlpToken = {
+export type LanguageAnalysisToken = {
+  text: string;
+  lemma: string;
+  pos: string;
+  start: number;
+  end: number;
+  isStop: boolean;
+  isPunct: boolean;
+};
+export type NormalizedLanguageId = string & {
+  readonly __normalizedLanguageId: unique symbol;
+};
+export type LanguageAnalysisVersion = string & {
+  readonly __languageAnalysisVersion: unique symbol;
+};
+export declare const NormalizedLanguageIdSchema: ZodType<NormalizedLanguageId>;
+export declare const LanguageAnalysisVersionSchema: ZodType<LanguageAnalysisVersion>;
+export declare const normalizeLanguageId: (
+  value: string,
+) => NormalizedLanguageId;
+export type LanguageAnalysisSentence = {
   text: string;
   start: number;
   end: number;
-  [key: string]: unknown;
+  tokens: LanguageAnalysisToken[];
 };
-export type NlpSentence = { text: string; tokens: NlpToken[] };
-export type NlpSegmentResult = {
-  tokens: NlpToken[];
-  sentences?: NlpSentence[];
+export type LanguageAnalysisAttestation = {
+  contract: "cat.language-analysis/v1";
+  languageId: NormalizedLanguageId;
+  implementation: {
+    reference: ServiceImplementationReference;
+    packageName: string;
+    packageVersion: string;
+  };
+  generation: {
+    id: string;
+    planDigest: string;
+    schemaVersion: string;
+    provisionerVersion: string;
+    serverProtocolVersion: string;
+    pythonAbi: string;
+    pythonImplementation: string;
+    pythonVersion: string;
+    platform: string;
+    spacyVersion: string;
+    sitePackagesDigest: string;
+  };
+  semanticConfig: Record<string, JsonValue>;
+  engine: { name: string; version: string };
+  pipeline: { id: string; version: string };
+  model: { id: string; version: string };
+  assets: Array<{ id: string; version: string; sha256: string }>;
 };
-export type NlpBatchSegmentResult = {
-  results: Array<{ id: string; result: NlpSegmentResult }>;
+export type LanguageAnalysisResult = {
+  tokens: LanguageAnalysisToken[];
+  sentences: LanguageAnalysisSentence[];
+  attestation: LanguageAnalysisAttestation;
 };
-export type NlpSegmentContext = {
+export type LanguageAnalysisBatchResult = {
+  attestation: LanguageAnalysisAttestation;
+  results: Array<{ id: string; result: LanguageAnalysisResult }>;
+};
+export type LanguageAnalysisContext = {
   text: string;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   signal?: AbortSignal;
+  timeoutMs?: number;
 };
-export type NlpBatchSegmentContext = {
+export type LanguageAnalysisBatchContext = {
   items: Array<{ id: string; text: string }>;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   signal?: AbortSignal;
+  timeoutMs?: number;
 };
-export declare abstract class NlpWordSegmenter implements IPluginService {
+export type LanguageAnalyzerConfigurationAssessment =
+  | {
+      status: "VALID";
+      supportedLanguages: NormalizedLanguageId[];
+      semanticConfiguration: Record<string, JSONType>;
+    }
+  | { status: "INVALID"; reason: "INVALID_CONFIGURATION" };
+export declare const LanguageAnalyzerConfigurationAssessmentSchema: ZodType<LanguageAnalyzerConfigurationAssessment>;
+export declare abstract class LanguageAnalyzer implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType;
-  abstract getSupportedLanguages(signal?: AbortSignal): Promise<string[]>;
-  abstract segment(ctx: NlpSegmentContext): Promise<NlpSegmentResult>;
-  batchSegment(ctx: NlpBatchSegmentContext): Promise<NlpBatchSegmentResult>;
+  abstract getLanguageAnalysisConfigurationAssessment(): LanguageAnalyzerConfigurationAssessment;
+  abstract analyze(
+    ctx: LanguageAnalysisContext,
+  ): Promise<LanguageAnalysisResult>;
+  batchAnalyze(
+    ctx: LanguageAnalysisBatchContext,
+  ): Promise<LanguageAnalysisBatchResult>;
 }
 
 export type AgentToolConfirmationPolicy =
@@ -736,7 +798,7 @@ export type PluginServiceMap = {
   FILE_EXPORTER: FileExporter;
   FILE_IMPORTER: FileImporter;
   LLM_PROVIDER: LLMProvider;
-  NLP_WORD_SEGMENTER: NlpWordSegmenter;
+  LANGUAGE_ANALYZER: LanguageAnalyzer;
   QA_CHECKER: QAChecker;
   RERANK_PROVIDER: RerankProvider;
   STORAGE_PROVIDER: StorageProvider;

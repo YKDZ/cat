@@ -55,8 +55,6 @@ export const TermDiscoveryInputSchema = OperationScopeSchema.extend({
   glossaryId: z.uuidv4(),
   /** Source language of the elements */
   sourceLanguageId: z.string().min(1),
-  /** Optional NLP_WORD_SEGMENTER implementation. */
-  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
   config: TermDiscoveryConfigSchema.optional(),
 });
 
@@ -107,7 +105,6 @@ export const TermDiscoveryResultSchema = z.object({
     statisticalCandidates: z.int(),
     llmCandidates: z.int(),
     existingTermsMatched: z.int(),
-    nlpSegmenterUsed: z.enum(["plugin", "intl-fallback"]),
   }),
 });
 
@@ -137,7 +134,6 @@ const StatExtractInputSchema = z.object({
     }),
   ),
   languageId: z.string().min(1),
-  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
   config: TermDiscoveryConfigSchema.optional(),
 });
 
@@ -158,7 +154,6 @@ const StatExtractOutputSchema = z.object({
       ),
     }),
   ),
-  nlpSegmenterUsed: z.enum(["plugin", "intl-fallback"]),
 });
 
 const DedupMatchInputSchema = z.object({
@@ -226,7 +221,6 @@ const LlmEnhanceInputSchema = z.object({
   ),
   sourceLanguageId: z.string().min(1),
   config: TermDiscoveryConfigSchema.optional(),
-  statNlpUsed: z.enum(["plugin", "intl-fallback"]),
   elements: z.array(
     z.object({ elementId: z.int(), text: z.string(), languageId: z.string() }),
   ),
@@ -275,7 +269,6 @@ export const termDiscoveryGraph = defineGraph({
       inputMapping: {
         elements: "load-texts.elements",
         languageId: "sourceLanguageId",
-        nlpSegmenter: "nlpSegmenter",
         config: "config",
       },
       handler: async (input, ctx) => {
@@ -283,7 +276,7 @@ export const termDiscoveryGraph = defineGraph({
         const statConfig = input.config?.statistical;
 
         if (input.elements.length === 0 || statConfig?.enabled === false) {
-          return { candidates: [], nlpSegmenterUsed: "intl-fallback" as const };
+          return { candidates: [] };
         }
 
         return statisticalTermExtractOp(
@@ -294,7 +287,6 @@ export const termDiscoveryGraph = defineGraph({
               text: e.text,
             })),
             languageId: input.languageId,
-            nlpSegmenter: input.nlpSegmenter,
             config: {
               maxTermTokens: statConfig?.maxTermTokens ?? 5,
               minElementFrequency: statConfig?.minElementFrequency ?? 2,
@@ -345,7 +337,6 @@ export const termDiscoveryGraph = defineGraph({
         dedupCandidates: "dedup-match.candidates",
         sourceLanguageId: "sourceLanguageId",
         config: "config",
-        statNlpUsed: "stat-extract.nlpSegmenterUsed",
         elements: "load-texts.elements",
         statCandidates: "stat-extract.candidates",
       },
@@ -356,7 +347,7 @@ export const termDiscoveryGraph = defineGraph({
       handler: async (input, ctx) => {
         const opCtx = { traceId: ctx.runId, signal: ctx.signal };
         const llmConfig = input.config?.llm;
-        const useRelaxedThreshold = input.statNlpUsed === "intl-fallback";
+        const useRelaxedThreshold = false;
 
         const { candidates: enhancedCandidates, llmCandidatesAdded } =
           llmConfig?.enabled !== false
@@ -411,7 +402,6 @@ export const termDiscoveryGraph = defineGraph({
             statisticalCandidates: input.statCandidates.length,
             llmCandidates: llmCandidatesAdded,
             existingTermsMatched,
-            nlpSegmenterUsed: input.statNlpUsed,
           },
         };
       },

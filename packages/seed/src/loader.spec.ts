@@ -66,7 +66,7 @@ describe("loadDevSeed local overrides", () => {
         model-id: local-model
         baseURL: "\${LOCAL_VECTORIZER_URL}"
         apiKey: local-key
-    - plugin: spacy-segmenter
+    - plugin: spacy-language-analyzer
       scope: GLOBAL
       config:
         serverUrl: http://local-spacy.test
@@ -96,7 +96,7 @@ describe("loadDevSeed local overrides", () => {
     ).toBe(true);
     expect(
       loaded.config.plugins.overrides.some(
-        (override) => override.plugin === "spacy-segmenter",
+        (override) => override.plugin === "spacy-language-analyzer",
       ),
     ).toBe(true);
   });
@@ -176,7 +176,7 @@ seed:
 plugins:
   loader: real
   overrides:
-    - plugin: spacy-segmenter
+    - plugin: spacy-language-analyzer
       scope: GLOBAL
       config:
         serverUrl: "\${MISSING_SPACY_URL}"

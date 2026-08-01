@@ -1193,7 +1193,7 @@ const createServiceBootstrapPlan = (
         value: { "root-path": storageDirectory },
       },
       {
-        pluginId: "spacy-segmenter",
+        pluginId: "spacy-language-analyzer",
         scopeId: "",
         scopeType: "GLOBAL",
         type: "install-if-absent",

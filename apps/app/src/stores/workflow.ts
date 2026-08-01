@@ -129,6 +129,7 @@ export const useWorkflowStore = defineStore("workflow", () => {
       case "human:input:required":
       case "human:input:received":
       case "workflow:translation:created":
+      case "workflow:task:progress":
       case "workflow:qa:issue":
       case "workflow:suggestion:ready":
       case "tool:call":

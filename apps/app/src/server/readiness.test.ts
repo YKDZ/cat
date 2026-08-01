@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import localStoragePlugin from "@cat-plugin/local-storage-provider";
-import spacyPlugin from "@cat-plugin/spacy-segmenter";
+import spacyPlugin from "@cat-plugin/spacy-language-analyzer";
 import app, { configureReadinessReporter } from "@cat/app-api/app";
 import { DrizzleDB, RedisConnection } from "@cat/db";
 import {
@@ -13,7 +13,7 @@ import {
   type DatabaseRuntimeSummary,
 } from "@cat/domain";
 import {
-  NlpWordSegmenter,
+  LanguageAnalyzer,
   StorageProvider,
   type CatPlugin,
   type PluginContext,
@@ -34,7 +34,11 @@ const requireSpacyServerUrl = (): string => {
 
 const pluginServices = (plugin: CatPlugin, config: PluginContext["config"]) => {
   // These Plugin Entries only consume config in this runtime-boundary test.
-  const services = plugin.services?.({ config } as PluginContext);
+  const services = plugin.services?.({
+    config,
+    scopeId: "",
+    scopeType: "GLOBAL",
+  } as PluginContext);
   if (services === undefined || services instanceof Promise) {
     throw new Error("Expected a synchronous Plugin Entry services hook");
   }
@@ -51,9 +55,9 @@ const createStorageService = (rootPath: string): StorageProvider => {
 
 const createSpacyService = (
   config: PluginContext["config"],
-): NlpWordSegmenter => {
+): LanguageAnalyzer => {
   const service = pluginServices(spacyPlugin, config).find(
-    (candidate) => candidate instanceof NlpWordSegmenter,
+    (candidate) => candidate instanceof LanguageAnalyzer,
   );
   if (service === undefined) throw new Error("spaCy Plugin Entry is missing");
   return service;
@@ -115,7 +119,7 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
   let server: HealthServer;
   let storageDirectory: string;
   let storage: StorageProvider;
-  let spacy: NlpWordSegmenter;
+  let spacy: LanguageAnalyzer;
 
   const configure = (): void => {
     const profile = resolveRuntimeProfile({
@@ -154,13 +158,22 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
         }),
         profile,
         redis,
-        spaCyServices: () => [
-          {
-            id: "spacy-word-segmenter",
-            pluginId: "spacy-segmenter",
-            service: spacy,
-          },
-        ],
+        assessLanguageAnalysis: async (signal) => {
+          const configuration =
+            spacy.getLanguageAnalysisConfigurationAssessment();
+          if (configuration.status === "INVALID") {
+            throw new Error("Language Analysis configuration is invalid");
+          }
+          const languageId = configuration.supportedLanguages[0];
+          if (languageId === undefined) {
+            throw new Error("Language Analyzer has no supported language");
+          }
+          await spacy.analyze({
+            languageId,
+            signal,
+            text: "CAT Language Analysis readiness probe.",
+          });
+        },
         storageServices: () => [storage],
       }),
     );
@@ -253,7 +266,7 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
       },
     );
     await expectUnavailableThenRecovered(
-      "spacy",
+      "language-analysis",
       async () => {
         spacy = createSpacyService({
           serverUrl: "http://127.0.0.1:1",

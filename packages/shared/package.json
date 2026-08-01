@@ -28,6 +28,7 @@
     "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p packages/shared/tsconfig.json"
   },
   "dependencies": {
+    "bcp-47": "catalog:",
     "yaml": "catalog:",
     "zod": "catalog:"
   },

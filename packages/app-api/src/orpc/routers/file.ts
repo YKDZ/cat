@@ -3,6 +3,7 @@ import { join } from "node:path";
 
 import {
   createContentNodeUnderParent,
+  assertLanguageAnalysisPolicySnapshot,
   ensureCoreRelationTypes,
   executeCommand,
   executeQuery,
@@ -21,7 +22,11 @@ import {
   preparePresignedPutFile,
 } from "@cat/server-shared";
 import type { JSONType, ServiceImplementationReference } from "@cat/shared";
-import { FileMetaSchema, type ContentNode } from "@cat/shared";
+import {
+  FileMetaSchema,
+  NormalizedLanguageIdSchema,
+  type ContentNode,
+} from "@cat/shared";
 import { sanitizeFileName } from "@cat/shared";
 import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
@@ -39,6 +44,7 @@ import {
   checkContentNodePermission,
   checkPermission,
 } from "#/orpc/server.ts";
+import { assertProjectLanguageAnalysisPreflight } from "#/services/language-analysis-preflight.ts";
 import {
   createVCSRouteHelper,
   ensureBranchWriteContext,
@@ -82,9 +88,12 @@ const getRequiredContentNode = async (
 export const prepareCreateFromFile = authed
   .input(
     z.object({
+      projectId: z.uuidv4(),
+      languageId: NormalizedLanguageIdSchema,
       meta: FileMetaSchema,
     }),
   )
+  .use(checkPermission("project", "editor"), (i) => i.projectId)
   .output(
     z.object({
       url: z.string(),
@@ -98,7 +107,13 @@ export const prepareCreateFromFile = authed
       sessionStore,
       pluginManager,
     } = context;
-    const { meta } = input;
+    const { projectId, languageId, meta } = input;
+
+    await assertProjectLanguageAnalysisPreflight(
+      projectId,
+      [languageId],
+      context,
+    );
 
     const storage = selectFirstServiceImplementation(
       pluginManager,
@@ -130,7 +145,7 @@ export const finishCreateFromFile = authed
   .input(
     z.object({
       projectId: z.uuidv4(),
-      languageId: z.string(),
+      languageId: NormalizedLanguageIdSchema,
       putSessionId: z.uuidv4(),
       branchId: z.int().optional(),
     }),
@@ -173,6 +188,13 @@ export const finishCreateFromFile = authed
         message: `Project ${projectId} not found`,
       });
     }
+
+    const languageAnalysisPolicySnapshot =
+      await assertProjectLanguageAnalysisPreflight(
+        projectId,
+        [languageId],
+        context,
+      );
 
     const fileId = await finishPresignedPutFile(
       drizzle,
@@ -338,10 +360,13 @@ export const finishCreateFromFile = authed
         });
       }
 
-      const newNode = await executeCommand(
-        { db: drizzle },
-        createContentNodeUnderParent,
-        {
+      const newNode = await drizzle.transaction(async (tx) => {
+        await executeCommand(
+          { db: tx },
+          assertLanguageAnalysisPolicySnapshot,
+          languageAnalysisPolicySnapshot,
+        );
+        return await executeCommand({ db: tx }, createContentNodeUnderParent, {
           projectId,
           creatorId: user.id,
           parentContentNodeId: rootNode.id,
@@ -350,14 +375,15 @@ export const finishCreateFromFile = authed
           importerId: service.id,
           sourceRootRef: projectId,
           stableSourceNodeRef: fileName,
+          languageId,
           exportRole: "FILE",
           boundaryType: "FILE",
           fileHandler:
             pluginManager.createServiceImplementationReference(service),
           fileId,
           localOrder: 0,
-        },
-      );
+        });
+      });
 
       targetContentNodeId = newNode.id;
     } else {
@@ -380,6 +406,7 @@ export const finishCreateFromFile = authed
         languageId,
         vectorizer: vectorizer.reference,
         vectorStorage: storage.reference,
+        ...(existingNode === null ? {} : { languageAnalysisPolicySnapshot }),
       },
       {
         pluginManager,

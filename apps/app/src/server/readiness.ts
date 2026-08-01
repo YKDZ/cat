@@ -9,7 +9,7 @@ import type {
   RuntimeProfile,
   RuntimeState,
 } from "@cat/domain";
-import type { NlpWordSegmenter } from "@cat/plugin-core";
+import { LanguageAnalysisReadinessError } from "@cat/operations";
 
 type ApplicationReadinessDependencies = {
   backends: {
@@ -22,11 +22,7 @@ type ApplicationReadinessDependencies = {
   profile: RuntimeProfile;
   redis: RedisConnection | undefined;
   detectSearchRuntime: () => Promise<DatabaseRuntimeSummary>;
-  spaCyServices: () => Array<{
-    id: string;
-    pluginId: string;
-    service: Pick<NlpWordSegmenter, "getSupportedLanguages" | "segment">;
-  }>;
+  assessLanguageAnalysis: (signal: AbortSignal) => Promise<void>;
   storageServices: () => Array<{ ping: () => Promise<void> }>;
 };
 
@@ -86,44 +82,24 @@ const requireAvailableStorage = async (
   }
 };
 
-const requireAvailableSpacy = async (
-  getServices: () => Array<{
-    id: string;
-    pluginId: string;
-    service: Pick<NlpWordSegmenter, "getSupportedLanguages" | "segment">;
-  }>,
+const requireAvailableLanguageAnalysis = async (
+  assess: (signal: AbortSignal) => Promise<void>,
   signal: AbortSignal,
 ): Promise<void> => {
-  const service = getServices().find(
-    ({ id, pluginId }) =>
-      pluginId === "spacy-segmenter" && id === "spacy-word-segmenter",
-  );
-  if (!service) {
-    throw new ReadinessProbeFailure("SPACY_NOT_CONFIGURED");
-  }
-
   try {
-    const languages = await service.service.getSupportedLanguages(signal);
-    const languageId = languages[0];
-    if (languageId === undefined) {
-      throw new Error("No supported spaCy languages");
+    await assess(signal);
+  } catch (error) {
+    if (error instanceof ReadinessProbeFailure) throw error;
+    if (error instanceof LanguageAnalysisReadinessError) {
+      throw new ReadinessProbeFailure(`LANGUAGE_ANALYSIS_${error.reason}`);
     }
-    const result = await service.service.segment({
-      languageId,
-      signal,
-      text: "CAT readiness segment probe.",
-    });
-    if (result.tokens.length === 0) {
-      throw new Error("spaCy did not tokenize the readiness probe");
-    }
-  } catch {
-    throw new ReadinessProbeFailure("SPACY_UNAVAILABLE");
+    throw new ReadinessProbeFailure("LANGUAGE_ANALYSIS_UNAVAILABLE");
   }
 };
 
 /**
  * Build the application-specific readiness aggregate after runtime bootstrap
- * has created its database, backend, storage and NLP service dependencies.
+ * has created its database, backend, storage and Language Analysis dependencies.
  */
 export const createApplicationReadinessReporter = (
   dependencies: ApplicationReadinessDependencies,
@@ -224,10 +200,13 @@ export const createApplicationReadinessReporter = (
     },
     {
       cost: "expensive" as const,
-      id: "spacy",
+      id: "language-analysis",
       required: true,
       run: async (signal: AbortSignal): Promise<void> =>
-        requireAvailableSpacy(dependencies.spaCyServices, signal),
+        requireAvailableLanguageAnalysis(
+          dependencies.assessLanguageAnalysis,
+          signal,
+        ),
     },
     ...(dependencies.profile.name === "production"
       ? [

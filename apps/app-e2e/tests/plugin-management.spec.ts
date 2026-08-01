@@ -1,14 +1,14 @@
 import { test, expect } from "#/fixtures.ts";
 
 test.describe("Plugin management", () => {
-  test("administrator probes the official spaCy segmenter candidate through the product API", async ({
+  test("administrator probes the official spaCy Language Analyzer through the product API", async ({
     page,
   }) => {
     test.setTimeout(150_000);
 
-    await page.goto("/admin/plugin/spacy-segmenter");
+    await page.goto("/admin/plugin/spacy-language-analyzer");
     await expect(
-      page.getByRole("heading", { name: "spacy-segmenter" }),
+      page.getByRole("heading", { name: "spacy-language-analyzer" }),
     ).toBeVisible();
 
     const configPanel = page.getByTestId("plugin-config-editor");
@@ -31,7 +31,7 @@ test.describe("Plugin management", () => {
       timeout: 120_000,
     });
     await expect(
-      page.getByText("NLP_WORD_SEGMENTER · spacy-word-segmenter").last(),
+      page.getByText("LANGUAGE_ANALYZER · spacy-language-analyzer").last(),
     ).toBeVisible();
     await expect(page.locator("pre")).toContainText(/"tokenCount":\s*[1-9]/);
   });

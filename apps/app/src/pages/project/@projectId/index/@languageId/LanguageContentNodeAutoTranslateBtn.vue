@@ -104,7 +104,7 @@ const sortModeOptions = computed<PickerOption<ElementSortMode>[]>(() =>
 );
 
 const onSubmit = handleSubmit(async (formValues) => {
-  const { runId } = await orpc.translation.autoTranslate({
+  const { taskId } = await orpc.translation.autoTranslate({
     scope: {
       projectId: props.contentNode.projectId,
       contentNodeIds: [props.contentNode.id],
@@ -131,7 +131,7 @@ const onSubmit = handleSubmit(async (formValues) => {
     },
   });
   const projectId = ctx.routeParams?.projectId;
-  await navigate(`/project/${projectId}/workflows/${runId}`);
+  await navigate(`/project/${projectId}/tasks?taskId=${taskId}`);
 });
 
 const { state: advisorState } = useQuery({
@@ -150,7 +150,7 @@ const { state: llmState } = useQuery({
 <template>
   <Dialog v-if="hydrated">
     <DialogTrigger>
-      <Button variant="outline" size="icon">
+      <Button variant="outline" size="icon" :title="t('自动翻译')">
         <div class="icon-[mdi--translate] size-4" />
       </Button>
     </DialogTrigger>

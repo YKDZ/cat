@@ -11,10 +11,12 @@ import { CommandExecutionError, type CommandRunner } from "./check-all.ts";
 
 const standaloneImageId = `sha256:${"a".repeat(64)}`;
 const runtimeImageId = `sha256:${"b".repeat(64)}`;
+const spacyImageId = `sha256:${"c".repeat(64)}`;
 const releaseImages = {
   images: [
     { imageId: standaloneImageId, target: "standalone" as const },
     { imageId: runtimeImageId, target: "runtime" as const },
+    { imageId: spacyImageId, target: "spacy" as const },
   ],
 };
 
@@ -81,6 +83,24 @@ const lifecycleRunner = (
           ?.slice("DEPLOYMENT_BUILD_ID=".length) ?? "";
     }
     if (args.includes("{{json .Config}}")) {
+      if (args.includes(spacyImageId)) {
+        return {
+          stderr: "",
+          stdout: JSON.stringify({
+            Cmd: ["provision-and-serve"],
+            Entrypoint: ["python", "-m", "src.cli"],
+            Healthcheck: {
+              Test: ["CMD-SHELL", "python -c http://127.0.0.1:8000/ready"],
+            },
+            Labels: {
+              "org.opencontainers.image.version":
+                releaseImageBuildId ?? buildId,
+            },
+            User: "10001:10001",
+            Volumes: { "/models": {} },
+          }),
+        };
+      }
       const mode = args.includes(standaloneImageId) ? "standalone" : "runtime";
       return {
         stderr: "",
@@ -415,7 +435,7 @@ describe("application container lifecycle", () => {
             value: { "root-path": "/data/storage" },
           },
           {
-            pluginId: "spacy-segmenter",
+            pluginId: "spacy-language-analyzer",
             scopeId: "",
             scopeType: "GLOBAL",
             type: "install-if-absent",
@@ -809,7 +829,7 @@ describe("application container lifecycle", () => {
     ]);
   });
 
-  it("exports both images only after the separate lifecycle stage passes", async () => {
+  it("exports all images only after the separate lifecycle stage passes", async () => {
     const exportDirectory = `/tmp/cat-validated-images-${process.pid}`;
     const run = lifecycleRunner();
     const context = {
@@ -845,6 +865,13 @@ describe("application container lifecycle", () => {
           `${exportDirectory}/runtime.tar`,
           runtimeImageId,
         ],
+        [
+          "image",
+          "save",
+          "--output",
+          `${exportDirectory}/spacy.tar`,
+          spacyImageId,
+        ],
       ]);
       expect(
         JSON.parse(readFileSync(`${exportDirectory}/manifest.json`, "utf8")),
@@ -857,6 +884,14 @@ describe("application container lifecycle", () => {
               versionLabel: "cat-container-export",
             },
             imageId: runtimeImageId,
+          },
+          spacy: {
+            identity: {
+              command: "provision-and-serve",
+              description: "CAT spaCy language analysis runtime",
+              versionLabel: "cat-container-export",
+            },
+            imageId: spacyImageId,
           },
           standalone: {
             identity: {

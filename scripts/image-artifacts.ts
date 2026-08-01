@@ -94,8 +94,11 @@ const readManifest = async (
     }
   }
   if (
-    manifest.images.standalone.identity.versionLabel !==
-    manifest.images.runtime.identity.versionLabel
+    new Set(
+      releaseImageTargets.map(
+        (target) => manifest.images[target].identity.versionLabel,
+      ),
+    ).size !== 1
   ) {
     throw new Error(
       "Validated image manifest has inconsistent version labels across release targets",
@@ -127,7 +130,10 @@ const verifyChecksums = async (directory: string): Promise<void> => {
         return [match[2], match[1]] as const;
       }),
   );
-  for (const file of ["manifest.json", "standalone.tar", "runtime.tar"]) {
+  for (const file of [
+    "manifest.json",
+    ...releaseImageTargets.map((target) => `${target}.tar`),
+  ]) {
     const hash = expected.get(file);
     if (hash === undefined || hash !== (await sha256(join(directory, file)))) {
       throw new Error(`Validated image checksum does not match ${file}`);

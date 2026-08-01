@@ -18,6 +18,14 @@ export type RunMetadata = {
   startedAt: string;
   completedAt?: string | undefined;
   metadata?: JSONObject | null | undefined;
+  ownerId?: string | null | undefined;
+  ownerEpoch?: number | undefined;
+  ownerLeaseExpiresAt?: string | undefined;
+};
+export type RunOwnershipFence = {
+  runId: RunId;
+  ownerId: string;
+  epoch: number;
 };
 
 export type ExternalOutputRecord = {
@@ -42,10 +50,13 @@ export type Checkpointer = {
   ) => Promise<void>;
   loadRunMetadata: (runId: RunId) => Promise<RunMetadata | null>;
   findRunByDeduplicationKey: (key: string) => Promise<RunMetadata | null>;
+  claimRunOwnership: (runId: RunId) => Promise<boolean>;
+  renewRunOwnership: (runId: RunId) => Promise<boolean>;
+  getRunOwnershipFence: (runId: RunId) => RunOwnershipFence | null;
   saveSnapshot: (runId: RunId, snapshot: BlackboardSnapshot) => Promise<void>;
   loadSnapshot: (runId: RunId) => Promise<BlackboardSnapshot | null>;
-  saveEvent: (event: AgentEvent) => Promise<void>;
-  listEvents: (runId: RunId) => Promise<AgentEvent[]>;
+  saveEvent: (event: AgentEvent) => Promise<number | null>;
+  listEvents: (runId: RunId, afterSequence?: number) => Promise<AgentEvent[]>;
   saveExternalOutput: (record: ExternalOutputRecord) => Promise<void>;
   loadExternalOutputByIdempotency: (
     runId: RunId,

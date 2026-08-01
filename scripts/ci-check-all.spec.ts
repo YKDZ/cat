@@ -31,7 +31,7 @@ const imageId = `sha256:${"a".repeat(64)}`;
 
 const createCacheScopes = async (cacheRoot: string): Promise<void> => {
   for (const scope of ["buildx", "buildx-next"]) {
-    for (const target of ["standalone", "runtime"]) {
+    for (const target of ["standalone", "runtime", "spacy"]) {
       const directory = join(cacheRoot, scope, target);
       await mkdir(directory, { recursive: true });
       await writeFile(join(directory, "index.json"), "{}\n");
@@ -138,10 +138,10 @@ describe("CI check-all cache promotion", () => {
     );
   });
 
-  it("promotes only two complete, validated cache scopes", async () => {
+  it("promotes only complete, validated cache scopes", async () => {
     const cwd = await mkdtemp(join(tmpdir(), "cat-buildx-promotion-"));
     temporaryDirectories.push(cwd);
-    for (const target of ["standalone", "runtime"]) {
+    for (const target of ["standalone", "runtime", "spacy"]) {
       await mkdir(join(cwd, ".cache", "buildx-next", target), {
         recursive: true,
       });

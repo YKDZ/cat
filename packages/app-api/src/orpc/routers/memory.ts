@@ -17,7 +17,7 @@ import {
 import {
   buildMemoryRecallBm25Capabilities,
   collectEffectiveMemoryRecallOp,
-  nlpSegmentOp,
+  languageAnalyzeOp,
   recallContextRerankOp,
 } from "@cat/operations";
 import { getPermissionEngine } from "@cat/permissions";
@@ -37,6 +37,7 @@ import {
   checkElementPermission,
   checkPermission,
 } from "#/orpc/server.ts";
+import { throwLanguageAnalysisOperationFailure } from "#/services/language-analysis-operation-failure.ts";
 import type { Context } from "#/utils/context.ts";
 import {
   createVCSRouteHelper,
@@ -308,16 +309,33 @@ export const onNew = authed
       return;
     }
 
-    const [excludeMemoryItemIds, nlpResult] = await Promise.all([
-      executeQuery({ db: drizzle }, listMemoryItemIdsByElement, {
-        elementId,
-      }).catch(() => [] as string[]),
-      nlpSegmentOp(
-        { text: element.value, languageId: element.languageId },
-        { pluginManager: context.pluginManager, traceId: crypto.randomUUID() },
-      ).catch(() => null),
-    ]);
-    const sourceNlpTokens = nlpResult?.tokens;
+    const excludeMemoryItemIds = await executeQuery(
+      { db: drizzle },
+      listMemoryItemIdsByElement,
+      { elementId },
+    ).catch(() => [] as string[]);
+    const languageAnalysis = await (async () => {
+      try {
+        return await languageAnalyzeOp(
+          { text: element.value, languageId: element.languageId },
+          {
+            pluginManager: context.pluginManager,
+            signal: context.requestSignal,
+            traceId: crypto.randomUUID(),
+          },
+        );
+      } catch (error) {
+        return await throwLanguageAnalysisOperationFailure({
+          context,
+          error,
+          affectedResources: [
+            { type: "PROJECT", id: element.projectId },
+            { type: "ELEMENT", id: String(elementId) },
+          ],
+        });
+      }
+    })();
+    const sourceLanguageAnalysisTokens = languageAnalysis.tokens;
 
     const reranked = await recallContextRerankOp(
       {
@@ -334,16 +352,18 @@ export const onNew = authed
             minSimilarity: minConfidence,
             maxAmount,
             excludeMemoryItemIds,
-            sourceNlpTokens,
+            sourceLanguageAnalysisTokens,
           },
           {
             pluginManager: context.pluginManager,
+            signal: context.requestSignal,
             traceId: crypto.randomUUID(),
           },
         ),
       },
       {
         pluginManager: context.pluginManager,
+        signal: context.requestSignal,
         traceId: crypto.randomUUID(),
       },
     );
@@ -705,6 +725,7 @@ export const searchByText = authed
       },
       {
         pluginManager: context.pluginManager,
+        signal: context.requestSignal,
         traceId: crypto.randomUUID(),
       },
     );

@@ -1,5 +1,5 @@
-import type { AgentRunMetadataRow, DbHandle } from "@cat/domain";
 import {
+  claimAgentRunOwner,
   executeCommand,
   executeQuery,
   findAgentRunByDeduplicationKey,
@@ -12,6 +12,9 @@ import {
   saveAgentExternalOutput,
   saveAgentRunMetadata,
   saveAgentRunSnapshot,
+  type AgentRunMetadataRow,
+  type DbHandle,
+  renewAgentRunOwner,
 } from "@cat/domain";
 import type { JSONObject, JSONType } from "@cat/shared";
 
@@ -58,15 +61,58 @@ const toRunMetadata = (row: AgentRunMetadataRow): RunMetadata => {
     startedAt: row.startedAt.toISOString(),
     completedAt: row.completedAt?.toISOString(),
     metadata,
+    ownerId: row.ownerId,
+    ownerEpoch: row.ownerEpoch,
+    ownerLeaseExpiresAt: row.ownerLeaseExpiresAt?.toISOString(),
   };
 };
 
 export class PostgresCheckpointer implements Checkpointer {
   readonly #db: DbHandle;
+  readonly #ownerId = crypto.randomUUID();
+  readonly #ownerEpochs = new Map<RunId, number>();
+  readonly #ownerLeaseMs: number;
 
-  constructor(db: DbHandle) {
+  constructor(db: DbHandle, options?: { ownerLeaseMs?: number }) {
     this.#db = db;
+    this.#ownerLeaseMs = options?.ownerLeaseMs ?? 30_000;
   }
+
+  claimRunOwnership = async (runId: RunId): Promise<boolean> => {
+    const lease = await executeCommand({ db: this.#db }, claimAgentRunOwner, {
+      externalId: runId,
+      ownerId: this.#ownerId,
+      leaseDurationMs: this.#ownerLeaseMs,
+    });
+    if (!lease) return false;
+    this.#ownerEpochs.set(runId, lease.epoch);
+    return true;
+  };
+
+  renewRunOwnership = async (runId: RunId): Promise<boolean> => {
+    const epoch = this.#ownerEpochs.get(runId);
+    if (epoch === undefined) return false;
+    return await executeCommand({ db: this.#db }, renewAgentRunOwner, {
+      externalId: runId,
+      ownerId: this.#ownerId,
+      epoch,
+      leaseDurationMs: this.#ownerLeaseMs,
+    });
+  };
+
+  getRunOwnershipFence = (runId: RunId) => {
+    const epoch = this.#ownerEpochs.get(runId);
+    return epoch === undefined
+      ? null
+      : { runId, ownerId: this.#ownerId, epoch };
+  };
+
+  #ownerFence = (runId: RunId) => {
+    const epoch = this.#ownerEpochs.get(runId);
+    return epoch === undefined
+      ? {}
+      : { ownerId: this.#ownerId, ownerEpoch: epoch };
+  };
 
   saveRunMetadata = async (
     runId: RunId,
@@ -109,6 +155,7 @@ export class PostgresCheckpointer implements Checkpointer {
       startedAt: startedAt ? new Date(startedAt) : new Date(),
       completedAt: completedAt ? new Date(completedAt) : null,
       metadata: mergedMetadata,
+      ...this.#ownerFence(runId),
     });
   };
 
@@ -138,9 +185,18 @@ export class PostgresCheckpointer implements Checkpointer {
     runId: RunId,
     snapshot: BlackboardSnapshot,
   ): Promise<void> => {
+    if (
+      !this.#ownerEpochs.has(runId) &&
+      (await executeQuery({ db: this.#db }, getAgentRunInternalId, {
+        externalId: runId,
+      })) === null
+    ) {
+      return;
+    }
     await executeCommand({ db: this.#db }, saveAgentRunSnapshot, {
       externalId: runId,
       snapshot,
+      ...this.#ownerFence(runId),
     });
   };
 
@@ -156,15 +212,15 @@ export class PostgresCheckpointer implements Checkpointer {
     return snapshot as unknown as BlackboardSnapshot;
   };
 
-  saveEvent = async (event: AgentEvent): Promise<void> => {
+  saveEvent = async (event: AgentEvent): Promise<number | null> => {
     const internalId = await executeQuery(
       { db: this.#db },
       getAgentRunInternalId,
       { externalId: event.runId },
     );
-    if (internalId === null) return;
+    if (internalId === null) return null;
 
-    await executeCommand({ db: this.#db }, saveAgentEvent, {
+    return await executeCommand({ db: this.#db }, saveAgentEvent, {
       runInternalId: internalId,
       eventId: event.eventId,
       parentEventId: event.parentEventId ?? null,
@@ -172,10 +228,14 @@ export class PostgresCheckpointer implements Checkpointer {
       type: event.type,
       payload: event.payload,
       timestamp: new Date(event.timestamp),
+      ...this.#ownerFence(event.runId),
     });
   };
 
-  listEvents = async (runId: RunId): Promise<AgentEvent[]> => {
+  listEvents = async (
+    runId: RunId,
+    afterSequence?: number,
+  ): Promise<AgentEvent[]> => {
     const internalId = await executeQuery(
       { db: this.#db },
       getAgentRunInternalId,
@@ -185,10 +245,11 @@ export class PostgresCheckpointer implements Checkpointer {
 
     const rows = await executeQuery({ db: this.#db }, listAgentEvents, {
       runInternalId: internalId,
+      ...(afterSequence === undefined ? {} : { afterSequence }),
     });
 
-    return rows.map((row) =>
-      createAgentEvent({
+    return rows.map((row) => ({
+      ...createAgentEvent({
         eventId: row.eventId,
         runId,
         parentEventId: row.parentEventId ?? undefined,
@@ -198,7 +259,8 @@ export class PostgresCheckpointer implements Checkpointer {
         payload: row.payload,
         timestamp: row.timestamp.toISOString(),
       }),
-    );
+      sequence: row.sequence,
+    }));
   };
 
   saveExternalOutput = async (record: ExternalOutputRecord): Promise<void> => {
@@ -217,6 +279,7 @@ export class PostgresCheckpointer implements Checkpointer {
       payload: record.payload,
       idempotencyKey: record.idempotencyKey ?? null,
       createdAt: new Date(record.createdAt),
+      ...this.#ownerFence(record.runId),
     });
   };
 

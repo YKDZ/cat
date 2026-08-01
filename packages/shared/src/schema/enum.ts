@@ -22,9 +22,125 @@ export const TaskStatusValues = [
   "COMPLETED",
   "FAILED",
   "BLOCKED",
+  "CANCEL_REQUESTED",
   "CANCELED",
 ] as const;
 export const TaskStatusSchema = z.enum(TaskStatusValues);
+
+export const TaskScopeTypeValues = ["PROJECT", "USER", "INSTANCE"] as const;
+export const TaskScopeTypeSchema = z.enum(TaskScopeTypeValues);
+export type TaskScopeType = (typeof TaskScopeTypeValues)[number];
+
+export const TaskKindValues = ["BATCH_AUTO_TRANSLATION"] as const;
+export const TaskKindNameSchema = z.enum(TaskKindValues);
+export type TaskKindName = (typeof TaskKindValues)[number];
+
+export const BatchAutoTranslationTaskPhaseValues = [
+  "PREPARING",
+  "TRANSLATING",
+  "INDEXING",
+] as const;
+export const BatchAutoTranslationTaskPhaseSchema = z.enum(
+  BatchAutoTranslationTaskPhaseValues,
+);
+export type BatchAutoTranslationTaskPhase =
+  (typeof BatchAutoTranslationTaskPhaseValues)[number];
+
+export const TaskActorTypeValues = ["USER", "SYSTEM"] as const;
+export const TaskActorTypeSchema = z.enum(TaskActorTypeValues);
+export type TaskActorType = (typeof TaskActorTypeValues)[number];
+
+export const TaskAffectedResourceTypeValues = [
+  "PROJECT",
+  "ELEMENT",
+  "TRANSLATION",
+] as const;
+export const TaskAffectedResourceTypeSchema = z.enum(
+  TaskAffectedResourceTypeValues,
+);
+export type TaskAffectedResourceType =
+  (typeof TaskAffectedResourceTypeValues)[number];
+
+export const OperationFailureCodeValues = [
+  "CAT_OPERATION_CANCELED",
+  "CAT_OPERATION_DEPENDENCY_UNAVAILABLE",
+  "CAT_OPERATION_EXECUTION_DENIED",
+  "CAT_OPERATION_INVALID_INPUT",
+  "CAT_OPERATION_MISSING_CAPABILITY",
+  "CAT_OPERATION_RESOURCE_NOT_FOUND",
+  "CAT_OPERATION_FAILED",
+  "CAT_OPERATION_PERMISSION_DENIED",
+  "CAT_OPERATION_RELATIONSHIP_DENIED",
+  "CAT_OPERATION_REVIEW_CHANGE_BLOCKED",
+] as const;
+export const OperationFailureCodeSchema = z.enum(OperationFailureCodeValues);
+export type OperationFailureCode = (typeof OperationFailureCodeValues)[number];
+
+export const OperationFailureSeverityValues = [
+  "INFO",
+  "WARNING",
+  "ERROR",
+] as const;
+export const OperationFailureSeveritySchema = z.enum(
+  OperationFailureSeverityValues,
+);
+export type OperationFailureSeverity =
+  (typeof OperationFailureSeverityValues)[number];
+
+export const OperationFailureBlockerValues = [
+  "branch_translation_write_failed",
+  "branch_write_context_unavailable",
+  "language_analysis_duplicate_implementation",
+  "language_analysis_installation_scope_mismatch",
+  "language_analysis_invalid_attestation",
+  "language_analysis_invalid_configuration",
+  "language_analysis_invalid_response",
+  "language_analysis_missing_implementation",
+  "language_analysis_missing_selection",
+  "language_analysis_policy_changed",
+  "language_analysis_service_type_mismatch",
+  "language_analysis_timeout",
+  "language_analysis_unavailable",
+  "language_analysis_unsupported_language",
+  "reviewable_change_write_failed",
+] as const;
+export const OperationFailureBlockerSchema = z.enum(
+  OperationFailureBlockerValues,
+);
+export type OperationFailureBlocker =
+  (typeof OperationFailureBlockerValues)[number];
+
+export const OperationFailureCapabilityValues = [
+  "LANGUAGE_ANALYSIS",
+  "VECTOR_STORAGE",
+  "TEXT_VECTORIZER",
+] as const;
+export const OperationFailureCapabilitySchema = z.enum(
+  OperationFailureCapabilityValues,
+);
+export type OperationFailureCapability =
+  (typeof OperationFailureCapabilityValues)[number];
+
+export const OperationFailureAuthorizationDecisionValues = [
+  "api_key_scope_denied",
+  "rebac_denied",
+  "write_mode_denied",
+] as const;
+export const OperationFailureAuthorizationDecisionSchema = z.enum(
+  OperationFailureAuthorizationDecisionValues,
+);
+export type OperationFailureAuthorizationDecision =
+  (typeof OperationFailureAuthorizationDecisionValues)[number];
+
+export const OperationFailureRedactionBoundaryValues = [
+  "PUBLIC",
+  "INTERNAL",
+] as const;
+export const OperationFailureRedactionBoundarySchema = z.enum(
+  OperationFailureRedactionBoundaryValues,
+);
+export type OperationFailureRedactionBoundary =
+  (typeof OperationFailureRedactionBoundaryValues)[number];
 
 export const QueueTaskStatusValues = [
   "PENDING",
@@ -49,7 +165,7 @@ export const PluginServiceTypeValues = [
   "RERANK_PROVIDER",
   "AGENT_TOOL_PROVIDER",
   "AGENT_CONTEXT_PROVIDER",
-  "NLP_WORD_SEGMENTER",
+  "LANGUAGE_ANALYZER",
   "EMAIL_PROVIDER",
 ] as const;
 export const PluginServiceTypeSchema = z.enum(PluginServiceTypeValues);

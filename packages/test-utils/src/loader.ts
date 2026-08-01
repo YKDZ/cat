@@ -51,9 +51,9 @@ import {
 } from "drizzle-orm/pg-core";
 
 import {
-  testNlpSegmenterManifest,
-  testNlpSegmenterPlugin,
-} from "./test-nlp-segmenter.ts";
+  testLanguageAnalyzerManifest,
+  testLanguageAnalyzerPlugin,
+} from "./test-language-analyzer.ts";
 
 const vector = snakeCase.table(
   "Vector",
@@ -370,7 +370,7 @@ type RegisteredPlugin = {
 };
 
 export type TestPluginLoaderOptions = {
-  includeNlpSegmenter?: boolean;
+  includeLanguageAnalyzer?: boolean;
 };
 
 const plugin = {
@@ -437,8 +437,8 @@ export class TestPluginLoader implements PluginLoader {
 
   constructor(options: TestPluginLoaderOptions = {}) {
     this.registerPlugin(manifest, plugin);
-    if (options.includeNlpSegmenter) {
-      this.registerMockNlpSegmenter();
+    if (options.includeLanguageAnalyzer) {
+      this.registerMockLanguageAnalyzer();
     }
   }
 
@@ -462,14 +462,15 @@ export class TestPluginLoader implements PluginLoader {
   };
 
   /**
-   * Register a mock NLP_WORD_SEGMENTER service as a separate plugin.
+   * Register a mock LANGUAGE_ANALYZER service as a separate plugin.
    *
-   * By default, `TestPluginLoader` does **not** include an NLP segmenter,
-   * so that existing tests relying on the `intl-fallback` path are not
-   * accidentally changed. Call this method explicitly to opt in.
+   * Tests opt in explicitly because Language Analysis is loop-critical.
    */
-  public registerMockNlpSegmenter = (): void => {
-    this.registerPlugin(testNlpSegmenterManifest, testNlpSegmenterPlugin);
+  public registerMockLanguageAnalyzer = (): void => {
+    this.registerPlugin(
+      testLanguageAnalyzerManifest,
+      testLanguageAnalyzerPlugin,
+    );
   };
 
   public getManifest = async (pluginId: string): Promise<PluginManifest> => {

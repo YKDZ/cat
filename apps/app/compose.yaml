@@ -50,15 +50,35 @@ services:
 
   spacy:
     image: ${CAT_SPACY_IMAGE:-ghcr.io/ykdz/cat-spacy-server:latest}
+    command: ["provision-and-serve"]
+    environment:
+      SPACY_EXTERNAL_PLAN: ${CAT_SPACY_EXTERNAL_PLAN:-}
+      SPACY_EXTERNAL_PLAN_SHA256: ${CAT_SPACY_EXTERNAL_PLAN_SHA256:-}
+      SPACY_MODELS_ROOT: /models
     healthcheck:
       test:
-        - CMD-SHELL
-        - curl -f http://localhost:8000/health
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).read()
       interval: 10s
       retries: 18
       start_period: 60s
       timeout: 5s
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777
+    user: "10001:10001"
+    volumes:
+      - spacy-models:/models
+      # To use an external plan, populate this named volume with plan.json and
+      # its relative wheel directories, then set CAT_SPACY_EXTERNAL_PLAN to
+      # /config/plan.json and CAT_SPACY_EXTERNAL_PLAN_SHA256 to its digest.
+      - type: volume
+        source: spacy-config
+        target: /config
+        read_only: true
 
   prepare:
     image: ${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}
@@ -143,3 +163,6 @@ volumes:
   cat-data:
   postgresql-data:
   redis-data:
+  spacy-config:
+    name: ${CAT_SPACY_CONFIG_VOLUME:-cat-spacy-config}
+  spacy-models:

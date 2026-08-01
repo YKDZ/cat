@@ -17,6 +17,8 @@ import {
   type SignalSource,
 } from "./check-all.ts";
 
+const spacyImageId = `sha256:${"c".repeat(64)}`;
+
 type TestSignalSource = SignalSource & {
   emit(signal: "SIGINT" | "SIGTERM"): boolean;
 };
@@ -74,6 +76,27 @@ const successfulRunner = (): CommandRunner => {
       return { stderr: "", stdout: "" };
     }
     if (command === "docker" && args.includes("up")) servicesStarted = true;
+    if (
+      command === "docker" &&
+      args[0] === "buildx" &&
+      args[1] === "build" &&
+      args.includes("spacy")
+    ) {
+      const iidfile = args[args.indexOf("--iidfile") + 1];
+      if (iidfile === undefined) throw new Error("missing spaCy iidfile");
+      writeFileSync(iidfile, `${spacyImageId}\n`);
+      return { stderr: "", stdout: "" };
+    }
+    if (
+      command === "docker" &&
+      args.includes("images") &&
+      args.includes("spacy")
+    ) {
+      return { stderr: "", stdout: `${spacyImageId}\n` };
+    }
+    if (command === "docker" && args[0] === "image" && args[1] === "inspect") {
+      return { stderr: "", stdout: `${spacyImageId}\n` };
+    }
     if (command === "docker" && args.includes("ps")) {
       return {
         stderr: "",
@@ -90,7 +113,10 @@ const successfulRunner = (): CommandRunner => {
       if (args[0] === "container")
         return { stderr: "", stdout: "postgres\nredis\nspacy\n" };
       if (args[0] === "network") return { stderr: "", stdout: "network\n" };
-      return { stderr: "", stdout: "postgres-data\nredis-data\n" };
+      return {
+        stderr: "",
+        stdout: "postgres-data\nredis-data\nspacy-models\n",
+      };
     }
     if (command === "docker" && args.includes("inspect")) {
       return { stderr: "", stdout: `${options.env.CAT_E2E_LEASE_TOKEN}\n` };
@@ -346,16 +372,21 @@ describe("check:all service lifecycle", () => {
     expect(
       logs.some((message) =>
         message.startsWith(
-          `check:all images build-id=cat-check-all-contract standalone=${builtImages.images[0]?.imageId} runtime=${builtImages.images[1]?.imageId}`,
+          `check:all images build-id=cat-check-all-contract standalone=${builtImages.images[0]?.imageId} runtime=${builtImages.images[1]?.imageId} spacy=${spacyImageId}`,
         ),
       ),
     ).toBe(true);
     expect(logs.some((message) => message.startsWith("{"))).toBe(false);
     expect(logs.join("\n")).not.toContain("plain Buildx history");
     expect(errors).toEqual(["plain Buildx history\n"]);
+    expect(applicationLifecycle.mock.calls[0]?.[1]).toMatchObject({
+      images: expect.arrayContaining([
+        { imageId: spacyImageId, target: "spacy" },
+      ]),
+    });
     expect(
       logs.filter((message) => message.includes("status=passed")),
-    ).toHaveLength(13);
+    ).toHaveLength(14);
 
     const calls = vi.mocked(run).mock.calls;
     const composeCalls = calls.filter(
@@ -437,10 +468,12 @@ describe("check:all service lifecycle", () => {
     expect(databaseIndex).toBeLessThan(integrationIndex);
     expect(applicationLifecycle).toHaveBeenCalledOnce();
     expect(imageBuilder).toHaveBeenCalledOnce();
-    expect(applicationLifecycle).toHaveBeenCalledWith(
-      expect.any(Object),
-      builtImages,
-    );
+    expect(applicationLifecycle).toHaveBeenCalledWith(expect.any(Object), {
+      images: expect.arrayContaining([
+        ...builtImages.images,
+        { imageId: spacyImageId, target: "spacy" },
+      ]),
+    });
     const e2eCall = calls.find(
       ([command, args]) => command === "pnpm" && args.includes("test:e2e"),
     );
@@ -535,7 +568,7 @@ describe("check:all service lifecycle", () => {
         run: successfulRunner(),
         signals: signalSource(),
       }),
-    ).rejects.toThrow("both immutable release targets");
+    ).rejects.toThrow("every immutable release target");
     expect(
       imageLogs.some((message) =>
         /^check:all stage=image-build status=failed duration=\d+ms$/.test(

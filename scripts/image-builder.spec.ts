@@ -25,7 +25,7 @@ const imageId = (suffix: string): string => `sha256:${suffix.repeat(64)}`;
 const execFileAsync = promisify(execFile);
 
 const imageBuilderRunner = (
-  images: Partial<Record<"standalone" | "runtime", string>>,
+  images: Partial<Record<"standalone" | "runtime" | "spacy", string>>,
 ) =>
   vi.fn(
     async (
@@ -37,7 +37,8 @@ const imageBuilderRunner = (
       if (args[0] === "buildx" && args[1] === "build") {
         const target = args[args.indexOf("--target") + 1] as
           | "standalone"
-          | "runtime";
+          | "runtime"
+          | "spacy";
         const output = args[args.indexOf("--iidfile") + 1];
         const image = images[target];
         if (image === undefined) throw new Error(`failed ${target}`);
@@ -61,6 +62,9 @@ describe("release image builder", () => {
     expect(rootManifest.scripts?.["build:images"]).toBe(
       "node scripts/image-builder.ts",
     );
+    expect(rootManifest.scripts?.["build:spacy-image"]).toBe(
+      "node scripts/image-builder.ts --target spacy",
+    );
     expect(
       Object.keys(appManifest.scripts ?? {}).filter((name) =>
         name.startsWith("docker:"),
@@ -71,6 +75,7 @@ describe("release image builder", () => {
   it("builds both final targets by default and returns their immutable local IDs", async () => {
     const run = imageBuilderRunner({
       runtime: imageId("b"),
+      spacy: imageId("c"),
       standalone: imageId("a"),
     });
 
@@ -85,6 +90,7 @@ describe("release image builder", () => {
       images: [
         { imageId: imageId("a"), target: "standalone" },
         { imageId: imageId("b"), target: "runtime" },
+        { imageId: imageId("c"), target: "spacy" },
       ],
     });
 
@@ -93,7 +99,7 @@ describe("release image builder", () => {
         .mocked(run)
         .mock.calls.filter(([, args]) => args[0] === "buildx")
         .map(([, args]) => args[args.indexOf("--target") + 1]),
-    ).toEqual(["standalone", "runtime"]);
+    ).toEqual(["standalone", "runtime", "spacy"]);
     expect(
       vi
         .mocked(run)
@@ -114,7 +120,7 @@ describe("release image builder", () => {
     expect(builds.some((args) => args.includes("--tag"))).toBe(false);
     expect(
       new Set(builds.map((args) => args[args.indexOf("--iidfile") + 1])).size,
-    ).toBe(2);
+    ).toBe(3);
     expect(
       new Set(
         builds.map(
@@ -141,6 +147,31 @@ describe("release image builder", () => {
     expect(
       vi.mocked(run).mock.calls.filter(([, args]) => args[0] === "buildx"),
     ).toHaveLength(1);
+  });
+
+  it("builds spaCy through its own Dockerfile and context", async () => {
+    const run = imageBuilderRunner({ spacy: imageId("d") });
+
+    await buildReleaseImages({
+      buildId: "contract",
+      env: {},
+      run,
+      signal: new AbortController().signal,
+      targets: ["spacy"],
+    });
+
+    const build = vi
+      .mocked(run)
+      .mock.calls.find(([, args]) => args[0] === "buildx")?.[1];
+    expect(build).toEqual(
+      expect.arrayContaining([
+        "--file",
+        "apps/spacy-server/Dockerfile",
+        "--target",
+        "spacy",
+        "apps/spacy-server",
+      ]),
+    );
   });
 
   it("accepts pnpm's argument separator before one explicit target", () => {
@@ -181,13 +212,14 @@ describe("release image builder", () => {
   it("keeps each release target in an independent advisory local-cache scope", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "cat-buildx-cache-"));
     const cacheRoot = join(cwd, ".cache");
-    for (const target of ["standalone", "runtime"]) {
+    for (const target of ["standalone", "runtime", "spacy"]) {
       const scope = join(cacheRoot, "buildx", target);
       mkdirSync(scope, { recursive: true });
       writeFileSync(join(scope, "index.json"), "{}\n");
     }
     const run = imageBuilderRunner({
       runtime: imageId("8"),
+      spacy: imageId("7"),
       standalone: imageId("9"),
     });
 

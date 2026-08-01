@@ -45,44 +45,9 @@ describe("termAlignmentGraph", () => {
     });
   });
 
-  it("passes the NLP segmenter reference through to statistical alignment", async () => {
-    const statAlignNode =
-      termAlignmentGraph.graphDefinition.nodes["stat-align"];
-
-    expect(statAlignNode).toBeDefined();
-    expect(statAlignNode?.config).toMatchObject({
-      inputMapping: expect.objectContaining({
-        nlpSegmenter: "nlpSegmenter",
-      }),
-      handler: expect.any(String),
-    });
-    expect(typeof mocks.statisticalTermAlignOp.mockResolvedValue).toBe(
-      "function",
+  it("does not expose a per-call Language Analyzer override", () => {
+    expect("languageAnalyzer" in termAlignmentGraph.inputSchema.shape).toBe(
+      false,
     );
-    expect(
-      termAlignmentGraph.inputSchema.safeParse({
-        nlpSegmenter: {
-          pluginId: "test-plugin",
-          serviceId: "nlp-segmenter",
-          serviceType: "NLP_WORD_SEGMENTER",
-          scopeType: "GLOBAL",
-          scopeId: "",
-        },
-        termGroups: [
-          {
-            languageId: "en",
-            candidates: [{ text: "memory bank" }],
-          },
-          {
-            languageId: "zh-Hans",
-            candidates: [{ text: "记忆库" }],
-          },
-        ],
-        config: {
-          vector: { enabled: false },
-          llm: { enabled: false },
-        },
-      }).success,
-    ).toBe(true);
   });
 });

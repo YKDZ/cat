@@ -1,4 +1,5 @@
-import { executeQuery } from "@cat/domain";
+import { executeCommand, executeQuery } from "@cat/domain";
+import { LanguageAnalysisPolicyChangedError } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
 import { createAuthedTestContext } from "@cat/test-utils";
 import { call } from "@orpc/server";
@@ -11,9 +12,11 @@ const opMocks = vi.hoisted(() => ({
   recallContextRerankOp: vi.fn(),
   rerankTermRecallOp: vi.fn(),
   termRecallOp: vi.fn(),
+  languageAnalyzeOp: vi.fn(),
 }));
 
 const domainMocks = vi.hoisted(() => ({
+  executeCommand: vi.fn(),
   getElementWithChunkIds: vi.fn(),
   listAllLanguages: vi.fn(),
 }));
@@ -24,6 +27,7 @@ vi.mock("@cat/domain", async () => {
 
   return {
     ...actual,
+    executeCommand: domainMocks.executeCommand,
     executeQuery: vi.fn(),
     getElementWithChunkIds: domainMocks.getElementWithChunkIds,
     listAllLanguages: domainMocks.listAllLanguages,
@@ -40,6 +44,7 @@ vi.mock("@cat/operations", async () => {
     recallContextRerankOp: opMocks.recallContextRerankOp,
     rerankTermRecallOp: opMocks.rerankTermRecallOp,
     termRecallOp: opMocks.termRecallOp,
+    languageAnalyzeOp: opMocks.languageAnalyzeOp,
   };
 });
 
@@ -120,6 +125,7 @@ const collect = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
 describe("recall routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    opMocks.languageAnalyzeOp.mockResolvedValue({ tokens: [] });
   });
 
   it("searchTerm exposes richer term evidence fields from fused recall", async () => {
@@ -250,6 +256,48 @@ describe("recall routes", () => {
       expect.objectContaining({ id: 302, confidence: 0.7 }),
     );
     expect(results[1]).not.toHaveProperty("adaptationPending");
+  });
+
+  it("persists a language analysis failure once instead of returning an empty stream", async () => {
+    const element = {
+      id: 1,
+      value: "Order 43 completed",
+      languageId: "en",
+      projectId: DEFAULT_PROJECT_ID,
+      chunkIds: [1],
+    };
+    domainMocks.getElementWithChunkIds.mockResolvedValue(element);
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getElementWithChunkIds) return element;
+      if (query === listEffectiveMemoryIdsByProject)
+        return {
+          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          personalMemoryIds: [],
+          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+        };
+      return [];
+    });
+    opMocks.languageAnalyzeOp.mockRejectedValue(
+      new LanguageAnalysisPolicyChangedError(new Error("selection revision 9")),
+    );
+    domainMocks.executeCommand.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      message: "Language analysis configuration changed during the operation.",
+    });
+
+    const stream = await call(
+      onNewMemory,
+      { elementId: 1, translationLanguageId: "zh-Hans" },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      data: {
+        operationFailure: { id: "11111111-1111-4111-8111-111111111111" },
+      },
+    });
+    expect(executeCommand).toHaveBeenCalledOnce();
   });
 
   it("memory.onNew yields exact-match memories without calling any LLM operation", async () => {

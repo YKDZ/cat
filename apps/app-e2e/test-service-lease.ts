@@ -412,7 +412,7 @@ export const attestTestServiceLease = async (
   lease: Pick<TestServiceLease, "coordinates" | "ownership">,
   options: AcquireTestServiceLeaseOptions,
 ): Promise<void> => {
-  const environment = {
+  const environment: NodeJS.ProcessEnv = {
     ...options.environment,
     CAT_E2E_LEASE_TOKEN: lease.ownership.token,
   };
@@ -460,7 +460,7 @@ export const acquireTestServiceLease = async (
   const bindHost = assertSafeBindHost(
     options.environment.CAT_E2E_BIND_HOST ?? dockerHost,
   );
-  const environment = {
+  const environment: NodeJS.ProcessEnv = {
     ...options.environment,
     CAT_E2E_BIND_HOST: bindHost,
     CAT_E2E_LEASE_TOKEN: token,
@@ -528,12 +528,33 @@ export const acquireTestServiceLease = async (
     await run([
       ...composeArguments(projectName),
       "up",
-      "--build",
+      ...(environment.CAT_SPACY_IMAGE_ID === undefined
+        ? ["--build"]
+        : ["--no-build"]),
       "--detach",
       "--wait",
       "--wait-timeout",
       "300",
     ]);
+    if (environment.CAT_SPACY_IMAGE_ID !== undefined) {
+      const actualSpacyImage = (
+        await run(
+          [...composeArguments(projectName), "images", "--quiet", "spacy"],
+          "pipe",
+        )
+      ).stdout.trim();
+      const actualSpacyImageId = (
+        await run(
+          ["image", "inspect", "--format", "{{.Id}}", actualSpacyImage],
+          "pipe",
+        )
+      ).stdout.trim();
+      if (actualSpacyImageId !== environment.CAT_SPACY_IMAGE_ID) {
+        throw new Error(
+          "Test service lease did not use the immutable spaCy image ID",
+        );
+      }
+    }
     const [postgresPort, redisPort, spacyPort] = await Promise.all([
       run(
         [...composeArguments(projectName), "port", "postgresql", "5432"],

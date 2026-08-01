@@ -41,6 +41,15 @@ jobs:
       - name: Activate integrity-pinned pnpm for the exact Node runtime
         run: node scripts/package-manager-pin.ts
 
+      - name: Setup exact Python and uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.8.3"
+          python-version: "3.12.11"
+          enable-cache: true
+          cache-dependency-glob: apps/spacy-server/uv.lock
+          cache-python: true
+
       - name: Install dependencies
         run: pnpm ci:install
 
@@ -71,6 +80,15 @@ jobs:
 
       - name: Activate integrity-pinned pnpm for the exact Node runtime
         run: node scripts/package-manager-pin.ts
+
+      - name: Setup exact Python and uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          version: "0.8.3"
+          python-version: "3.12.11"
+          enable-cache: true
+          cache-dependency-glob: apps/spacy-server/uv.lock
+          cache-python: true
 
       - name: Install dependencies
         run: pnpm ci:install

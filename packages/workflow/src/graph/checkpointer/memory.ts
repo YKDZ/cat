@@ -39,6 +39,10 @@ export class MemoryCheckpointer implements Checkpointer {
     return null;
   };
 
+  claimRunOwnership = async (_runId: RunId): Promise<boolean> => true;
+  renewRunOwnership = async (_runId: RunId): Promise<boolean> => true;
+  getRunOwnershipFence = (_runId: RunId) => null;
+
   saveSnapshot = async (
     runId: RunId,
     snapshot: BlackboardSnapshot,
@@ -52,14 +56,28 @@ export class MemoryCheckpointer implements Checkpointer {
     return snapshot ? structuredClone(snapshot) : null;
   };
 
-  saveEvent = async (event: AgentEvent): Promise<void> => {
+  saveEvent = async (event: AgentEvent): Promise<number> => {
     const list = this.events.get(event.runId) ?? [];
-    list.push(structuredClone(event));
+    const existing = list.find(
+      (candidate) => candidate.eventId === event.eventId,
+    );
+    if (existing?.sequence) return existing.sequence;
+    const sequence = (list.at(-1)?.sequence ?? 0) + 1;
+    list.push({ ...structuredClone(event), sequence });
     this.events.set(event.runId, list);
+    return sequence;
   };
 
-  listEvents = async (runId: RunId): Promise<AgentEvent[]> => {
-    return structuredClone(this.events.get(runId) ?? []);
+  listEvents = async (
+    runId: RunId,
+    afterSequence?: number,
+  ): Promise<AgentEvent[]> => {
+    return structuredClone(
+      (this.events.get(runId) ?? []).filter(
+        (event) =>
+          afterSequence === undefined || (event.sequence ?? 0) > afterSequence,
+      ),
+    );
   };
 
   saveExternalOutput = async (record: ExternalOutputRecord): Promise<void> => {

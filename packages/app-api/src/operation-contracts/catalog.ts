@@ -1,8 +1,7 @@
 import type { DbHandle } from "@cat/domain";
-import type { LocalizationTaskSummary } from "@cat/domain";
-import type { OperationFailure } from "@cat/domain";
 import type { AuthContext } from "@cat/permissions";
 import type { PluginManager } from "@cat/plugin-core";
+import type { OperationFailure } from "@cat/shared";
 import * as z from "zod";
 
 export type OperationActor = {
@@ -33,14 +32,12 @@ export type OperationContractErrorIdentifier =
 export class OperationContractError extends Error {
   readonly identifier: OperationContractErrorIdentifier;
   readonly operationFailure?: OperationFailure;
-  readonly localizationTask?: LocalizationTaskSummary;
 
   constructor(
     identifier: OperationContractErrorIdentifier,
     message: string,
     options: {
       operationFailure?: OperationFailure;
-      localizationTask?: LocalizationTaskSummary;
     } = {},
   ) {
     super(message);
@@ -48,9 +45,6 @@ export class OperationContractError extends Error {
     this.identifier = identifier;
     if (options.operationFailure !== undefined) {
       this.operationFailure = options.operationFailure;
-    }
-    if (options.localizationTask !== undefined) {
-      this.localizationTask = options.localizationTask;
     }
   }
 }

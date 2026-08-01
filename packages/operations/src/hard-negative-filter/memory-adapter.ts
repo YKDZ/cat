@@ -28,13 +28,13 @@ const toHnfCandidate = (r: RawMemoryResult): HnfCandidate => ({
  * Apply HNF pre-pipeline rules to memory recall results.
  *
  * @param results - Raw memory recall results
- * @param sourceNlpTokens - NLP tokens of the source text
+ * @param sourceLanguageAnalysisTokens - Language Analysis tokens of the source text
  * @param queryText - Query text
  * @returns - Removal records
  */
 export const applyMemoryHnfPre = (
   results: RawResult[],
-  sourceNlpTokens: Array<{
+  sourceLanguageAnalysisTokens: Array<{
     lemma: string;
     isStop: boolean;
     isPunct: boolean;
@@ -44,12 +44,13 @@ export const applyMemoryHnfPre = (
 ): HardNegativeRemoval[] => {
   if (results.length === 0) return [];
 
-  const { contentWords, keyNouns } =
-    extractContentWordsFromTokens(sourceNlpTokens);
+  const { contentWords, keyNouns } = extractContentWordsFromTokens(
+    sourceLanguageAnalysisTokens,
+  );
   const queryTextLength = queryText.length;
 
   if (contentWords.length === 0) {
-    // NLP tokens not available — skip rules 1 and 3, only apply rule 2
+    // Language Analysis tokens not available — skip rules 1 and 3, only apply rule 2
     logger
       .child({ component: "operation" })
       .warn("HNF(memory): no content words, skipping rules 1 and 3");
@@ -91,12 +92,12 @@ export const applyMemoryHnfPre = (
  * Apply HNF post-pipeline rules to ranked memory recall results.
  *
  * @param ranked - Ranked candidates with tier info
- * @param sourceNlpTokens - NLP tokens of the source text
+ * @param sourceLanguageAnalysisTokens - Language Analysis tokens of the source text
  * @returns - Removal records
  */
 export const applyMemoryHnfPost = (
   ranked: RecallCandidate[],
-  sourceNlpTokens: Array<{
+  sourceLanguageAnalysisTokens: Array<{
     lemma: string;
     isStop: boolean;
     isPunct: boolean;
@@ -105,7 +106,9 @@ export const applyMemoryHnfPost = (
 ): HardNegativeRemoval[] => {
   if (ranked.length === 0) return [];
 
-  const { contentWords } = extractContentWordsFromTokens(sourceNlpTokens);
+  const { contentWords } = extractContentWordsFromTokens(
+    sourceLanguageAnalysisTokens,
+  );
   if (contentWords.length === 0) {
     logger
       .child({ component: "operation" })

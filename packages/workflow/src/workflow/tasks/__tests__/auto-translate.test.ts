@@ -1,3 +1,20 @@
+import { randomUUID } from "node:crypto";
+
+import {
+  createAgentDefinition,
+  createAgentRun,
+  createAgentSession,
+  createContentNodeUnderParent,
+  createElements,
+  createProject,
+  createRootContentNode,
+  createTranslations,
+  createUser,
+  createVectorizedStrings,
+  ensureCoreRelationTypes,
+  ensureLanguages,
+  executeCommand,
+} from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { setupTestDB, TestPluginLoader, type TestDB } from "@cat/test-utils";
@@ -11,7 +28,10 @@ import {
   vi,
 } from "vitest";
 
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  createDefaultGraphRuntime,
+  type DefaultGraphRuntime,
+} from "#/graph/index.ts";
 
 const mocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
@@ -64,10 +84,12 @@ const vectorStorage = ServiceImplementationReferenceSchema.parse({
 
 describe("autoTranslateGraph", () => {
   let cleanup: TestDB["cleanup"] | undefined;
+  let db: TestDB;
   let pluginManager: PluginManager;
+  let runtime: DefaultGraphRuntime;
 
   beforeAll(async () => {
-    const db = await setupTestDB();
+    db = await setupTestDB();
     cleanup = db.cleanup;
 
     PluginManager.clear();
@@ -77,10 +99,15 @@ describe("autoTranslateGraph", () => {
       new TestPluginLoader(),
     );
 
-    createDefaultGraphRuntime(db.client, pluginManager);
+    runtime = createDefaultGraphRuntime(db.client, pluginManager);
+    await executeCommand({ db: db.client }, ensureCoreRelationTypes, {});
+    await executeCommand({ db: db.client }, ensureLanguages, {
+      languageIds: ["en", "zh-Hans"],
+    });
   });
 
   afterAll(async () => {
+    await runtime?.dispose();
     PluginManager.clear();
     await cleanup?.();
   });
@@ -266,5 +293,184 @@ describe("autoTranslateGraph", () => {
       trustLevel: "HIGH",
       reason: "batch-runtime",
     });
+  });
+
+  it("returns the persisted durable outcome before regenerating a candidate", async () => {
+    const user = await executeCommand({ db: db.client }, createUser, {
+      email: `${randomUUID()}@example.com`,
+      name: "Durable outcome worker",
+    });
+    const project = await executeCommand({ db: db.client }, createProject, {
+      name: `durable-outcome-${randomUUID()}`,
+      description: null,
+      creatorId: user.id,
+    });
+    const root = await executeCommand(
+      { db: db.client },
+      createRootContentNode,
+      { projectId: project.id, creatorId: user.id },
+    );
+    const file = await executeCommand(
+      { db: db.client },
+      createContentNodeUnderParent,
+      {
+        projectId: project.id,
+        creatorId: user.id,
+        parentContentNodeId: root.id,
+        kind: "FILE",
+        displayLabel: "durable.json",
+        importerId: "test-json",
+        sourceRootRef: "root",
+        stableSourceNodeRef: `durable-${randomUUID()}`,
+        exportRole: "FILE",
+        boundaryType: "FILE",
+        localOrder: 0,
+      },
+    );
+    const stringIds = await executeCommand(
+      { db: db.client },
+      createVectorizedStrings,
+      {
+        data: [
+          { text: "Checkout", languageId: "en" },
+          { text: "结账 A", languageId: "zh-Hans" },
+        ],
+      },
+    );
+    const [sourceStringId, targetStringId] = stringIds;
+    if (sourceStringId === undefined || targetStringId === undefined) {
+      throw new Error("Durable outcome strings were not created.");
+    }
+    const elementIds = await executeCommand({ db: db.client }, createElements, {
+      data: [
+        {
+          projectId: project.id,
+          primaryContentNodeId: file.id,
+          importerId: "test-json",
+          sourceRootRef: "root",
+          sourceNodeRef: "checkout",
+          stableSourceRef: `checkout-${randomUUID()}`,
+          stringId: sourceStringId,
+          localOrder: 0,
+        },
+      ],
+    });
+    const elementId = elementIds[0];
+    if (elementId === undefined) throw new Error("Element was not created.");
+    const translationIds = await executeCommand(
+      { db: db.client },
+      createTranslations,
+      {
+        data: [
+          {
+            translatableElementId: elementId,
+            translatorId: user.id,
+            stringId: targetStringId,
+          },
+        ],
+      },
+    );
+    const definition = await executeCommand(
+      { db: db.client },
+      createAgentDefinition,
+      {
+        name: `durable-outcome-${randomUUID()}`,
+        description: "",
+        scopeType: "GLOBAL",
+        scopeId: "",
+        definitionId: `durable-outcome-${randomUUID()}`,
+        version: "1.0.0",
+        type: "WORKFLOW",
+        tools: [],
+        content: "",
+        isBuiltin: false,
+      },
+    );
+    const session = await executeCommand(
+      { db: db.client },
+      createAgentSession,
+      { agentDefinitionId: definition.id, userId: user.id },
+    );
+    const run = await executeCommand({ db: db.client }, createAgentRun, {
+      sessionId: session.sessionId,
+      graphDefinition: autoTranslateGraph.graphDefinition,
+    });
+    await runtime.checkpointer.saveExternalOutput({
+      runId: run.runId,
+      nodeId: "main",
+      outputType: "db_write",
+      outputKey: `owned-element-write:${elementId}`,
+      idempotencyKey: `main:${run.runId}:owned-element-write:${elementId}`,
+      payload: {
+        translationIds,
+        durableOutcomes: [
+          {
+            translatableElementId: elementId,
+            scopeTranslationSeed: {
+              elementId,
+              source: "Checkout",
+              translation: "regenerated B",
+              sourceLanguageId: "en",
+              targetLanguageId: "zh-Hans",
+              primaryContentNodeId: file.id,
+              confidence: 0.92,
+              trustLevel: "HIGH",
+              reason: "batch-runtime",
+            },
+          },
+        ],
+      },
+      createdAt: new Date().toISOString(),
+    });
+    mocks.fetchAdviseOp.mockResolvedValue({ suggestions: [] });
+
+    const { runGraph } = await vi.importActual<
+      typeof import("#/graph/dsl/run-graph.ts")
+    >("#/graph/dsl/run-graph.ts");
+    const result = await runGraph(
+      autoTranslateGraph,
+      {
+        translatableElementId: elementId,
+        text: "Checkout",
+        primaryContentNodeId: file.id,
+        translationLanguageId: "zh-Hans",
+        sourceLanguageId: "en",
+        translatorId: user.id,
+        advisor,
+        memoryIds: [],
+        glossaryIds: [],
+        chunkIds: [],
+        minMemorySimilarity: 0.72,
+        maxMemoryAmount: 3,
+        memoryVectorStorage: vectorStorage,
+        translationVectorStorage: vectorStorage,
+        vectorizer,
+      },
+      {
+        pluginManager,
+        ownershipFence: {
+          runId: run.runId,
+          ownerId: randomUUID(),
+          epoch: 1,
+        },
+        assertRunOwnership: async () => undefined,
+      },
+    );
+
+    expect(result).toMatchObject({
+      translationIds,
+      scopeTranslationSeed: { translation: "结账 A", confidence: 0.92 },
+    });
+    expect(mocks.termRecallOp).not.toHaveBeenCalled();
+    expect(mocks.collectMemoryRecallOp).not.toHaveBeenCalled();
+    expect(mocks.fetchAdviseOp).not.toHaveBeenCalled();
+    expect(mocks.llmRefineTranslationOp).not.toHaveBeenCalled();
+    expect(mocks.nestedRunGraph).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        data: [expect.objectContaining({ text: "结账 A" })],
+      }),
+      expect.any(Object),
+    );
   });
 });

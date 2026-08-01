@@ -1,10 +1,14 @@
+import { createHash } from "node:crypto";
+
 import type { OperationContext } from "@cat/domain";
 import {
   createVectorizedStrings,
   domainEvent,
   domainEventBus,
   executeCommand,
+  executeQuery,
   getDbHandle,
+  listVectorizedStringsById,
 } from "@cat/domain";
 import { getVectorizationQueue } from "@cat/server-shared";
 import {
@@ -35,9 +39,40 @@ export type CreateVectorizedStringOutput = z.infer<
   typeof CreateVectorizedStringOutputSchema
 >;
 
+const vectorizationTaskId = (
+  stringIds: number[],
+  data: UnvectorizedTextData[],
+  vectorizer: z.infer<typeof ServiceImplementationReferenceSchema>,
+  vectorStorage: z.infer<typeof ServiceImplementationReferenceSchema>,
+): string => {
+  const hash = createHash("sha256");
+  hash.update(
+    JSON.stringify([
+      "vectorization-task:v1",
+      stringIds,
+      data.map((item) => [item.languageId, item.text]),
+      [
+        vectorizer.scopeType,
+        vectorizer.scopeId,
+        vectorizer.pluginId,
+        vectorizer.serviceId,
+        vectorizer.serviceType,
+      ],
+      [
+        vectorStorage.scopeType,
+        vectorStorage.scopeId,
+        vectorStorage.pluginId,
+        vectorStorage.serviceId,
+        vectorStorage.serviceType,
+      ],
+    ]),
+  );
+  return `vectorization:v1:${hash.digest("hex")}`;
+};
+
 const createStringIdsFromData = async (
   data: UnvectorizedTextData[],
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<number[]> => {
   if (data.length === 0) return [];
 
@@ -45,7 +80,10 @@ const createStringIdsFromData = async (
 
   // Insert strings with status=PENDING_VECTORIZE, no chunkSetId yet
   return drizzle.transaction(async (tx) =>
-    executeCommand({ db: tx }, createVectorizedStrings, { data }),
+    executeCommand({ db: tx }, createVectorizedStrings, {
+      data,
+      ...(ctx?.ownershipFence ? { ownershipFence: ctx.ownershipFence } : {}),
+    }),
   );
 };
 
@@ -71,6 +109,7 @@ export const createVectorizedStringOp = async (
 ): Promise<CreateVectorizedStringOutput> => {
   if (data.data.length === 0) return { stringIds: [] };
 
+  await ctx?.assertRunOwnership?.();
   const stringIds = await createStringIdsFromData(data.data, ctx);
   const vectorizer = data.vectorizer;
   const vectorStorage = data.vectorStorage;
@@ -79,22 +118,58 @@ export const createVectorizedStringOp = async (
     return { stringIds };
   }
 
-  // Enqueue vectorization task (fire-and-forget)
-  const queue = getVectorizationQueue();
-  const taskId = crypto.randomUUID();
-  await queue.enqueue([
-    {
-      taskId,
-      stringIds,
-      data: data.data,
-      vectorizer,
-      vectorStorage,
-    },
-  ]);
+  const { client: drizzle } = await getDbHandle();
+  const rows = await executeQuery({ db: drizzle }, listVectorizedStringsById, {
+    stringIds,
+  });
+  const pendingIds = new Set(
+    rows
+      .filter((row) => row.status === "PENDING_VECTORIZE")
+      .map((row) => row.id),
+  );
+  const pendingEntries = stringIds.flatMap((stringId, index) => {
+    const item = data.data[index];
+    return pendingIds.has(stringId) && item !== undefined
+      ? [{ stringId, item }]
+      : [];
+  });
+  if (pendingEntries.length === 0) return { stringIds };
 
-  // Notify consumer immediately
+  const pendingStringIds = pendingEntries.map((entry) => entry.stringId);
+  const pendingData = pendingEntries.map((entry) => entry.item);
+
+  const queue = getVectorizationQueue();
+  const taskId = vectorizationTaskId(
+    pendingStringIds,
+    pendingData,
+    vectorizer,
+    vectorStorage,
+  );
+  await ctx?.assertRunOwnership?.();
+  await queue.enqueue(
+    [
+      {
+        taskId,
+        stringIds: pendingStringIds,
+        data: pendingData,
+        vectorizer,
+        vectorStorage,
+      },
+    ],
+    { taskIds: [taskId] },
+  );
+
+  // This event is an at-least-once wake-up hint. Re-publish it on a stable-ID
+  // replay so a previous publish failure cannot strand the durable queue row.
   await domainEventBus.publish(
-    domainEvent("vectorization:enqueued", { stringIds, taskId }),
+    domainEvent(
+      "vectorization:enqueued",
+      {
+        stringIds: pendingStringIds,
+        taskId,
+      },
+      { eventId: `${taskId}:enqueued` },
+    ),
   );
 
   return { stringIds };

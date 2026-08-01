@@ -39,7 +39,7 @@ const PROBABLE_SERVICE_TYPES = new Set([
   "RERANK_PROVIDER",
   "STORAGE_PROVIDER",
   "TRANSLATION_ADVISOR",
-  "NLP_WORD_SEGMENTER",
+  "LANGUAGE_ANALYZER",
 ]);
 
 const degradedRuntimeStates = new Map<string, string>();

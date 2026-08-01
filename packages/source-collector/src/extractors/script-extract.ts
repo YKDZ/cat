@@ -1,4 +1,7 @@
-import type { StructuredTranslatableElementInput } from "@cat/shared";
+import {
+  normalizeLanguageId,
+  type StructuredTranslatableElementInput,
+} from "@cat/shared";
 import { Node, Project } from "ts-morph";
 
 import {
@@ -186,7 +189,7 @@ export function extractFromScript(
         sourceNodeRef: `source-file:${filePath}`,
         localOrder: elements.length,
         text,
-        languageId: sourceLanguageId,
+        languageId: normalizeLanguageId(sourceLanguageId),
         meta: {
           framework: "vue-i18n",
           file: filePath,

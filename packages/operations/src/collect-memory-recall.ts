@@ -24,13 +24,13 @@ import {
   applyMemoryHnfPre,
   applyMemoryHnfPost,
 } from "./hard-negative-filter/index.ts";
+import { joinLemmas } from "./language-analysis-normalization.ts";
 import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25.ts";
 import {
   fillTemplate,
   mappingToSlots,
   placeholderize,
 } from "./memory-template.ts";
-import { joinLemmas } from "./nlp-normalization.ts";
 import { runPrecisionPipeline } from "./precision/precision-pipeline.ts";
 import { augmentWithSparseLane } from "./precision/sparse-lane.ts";
 import type {
@@ -56,8 +56,8 @@ export const CollectMemoryRecallInputSchema = z.object({
   chunkIds: z.array(z.int()).default([]),
   queryVectors: z.array(z.array(z.number())).optional(),
   vectorStorage: ServiceImplementationReferenceSchema.optional(),
-  /** Pre-tokenized NLP tokens for the source text. */
-  sourceNlpTokens: z
+  /** Pre-tokenized Language Analysis tokens for the source text. */
+  sourceLanguageAnalysisTokens: z
     .array(
       z.object({
         text: z.string(),
@@ -106,9 +106,10 @@ export const collectMemoryRecallOp = async (
   const text = input.text;
   const normalizedText =
     input.normalizedText ??
-    (input.sourceNlpTokens && input.sourceNlpTokens.length > 0
+    (input.sourceLanguageAnalysisTokens &&
+    input.sourceLanguageAnalysisTokens.length > 0
       ? joinLemmas(
-          input.sourceNlpTokens.filter(
+          input.sourceLanguageAnalysisTokens.filter(
             (token) => !token.isStop && !token.isPunct,
           ),
           input.sourceLanguageId,
@@ -517,8 +518,8 @@ export const collectMemoryRecallOp = async (
   );
 
   // ── Sparse Lexical Lane (heuristic post-merge evidence augmenter) ──
-  const sparseContentWords = input.sourceNlpTokens
-    ? input.sourceNlpTokens
+  const sparseContentWords = input.sourceLanguageAnalysisTokens
+    ? input.sourceLanguageAnalysisTokens
         .filter((t) => !t.isStop && !t.isPunct)
         .map((t) => t.lemma.toLowerCase())
     : text.toLowerCase().split(/\s+/).filter(Boolean);
@@ -543,10 +544,13 @@ export const collectMemoryRecallOp = async (
     detail?: string;
   }> = [];
 
-  if (input.sourceNlpTokens && input.sourceNlpTokens.length > 0) {
+  if (
+    input.sourceLanguageAnalysisTokens &&
+    input.sourceLanguageAnalysisTokens.length > 0
+  ) {
     const hnfPreResult = applyMemoryHnfPre(
       rawMemoryResults,
-      input.sourceNlpTokens,
+      input.sourceLanguageAnalysisTokens,
       input.text,
     );
     hnfPreRemovals.push(...hnfPreResult);
@@ -586,8 +590,14 @@ export const collectMemoryRecallOp = async (
     detail?: string;
   }> = [];
 
-  if (input.sourceNlpTokens && input.sourceNlpTokens.length > 0) {
-    hnfPostRemovals = applyMemoryHnfPost(ranked, input.sourceNlpTokens);
+  if (
+    input.sourceLanguageAnalysisTokens &&
+    input.sourceLanguageAnalysisTokens.length > 0
+  ) {
+    hnfPostRemovals = applyMemoryHnfPost(
+      ranked,
+      input.sourceLanguageAnalysisTokens,
+    );
 
     if (hnfPostRemovals.length > 0) {
       logger

@@ -9,8 +9,11 @@ import {
 import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
-import { buildTokenWindows, joinLemmas } from "./nlp-normalization.ts";
+import {
+  buildTokenWindows,
+  joinLemmas,
+} from "./language-analysis-normalization.ts";
+import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 
 // Maximum lemma window size for multi-word terms
 const MAX_WINDOW_SIZE = 6;
@@ -29,7 +32,7 @@ export type BuildTermRecallVariantsInput = z.infer<
  * Variant types produced:
  * - SURFACE: exact original text
  * - CASE_FOLDED: lowercased text
- * - LEMMA: joined lemmas (when NLP tokens provided)
+ * - LEMMA: joined lemmas (when Language Analysis tokens provided)
  *
  * For multi-word terms a limited lemma window is also stored (windowSize in meta).
  */
@@ -61,7 +64,7 @@ export const buildTermRecallVariantsOp = async (
   const perLangWork = [...termsByLang.entries()].map(
     async ([languageId, texts]) => {
       const termKey = (text: string) => `${languageId}\0${text}`;
-      const segmented = await nlpBatchSegmentOp(
+      const analysis = await languageAnalyzeBatchOp(
         {
           languageId,
           items: texts.map((text) => ({ id: termKey(text), text })),
@@ -70,7 +73,7 @@ export const buildTermRecallVariantsOp = async (
       );
 
       const tokensByTermKey = new Map(
-        segmented.results.map(({ id, result }) => [id, result.tokens]),
+        analysis.results.map(({ id, result }) => [id, result.tokens]),
       );
 
       const variants: Array<{
@@ -103,7 +106,7 @@ export const buildTermRecallVariantsOp = async (
           });
         }
 
-        // LEMMA variants (only when NLP tokens are available for this term text)
+        // LEMMA variants (only when Language Analysis tokens are available for this term text)
         const tokens = tokensByTermKey.get(termKey(text));
         if (tokens && tokens.length > 0) {
           const contentTokens = tokens.filter((t) => !t.isStop && !t.isPunct);

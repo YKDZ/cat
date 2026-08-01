@@ -20,7 +20,7 @@ plugins:
     - plugin: system-pgvector-storage
       scope: GLOBAL
       config: {}
-    - plugin: spacy-segmenter
+    - plugin: spacy-language-analyzer
       scope: GLOBAL
       config:
         serverUrl: "${SPACY_URL:-http://172.17.0.1:28000}"

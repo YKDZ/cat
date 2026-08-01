@@ -10,7 +10,14 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@cat/ui";
-import { AppWindow, Settings, BrickWall, Shield, Users } from "@lucide/vue";
+import {
+  AppWindow,
+  Settings,
+  BrickWall,
+  Shield,
+  Users,
+  Languages,
+} from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -38,6 +45,11 @@ const items = ref([
     url: "/admin/plugins",
     icon: BrickWall,
     title: t("插件"),
+  },
+  {
+    url: "/admin/language-analysis",
+    icon: Languages,
+    title: t("语言分析"),
   },
   {
     url: "/admin/roles",

@@ -303,22 +303,39 @@ export {
   type AutoTranslateOutput,
 } from "./auto-translate.ts";
 
-// === NLP Operations ===
+// === Language Analysis Operations ===
 export {
-  nlpSegmentOp,
-  NlpSegmentInputSchema,
-  NlpSegmentOutputSchema,
-  type NlpSegmentInput,
-  type NlpSegmentOutput,
-} from "./nlp-segment.ts";
+  languageAnalyzeOp,
+  LanguageAnalysisInputSchema,
+  LanguageAnalysisOutputSchema,
+  type LanguageAnalysisInput,
+  type LanguageAnalysisOutput,
+} from "./language-analyze.ts";
 
 export {
-  nlpBatchSegmentOp,
-  NlpBatchSegmentInputSchema,
-  NlpBatchSegmentOutputSchema,
-  type NlpBatchSegmentInput,
-  type NlpBatchSegmentOutput,
-} from "./nlp-batch-segment.ts";
+  assessLanguageAnalysisConfiguration,
+  computeLanguageAnalysisConfigurationFingerprint,
+  executeRequiredLanguageAnalysis,
+  executeRequiredLanguageAnalysisBatch,
+  executeLanguageAnalysisReadinessAssessment,
+  LanguageAnalysisPolicyChangedError,
+  LanguageAnalysisReadinessError,
+  LanguageAnalysisRequirementError,
+  validateLanguageAnalyzerConfiguration,
+} from "./language-analysis-requirement.ts";
+
+export {
+  LanguageAnalysisOperationFailureError,
+  mapLanguageAnalysisOperationFailure,
+} from "./language-analysis-operation-failure.ts";
+
+export {
+  languageAnalyzeBatchOp,
+  LanguageAnalysisBatchInputSchema,
+  LanguageAnalysisBatchOutputSchema,
+  type LanguageAnalysisBatchInput,
+  type LanguageAnalysisBatchOutput,
+} from "./language-analyze-batch.ts";
 
 // === Term Discovery Operations ===
 export {

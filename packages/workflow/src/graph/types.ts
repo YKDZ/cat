@@ -1,6 +1,7 @@
 import type { PluginManager } from "@cat/plugin-core";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
+import type { RunOwnershipFence } from "#/graph/checkpointer/types.ts";
 import type { EventEnvelopeInput } from "#/graph/events.ts";
 
 export {
@@ -54,6 +55,9 @@ export type NodeExecutionContext = {
 };
 
 export type GraphRuntimeContext = {
+  /** Durable run-owner fence. Side-effecting nodes must check this at commit. */
+  assertRunOwnership?: () => Promise<void>;
+  ownershipFence?: RunOwnershipFence | null | undefined;
   pluginManager?: PluginManager | undefined;
   /** Optional VCS context for Direct mode audit */
   vcsContext?: VCSContext | undefined;

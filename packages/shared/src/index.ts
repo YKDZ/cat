@@ -2,6 +2,32 @@
 
 // Custom element schema
 export { CustomElementNameSchema } from "#/schema/ce.ts";
+export {
+  type OperationFailure,
+  type OperationFailureInput,
+  OperationFailureInputSchema,
+  OperationFailureSchema,
+  type TaskActor,
+  TaskActorSchema,
+  type TaskAffectedResource,
+  TaskAffectedResourceSchema,
+  type TaskKind,
+  TaskKindSchema,
+  BatchAutoTranslationTaskPayloadSchema,
+  BatchAutoTranslationInvocationSchema,
+  MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS,
+  type BatchAutoTranslationInvocation,
+  AutoTranslateConfigSchema,
+  type AutoTranslateConfig,
+  type BatchAutoTranslationTaskResult,
+  BatchAutoTranslationTaskResultSchema,
+  type TaskScope,
+  TaskScopeSchema,
+  type TaskState,
+  TaskStateSchema,
+  type TaskRuntime,
+  TaskRuntimeSchema,
+} from "#/schema/localization-task.ts";
 
 // Extraction schema
 export {
@@ -86,17 +112,68 @@ export {
   serviceImplementationReferenceKey,
 } from "#/schema/service-implementation-reference.ts";
 
-// NLP schema
+// Language Analysis schema
 export {
-  type NlpBatchSegmentResult,
-  NlpBatchSegmentResultSchema,
-  type NlpSegmentResult,
-  NlpSegmentResultSchema,
-  type NlpSentence,
-  NlpSentenceSchema,
-  type NlpToken,
-  NlpTokenSchema,
-} from "#/schema/nlp.ts";
+  computeLanguageAnalysisVersion,
+  type LanguageAnalyzerConfigurationAssessment,
+  LanguageAnalyzerConfigurationAssessmentSchema,
+  type LanguageAnalysisAttestation,
+  LanguageAnalysisAttestationSchema,
+  type LanguageAnalysisBatchResult,
+  LanguageAnalysisBatchResultSchema,
+  type LanguageAnalysisResult,
+  LanguageAnalysisResultSchema,
+  type LanguageAnalysisSentence,
+  LanguageAnalysisSentenceSchema,
+  type LanguageAnalysisToken,
+  LanguageAnalysisTokenSchema,
+  type LanguageAnalysisVersion,
+  LanguageAnalysisVersionSchema,
+  LanguageAnalysisValidationError,
+  type LanguageAnalysisValidationCode,
+  LanguageAnalysisValidationCodeValues,
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
+  normalizeLanguageId,
+  stableSerializeLanguageAnalysis,
+  validateLanguageAnalysisBatchResult,
+  validateLanguageAnalysisResult,
+} from "#/schema/language-analysis.ts";
+
+export {
+  type LanguageAnalysisBlocker,
+  LanguageAnalysisBlockerPolicy,
+  LanguageAnalysisOperationFailureBlocker,
+  LanguageAnalysisBlockerReasonSchema,
+  LanguageAnalysisBlockerReasonValues,
+  type LanguageAnalysisPolicySnapshot,
+  LanguageAnalysisPolicySnapshotSchema,
+  type LanguageAnalysisBlockerReason,
+  LanguageAnalysisBlockerSchema,
+  type LanguageAnalysisObservation,
+  LanguageAnalysisObservationSchema,
+  type LanguageAnalysisObservationView,
+  LanguageAnalysisObservationViewSchema,
+  type LanguageAnalysisRemediation,
+  LanguageAnalysisRemediationSchema,
+  type LanguageAnalysisRequirementAssessment,
+  LanguageAnalysisRequirementAssessmentSchema,
+  type LanguageAnalysisRequirementStatus,
+  LanguageAnalysisRequirementStatusSchema,
+  LanguageAnalysisRequirementStatusValues,
+  type LanguageAnalysisSelection,
+  type LanguageAnalysisSelectionFingerprint,
+  LanguageAnalysisSelectionFingerprintSchema,
+  type LanguageAnalysisSelectionKey,
+  LanguageAnalysisSelectionKeySchema,
+  type LanguageAnalysisSelectionSource,
+  LanguageAnalysisSelectionSourceSchema,
+  LanguageAnalysisWildcardSelectionKey,
+  LanguageAnalysisSelectionSchema,
+  type LanguageAnalysisSelectionWrite,
+  LanguageAnalysisSelectionWriteSchema,
+  toLanguageAnalysisSelectionKey,
+} from "#/schema/language-analysis-requirement.ts";
 
 // Term recall schema
 export {
@@ -329,6 +406,39 @@ export {
   TaskStatusValues,
   TaskStatusSchema,
   type TaskStatus,
+  TaskScopeTypeValues,
+  TaskScopeTypeSchema,
+  type TaskScopeType,
+  TaskKindValues,
+  TaskKindNameSchema,
+  type TaskKindName,
+  BatchAutoTranslationTaskPhaseValues,
+  BatchAutoTranslationTaskPhaseSchema,
+  type BatchAutoTranslationTaskPhase,
+  TaskActorTypeValues,
+  TaskActorTypeSchema,
+  type TaskActorType,
+  TaskAffectedResourceTypeValues,
+  TaskAffectedResourceTypeSchema,
+  type TaskAffectedResourceType,
+  OperationFailureCodeValues,
+  OperationFailureCodeSchema,
+  type OperationFailureCode,
+  OperationFailureSeverityValues,
+  OperationFailureSeveritySchema,
+  type OperationFailureSeverity,
+  OperationFailureBlockerValues,
+  OperationFailureBlockerSchema,
+  type OperationFailureBlocker,
+  OperationFailureCapabilityValues,
+  OperationFailureCapabilitySchema,
+  type OperationFailureCapability,
+  OperationFailureAuthorizationDecisionValues,
+  OperationFailureAuthorizationDecisionSchema,
+  type OperationFailureAuthorizationDecision,
+  OperationFailureRedactionBoundaryValues,
+  OperationFailureRedactionBoundarySchema,
+  type OperationFailureRedactionBoundary,
   QueueTaskStatusValues,
   QueueTaskStatusSchema,
   type QueueTaskStatus,
@@ -541,6 +651,13 @@ export {
 } from "#/schema/permission.ts";
 
 // ─── Generated Drizzle schema modules ───
+
+export {
+  type LanguageAnalysisObservationRecord,
+  LanguageAnalysisObservationRecordSchema,
+  type LanguageAnalysisSelectionRecord,
+  LanguageAnalysisSelectionRecordSchema,
+} from "#/schema/drizzle/language-analysis.ts";
 
 // API key / session schemas
 export {

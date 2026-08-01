@@ -42,6 +42,7 @@
     "@cat/typescript-config": "link:../../packages/typescript-config",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yaml": "catalog:"
   }
 }

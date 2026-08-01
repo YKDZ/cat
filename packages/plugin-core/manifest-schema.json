@@ -65,7 +65,7 @@
               "RERANK_PROVIDER",
               "AGENT_TOOL_PROVIDER",
               "AGENT_CONTEXT_PROVIDER",
-              "NLP_WORD_SEGMENTER",
+              "LANGUAGE_ANALYZER",
               "EMAIL_PROVIDER"
             ]
           },

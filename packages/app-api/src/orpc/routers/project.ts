@@ -1,5 +1,4 @@
 import {
-  addProjectTargetLanguages,
   countProjectElements,
   createGlossary as createGlossaryCommand,
   createMemory as createMemoryCommand,
@@ -23,11 +22,16 @@ import {
 } from "@cat/domain";
 import { ContentNodeSchema } from "@cat/shared";
 import { LanguageSchema } from "@cat/shared";
-import { JSONObjectSchema, ProjectSchema } from "@cat/shared";
+import {
+  JSONObjectSchema,
+  NormalizedLanguageIdSchema,
+  ProjectSchema,
+} from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 import * as z from "zod";
 
 import { authed, checkPermission } from "#/orpc/server.ts";
+import { prepareProjectTargetLanguageAdmission } from "#/services/project-target-language-admission.ts";
 import { createVCSRouteHelper } from "#/utils/vcs-route-helper.ts";
 
 // 使用新的类型安全权限中间件
@@ -101,7 +105,7 @@ export const create = authed
     z.object({
       name: z.string(),
       description: z.string().nullable(),
-      targetLanguageIds: z.array(z.string()),
+      targetLanguageIds: z.array(NormalizedLanguageIdSchema),
       memoryIds: z.array(z.uuidv4()),
       glossaryIds: z.array(z.uuidv4()),
       createMemory: z.boolean(),
@@ -124,6 +128,11 @@ export const create = authed
       createGlossary,
     } = input;
 
+    const targetLanguageAdmission = await prepareProjectTargetLanguageAdmission(
+      targetLanguageIds,
+      context,
+    );
+
     const project = await drizzle.transaction(async (tx) => {
       const project = await executeCommand({ db: tx }, createProject, {
         name,
@@ -140,12 +149,7 @@ export const create = authed
         projectId: project.id,
       });
 
-      if (targetLanguageIds.length > 0) {
-        await executeCommand({ db: tx }, addProjectTargetLanguages, {
-          projectId: project.id,
-          languageIds: targetLanguageIds,
-        });
-      }
+      await targetLanguageAdmission.write(tx, project.id);
 
       const linkedMemoryIds = [...memoryIds];
       const linkedGlossaryIds = [...glossaryIds];
@@ -300,7 +304,7 @@ export const addTargetLanguages = authed
   .input(
     z.object({
       projectId: z.uuidv4(),
-      languageId: z.string(),
+      languageId: NormalizedLanguageIdSchema,
     }),
   )
   .use(checkPermission("project", "editor"), (i) => i.projectId)
@@ -309,9 +313,12 @@ export const addTargetLanguages = authed
       drizzleDB: { client: drizzle },
     } = context;
 
-    await executeCommand({ db: drizzle }, addProjectTargetLanguages, {
-      projectId: input.projectId,
-      languageIds: [input.languageId],
+    const targetLanguageAdmission = await prepareProjectTargetLanguageAdmission(
+      [input.languageId],
+      context,
+    );
+    await drizzle.transaction(async (tx) => {
+      await targetLanguageAdmission.write(tx, input.projectId);
     });
   });
 

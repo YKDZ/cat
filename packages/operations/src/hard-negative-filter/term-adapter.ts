@@ -18,7 +18,7 @@ const toHnfCandidate = (r: RawTermResult): HnfCandidate => ({
  */
 export const applyTermHnfPre = (
   results: RawResult[],
-  sourceNlpTokens: Array<{
+  sourceLanguageAnalysisTokens: Array<{
     lemma: string;
     isStop: boolean;
     isPunct: boolean;
@@ -28,8 +28,9 @@ export const applyTermHnfPre = (
 ): HardNegativeRemoval[] => {
   if (results.length === 0) return [];
 
-  const { contentWords, keyNouns } =
-    extractContentWordsFromTokens(sourceNlpTokens);
+  const { contentWords, keyNouns } = extractContentWordsFromTokens(
+    sourceLanguageAnalysisTokens,
+  );
   const queryTextLength = queryText.length;
 
   if (contentWords.length === 0) {

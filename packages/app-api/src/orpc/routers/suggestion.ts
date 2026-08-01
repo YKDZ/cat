@@ -9,7 +9,7 @@ import {
   collectEffectiveMemoryRecallOp,
   createSuggestionCollector,
   llmTranslateOp,
-  nlpSegmentOp,
+  languageAnalyzeOp,
   type MemorySuggestionWithPrecision,
   termRecallOp,
 } from "@cat/operations";
@@ -30,6 +30,7 @@ import {
 import * as z from "zod";
 
 import { authed, checkElementPermission } from "#/orpc/server.ts";
+import { throwLanguageAnalysisOperationFailure } from "#/services/language-analysis-operation-failure.ts";
 
 type EffectiveMemoryIds = {
   projectMemoryIds: string[];
@@ -124,20 +125,32 @@ export const onNew = authed
       return [] as string[];
     });
 
-    // ── NLP tokenization (once, shared by memory + term recall) ───────
-    const nlpResult = await nlpSegmentOp(
-      {
-        text: element.value,
-        languageId: element.languageId,
-      },
-      { pluginManager, traceId: crypto.randomUUID() },
-    ).catch((err: unknown) => {
-      logger
-        .child({ component: "rpc" })
-        .warn("suggestion.onNew: nlpSegmentOp failed", { err });
-      return null;
-    });
-    const sourceNlpTokens = nlpResult?.tokens;
+    // ── Language Analysis (once, shared by memory + term recall) ─────
+    const languageAnalysis = await (async () => {
+      try {
+        return await languageAnalyzeOp(
+          {
+            text: element.value,
+            languageId: element.languageId,
+          },
+          {
+            pluginManager,
+            signal: context.requestSignal,
+            traceId: crypto.randomUUID(),
+          },
+        );
+      } catch (error) {
+        return await throwLanguageAnalysisOperationFailure({
+          context,
+          error,
+          affectedResources: [
+            { type: "PROJECT", id: element.projectId },
+            { type: "ELEMENT", id: String(elementId) },
+          ],
+        });
+      }
+    })();
+    const sourceLanguageAnalysisTokens = languageAnalysis.tokens;
 
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
     const [recalledMemories, termContext] = await Promise.all([
@@ -151,9 +164,13 @@ export const onNew = authed
               personalMemoryIds,
               chunkIds: element.chunkIds,
               excludeMemoryItemIds,
-              sourceNlpTokens,
+              sourceLanguageAnalysisTokens,
             },
-            { pluginManager, traceId: crypto.randomUUID() },
+            {
+              pluginManager,
+              signal: context.requestSignal,
+              traceId: crypto.randomUUID(),
+            },
           ).catch((err: unknown) => {
             logger
               .child({ component: "rpc" })
@@ -172,7 +189,11 @@ export const onNew = authed
               translationLanguageId: languageId,
               glossaryIds,
             },
-            { pluginManager, traceId: crypto.randomUUID() },
+            {
+              pluginManager,
+              signal: context.requestSignal,
+              traceId: crypto.randomUUID(),
+            },
           ).catch((err: unknown) => {
             logger
               .child({ component: "rpc" })
@@ -245,7 +266,11 @@ export const onNew = authed
         })),
         sessionTranslations: input.sessionTranslations,
       },
-      { pluginManager, traceId: crypto.randomUUID() },
+      {
+        pluginManager,
+        signal: context.requestSignal,
+        traceId: crypto.randomUUID(),
+      },
     )
       .then(({ suggestion }) => {
         if (suggestion) {
@@ -291,6 +316,7 @@ export const onNew = authed
         },
         {
           pluginManager,
+          signal: context.requestSignal,
         },
       );
 

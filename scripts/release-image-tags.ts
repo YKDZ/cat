@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-export type ContainerTarget = "runtime" | "standalone";
+export type ContainerTarget = "runtime" | "spacy" | "standalone";
 
 export const releaseImageTags = (
   image: string,
@@ -19,11 +19,13 @@ export const releaseImageTags = (
   if (!/^[a-z0-9][a-z0-9./_-]*$/.test(normalizedImage)) {
     throw new Error(`Invalid image name ${JSON.stringify(image)}`);
   }
+  const repository =
+    target === "spacy" ? `${normalizedImage}-spacy-server` : normalizedImage;
   const suffix = target === "runtime" ? "-runtime" : "";
   return [
-    `${normalizedImage}:${version}${suffix}`,
-    `${normalizedImage}:sha-${revision.slice(0, 12)}${suffix}`,
-    `${normalizedImage}:latest${suffix}`,
+    `${repository}:${version}${suffix}`,
+    `${repository}:sha-${revision.slice(0, 12)}${suffix}`,
+    `${repository}:latest${suffix}`,
   ];
 };
 
@@ -37,10 +39,10 @@ if (directExecution) {
     image === undefined ||
     version === undefined ||
     revision === undefined ||
-    (target !== "standalone" && target !== "runtime")
+    (target !== "standalone" && target !== "runtime" && target !== "spacy")
   ) {
     throw new Error(
-      "Usage: release-image-tags.ts <image> <version> <revision> <standalone|runtime>",
+      "Usage: release-image-tags.ts <image> <version> <revision> <standalone|runtime|spacy>",
     );
   }
   process.stdout.write(

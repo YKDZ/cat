@@ -1,5 +1,6 @@
 import { getCurrentRedisHandle, getDbHandle } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
+import { getGlobalGraphRuntimeOrNull } from "@cat/workflow";
 
 import type { RuntimeCleanupHandle } from "./runtime-cleanup.ts";
 
@@ -72,6 +73,8 @@ export const createShutdownHandler = (
 
       getRuntimeCleanupHandle()?.stop();
       await Promise.resolve(server.close());
+
+      await getGlobalGraphRuntimeOrNull()?.dispose();
 
       const redis = getCurrentRedisHandle();
       if (redis) {

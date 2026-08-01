@@ -1,6 +1,7 @@
 import { diffStructuredContentOp } from "@cat/operations";
 import {
   ServiceImplementationReferenceSchema,
+  LanguageAnalysisPolicySnapshotSchema,
   StructuredContentPayloadSchema,
 } from "@cat/shared";
 import * as z from "zod";
@@ -11,6 +12,8 @@ export const IngestCollectionInputSchema = z.object({
   payload: StructuredContentPayloadSchema,
   vectorizer: ServiceImplementationReferenceSchema,
   vectorStorage: ServiceImplementationReferenceSchema,
+  languageAnalysisPolicySnapshot:
+    LanguageAnalysisPolicySnapshotSchema.optional(),
 });
 
 export const IngestCollectionOutputSchema = z.object({
@@ -41,6 +44,8 @@ export const ingestCollectionGraph = defineGraph({
             payload: input.payload,
             vectorizer: input.vectorizer,
             vectorStorage: input.vectorStorage,
+            languageAnalysisPolicySnapshot:
+              input.languageAnalysisPolicySnapshot,
           },
           ctx,
         );

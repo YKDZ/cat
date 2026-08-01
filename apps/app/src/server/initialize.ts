@@ -5,7 +5,6 @@ import {
 } from "@cat/app-api/app";
 import app from "@cat/app-api/app";
 import {
-  executeCommand,
   executeQuery,
   getSetting,
   getDbHandle,
@@ -14,7 +13,6 @@ import {
   getSessionStore,
   getRuntimeState,
   initRuntimeState,
-  recoverCrashedAgentRuns,
   resolveRuntimeProfile,
   type DrizzleClient,
   initCacheStore,
@@ -22,6 +20,7 @@ import {
 } from "@cat/domain";
 import { MessageGateway } from "@cat/message";
 import {
+  executeLanguageAnalysisReadinessAssessment,
   registerDomainEventHandlers,
   registerVectorizationConsumer,
 } from "@cat/operations";
@@ -34,6 +33,7 @@ import {
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import {
   createDefaultGraphRuntime,
+  type DefaultGraphRuntime,
   getGlobalGraphRuntimeOrNull,
 } from "@cat/workflow";
 
@@ -46,7 +46,10 @@ import {
   hasRuntimeCapabilities,
   publishRuntimeCapabilities,
 } from "./runtime-capabilities.ts";
-import { startPostgresRuntimeCleanup } from "./runtime-cleanup.ts";
+import {
+  startPostgresRuntimeCleanup,
+  type RuntimeCleanupHandle,
+} from "./runtime-cleanup.ts";
 import {
   assertSearchRuntimeHealth,
   detectSearchRuntimeHealth,
@@ -63,6 +66,9 @@ const getStringSetting = async (
 
 const initializeAppOnce = async (): Promise<void> => {
   const profile = resolveRuntimeProfile();
+  let graphRuntime: DefaultGraphRuntime | null = null;
+  let messageGateway: MessageGateway | null = null;
+  let runtimeCleanup: RuntimeCleanupHandle | null = null;
   configureReadinessReporter(
     createReadinessReporter({
       profile: profile.name,
@@ -104,10 +110,11 @@ const initializeAppOnce = async (): Promise<void> => {
     initSessionStore(backends.sessionStore);
     setVectorizationQueue(backends.vectorizationQueue);
     globalThis.runtimeCleanup?.stop();
-    globalThis.runtimeCleanup = startPostgresRuntimeCleanup([
+    runtimeCleanup = startPostgresRuntimeCleanup([
       backends.cacheStore,
       backends.sessionStore,
     ]);
+    globalThis.runtimeCleanup = runtimeCleanup;
 
     // Clear stale PluginManager instances before re-initialization.
     // In Vite dev mode, HMR re-evaluates +server.ts and calls initializeApp()
@@ -120,36 +127,10 @@ const initializeAppOnce = async (): Promise<void> => {
 
     await bootstrapApplicationData({ database: drizzleDB, pluginManager });
 
-    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
-
-    const existingRuntime = getGlobalGraphRuntimeOrNull();
-    const activeRunIds = existingRuntime?.scheduler.getActiveRunIds() ?? [];
-    const crashRecovery = await executeCommand(
-      { db: drizzleDB.client },
-      recoverCrashedAgentRuns,
-      { activeRunIds },
-    );
-    if (crashRecovery.recoveredRunIds.length > 0) {
-      logger
-        .child({ component: "server" })
-        .warn("Recovered crashed workflow runs", {
-          recoveredRunIds: crashRecovery.recoveredRunIds,
-        });
-    }
-
-    await registerVectorizationConsumer(backends.vectorizationQueue);
-
-    const messageGateway = new MessageGateway({
-      db: drizzleDB.client,
-      getEmailProvider: () => {
-        const services = pluginManager.getServices("EMAIL_PROVIDER");
-        return services[0]?.service;
-      },
-    });
-    messageGateway.start();
-    globalThis.messageGateway = messageGateway;
-
-    createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+    graphRuntime =
+      getGlobalGraphRuntimeOrNull() ??
+      createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+    await graphRuntime.ensureTaskRecovery();
 
     initPermissionEngine({
       db: drizzleDB.client,
@@ -185,16 +166,31 @@ const initializeAppOnce = async (): Promise<void> => {
         redis: backends.redis,
         detectSearchRuntime: async () =>
           detectSearchRuntimeHealth(drizzleDB.client),
-        spaCyServices: () =>
-          pluginManager
-            .getServices("NLP_WORD_SEGMENTER")
-            .map(({ id, pluginId, service }) => ({ id, pluginId, service })),
+        assessLanguageAnalysis: async (signal) =>
+          await executeLanguageAnalysisReadinessAssessment({
+            pluginManager,
+            signal,
+            traceId: "readiness-language-analysis",
+          }),
         storageServices: () =>
           pluginManager
             .getServices("STORAGE_PROVIDER")
             .map(({ service }) => service),
       }),
     );
+
+    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
+    await registerVectorizationConsumer(backends.vectorizationQueue);
+
+    messageGateway = new MessageGateway({
+      db: drizzleDB.client,
+      getEmailProvider: () => {
+        const services = pluginManager.getServices("EMAIL_PROVIDER");
+        return services[0]?.service;
+      },
+    });
+    messageGateway.start();
+    globalThis.messageGateway = messageGateway;
 
     publishRuntimeCapabilities({
       baseURL: globalThis.serverBaseURL,
@@ -212,6 +208,27 @@ const initializeAppOnce = async (): Promise<void> => {
       .error("Failed to initialize server. Readiness will remain failed.", {
         error: err,
       });
+
+    const cleanupResults = await Promise.allSettled([
+      Promise.resolve().then(() => messageGateway?.stop()),
+      graphRuntime?.dispose() ?? Promise.resolve(),
+      Promise.resolve().then(() => runtimeCleanup?.stop()),
+    ]);
+    for (const result of cleanupResults) {
+      if (result.status === "fulfilled") continue;
+      logger
+        .child({ component: "server" })
+        .error("Failed to clean up incomplete server initialization.", {
+          error: result.reason,
+        });
+    }
+    if (globalThis.messageGateway === messageGateway) {
+      globalThis.messageGateway = undefined;
+    }
+    if (globalThis.runtimeCleanup === runtimeCleanup) {
+      globalThis.runtimeCleanup = undefined;
+    }
+
     configureReadinessReporter(
       createReadinessReporter({
         profile: profile.name,

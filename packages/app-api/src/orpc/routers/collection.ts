@@ -13,6 +13,7 @@ import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 
 import { authed, checkPermission } from "#/orpc/server.ts";
+import { assertProjectLanguageAnalysisPreflight } from "#/services/language-analysis-preflight.ts";
 
 /**
  * Ingest collection: accept CollectionPayload, run full ingestion pipeline.
@@ -33,6 +34,21 @@ export const ingest = authed
   .handler(async ({ context, input }) => {
     const { pluginManager } = context;
 
+    const languageAnalysisPolicySnapshot =
+      await assertProjectLanguageAnalysisPreflight(
+        input.projectId,
+        [
+          input.sourceLanguageId,
+          ...input.nodes.flatMap((node) =>
+            node.languageId === null || node.languageId === undefined
+              ? []
+              : [node.languageId],
+          ),
+          ...input.elements.map((element) => element.languageId),
+        ],
+        context,
+      );
+
     const vectorStorage = selectFirstServiceImplementation(
       pluginManager,
       "VECTOR_STORAGE",
@@ -52,6 +68,7 @@ export const ingest = authed
       payload: input,
       vectorizer: vectorizer.reference,
       vectorStorage: vectorStorage.reference,
+      languageAnalysisPolicySnapshot,
     });
 
     return result;

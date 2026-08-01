@@ -39,6 +39,8 @@ export const createVectorizedStringGraph = defineGraph({
           traceId: ctx.traceId,
           signal: ctx.signal,
           pluginManager: ctx.pluginManager,
+          ownershipFence: ctx.ownershipFence,
+          assertRunOwnership: ctx.assertRunOwnership,
         });
 
         await ctx.recordSideEffect(sideEffectKey, "db_write", result.stringIds);

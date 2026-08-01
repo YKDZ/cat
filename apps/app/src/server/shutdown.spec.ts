@@ -1,12 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockGetCurrentRedisHandle, mockGetDbHandle, mockInfo, mockError } =
-  vi.hoisted(() => ({
-    mockGetCurrentRedisHandle: vi.fn(),
-    mockGetDbHandle: vi.fn(),
-    mockInfo: vi.fn(),
-    mockError: vi.fn(),
-  }));
+const {
+  mockGetCurrentRedisHandle,
+  mockGetDbHandle,
+  mockGetGlobalGraphRuntimeOrNull,
+  mockInfo,
+  mockError,
+} = vi.hoisted(() => ({
+  mockGetCurrentRedisHandle: vi.fn(),
+  mockGetDbHandle: vi.fn(),
+  mockGetGlobalGraphRuntimeOrNull: vi.fn(),
+  mockInfo: vi.fn(),
+  mockError: vi.fn(),
+}));
 
 vi.mock("@cat/domain", () => ({
   getCurrentRedisHandle: mockGetCurrentRedisHandle,
@@ -22,6 +28,10 @@ vi.mock("@cat/server-shared", () => ({
   },
 }));
 
+vi.mock("@cat/workflow", () => ({
+  getGlobalGraphRuntimeOrNull: mockGetGlobalGraphRuntimeOrNull,
+}));
+
 import { createShutdownHandler } from "./shutdown.ts";
 
 const swallowProcessExit = (
@@ -35,6 +45,7 @@ describe("createShutdownHandler", () => {
   beforeEach(() => {
     mockGetCurrentRedisHandle.mockReset();
     mockGetDbHandle.mockReset();
+    mockGetGlobalGraphRuntimeOrNull.mockReset();
     mockInfo.mockReset();
     mockError.mockReset();
     globalThis.runtimeCleanup = undefined;
@@ -87,5 +98,21 @@ describe("createShutdownHandler", () => {
       expect(dbDisconnect).toHaveBeenCalledOnce();
       expect(exitSpy).toHaveBeenCalledWith(0);
     });
+  });
+
+  it("drains the graph runtime before closing the database", async () => {
+    const close = vi.fn().mockResolvedValue(undefined);
+    const dbDisconnect = vi.fn().mockResolvedValue(undefined);
+    const dispose = vi.fn().mockResolvedValue(undefined);
+    const exitSpy = vi
+      .spyOn(process, "exit")
+      .mockImplementation(swallowProcessExit);
+    mockGetDbHandle.mockResolvedValue({ disconnect: dbDisconnect });
+    mockGetGlobalGraphRuntimeOrNull.mockReturnValue({ dispose });
+
+    createShutdownHandler({ close })();
+
+    await vi.waitFor(() => expect(exitSpy).toHaveBeenCalledWith(0));
+    expect(dispose).toHaveBeenCalledBefore(dbDisconnect);
   });
 });

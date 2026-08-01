@@ -31,4 +31,14 @@ describe("release image tag contract", () => {
       "ghcr.io/ykdz/cat:latest",
     ]);
   });
+
+  it("publishes spaCy from the validated artifact to its production repository", () => {
+    expect(
+      releaseImageTags("ghcr.io/acme/cat", "1.2.3", revision, "spacy"),
+    ).toEqual([
+      "ghcr.io/acme/cat-spacy-server:1.2.3",
+      "ghcr.io/acme/cat-spacy-server:sha-0123456789ab",
+      "ghcr.io/acme/cat-spacy-server:latest",
+    ]);
+  });
 });

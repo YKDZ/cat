@@ -43,6 +43,15 @@ const writeManifest = async (
             versionLabel: runtimeVersionLabel,
           },
         },
+        spacy: {
+          imageId: image("c"),
+          target: "spacy",
+          identity: {
+            command: "provision-and-serve",
+            description: "CAT spaCy language analysis runtime",
+            versionLabel,
+          },
+        },
       },
     })}\n`,
   );
@@ -53,6 +62,7 @@ const writeValidatedArtifact = async (): Promise<string> => {
   const directory = await writeManifest();
   await writeFile(join(directory, "standalone.tar"), "standalone image\n");
   await writeFile(join(directory, "runtime.tar"), "runtime image\n");
+  await writeFile(join(directory, "spacy.tar"), "spaCy image\n");
   await writeImageChecksums(directory, () => undefined);
   return directory;
 };
@@ -73,6 +83,7 @@ describe("validated image release", () => {
     expect(sums).toMatch(/^[a-f0-9]{64}  manifest\.json$/m);
     expect(sums).toMatch(/^[a-f0-9]{64}  standalone\.tar$/m);
     expect(sums).toMatch(/^[a-f0-9]{64}  runtime\.tar$/m);
+    expect(sums).toMatch(/^[a-f0-9]{64}  spacy\.tar$/m);
   });
 
   it("rejects changed artifact bytes before Docker is invoked", async () => {
@@ -93,17 +104,28 @@ describe("validated image release", () => {
     const reports: string[] = [];
     const run = vi.fn(async (_command: string, args: string[]) => {
       if (args[1] === "load") return "loaded\n";
-      const target = args.at(-1) === image("a") ? "standalone" : "runtime";
+      const target =
+        args.at(-1) === image("a")
+          ? "standalone"
+          : args.at(-1) === image("b")
+            ? "runtime"
+            : "spacy";
       const format = args[args.indexOf("--format") + 1];
       if (format === "{{.Id}}") return `${args.at(-1)}\n`;
       if (format?.includes("version")) return "cat-validated-contract\n";
       if (format?.includes("description")) {
         return target === "standalone"
           ? "CAT standalone application with database preparation\n"
-          : "CAT start-only application runtime\n";
+          : target === "runtime"
+            ? "CAT start-only application runtime\n"
+            : "CAT spaCy language analysis runtime\n";
       }
       if (format === "{{ index .Config.Cmd 0 }}") {
-        return target === "standalone" ? "prepare-and-start\n" : "start-only\n";
+        return target === "standalone"
+          ? "prepare-and-start\n"
+          : target === "runtime"
+            ? "start-only\n"
+            : "provision-and-serve\n";
       }
       throw new Error(`Unexpected Docker call ${args.join(" ")}`);
     });
@@ -117,12 +139,13 @@ describe("validated image release", () => {
 
     expect(
       vi.mocked(run).mock.calls.filter(([, args]) => args[1] === "load"),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
     expect(
       vi.mocked(run).mock.calls.filter(([, args]) => args[1] === "inspect"),
-    ).toHaveLength(8);
+    ).toHaveLength(12);
     expect(reports.join("")).toContain("target=standalone");
     expect(reports.join("")).toContain("target=runtime");
+    expect(reports.join("")).toContain("target=spacy");
   });
 
   it("rejects a loaded image identity mismatch", async () => {
@@ -152,7 +175,7 @@ describe("validated image release", () => {
     ).rejects.toThrow("docker unavailable");
   });
 
-  it("publishes both immutable targets with the app semver, not the validation label", async () => {
+  it("publishes every immutable target with the app semver, not the validation label", async () => {
     const directory = await writeManifest();
     const run = vi.fn(
       async (_command: string, _args: string[]): Promise<string> => "",
@@ -179,6 +202,9 @@ describe("validated image release", () => {
       "ghcr.io/acme/cat:1.2.3-runtime",
       "ghcr.io/acme/cat:sha-0123456789ab-runtime",
       "ghcr.io/acme/cat:latest-runtime",
+      "ghcr.io/acme/cat-spacy-server:1.2.3",
+      "ghcr.io/acme/cat-spacy-server:sha-0123456789ab",
+      "ghcr.io/acme/cat-spacy-server:latest",
     ]);
   });
 

@@ -2,7 +2,10 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
-import type { StructuredTranslatableElementInput } from "@cat/shared";
+import {
+  normalizeLanguageId,
+  type StructuredTranslatableElementInput,
+} from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import { buildLocaleBridgeMaterial } from "#/bootstrap/locale-bridge.ts";
@@ -28,7 +31,7 @@ const elements: StructuredTranslatableElementInput[] = [
     sourceNodeRef: "node:one",
     localOrder: 0,
     text: "你好",
-    languageId: "zh-Hans",
+    languageId: normalizeLanguageId("zh-Hans"),
   },
   {
     ref: "element:two",
@@ -36,7 +39,7 @@ const elements: StructuredTranslatableElementInput[] = [
     sourceNodeRef: "node:one",
     localOrder: 1,
     text: "你好",
-    languageId: "zh-Hans",
+    languageId: normalizeLanguageId("zh-Hans"),
   },
 ];
 

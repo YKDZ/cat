@@ -25,12 +25,15 @@ import {
   glossary,
   glossaryToProject,
   language,
+  languageAnalysisObservation,
+  languageAnalysisSelection,
   memory,
   memoryItemDeletion,
   memoryItem,
   memoryPromotionRecord,
   memoryRecallVariant,
   memoryToProject,
+  operationFailure,
   personalMemoryBinding,
   mfaProvider,
   plugin,
@@ -110,12 +113,15 @@ type SelectSchemaTable =
   | typeof glossary
   | typeof glossaryToProject
   | typeof language
+  | typeof languageAnalysisObservation
+  | typeof languageAnalysisSelection
   | typeof memory
   | typeof memoryItemDeletion
   | typeof memoryItem
   | typeof memoryPromotionRecord
   | typeof memoryRecallVariant
   | typeof memoryToProject
+  | typeof operationFailure
   | typeof personalMemoryBinding
   | typeof mfaProvider
   | typeof plugin
@@ -283,6 +289,36 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "ProjectTargetLanguageSchema",
         typeExportName: "ProjectTargetLanguage",
         buildShape: buildSelectShape(projectTargetLanguage),
+      },
+    ],
+  },
+  {
+    outputFile: "language-analysis.ts",
+    imports: [
+      'import { LanguageAnalysisSelectionFingerprintSchema } from "#/schema/language-analysis-requirement.ts";',
+      'import { LanguageAnalysisRequirementAssessmentSchema } from "#/schema/language-analysis-requirement.ts";',
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "LanguageAnalysisSelectionRecordSchema",
+        typeExportName: "LanguageAnalysisSelectionRecord",
+        buildShape: buildSelectShape(languageAnalysisSelection),
+        overrides: {
+          configurationFingerprint:
+            "LanguageAnalysisSelectionFingerprintSchema.nullable()",
+          implementation: "ServiceImplementationReferenceSchema.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "LanguageAnalysisObservationRecordSchema",
+        typeExportName: "LanguageAnalysisObservationRecord",
+        buildShape: buildSelectShape(languageAnalysisObservation),
+        overrides: {
+          assessment: "LanguageAnalysisRequirementAssessmentSchema",
+        },
       },
     ],
   },
@@ -597,6 +633,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "misc.ts",
+    imports: [
+      'import { BatchAutoTranslationTaskPayloadSchema, TaskAffectedResourceSchema, TaskRuntimeSchema } from "#/schema/localization-task.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -610,7 +649,18 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "Task",
         buildShape: buildSelectShape(task),
         overrides: {
-          meta: "safeZDotJson.nullable()",
+          payload: "BatchAutoTranslationTaskPayloadSchema",
+          resources: "z.array(TaskAffectedResourceSchema)",
+          runtime: "TaskRuntimeSchema",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "OperationFailureRecordSchema",
+        typeExportName: "OperationFailureRecord",
+        buildShape: buildSelectShape(operationFailure),
+        overrides: {
+          affectedResources: "z.array(TaskAffectedResourceSchema)",
         },
       },
       {

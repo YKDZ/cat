@@ -47,7 +47,6 @@ export const projectOperationContractErrorToORPC = (error: unknown): never => {
       data: {
         operationContractErrorIdentifier: error.identifier,
         operationFailure: error.operationFailure,
-        localizationTask: error.localizationTask,
       },
     });
   }

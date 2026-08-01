@@ -184,23 +184,31 @@ const defaultImageBuilder: ImageBuilder = async (context) =>
       : { reportError: context.reportError }),
     run: context.run,
     signal: context.signal,
+    targets: ["standalone", "runtime"],
   });
 
 const targetImageIds = (
   images: ReleaseImageBuildResult,
-): Record<"runtime" | "standalone", string> => {
+): Record<"runtime" | "spacy" | "standalone", string> => {
   const standalone = images.images.find(
     (image) => image.target === "standalone",
   )?.imageId;
   const runtime = images.images.find(
     (image) => image.target === "runtime",
   )?.imageId;
-  if (standalone === undefined || runtime === undefined) {
+  const spacy = images.images.find(
+    (image) => image.target === "spacy",
+  )?.imageId;
+  if (
+    standalone === undefined ||
+    runtime === undefined ||
+    spacy === undefined
+  ) {
     throw new Error(
-      "Image build did not return both immutable release targets",
+      "Image build did not return every immutable release target",
     );
   }
-  return { runtime, standalone };
+  return { runtime, spacy, standalone };
 };
 
 type E2EAttestationEvidence = {
@@ -528,10 +536,28 @@ export const runCheckAll = async (
 
   try {
     await runStage("check", ["check"], baseEnv);
+    const spacyImages = await runOperationStage(
+      "spacy-image-build",
+      async () =>
+        await buildReleaseImages({
+          buildId,
+          env: baseEnv,
+          report: (message) => log(message.trimEnd()),
+          reportError,
+          run,
+          signal: abortController.signal,
+          targets: ["spacy"],
+        }),
+    );
+    const spacyImageId = spacyImages.images[0]?.imageId;
+    if (spacyImageId === undefined) {
+      throw new Error("spaCy image build returned no immutable image");
+    }
     await runWithTestServiceLease(
       {
         environment: {
           ...baseEnv,
+          CAT_SPACY_IMAGE_ID: spacyImageId,
           ...(baseEnv.CAT_CHECK_ALL_POSTGRES_DB === undefined
             ? {}
             : { CAT_E2E_POSTGRES_DB: baseEnv.CAT_CHECK_ALL_POSTGRES_DB }),
@@ -558,6 +584,7 @@ export const runCheckAll = async (
         const integrationEnv = {
           ...baseEnv,
           CAT_CHECK_ALL_BUILD_ID: buildId,
+          CAT_SPACY_IMAGE_ID: spacyImageId,
           CAT_TEST_SERVICE_LEASE: serializeTestServiceLease(lease),
           DATABASE_URL: lease.coordinates.databaseUrl,
           PORT: String(appPort),
@@ -585,12 +612,15 @@ export const runCheckAll = async (
               const result = await (
                 options.imageBuilder ?? defaultImageBuilder
               )(lifecycleContext);
-              targetImageIds(result);
-              return result;
+              const images = {
+                images: [...result.images, ...spacyImages.images],
+              };
+              targetImageIds(images);
+              return images;
             });
             const imageIds = targetImageIds(images);
             log(
-              `check:all images build-id=${buildId} standalone=${imageIds.standalone} runtime=${imageIds.runtime}`,
+              `check:all images build-id=${buildId} standalone=${imageIds.standalone} runtime=${imageIds.runtime} spacy=${imageIds.spacy}`,
             );
             const attestationDirectory = await mkdtemp(
               join(tmpdir(), "cat-check-all-e2e-attestation-"),
@@ -631,7 +661,7 @@ export const runCheckAll = async (
             const lifecycleImageIds =
               lifecycleReport?.validatedImageIds ?? imageIds;
             log(
-              `check:all lifecycle standalone=${lifecycleImageIds.standalone} runtime=${lifecycleImageIds.runtime}`,
+              `check:all lifecycle standalone=${lifecycleImageIds.standalone} runtime=${lifecycleImageIds.runtime} spacy=${lifecycleImageIds.spacy}`,
             );
             const exportResult = await runOperationStage(
               "image-artifact",

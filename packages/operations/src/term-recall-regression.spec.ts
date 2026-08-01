@@ -8,7 +8,7 @@ import type { RecallFixture } from "./testing/recall-fixture-schema.ts";
 const mocks = vi.hoisted(() => ({
   executeQuery: vi.fn(),
   getDbHandle: vi.fn(async () => ({ client: {} })),
-  nlpSegmentOp: vi.fn(),
+  languageAnalyzeOp: vi.fn(),
   semanticSearchTermsOp: vi.fn(),
   listLexicalTermSuggestions: Symbol("listLexicalTermSuggestions"),
   listMorphologicalTermSuggestions: Symbol("listMorphologicalTermSuggestions"),
@@ -27,8 +27,8 @@ vi.mock("@cat/domain", async () => {
   };
 });
 
-vi.mock("./nlp-segment.ts", () => ({
-  nlpSegmentOp: mocks.nlpSegmentOp,
+vi.mock("./language-analyze.ts", () => ({
+  languageAnalyzeOp: mocks.languageAnalyzeOp,
 }));
 
 vi.mock("./semantic-search-terms.ts", () => ({
@@ -70,8 +70,8 @@ describe("term recall regression fixtures", () => {
     });
 
     mocks.semanticSearchTermsOp.mockResolvedValue(termMock?.semantic ?? []);
-    mocks.nlpSegmentOp.mockResolvedValue({
-      tokens: termMock?.nlpTokens ?? [],
+    mocks.languageAnalyzeOp.mockResolvedValue({
+      tokens: termMock?.languageAnalysisTokens ?? [],
       sentences: [],
     });
 

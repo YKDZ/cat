@@ -34,7 +34,7 @@ describe("Buildx cache path validation", () => {
       }),
     ).resolves.toEqual({
       paths: { source: resolve(cwd, ".cache/buildx") },
-      sourceScopes: { runtime: false, standalone: true },
+      sourceScopes: { runtime: false, spacy: false, standalone: true },
       valid: true,
     });
   });

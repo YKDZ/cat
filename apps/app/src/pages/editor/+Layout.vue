@@ -11,6 +11,7 @@ import { useEditorElementStore } from "#/stores/editor/element.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { watchClient } from "#/utils/vue.ts";
 
+import LanguageAnalysisStatus from "./LanguageAnalysisStatus.vue";
 import { buildEditorHref, parseEditorScopeFromRoute } from "./scope-url.ts";
 import Sidebar from "./Sidebar.vue";
 import WorkbenchShell from "./WorkbenchShell.vue";
@@ -111,6 +112,7 @@ watchClient(currentBranchId, async (value) => {
     <template #sidebar>
       <Sidebar />
     </template>
+    <LanguageAnalysisStatus />
     <slot />
   </WorkbenchShell>
 </template>

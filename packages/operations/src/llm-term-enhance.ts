@@ -61,7 +61,7 @@ export const LlmTermEnhanceInputSchema = z.object({
     batchSize: z.int().min(1).max(100).default(20),
     inferDefinition: z.boolean().default(true),
     inferSubject: z.boolean().default(true),
-    /** When true (Intl.Segmenter fallback), lower the threshold to validate more candidates */
+    /** When true, lower the validation threshold for this configured workflow. */
     useRelaxedThreshold: z.boolean().default(false),
   }),
 });

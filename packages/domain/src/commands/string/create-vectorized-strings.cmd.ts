@@ -1,6 +1,7 @@
 import { and, eq, inArray, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
+import { assertActiveAgentRunOwnership } from "#/commands/agent/assert-agent-run-ownership.ts";
 import type { Command } from "#/types.ts";
 
 export const CreateVectorizedStringsCommandSchema = z.object({
@@ -11,6 +12,13 @@ export const CreateVectorizedStringsCommandSchema = z.object({
       languageId: z.string(),
     }),
   ),
+  ownershipFence: z
+    .object({
+      runId: z.uuidv4(),
+      ownerId: z.uuidv4(),
+      epoch: z.int().positive(),
+    })
+    .optional(),
 });
 
 export type CreateVectorizedStringsCommand = z.infer<
@@ -28,6 +36,10 @@ export const createVectorizedStrings: Command<
       result: [],
       events: [],
     };
+  }
+
+  if (command.ownershipFence) {
+    await assertActiveAgentRunOwnership(ctx.db, command.ownershipFence);
   }
 
   const makeKey = (languageId: string, text: string): string =>

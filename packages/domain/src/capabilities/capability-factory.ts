@@ -8,7 +8,6 @@ import {
   createGlossaryConceptSubject,
   createGlossary,
   createMemory,
-  addProjectTargetLanguages,
   approveTranslation,
   countGlossaryConcepts,
   countMemoryItems,
@@ -161,15 +160,6 @@ export const createPluginCapabilities = (
         input.projectId,
       );
       await executeCommand(execCtx, unlinkProjectMemories, input);
-    },
-    addTargetLanguages: async (input) => {
-      await assertPermission(
-        checkPermission,
-        "project",
-        "editor",
-        input.projectId,
-      );
-      await executeCommand(execCtx, addProjectTargetLanguages, input);
     },
   },
   translation: {

@@ -50,6 +50,8 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    volumes:
+      - local-spacy-models:/models
 
   libretranslate:
     image: libretranslate/libretranslate
@@ -75,3 +77,4 @@ volumes:
   local-ollama-data:
   local-postgresql-data:
   local-redis-data:
+  local-spacy-models:

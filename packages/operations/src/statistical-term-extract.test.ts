@@ -64,57 +64,64 @@ afterEach(async () => {
 });
 
 describe("statisticalTermExtractOp", () => {
-  it("returns intl-fallback when no NLP plugin is installed", async () => {
+  it("fails when no Language Analyzer is installed", async () => {
     const runtime = await setupPluginManager(
-      new TestPluginLoader({ includeNlpSegmenter: true }),
-      "statistical-term-extract-fallback",
+      new TestPluginLoader({ includeLanguageAnalyzer: true }),
+      "statistical-term-extract-unavailable",
       ["mock"],
     );
     cleanup = runtime.cleanup;
 
-    const result = await statisticalTermExtractOp(
-      {
-        texts: [{ id: "1", elementId: 1, text: "Machine translation quality" }],
-        languageId: "en",
-        config: {
-          maxTermTokens: 3,
-          minElementFrequency: 1,
-          minTermLength: 2,
-          tfIdfThreshold: 0,
-          tfidfWeight: 0.6,
-          cvalueWeight: 0.4,
+    await expect(
+      statisticalTermExtractOp(
+        {
+          texts: [
+            { id: "1", elementId: 1, text: "Machine translation quality" },
+          ],
+          languageId: "en",
+          config: {
+            maxTermTokens: 3,
+            minElementFrequency: 1,
+            minTermLength: 2,
+            tfIdfThreshold: 0,
+            tfidfWeight: 0.6,
+            cvalueWeight: 0.4,
+          },
         },
-      },
-      { pluginManager: runtime.pluginManager, traceId: "test-trace-fallback" },
-    );
-
-    expect(result.nlpSegmenterUsed).toBe("intl-fallback");
+        {
+          pluginManager: runtime.pluginManager,
+          traceId: "test-trace-unavailable",
+        },
+      ),
+    ).rejects.toThrow("No Language Analyzer");
   });
 
-  it("returns plugin when the mock NLP segmenter is explicitly installed", async () => {
+  it("requires the deployment Language Analysis selection", async () => {
     const runtime = await setupPluginManager(
-      new TestPluginLoader({ includeNlpSegmenter: true }),
+      new TestPluginLoader({ includeLanguageAnalyzer: true }),
       "statistical-term-extract-plugin",
-      ["mock", "mock-nlp-segmenter"],
+      ["mock", "mock-language-analyzer"],
     );
     cleanup = runtime.cleanup;
 
-    const result = await statisticalTermExtractOp(
-      {
-        texts: [{ id: "1", elementId: 1, text: "Machine translation quality" }],
-        languageId: "en",
-        config: {
-          maxTermTokens: 3,
-          minElementFrequency: 1,
-          minTermLength: 2,
-          tfIdfThreshold: 0,
-          tfidfWeight: 0.6,
-          cvalueWeight: 0.4,
+    await expect(
+      statisticalTermExtractOp(
+        {
+          texts: [
+            { id: "1", elementId: 1, text: "Machine translation quality" },
+          ],
+          languageId: "en",
+          config: {
+            maxTermTokens: 3,
+            minElementFrequency: 1,
+            minTermLength: 2,
+            tfIdfThreshold: 0,
+            tfidfWeight: 0.6,
+            cvalueWeight: 0.4,
+          },
         },
-      },
-      { pluginManager: runtime.pluginManager, traceId: "test-trace-plugin" },
-    );
-
-    expect(result.nlpSegmenterUsed).toBe("plugin");
+        { pluginManager: runtime.pluginManager, traceId: "test-trace-plugin" },
+      ),
+    ).rejects.toThrow("Language Analysis requirement");
   });
 });

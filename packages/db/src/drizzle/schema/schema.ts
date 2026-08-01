@@ -9,8 +9,16 @@ import type {
   QaReviewSpan,
   QaReviewTextRange,
   ServiceImplementationReference,
+  LanguageAnalysisRequirementAssessment,
 } from "@cat/shared";
-import type { _JSONSchema, JSONType, NonNullJSONType } from "@cat/shared";
+import type {
+  _JSONSchema,
+  JSONType,
+  NonNullJSONType,
+  TaskAffectedResource,
+  TaskKind,
+  TaskRuntime,
+} from "@cat/shared";
 import type { ProjectSettingPayload } from "@cat/shared";
 
 import {
@@ -18,6 +26,15 @@ import {
   ResourceTypeValues,
   ScopeTypeValues,
   TaskStatusValues,
+  TaskScopeTypeValues,
+  TaskKindValues,
+  TaskActorTypeValues,
+  OperationFailureCodeValues,
+  OperationFailureSeverityValues,
+  OperationFailureBlockerValues,
+  OperationFailureCapabilityValues,
+  OperationFailureAuthorizationDecisionValues,
+  OperationFailureRedactionBoundaryValues,
   QueueTaskStatusValues,
   CommentReactionTypeValues,
   TranslatableElementContextTypeValues,
@@ -108,6 +125,33 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const taskStatus = pgEnum("TaskStatus", TaskStatusValues);
+export const taskScopeType = pgEnum("TaskScopeType", TaskScopeTypeValues);
+export const taskKind = pgEnum("TaskKind", TaskKindValues);
+export const taskActorType = pgEnum("TaskActorType", TaskActorTypeValues);
+export const operationFailureCode = pgEnum(
+  "OperationFailureCode",
+  OperationFailureCodeValues,
+);
+export const operationFailureSeverity = pgEnum(
+  "OperationFailureSeverity",
+  OperationFailureSeverityValues,
+);
+export const operationFailureBlocker = pgEnum(
+  "OperationFailureBlocker",
+  OperationFailureBlockerValues,
+);
+export const operationFailureCapability = pgEnum(
+  "OperationFailureCapability",
+  OperationFailureCapabilityValues,
+);
+export const operationFailureAuthorizationDecision = pgEnum(
+  "OperationFailureAuthorizationDecision",
+  OperationFailureAuthorizationDecisionValues,
+);
+export const operationFailureRedactionBoundary = pgEnum(
+  "OperationFailureRedactionBoundary",
+  OperationFailureRedactionBoundaryValues,
+);
 
 export const queueTaskStatus = pgEnum("QueueTaskStatus", QueueTaskStatusValues);
 
@@ -923,6 +967,44 @@ export const pluginService = snakeCase.table(
   ],
 );
 
+/** Deployment-wide Language Analysis policy; null is an auditable tombstone. */
+export const languageAnalysisSelection = snakeCase.table(
+  "LanguageAnalysisSelection",
+  {
+    key: text().primaryKey(),
+    implementation: jsonb().$type<ServiceImplementationReference | null>(),
+    revision: integer().notNull(),
+    configurationFingerprint: text(),
+    ...timestamps,
+  },
+);
+
+/** Serializes deployment-wide Language Analysis policy publication. */
+export const languageAnalysisPolicy = snakeCase.table(
+  "LanguageAnalysisPolicy",
+  {
+    id: integer().primaryKey(),
+    epoch: integer().notNull(),
+    ...timestamps,
+  },
+);
+
+/** Last live requirement result. It is accepted only for its selected revision. */
+export const languageAnalysisObservation = snakeCase.table(
+  "LanguageAnalysisObservation",
+  {
+    languageId: text().primaryKey(),
+    policyEpoch: integer().notNull(),
+    selectionKey: text().notNull(),
+    selectionRevision: integer().notNull(),
+    configurationFingerprint: text().notNull(),
+    assessment: jsonb().$type<LanguageAnalysisRequirementAssessment>().notNull(),
+    observedAt: timestamp({ withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (table) => [index().on(table.selectionKey)],
+);
+
 export const pluginComponent = snakeCase.table("PluginComponent", {
   id: serial().primaryKey(),
   componentId: text().notNull(),
@@ -1303,16 +1385,92 @@ export const setting = snakeCase.table(
   (table) => [uniqueIndex().using("btree", table.key.asc().nullsLast())],
 );
 
+export const operationFailure = snakeCase.table("OperationFailure", {
+  id: uuid().defaultRandom().primaryKey(),
+  code: operationFailureCode().notNull(),
+  message: text().notNull(),
+  severity: operationFailureSeverity().notNull(),
+  retryable: boolean().notNull(),
+  blocker: operationFailureBlocker(),
+  capability: operationFailureCapability(),
+  authorizationDecision: operationFailureAuthorizationDecision(),
+  affectedResources: jsonb().notNull().$type<TaskAffectedResource[]>(),
+  remediationHint: text(),
+  redactionBoundary: operationFailureRedactionBoundary().notNull(),
+  taskId: uuid(),
+  traceId: text(),
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+});
+
 export const task = snakeCase.table(
   "Task",
   {
     id: uuid().defaultRandom().primaryKey(),
+    kind: taskKind().notNull(),
+    payload: jsonb().notNull().$type<TaskKind["payload"]>(),
     status: taskStatus().default("PENDING").notNull(),
-    type: text().notNull(),
-    meta: jsonb().$type<JSONType>(),
+    scopeType: taskScopeType().notNull(),
+    scopeId: uuid(),
+    actorType: taskActorType().notNull(),
+    actorId: uuid().references(() => user.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
+    resources: jsonb().notNull().$type<TaskAffectedResource[]>(),
+    revision: integer().notNull().default(0),
+    progressCurrent: integer(),
+    progressTotal: integer(),
+    runtime: jsonb().notNull().$type<TaskRuntime>(),
+    currentFailureId: uuid().references(() => operationFailure.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    retryOfTaskId: uuid(),
+    startedAt: timestamp({ withTimezone: true }),
+    finishedAt: timestamp({ withTimezone: true }),
     ...timestamps,
   },
-  (table) => [index().using("btree", table.meta.asc().nullsLast())],
+  (table) => [
+    foreignKey({
+      columns: [table.retryOfTaskId],
+      foreignColumns: [table.id],
+      name: "Task_retry_of_task_id_Task_id_fk",
+    })
+      .onDelete("set null")
+      .onUpdate("cascade"),
+    check(
+      "Task_scope_contract_check",
+      sql`(("scope_type" IN ('PROJECT', 'USER') AND "scope_id" IS NOT NULL) OR ("scope_type" = 'INSTANCE' AND "scope_id" IS NULL))`,
+    ),
+    check(
+      "Task_actor_contract_check",
+      sql`(("actor_type" = 'USER' AND "actor_id" IS NOT NULL) OR ("actor_type" = 'SYSTEM' AND "actor_id" IS NULL))`,
+    ),
+    check(
+      "Task_progress_contract_check",
+      sql`("progress_current" IS NULL OR "progress_current" >= 0) AND ("progress_total" IS NULL OR "progress_total" > 0) AND ("progress_current" IS NULL OR "progress_total" IS NULL OR "progress_current" <= "progress_total")`,
+    ),
+    index().using(
+      "btree",
+      table.scopeType.asc().nullsLast(),
+      table.scopeId.asc().nullsLast(),
+    ),
+    index().using("btree", table.status.asc().nullsLast()),
+    uniqueIndex("Task_retry_of_task_id_unique").on(table.retryOfTaskId),
+  ],
+);
+
+export const taskTransitionRequest = snakeCase.table(
+  "TaskTransitionRequest",
+  {
+    taskId: uuid()
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    requestId: uuid().notNull(),
+    intentFingerprint: text().notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.taskId, table.requestId] })],
 );
 
 export const term = snakeCase.table(
@@ -2244,11 +2402,14 @@ export const agentRun = snakeCase.table(
     startedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp({ withTimezone: true }),
     metadata: jsonb().$type<JSONType>(),
+    ownerId: text(),
+    ownerEpoch: integer().notNull().default(0),
+    ownerLeaseExpiresAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     index().on(table.sessionId),
     index().on(table.status),
-    index().on(table.deduplicationKey),
+    uniqueIndex().on(table.deduplicationKey),
   ],
 );
 

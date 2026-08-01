@@ -1,4 +1,9 @@
-import { createEvent, type AnyEventOf, type EventOf } from "@cat/core";
+import {
+  createEvent,
+  type AnyEventOf,
+  type CreateEventOptions,
+  type EventOf,
+} from "@cat/core";
 import type {
   MessageCategory,
   MessageChannel,
@@ -189,4 +194,5 @@ export type DomainEventType = keyof DomainEventMap;
 export const domainEvent = <T extends DomainEventType>(
   type: T,
   payload: DomainEventMap[T],
-): EventOf<DomainEventMap, T> => createEvent(type, payload);
+  options?: CreateEventOptions,
+): EventOf<DomainEventMap, T> => createEvent(type, payload, options);

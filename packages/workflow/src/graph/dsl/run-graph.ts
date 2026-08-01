@@ -6,6 +6,7 @@ import { JSONObjectSchema } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
+import type { RunOwnershipFence } from "#/graph/checkpointer/types.ts";
 import { getStoredGraphRuntime } from "#/graph/runtime-store.ts";
 
 import type { TypedGraphDefinition } from "./types.ts";
@@ -20,6 +21,8 @@ export type RunGraphOptions = {
   vcsContext?: VCSContext | undefined;
   /** Optional VCS middleware instance */
   vcsMiddleware?: VCSMiddleware | undefined;
+  ownershipFence?: RunOwnershipFence | null | undefined;
+  assertRunOwnership?: (() => Promise<void>) | undefined;
 };
 
 /**
@@ -38,6 +41,7 @@ export const runGraph = async <
   options?: RunGraphOptions,
 ): Promise<z.infer<TOutput>> => {
   const { scheduler, eventBus } = getStoredGraphRuntime();
+  options?.signal?.throwIfAborted();
 
   const parsedInput = JSONObjectSchema.parse(graph.inputSchema.parse(input));
 
@@ -47,33 +51,49 @@ export const runGraph = async <
     pluginManager: options?.pluginManager,
     vcsContext: options?.vcsContext,
     vcsMiddleware: options?.vcsMiddleware,
+    ...(options?.ownershipFence === undefined
+      ? {}
+      : { ownershipFence: options.ownershipFence }),
+    ...(options?.assertRunOwnership === undefined
+      ? {}
+      : { assertRunOwnership: options.assertRunOwnership }),
   });
 
   return new Promise<z.infer<TOutput>>((resolve, reject) => {
     let lastNodeError: Error | null = null;
+    let abortRequested = false;
 
     const unsubError = eventBus.subscribe("run:error", (event) => {
       if (event.runId !== runId) return;
       const payload = event.payload;
       const msg =
         typeof payload["error"] === "string" ? payload["error"] : undefined;
-      lastNodeError = new Error(msg ?? "Unknown graph node error");
+      lastNodeError = Object.assign(
+        new Error(msg ?? "Unknown graph node error"),
+        payload.operationFailure
+          ? { operationFailure: payload.operationFailure }
+          : {},
+      );
     });
 
     const unsubEnd = eventBus.subscribe("run:end", (event) => {
       if (event.runId !== runId) return;
       unsubError();
       unsubEnd();
+      options?.signal?.removeEventListener("abort", handleAbort);
 
       const payload = event.payload;
       const status = payload["status"];
 
+      if (abortRequested) {
+        reject(new DOMException("Aborted", "AbortError"));
+        return;
+      }
+
       if (status === "failed" || status === "cancelled") {
         reject(
           lastNodeError ??
-            new Error(
-              `Graph run ${runId} ended with status: ${String(status)}`,
-            ),
+            new Error(`Graph run ${runId} ended with status: ${status}`),
         );
         return;
       }
@@ -93,11 +113,12 @@ export const runGraph = async <
       }
     });
 
-    options?.signal?.addEventListener("abort", () => {
-      unsubError();
-      unsubEnd();
-      reject(new DOMException("Aborted", "AbortError"));
-    });
+    const handleAbort = (): void => {
+      abortRequested = true;
+      void scheduler.cancel(runId).catch(() => undefined);
+    };
+    options?.signal?.addEventListener("abort", handleAbort, { once: true });
+    if (options?.signal?.aborted) handleAbort();
   });
 };
 
@@ -122,6 +143,7 @@ export const startGraph = async <
   options?: RunGraphOptions,
 ): Promise<GraphRunHandle<z.infer<TOutput>>> => {
   const { scheduler, eventBus } = getStoredGraphRuntime();
+  options?.signal?.throwIfAborted();
 
   const parsedInput = JSONObjectSchema.parse(graph.inputSchema.parse(input));
 
@@ -131,33 +153,49 @@ export const startGraph = async <
     pluginManager: options?.pluginManager,
     vcsContext: options?.vcsContext,
     vcsMiddleware: options?.vcsMiddleware,
+    ...(options?.ownershipFence === undefined
+      ? {}
+      : { ownershipFence: options.ownershipFence }),
+    ...(options?.assertRunOwnership === undefined
+      ? {}
+      : { assertRunOwnership: options.assertRunOwnership }),
   });
 
   const complete = new Promise<z.infer<TOutput>>((resolve, reject) => {
     let lastNodeError: Error | null = null;
+    let abortRequested = false;
 
     const unsubError = eventBus.subscribe("run:error", (event) => {
       if (event.runId !== runId) return;
       const payload = event.payload;
       const msg =
         typeof payload["error"] === "string" ? payload["error"] : undefined;
-      lastNodeError = new Error(msg ?? "Unknown graph node error");
+      lastNodeError = Object.assign(
+        new Error(msg ?? "Unknown graph node error"),
+        payload.operationFailure
+          ? { operationFailure: payload.operationFailure }
+          : {},
+      );
     });
 
     const unsubEnd = eventBus.subscribe("run:end", (event) => {
       if (event.runId !== runId) return;
       unsubError();
       unsubEnd();
+      options?.signal?.removeEventListener("abort", handleAbort);
 
       const payload = event.payload;
       const status = payload["status"];
 
+      if (abortRequested) {
+        reject(new DOMException("Aborted", "AbortError"));
+        return;
+      }
+
       if (status === "failed" || status === "cancelled") {
         reject(
           lastNodeError ??
-            new Error(
-              `Graph run ${runId} ended with status: ${String(status)}`,
-            ),
+            new Error(`Graph run ${runId} ended with status: ${status}`),
         );
         return;
       }
@@ -177,11 +215,12 @@ export const startGraph = async <
       }
     });
 
-    options?.signal?.addEventListener("abort", () => {
-      unsubError();
-      unsubEnd();
-      reject(new DOMException("Aborted", "AbortError"));
-    });
+    const handleAbort = (): void => {
+      abortRequested = true;
+      void scheduler.cancel(runId).catch(() => undefined);
+    };
+    options?.signal?.addEventListener("abort", handleAbort, { once: true });
+    if (options?.signal?.aborted) handleAbort();
   });
 
   return { runId, complete };

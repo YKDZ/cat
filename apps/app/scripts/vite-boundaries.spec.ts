@@ -16,7 +16,7 @@ const pluginPackageDirectories = [
   "password-auth-provider",
   "pgvector-storage",
   "s3-storage-provider",
-  "spacy-segmenter",
+  "spacy-language-analyzer",
   "tei-rerank-provider",
   "tiny-widget",
   "totp-mfa-provider",

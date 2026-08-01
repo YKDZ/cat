@@ -17,7 +17,7 @@ const getCreatedProjectId = () => {
 test.describe("CAT Lite smoke", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("confirms the official spaCy segment operation through application readiness", async ({
+  test("confirms the official spaCy Language Analyzer through application readiness", async ({
     page,
   }) => {
     const response = await page.request.get("/_health/ready");
@@ -28,7 +28,7 @@ test.describe("CAT Lite smoke", () => {
     });
   });
 
-  test("@lite-smoke creates a project and imports a JSON file", async ({
+  test("@lite-smoke admits a first source distinct from project targets without changing membership", async ({
     page,
   }) => {
     await page.goto("/");
@@ -50,6 +50,12 @@ test.describe("CAT Lite smoke", () => {
 
     const filePath = test.info().outputPath(uploadedFileName);
     writeFileSync(filePath, JSON.stringify({ hello: "world" }));
+    const targetMembershipRequests: string[] = [];
+    page.on("request", (request) => {
+      if (request.url().includes("/api/rpc/project/addTargetLanguages")) {
+        targetMembershipRequests.push(request.url());
+      }
+    });
     await page.locator('input[type="file"]').setInputFiles(filePath);
 
     const row = page.getByRole("row", { name: /lite-smoke\.json/ });
@@ -80,6 +86,7 @@ test.describe("CAT Lite smoke", () => {
         `finishCreateFromFile failed with ${finishResponse.status()}: ${await finishResponse.text()}`,
       );
     }
+    expect(targetMembershipRequests).toEqual([]);
 
     await page.getByRole("button", { name: "先不上传文件" }).click();
     await expect(
@@ -137,5 +144,39 @@ test.describe("CAT Lite smoke", () => {
     await expect(page.getByText("成功创建导出任务")).toBeVisible({
       timeout: 10_000,
     });
+  });
+
+  test("@lite-smoke schedules and inspects a localization task", async ({
+    page,
+  }) => {
+    const projectId = getCreatedProjectId();
+    await page.goto(`/project/${projectId}/zh-Hans`);
+    const trigger = page.getByTitle("自动翻译").first();
+    await expect(trigger).toBeVisible({ timeout: 30_000 });
+    await trigger.click();
+
+    const scheduled = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/translation/autoTranslate") &&
+        response.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "确认", exact: true }).click();
+    const response = await scheduled;
+    if (!response.ok()) {
+      throw new Error(
+        `autoTranslate failed with ${response.status()}: ${await response.text()}`,
+      );
+    }
+    await expect(page).toHaveURL(/\/workflows\/[0-9a-f-]+$/);
+
+    await page.goto(`/project/${projectId}/tasks`);
+    const taskLink = page.getByRole("button", { name: "批量自动翻译" }).first();
+    await expect(taskLink).toBeVisible({ timeout: 30_000 });
+    await taskLink.click();
+    await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
+    await expect(page.getByText("zh-Hans", { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "受影响资源" }),
+    ).toBeVisible();
   });
 });

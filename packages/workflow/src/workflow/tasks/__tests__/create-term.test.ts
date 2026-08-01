@@ -39,12 +39,12 @@ beforeAll(async () => {
   pluginManager = PluginManager.get(
     "PROJECT",
     "create-term-test",
-    new TestPluginLoader({ includeNlpSegmenter: true }),
+    new TestPluginLoader({ includeLanguageAnalyzer: true }),
   );
 
   await pluginManager.getDiscovery().syncDefinitions(db.client);
   await pluginManager.install(db.client, "mock");
-  await pluginManager.install(db.client, "mock-nlp-segmenter");
+  await pluginManager.install(db.client, "mock-language-analyzer");
   await db.client.transaction(async (tx) => {
     await pluginManager.restore(
       tx,

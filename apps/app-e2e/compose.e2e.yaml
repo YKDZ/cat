@@ -51,11 +51,15 @@ services:
       service: spacy
     ports:
       - "${CAT_E2E_BIND_HOST:-127.0.0.1}:${CAT_E2E_SPACY_HOST_PORT:-0}:8000"
+    environment:
+      CAT_TEST_EXPOSE_REQUEST_COUNTS: "1"
     restart: "no"
     security_opt:
       - no-new-privileges:true
     labels:
       cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+    volumes:
+      - e2e-spacy-models:/models
 
 networks:
   default:
@@ -67,5 +71,8 @@ volumes:
     labels:
       cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
   e2e-redis-data:
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+  e2e-spacy-models:
     labels:
       cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}

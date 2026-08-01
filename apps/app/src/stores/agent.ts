@@ -127,6 +127,7 @@ export type GraphEventType =
   | "human:input:received"
   | "checkpoint:saved"
   | "workflow:translation:created"
+  | "workflow:task:progress"
   | "workflow:qa:issue"
   | "workflow:suggestion:ready";
 
@@ -405,6 +406,7 @@ export const useAgentStore = defineStore("agent", () => {
       case "human:input:received":
       case "checkpoint:saved":
       case "workflow:translation:created":
+      case "workflow:task:progress":
       case "workflow:qa:issue":
       case "workflow:suggestion:ready":
         break;

@@ -447,9 +447,15 @@ describe("package artifact matrix", () => {
 
     await writeFile(
       join(consumer, "consumer.ts"),
-      `import type { CatPlugin, ComponentData, PluginContext, PluginLogger, Token } from "@cat/plugin-core";
-import { AuthFactor, FileImporter, PluginManager, QAChecker, ServiceRegistry } from "@cat/plugin-core";
+      `import type { CatPlugin, ComponentData, LanguageAnalysisContext, PluginContext, PluginLogger, Token } from "@cat/plugin-core";
+import { AuthFactor, FileImporter, LanguageAnalyzer, PluginManager, QAChecker, ServiceRegistry, normalizeLanguageId } from "@cat/plugin-core";
 import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
+
+class ConsumerLanguageAnalyzer extends LanguageAnalyzer {
+  getId() { return "consumer-language-analyzer"; }
+  async getSupportedLanguages() { return [normalizeLanguageId("en-US")]; }
+  async analyze(ctx: LanguageAnalysisContext): Promise<never> { throw new Error(ctx.text); }
+}
 
 declare const plugin: CatPlugin;
 const component: ComponentData = { name: "example", slot: "example", url: "example.js" };
@@ -460,7 +466,8 @@ declare const pluginLogger: PluginLogger;
 const pluginManager = PluginManager.get("GLOBAL", "", undefined, pluginLogger);
 pluginManager.getDiagnosticLogger().info("host diagnostic");
 const serviceRegistry = new ServiceRegistry([], pluginLogger);
-void [plugin, component, token, serviceRegistry, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];
+const consumerAnalyzer = new ConsumerLanguageAnalyzer();
+void [plugin, component, token, consumerAnalyzer, serviceRegistry, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];
 `,
     );
     await writeFile(
@@ -515,7 +522,7 @@ const serviceConstructors = [
   "FileExporter",
   "FileImporter",
   "LLMProvider",
-  "NlpWordSegmenter",
+  "LanguageAnalyzer",
   "QAChecker",
   "RerankProvider",
   "StorageProvider",
@@ -593,7 +600,7 @@ const serviceRegistry = new core.ServiceRegistry([], pluginLogger);
 if (!(serviceRegistry instanceof core.ServiceRegistry)) {
   throw new Error("plugin service registry did not cross the packaged boundary");
 }
-const spacy = (await plugins.get("@cat-plugin/spacy-segmenter").default.services({
+const spacy = (await plugins.get("@cat-plugin/spacy-language-analyzer").default.services({
   config: { serverUrl: "http://127.0.0.1:1" },
   logger: pluginLogger,
 }))[0];

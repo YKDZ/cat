@@ -37,6 +37,7 @@ type ComposeConfig = {
 const runComposeConfig = async (
   file: string,
   profiles: readonly string[] = [],
+  environment: Record<string, string> = {},
 ): Promise<string> => {
   const child = spawn(
     "docker",
@@ -57,6 +58,7 @@ const runComposeConfig = async (
         HOME: process.env.HOME ?? tmpdir(),
         PATH: process.env.PATH ?? "",
         ...composeEnvironment,
+        ...environment,
       },
       stdio: ["ignore", "pipe", "pipe"],
     },
@@ -165,8 +167,28 @@ describe("Compose deployment contracts", () => {
         "cat-data": expect.any(Object),
         "postgresql-data": expect.any(Object),
         "redis-data": expect.any(Object),
+        "spacy-config": expect.objectContaining({ name: "cat-spacy-config" }),
+        "spacy-models": expect.any(Object),
       }),
     );
+    expect(prepared.services.spacy).toMatchObject({
+      environment: {
+        SPACY_EXTERNAL_PLAN: "",
+        SPACY_EXTERNAL_PLAN_SHA256: "",
+        SPACY_MODELS_ROOT: "/models",
+      },
+      read_only: true,
+      user: "10001:10001",
+      volumes: expect.arrayContaining([
+        expect.objectContaining({ target: "/models" }),
+        expect.objectContaining({
+          read_only: true,
+          source: "spacy-config",
+          target: "/config",
+          type: "volume",
+        }),
+      ]),
+    });
     for (const name of ["prepare", "bootstrap", "app"]) {
       const service = prepared.services[name];
       if (service === undefined) {
@@ -202,6 +224,24 @@ describe("Compose deployment contracts", () => {
     });
     expect(JSON.stringify(resolved.services.redis?.healthcheck)).toContain(
       "REDIS_PASSWORD",
+    );
+
+    const customConfigVolume = JSON.parse(
+      await runComposeConfig(productionCompose, [], {
+        CAT_SPACY_CONFIG_VOLUME: "operator-spacy-config",
+      }),
+    ) as ComposeConfig;
+    expect(customConfigVolume.volumes["spacy-config"]).toMatchObject({
+      name: "operator-spacy-config",
+    });
+    expect(customConfigVolume.services.spacy?.volumes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          read_only: true,
+          source: "spacy-config",
+          target: "/config",
+        }),
+      ]),
     );
   });
 

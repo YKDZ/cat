@@ -11,7 +11,7 @@ const RecallEvidenceSchema = z.object({
   note: z.string().optional(),
 });
 
-const NlpTokenSchema = z.object({
+const LanguageAnalysisTokenSchema = z.object({
   text: z.string(),
   lemma: z.string(),
   pos: z.string(),
@@ -75,7 +75,7 @@ export const RecallFixtureSchema = z.object({
   name: z.string(),
   description: z.string(),
   kind: z.enum(["term", "memory"]),
-  matrix: z.enum(["fallback", "mock-nlp"]),
+  matrix: z.enum(["fallback", "mock-language-analysis"]),
   query: z.object({
     text: z.string(),
     sourceLanguageId: z.string(),
@@ -93,7 +93,7 @@ export const RecallFixtureSchema = z.object({
   mock: z.object({
     term: z
       .object({
-        nlpTokens: z.array(NlpTokenSchema).optional(),
+        languageAnalysisTokens: z.array(LanguageAnalysisTokenSchema).optional(),
         lexical: z.array(TermResultSchema).default([]),
         morphological: z.array(TermResultSchema).default([]),
         semantic: z.array(TermResultSchema).default([]),

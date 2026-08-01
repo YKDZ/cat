@@ -73,9 +73,6 @@ export const processVectorizationBatch = async (
       );
     } catch (error) {
       if (task.retryCount >= MAX_RETRIES - 1) {
-        // Max retries reached: permanently remove from queue and mark as failed
-        // oxlint-disable-next-line no-await-in-loop
-        await queue.ack(task.id);
         // oxlint-disable-next-line no-await-in-loop
         const { client: drizzle } = await getDbHandle();
         // oxlint-disable-next-line no-await-in-loop
@@ -83,6 +80,10 @@ export const processVectorizationBatch = async (
           stringIds: task.payload.stringIds,
           status: "VECTORIZE_FAILED",
         });
+        // Remove only after the terminal status is durable, so a stable enqueue ID
+        // cannot be reinserted during the transition.
+        // oxlint-disable-next-line no-await-in-loop
+        await queue.ack(task.id);
         // oxlint-disable-next-line no-await-in-loop
         await domainEventBus.publish(
           domainEvent("vectorization:failed", {

@@ -26,6 +26,9 @@ export const findAgentRunByDeduplicationKey: Query<
       startedAt: agentRun.startedAt,
       completedAt: agentRun.completedAt,
       metadata: agentRun.metadata,
+      ownerId: agentRun.ownerId,
+      ownerEpoch: agentRun.ownerEpoch,
+      ownerLeaseExpiresAt: agentRun.ownerLeaseExpiresAt,
     })
     .from(agentRun)
     .where(eq(agentRun.deduplicationKey, query.deduplicationKey))

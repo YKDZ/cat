@@ -2,13 +2,9 @@ import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTranslationsByElement } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
-import {
-  type ServiceImplementationReference,
-  ServiceImplementationReferenceSchema,
-} from "@cat/shared";
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
+import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 
 // ─── Input / Output Schemas ───
 
@@ -36,7 +32,6 @@ export const StatisticalTermAlignInputSchema = z.object({
   config: z.object({
     minCoOccurrence: z.number().min(0).max(1).default(0.3),
   }),
-  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const StatisticalTermAlignOutputSchema = z.object({
@@ -86,13 +81,12 @@ const computeCoOccurrence = (
 
 /**
  * 尝试在翻译文本中定位候选术语，以获取 translationId 级别的共现信息
- * 通过 NLP segmentation 匹配 lemma 序列，处理词形变化
+ * 通过 Language Analysis 匹配 lemma 序列，处理词形变化
  */
 const enrichFromTranslation = async (
   elementId: number,
   candidateText: string,
   languageId: string,
-  nlpSegmenter: ServiceImplementationReference | undefined,
   ctx?: OperationContext,
 ): Promise<number[]> => {
   try {
@@ -105,15 +99,14 @@ const enrichFromTranslation = async (
 
     if (translations.length === 0) return [];
 
-    // Use NLP to find the candidate lemma sequence in the translation
-    const segResult = await nlpBatchSegmentOp(
+    // Use Language Analysis to find the candidate lemma sequence.
+    const analysis = await languageAnalyzeBatchOp(
       {
         items: translations.map((t) => ({
           id: String(t.id),
           text: t.text,
         })),
         languageId,
-        nlpSegmenter,
       },
       ctx,
     );
@@ -121,7 +114,7 @@ const enrichFromTranslation = async (
     const candidateLemma = candidateText.toLowerCase();
     const matchingTranslationIds: number[] = [];
 
-    for (const { id, result } of segResult.results) {
+    for (const { id, result } of analysis.results) {
       const translationId = parseInt(id, 10);
       if (Number.isNaN(translationId)) continue;
 
@@ -214,7 +207,6 @@ export const statisticalTermAlignOp = async (
             occ.elementId,
             item.candidateText,
             item.languageId,
-            data.nlpSegmenter,
             ctx,
           );
           if (translationIds.length > 0) {

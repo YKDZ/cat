@@ -1,9 +1,9 @@
 import type { OperationContext } from "@cat/domain";
-import { ServiceImplementationReferenceSchema } from "@cat/shared";
+import { NormalizedLanguageIdSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
-import { joinTokens, joinLemmas } from "./nlp-normalization.ts";
+import { joinTokens, joinLemmas } from "./language-analysis-normalization.ts";
+import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 
 // ─── Types ───
 
@@ -29,8 +29,8 @@ type NgramAccumulator = {
 
 /**
  * Valid POS patterns for terminology (UPOS tag patterns).
- * These cover the most common patterns cited in NLP terminology extraction literature.
- * Applied only when NLP plugin is available (pos !== "X").
+ * These cover common patterns cited in terminology extraction literature.
+ * Applied to actual Language Analysis POS annotations.
  */
 const VALID_POS_PATTERNS: Array<string[]> = [
   // Single tokens
@@ -59,8 +59,6 @@ const VALID_POS_PATTERNS: Array<string[]> = [
 
 const isValidPosPattern = (pattern: string[]): boolean => {
   if (pattern.length === 0) return false;
-  // When all tokens are "X" (Intl.Segmenter fallback), skip POS filtering
-  if (pattern.every((p) => p === "X")) return true;
   return VALID_POS_PATTERNS.some(
     (valid) =>
       valid.length === pattern.length &&
@@ -108,14 +106,13 @@ const computeCValue = (
 export const StatisticalTermExtractInputSchema = z.object({
   texts: z.array(
     z.object({
-      /** Element ID (stringified for NLP batch API) */
+      /** Element ID stringified for the Language Analysis batch contract. */
       id: z.string(),
       elementId: z.int(),
       text: z.string(),
     }),
   ),
-  languageId: z.string().min(1),
-  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
+  languageId: NormalizedLanguageIdSchema,
   config: z.object({
     maxTermTokens: z.int().min(1).max(10).default(5),
     minElementFrequency: z.int().min(1).default(2),
@@ -143,10 +140,9 @@ export const StatisticalTermExtractOutputSchema = z.object({
       ),
     }),
   ),
-  nlpSegmenterUsed: z.enum(["plugin", "intl-fallback"]),
 });
 
-export type StatisticalTermExtractInput = z.infer<
+export type StatisticalTermExtractInput = z.input<
   typeof StatisticalTermExtractInputSchema
 >;
 export type StatisticalTermExtractOutput = z.infer<
@@ -157,53 +153,46 @@ export type StatisticalTermExtractOutput = z.infer<
 
 /**
  *
- * 内部调用 {@link nlpBatchSegmentOp} 进行 NLP 分词，然后通过 POS 过滤 + N-gram 生成
+ * 内部调用 {@link languageAnalyzeBatchOp} 进行 Language Analysis，然后通过 POS 过滤 + N-gram 生成
  * + TF-IDF + C-value 算法提取高置信度术语候选。
  * Statistical term extraction.
  *
- * Internally calls {@link nlpBatchSegmentOp} for NLP segmentation, then
+ * Internally calls {@link languageAnalyzeBatchOp} for Language Analysis, then
  * extracts high-confidence term candidates via POS filtering, N-gram
  * generation, TF-IDF weighting, and the C-value algorithm.
  *
  * @param data - Statistical extraction input parameters
  * @param ctx - Operation context
- * @returns - Extracted term candidates and the segmenter type used
+ * @returns - Extracted term candidates and the Language Analyzer outcome
  */
 export const statisticalTermExtractOp = async (
   data: StatisticalTermExtractInput,
   ctx?: OperationContext,
 ): Promise<StatisticalTermExtractOutput> => {
-  if (data.texts.length === 0) {
-    return { candidates: [], nlpSegmenterUsed: "intl-fallback" };
+  const input = StatisticalTermExtractInputSchema.parse(data);
+  if (input.texts.length === 0) {
+    return { candidates: [] };
   }
 
-  // === Phase A: NLP Segmentation ===
-  const segmentResult = await nlpBatchSegmentOp(
+  // Analyze text before deriving POS-filtered candidate terms.
+  const analysis = await languageAnalyzeBatchOp(
     {
-      items: data.texts.map((t) => ({ id: t.id, text: t.text })),
-      languageId: data.languageId,
-      nlpSegmenter: data.nlpSegmenter,
+      items: input.texts.map((t) => ({ id: t.id, text: t.text })),
+      languageId: input.languageId,
     },
     ctx,
   );
 
-  // Detect whether a real NLP plugin was used (pos tags other than X/NUM/PUNCT)
-  const hasNlpPlugin = segmentResult.results.some((r) =>
-    r.result.tokens.some(
-      (t) => t.pos !== "X" && t.pos !== "NUM" && t.pos !== "PUNCT",
-    ),
-  );
-
   // Build a map from item id → elementId
   const idToElementId = new Map<string, number>(
-    data.texts.map((t) => [t.id, t.elementId]),
+    input.texts.map((t) => [t.id, t.elementId]),
   );
 
   const ngramMap = new Map<string, NgramAccumulator>();
-  const { maxTermTokens, minTermLength } = data.config;
+  const { maxTermTokens, minTermLength } = input.config;
 
   // === Phase A: N-gram generation per element ===
-  for (const { id, result } of segmentResult.results) {
+  for (const { id, result } of analysis.results) {
     const elementId = idToElementId.get(id);
     if (elementId === undefined) continue;
 
@@ -215,11 +204,10 @@ export const statisticalTermExtractOp = async (
         const slice = contentTokens.slice(i, i + n);
         const posPattern = slice.map((t) => t.pos);
 
-        // POS filter (skip when no NLP plugin and pos = "X")
-        if (hasNlpPlugin && !isValidPosPattern(posPattern)) continue;
+        if (!isValidPosPattern(posPattern)) continue;
 
-        const surfaceText = joinTokens(slice, data.languageId);
-        const normalizedText = joinLemmas(slice, data.languageId);
+        const surfaceText = joinTokens(slice, input.languageId);
+        const normalizedText = joinLemmas(slice, input.languageId);
 
         // Basic length filter
         if (surfaceText.length < minTermLength) continue;
@@ -260,9 +248,9 @@ export const statisticalTermExtractOp = async (
   }
 
   // === Phase B: TF-IDF + C-value Scoring ===
-  const N = data.texts.length;
+  const N = input.texts.length;
   const { minElementFrequency, tfIdfThreshold, tfidfWeight, cvalueWeight } =
-    data.config;
+    input.config;
 
   // First pass: compute raw TF-IDF and C-value for all candidates
   type RawCandidate = {
@@ -294,10 +282,7 @@ export const statisticalTermExtractOp = async (
   }
 
   if (rawCandidates.length === 0) {
-    return {
-      candidates: [],
-      nlpSegmenterUsed: hasNlpPlugin ? "plugin" : "intl-fallback",
-    };
+    return { candidates: [] };
   }
 
   // Normalize TF-IDF and C-value to [0, 1]
@@ -344,8 +329,5 @@ export const statisticalTermExtractOp = async (
 
   candidates.sort((a, b) => b.confidence - a.confidence);
 
-  return {
-    candidates,
-    nlpSegmenterUsed: hasNlpPlugin ? "plugin" : "intl-fallback",
-  };
+  return { candidates };
 };

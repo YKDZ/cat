@@ -15,8 +15,8 @@ import * as z from "zod";
 
 import { calibrateTermBm25 } from "./confidence-calibrator/index.ts";
 import { applyTermHnfPre } from "./hard-negative-filter/index.ts";
-import { joinLemmas } from "./nlp-normalization.ts";
-import { nlpSegmentOp } from "./nlp-segment.ts";
+import { joinLemmas } from "./language-analysis-normalization.ts";
+import { languageAnalyzeOp } from "./language-analyze.ts";
 import { runPrecisionPipeline } from "./precision/precision-pipeline.ts";
 import { augmentWithSparseLane } from "./precision/sparse-lane.ts";
 import type {
@@ -37,8 +37,8 @@ export const CollectTermRecallInputSchema = z.object({
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
   rerankProvider: ServiceImplementationReferenceSchema.optional(),
   rerankTimeoutMs: z.int().positive().default(3000),
-  /** Pre-tokenized NLP tokens for the source text. */
-  sourceNlpTokens: z
+  /** Pre-tokenized Language Analysis tokens for the source text. */
+  sourceLanguageAnalysisTokens: z
     .array(
       z.object({
         text: z.string(),
@@ -65,8 +65,8 @@ const normalizeRecallQuery = async (
   const trimmed = text.trim();
   if (trimmed.length === 0) return "";
 
-  const segmented = await nlpSegmentOp({ text: trimmed, languageId }, ctx);
-  const contentTokens = segmented.tokens.filter(
+  const analysis = await languageAnalyzeOp({ text: trimmed, languageId }, ctx);
+  const contentTokens = analysis.tokens.filter(
     (token) => !token.isStop && !token.isPunct,
   );
 
@@ -77,19 +77,15 @@ const normalizeRecallQuery = async (
   return joinLemmas(contentTokens, languageId).trim();
 };
 
-const getNlpContentWords = async (
+const getLanguageAnalysisContentWords = async (
   text: string,
   languageId: string,
   ctx?: OperationContext,
 ): Promise<string[]> => {
-  try {
-    const segmented = await nlpSegmentOp({ text, languageId }, ctx);
-    return segmented.tokens
-      .filter((t) => !t.isStop && !t.isPunct)
-      .map((t) => t.lemma.toLowerCase());
-  } catch {
-    return [];
-  }
+  const analysis = await languageAnalyzeOp({ text, languageId }, ctx);
+  return analysis.tokens
+    .filter((t) => !t.isStop && !t.isPunct)
+    .map((t) => t.lemma.toLowerCase());
 };
 
 export const collectTermRecallOp = async (
@@ -172,7 +168,7 @@ export const collectTermRecallOp = async (
   );
 
   // ── Sparse Lexical Lane ───────────────────────────────────────────
-  const contentWords = await getNlpContentWords(
+  const contentWords = await getLanguageAnalysisContentWords(
     input.text,
     input.sourceLanguageId,
     ctx,
@@ -200,12 +196,12 @@ export const collectTermRecallOp = async (
 
   if (
     contentWords.length > 0 &&
-    input.sourceNlpTokens &&
-    input.sourceNlpTokens.length > 0
+    input.sourceLanguageAnalysisTokens &&
+    input.sourceLanguageAnalysisTokens.length > 0
   ) {
     const hnfPreResult = applyTermHnfPre(
       rawTermResults,
-      input.sourceNlpTokens,
+      input.sourceLanguageAnalysisTokens,
       input.text,
     );
     hnfPreRemovals.push(...hnfPreResult);

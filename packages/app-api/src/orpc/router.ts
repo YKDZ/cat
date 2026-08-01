@@ -12,6 +12,7 @@ import * as ghostText from "./routers/ghost-text.ts";
 import * as glossary from "./routers/glossary.ts";
 import * as issueComment from "./routers/issue-comment.ts";
 import * as issue from "./routers/issue.ts";
+import * as languageAnalysis from "./routers/language-analysis.ts";
 import * as language from "./routers/language.ts";
 import * as memory from "./routers/memory.ts";
 import * as notification from "./routers/notification.ts";
@@ -25,6 +26,7 @@ import * as qaReview from "./routers/qa-review.ts";
 import * as qa from "./routers/qa.ts";
 import * as setting from "./routers/setting.ts";
 import * as suggestion from "./routers/suggestion.ts";
+import * as task from "./routers/task.ts";
 import * as tokenizer from "./routers/tokenizer.ts";
 import * as translation from "./routers/translation.ts";
 import * as trustSettings from "./routers/trust-settings.ts";
@@ -51,11 +53,13 @@ const router: AppRouter = {
   ghostText,
   glossary,
   language,
+  languageAnalysis,
   memory,
   permission,
   plugin,
   project,
   suggestion,
+  task,
   translation,
   tokenizer,
   qa,
@@ -85,10 +89,12 @@ export type AppRouter = {
   ghostText: typeof ghostText;
   glossary: typeof glossary;
   language: typeof language;
+  languageAnalysis: typeof languageAnalysis;
   memory: typeof memory;
   plugin: typeof plugin;
   project: typeof project;
   suggestion: typeof suggestion;
+  task: typeof task;
   translation: typeof translation;
   tokenizer: typeof tokenizer;
   qa: typeof qa;

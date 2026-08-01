@@ -28,9 +28,9 @@ import openaiVectorizerPackage from "@cat-plugin/openai-vectorizer/package.json"
 import passwordAuthProvider from "@cat-plugin/password-auth-provider";
 import passwordAuthProviderManifest from "@cat-plugin/password-auth-provider/manifest.json";
 import passwordAuthProviderPackage from "@cat-plugin/password-auth-provider/package.json";
-import spacySegmenter from "@cat-plugin/spacy-segmenter";
-import spacySegmenterManifest from "@cat-plugin/spacy-segmenter/manifest.json";
-import spacySegmenterPackage from "@cat-plugin/spacy-segmenter/package.json";
+import spacyLanguageAnalyzer from "@cat-plugin/spacy-language-analyzer";
+import spacyLanguageAnalyzerManifest from "@cat-plugin/spacy-language-analyzer/manifest.json";
+import spacyLanguageAnalyzerPackage from "@cat-plugin/spacy-language-analyzer/package.json";
 import teiRerankProvider from "@cat-plugin/tei-rerank-provider";
 import teiRerankProviderManifest from "@cat-plugin/tei-rerank-provider/manifest.json";
 import teiRerankProviderPackage from "@cat-plugin/tei-rerank-provider/package.json";
@@ -150,9 +150,9 @@ export const builtinFilesystemPluginEntries: BuiltinPluginEntry[] = [
     libreTranslateAdvisor,
   ),
   toEntry(
-    parseManifest(spacySegmenterManifest),
-    spacySegmenterPackage,
-    spacySegmenter,
+    parseManifest(spacyLanguageAnalyzerManifest),
+    spacyLanguageAnalyzerPackage,
+    spacyLanguageAnalyzer,
   ),
   toEntry(
     parseManifest(teiRerankProviderManifest),

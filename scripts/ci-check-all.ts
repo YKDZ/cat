@@ -7,6 +7,7 @@ import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 
 import { validateBuildxCachePaths } from "./buildx-cache.ts";
+import { releaseImageTargets } from "./image-builder.ts";
 
 type CacheFileSystem = {
   rename: (from: string, to: string) => Promise<void>;
@@ -143,7 +144,10 @@ export const writeImageChecksums = async (
   write: (message: string) => void = (message) => process.stdout.write(message),
 ): Promise<void> => {
   if (directory === undefined || directory === "") return;
-  const files = ["manifest.json", "standalone.tar", "runtime.tar"];
+  const files = [
+    "manifest.json",
+    ...releaseImageTargets.map((target) => `${target}.tar`),
+  ];
   const checksums: string[] = [];
   for (const file of files) {
     checksums.push(`${await sha256(`${directory}/${file}`)}  ${file}`);

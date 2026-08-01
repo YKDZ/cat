@@ -19,7 +19,6 @@ import type { createGlossary } from "#/commands/glossary/create-glossary.cmd.ts"
 import type { deleteGlossaryTerm } from "#/commands/glossary/delete-glossary-term.cmd.ts";
 import type { updateGlossaryConcept } from "#/commands/glossary/update-glossary-concept.cmd.ts";
 import type { createMemory } from "#/commands/memory/create-memory.cmd.ts";
-import type { addProjectTargetLanguages } from "#/commands/project/add-project-target-languages.cmd.ts";
 import type { createProject } from "#/commands/project/create-project.cmd.ts";
 import type { deleteProject } from "#/commands/project/delete-project.cmd.ts";
 import type { linkProjectGlossaries } from "#/commands/project/link-project-glossaries.cmd.ts";
@@ -113,9 +112,6 @@ export type ProjectCapabilities = {
   ) => Promise<void>;
   unlinkMemories: (
     input: CapabilityInput<typeof unlinkProjectMemories>,
-  ) => Promise<void>;
-  addTargetLanguages: (
-    input: CapabilityInput<typeof addProjectTargetLanguages>,
   ) => Promise<void>;
 };
 

@@ -3,6 +3,7 @@ import type { NonNullJSONType } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
+import type { RunOwnershipFence } from "#/graph/checkpointer/types.ts";
 import type { EventEnvelopeInput } from "#/graph/events.ts";
 import type {
   BlackboardSnapshot,
@@ -23,6 +24,8 @@ export type TypedNodeContext = {
   traceId: string;
   /** Plugin manager instance from the graph runtime */
   pluginManager: PluginManager;
+  assertRunOwnership: () => Promise<void>;
+  ownershipFence?: RunOwnershipFence | null | undefined;
   emit: (event: EventEnvelopeInput) => Promise<void>;
   /** Buffer an event to be published after node execution */
   addEvent: (event: EventEnvelopeInput) => void;

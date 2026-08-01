@@ -8,13 +8,18 @@ const mocks = vi.hoisted(() => ({
   executeQuery: vi.fn().mockResolvedValue({ id: "root-user" }),
   getDefaultPluginIds: vi.fn(() => [
     "password-auth-provider",
-    "spacy-segmenter",
+    "spacy-language-analyzer",
   ]),
   getFirstRegisteredUser: Symbol("getFirstRegisteredUser"),
+  getLanguageAnalysisSelection: Symbol("getLanguageAnalysisSelection"),
   grantFirstUserSuperadmin: vi.fn().mockResolvedValue(undefined),
   installDefaults: vi.fn().mockResolvedValue(undefined),
   registerBuiltinAgents: vi.fn().mockResolvedValue(undefined),
   seedSystemRoles: vi.fn().mockResolvedValue(undefined),
+  validateLanguageAnalyzerConfiguration: vi.fn(),
+  writeValidatedLanguageAnalysisSelection: Symbol(
+    "writeValidatedLanguageAnalysisSelection",
+  ),
 }));
 
 vi.mock("@cat/agent", () => ({
@@ -31,6 +36,15 @@ vi.mock("@cat/domain", () => ({
   executeCommand: mocks.executeCommand,
   executeQuery: mocks.executeQuery,
   getFirstRegisteredUser: mocks.getFirstRegisteredUser,
+  getLanguageAnalysisSelection: mocks.getLanguageAnalysisSelection,
+  LanguageAnalysisSelectionConflictError: class extends Error {},
+  writeValidatedLanguageAnalysisSelection:
+    mocks.writeValidatedLanguageAnalysisSelection,
+}));
+
+vi.mock("@cat/operations", () => ({
+  validateLanguageAnalyzerConfiguration:
+    mocks.validateLanguageAnalyzerConfiguration,
 }));
 
 vi.mock("@cat/permissions", () => ({
@@ -72,7 +86,7 @@ describe("bootstrapApplicationData", () => {
     expect(syncDefinitions).toHaveBeenCalledWith(client);
     expect(mocks.installDefaults).toHaveBeenCalledWith(client, pluginManager, [
       "password-auth-provider",
-      "spacy-segmenter",
+      "spacy-language-analyzer",
     ]);
     expect(restore).toHaveBeenCalledWith(client);
     expect(mocks.ensureRootUser).toHaveBeenCalledOnce();
@@ -86,6 +100,53 @@ describe("bootstrapApplicationData", () => {
     expect(mocks.grantFirstUserSuperadmin).toHaveBeenCalledWith(
       client,
       "root-user",
+    );
+  });
+
+  it("creates the default wildcard selection only when no administrator record exists", async () => {
+    const client = {
+      transaction: vi.fn(async (callback: (tx: object) => Promise<void>) =>
+        callback({}),
+      ),
+    };
+    const implementation = {
+      pluginId: "spacy-language-analyzer",
+      scopeId: "",
+      scopeType: "GLOBAL" as const,
+      serviceId: "spacy-language-analyzer",
+      serviceType: "LANGUAGE_ANALYZER" as const,
+    };
+    mocks.executeQuery.mockImplementation(async (_ctx, query) =>
+      query === mocks.getLanguageAnalysisSelection ? null : { id: "root-user" },
+    );
+    mocks.validateLanguageAnalyzerConfiguration.mockResolvedValue({
+      fingerprint: `sha256:${"a".repeat(64)}`,
+    });
+    const pluginManager = {
+      createServiceImplementationReference: vi.fn(() => implementation),
+      getDiscovery: () => ({ syncDefinitions: vi.fn() }),
+      getServices: vi.fn(() => [
+        {
+          id: "spacy-language-analyzer",
+          pluginId: "spacy-language-analyzer",
+        },
+      ]),
+      restore: vi.fn(),
+    };
+
+    await bootstrapApplicationData({
+      database: { client } as never,
+      pluginManager: pluginManager as never,
+    });
+
+    expect(mocks.executeCommand).toHaveBeenCalledWith(
+      { db: client },
+      mocks.writeValidatedLanguageAnalysisSelection,
+      expect.objectContaining({
+        expectedRevision: 0,
+        implementation,
+        key: "*",
+      }),
     );
   });
 });

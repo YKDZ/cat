@@ -2,8 +2,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => {
   const calls: string[] = [];
-  const activeRunIds = ["run-active"];
-  const fakeRecoverCrashedAgentRuns = Symbol("recoverCrashedAgentRuns");
   const fakeApp = {
     all: vi.fn(),
   };
@@ -73,9 +71,16 @@ const mocks = vi.hoisted(() => {
     redis: undefined,
   };
   const fakeCleanupHandle = { stop: vi.fn() };
+  const ensureTaskRecovery = vi.fn().mockResolvedValue(undefined);
+  const disposeGraphRuntime = vi.fn().mockResolvedValue(undefined);
+  const fakeGraphRuntime = {
+    ensureTaskRecovery,
+    dispose: disposeGraphRuntime,
+  };
   const fakePluginLoader = { kind: "plugin-loader" };
   const defaultPluginIds = ["password-auth-provider", "json-file-handler"];
   const messageGatewayStart = vi.fn();
+  const messageGatewayStop = vi.fn();
   const serverError = vi.fn();
   const serverInfo = vi.fn();
   const serverWarn = vi.fn();
@@ -84,7 +89,6 @@ const mocks = vi.hoisted(() => {
   const ReadinessProbeFailure = class extends Error {};
 
   return {
-    activeRunIds,
     assertSearchRuntimeHealth: vi.fn().mockResolvedValue(fakeDatabaseSummary),
     calls,
     configureReadinessReporter,
@@ -92,8 +96,8 @@ const mocks = vi.hoisted(() => {
     createAppPluginLoader: vi.fn(() => fakePluginLoader),
     createDefaultGraphRuntime: vi.fn(),
     createRuntimeBackends: vi.fn().mockResolvedValue(fakeBackends),
-    executeCommand: vi.fn(),
     executeQuery: vi.fn(),
+    ensureTaskRecovery,
     fakeApp,
     fakeBackends,
     fakeCleanupHandle,
@@ -101,10 +105,10 @@ const mocks = vi.hoisted(() => {
     fakeDiscovery,
     fakeDrizzleClient,
     fakeDrizzleDB,
+    fakeGraphRuntime,
     fakePluginLoader,
     fakePluginManager,
     fakeProfile,
-    fakeRecoverCrashedAgentRuns,
     fakeRouteRegistry,
     getCacheStore: vi.fn(() => fakeBackends.cacheStore),
     getCurrentRedisHandle: vi.fn().mockReturnValue(undefined),
@@ -113,9 +117,7 @@ const mocks = vi.hoisted(() => {
     getDefaultRegistries: vi.fn(() => ({
       appMethodRegistry: { id: "registry" },
     })),
-    getGlobalGraphRuntimeOrNull: vi.fn(() => ({
-      scheduler: { getActiveRunIds: vi.fn(() => activeRunIds) },
-    })),
+    getGlobalGraphRuntimeOrNull: vi.fn(),
     getSetting: Symbol("getSetting"),
     getSessionStore: vi.fn(() => fakeBackends.sessionStore),
     initCacheStore: vi.fn(),
@@ -125,8 +127,10 @@ const mocks = vi.hoisted(() => {
     initAllVectorStorage: vi.fn().mockResolvedValue(undefined),
     MessageGateway: class {
       public start = messageGatewayStart;
+      public stop = messageGatewayStop;
     },
     messageGatewayStart,
+    messageGatewayStop,
     pluginManagerGet: vi.fn(() => fakePluginManager),
     pluginManagerClear: vi.fn(),
     pluginManagerInstallDefaults: vi.fn().mockResolvedValue(undefined),
@@ -134,7 +138,7 @@ const mocks = vi.hoisted(() => {
     registerDomainEventHandlers: vi.fn(),
     registerVectorizationConsumer: vi.fn().mockResolvedValue(undefined),
     ReadinessProbeFailure,
-    recoverCrashedAgentRuns: fakeRecoverCrashedAgentRuns,
+    disposeGraphRuntime,
     resolveRuntimeProfile: vi.fn(() => fakeProfile),
     serverLogger: {
       child: () => ({
@@ -160,7 +164,6 @@ vi.mock("@cat/app-api/app", () => ({
 }));
 
 vi.mock("@cat/domain", () => ({
-  executeCommand: mocks.executeCommand,
   executeQuery: mocks.executeQuery,
   getCacheStore: mocks.getCacheStore,
   getCurrentRedisHandle: mocks.getCurrentRedisHandle,
@@ -171,7 +174,6 @@ vi.mock("@cat/domain", () => ({
   initCacheStore: mocks.initCacheStore,
   initRuntimeState: mocks.initRuntimeState,
   initSessionStore: mocks.initSessionStore,
-  recoverCrashedAgentRuns: mocks.recoverCrashedAgentRuns,
   resolveRuntimeProfile: mocks.resolveRuntimeProfile,
 }));
 
@@ -248,17 +250,14 @@ describe("initializeApp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.calls.length = 0;
+    mocks.ensureTaskRecovery.mockImplementation(async () => {
+      mocks.calls.push("recover-tasks");
+    });
+    mocks.disposeGraphRuntime.mockResolvedValue(undefined);
+    mocks.getGlobalGraphRuntimeOrNull.mockReturnValue(null);
     mocks.executeQuery
-      .mockResolvedValueOnce(null)
       .mockResolvedValueOnce("CAT")
       .mockResolvedValueOnce("http://localhost:3000/");
-    mocks.executeCommand.mockImplementation(async (_ctx, command) => {
-      if (command === mocks.recoverCrashedAgentRuns) {
-        mocks.calls.push("recover-runs");
-        return { recoveredRunIds: ["run-1"] };
-      }
-      return undefined;
-    });
     mocks.registerDomainEventHandlers.mockImplementation(() => {
       mocks.calls.push("domain-handlers");
     });
@@ -267,6 +266,10 @@ describe("initializeApp", () => {
     });
     mocks.createDefaultGraphRuntime.mockImplementation(() => {
       mocks.calls.push("graph-runtime");
+      return mocks.fakeGraphRuntime;
+    });
+    mocks.messageGatewayStart.mockImplementation(() => {
+      mocks.calls.push("message-gateway");
     });
     Reflect.deleteProperty(globalThis, "app");
     Reflect.deleteProperty(process, "__CAT_INITIALIZATION_PROMISE__");
@@ -327,20 +330,12 @@ describe("initializeApp", () => {
     expect(mocks.fakeApp.all).not.toHaveBeenCalled();
     expect(mocks.fakeDrizzleDB.migrate).not.toHaveBeenCalled();
     expect(mocks.calls).toEqual([
-      "domain-handlers",
-      "recover-runs",
-      "vectorization-consumer",
       "graph-runtime",
+      "recover-tasks",
+      "domain-handlers",
+      "vectorization-consumer",
+      "message-gateway",
     ]);
-    expect(mocks.executeCommand).toHaveBeenCalledWith(
-      { db: mocks.fakeDrizzleClient },
-      mocks.recoverCrashedAgentRuns,
-      { activeRunIds: mocks.activeRunIds },
-    );
-    expect(mocks.serverWarn).toHaveBeenCalledWith(
-      "Recovered crashed workflow runs",
-      { recoveredRunIds: ["run-1"] },
-    );
     expect(mocks.initAllVectorStorage).not.toHaveBeenCalled();
     expect(mocks.registerVectorizationConsumer).toHaveBeenCalledWith(
       mocks.fakeBackends.vectorizationQueue,
@@ -377,17 +372,39 @@ describe("initializeApp", () => {
 
   it("keeps HTTP liveness available and reports bootstrap failure when run recovery fails", async () => {
     const exitSpy = vi.spyOn(process, "exit");
-    mocks.executeCommand.mockRejectedValueOnce(new Error("db recovery failed"));
+    mocks.ensureTaskRecovery.mockRejectedValueOnce(
+      new Error("db recovery failed"),
+    );
 
     await expect(initializeApp()).resolves.toBeUndefined();
 
     expect(exitSpy).not.toHaveBeenCalled();
     expect(globalThis.inited).not.toBe(true);
     expect(mocks.registerVectorizationConsumer).not.toHaveBeenCalled();
-    expect(mocks.createDefaultGraphRuntime).not.toHaveBeenCalled();
+    expect(mocks.registerDomainEventHandlers).not.toHaveBeenCalled();
+    expect(mocks.createDefaultGraphRuntime).toHaveBeenCalledOnce();
     expect(mocks.messageGatewayStart).not.toHaveBeenCalled();
+    expect(mocks.disposeGraphRuntime).toHaveBeenCalledOnce();
+    expect(mocks.fakeCleanupHandle.stop).toHaveBeenCalledOnce();
+    expect(globalThis.runtimeCleanup).toBeUndefined();
 
     exitSpy.mockRestore();
+  });
+
+  it("disposes an existing graph runtime when task recovery fails", async () => {
+    mocks.getGlobalGraphRuntimeOrNull.mockReturnValue(mocks.fakeGraphRuntime);
+    mocks.ensureTaskRecovery.mockRejectedValueOnce(
+      new Error("existing runtime recovery failed"),
+    );
+
+    await expect(initializeApp()).resolves.toBeUndefined();
+
+    expect(mocks.createDefaultGraphRuntime).not.toHaveBeenCalled();
+    expect(mocks.disposeGraphRuntime).toHaveBeenCalledOnce();
+    expect(mocks.registerVectorizationConsumer).not.toHaveBeenCalled();
+    expect(mocks.registerDomainEventHandlers).not.toHaveBeenCalled();
+    expect(mocks.messageGatewayStart).not.toHaveBeenCalled();
+    expect(mocks.fakeCleanupHandle.stop).toHaveBeenCalledOnce();
   });
 
   it("keeps HTTP liveness available and reports bootstrap failure when queue recovery fails", async () => {
@@ -400,8 +417,10 @@ describe("initializeApp", () => {
 
     expect(exitSpy).not.toHaveBeenCalled();
     expect(globalThis.inited).not.toBe(true);
-    expect(mocks.createDefaultGraphRuntime).not.toHaveBeenCalled();
+    expect(mocks.createDefaultGraphRuntime).toHaveBeenCalledOnce();
     expect(mocks.messageGatewayStart).not.toHaveBeenCalled();
+    expect(mocks.disposeGraphRuntime).toHaveBeenCalledOnce();
+    expect(mocks.fakeCleanupHandle.stop).toHaveBeenCalledOnce();
 
     exitSpy.mockRestore();
   });

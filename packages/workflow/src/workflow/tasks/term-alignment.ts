@@ -43,8 +43,6 @@ export const TermAlignmentInputSchema = z.object({
     .min(2),
   /** Optional glossary to include existing terms in alignment */
   glossaryId: z.uuidv4().optional(),
-  /** Optional NLP_WORD_SEGMENTER implementation. */
-  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
 
   config: z
     .object({
@@ -303,13 +301,11 @@ export const termAlignmentGraph = defineGraph({
       input: z.object({
         termGroups: StartOutputSchema.shape.termGroups,
         config: TermAlignmentInputSchema.shape.config,
-        nlpSegmenter: TermAlignmentInputSchema.shape.nlpSegmenter,
       }),
       output: StatAlignOutputSchema,
       inputMapping: {
         termGroups: "start.termGroups",
         config: "config",
-        nlpSegmenter: "nlpSegmenter",
       },
       handler: async (input, ctx) => {
         const opCtx = { traceId: ctx.runId, signal: ctx.signal };
@@ -332,7 +328,6 @@ export const termAlignmentGraph = defineGraph({
             config: {
               minCoOccurrence: statCfg?.minCoOccurrence ?? 0.3,
             },
-            nlpSegmenter: input.nlpSegmenter,
           },
           opCtx,
         );

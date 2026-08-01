@@ -8,12 +8,26 @@
 
 import type { Checkpointer } from "#/graph/checkpointer/index.ts";
 import type { AgentEventBus } from "#/graph/event-bus.ts";
+import type { QueuedExecutorPool } from "#/graph/executor-pool.ts";
+import type { GraphRegistry } from "#/graph/graph-registry.ts";
+import type { NodeRegistry } from "#/graph/node-registry.ts";
 import type { Scheduler } from "#/graph/scheduler.ts";
+import type {
+  LocalizationTaskService,
+  WorkflowTaskProjector,
+} from "#/workflow/tasks/index.ts";
 
 export type StoredGraphRuntime = {
-  scheduler: Pick<Scheduler, "start" | "getActiveRunIds">;
+  scheduler: Scheduler;
   eventBus: AgentEventBus;
   checkpointer: Checkpointer;
+  executorPool: QueuedExecutorPool;
+  graphRegistry: GraphRegistry;
+  nodeRegistry: NodeRegistry;
+  taskProjector: WorkflowTaskProjector;
+  taskService: LocalizationTaskService;
+  ensureTaskRecovery: () => Promise<void>;
+  dispose: () => Promise<void>;
 };
 
 let storedRuntime: StoredGraphRuntime | null = null;
@@ -26,10 +40,11 @@ const isStoredGraphRuntime = (value: unknown): value is StoredGraphRuntime =>
   Reflect.get(value, "scheduler") !== null &&
   typeof Reflect.get(Reflect.get(value, "scheduler"), "start") === "function" &&
   typeof Reflect.get(Reflect.get(value, "scheduler"), "getActiveRunIds") ===
-    "function";
+    "function" &&
+  typeof Reflect.get(value, "ensureTaskRecovery") === "function";
 
 const bridgedRuntime = (): StoredGraphRuntime | null => {
-  const runtime = Reflect.get(process, runtimeBridgeKey);
+  const runtime: unknown = Reflect.get(process, runtimeBridgeKey);
   return isStoredGraphRuntime(runtime) ? runtime : null;
 };
 

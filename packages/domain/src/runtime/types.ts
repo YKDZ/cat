@@ -49,7 +49,7 @@ export const RuntimeFeatureSchema = z.enum([
   "pgvector",
   "external-llm",
   "external-mt",
-  "external-nlp",
+  "external-language-analysis",
   "external-rerank",
   "external-vectorizer",
 ]);

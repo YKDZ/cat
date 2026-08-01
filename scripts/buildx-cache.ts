@@ -6,7 +6,7 @@ export type BuildxCachePaths = {
   source?: string;
 };
 
-export const buildxCacheTargets = ["standalone", "runtime"] as const;
+export const buildxCacheTargets = ["standalone", "runtime", "spacy"] as const;
 
 export type BuildxCacheTarget = (typeof buildxCacheTargets)[number];
 
@@ -202,7 +202,7 @@ export const validateBuildxCachePaths = async (
   if (paths.paths.source === undefined && paths.paths.output === undefined) {
     return {
       paths: {},
-      sourceScopes: { runtime: false, standalone: false },
+      sourceScopes: { runtime: false, spacy: false, standalone: false },
       valid: true,
     };
   }

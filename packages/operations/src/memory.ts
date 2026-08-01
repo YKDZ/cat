@@ -7,12 +7,12 @@ import {
 } from "@cat/domain";
 
 import { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants.ts";
+import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 import {
   placeholderize,
   slotsToMapping,
   type SlotMappingEntry,
 } from "./memory-template.ts";
-import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
 import { tokenizeOp } from "./tokenize.ts";
 
 /**
@@ -49,7 +49,7 @@ export const insertMemory = async (
     { translationIds },
   );
 
-  const sourceNlpTokensByTranslationId = new Map<
+  const sourceLanguageAnalysisTokensByTranslationId = new Map<
     number,
     BuildMemoryRecallTokens
   >();
@@ -66,7 +66,7 @@ export const insertMemory = async (
 
   await Promise.all(
     [...translationsByLanguage.entries()].map(async ([languageId, rows]) => {
-      const result = await nlpBatchSegmentOp({
+      const result = await languageAnalyzeBatchOp({
         languageId,
         items: rows.map((row) => ({
           id: String(row.translationId),
@@ -74,12 +74,15 @@ export const insertMemory = async (
         })),
       });
 
-      for (const { id, result: segmentResult } of result.results) {
+      for (const { id, result: analysis } of result.results) {
         const translationId = Number.parseInt(id, 10);
         if (Number.isNaN(translationId)) {
           continue;
         }
-        sourceNlpTokensByTranslationId.set(translationId, segmentResult.tokens);
+        sourceLanguageAnalysisTokensByTranslationId.set(
+          translationId,
+          analysis.tokens,
+        );
       }
     }),
   );
@@ -177,9 +180,10 @@ export const insertMemory = async (
               translationText: templatedRow.translationText,
               sourceLanguageId: templatedRow.sourceLanguageId,
               translationLanguageId: templatedRow.translationLanguageId,
-              sourceNlpTokens: sourceNlpTokensByTranslationId.get(
-                templatedRow.translationId,
-              ),
+              sourceLanguageAnalysisTokens:
+                sourceLanguageAnalysisTokensByTranslationId.get(
+                  templatedRow.translationId,
+                ),
             },
             undefined,
             tx,
@@ -201,5 +205,7 @@ export const insertMemory = async (
 };
 
 type BuildMemoryRecallTokens = NonNullable<
-  Parameters<typeof buildMemoryRecallVariantsOp>[0]["sourceNlpTokens"]
+  Parameters<
+    typeof buildMemoryRecallVariantsOp
+  >[0]["sourceLanguageAnalysisTokens"]
 >;

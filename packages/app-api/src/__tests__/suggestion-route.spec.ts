@@ -11,9 +11,11 @@ const opMocks = vi.hoisted(() => ({
   collectEffectiveMemoryRecallOp: vi.fn(),
   termRecallOp: vi.fn(),
   llmTranslateOp: vi.fn(),
+  languageAnalyzeOp: vi.fn(),
 }));
 
 const domainMocks = vi.hoisted(() => ({
+  executeCommand: vi.fn(),
   getElementWithChunkIds: vi.fn(),
   findOpenAutoTranslatePR: vi.fn(),
 }));
@@ -29,6 +31,7 @@ vi.mock("@cat/domain", async () => {
     await vi.importActual<typeof import("@cat/domain")>("@cat/domain");
   return {
     ...actual,
+    executeCommand: domainMocks.executeCommand,
     executeQuery: vi.fn(),
     getElementWithChunkIds: domainMocks.getElementWithChunkIds,
     findOpenAutoTranslatePR: domainMocks.findOpenAutoTranslatePR,
@@ -43,6 +46,7 @@ vi.mock("@cat/operations", async () => {
     collectEffectiveMemoryRecallOp: opMocks.collectEffectiveMemoryRecallOp,
     termRecallOp: opMocks.termRecallOp,
     llmTranslateOp: opMocks.llmTranslateOp,
+    languageAnalyzeOp: opMocks.languageAnalyzeOp,
   };
 });
 
@@ -71,13 +75,14 @@ vi.mock("@cat/vcs", () => ({
 
 // ─── Imports after mocks ────────────────────────────────────────────────────
 
-import { executeQuery } from "@cat/domain";
+import { executeCommand, executeQuery } from "@cat/domain";
 import {
   findOpenAutoTranslatePR,
   getElementWithChunkIds,
   listEffectiveMemoryIdsByProject,
   listProjectGlossaryIds,
 } from "@cat/domain";
+import { LanguageAnalysisPolicyChangedError } from "@cat/operations";
 
 import { suggest as ghostTextSuggest } from "#/orpc/routers/ghost-text.ts";
 import { onNew as onNewSuggestion } from "#/orpc/routers/suggestion.ts";
@@ -147,6 +152,7 @@ const MOCK_ELEMENT = {
 describe("suggestion.onNew", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    opMocks.languageAnalyzeOp.mockResolvedValue({ tokens: [] });
 
     // Default: unsubscribe function returned by eventBus.subscribe
     workflowMocks.getGlobalGraphRuntime.mockReturnValue({
@@ -222,6 +228,43 @@ describe("suggestion.onNew", () => {
 
     const results = await collect(stream);
     expect(results).toHaveLength(0);
+  });
+
+  it("persists a language analysis failure once and exposes only its identity", async () => {
+    opMocks.languageAnalyzeOp.mockRejectedValue(
+      new LanguageAnalysisPolicyChangedError(new Error("selection revision 9")),
+    );
+    domainMocks.executeCommand.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      message: "Language analysis configuration changed during the operation.",
+    });
+
+    const stream = await call(
+      onNewSuggestion,
+      { elementId: 10, languageId: "zh-Hans" },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      data: {
+        operationFailure: { id: "11111111-1111-4111-8111-111111111111" },
+      },
+    });
+    expect(executeCommand).toHaveBeenCalledOnce();
+    expect(executeCommand).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({
+        failure: expect.objectContaining({
+          affectedResources: [
+            { type: "PROJECT", id: MOCK_ELEMENT.projectId },
+            { type: "ELEMENT", id: "10" },
+          ],
+          blocker: "language_analysis_policy_changed",
+        }),
+      }),
+    );
   });
 
   it("stream completes without throwing when Smart Suggestion rejects", async () => {

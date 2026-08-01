@@ -27,7 +27,7 @@ const searchRuntimeInitializationPath = new URL(
   import.meta.url,
 );
 
-type ImageMode = ReleaseImageTarget;
+type ImageMode = Exclude<ReleaseImageTarget, "spacy">;
 
 type ContainerServiceUrls = {
   databaseUrl: string;
@@ -164,7 +164,7 @@ const serviceProjectName = (context: ApplicationLifecycleContext): string => {
 
 const releaseImage = (
   images: ReleaseImageBuildResult,
-  target: ImageMode,
+  target: ReleaseImageTarget,
 ): ReleaseImage => {
   const image = images.images.find((candidate) => candidate.target === target);
   if (image === undefined) {
@@ -173,6 +173,52 @@ const releaseImage = (
     );
   }
   return image;
+};
+
+const assertSpacyImageConfig = async (
+  context: ApplicationLifecycleContext,
+  image: string,
+): Promise<void> => {
+  const config = parseImageConfig(
+    await docker(
+      context,
+      ["image", "inspect", "--format", "{{json .Config}}", image],
+      "pipe",
+    ),
+    image,
+  );
+  if (
+    config.User !== "10001:10001" ||
+    JSON.stringify(config.Cmd) !== JSON.stringify(["provision-and-serve"]) ||
+    JSON.stringify(config.Entrypoint) !==
+      JSON.stringify(["python", "-m", "src.cli"]) ||
+    config.Labels?.["org.opencontainers.image.version"] !==
+      (context.buildId ?? context.projectName) ||
+    !("/models" in (config.Volumes ?? {})) ||
+    !Array.isArray(config.Healthcheck?.Test) ||
+    !config.Healthcheck.Test.join(" ").includes("/ready")
+  ) {
+    throw new Error(`Image ${image} does not satisfy its config contract`);
+  }
+
+  await docker(context, [
+    "run",
+    "--rm",
+    "--read-only",
+    "--tmpfs",
+    "/tmp:rw,nosuid,nodev,noexec,mode=1777",
+    "--mount",
+    "type=volume,dst=/models",
+    "--entrypoint",
+    "/bin/sh",
+    image,
+    "-ec",
+    `test "$(id -u):$(id -g)" = "10001:10001"
+test "$(stat -c '%u:%g' /app)" = "0:0"
+test ! -w /app
+test -w /models
+test -w /tmp`,
+  ]);
 };
 
 const buildContextContract = async (
@@ -235,7 +281,7 @@ const lifecycleBootstrapPlan = (context: ApplicationLifecycleContext): string =>
         value: { "root-path": "/data/storage" },
       },
       {
-        pluginId: "spacy-segmenter",
+        pluginId: "spacy-language-analyzer",
         scopeId: "",
         scopeType: "GLOBAL",
         type: "install-if-absent",
@@ -642,7 +688,7 @@ export const exportValidatedImages = async (
   const directory = context.env.CAT_CHECK_ALL_EXPORT_IMAGES_DIR;
   if (directory === undefined || directory === "") return undefined;
   await mkdir(directory, { recursive: true });
-  for (const target of ["standalone", "runtime"] as const) {
+  for (const target of ["standalone", "runtime", "spacy"] as const) {
     await docker(context, [
       "image",
       "save",
@@ -683,8 +729,10 @@ export const runApplicationLifecycle = async (
     temporaryImages.push(contextContractImage);
     const standaloneImage = releaseImage(images, "standalone").imageId;
     const runtimeImage = releaseImage(images, "runtime").imageId;
+    const spacyImage = releaseImage(images, "spacy").imageId;
     await assertImageConfig(context, "standalone", standaloneImage);
     await assertImageConfig(context, "runtime", runtimeImage);
+    await assertSpacyImageConfig(context, spacyImage);
     await assertRuntimeCannotBypassLifecycle(context, runtimeImage);
 
     lifecycleDatabase = await createLifecycleDatabase(context);
@@ -811,6 +859,7 @@ export const runApplicationLifecycle = async (
   return {
     validatedImageIds: {
       runtime: releaseImage(images, "runtime").imageId,
+      spacy: releaseImage(images, "spacy").imageId,
       standalone: releaseImage(images, "standalone").imageId,
     },
   };

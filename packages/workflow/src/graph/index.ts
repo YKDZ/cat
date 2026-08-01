@@ -18,10 +18,13 @@ import { GraphRegistry } from "#/graph/graph-registry.ts";
 import { InProcessLeaseManager } from "#/graph/lease.ts";
 import { NodeRegistry } from "#/graph/node-registry.ts";
 import { storeGraphRuntime } from "#/graph/runtime-store.ts";
+import type { StoredGraphRuntime } from "#/graph/runtime-store.ts";
 import { Scheduler } from "#/graph/scheduler.ts";
 import {
   termAlignmentGraph,
   termDiscoveryGraph,
+  WorkflowTaskProjector,
+  LocalizationTaskService,
 } from "#/workflow/tasks/index.ts";
 import {
   autoTranslateGraph,
@@ -33,8 +36,8 @@ import {
   diffElementsGraph,
   fetchAdviseGraph,
   ingestCollectionGraph,
-  nlpBatchSegmentGraph,
-  nlpSegmentGraph,
+  languageAnalyzeBatchGraph,
+  languageAnalyzeGraph,
   parseFileGraph,
   qaGraph,
   qaTranslationGraph,
@@ -77,18 +80,11 @@ export {
   getStoredGraphRuntimeOrNull as getGlobalGraphRuntimeOrNull,
 } from "#/graph/runtime-store.ts";
 
-export type DefaultGraphRuntime = {
-  eventBus: InProcessEventBus;
-  checkpointer: PostgresCheckpointer;
-  executorPool: QueuedExecutorPool;
-  graphRegistry: GraphRegistry;
-  nodeRegistry: NodeRegistry;
-  scheduler: Scheduler;
-};
+export type DefaultGraphRuntime = StoredGraphRuntime;
 
 export const createDefaultGraphRuntime = (
   drizzle: DrizzleClient,
-  _pluginManager: PluginManager,
+  pluginManager: PluginManager,
 ): DefaultGraphRuntime => {
   const eventBus = new InProcessEventBus();
   const checkpointer = new PostgresCheckpointer(drizzle);
@@ -117,8 +113,8 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(diffElementsGraph.graphDefinition);
   graphRegistry.register(fetchAdviseGraph.graphDefinition);
   graphRegistry.register(ingestCollectionGraph.graphDefinition);
-  graphRegistry.register(nlpBatchSegmentGraph.graphDefinition);
-  graphRegistry.register(nlpSegmentGraph.graphDefinition);
+  graphRegistry.register(languageAnalyzeBatchGraph.graphDefinition);
+  graphRegistry.register(languageAnalyzeGraph.graphDefinition);
   graphRegistry.register(parseFileGraph.graphDefinition);
   graphRegistry.register(qaGraph.graphDefinition);
   graphRegistry.register(qaTranslationGraph.graphDefinition);
@@ -141,6 +137,31 @@ export const createDefaultGraphRuntime = (
     compensationRegistry,
     leaseManager,
   });
+  const taskProjector = new WorkflowTaskProjector({
+    db: drizzle,
+    eventBus,
+    checkpointer,
+    scheduler,
+  });
+  taskProjector.install();
+  const taskService = new LocalizationTaskService({
+    db: drizzle,
+    pluginManager,
+    runtime: { scheduler },
+  });
+  taskService.startReconciliationLoop();
+  let taskRecovery: Promise<void> | null = null;
+  const ensureTaskRecovery = (): Promise<void> => {
+    taskRecovery ??= (async () => {
+      await taskProjector.reconcile();
+      await taskService.reconcilePending();
+    })();
+    return taskRecovery;
+  };
+  const dispose = async (): Promise<void> => {
+    await Promise.all([taskProjector.dispose(), taskService.dispose()]);
+    await scheduler.dispose();
+  };
 
   const runtime: DefaultGraphRuntime = {
     eventBus,
@@ -149,6 +170,10 @@ export const createDefaultGraphRuntime = (
     graphRegistry,
     nodeRegistry,
     scheduler,
+    taskProjector,
+    taskService,
+    ensureTaskRecovery,
+    dispose,
   };
 
   storeGraphRuntime(runtime);

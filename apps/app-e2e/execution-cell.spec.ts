@@ -179,7 +179,7 @@ describe("ExecutionCell scheduler", () => {
       expect(JSON.parse(aggregatePlan!)).toMatchObject({
         operations: expect.arrayContaining([
           expect.objectContaining({
-            pluginId: "spacy-segmenter",
+            pluginId: "spacy-language-analyzer",
             value: { serverUrl: "http://spacy:8000/" },
           }),
         ]),

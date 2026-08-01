@@ -1,6 +1,5 @@
 import {
-  createQaResult,
-  createQaResultItems,
+  createQaResultWithItems,
   executeCommand,
   executeQuery,
   getDbHandle,
@@ -26,6 +25,11 @@ export const qaTranslationGraph = defineGraph({
       input: z.object({ translationId: z.int() }),
       output: z.object({}),
       handler: async (payload, ctx) => {
+        const qaPhaseKey = `qa-translation:${payload.translationId}`;
+        if (ctx.ownershipFence) {
+          const existing = await ctx.checkSideEffect(qaPhaseKey);
+          if (existing !== null) return {};
+        }
         const { client: db } = await getDbHandle();
         const data = await executeQuery({ db }, getTranslationQaContext, {
           translationId: payload.translationId,
@@ -41,12 +45,22 @@ export const qaTranslationGraph = defineGraph({
           runGraph(
             tokenizeGraph,
             { text: data.translationText },
-            { signal: ctx.signal },
+            {
+              signal: ctx.signal,
+              pluginManager: ctx.pluginManager,
+              ownershipFence: ctx.ownershipFence,
+              assertRunOwnership: ctx.assertRunOwnership,
+            },
           ),
           runGraph(
             tokenizeGraph,
             { text: data.elementText },
-            { signal: ctx.signal },
+            {
+              signal: ctx.signal,
+              pluginManager: ctx.pluginManager,
+              ownershipFence: ctx.ownershipFence,
+              assertRunOwnership: ctx.assertRunOwnership,
+            },
           ),
         ]);
 
@@ -69,22 +83,31 @@ export const qaTranslationGraph = defineGraph({
             },
             glossaryIds,
           },
-          { signal: ctx.signal },
+          {
+            signal: ctx.signal,
+            pluginManager: ctx.pluginManager,
+            ownershipFence: ctx.ownershipFence,
+            assertRunOwnership: ctx.assertRunOwnership,
+          },
         );
 
-        await db.transaction(async (tx) => {
-          const resultRow = await executeCommand({ db: tx }, createQaResult, {
-            translationId: payload.translationId,
-          });
-
-          await executeCommand({ db: tx }, createQaResultItems, {
-            resultId: resultRow.id,
-            items: qa.result.map((item) => ({
-              isPassed: item.isPassed,
-              checker: item.checker,
-              meta: item.meta,
-            })),
-          });
+        await executeCommand({ db }, createQaResultWithItems, {
+          translationId: payload.translationId,
+          items: qa.result.map((item) => ({
+            isPassed: item.isPassed,
+            checker: item.checker,
+            meta: item.meta,
+          })),
+          ...(ctx.ownershipFence
+            ? {
+                ownershipFence: ctx.ownershipFence,
+                workflowOutput: {
+                  nodeId: ctx.nodeId,
+                  outputKey: qaPhaseKey,
+                  idempotencyKey: `${ctx.nodeId}:${ctx.ownershipFence.runId}:${qaPhaseKey}`,
+                },
+              }
+            : {}),
         });
 
         return {};

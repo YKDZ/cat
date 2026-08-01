@@ -7,8 +7,11 @@ import {
 import type { JSONType } from "@cat/shared";
 import * as z from "zod";
 
+import {
+  buildTokenWindows,
+  joinLemmas,
+} from "./language-analysis-normalization.ts";
 import { placeholderize } from "./memory-template.ts";
-import { buildTokenWindows, joinLemmas } from "./nlp-normalization.ts";
 import { tokenizeOp } from "./tokenize.ts";
 
 export const BuildMemoryRecallVariantsInputSchema = z.object({
@@ -18,8 +21,8 @@ export const BuildMemoryRecallVariantsInputSchema = z.object({
   translationText: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  /** Pre-tokenized NLP tokens for source text. When absent, uses rule-based tokenizer for template detection only. */
-  sourceNlpTokens: z
+  /** Pre-tokenized Language Analysis tokens for source text. When absent, uses rule-based tokenizer for template detection only. */
+  sourceLanguageAnalysisTokens: z
     .array(
       z.object({
         text: z.string(),
@@ -58,7 +61,7 @@ type VariantEntry = {
  * SOURCE side variants:
  *   - SURFACE: exact source text
  *   - CASE_FOLDED: lowercased
- *   - LEMMA: joined lemmas (when NLP tokens available)
+ *   - LEMMA: joined lemmas (when Language Analysis tokens available)
  *   - TOKEN_TEMPLATE: canonical source template (placeholder form)
  *   - FRAGMENT: content tokens joined (stop words stripped)
  *
@@ -98,10 +101,12 @@ export const buildMemoryRecallVariantsOp = async (
       });
     }
 
-    // LEMMA + FRAGMENT (from NLP tokens)
-    const nlpTokens = data.sourceNlpTokens;
-    if (nlpTokens && nlpTokens.length > 0) {
-      const contentTokens = nlpTokens.filter((t) => !t.isStop && !t.isPunct);
+    // LEMMA + FRAGMENT (from Language Analysis tokens)
+    const analysisTokens = data.sourceLanguageAnalysisTokens;
+    if (analysisTokens && analysisTokens.length > 0) {
+      const contentTokens = analysisTokens.filter(
+        (t) => !t.isStop && !t.isPunct,
+      );
 
       if (contentTokens.length > 0) {
         // Single LEMMA variant

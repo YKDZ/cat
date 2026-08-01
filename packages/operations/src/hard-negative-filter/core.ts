@@ -1,7 +1,7 @@
 import type { HnfCandidate, HardNegativeRemoval } from "./types.ts";
 
 /**
- * Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased).
+ * Extract content words from source Language Analysis tokens (non-stop, non-punct lemmas, lowercased).
  */
 export const extractContentWordsFromTokens = (
   tokens: Array<{

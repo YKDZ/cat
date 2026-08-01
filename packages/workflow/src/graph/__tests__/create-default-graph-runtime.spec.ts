@@ -2,7 +2,10 @@ import type { DrizzleClient } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { afterEach, expect, test } from "vitest";
 
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  createDefaultGraphRuntime,
+  getGlobalGraphRuntimeOrNull,
+} from "#/graph/index.ts";
 
 afterEach(() => {
   PluginManager.clear();
@@ -13,11 +16,16 @@ const createFakeDrizzle = (): DrizzleClient => {
   return {} as DrizzleClient;
 };
 
-test("registers the file-import graph used by uploaded project files", () => {
+test("registers graphs and stores the complete runtime singleton", async () => {
   const runtime = createDefaultGraphRuntime(
     createFakeDrizzle(),
     PluginManager.get("GLOBAL", ""),
   );
 
   expect(runtime.graphRegistry.has("upsert-content-node-from-file")).toBe(true);
+  expect(getGlobalGraphRuntimeOrNull()).toBe(runtime);
+  expect(getGlobalGraphRuntimeOrNull()?.taskProjector).toBe(
+    runtime.taskProjector,
+  );
+  await runtime.dispose();
 });

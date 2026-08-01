@@ -213,6 +213,71 @@ describe("CI configuration contract", () => {
     }
   });
 
+  it("provisions the exact Python runtime through pinned uv entrypoints", () => {
+    const setupUvAction =
+      "astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b";
+    for (const name of ["check", "check-all"] as const) {
+      const steps = workflow.jobs?.[name]?.steps ?? [];
+      const setupIndex = steps.findIndex((step) => step.uses === setupUvAction);
+      const installIndex = steps.findIndex(
+        (step) => step.run === "pnpm ci:install",
+      );
+      expect(setupIndex).toBeGreaterThan(-1);
+      expect(installIndex).toBeGreaterThan(setupIndex);
+      expect(steps[setupIndex]?.with).toEqual({
+        version: "0.8.3",
+        "python-version": "3.12.11",
+        "enable-cache": true,
+        "cache-dependency-glob": "apps/spacy-server/uv.lock",
+        "cache-python": true,
+      });
+    }
+
+    const manifest = JSON.parse(
+      readFileSync(resolve(root, "package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    expect(manifest.scripts?.["ci:install"]).toContain("pnpm spacy:sync");
+    expect(manifest.scripts?.["spacy:sync"]).toBe(
+      "cd apps/spacy-server && uv sync --frozen",
+    );
+
+    const pyproject = readFileSync(
+      resolve(root, "apps/spacy-server/pyproject.toml"),
+      "utf8",
+    );
+    const uvLock = readFileSync(
+      resolve(root, "apps/spacy-server/uv.lock"),
+      "utf8",
+    );
+    expect(pyproject).toContain('requires-python = "==3.12.11"');
+    expect(uvLock).toContain('requires-python = "==3.12.11"');
+
+    const spacyDockerfile = readFileSync(
+      resolve(root, "apps/spacy-server/Dockerfile"),
+      "utf8",
+    );
+    const devcontainerDockerfile = readFileSync(
+      resolve(root, ".devcontainer/Dockerfile"),
+      "utf8",
+    );
+    const uvImage =
+      "ghcr.io/astral-sh/uv:0.8.3@sha256:ef11ed817e6a5385c02cd49fdcc99c23d02426088252a8eace6b6e6a2a511f36";
+    expect(spacyDockerfile).toContain(`FROM ${uvImage} AS uv`);
+    expect(devcontainerDockerfile).toContain(`FROM ${uvImage} AS uv`);
+    expect(devcontainerDockerfile).toContain(
+      "COPY --from=uv /uv /usr/local/bin/uv",
+    );
+    expect(devcontainerDockerfile).not.toMatch(/apt-get install[^;]*\buv\b/s);
+
+    const devcontainer = JSON.parse(
+      readFileSync(resolve(root, ".devcontainer/devcontainer.json"), "utf8"),
+    ) as { postCreateCommand?: string };
+    expect(devcontainer.postCreateCommand).toContain("pnpm ci:install");
+    expect(devcontainer.postCreateCommand).not.toContain(
+      "pnpm install --frozen-lockfile",
+    );
+  });
+
   it("uses Turbo and Buildx caches in CI without persisting .turbo", () => {
     for (const name of ["check", "check-all"] as const) {
       const steps = workflow.jobs?.[name]?.steps ?? [];

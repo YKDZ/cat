@@ -85,5 +85,5 @@ pnpm --filter @cat/eval eval -- run apps/eval/suites/minecraft-quality --clear-c
 
 - 测试集用例基于真实种子数据的可用 ref 编写，而非脱离数据的示例文本
 - template-match-rate 阈值为 0.0（宽松值），因 3 个 case 中仅 1 个（`update-1.21-matches-update-1.20`）会触发 TOKEN_TEMPLATE 匹配，聚合后被摊平；单 case 级别的模板匹配由 `requiredChannels: ["template"]` + `minimumConfidence: 0.95` 验证
-- TOKEN_TEMPLATE 变体生成依赖内置的 NumberTokenizer（纯规则，不需要 spaCy），因此本套件中模板匹配测试可以在无 NLP 服务的环境下正常工作
+- TOKEN_TEMPLATE 变体生成依赖内置的 NumberTokenizer（纯规则，不需要 spaCy），因此本套件中模板匹配测试可以在无 Language Analysis 服务的环境下正常工作
 - 本套件使用 `loader: real`，需要 spaCy、embedding 和 pgvector 服务
