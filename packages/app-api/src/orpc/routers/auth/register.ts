@@ -43,7 +43,8 @@ export const register = base
         email,
         name,
         password,
-        authProviderId: authProvider.dbId,
+        authProvider:
+          pluginManager.createServiceImplementationReference(authProvider),
       });
     });
 
@@ -57,7 +58,8 @@ export const register = base
       {
         providerIssuer: result.providerIssuer,
         providedAccountId: result.providedAccountId,
-        authProviderId: authProvider.dbId,
+        authProvider:
+          pluginManager.createServiceImplementationReference(authProvider),
       },
       helpers,
     );

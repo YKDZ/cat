@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { ContentNode, ElementSortMode, Language } from "@cat/shared";
-import { ElementSortModeSchema, ElementSortModeValues } from "@cat/shared";
+import {
+  ElementSortModeSchema,
+  ElementSortModeValues,
+  serviceImplementationReferenceKey,
+} from "@cat/shared";
 import {
   Button,
   Dialog,
@@ -47,10 +51,10 @@ const schema = toTypedSchema(
     minMemorySimilarity: z
       .array(z.number().min(0).max(1).default(0.72))
       .length(1),
-    advisorId: z.int().optional(),
+    advisorReferenceKey: z.string().optional(),
     sortMode: ElementSortModeSchema.default("structure"),
     enableLlmRefine: z.boolean().default(false),
-    llmProviderId: z.int().optional(),
+    llmProviderReferenceKey: z.string().optional(),
     gatherScopeContext: z.boolean().default(false),
   }),
 );
@@ -65,23 +69,23 @@ const { handleSubmit, values } = useForm({
   },
 });
 
-const advisorOptions = computed<PickerOption<number>[]>(() => {
+const advisorOptions = computed<PickerOption<string>[]>(() => {
   if (!advisorState.value || !advisorState.value.data) return [];
   return advisorState.value.data.map(
     (advisor) =>
       ({
-        value: advisor.id,
+        value: serviceImplementationReferenceKey(advisor.reference),
         content: advisor.name,
       }) satisfies PickerOption,
   );
 });
 
-const llmProviderOptions = computed<PickerOption<number>[]>(() => {
+const llmProviderOptions = computed<PickerOption<string>[]>(() => {
   if (!llmState.value || !llmState.value.data) return [];
   return llmState.value.data.map(
     (provider) =>
       ({
-        value: provider.id,
+        value: serviceImplementationReferenceKey(provider.reference),
         content: provider.name,
       }) satisfies PickerOption,
   );
@@ -108,12 +112,20 @@ const onSubmit = handleSubmit(async (formValues) => {
       sortMode: formValues.sortMode,
     },
     languageId: props.language.id,
-    advisorId: formValues.advisorId,
+    advisor: advisorState.value.data?.find(
+      (advisor) =>
+        serviceImplementationReferenceKey(advisor.reference) ===
+        formValues.advisorReferenceKey,
+    )?.reference,
     minMemorySimilarity: formValues.minMemorySimilarity[0],
     config: {
       llm: {
         enabled: formValues.enableLlmRefine,
-        llmProviderId: formValues.llmProviderId,
+        llmProvider: llmState.value.data?.find(
+          (provider) =>
+            serviceImplementationReferenceKey(provider.reference) ===
+            formValues.llmProviderReferenceKey,
+        )?.reference,
       },
       gatherScopeContext: formValues.gatherScopeContext,
     },
@@ -176,7 +188,7 @@ const { state: llmState } = useQuery({
             </FormDescription>
           </FormItem>
         </FormField>
-        <FormField v-slot="{ setValue }" name="advisorId">
+        <FormField v-slot="{ setValue }" name="advisorReferenceKey">
           <FormItem>
             <FormLabel> {{ t("翻译建议器") }}</FormLabel>
             <FormControl>
@@ -223,7 +235,7 @@ const { state: llmState } = useQuery({
         <FormField
           v-if="values.enableLlmRefine"
           v-slot="{ setValue }"
-          name="llmProviderId"
+          name="llmProviderReferenceKey"
         >
           <FormItem>
             <FormLabel>{{ t("LLM Provider") }}</FormLabel>

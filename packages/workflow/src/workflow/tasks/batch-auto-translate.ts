@@ -1,6 +1,9 @@
 import { resolveOperationScopeElementsOp } from "@cat/operations";
 import type { ScopeTranslationSeed } from "@cat/shared";
-import { OperationScopeSchema } from "@cat/shared";
+import {
+  OperationScopeSchema,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -51,12 +54,12 @@ const isSeedApplicableToElement = (
 
 export const BatchAutoTranslateInputSchema = OperationScopeSchema.extend({
   languageId: z.string(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   minMemorySimilarity: z.number().min(0).max(1).default(0.72),
   maxMemoryAmount: z.int().min(0).default(3),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
@@ -100,12 +103,12 @@ const TranslateAllNodeInputSchema = z.object({
     }),
   ),
   languageId: z.string(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   minMemorySimilarity: z.number().min(0).max(1),
   maxMemoryAmount: z.int().min(0),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()),
   glossaryIds: z.array(z.uuidv4()),
@@ -176,12 +179,12 @@ export const batchAutoTranslateGraph = defineGraph({
       inputMapping: {
         elements: "load-elements.elements",
         languageId: "languageId",
-        advisorId: "advisorId",
+        advisor: "advisor",
         minMemorySimilarity: "minMemorySimilarity",
         maxMemoryAmount: "maxMemoryAmount",
-        memoryVectorStorageId: "memoryVectorStorageId",
-        translationVectorStorageId: "translationVectorStorageId",
-        vectorizerId: "vectorizerId",
+        memoryVectorStorage: "memoryVectorStorage",
+        translationVectorStorage: "translationVectorStorage",
+        vectorizer: "vectorizer",
         translatorId: "translatorId",
         memoryIds: "memoryIds",
         glossaryIds: "glossaryIds",
@@ -207,7 +210,7 @@ export const batchAutoTranslateGraph = defineGraph({
                 sourceLanguageId: element.languageId,
                 primaryContentNodeId: element.primaryContentNodeId,
                 translatorId: input.translatorId,
-                advisorId: input.advisorId,
+                advisor: input.advisor,
                 memoryIds: input.memoryIds,
                 glossaryIds: input.glossaryIds,
                 chunkIds: element.chunkIds,
@@ -216,9 +219,9 @@ export const batchAutoTranslateGraph = defineGraph({
                   .slice(-MAX_SCOPE_TRANSLATION_SEEDS),
                 minMemorySimilarity: input.minMemorySimilarity,
                 maxMemoryAmount: input.maxMemoryAmount,
-                memoryVectorStorageId: input.memoryVectorStorageId,
-                translationVectorStorageId: input.translationVectorStorageId,
-                vectorizerId: input.vectorizerId,
+                memoryVectorStorage: input.memoryVectorStorage,
+                translationVectorStorage: input.translationVectorStorage,
+                vectorizer: input.vectorizer,
                 config: input.config,
               },
               { signal: ctx.signal, pluginManager: ctx.pluginManager },
@@ -228,6 +231,7 @@ export const batchAutoTranslateGraph = defineGraph({
             const msg = error instanceof Error ? error.message : String(error);
             throw new Error(
               `Element ${element.id} ("${element.value.slice(0, 40)}"): ${msg}`,
+              { cause: error },
             );
           }
 

@@ -1,4 +1,5 @@
 import type { OperationContext } from "@cat/domain";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { z } from "zod";
 
 import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
@@ -8,13 +9,13 @@ export const FetchBestTranslationCandidateInputSchema = z.object({
   text: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   memoryIds: z.array(z.uuid()).default([]),
   glossaryIds: z.array(z.uuid()).default([]),
   chunkIds: z.array(z.int()).default([]),
   minMemorySimilarity: z.number().min(0).max(1).default(0.72),
   maxMemoryAmount: z.int().min(0).default(3),
-  memoryVectorStorageId: z.int().optional(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const FetchBestTranslationCandidateOutputSchema = z
@@ -52,7 +53,7 @@ export const fetchBestTranslationCandidateOp = async (
         text: data.text,
         sourceLanguageId: data.sourceLanguageId,
         translationLanguageId: data.translationLanguageId,
-        advisorId: data.advisorId,
+        advisor: data.advisor,
         glossaryIds: data.glossaryIds,
         memoryIds: data.memoryIds,
       },
@@ -67,7 +68,7 @@ export const fetchBestTranslationCandidateOp = async (
         translationLanguageId: data.translationLanguageId,
         minSimilarity: data.minMemorySimilarity,
         maxAmount: data.maxMemoryAmount,
-        vectorStorageId: data.memoryVectorStorageId,
+        vectorStorage: data.memoryVectorStorage,
       },
       ctx,
     ).catch(() => []),

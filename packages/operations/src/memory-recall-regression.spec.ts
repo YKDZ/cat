@@ -1,6 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RecallFixture } from "./testing/recall-fixture-schema.ts";
@@ -46,6 +47,13 @@ const FIXTURE_DIR = fileURLToPath(
   new URL("./__fixtures__/recall", import.meta.url),
 );
 const MEMORY_ID = "22222222-2222-4222-8222-222222222222";
+const vectorStorage = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vector-storage",
+  serviceType: "VECTOR_STORAGE",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 type MemoryFixtureRows = NonNullable<RecallFixture["mock"]["memory"]>["exact"];
 
@@ -106,7 +114,7 @@ describe("memory recall regression fixtures", () => {
         memoryIds: [MEMORY_ID],
         chunkIds: [1],
         queryVectors: [[0.1, 0.2]],
-        vectorStorageId: 1,
+        vectorStorage,
         maxAmount: 10,
       },
       { traceId: "memory-recall-regression" },

@@ -13,7 +13,7 @@ import {
 import { writePersonalTranslationMemoryOp } from "@cat/operations";
 import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 import {
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   serverLogger as logger,
 } from "@cat/server-shared";
 import type { JSONObject, TaskStatus } from "@cat/shared";
@@ -646,8 +646,14 @@ export const directTranslationWriteContract = defineOperationContract({
           break;
       }
 
-      const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-      const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+      const storage = selectFirstServiceImplementation(
+        pluginManager,
+        "VECTOR_STORAGE",
+      );
+      const vectorizer = selectFirstServiceImplementation(
+        pluginManager,
+        "TEXT_VECTORIZER",
+      );
 
       if (!storage) {
         return await failLocalizationTaskAndThrow({
@@ -687,8 +693,8 @@ export const directTranslationWriteContract = defineOperationContract({
             },
           ],
           memoryIds: [],
-          vectorStorageId: storage.id,
-          vectorizerId: vectorizer.id,
+          vectorStorage: storage.reference,
+          vectorizer: vectorizer.reference,
           translatorId: actor.id,
         },
         {

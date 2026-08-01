@@ -1,3 +1,4 @@
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 
@@ -43,7 +44,13 @@ describe("runToolNode", () => {
         agentId: "agent-1",
         projectId: "project-1",
         sessionMetadata: {
-          providerId: 123,
+          provider: ServiceImplementationReferenceSchema.parse({
+            pluginId: "test-plugin",
+            serviceId: "llm",
+            serviceType: "LLM_PROVIDER",
+            scopeType: "GLOBAL",
+            scopeId: "",
+          }),
           branchId: 42,
           contentNodeIds: [
             "22222222-2222-4222-8222-222222222222",
@@ -73,7 +80,7 @@ describe("runToolNode", () => {
       agentId: "agent-1",
       projectId: "project-1",
       runId: "run-1",
-      providerId: 123,
+      provider: expect.objectContaining({ serviceId: "llm" }),
       branchId: 42,
       contentNodeIds: [
         "22222222-2222-4222-8222-222222222222",

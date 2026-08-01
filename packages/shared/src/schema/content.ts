@@ -16,6 +16,7 @@ import {
   VectorInvalidationReasonSchema,
 } from "#/schema/enum.ts";
 import { safeZDotJson } from "#/schema/json.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const StableElementIdentitySchema = z.object({
   importerId: z.string().min(1),
@@ -127,7 +128,10 @@ export const StructuredContentNodeInputSchema = z.object({
   exportRole: ContentNodeExportRoleSchema.default("NONE"),
   boundaryType: ContentBoundaryTypeSchema.default("NONE"),
   file: z
-    .object({ fileId: z.int(), fileHandlerId: z.int().nullable().optional() })
+    .object({
+      fileId: z.int(),
+      fileHandler: ServiceImplementationReferenceSchema.nullable().optional(),
+    })
     .nullable()
     .optional(),
   metadata: safeZDotJson.nullable().optional(),
@@ -186,7 +190,7 @@ export const StructuredEvidenceInputSchema = z.object({
   textData: z.string().nullable().optional(),
   jsonData: safeZDotJson.nullable().optional(),
   fileId: z.int().nullable().optional(),
-  storageProviderId: z.int().nullable().optional(),
+  storageProvider: ServiceImplementationReferenceSchema.nullable().optional(),
   displayLabel: z.string().nullable().optional(),
   trustLevel: EvidenceTrustLevelSchema.default("COLLECTED"),
   freshness: z.iso.datetime().nullable().optional(),

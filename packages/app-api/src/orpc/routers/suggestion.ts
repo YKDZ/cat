@@ -72,9 +72,7 @@ export const onNew = authed
   .handler(async function* ({ context, input }) {
     const SuggestionEventPayloadSchema = z.object({
       elementId: z.int(),
-      suggestion: TranslationSuggestionSchema.extend({
-        advisorId: z.int().optional(),
-      }),
+      suggestion: TranslationSuggestionSchema,
     });
     const {
       cacheStore,
@@ -264,7 +262,7 @@ export const onNew = authed
       const elementHash = hash({
         ...element,
         targetLanguageId: languageId,
-        advisorId: advisor.dbId,
+        advisor: pluginManager.createServiceImplementationReference(advisor),
       });
       const cacheKey = `cache:suggestions:${elementHash}`;
 
@@ -282,11 +280,12 @@ export const onNew = authed
           text: element.value,
           glossaryIds,
           memoryIds: allMemoryIds,
-          advisorId: advisor.dbId,
+          advisor: pluginManager.createServiceImplementationReference(advisor),
           sourceLanguageId: element.languageId,
           translationLanguageId: languageId,
           eventElementId: elementId,
-          eventAdvisorId: advisor.dbId,
+          eventAdvisor:
+            pluginManager.createServiceImplementationReference(advisor),
           preloadedMemories: preloadedMemoriesForAdvisors,
           preloadedTerms: preloadedTermsForAdvisors,
         },
@@ -297,7 +296,7 @@ export const onNew = authed
 
       const advisorSuggestions = suggestions.map((suggestion) => ({
         ...suggestion,
-        advisorId: advisor.dbId,
+        advisor: pluginManager.createServiceImplementationReference(advisor),
       }));
 
       await cacheStore.set(cacheKey, advisorSuggestions, 60 * 60);
@@ -326,9 +325,9 @@ export const onNew = authed
 
     try {
       for await (const suggestion of suggestionsQueue.consume()) {
-        // LLM-translate suggestions have no advisorId; advisor suggestions do.
+        // LLM-translate suggestions have no advisor reference; advisor suggestions do.
         const sourceType: "llm-translate" | "advisor" =
-          suggestion.advisorId === undefined ? "llm-translate" : "advisor";
+          suggestion.advisor === undefined ? "llm-translate" : "advisor";
 
         const key = `${suggestion.translation}\0${sourceType}`;
         if (yielded.has(key)) continue;

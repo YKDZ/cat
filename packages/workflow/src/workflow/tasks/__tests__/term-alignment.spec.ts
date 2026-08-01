@@ -45,14 +45,14 @@ describe("termAlignmentGraph", () => {
     });
   });
 
-  it("passes nlpSegmenterId through to statistical alignment", async () => {
+  it("passes the NLP segmenter reference through to statistical alignment", async () => {
     const statAlignNode =
       termAlignmentGraph.graphDefinition.nodes["stat-align"];
 
     expect(statAlignNode).toBeDefined();
     expect(statAlignNode?.config).toMatchObject({
       inputMapping: expect.objectContaining({
-        nlpSegmenterId: "nlpSegmenterId",
+        nlpSegmenter: "nlpSegmenter",
       }),
       handler: expect.any(String),
     });
@@ -61,7 +61,13 @@ describe("termAlignmentGraph", () => {
     );
     expect(
       termAlignmentGraph.inputSchema.safeParse({
-        nlpSegmenterId: 88,
+        nlpSegmenter: {
+          pluginId: "test-plugin",
+          serviceId: "nlp-segmenter",
+          serviceType: "NLP_WORD_SEGMENTER",
+          scopeType: "GLOBAL",
+          scopeId: "",
+        },
         termGroups: [
           {
             languageId: "en",

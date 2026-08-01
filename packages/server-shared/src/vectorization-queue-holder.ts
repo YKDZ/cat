@@ -1,4 +1,5 @@
 import type { TaskQueue } from "@cat/core";
+import type { ServiceImplementationReference } from "@cat/shared";
 
 /**
  * Payload type for a vectorization task.
@@ -7,8 +8,8 @@ export type VectorizationTask = {
   taskId: string;
   stringIds: number[];
   data: Array<{ text: string; languageId: string }>;
-  vectorizerId: number;
-  vectorStorageId: number;
+  vectorizer: ServiceImplementationReference;
+  vectorStorage: ServiceImplementationReference;
 };
 
 let queue: TaskQueue<VectorizationTask> | null = null;

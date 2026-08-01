@@ -1,4 +1,5 @@
 import { collectMemoryRecallOp } from "@cat/operations";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 // oxlint-disable no-await-in-loop -- test cases are intentionally sequential to avoid overwhelming the system
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- params from unknown config require casting
 import { trace, SpanStatusCode } from "@opentelemetry/api";
@@ -53,7 +54,12 @@ export const memoryRecallStrategy = {
                 maxAmount: (params.maxAmount as number) ?? 5,
                 rerankMode:
                   (params.rerankMode as "baseline" | "reranked") ?? "reranked",
-                rerankProviderId: params.rerankProviderId as number | undefined,
+                rerankProvider:
+                  params.rerankProvider === undefined
+                    ? undefined
+                    : ServiceImplementationReferenceSchema.parse(
+                        params.rerankProvider,
+                      ),
                 rerankTimeoutMs: (params.rerankTimeoutMs as number) ?? 3000,
               },
               {

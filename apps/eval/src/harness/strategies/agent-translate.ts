@@ -147,7 +147,7 @@ const executeAgentTranslation = async (
     getTranslationsTool,
     submitTranslationTool,
   } = await import("@cat/agent-tools");
-  const { firstOrGivenService, resolvePluginManager } =
+  const { resolvePluginManager, selectFirstServiceImplementation } =
     await import("@cat/server-shared");
   const { executeQuery, listTranslationsByElement } =
     await import("@cat/domain");
@@ -172,7 +172,7 @@ const executeAgentTranslation = async (
 
   // ── LLM Provider ─────────────────────────────────────────────────────────
   const pm = resolvePluginManager(ctx.pluginManager);
-  const llmEntry = firstOrGivenService(pm, "LLM_PROVIDER");
+  const llmEntry = selectFirstServiceImplementation(pm, "LLM_PROVIDER");
   if (!llmEntry) {
     throw new Error(
       "agent-translate: no LLM_PROVIDER configured in plugin manager. " +

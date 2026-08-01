@@ -56,13 +56,14 @@ import type { PluginLoader } from "@cat/plugin-core";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import {
   defaultProductPluginIds,
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   resolvePluginManager,
 } from "@cat/server-shared";
 import {
   CoreRelationTypeDefinitions,
   type JSONObject,
   type JSONType,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 
 import { runBootstrapSourceGraph } from "./bootstrap/source-bootstrap.ts";
@@ -416,18 +417,14 @@ export const runSeedPipeline = async (
     !skipPluginBootstrap &&
     opts.defaultPluginIds?.includes("system-pgvector-storage")
   ) {
-    const vectorStorageEntry = firstOrGivenService(
+    const vectorStorageEntry = selectFirstServiceImplementation(
       pluginManager,
       "VECTOR_STORAGE",
     );
-    const vectorStorageRecord = pluginManager
-      .getServices("VECTOR_STORAGE")
-      .find((service) => service.dbId === vectorStorageEntry?.id);
-
     if (
       !vectorStorageEntry ||
-      vectorStorageRecord?.pluginId !== "system-pgvector-storage" ||
-      vectorStorageRecord.id !== "native-pgvector"
+      vectorStorageEntry.reference.pluginId !== "system-pgvector-storage" ||
+      vectorStorageEntry.reference.serviceId !== "native-pgvector"
     ) {
       throw new Error(
         "[seed] Expected system-pgvector-storage:native-pgvector to be the active vector storage service.",
@@ -478,12 +475,23 @@ export const runSeedPipeline = async (
 
   const userIds: string[] = [];
   if (userSeed) {
-    // Find PASSWORD auth provider ID
-    const passwordServiceRow = await execCtx.db.execute(
-      sql`SELECT id FROM "PluginService" WHERE service_id = 'PASSWORD' LIMIT 1`,
-    );
-    const authProviderId = passwordServiceRow.rows?.[0]?.id as number;
-    if (!authProviderId) {
+    const authProvider = await execCtx.db
+      .select({
+        pluginId: pluginInstallation.pluginId,
+        serviceId: pluginService.serviceId,
+        serviceType: pluginService.serviceType,
+        scopeType: pluginInstallation.scopeType,
+        scopeId: pluginInstallation.scopeId,
+      })
+      .from(pluginService)
+      .innerJoin(
+        pluginInstallation,
+        eq(pluginService.pluginInstallationId, pluginInstallation.id),
+      )
+      .where(eq(pluginService.serviceId, "PASSWORD"))
+      .limit(1)
+      .then((rows) => rows[0]);
+    if (!authProvider) {
       throw new Error(
         "PASSWORD auth provider not found. Ensure password-auth-provider plugin is installed.",
       );
@@ -497,7 +505,8 @@ export const runSeedPipeline = async (
           email: u.email,
           name: u.name,
           password: u.password,
-          authProviderId,
+          authProvider:
+            ServiceImplementationReferenceSchema.parse(authProvider),
         },
       );
       refs.set(u.ref, result.userId);
@@ -1009,8 +1018,11 @@ const vectorizeWithCache = async (opts: {
   const modelName = getVectorizerModelName(vectorizerOverride);
 
   const pm = resolvePluginManager(pluginManager);
-  const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");
-  const storageEntry = firstOrGivenService(pm, "VECTOR_STORAGE");
+  const vectorizerEntry = selectFirstServiceImplementation(
+    pm,
+    "TEXT_VECTORIZER",
+  );
+  const storageEntry = selectFirstServiceImplementation(pm, "VECTOR_STORAGE");
   if (!vectorizerEntry || !storageEntry) {
     throw new Error(
       "[seed] No vectorizer or storage service available. " +
@@ -1051,15 +1063,6 @@ const vectorizeWithCache = async (opts: {
     }
 
     {
-      const vectorizerPlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'TEXT_VECTORIZER' LIMIT 1`,
-      );
-      const storagePlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'VECTOR_STORAGE' LIMIT 1`,
-      );
-      const vectorizerId = (vectorizerPlugin.rows?.[0]?.id as number) ?? 1;
-      const vectorStorageId = (storagePlugin.rows?.[0]?.id as number) ?? 1;
-
       const flatChunks = chunkDataArrays.flatMap((chunks, textIdx) =>
         chunks.map((chunk) => ({
           textIndex: textIdx,
@@ -1071,8 +1074,8 @@ const vectorizeWithCache = async (opts: {
         execCtx,
         createVectorizedChunks,
         {
-          vectorizerId,
-          vectorStorageId,
+          vectorizer: vectorizerEntry.reference,
+          vectorStorage: storageEntry.reference,
           chunkSetCount: chunkDataArrays.length,
           chunks: flatChunks,
         },

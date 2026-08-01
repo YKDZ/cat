@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { addElementContextEvidence, executeCommand } from "@cat/domain";
 import {
   finishPresignedPutFile,
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   preparePresignedPutFile,
 } from "@cat/server-shared";
 import { sanitizeFileName, StructuredContentPayloadSchema } from "@cat/shared";
@@ -33,8 +33,14 @@ export const ingest = authed
   .handler(async ({ context, input }) => {
     const { pluginManager } = context;
 
-    const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    const vectorStorage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
 
     if (!vectorStorage || !vectorizer) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -44,8 +50,8 @@ export const ingest = authed
 
     const result = await runGraph(ingestCollectionGraph, {
       payload: input,
-      vectorizerId: vectorizer.id,
-      vectorStorageId: vectorStorage.id,
+      vectorizer: vectorizer.reference,
+      vectorStorage: vectorStorage.reference,
     });
 
     return result;
@@ -76,7 +82,10 @@ export const prepareUpload = authed
       pluginManager,
     } = context;
 
-    const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "STORAGE_PROVIDER",
+    );
     if (!storage) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "No storage provider found",
@@ -90,7 +99,7 @@ export const prepareUpload = authed
       drizzle,
       sessionStore,
       storage.service,
-      storage.id,
+      storage.reference,
       key,
       name,
     );

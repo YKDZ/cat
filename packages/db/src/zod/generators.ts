@@ -204,6 +204,9 @@ const manualDeclaration = (source: string): ManualDeclaration => ({
 export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   {
     outputFile: "api-key.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -219,11 +222,17 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "SessionRecordSchema",
         typeExportName: "SessionRecord",
         buildShape: buildSelectShape(sessionRecord),
+        overrides: {
+          authProvider: "ServiceImplementationReferenceSchema",
+        },
       },
     ],
   },
   {
     outputFile: "user.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -241,6 +250,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(account),
         overrides: {
           meta: "safeZDotJson.nullable()",
+          authProvider: "ServiceImplementationReferenceSchema",
         },
       },
       {
@@ -250,6 +260,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(mfaProvider),
         overrides: {
           payload: "nonNullSafeZDotJson",
+          mfaService: "ServiceImplementationReferenceSchema",
         },
       },
     ],
@@ -277,6 +288,10 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "content.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "#/schema/content.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -286,6 +301,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         overrides: {
           provenance: "safeZDotJson.nullable()",
           metadata: "safeZDotJson.nullable()",
+          fileHandler: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -343,6 +359,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           jsonData: "safeZDotJson.nullable()",
           provenance: "safeZDotJson.nullable()",
           graphExplanation: "safeZDotJson.nullable()",
+          storageProvider: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -372,9 +389,6 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           payload: "SemanticDiffEntryPayloadSchema",
         },
       },
-    ],
-    imports: [
-      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "#/schema/content.ts";',
     ],
   },
   {
@@ -755,6 +769,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "file.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -767,6 +784,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "BlobSchema",
         typeExportName: "Blob",
         buildShape: buildSelectShape(blob),
+        overrides: {
+          storageProvider: "ServiceImplementationReferenceSchema",
+        },
       },
     ],
   },
@@ -774,6 +794,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
     outputFile: "qa.ts",
     imports: [
       'import { QaReviewProfileConfigSchema, QaReviewRunMetaSchema, QaReviewSpanSchema, QaReviewTextRangeSchema } from "#/schema/qa-review.ts";',
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
     ],
     declarations: [
       {
@@ -789,6 +810,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(qaResultItem),
         overrides: {
           meta: "nonNullSafeZDotJson",
+          checker: "ServiceImplementationReferenceSchema",
         },
       },
       {
@@ -807,6 +829,8 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(qaReviewRun),
         overrides: {
           meta: "QaReviewRunMetaSchema.nullable()",
+          checkerService: "ServiceImplementationReferenceSchema.nullable()",
+          modelService: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -818,6 +842,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           sourceSpan: "QaReviewSpanSchema.nullable()",
           targetSpan: "QaReviewSpanSchema.nullable()",
           meta: "safeZDotJson.nullable()",
+          checkerService: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -856,6 +881,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "vector.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -873,6 +901,8 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(chunk),
         overrides: {
           meta: "safeZDotJson.nullable()",
+          vectorizer: "ServiceImplementationReferenceSchema",
+          vectorStorage: "ServiceImplementationReferenceSchema",
         },
       },
       manualDeclaration(

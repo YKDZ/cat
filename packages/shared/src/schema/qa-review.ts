@@ -12,6 +12,7 @@ import {
   QaReviewSuggestionStatusSchema,
 } from "#/schema/enum.ts";
 import { safeZDotJson } from "#/schema/json.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const QaReviewTextRangeSchema = z
   .object({
@@ -50,7 +51,7 @@ export const QaReviewProfileConfigSchema = z.object({
   rules: z.array(QaReviewRuleSchema).default([]),
   llm: z
     .object({
-      providerServiceId: z.int().positive().optional(),
+      provider: ServiceImplementationReferenceSchema.optional(),
       maxTokens: z.int().positive().default(1200),
       temperature: z.number().min(0).max(2).default(0),
       minRiskScoreForQueue: z.int().min(0).max(100).default(40),
@@ -61,7 +62,7 @@ export type QaReviewProfileConfig = z.infer<typeof QaReviewProfileConfigSchema>;
 
 export const NormalizedQaFindingSchema = z.object({
   layer: QaReviewRunLayerSchema,
-  checkerServiceId: z.int().nullable().optional(),
+  checkerService: ServiceImplementationReferenceSchema.nullable().optional(),
   qaResultItemId: z.int().nullable().optional(),
   ruleId: z.string(),
   ruleFamily: z.string(),

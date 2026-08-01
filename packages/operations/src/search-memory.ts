@@ -5,7 +5,11 @@ import {
   getSearchMemoryChunkRange,
   listMemorySuggestionsByChunkIds,
 } from "@cat/domain";
-import { MemorySuggestionSchema, type MemorySuggestion } from "@cat/shared";
+import {
+  MemorySuggestionSchema,
+  type MemorySuggestion,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { searchChunkOp } from "./search-chunk.ts";
@@ -38,8 +42,8 @@ export const SearchMemoryInputSchema = z.object({
   }),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  vectorStorageId: z.int().meta({
-    description: "Plugin service ID of the vector storage backend to query.",
+  vectorStorage: ServiceImplementationReferenceSchema.meta({
+    description: "Stable vector storage implementation to query.",
   }),
 });
 
@@ -98,7 +102,7 @@ export const searchMemoryOp = async (
       searchRange,
       queryChunkIds: data.chunkIds,
       ...(hasVectors ? { queryVectors: data.queryVectors } : {}),
-      vectorStorageId: data.vectorStorageId,
+      vectorStorage: data.vectorStorage,
     },
     ctx,
   );

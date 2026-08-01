@@ -8,6 +8,7 @@ import type {
   QaReviewRunMeta,
   QaReviewSpan,
   QaReviewTextRange,
+  ServiceImplementationReference,
 } from "@cat/shared";
 import type { _JSONSchema, JSONType, NonNullJSONType } from "@cat/shared";
 import type { ProjectSettingPayload } from "@cat/shared";
@@ -322,12 +323,7 @@ export const account = snakeCase.table(
     userId: uuid()
       .notNull()
       .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    authProviderId: integer()
-      .notNull()
-      .references(() => pluginService.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
+    authProvider: jsonb().$type<ServiceImplementationReference>().notNull(),
 
     ...timestamps,
   },
@@ -342,12 +338,7 @@ export const mfaProvider = snakeCase.table("MFAProvider", {
   userId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  mfaServiceId: integer()
-    .notNull()
-    .references(() => pluginService.id, {
-      onDelete: "restrict",
-      onUpdate: "cascade",
-    }),
+  mfaService: jsonb().$type<ServiceImplementationReference>().notNull(),
 
   ...timestamps,
 });
@@ -357,19 +348,14 @@ export const blob = snakeCase.table(
   {
     id: serial().primaryKey(),
     key: text().notNull(),
-    storageProviderId: integer()
-      .notNull()
-      .references(() => pluginService.id, {
-        onDelete: "restrict",
-        onUpdate: "cascade",
-      }),
+    storageProvider: jsonb().$type<ServiceImplementationReference>().notNull(),
     referenceCount: integer().default(1).notNull(),
     hash: bytea(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.hash),
-    unique().on(table.storageProviderId, table.key),
+    unique().on(table.storageProvider, table.key),
     check("hash_check", sql`octet_length(${table.hash}) = 32`),
     check("referenceCount_check", sql`${table.referenceCount} >= 0`),
   ],
@@ -386,13 +372,8 @@ export const chunk = snakeCase.table(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    vectorizerId: integer()
-      .notNull()
-      .references(() => pluginService.id, {
-        onDelete: "restrict",
-        onUpdate: "cascade",
-      }),
-    vectorStorageId: integer().notNull(),
+    vectorizer: jsonb().$type<ServiceImplementationReference>().notNull(),
+    vectorStorage: jsonb().$type<ServiceImplementationReference>().notNull(),
     ...timestamps,
   },
   (table) => [index().using("btree", table.chunkSetId.asc().nullsLast())],
@@ -432,10 +413,7 @@ export const contentNode = snakeCase.table(
     }),
     exportRole: contentNodeExportRole().notNull().default("NONE"),
     boundaryType: contentBoundaryType().notNull().default("NONE"),
-    fileHandlerId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
+    fileHandler: jsonb().$type<ServiceImplementationReference>(),
     fileId: integer().references(() => file.id, {
       onDelete: "set null",
       onUpdate: "cascade",
@@ -1591,10 +1569,7 @@ export const contextEvidence = snakeCase.table(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-    storageProviderId: integer().references(() => pluginService.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+    storageProvider: jsonb().$type<ServiceImplementationReference>(),
     textData: text(),
     displayLabel: text(),
     provenance: jsonb().$type<JSONType>(),
@@ -1778,12 +1753,7 @@ export const qaResultItem = snakeCase.table("QaResultItem", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  checkerId: integer()
-    .notNull()
-    .references(() => pluginService.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+  checker: jsonb().$type<ServiceImplementationReference>().notNull(),
   ...timestamps,
 });
 
@@ -1846,12 +1816,8 @@ export const qaReviewRun = snakeCase.table(
     }),
     layer: qaReviewRunLayer().notNull(),
     status: qaReviewRunStatus().notNull(),
-    checkerServiceId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-    }),
-    modelServiceId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-    }),
+    checkerService: jsonb().$type<ServiceImplementationReference>(),
+    modelService: jsonb().$type<ServiceImplementationReference>(),
     riskScore: integer().notNull().default(0),
     summary: text(),
     errorMessage: text(),
@@ -1891,9 +1857,7 @@ export const qaReviewFinding = snakeCase.table(
     qaResultItemId: integer().references(() => qaResultItem.id, {
       onDelete: "set null",
     }),
-    checkerServiceId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-    }),
+    checkerService: jsonb().$type<ServiceImplementationReference>(),
     layer: qaReviewRunLayer().notNull(),
     ruleId: text().notNull(),
     ruleFamily: text().notNull(),
@@ -2596,7 +2560,7 @@ export const sessionRecord = snakeCase.table(
       .references(() => user.id, { onDelete: "cascade" }),
     ip: text(),
     userAgent: text(),
-    authProviderId: integer(),
+    authProvider: jsonb().$type<ServiceImplementationReference>().notNull(),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
     revokedAt: timestamp({ withTimezone: true }),
     ...timestamps,

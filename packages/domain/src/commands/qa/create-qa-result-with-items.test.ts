@@ -9,6 +9,7 @@ import {
   qaResultItem,
   vectorizedString,
 } from "@cat/db";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
@@ -28,7 +29,20 @@ import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 let testDb: TestDB;
 let creatorId: string;
-let checkerIds: [number, number];
+const checkerReferenceA = ServiceImplementationReferenceSchema.parse({
+  pluginId: "qa-result-checker",
+  serviceId: "checker-a",
+  serviceType: "QA_CHECKER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+const checkerReferenceB = ServiceImplementationReferenceSchema.parse({
+  pluginId: "qa-result-checker",
+  serviceId: "checker-b",
+  serviceType: "QA_CHECKER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 const insertString = async (value: string, languageId: string) => {
   const [row] = await testDb.client
@@ -133,7 +147,7 @@ beforeAll(async () => {
     .insert(pluginInstallation)
     .values({ pluginId, scopeType: "GLOBAL", scopeId: "" })
     .returning({ id: pluginInstallation.id });
-  const services = await testDb.client
+  await testDb.client
     .insert(pluginService)
     .values([
       {
@@ -148,10 +162,6 @@ beforeAll(async () => {
       },
     ])
     .returning({ id: pluginService.id });
-  checkerIds = [
-    requireFixtureValue(services[0]).id,
-    requireFixtureValue(services[1]).id,
-  ];
 });
 
 afterAll(async () => {
@@ -170,12 +180,12 @@ describe("createQaResultWithItems", () => {
         items: [
           {
             isPassed: false,
-            checkerId: checkerIds[0],
+            checker: checkerReferenceA,
             meta: { severity: "warning", message: "Check numbers" },
           },
           {
             isPassed: true,
-            checkerId: checkerIds[1],
+            checker: checkerReferenceB,
             meta: {},
           },
         ],
@@ -192,7 +202,11 @@ describe("createQaResultWithItems", () => {
       .where(eq(qaResult.id, result.qaResultId))
       .limit(1);
     const storedItems = await testDb.client
-      .select({ id: qaResultItem.id, resultId: qaResultItem.resultId })
+      .select({
+        id: qaResultItem.id,
+        resultId: qaResultItem.resultId,
+        checker: qaResultItem.checker,
+      })
       .from(qaResultItem)
       .where(eq(qaResultItem.resultId, result.qaResultId));
 
@@ -202,5 +216,9 @@ describe("createQaResultWithItems", () => {
     expect(storedItems.map((item) => item.id).sort((a, b) => a - b)).toEqual(
       [...result.itemIds].sort((a, b) => a - b),
     );
+    expect(storedItems.map((item) => item.checker)).toEqual([
+      checkerReferenceA,
+      checkerReferenceB,
+    ]);
   });
 });

@@ -106,8 +106,10 @@ test("create-term should insert terms to db", async () => {
     {
       glossaryId,
       data: termData,
-      vectorizerId: vectorizer.dbId,
-      vectorStorageId: vectorStorage.dbId,
+      vectorizer:
+        pluginManager.createServiceImplementationReference(vectorizer),
+      vectorStorage:
+        pluginManager.createServiceImplementationReference(vectorStorage),
     },
     { pluginManager },
   );
@@ -132,8 +134,10 @@ test("create-term with empty data should return empty termIds", async () => {
     {
       glossaryId,
       data: [],
-      vectorizerId: vectorizer.dbId,
-      vectorStorageId: vectorStorage.dbId,
+      vectorizer:
+        pluginManager.createServiceImplementationReference(vectorizer),
+      vectorStorage:
+        pluginManager.createServiceImplementationReference(vectorStorage),
     },
     { pluginManager },
   );
@@ -163,8 +167,10 @@ test("create-term rebuilds morphological recall variants via domain events", asy
           definition: "A structured HTTP error term",
         },
       ],
-      vectorizerId: vectorizer.dbId,
-      vectorStorageId: vectorStorage.dbId,
+      vectorizer:
+        pluginManager.createServiceImplementationReference(vectorizer),
+      vectorStorage:
+        pluginManager.createServiceImplementationReference(vectorStorage),
     },
     { pluginManager },
   );

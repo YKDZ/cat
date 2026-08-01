@@ -6,10 +6,11 @@ import {
   listMorphologicalTermSuggestions,
 } from "@cat/domain";
 import {
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { calibrateTermBm25 } from "./confidence-calibrator/index.ts";
@@ -34,7 +35,7 @@ export const CollectTermRecallInputSchema = z.object({
   minSemanticSimilarity: z.number().min(0).max(1).default(0.6),
   maxAmount: z.int().min(1).default(20),
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
-  rerankProviderId: z.int().optional(),
+  rerankProvider: ServiceImplementationReferenceSchema.optional(),
   rerankTimeoutMs: z.int().positive().default(3000),
   /** Pre-tokenized NLP tokens for the source text. */
   sourceNlpTokens: z
@@ -129,8 +130,14 @@ export const collectTermRecallOp = async (
     );
   }
 
-  const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
-  const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+  const vectorizer = selectFirstServiceImplementation(
+    pluginManager,
+    "TEXT_VECTORIZER",
+  );
+  const vectorStorage = selectFirstServiceImplementation(
+    pluginManager,
+    "VECTOR_STORAGE",
+  );
 
   if (vectorizer && vectorStorage) {
     tasks.push(
@@ -140,8 +147,8 @@ export const collectTermRecallOp = async (
           text: input.text,
           sourceLanguageId: input.sourceLanguageId,
           translationLanguageId: input.translationLanguageId,
-          vectorizerId: vectorizer.id,
-          vectorStorageId: vectorStorage.id,
+          vectorizer: vectorizer.reference,
+          vectorStorage: vectorStorage.reference,
           minSimilarity: input.minSemanticSimilarity,
           maxAmount: input.maxAmount,
         },
@@ -223,7 +230,7 @@ export const collectTermRecallOp = async (
     pluginManager,
     signal: ctx?.signal,
     rerankMode: input.rerankMode,
-    rerankProviderId: input.rerankProviderId,
+    rerankProvider: input.rerankProvider,
     rerankTimeoutMs: input.rerankTimeoutMs,
   });
 

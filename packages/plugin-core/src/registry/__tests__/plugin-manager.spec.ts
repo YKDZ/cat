@@ -14,6 +14,8 @@ import {
   type DiagnosticEvent,
   type PluginData,
   type PluginManifest,
+  PluginDataSchema,
+  PluginManifestSchema,
 } from "@cat/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -35,20 +37,20 @@ import { ServiceRegistry } from "#/registry/service-registry.ts";
 
 /* ─── Test helpers ──────────────────────────────────────────────────────────── */
 
-const MINIMAL_MANIFEST: PluginManifest = {
+const MINIMAL_MANIFEST: PluginManifest = PluginManifestSchema.parse({
   id: "test-plugin",
   version: "1.0.0",
   entry: "index.js",
   services: [],
-};
+});
 
-const MINIMAL_DATA: PluginData = {
+const MINIMAL_DATA: PluginData = PluginDataSchema.parse({
   id: "test-plugin",
-  name: "Test Plugin",
+  name: "test plugin",
   version: "1.0.0",
   overview: "A minimal plugin for testing",
   entry: "index.js",
-};
+});
 
 function makePlugin(overrides?: Partial<CatPlugin>): CatPlugin {
   return {
@@ -91,7 +93,7 @@ function createManager(
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion
 const FAKE_DB = {} as DrizzleClient;
 const SCOPE_TYPE = "GLOBAL" as const;
-const SCOPE_ID = "test-scope";
+const SCOPE_ID = "";
 const PLUGIN_ID = "test-plugin";
 
 /** Set up the default executeQuery sequence for a single activate() call. */
@@ -288,6 +290,34 @@ describe("PluginManager — activate() → deactivate()", () => {
     const found = manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1");
     expect(found).not.toBeNull();
     expect(found?.service).toBe(svc);
+  });
+
+  it("resolves an activated implementation from its stable reference", async () => {
+    const svc = {
+      getId: () => "svc-1",
+      getType: () => "TOKENIZER" as const,
+    };
+    const loader = makeLoader(
+      makePlugin({ services: vi.fn().mockResolvedValue([svc]) }),
+    );
+    setupActivateMocks({ withService: true });
+
+    const manager = createManager(loader);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+    const registered = manager.getServices("TOKENIZER")[0];
+    expect(registered).toBeDefined();
+    if (!registered) return;
+
+    const reference = manager.createServiceImplementationReference(registered);
+    const resolved = manager.resolveServiceImplementationReference(
+      reference,
+      "TOKENIZER",
+    );
+
+    expect(resolved).toMatchObject({
+      kind: "RESOLVED",
+      service: { service: svc },
+    });
   });
 
   it("activate() registers components in the component registry", async () => {

@@ -36,8 +36,8 @@ export const processVectorizationBatch = async (
       const { chunkSetIds } = await vectorizeToChunkSetOp(
         {
           data: task.payload.data,
-          vectorizerId: task.payload.vectorizerId,
-          vectorStorageId: task.payload.vectorStorageId,
+          vectorizer: task.payload.vectorizer,
+          vectorStorage: task.payload.vectorStorage,
         },
         effectiveCtx,
       );

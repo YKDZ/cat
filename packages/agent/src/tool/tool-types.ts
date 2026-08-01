@@ -1,4 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
+import type { ServiceImplementationReference } from "@cat/shared";
 import type { ZodObject } from "zod";
 
 /**
@@ -21,7 +22,7 @@ export interface ToolExecutionContext {
     agentId: string;
     projectId: string;
     runId: string;
-    providerId?: number | undefined;
+    provider?: ServiceImplementationReference | undefined;
     branchId?: number | undefined;
     contentNodeIds?: string[] | undefined;
     currentElementContentNodeId?: string | undefined;

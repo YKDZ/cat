@@ -9,7 +9,8 @@ export const applyQaReviewPolicy = (input: {
       (rule) =>
         (rule.ruleId && rule.ruleId === finding.ruleId) ||
         (rule.ruleFamily && rule.ruleFamily === finding.ruleFamily) ||
-        (rule.checkerId && rule.checkerId === String(finding.checkerServiceId)),
+        (rule.checkerId &&
+          rule.checkerId === finding.checkerService?.serviceId),
     );
 
     if (!matchedRule) return finding;

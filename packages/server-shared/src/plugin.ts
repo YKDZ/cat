@@ -3,56 +3,76 @@ import { cwd } from "node:process";
 
 import {
   PluginManager,
-  type IPluginService,
   type PluginServiceMap,
+  type ServiceImplementationResolution,
 } from "@cat/plugin-core";
-import type { PluginServiceType } from "@cat/shared";
+import type {
+  PluginServiceType,
+  ServiceImplementationReference,
+} from "@cat/shared";
 import { assertFirstNonNullish } from "@cat/shared";
 
-export const firstOrGivenService = <T extends PluginServiceType>(
+export class ServiceImplementationResolutionError<
+  T extends PluginServiceType,
+> extends Error {
+  public readonly resolution: Exclude<
+    ServiceImplementationResolution<T>,
+    { kind: "RESOLVED" }
+  >;
+
+  public constructor(
+    resolution: Exclude<
+      ServiceImplementationResolution<T>,
+      { kind: "RESOLVED" }
+    >,
+  ) {
+    super(`Cannot resolve service implementation: ${resolution.kind}`);
+    this.name = "ServiceImplementationResolutionError";
+    this.resolution = resolution;
+  }
+}
+
+/** Explicit policy seam for callers that intentionally select the first service. */
+export const selectFirstServiceImplementation = <T extends PluginServiceType>(
   pluginManager: PluginManager,
   type: T,
-  id?: number,
-): { id: number; service: PluginServiceMap[T] } | undefined => {
-  if (id) {
-    return {
-      id,
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      service: getServiceFromDBId(
-        pluginManager,
-        id,
-      ) as unknown as PluginServiceMap[T],
-    };
-  } else {
-    const services = pluginManager.getServices(type);
+):
+  | {
+      reference: ServiceImplementationReference;
+      service: PluginServiceMap[T];
+    }
+  | undefined => {
+  const services = pluginManager.getServices(type);
 
-    if (services.length === 0) return undefined;
+  if (services.length === 0) return undefined;
 
-    const { dbId, service } = assertFirstNonNullish(services);
+  const registered = assertFirstNonNullish(services);
 
-    return {
-      id: dbId,
-      // oxlint-disable-next-line no-unsafe-type-assertion
-      service: service as unknown as PluginServiceMap[T],
-    };
-  }
+  return {
+    reference: pluginManager.createServiceImplementationReference(registered),
+    // PluginManager's type-indexed registry boundary is the only cast needed.
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    service: registered.service as unknown as PluginServiceMap[T],
+  };
 };
 
 /**
  * 不涉及插件函数调用，可以在事务中安全调用
  */
-export const getServiceFromDBId = <T extends IPluginService>(
+export const resolveServiceImplementation = <T extends PluginServiceType>(
   pluginManager: PluginManager,
-  id: number,
-): T => {
-  const service = pluginManager
-    .getAllServices()
-    .find((service) => service.dbId === id);
+  reference: ServiceImplementationReference,
+  expectedServiceType: T,
+): PluginServiceMap[T] => {
+  const resolution = pluginManager.resolveServiceImplementationReference(
+    reference,
+    expectedServiceType,
+  );
+  if (resolution.kind !== "RESOLVED") {
+    throw new ServiceImplementationResolutionError(resolution);
+  }
 
-  if (!service) throw new Error("Service not exists");
-
-  // oxlint-disable-next-line no-unsafe-type-assertion
-  return service?.service as unknown as T;
+  return resolution.service.service;
 };
 
 const PLUGIN_ROOT = join(cwd(), "plugins");

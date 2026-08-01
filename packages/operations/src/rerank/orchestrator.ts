@@ -1,4 +1,8 @@
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import type {
   RerankCandidateItem,
   RerankDecisionTrace,
@@ -26,7 +30,7 @@ const failClosedTrace = (
   outcome: RerankDecisionTrace["outcome"],
   message: string,
   provider?: {
-    id: number;
+    reference: { serviceId: string };
     service: { getId(): string; getModelName(): string };
   },
 ): OrchestrateRerankResult => ({
@@ -80,11 +84,16 @@ export const orchestrateRerank = async ({
   signal,
 }: OrchestrateRerankInput): Promise<OrchestrateRerankResult> => {
   const manager = resolvePluginManager(pluginManager);
-  const provider = firstOrGivenService(
-    manager,
-    "RERANK_PROVIDER",
-    request.rerankProviderId,
-  );
+  const provider = request.rerankProvider
+    ? {
+        reference: request.rerankProvider,
+        service: resolveServiceImplementation(
+          manager,
+          request.rerankProvider,
+          "RERANK_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(manager, "RERANK_PROVIDER");
 
   if (!provider) {
     return {

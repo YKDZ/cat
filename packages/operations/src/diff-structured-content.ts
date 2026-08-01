@@ -18,6 +18,7 @@ import {
   StructuredContentPayloadSchema,
   type JSONType,
   type SemanticDiffEntryPayload,
+  ServiceImplementationReferenceSchema,
   type StableElementIdentity,
 } from "@cat/shared";
 import * as z from "zod";
@@ -26,8 +27,8 @@ import { createVectorizedStringOp } from "./create-vectorized-string.ts";
 
 export const DiffStructuredContentInputSchema = z.object({
   payload: StructuredContentPayloadSchema,
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  vectorizer: ServiceImplementationReferenceSchema.optional(),
+  vectorStorage: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const DiffStructuredContentOutputSchema = z.object({
@@ -359,8 +360,8 @@ export const diffStructuredContentOp = async (
         const stringResult = await createVectorizedStringOp(
           {
             data: [{ text: newEl.text, languageId: newEl.languageId }],
-            vectorizerId: data.vectorizerId,
-            vectorStorageId: data.vectorStorageId,
+            vectorizer: data.vectorizer,
+            vectorStorage: data.vectorStorage,
           },
           ctx,
         );
@@ -511,8 +512,8 @@ export const diffStructuredContentOp = async (
             text: el.text,
             languageId: el.languageId,
           })),
-          vectorizerId: data.vectorizerId,
-          vectorStorageId: data.vectorStorageId,
+          vectorizer: data.vectorizer,
+          vectorStorage: data.vectorStorage,
         },
         ctx,
       );

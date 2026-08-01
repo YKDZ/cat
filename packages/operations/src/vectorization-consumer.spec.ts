@@ -1,5 +1,6 @@
 import { InMemoryTaskQueue } from "@cat/core";
 import type { VectorizationTask } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock @cat/domain ────────────────────────────────────────────────────────
@@ -46,8 +47,20 @@ const makeTask = (
     { text: "hello", languageId: "en" },
     { text: "world", languageId: "en" },
   ],
-  vectorizerId: 10,
-  vectorStorageId: 20,
+  vectorizer: ServiceImplementationReferenceSchema.parse({
+    pluginId: "vectors",
+    serviceId: "vectorizer",
+    serviceType: "TEXT_VECTORIZER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  }),
+  vectorStorage: ServiceImplementationReferenceSchema.parse({
+    pluginId: "vectors",
+    serviceId: "storage",
+    serviceType: "VECTOR_STORAGE",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  }),
   ...overrides,
 });
 

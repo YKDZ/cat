@@ -35,7 +35,11 @@ import {
   type InitContext,
 } from "@cat/plugin-core";
 import type { VectorizedTextData } from "@cat/shared";
-import type { PluginData, PluginManifest } from "@cat/shared";
+import {
+  type PluginData,
+  type PluginManifest,
+  PluginManifestSchema,
+} from "@cat/shared";
 import type { TranslationAdvise } from "@cat/shared";
 import {
   snakeCase,
@@ -382,7 +386,7 @@ const plugin = {
   },
 } satisfies CatPlugin;
 
-const manifest = {
+const manifest = PluginManifestSchema.parse({
   id: "mock",
   version: "0.0.1",
   entry: "index.js",
@@ -423,7 +427,7 @@ const manifest = {
       dynamic: false,
     },
   ],
-} satisfies PluginManifest;
+});
 
 /**
  * 默认包含一个 id 为 mock，实现所有服务的插件

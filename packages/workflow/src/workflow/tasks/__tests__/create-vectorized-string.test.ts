@@ -70,8 +70,9 @@ test("worker should insert strings to db", async () => {
 
   const { stringIds } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   const strings = await executeQuery(
     { db: client },
@@ -110,8 +111,9 @@ test("empty input should return empty array", async () => {
 
   const { stringIds } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(stringIds.length).toEqual(0);
 });
@@ -131,14 +133,16 @@ test("worker should reuse existing strings", async () => {
 
   const { stringIds: ids1 } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   const { stringIds: ids2 } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(ids1[0]).toEqual(ids2[0]);

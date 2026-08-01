@@ -1,4 +1,8 @@
-import type { JSONType, NonNullJSONType } from "@cat/shared";
+import type {
+  JSONType,
+  NonNullJSONType,
+  ServiceImplementationReference,
+} from "@cat/shared";
 
 import type { createAgentDefinition } from "#/commands/agent/create-agent-definition.cmd.ts";
 import type { createAgentSession } from "#/commands/agent/create-agent-session.cmd.ts";
@@ -160,7 +164,7 @@ export type AuthCapabilities = {
   }) => Promise<JSONType | null>;
   getMfaPayloadForUser: (input: {
     userId: string;
-    factorId: string;
+    mfaService: ServiceImplementationReference;
   }) => Promise<NonNullJSONType | null>;
 };
 

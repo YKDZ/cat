@@ -7,6 +7,7 @@ import {
 import {
   MemorySuggestionSchema,
   safeZDotJson,
+  ServiceImplementationReferenceSchema,
   ScopeTranslationSeedSchema,
   TranslationAdviseSchema,
 } from "@cat/shared";
@@ -23,7 +24,7 @@ export const AutoTranslateConfigSchema = z.object({
   llm: z
     .object({
       enabled: z.boolean().default(false),
-      llmProviderId: z.int().optional(),
+      llmProvider: ServiceImplementationReferenceSchema.optional(),
       systemPrompt: z.string().optional(),
       temperature: z.number().min(0).max(2).default(0.3),
       maxTokens: z.int().default(1024),
@@ -51,16 +52,16 @@ export const AutoTranslateInputSchema = z.object({
   sourceLanguageId: z.string(),
   primaryContentNodeId: z.uuidv4().nullable().optional(),
   translatorId: z.uuidv4().nullable(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   memoryIds: z.array(z.uuidv4()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
   chunkIds: z.array(z.int()).default([]),
   scopeTranslationSeeds: z.array(ScopeTranslationSeedSchema).default([]),
   minMemorySimilarity: z.number().min(0).max(1),
   maxMemoryAmount: z.int().min(0).default(3),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
   config: AutoTranslateConfigSchema.optional(),
 });
 
@@ -109,7 +110,7 @@ const RecallNodeInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()),
   minSimilarity: z.number().min(0).max(1),
   maxAmount: z.int().min(0),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 const RecallNodeOutputSchema = z.object({
@@ -121,7 +122,7 @@ const MtAdviseNodeInputSchema = z.object({
   text: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   glossaryIds: z.array(z.uuidv4()),
   terms: z.array(TermContextItemSchema),
   memories: z.array(MemorySuggestionSchema),
@@ -186,8 +187,8 @@ const CreateTranslationNodeInputSchema = z.object({
   translatorId: z.uuidv4().nullable(),
   translationLanguageId: z.string(),
   memoryIds: z.array(z.uuidv4()),
-  vectorizerId: z.int(),
-  translationVectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
 });
 
 const usableScopeSeeds = (
@@ -240,7 +241,7 @@ export const autoTranslateGraph = defineGraph({
         memoryIds: "memoryIds",
         minSimilarity: "minMemorySimilarity",
         maxAmount: "maxMemoryAmount",
-        vectorStorageId: "memoryVectorStorageId",
+        vectorStorage: "memoryVectorStorage",
       },
       handler: async (input, ctx) => {
         const [termResult, memoryResult] = await Promise.all([
@@ -263,7 +264,7 @@ export const autoTranslateGraph = defineGraph({
               translationLanguageId: input.translationLanguageId,
               minSimilarity: input.minSimilarity,
               maxAmount: input.maxAmount,
-              vectorStorageId: input.vectorStorageId,
+              vectorStorage: input.vectorStorage,
             },
             {
               traceId: ctx.runId,
@@ -283,7 +284,7 @@ export const autoTranslateGraph = defineGraph({
         text: "gather-context.text",
         sourceLanguageId: "gather-context.sourceLanguageId",
         translationLanguageId: "gather-context.translationLanguageId",
-        advisorId: "advisorId",
+        advisor: "advisor",
         glossaryIds: "glossaryIds",
         terms: "recall.terms",
         memories: "recall.memories",
@@ -295,7 +296,7 @@ export const autoTranslateGraph = defineGraph({
             text: input.text,
             sourceLanguageId: input.sourceLanguageId,
             translationLanguageId: input.translationLanguageId,
-            advisorId: input.advisorId,
+            advisor: input.advisor,
             glossaryIds: input.glossaryIds,
             memoryIds: [],
             preloadedTerms: input.terms,
@@ -413,7 +414,7 @@ export const autoTranslateGraph = defineGraph({
               definition: t.definition,
             })),
             neighborTranslations: input.neighborTranslations,
-            llmProviderId: input.config?.llm?.llmProviderId,
+            llmProvider: input.config?.llm?.llmProvider,
             systemPrompt: input.config?.llm?.systemPrompt,
             temperature: input.config?.llm?.temperature ?? 0.3,
             maxTokens: input.config?.llm?.maxTokens ?? 1024,
@@ -452,8 +453,8 @@ export const autoTranslateGraph = defineGraph({
         translatorId: "translatorId",
         translationLanguageId: "translationLanguageId",
         memoryIds: "memoryIds",
-        vectorizerId: "vectorizerId",
-        translationVectorStorageId: "translationVectorStorageId",
+        vectorizer: "vectorizer",
+        translationVectorStorage: "translationVectorStorage",
       },
       handler: async (input, ctx) => {
         const text = input.selectedText || input.fallbackText;
@@ -472,8 +473,8 @@ export const autoTranslateGraph = defineGraph({
             ],
             // 自动翻译暂时不创建记忆
             // memoryIds: input.memoryIds,
-            vectorizerId: input.vectorizerId,
-            vectorStorageId: input.translationVectorStorageId,
+            vectorizer: input.vectorizer,
+            vectorStorage: input.translationVectorStorage,
             translatorId: input.translatorId,
           },
           { signal: ctx.signal },

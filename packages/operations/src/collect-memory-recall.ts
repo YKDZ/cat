@@ -8,12 +8,15 @@ import {
   listVariantMemorySuggestions,
 } from "@cat/domain";
 import {
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
 import type { SlotMappingEntry } from "@cat/shared";
-import type { MemorySuggestion } from "@cat/shared";
+import {
+  type MemorySuggestion,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { calibrateMemoryBm25 } from "./confidence-calibrator/index.ts";
@@ -52,7 +55,7 @@ export const CollectMemoryRecallInputSchema = z.object({
   maxAmount: z.int().min(1).default(5),
   chunkIds: z.array(z.int()).default([]),
   queryVectors: z.array(z.array(z.number())).optional(),
-  vectorStorageId: z.int().optional(),
+  vectorStorage: ServiceImplementationReferenceSchema.optional(),
   /** Pre-tokenized NLP tokens for the source text. */
   sourceNlpTokens: z
     .array(
@@ -70,7 +73,7 @@ export const CollectMemoryRecallInputSchema = z.object({
   /** Memory item UUIDs to exclude from results (self-exclusion). */
   excludeMemoryItemIds: z.array(z.string()).optional(),
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
-  rerankProviderId: z.int().optional(),
+  rerankProvider: ServiceImplementationReferenceSchema.optional(),
   rerankTimeoutMs: z.int().positive().default(3000),
 });
 
@@ -442,10 +445,13 @@ export const collectMemoryRecallOp = async (
   }
 
   const vectorStorage =
-    input.vectorStorageId !== undefined
-      ? { id: input.vectorStorageId }
-      : firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-  const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    input.vectorStorage !== undefined
+      ? { reference: input.vectorStorage }
+      : selectFirstServiceImplementation(pluginManager, "VECTOR_STORAGE");
+  const vectorizer = selectFirstServiceImplementation(
+    pluginManager,
+    "TEXT_VECTORIZER",
+  );
 
   if (
     vectorStorage &&
@@ -463,7 +469,7 @@ export const collectMemoryRecallOp = async (
           translationLanguageId: input.translationLanguageId,
           minSimilarity: input.minSimilarity,
           maxAmount: input.maxAmount,
-          vectorStorageId: vectorStorage.id,
+          vectorStorage: vectorStorage.reference,
         },
         ctx,
       );
@@ -567,7 +573,7 @@ export const collectMemoryRecallOp = async (
     pluginManager,
     signal: ctx?.signal,
     rerankMode: input.rerankMode,
-    rerankProviderId: input.rerankProviderId,
+    rerankProvider: input.rerankProvider,
     rerankTimeoutMs: input.rerankTimeoutMs,
   });
 

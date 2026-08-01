@@ -2351,7 +2351,7 @@ const seedQaReviewWorkbench = async (
       findings: [
         {
           action: item.action,
-          checkerServiceId: null,
+          checkerService: null,
           confidenceBasisPoints: 10_000,
           disposition: "OPEN",
           explanation: null,
@@ -2459,7 +2459,7 @@ const seedQaReviewDeferTarget = async (
     findings: [
       {
         action: "NEEDS_REVIEW",
-        checkerServiceId: null,
+        checkerService: null,
         confidenceBasisPoints: 10_000,
         disposition: "OPEN",
         explanation: null,

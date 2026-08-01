@@ -35,10 +35,10 @@ const activeBranchId = computed(() =>
 const handleClick = async (
   node: Pick<
     ContentNode,
-    "id" | "exportRole" | "kind" | "fileId" | "fileHandlerId"
+    "id" | "exportRole" | "kind" | "fileId" | "fileHandler"
   >,
 ) => {
-  if (node.fileId !== null && node.fileHandlerId !== null) {
+  if (node.fileId !== null && node.fileHandler !== null) {
     await navigate(`/content-node/${node.id}/file`);
   }
 };
@@ -56,7 +56,7 @@ const handleDelete = async (node: Pick<ContentNode, "id" | "displayLabel">) => {
   <ContentNodeTree :content-nodes="props.contentNodes" @click="handleClick">
     <template #actions="{ node }">
       <Button
-        v-if="node.fileId !== null && node.fileHandlerId !== null"
+        v-if="node.fileId !== null && node.fileHandler !== null"
         variant="outline"
         size="icon"
         @click="handleDelete(node)"

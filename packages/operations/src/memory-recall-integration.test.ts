@@ -10,8 +10,7 @@ import {
 } from "@cat/domain";
 import type { CatPlugin, ParserContext, ParseResult } from "@cat/plugin-core";
 import { PluginManager, Tokenizer, TokenizerPriority } from "@cat/plugin-core";
-import type { PluginManifest } from "@cat/shared";
-import { assertSingleNonNullish } from "@cat/shared";
+import { assertSingleNonNullish, PluginManifestSchema } from "@cat/shared";
 import {
   eq,
   memoryItem,
@@ -54,14 +53,14 @@ const basicTokenizerPlugin = {
   services: () => [new TestNumberTokenizer()],
 } satisfies CatPlugin;
 
-const BASIC_TOKENIZER_MANIFEST: PluginManifest = {
+const BASIC_TOKENIZER_MANIFEST = PluginManifestSchema.parse({
   id: "basic-tokenizer",
   version: "0.1.0",
   entry: "dist/index.js",
   services: [
     { id: "test-number-tokenizer", type: "TOKENIZER", dynamic: false },
   ],
-};
+});
 
 describe("memory recall integration", () => {
   let db: TestDB;

@@ -1,6 +1,10 @@
 import type { OperationContext } from "@cat/domain";
-import { resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  resolveServiceImplementation,
+} from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { createVectorizedStringOp } from "./create-vectorized-string.ts";
@@ -21,8 +25,8 @@ export const VectorTermAlignInputSchema = z.object({
     }),
   ),
   config: z.object({
-    vectorizerId: z.int(),
-    vectorStorageId: z.int(),
+    vectorizer: ServiceImplementationReferenceSchema,
+    vectorStorage: ServiceImplementationReferenceSchema,
     minSimilarity: z.number().min(0).max(1).default(0.75),
   }),
 });
@@ -73,14 +77,19 @@ export const vectorTermAlignOp = async (
 ): Promise<VectorTermAlignOutput> => {
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
-  const vectorizerService = pluginManager
-    .getServices("TEXT_VECTORIZER")
-    .find((s) => s.dbId === data.config.vectorizerId)?.service;
-  const vectorStorageService = pluginManager
-    .getServices("VECTOR_STORAGE")
-    .find((s) => s.dbId === data.config.vectorStorageId)?.service;
-
-  if (!vectorizerService || !vectorStorageService) {
+  let vectorizerService;
+  try {
+    vectorizerService = resolveServiceImplementation(
+      pluginManager,
+      data.config.vectorizer,
+      "TEXT_VECTORIZER",
+    );
+    resolveServiceImplementation(
+      pluginManager,
+      data.config.vectorStorage,
+      "VECTOR_STORAGE",
+    );
+  } catch {
     logger
       .child({ component: "operation" })
       .warn(
@@ -130,8 +139,8 @@ export const vectorTermAlignOp = async (
   const stringResult = await createVectorizedStringOp(
     {
       data: refs.map((r) => ({ text: r.vectorText, languageId: r.languageId })),
-      vectorizerId: data.config.vectorizerId,
-      vectorStorageId: data.config.vectorStorageId,
+      vectorizer: data.config.vectorizer,
+      vectorStorage: data.config.vectorStorage,
     },
     ctx,
   );

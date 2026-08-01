@@ -222,10 +222,10 @@ export const createPluginCapabilities = (
         providedAccountId,
         providerIssuer,
       }),
-    getMfaPayloadForUser: async ({ userId, factorId }) =>
+    getMfaPayloadForUser: async ({ userId, mfaService }) =>
       executeQuery(execCtx, getMfaPayloadByFactorAndUser, {
         userId,
-        factorId,
+        mfaService,
       }),
   },
   vector: {

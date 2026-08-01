@@ -159,7 +159,7 @@ describe("semantic structured content diff", () => {
     expect(diff.vectorInvalidationReason).toBe("NOT_REQUIRED");
   });
 
-  it("allows diff input without vector service IDs", () => {
+  it("allows diff input without vector service references", () => {
     const parsed = DiffStructuredContentInputSchema.parse({
       payload: {
         payloadVersion: "content-graph/v1",
@@ -186,7 +186,7 @@ describe("semantic structured content diff", () => {
       },
     });
 
-    expect(parsed.vectorizerId).toBeUndefined();
+    expect(parsed.vectorizer).toBeUndefined();
   });
 
   it("classifies source location changes as evidence updates", () => {

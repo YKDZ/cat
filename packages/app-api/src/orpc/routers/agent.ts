@@ -23,7 +23,11 @@ import {
   saveAgentRunSnapshot,
   updateAgentDefinition,
 } from "@cat/domain";
-import { AsyncMessageQueue, serverLogger } from "@cat/server-shared";
+import {
+  AsyncMessageQueue,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import type { JSONType } from "@cat/shared";
 import {
   AgentConstraintsSchema,
@@ -33,6 +37,7 @@ import {
   AgentSessionMetadataSchema,
   AgentSecurityPolicySchema,
   OrchestrationSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { StoredAgentDefinitionSchema } from "@cat/shared";
 import { AgentDefinitionTypeSchema, ScopeTypeSchema } from "@cat/shared";
@@ -57,34 +62,18 @@ const getSessionMetadata = (
   return parsed.success ? parsed.data : null;
 };
 
-const getProviderIdFromSessionMetadata = (metadata: unknown): number | null => {
-  return getSessionMetadata(metadata)?.providerId ?? null;
-};
-
-const getAvailableLLMProviderIds = (
-  services: Array<{ dbId: number }>,
-): Set<number> => {
-  return new Set(services.map((service) => service.dbId));
-};
+const getProviderFromSessionMetadata = (metadata: unknown) =>
+  getSessionMetadata(metadata)?.provider ?? null;
 
 const normalizeAgentLLMConfig = (
   llmConfig: unknown,
-  availableProviderIds: Set<number>,
 ): z.infer<typeof AgentLLMConfigSchema> | null => {
   const parsed = AgentLLMConfigSchema.safeParse(llmConfig);
   if (!parsed.success) return null;
-
-  const normalized = { ...parsed.data };
-
-  if (
-    typeof normalized.providerId === "number" &&
-    !availableProviderIds.has(normalized.providerId)
-  ) {
-    normalized.providerId = null;
-  }
+  const normalized = parsed.data;
 
   if (
-    typeof normalized.providerId !== "number" &&
+    normalized.provider === undefined &&
     normalized.temperature === undefined &&
     normalized.maxTokens === undefined
   ) {
@@ -223,19 +212,11 @@ export const list = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: db },
-      pluginManager,
     } = context;
     const rows = await executeQuery({ db }, listAgentDefinitions, input);
-    const availableProviderIds = getAvailableLLMProviderIds(
-      pluginManager.getServices("LLM_PROVIDER"),
-    );
-
     return await Promise.all(
       rows.map(async (row) => {
-        const llmConfig = normalizeAgentLLMConfig(
-          row.llmConfig,
-          availableProviderIds,
-        );
+        const llmConfig = normalizeAgentLLMConfig(row.llmConfig);
 
         await persistNormalizedAgentLLMConfig(db, row, llmConfig);
 
@@ -285,11 +266,7 @@ export const get = authed
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
-      pluginManager,
     } = context;
-    const availableProviderIds = getAvailableLLMProviderIds(
-      pluginManager.getServices("LLM_PROVIDER"),
-    );
 
     const row = await executeQuery({ db: drizzle }, getAgentDefinition, input);
 
@@ -298,10 +275,7 @@ export const get = authed
         message: "Agent definition not found",
       });
 
-    const llmConfig = normalizeAgentLLMConfig(
-      row.llmConfig,
-      availableProviderIds,
-    );
+    const llmConfig = normalizeAgentLLMConfig(row.llmConfig);
 
     await persistNormalizedAgentLLMConfig(drizzle, row, llmConfig);
 
@@ -589,31 +563,22 @@ export const sendMessage = authed
       { id: session.agentDefinitionId },
     );
 
-    const llmServices = pluginManager.getServices("LLM_PROVIDER");
-    const availableProviderIds = getAvailableLLMProviderIds(llmServices);
-    const agentLLMConfig = normalizeAgentLLMConfig(
-      agentDef?.llmConfig ?? null,
-      availableProviderIds,
-    );
+    const agentLLMConfig = normalizeAgentLLMConfig(agentDef?.llmConfig ?? null);
 
     // Prefer the provider configured in the session; fall back to the agent definition; then first available
-    const sessionProviderId = getProviderIdFromSessionMetadata(
-      session.metadata,
-    );
-    const targetProviderId =
-      sessionProviderId ?? agentLLMConfig?.providerId ?? null;
-    let llmProvider;
-    if (targetProviderId) {
-      const found = llmServices.find((s) => s.dbId === targetProviderId);
-      if (!found) {
-        serverLogger.warn(
-          `LLM Provider ${targetProviderId} not found, falling back to first available`,
-        );
-      }
-      llmProvider = found?.service ?? llmServices[0]?.service;
-    } else {
-      llmProvider = llmServices[0]?.service;
-    }
+    const sessionProvider = getProviderFromSessionMetadata(session.metadata);
+    const configuredProvider = sessionProvider ?? agentLLMConfig?.provider;
+    const selectedProvider = configuredProvider
+      ? {
+          reference: configuredProvider,
+          service: resolveServiceImplementation(
+            pluginManager,
+            configuredProvider,
+            "LLM_PROVIDER",
+          ),
+        }
+      : selectFirstServiceImplementation(pluginManager, "LLM_PROVIDER");
+    const llmProvider = selectedProvider?.service;
 
     if (!llmProvider) {
       throw new ORPCError("PRECONDITION_FAILED", {
@@ -1029,8 +994,7 @@ export const listLLMProviders = authed.handler(async ({ context }) => {
   const { pluginManager } = context;
 
   return pluginManager.getServices("LLM_PROVIDER").map((s) => ({
-    id: s.dbId,
-    serviceId: s.id,
+    reference: pluginManager.createServiceImplementationReference(s),
     name: s.service.getModelName(),
   }));
 });
@@ -1042,7 +1006,7 @@ export const enableBuiltin = authed
   .input(
     z.object({
       templateId: z.string().min(1),
-      providerId: z.int().optional(),
+      provider: ServiceImplementationReferenceSchema.optional(),
       scopeType: ScopeTypeSchema.default("PROJECT"),
       scopeId: z.string().default(""),
     }),
@@ -1053,16 +1017,18 @@ export const enableBuiltin = authed
       drizzleDB: { client: drizzle },
       pluginManager,
     } = context;
-    const llmServices = pluginManager.getServices("LLM_PROVIDER");
-    const availableProviderIds = getAvailableLLMProviderIds(llmServices);
-
-    if (
-      typeof input.providerId === "number" &&
-      !availableProviderIds.has(input.providerId)
-    ) {
-      throw new ORPCError("PRECONDITION_FAILED", {
-        message: "Selected LLM provider not found",
-      });
+    if (input.provider) {
+      try {
+        resolveServiceImplementation(
+          pluginManager,
+          input.provider,
+          "LLM_PROVIDER",
+        );
+      } catch {
+        throw new ORPCError("PRECONDITION_FAILED", {
+          message: "Selected LLM provider not found",
+        });
+      }
     }
 
     const template = await executeQuery(
@@ -1100,19 +1066,11 @@ export const enableBuiltin = authed
       };
     }
 
-    const templateLLMConfig = normalizeAgentLLMConfig(
-      template.llmConfig,
-      availableProviderIds,
-    );
-    const nextLLMConfig = normalizeAgentLLMConfig(
-      {
-        ...(templateLLMConfig ?? {}),
-        ...(typeof input.providerId === "number"
-          ? { providerId: input.providerId }
-          : {}),
-      },
-      availableProviderIds,
-    );
+    const templateLLMConfig = normalizeAgentLLMConfig(template.llmConfig);
+    const nextLLMConfig = normalizeAgentLLMConfig({
+      ...(templateLLMConfig ?? {}),
+      ...(input.provider !== undefined ? { provider: input.provider } : {}),
+    });
 
     const created = await executeCommand(
       { db: drizzle },

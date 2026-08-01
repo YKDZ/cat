@@ -1,3 +1,4 @@
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({
@@ -24,6 +25,22 @@ vi.mock("@cat/server-shared", () => ({
 }));
 
 import { createVectorizedStringOp } from "./create-vectorized-string.ts";
+
+const vectorizer = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vectorizer",
+  serviceType: "TEXT_VECTORIZER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+
+const vectorStorage = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vector-storage",
+  serviceType: "VECTOR_STORAGE",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 describe("createVectorizedStringOp", () => {
   beforeEach(() => {
@@ -67,7 +84,7 @@ describe("createVectorizedStringOp", () => {
     expect(result).toEqual({ stringIds: [11, 12] });
   });
 
-  it("enqueues vectorization when both service ids are available", async () => {
+  it("enqueues vectorization when both service references are available", async () => {
     const tx = { tag: "tx" };
     const db = {
       tag: "db",
@@ -82,8 +99,8 @@ describe("createVectorizedStringOp", () => {
 
     const result = await createVectorizedStringOp({
       data: [{ text: "Prompt", languageId: "en-US" }],
-      vectorizerId: 101,
-      vectorStorageId: 202,
+      vectorizer,
+      vectorStorage,
     });
 
     expect(mocked.getVectorizationQueue).toHaveBeenCalledTimes(1);
@@ -91,8 +108,8 @@ describe("createVectorizedStringOp", () => {
       expect.objectContaining({
         stringIds: [21],
         data: [{ text: "Prompt", languageId: "en-US" }],
-        vectorizerId: 101,
-        vectorStorageId: 202,
+        vectorizer,
+        vectorStorage,
       }),
     ]);
     expect(mocked.domainEventBus.publish).toHaveBeenCalledWith(

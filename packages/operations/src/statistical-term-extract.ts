@@ -1,4 +1,5 @@
 import type { OperationContext } from "@cat/domain";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
@@ -114,7 +115,7 @@ export const StatisticalTermExtractInputSchema = z.object({
     }),
   ),
   languageId: z.string().min(1),
-  nlpSegmenterId: z.int().optional(),
+  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
   config: z.object({
     maxTermTokens: z.int().min(1).max(10).default(5),
     minElementFrequency: z.int().min(1).default(2),
@@ -181,7 +182,7 @@ export const statisticalTermExtractOp = async (
     {
       items: data.texts.map((t) => ({ id: t.id, text: t.text })),
       languageId: data.languageId,
-      nlpSegmenterId: data.nlpSegmenterId,
+      nlpSegmenter: data.nlpSegmenter,
     },
     ctx,
   );

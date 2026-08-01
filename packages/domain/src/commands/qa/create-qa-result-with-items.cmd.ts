@@ -1,6 +1,9 @@
 import { qaResult, qaResultItem } from "@cat/db";
-import type { JSONType } from "@cat/shared";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  type JSONType,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command, DbHandle } from "#/types.ts";
@@ -10,7 +13,7 @@ export const CreateQaResultWithItemsCommandSchema = z.object({
   items: z.array(
     z.object({
       isPassed: z.boolean(),
-      checkerId: z.int(),
+      checker: ServiceImplementationReferenceSchema,
       meta: z.json().optional(),
     }),
   ),
@@ -49,7 +52,7 @@ const insertQaResultWithItems = async (
             .values(
               command.items.map((item) => ({
                 isPassed: item.isPassed,
-                checkerId: item.checkerId,
+                checker: item.checker,
                 resultId: inserted.id,
                 meta: (item.meta ?? null) as JSONType | null,
               })),

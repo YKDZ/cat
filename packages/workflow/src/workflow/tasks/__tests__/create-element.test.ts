@@ -129,8 +129,9 @@ test("create-element should insert elements to db", async () => {
 
   const { elementIds } = await runGraph(createElementGraph, {
     data: elementData,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(elementIds.length).toEqual(elementData.length);
@@ -151,8 +152,9 @@ test("create-element with empty data should return empty elementIds", async () =
 
   const { elementIds } = await runGraph(createElementGraph, {
     data: [],
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(elementIds).toEqual([]);
 });

@@ -4,7 +4,6 @@ import {
   getPlugin,
   getPluginConfig,
   getPluginConfigInstance,
-  getPluginServiceById,
   isPluginInstalled,
   listPluginServiceIdsByType,
   listPlugins,
@@ -15,6 +14,7 @@ import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
   PluginSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { ScopeTypeSchema } from "@cat/shared";
 import { nonNullSafeZDotJson } from "@cat/shared";
@@ -242,10 +242,12 @@ export const getAllTranslationAdvisors = authed
 
     return Promise.all(
       pluginManager.getServices("TRANSLATION_ADVISOR").map(
-        async ({ dbId, service }) =>
+        async (registered) =>
           ({
-            id: dbId,
-            name: service.getDisplayName(),
+            id: registered.dbId,
+            reference:
+              pluginManager.createServiceImplementationReference(registered),
+            name: registered.service.getDisplayName(),
           }) satisfies TranslationAdvisorData,
       ),
     );
@@ -254,43 +256,22 @@ export const getAllTranslationAdvisors = authed
 export const getTranslationAdvisor = authed
   .input(
     z.object({
-      advisorId: z.int(),
+      advisor: ServiceImplementationReferenceSchema,
     }),
   )
   .output(TranslationAdvisorDataSchema)
   .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      pluginManager,
-    } = context;
-    const { advisorId } = input;
-
-    const dbAdvisor = await executeQuery(
-      { db: drizzle },
-      getPluginServiceById,
-      {
-        serviceDbId: advisorId,
-        serviceType: "TRANSLATION_ADVISOR",
-      },
-    );
-
-    if (!dbAdvisor) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Translation Advisor not found",
-      });
-    }
-
-    const service = pluginManager.getService(
-      dbAdvisor.pluginId,
+    const { pluginManager } = context;
+    const service = pluginManager.resolveServiceImplementationReference(
+      input.advisor,
       "TRANSLATION_ADVISOR",
-      dbAdvisor.serviceId,
     );
-
-    if (!service) throw new ORPCError("NOT_FOUND");
+    if (service.kind !== "RESOLVED") throw new ORPCError("NOT_FOUND");
 
     return {
-      id: advisorId,
-      name: service.service.getDisplayName(),
+      id: service.service.dbId,
+      reference: input.advisor,
+      name: service.service.service.getDisplayName(),
     };
   });
 

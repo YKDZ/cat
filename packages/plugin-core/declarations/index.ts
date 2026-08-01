@@ -26,7 +26,16 @@ export type PluginServiceType =
   | "TRANSLATION_ADVISOR"
   | "VECTOR_STORAGE";
 
-export type ScopeType = "GLOBAL" | "PROJECT";
+export type ScopeType = "GLOBAL" | "PROJECT" | "USER";
+export type PluginIdentifier = string & {
+  readonly __pluginIdentifier: unique symbol;
+};
+export type ServiceIdentifier = string & {
+  readonly __serviceIdentifier: unique symbol;
+};
+export type ScopedInstallationIdentifier = string & {
+  readonly __scopedInstallationIdentifier: unique symbol;
+};
 
 export interface IPluginService {
   getId(): string;
@@ -87,7 +96,7 @@ export type PluginCapabilities = {
       providerIssuer: string;
     }): Promise<unknown>;
     getMfaPayloadForUser(input: {
-      factorId: string;
+      mfaService: ServiceImplementationReference;
       userId: string;
     }): Promise<unknown>;
   };
@@ -161,6 +170,7 @@ export type AuthFactorResult =
 export type AuthFactorExecutionContext = {
   identifier?: string;
   userId?: string;
+  serviceReference?: ServiceImplementationReference;
   input: AuthFactorInput;
   httpContext: { ip: string; userAgent: string };
 };
@@ -718,6 +728,69 @@ export type PluginRuntimeSnapshot = {
   components: ComponentRecord[];
   hasRoute: boolean;
 };
+export type PluginServiceMap = {
+  AGENT_CONTEXT_PROVIDER: AgentContextProvider;
+  AGENT_TOOL_PROVIDER: AgentToolProvider;
+  AUTH_FACTOR: AuthFactor;
+  EMAIL_PROVIDER: EmailProviderService;
+  FILE_EXPORTER: FileExporter;
+  FILE_IMPORTER: FileImporter;
+  LLM_PROVIDER: LLMProvider;
+  NLP_WORD_SEGMENTER: NlpWordSegmenter;
+  QA_CHECKER: QAChecker;
+  RERANK_PROVIDER: RerankProvider;
+  STORAGE_PROVIDER: StorageProvider;
+  TEXT_VECTORIZER: TextVectorizer;
+  TOKENIZER: Tokenizer;
+  TRANSLATION_ADVISOR: TranslationAdvisor;
+  VECTOR_STORAGE: VectorStorage;
+};
+export type ServiceImplementationReference =
+  | {
+      pluginId: PluginIdentifier;
+      serviceId: ServiceIdentifier;
+      serviceType: PluginServiceType;
+      scopeType: "GLOBAL";
+      scopeId: "";
+    }
+  | {
+      pluginId: PluginIdentifier;
+      serviceId: ServiceIdentifier;
+      serviceType: PluginServiceType;
+      scopeType: "PROJECT" | "USER";
+      scopeId: ScopedInstallationIdentifier;
+    };
+export type ServiceImplementationResolution<T extends PluginServiceType> =
+  | {
+      kind: "RESOLVED";
+      reference: ServiceImplementationReference;
+      service: RegisteredService & { service: PluginServiceMap[T]; type: T };
+    }
+  | {
+      kind: "INSTALLATION_SCOPE_MISMATCH";
+      reference: ServiceImplementationReference;
+      installationScope: { scopeType: ScopeType; scopeId: string };
+    }
+  | {
+      kind: "SERVICE_TYPE_MISMATCH";
+      reference: ServiceImplementationReference;
+      expectedServiceType: T;
+      actualServiceType: PluginServiceType;
+    }
+  | {
+      kind: "MISSING_IMPLEMENTATION" | "PACKAGE_NOT_LOADED";
+      reference: ServiceImplementationReference;
+      expectedServiceType: T;
+    }
+  | {
+      kind: "DUPLICATE_IMPLEMENTATION";
+      reference: ServiceImplementationReference;
+      expectedServiceType: T;
+      matches: readonly (RegisteredService & {
+        service: PluginServiceMap[T];
+        type: T;
+      })[];
+    };
 export declare class PluginManager {
   readonly scopeType: ScopeType;
   readonly scopeId: string;
@@ -761,6 +834,13 @@ export declare class PluginManager {
     type: T,
     id: string,
   ): RegisteredService | null;
+  resolveServiceImplementationReference<T extends PluginServiceType>(
+    reference: ServiceImplementationReference,
+    expectedServiceType: T,
+  ): ServiceImplementationResolution<T>;
+  createServiceImplementationReference(
+    service: Pick<RegisteredService, "pluginId" | "id" | "type">,
+  ): ServiceImplementationReference;
   getAllServices(): RegisteredService[];
   getServices<T extends PluginServiceType>(type: T): RegisteredService[];
   getComponents(pluginId: string): ComponentRecord[];

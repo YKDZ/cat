@@ -1,4 +1,5 @@
 import { PluginManager } from "@cat/plugin-core";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { setupTestDB, TestPluginLoader, type TestDB } from "@cat/test-utils";
 import {
   afterAll,
@@ -38,6 +39,28 @@ vi.mock("#/graph/dsl/run-graph.ts", () => ({
 }));
 
 import { autoTranslateGraph } from "../auto-translate.ts";
+
+const advisor = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "advisor",
+  serviceType: "TRANSLATION_ADVISOR",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+const vectorizer = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vectorizer",
+  serviceType: "TEXT_VECTORIZER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+const vectorStorage = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vector-storage",
+  serviceType: "VECTOR_STORAGE",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 describe("autoTranslateGraph", () => {
   let cleanup: TestDB["cleanup"] | undefined;
@@ -110,15 +133,15 @@ describe("autoTranslateGraph", () => {
         translationLanguageId: "zh-Hans",
         sourceLanguageId: "en",
         translatorId: null,
-        advisorId: 1,
+        advisor,
         memoryIds: ["22222222-2222-4222-8222-222222222222"],
         glossaryIds: ["11111111-1111-4111-8111-111111111111"],
         chunkIds: [1],
         minMemorySimilarity: 0.72,
         maxMemoryAmount: 3,
-        memoryVectorStorageId: 1,
-        translationVectorStorageId: 2,
-        vectorizerId: 3,
+        memoryVectorStorage: vectorStorage,
+        translationVectorStorage: vectorStorage,
+        vectorizer,
       },
       { pluginManager },
     );
@@ -126,7 +149,7 @@ describe("autoTranslateGraph", () => {
     expect(mocks.collectMemoryRecallOp).toHaveBeenCalledWith(
       expect.objectContaining({
         text: "Order 43 completed",
-        vectorStorageId: 1,
+        vectorStorage,
       }),
       expect.any(Object),
     );
@@ -190,15 +213,15 @@ describe("autoTranslateGraph", () => {
         translationLanguageId: "zh-Hans",
         sourceLanguageId: "en",
         translatorId: null,
-        advisorId: 1,
+        advisor,
         memoryIds: [],
         glossaryIds: [],
         chunkIds: [],
         minMemorySimilarity: 0.72,
         maxMemoryAmount: 3,
-        memoryVectorStorageId: 1,
-        translationVectorStorageId: 2,
-        vectorizerId: 3,
+        memoryVectorStorage: vectorStorage,
+        translationVectorStorage: vectorStorage,
+        vectorizer,
         scopeTranslationSeeds: [
           {
             elementId: 1,

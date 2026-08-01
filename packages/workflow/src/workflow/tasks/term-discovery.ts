@@ -4,7 +4,10 @@ import {
   loadElementTextsOp,
   statisticalTermExtractOp,
 } from "@cat/operations";
-import { OperationScopeSchema } from "@cat/shared";
+import {
+  OperationScopeSchema,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -33,8 +36,8 @@ export const TermDiscoveryConfigSchema = z.object({
   llm: z
     .object({
       enabled: z.boolean().default(true),
-      /** LLM provider service ID. Omit to use default. */
-      llmProviderId: z.int().optional(),
+      /** LLM provider implementation. Omit to use default. */
+      llmProvider: ServiceImplementationReferenceSchema.optional(),
       /** Confidence threshold below which candidates enter LLM validation */
       confidenceThreshold: z.number().min(0).max(1).default(0.3),
       /** Maximum candidates per LLM batch */
@@ -52,8 +55,8 @@ export const TermDiscoveryInputSchema = OperationScopeSchema.extend({
   glossaryId: z.uuidv4(),
   /** Source language of the elements */
   sourceLanguageId: z.string().min(1),
-  /** Optional NLP_WORD_SEGMENTER plugin service ID */
-  nlpSegmenterId: z.int().optional(),
+  /** Optional NLP_WORD_SEGMENTER implementation. */
+  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
   config: TermDiscoveryConfigSchema.optional(),
 });
 
@@ -134,7 +137,7 @@ const StatExtractInputSchema = z.object({
     }),
   ),
   languageId: z.string().min(1),
-  nlpSegmenterId: z.int().optional(),
+  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
   config: TermDiscoveryConfigSchema.optional(),
 });
 
@@ -272,7 +275,7 @@ export const termDiscoveryGraph = defineGraph({
       inputMapping: {
         elements: "load-texts.elements",
         languageId: "sourceLanguageId",
-        nlpSegmenterId: "nlpSegmenterId",
+        nlpSegmenter: "nlpSegmenter",
         config: "config",
       },
       handler: async (input, ctx) => {
@@ -291,7 +294,7 @@ export const termDiscoveryGraph = defineGraph({
               text: e.text,
             })),
             languageId: input.languageId,
-            nlpSegmenterId: input.nlpSegmenterId,
+            nlpSegmenter: input.nlpSegmenter,
             config: {
               maxTermTokens: statConfig?.maxTermTokens ?? 5,
               minElementFrequency: statConfig?.minElementFrequency ?? 2,
@@ -362,7 +365,7 @@ export const termDiscoveryGraph = defineGraph({
                   candidates: input.dedupCandidates,
                   sourceLanguageId: input.sourceLanguageId,
                   config: {
-                    llmProviderId: llmConfig?.llmProviderId,
+                    llmProvider: llmConfig?.llmProvider,
                     confidenceThreshold: llmConfig?.confidenceThreshold ?? 0.3,
                     batchSize: llmConfig?.batchSize ?? 20,
                     inferDefinition: llmConfig?.inferDefinition ?? true,

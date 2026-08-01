@@ -1,4 +1,5 @@
 import { blob as blobTable, contentNode, eq, file as fileTable } from "@cat/db";
+import type { ServiceImplementationReference } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -13,12 +14,12 @@ export type GetContentNodeBlobInfoQuery = z.infer<
 export type ContentNodeBlobInfo = {
   fileId: number | null;
   key: string | null;
-  storageProviderId: number | null;
+  storageProvider: ServiceImplementationReference | null;
   fileName: string | null;
 };
 
 /**
- * Get the blob storage info (key, storageProviderId, fileName) for the content node's file.
+ * Get the blob storage info and its stable provider reference for a content node.
  */
 export const getContentNodeBlobInfo: Query<
   GetContentNodeBlobInfoQuery,
@@ -28,7 +29,7 @@ export const getContentNodeBlobInfo: Query<
     .select({
       fileId: contentNode.fileId,
       key: blobTable.key,
-      storageProviderId: blobTable.storageProviderId,
+      storageProvider: blobTable.storageProvider,
       fileName: fileTable.name,
     })
     .from(contentNode)
@@ -43,7 +44,7 @@ export const getContentNodeBlobInfo: Query<
   return {
     fileId: row.fileId,
     key: row.key,
-    storageProviderId: row.storageProviderId,
+    storageProvider: row.storageProvider,
     fileName: row.fileName,
   };
 };

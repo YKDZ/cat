@@ -1,5 +1,6 @@
 import { executeCommand, executeQuery } from "@cat/domain";
-import { PluginManager } from "@cat/plugin-core";
+import { PluginManager, ServiceRegistry } from "@cat/plugin-core";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { createAuthedTestContext } from "@cat/test-utils";
 import { call } from "@orpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -130,22 +131,34 @@ const createPluginManager = (options?: {
   llmProviders?: PluginServiceEntry[];
   agentToolProviders?: PluginServiceEntry[];
 }): PluginManager => {
-  const manager = new PluginManager("GLOBAL", "");
-
-  vi.spyOn(manager, "getServices").mockImplementation((type) => {
-    if (type === "LLM_PROVIDER") {
-      return options?.llmProviders ?? [];
-    }
-
-    if (type === "AGENT_TOOL_PROVIDER") {
-      return options?.agentToolProviders ?? [];
-    }
-
-    return [];
-  });
+  const services = [
+    ...(options?.llmProviders ?? []),
+    ...(options?.agentToolProviders ?? []),
+  ];
+  const manager = new PluginManager(
+    "GLOBAL",
+    "",
+    undefined,
+    undefined,
+    new ServiceRegistry(services),
+  );
+  Reflect.set(
+    manager,
+    "activePlugins",
+    new Map(services.map((service) => [service.pluginId, {}])),
+  );
 
   return manager;
 };
+
+const llmReference = (pluginId: string, serviceId: string) =>
+  ServiceImplementationReferenceSchema.parse({
+    pluginId,
+    serviceId,
+    serviceType: "LLM_PROVIDER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  });
 
 describe("agent router", () => {
   beforeEach(() => {
@@ -286,7 +299,7 @@ describe("agent router", () => {
             version: "1.0.0",
             icon: "languages",
             type: "GENERAL",
-            llmConfig: { providerId: 9 },
+            llmConfig: { provider: llmReference("plugin-llm", "provider-9") },
             tools: ["finish"],
             promptConfig: null,
             constraints: null,
@@ -409,7 +422,13 @@ describe("agent router", () => {
       enableBuiltin,
       {
         templateId: "translator",
-        providerId: 7,
+        provider: {
+          pluginId: "plugin-llm-explicit",
+          serviceId: "provider-7",
+          serviceType: "LLM_PROVIDER",
+          scopeType: "GLOBAL",
+          scopeId: "",
+        },
         scopeType: "PROJECT",
         scopeId: "project-explicit",
       },
@@ -424,8 +443,53 @@ describe("agent router", () => {
       expect.anything(),
       createAgentDefinition,
       expect.objectContaining({
-        llmConfig: { providerId: 7, temperature: 0.3 },
+        llmConfig: {
+          provider: llmReference("plugin-llm-explicit", "provider-7"),
+          temperature: 0.3,
+        },
       }),
+    );
+  });
+
+  it("enableBuiltin rejects missing and mistyped explicit provider references", async () => {
+    const context = createContext(createPluginManager());
+
+    await expect(
+      call(
+        enableBuiltin,
+        {
+          templateId: "translator",
+          provider: llmReference("plugin-llm-missing", "provider-missing"),
+          scopeType: "PROJECT",
+          scopeId: "project-missing",
+        },
+        { context },
+      ),
+    ).rejects.toThrow("Selected LLM provider not found");
+
+    await expect(
+      call(
+        enableBuiltin,
+        {
+          templateId: "translator",
+          provider: {
+            pluginId: "plugin-vectorizer",
+            serviceId: "vectorizer",
+            serviceType: "TEXT_VECTORIZER",
+            scopeType: "GLOBAL",
+            scopeId: "",
+          },
+          scopeType: "PROJECT",
+          scopeId: "project-mistyped",
+        },
+        { context },
+      ),
+    ).rejects.toThrow("Selected LLM provider not found");
+
+    expect(vi.mocked(executeCommand)).not.toHaveBeenCalledWith(
+      expect.anything(),
+      createAgentDefinition,
+      expect.anything(),
     );
   });
 
@@ -447,7 +511,9 @@ describe("agent router", () => {
             version: "1.0.0",
             icon: "languages",
             type: "GENERAL",
-            llmConfig: { providerId: 7 },
+            llmConfig: {
+              provider: llmReference("plugin-llm", "provider-7"),
+            },
             tools: ["finish"],
             promptConfig: null,
             constraints: null,
@@ -471,7 +537,7 @@ describe("agent router", () => {
           version: "1.0.0",
           icon: "languages",
           type: "GENERAL",
-          llmConfig: { providerId: 1 },
+          llmConfig: { provider: llmReference("plugin-llm", "provider-1") },
           tools: ["finish"],
           promptConfig: null,
           constraints: null,
@@ -508,7 +574,7 @@ describe("agent router", () => {
     );
   });
 
-  it("sendMessage prefers providerId from session metadata", async () => {
+  it("sendMessage prefers the provider reference from session metadata", async () => {
     const llmProviderFromSession = {
       pluginId: "plugin-llm-session",
       dbId: 7,
@@ -549,7 +615,9 @@ describe("agent router", () => {
           currentRunId: null,
           status: "ACTIVE",
           userId: "00000000-0000-0000-0000-000000000001",
-          metadata: { providerId: 7 },
+          metadata: {
+            provider: llmReference("plugin-llm-session", "provider-7"),
+          },
         };
       }
 
@@ -566,7 +634,9 @@ describe("agent router", () => {
           version: "1.0.0",
           icon: "languages",
           type: "GENERAL",
-          llmConfig: { providerId: 9 },
+          llmConfig: {
+            provider: llmReference("plugin-llm-definition", "provider-9"),
+          },
           tools: ["finish"],
           promptConfig: null,
           constraints: null,
@@ -780,7 +850,9 @@ describe("agent router", () => {
           currentRunId: null,
           status: "ACTIVE",
           userId: "00000000-0000-0000-0000-000000000001",
-          metadata: { providerId: 7 },
+          metadata: {
+            provider: llmReference("plugin-llm-session", "provider-7"),
+          },
         };
       }
 
@@ -797,7 +869,9 @@ describe("agent router", () => {
           version: "1.0.0",
           icon: "languages",
           type: "GENERAL",
-          llmConfig: { providerId: 7 },
+          llmConfig: {
+            provider: llmReference("plugin-llm-session", "provider-7"),
+          },
           tools: ["finish"],
           promptConfig: null,
           constraints: null,
@@ -960,7 +1034,7 @@ describe("agent router", () => {
     );
   });
 
-  it("get nulls a dangling fallback provider while preserving other llm config", async () => {
+  it("get preserves an explicit provider reference while preserving other llm config", async () => {
     const activeProvider = {
       pluginId: "plugin-llm-active",
       dbId: 7,
@@ -990,7 +1064,11 @@ describe("agent router", () => {
           version: "1.0.0",
           icon: "languages",
           type: "GENERAL",
-          llmConfig: { providerId: 99, temperature: 0.4, maxTokens: 2048 },
+          llmConfig: {
+            provider: llmReference("plugin-llm-missing", "provider-99"),
+            temperature: 0.4,
+            maxTokens: 2048,
+          },
           tools: ["finish"],
           promptConfig: null,
           constraints: null,
@@ -1016,21 +1094,14 @@ describe("agent router", () => {
     );
 
     expect(result.llmConfig).toEqual({
-      providerId: null,
+      provider: llmReference("plugin-llm-missing", "provider-99"),
       temperature: 0.4,
       maxTokens: 2048,
     });
-    expect(vi.mocked(executeCommand)).toHaveBeenCalledWith(
+    expect(vi.mocked(executeCommand)).not.toHaveBeenCalledWith(
       expect.anything(),
       updateAgentDefinition,
-      {
-        id: "33333333-3333-4333-8333-333333333333",
-        llmConfig: {
-          providerId: null,
-          temperature: 0.4,
-          maxTokens: 2048,
-        },
-      },
+      expect.anything(),
     );
   });
 

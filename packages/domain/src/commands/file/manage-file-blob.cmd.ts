@@ -7,14 +7,17 @@ import {
   gt,
   increment,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const CreateOrReferenceBlobAndFileCommandSchema = z.object({
   key: z.string(),
-  storageProviderId: z.int(),
+  storageProvider: ServiceImplementationReferenceSchema,
   name: z.string(),
   hash: z.instanceof(Buffer),
 });
@@ -38,7 +41,7 @@ export const createOrReferenceBlobAndFile: Command<
       .insert(blobTable)
       .values({
         key: command.key,
-        storageProviderId: command.storageProviderId,
+        storageProvider: command.storageProvider,
         hash: command.hash,
       })
       .onConflictDoUpdate({
@@ -76,7 +79,7 @@ export const createOrReferenceBlobAndFile: Command<
 
 export const CreateBlobAndFileCommandSchema = z.object({
   key: z.string(),
-  storageProviderId: z.int(),
+  storageProvider: ServiceImplementationReferenceSchema,
   name: z.string(),
 });
 
@@ -102,7 +105,7 @@ export const createBlobAndFile: Command<
       .insert(blobTable)
       .values({
         key: command.key,
-        storageProviderId: command.storageProviderId,
+        storageProvider: command.storageProvider,
       })
       .returning({ id: blobTable.id }),
   );

@@ -2,13 +2,12 @@ import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listSemanticTermSearchRange } from "@cat/domain";
 import { fetchTermsByConceptIds, type LookedUpTerm } from "@cat/domain";
+import { PluginManager } from "@cat/plugin-core";
+import { resolveServiceImplementation } from "@cat/server-shared";
 import {
-  PluginManager,
-  type TextVectorizer,
-  type VectorStorage,
-} from "@cat/plugin-core";
-import { getServiceFromDBId } from "@cat/server-shared";
-import { TermMatchSchema } from "@cat/shared";
+  ServiceImplementationReferenceSchema,
+  TermMatchSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 export const SemanticSearchTermsInputSchema = z.object({
@@ -16,8 +15,8 @@ export const SemanticSearchTermsInputSchema = z.object({
   text: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
   minSimilarity: z.number().min(0).max(1).optional().default(0.6),
   maxAmount: z.int().min(1).optional().default(20),
 });
@@ -75,9 +74,10 @@ export const semanticSearchTermsOp = async (
   const searchRange = rangeRows.map((r) => r.chunkId);
 
   // 2. Vectorize the query text on-the-fly via TEXT_VECTORIZER.
-  const vectorizer = getServiceFromDBId<TextVectorizer>(
+  const vectorizer = resolveServiceImplementation(
     pluginManager,
-    data.vectorizerId,
+    data.vectorizer,
+    "TEXT_VECTORIZER",
   );
   const queryChunks = await vectorizer.vectorize({
     elements: [{ text: data.text, languageId: data.sourceLanguageId }],
@@ -88,9 +88,10 @@ export const semanticSearchTermsOp = async (
   if (queryVectors.length === 0) return [];
 
   // 3. Cosine similarity search within the pre-built range.
-  const vectorStorage = getServiceFromDBId<VectorStorage>(
+  const vectorStorage = resolveServiceImplementation(
     pluginManager,
-    data.vectorStorageId,
+    data.vectorStorage,
+    "VECTOR_STORAGE",
   );
   const similar = await vectorStorage.cosineSimilarity({
     vectors: queryVectors,

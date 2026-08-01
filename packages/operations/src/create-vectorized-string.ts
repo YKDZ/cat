@@ -7,7 +7,10 @@ import {
   getDbHandle,
 } from "@cat/domain";
 import { getVectorizationQueue } from "@cat/server-shared";
-import type { UnvectorizedTextData } from "@cat/shared";
+import {
+  type UnvectorizedTextData,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 export const CreateVectorizedStringInputSchema = z.object({
@@ -17,8 +20,8 @@ export const CreateVectorizedStringInputSchema = z.object({
       languageId: z.string(),
     }),
   ),
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  vectorizer: ServiceImplementationReferenceSchema.optional(),
+  vectorStorage: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const CreateVectorizedStringOutputSchema = z.object({
@@ -49,13 +52,13 @@ const createStringIdsFromData = async (
 /**
  *
  * 先在数据库中插入 VectorizedString 行（status=PENDING_VECTORIZE），
- * 仅当 `vectorizerId` 与 `vectorStorageId` 同时可用时，才会将向量化任务加入队列并发布领域事件；
+ * 仅当 vectorizer 与 vectorStorage 同时可用时，才会将向量化任务加入队列并发布领域事件；
  * 否则仅创建字符串记录，等待后续重向量化流程补齐。
  * Create vectorized strings and enqueue background vectorization when vector services are available.
  *
  * Inserts VectorizedString rows (status=PENDING_VECTORIZE) into the database first,
  * and only enqueues the vectorization task plus publishes a domain event when both
- * `vectorizerId` and `vectorStorageId` are available. Otherwise it only creates the
+ * vectorizer and vectorStorage are available. Otherwise it only creates the
  * string records and leaves later re-vectorization to follow-up flows.
  *
  * @param data - String creation input parameters
@@ -69,10 +72,10 @@ export const createVectorizedStringOp = async (
   if (data.data.length === 0) return { stringIds: [] };
 
   const stringIds = await createStringIdsFromData(data.data, ctx);
-  const vectorizerId = data.vectorizerId;
-  const vectorStorageId = data.vectorStorageId;
+  const vectorizer = data.vectorizer;
+  const vectorStorage = data.vectorStorage;
 
-  if (typeof vectorizerId !== "number" || typeof vectorStorageId !== "number") {
+  if (!vectorizer || !vectorStorage) {
     return { stringIds };
   }
 
@@ -84,8 +87,8 @@ export const createVectorizedStringOp = async (
       taskId,
       stringIds,
       data: data.data,
-      vectorizerId,
-      vectorStorageId,
+      vectorizer,
+      vectorStorage,
     },
   ]);
 

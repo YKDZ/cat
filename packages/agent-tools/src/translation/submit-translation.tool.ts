@@ -7,7 +7,7 @@ import {
 } from "@cat/domain";
 import { createTranslationOp } from "@cat/operations";
 import {
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   resolvePluginManager,
 } from "@cat/server-shared/plugin";
 import * as z from "zod";
@@ -82,8 +82,14 @@ export const submitTranslationTool: AgentToolDefinition = {
     }
 
     const pluginManager = resolvePluginManager(ctx.pluginManager);
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
-    const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
+    const vectorStorage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
 
     const result = await createTranslationOp({
       data: [
@@ -95,8 +101,8 @@ export const submitTranslationTool: AgentToolDefinition = {
       ],
       translatorId: null,
       memoryIds: [],
-      vectorizerId: vectorizer?.id,
-      vectorStorageId: vectorStorage?.id,
+      vectorizer: vectorizer?.reference,
+      vectorStorage: vectorStorage?.reference,
     });
 
     return {

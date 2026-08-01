@@ -136,6 +136,12 @@ const collectImports = (
     imports.add('import { DrizzleDateTimeSchema } from "#/schema/misc.ts";');
   }
 
+  if (body.includes("ServiceImplementationReferenceSchema")) {
+    imports.add(
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    );
+  }
+
   const jsonImports: string[] = [];
 
   if (body.includes("_JSONSchemaSchema")) {

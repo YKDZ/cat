@@ -1,5 +1,8 @@
 import { and, blob, eq, file, user } from "@cat/db";
-import { assertSingleOrNull } from "@cat/shared";
+import {
+  assertSingleOrNull,
+  type ServiceImplementationReference,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -14,7 +17,7 @@ export type GetUserAvatarFileQuery = z.infer<
 
 export type UserAvatarFileRef = {
   key: string;
-  storageProviderId: number;
+  storageProvider: ServiceImplementationReference;
 };
 
 export const getUserAvatarFile: Query<
@@ -25,7 +28,7 @@ export const getUserAvatarFile: Query<
     await ctx.db
       .select({
         key: blob.key,
-        storageProviderId: blob.storageProviderId,
+        storageProvider: blob.storageProvider,
       })
       .from(user)
       .innerJoin(

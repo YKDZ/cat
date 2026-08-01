@@ -1,13 +1,16 @@
 import { diffStructuredContentOp } from "@cat/operations";
-import { StructuredContentPayloadSchema } from "@cat/shared";
+import {
+  ServiceImplementationReferenceSchema,
+  StructuredContentPayloadSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { defineGraph, defineNode } from "#/graph/dsl/index.ts";
 
 export const IngestCollectionInputSchema = z.object({
   payload: StructuredContentPayloadSchema,
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const IngestCollectionOutputSchema = z.object({
@@ -36,8 +39,8 @@ export const ingestCollectionGraph = defineGraph({
         const result = await diffStructuredContentOp(
           {
             payload: input.payload,
-            vectorizerId: input.vectorizerId,
-            vectorStorageId: input.vectorStorageId,
+            vectorizer: input.vectorizer,
+            vectorStorage: input.vectorStorage,
           },
           ctx,
         );

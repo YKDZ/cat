@@ -2,7 +2,6 @@ import { readFile } from "node:fs/promises";
 
 import type { DbHandle, DrizzleClient, DrizzleTransaction } from "@cat/domain";
 import {
-  checkServiceReferences,
   deletePluginServices,
   executeCommand,
   executeQuery,
@@ -40,6 +39,12 @@ import {
 } from "#/registry/loader.ts";
 import { PluginDiscoveryService } from "#/registry/plugin-discovery.ts";
 import { PluginRouteRegistry } from "#/registry/plugin-route-registry.ts";
+import {
+  resolveRegisteredServiceImplementationReference,
+  createServiceImplementationReference,
+  type ServiceImplementationReference,
+  type ServiceImplementationResolution,
+} from "#/registry/service-implementation-reference.ts";
 import {
   ServiceRegistry,
   type RegisteredService,
@@ -451,6 +456,39 @@ export class PluginManager {
     };
   }
 
+  /**
+   * Resolve a persisted service identity in this manager's installation scope.
+   * The result keeps configuration and runtime failures distinct for callers.
+   */
+  public resolveServiceImplementationReference<T extends PluginServiceType>(
+    reference: ServiceImplementationReference,
+    expectedServiceType: T,
+  ): ServiceImplementationResolution<T> {
+    if (!this.isActive(reference.pluginId)) {
+      return {
+        kind: "PACKAGE_NOT_LOADED",
+        reference,
+        expectedServiceType,
+      };
+    }
+
+    return resolveRegisteredServiceImplementationReference(
+      this.serviceRegistry,
+      { scopeType: this.scopeType, scopeId: this.scopeId },
+      reference,
+      expectedServiceType,
+    );
+  }
+
+  public createServiceImplementationReference(
+    service: Pick<RegisteredService, "pluginId" | "id" | "type">,
+  ): ServiceImplementationReference {
+    return createServiceImplementationReference(
+      { scopeType: this.scopeType, scopeId: this.scopeId },
+      service,
+    );
+  }
+
   public getAllServices(): RegisteredService[] {
     return this.serviceRegistry.getAll();
   }
@@ -650,41 +688,8 @@ export class PluginManager {
     );
 
     if (toDelete.length > 0) {
-      await this.safeDeleteServices(drizzle, toDelete);
-    }
-  }
-
-  /**
-   * 安全删除动态服务：检查外键引用，被引用的服务保留为 orphaned
-   */
-  private async safeDeleteServices(
-    drizzle: DbHandle,
-    toDelete: { id: number; serviceId: string; serviceType: string }[],
-  ): Promise<void> {
-    const safeToDeleteIds: number[] = [];
-
-    for (const svc of toDelete) {
-      // oxlint-disable-next-line no-await-in-loop
-      const hasRef = await executeQuery(
-        { db: drizzle },
-        checkServiceReferences,
-        { serviceDbId: svc.id },
-      );
-
-      if (hasRef) {
-        this.diagnosticLogger
-          .child({ component: "plugin" })
-          .warn(
-            `Service ${svc.serviceType}:${svc.serviceId} (dbId=${svc.id}) is referenced, keeping as orphaned`,
-          );
-      } else {
-        safeToDeleteIds.push(svc.id);
-      }
-    }
-
-    if (safeToDeleteIds.length > 0) {
       await executeCommand({ db: drizzle }, deletePluginServices, {
-        serviceDbIds: safeToDeleteIds,
+        serviceDbIds: toDelete.map((service) => service.id),
       });
     }
   }

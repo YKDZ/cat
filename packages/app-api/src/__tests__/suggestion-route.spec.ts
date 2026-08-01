@@ -199,7 +199,7 @@ describe("suggestion.onNew", () => {
         confidence: 0.5,
       }),
     );
-    expect(results[0]).not.toHaveProperty("advisorId");
+    expect(results[0]).not.toHaveProperty("advisor");
     expect(opMocks.llmTranslateOp).toHaveBeenCalledOnce();
     expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
       expect.objectContaining({

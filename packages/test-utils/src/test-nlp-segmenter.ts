@@ -1,6 +1,5 @@
 import { NlpWordSegmenter, type CatPlugin } from "@cat/plugin-core";
-import type { NlpSegmentResult } from "@cat/shared";
-import type { PluginManifest } from "@cat/shared";
+import { type NlpSegmentResult, PluginManifestSchema } from "@cat/shared";
 
 const TOKEN_PATTERN = /\p{L}+|\p{N}+|[^\s]/gu;
 
@@ -54,7 +53,7 @@ export class TestNlpSegmenter extends NlpWordSegmenter {
   };
 }
 
-export const testNlpSegmenterManifest = {
+export const testNlpSegmenterManifest = PluginManifestSchema.parse({
   id: "mock-nlp-segmenter",
   version: "0.0.1",
   entry: "index.js",
@@ -65,7 +64,7 @@ export const testNlpSegmenterManifest = {
       dynamic: false,
     },
   ],
-} satisfies PluginManifest;
+});
 
 export const testNlpSegmenterPlugin = {
   services: async () => [new TestNlpSegmenter()],

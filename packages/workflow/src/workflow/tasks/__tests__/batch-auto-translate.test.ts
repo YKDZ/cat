@@ -1,4 +1,5 @@
 import { PluginManager } from "@cat/plugin-core";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { setupTestDB, TestPluginLoader, type TestDB } from "@cat/test-utils";
 import {
   afterAll,
@@ -29,6 +30,21 @@ vi.mock("@cat/operations", async () => {
 vi.mock("#/graph/dsl/run-graph.ts", () => ({ runGraph: mocks.nestedRunGraph }));
 
 import { batchAutoTranslateGraph } from "../batch-auto-translate.ts";
+
+const vectorizer = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vectorizer",
+  serviceType: "TEXT_VECTORIZER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+const vectorStorage = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "vector-storage",
+  serviceType: "VECTOR_STORAGE",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 describe("batchAutoTranslateGraph", () => {
   let cleanup: TestDB["cleanup"] | undefined;
@@ -105,9 +121,9 @@ describe("batchAutoTranslateGraph", () => {
         languageId: "zh-Hans",
         minMemorySimilarity: 0.72,
         maxMemoryAmount: 3,
-        memoryVectorStorageId: 1,
-        translationVectorStorageId: 2,
-        vectorizerId: 3,
+        memoryVectorStorage: vectorStorage,
+        translationVectorStorage: vectorStorage,
+        vectorizer,
         translatorId: null,
         memoryIds: [],
         glossaryIds: [],
@@ -179,9 +195,9 @@ describe("batchAutoTranslateGraph", () => {
         languageId: "zh-Hans",
         minMemorySimilarity: 0.72,
         maxMemoryAmount: 3,
-        memoryVectorStorageId: 1,
-        translationVectorStorageId: 2,
-        vectorizerId: 3,
+        memoryVectorStorage: vectorStorage,
+        translationVectorStorage: vectorStorage,
+        vectorizer,
         translatorId: null,
         memoryIds: [],
         glossaryIds: [],

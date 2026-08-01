@@ -52,7 +52,7 @@ const buildFinding = (
   overrides: Partial<NormalizedQaFinding> = {},
 ): NormalizedQaFinding => ({
   layer: "DETERMINISTIC",
-  checkerServiceId: null,
+  checkerService: null,
   qaResultItemId: null,
   ruleId: "basic.number-consistency.missing",
   ruleFamily: "number",

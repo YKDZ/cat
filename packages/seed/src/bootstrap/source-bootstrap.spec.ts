@@ -29,8 +29,8 @@ const domainMock = vi.hoisted(() => ({
 }));
 
 const serverSharedMock = vi.hoisted(() => ({
-  firstOrGivenService: vi.fn(),
   resolvePluginManager: vi.fn((pluginManager: unknown) => pluginManager),
+  selectFirstServiceImplementation: vi.fn(),
 }));
 
 vi.mock("@cat/source-collector", () => sourceCollectorMock);
@@ -191,7 +191,9 @@ describe("runBootstrapSourceGraph", () => {
         semanticDiffIds: [11],
         elementIdsByRef: { "element:one": 1 },
       });
-      serverSharedMock.firstOrGivenService.mockReturnValue(undefined);
+      serverSharedMock.selectFirstServiceImplementation.mockReturnValue(
+        undefined,
+      );
 
       const result = await runBootstrapSourceGraph(makeInput(dir));
       const reportRaw = await readFile(result.reportPath, "utf-8");

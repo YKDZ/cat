@@ -94,7 +94,7 @@ const mocks = vi.hoisted(() => ({
       options?: FakeRunGraphOptions,
     ) => Promise<{ translationIds: number[] }>
   >(async () => ({ translationIds: [101] })),
-  firstOrGivenService: vi.fn(
+  selectFirstServiceImplementation: vi.fn(
     (_: unknown, kind: string): { id: number } | null => ({
       id: kind === "VECTOR_STORAGE" ? 1 : 2,
     }),
@@ -110,7 +110,7 @@ vi.mock("@cat/server-shared", async () => {
 
   return {
     ...actual,
-    firstOrGivenService: mocks.firstOrGivenService,
+    selectFirstServiceImplementation: mocks.selectFirstServiceImplementation,
   };
 });
 
@@ -413,7 +413,7 @@ describe("direct translation write operation contract", () => {
     mocks.interceptWrite.mockClear();
     mocks.runGraph.mockClear();
     mocks.runGraph.mockImplementation(writeTranslationsWithFakeGraph);
-    mocks.firstOrGivenService.mockClear();
+    mocks.selectFirstServiceImplementation.mockClear();
     mocks.ensureBranchWriteContext.mockClear();
   });
 
@@ -888,7 +888,7 @@ describe("direct translation write operation contract", () => {
 
   it("records missing service capability as a distinct Operation Failure", async () => {
     const fixture = await seedProjectElement("contract-missing-capability");
-    mocks.firstOrGivenService.mockReturnValueOnce(null);
+    mocks.selectFirstServiceImplementation.mockReturnValueOnce(null);
 
     let caughtError: unknown;
     try {
@@ -934,7 +934,7 @@ describe("direct translation write operation contract", () => {
 
   it("records missing text vectorizer capability as a distinct Operation Failure decision", async () => {
     const fixture = await seedProjectElement("contract-missing-vectorizer");
-    mocks.firstOrGivenService
+    mocks.selectFirstServiceImplementation
       .mockReturnValueOnce({ id: 1 })
       .mockReturnValueOnce(null);
 
@@ -1583,7 +1583,7 @@ describe("translation router branch-aware writes", () => {
     mocks.interceptWrite.mockClear();
     mocks.runGraph.mockClear();
     mocks.runGraph.mockImplementation(writeTranslationsWithFakeGraph);
-    mocks.firstOrGivenService.mockClear();
+    mocks.selectFirstServiceImplementation.mockClear();
   });
 
   it("creates a reviewable change from main route writes when isolation is required", async () => {

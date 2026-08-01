@@ -58,7 +58,7 @@ export const listContentNodesTool: AgentToolDefinition = {
       kind: row.kind,
       exportRole: row.exportRole,
       boundaryType: row.boundaryType,
-      fileHandlerId: row.fileHandlerId,
+      fileHandler: row.fileHandler,
       fileId: row.fileId,
       isContainer: row.kind === "DIRECTORY" || row.kind === "PROJECT_ROOT",
       createdAt: row.createdAt,

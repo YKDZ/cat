@@ -20,8 +20,8 @@ const mocked = vi.hoisted(() => ({
   listTranslationsByElement: Symbol("listTranslationsByElement"),
   executeQuery: vi.fn(),
   getDbHandle: vi.fn().mockResolvedValue({ client: { tag: "db" } }),
-  firstOrGivenService: vi.fn(),
   resolvePluginManager: vi.fn(),
+  selectFirstServiceImplementation: vi.fn(),
 }));
 
 vi.mock("@cat/domain", () => ({
@@ -49,8 +49,8 @@ vi.mock("@cat/operations", () => ({
 }));
 
 vi.mock("@cat/server-shared/plugin", () => ({
-  firstOrGivenService: mocked.firstOrGivenService,
   resolvePluginManager: mocked.resolvePluginManager,
+  selectFirstServiceImplementation: mocked.selectFirstServiceImplementation,
 }));
 
 import { getNeighborsTool } from "./get-neighbors.tool.ts";
@@ -85,6 +85,27 @@ describe("translation tools", () => {
   const createdAt = new Date("2025-01-01T00:00:00.000Z");
   const updatedAt = new Date("2025-01-02T00:00:00.000Z");
   const legacyScopeKey = ["document", "Id"].join("");
+  const fileHandler = {
+    pluginId: "test-plugin",
+    serviceId: "file-handler",
+    serviceType: "FILE_HANDLER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  };
+  const vectorizer = {
+    pluginId: "test-plugin",
+    serviceId: "vectorizer",
+    serviceType: "TEXT_VECTORIZER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  };
+  const vectorStorage = {
+    pluginId: "test-plugin",
+    serviceId: "vector-storage",
+    serviceType: "VECTOR_STORAGE",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  };
 
   beforeEach(() => {
     mocked.qaOp.mockReset();
@@ -94,7 +115,7 @@ describe("translation tools", () => {
     mocked.createTranslationOp.mockReset();
     mocked.executeQuery.mockReset();
     mocked.getDbHandle.mockClear();
-    mocked.firstOrGivenService.mockReset();
+    mocked.selectFirstServiceImplementation.mockReset();
     mocked.resolvePluginManager.mockReset();
   });
 
@@ -197,7 +218,7 @@ describe("translation tools", () => {
         displayLabel: "docs",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -212,7 +233,7 @@ describe("translation tools", () => {
         displayLabel: "README.md",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
-        fileHandlerId: 9,
+        fileHandler,
         fileId: 10,
         kind: "FILE",
         exportRole: "FILE",
@@ -227,7 +248,7 @@ describe("translation tools", () => {
         displayLabel: "guide.md",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
-        fileHandlerId: 9,
+        fileHandler,
         fileId: 11,
         kind: "FILE",
         exportRole: "FILE",
@@ -261,7 +282,7 @@ describe("translation tools", () => {
           kind: "DIRECTORY",
           exportRole: "DIRECTORY",
           boundaryType: "SOFT",
-          fileHandlerId: null,
+          fileHandler: null,
           fileId: null,
           isContainer: true,
           createdAt,
@@ -277,7 +298,7 @@ describe("translation tools", () => {
           kind: "FILE",
           exportRole: "FILE",
           boundaryType: "HARD",
-          fileHandlerId: 9,
+          fileHandler,
           fileId: 10,
           isContainer: false,
           createdAt,
@@ -380,7 +401,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "docs",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -395,7 +416,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "README.md",
-        fileHandlerId: 1,
+        fileHandler,
         fileId: 2,
         kind: "FILE",
         exportRole: "FILE",
@@ -466,7 +487,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "docs",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -481,7 +502,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "other.md",
-        fileHandlerId: 1,
+        fileHandler,
         fileId: 2,
         kind: "FILE",
         exportRole: "FILE",
@@ -512,7 +533,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "docs",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -665,9 +686,15 @@ describe("translation tools", () => {
         id: "zh-CN",
       });
     mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
-    mocked.firstOrGivenService
-      .mockReturnValueOnce({ id: 101, service: { tag: "vectorizer" } })
-      .mockReturnValueOnce({ id: 202, service: { tag: "vector-storage" } });
+    mocked.selectFirstServiceImplementation
+      .mockReturnValueOnce({
+        reference: vectorizer,
+        service: { tag: "vectorizer" },
+      })
+      .mockReturnValueOnce({
+        reference: vectorStorage,
+        service: { tag: "vector-storage" },
+      });
     mocked.createTranslationOp.mockResolvedValue({
       translationIds: [88],
       memoryItemIds: [99],
@@ -692,12 +719,12 @@ describe("translation tools", () => {
     );
     expect(mocked.executeQuery).toHaveBeenCalledTimes(2);
     expect(mocked.resolvePluginManager).toHaveBeenCalledWith(undefined); // ctx.pluginManager is undefined in createCtx()
-    expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
+    expect(mocked.selectFirstServiceImplementation).toHaveBeenNthCalledWith(
       1,
       { tag: "plugin-manager" },
       "TEXT_VECTORIZER",
     );
-    expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
+    expect(mocked.selectFirstServiceImplementation).toHaveBeenNthCalledWith(
       2,
       { tag: "plugin-manager" },
       "VECTOR_STORAGE",
@@ -712,8 +739,8 @@ describe("translation tools", () => {
       ],
       translatorId: null,
       memoryIds: [],
-      vectorizerId: 101,
-      vectorStorageId: 202,
+      vectorizer,
+      vectorStorage,
     });
     expect(result).toEqual({
       translationIds: [88],
@@ -734,7 +761,7 @@ describe("translation tools", () => {
         id: "zh-CN",
       });
     mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
-    mocked.firstOrGivenService.mockReturnValue(undefined);
+    mocked.selectFirstServiceImplementation.mockReturnValue(undefined);
     mocked.createTranslationOp.mockResolvedValue({
       translationIds: [108],
       memoryItemIds: [209],
@@ -755,8 +782,8 @@ describe("translation tools", () => {
       ],
       translatorId: null,
       memoryIds: [],
-      vectorizerId: undefined,
-      vectorStorageId: undefined,
+      vectorizer: undefined,
+      vectorStorage: undefined,
     });
     expect(result).toEqual({
       translationIds: [108],

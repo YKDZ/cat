@@ -81,6 +81,14 @@ const EXPECTED_UNSUPPORTED_REASONS = new Map<string, string>([
 const checkDefinitions: ReadonlyArray<readonly [string, string | string[]]> = [
   ["basic sql", "SELECT 1"],
   [
+    "service implementation reference jsonb roundtrip",
+    [
+      "CREATE TEMP TABLE cat_pglite_service_reference(reference jsonb not null)",
+      `INSERT INTO cat_pglite_service_reference(reference) VALUES ('{"pluginId":"pglite-probe","serviceId":"reference","serviceType":"LLM_PROVIDER","scopeType":"GLOBAL","scopeId":""}'::jsonb)`,
+      "SELECT 1 / CASE WHEN reference->>'pluginId' = 'pglite-probe' AND reference->>'serviceId' = 'reference' AND reference->>'serviceType' = 'LLM_PROVIDER' AND reference->>'scopeType' = 'GLOBAL' AND reference->>'scopeId' = '' THEN 1 ELSE 0 END FROM cat_pglite_service_reference",
+    ],
+  ],
+  [
     "transactions",
     ["BEGIN", "CREATE TEMP TABLE cat_pglite_tx(id int)", "ROLLBACK"],
   ],

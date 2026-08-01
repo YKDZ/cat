@@ -15,7 +15,10 @@
  */
 
 import type { LLMChunk } from "@cat/plugin-core";
-import type { ParsedAgentDefinition } from "@cat/shared";
+import {
+  type ParsedAgentDefinition,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { LLMGateway } from "#/llm/llm-gateway.ts";
@@ -46,7 +49,17 @@ const MOCK_DEFINITION: ParsedAgentDefinition = {
     name: "中英翻译专家",
     version: "1.0.0",
     type: "GENERAL",
-    llm: { providerId: 1, temperature: 0.3, maxTokens: 512 },
+    llm: {
+      provider: ServiceImplementationReferenceSchema.parse({
+        pluginId: "test-plugin",
+        serviceId: "llm",
+        serviceType: "LLM_PROVIDER",
+        scopeType: "GLOBAL",
+        scopeId: "",
+      }),
+      temperature: 0.3,
+      maxTokens: 512,
+    },
     tools: ["translate_segment", "finish"],
     constraints: {
       maxSteps: 3,

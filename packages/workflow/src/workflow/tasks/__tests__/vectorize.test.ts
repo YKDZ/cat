@@ -63,8 +63,9 @@ test("vectorize should create chunk sets and store embeddings", async () => {
 
   const { chunkSetIds } = await runGraph(vectorizeGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(chunkSetIds.length).toEqual(data.length);
@@ -85,8 +86,9 @@ test("vectorize with empty input should return empty chunkSetIds", async () => {
 
   const { chunkSetIds } = await runGraph(vectorizeGraph, {
     data: [],
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(chunkSetIds).toEqual([]);
 });

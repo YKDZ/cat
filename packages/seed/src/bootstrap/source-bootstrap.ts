@@ -12,7 +12,10 @@ import {
   diffStructuredContentOp,
 } from "@cat/operations";
 import type { PluginManager } from "@cat/plugin-core";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import {
   extract,
   toCollectionPayload,
@@ -122,10 +125,10 @@ export const runBootstrapSourceGraph = async (
   const pm = resolvePluginManager(input.pluginManager);
   const vectorizer = input.skipVectorization
     ? undefined
-    : firstOrGivenService(pm, "TEXT_VECTORIZER");
+    : selectFirstServiceImplementation(pm, "TEXT_VECTORIZER");
   const vectorStorage = input.skipVectorization
     ? undefined
-    : firstOrGivenService(pm, "VECTOR_STORAGE");
+    : selectFirstServiceImplementation(pm, "VECTOR_STORAGE");
   const vectorizationStatus = input.skipVectorization
     ? "skipped"
     : vectorizer && vectorStorage
@@ -141,8 +144,8 @@ export const runBootstrapSourceGraph = async (
 
   const diff = await diffStructuredContentOp({
     payload,
-    vectorizerId: vectorizer?.id,
-    vectorStorageId: vectorStorage?.id,
+    vectorizer: vectorizer?.reference,
+    vectorStorage: vectorStorage?.reference,
   });
 
   let memoryId: string | undefined;

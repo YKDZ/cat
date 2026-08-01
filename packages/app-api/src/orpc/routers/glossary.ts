@@ -22,7 +22,7 @@ import {
   updateGlossaryConcept,
 } from "@cat/domain";
 import { rerankTermRecallOp, termRecallOp } from "@cat/operations";
-import { firstOrGivenService } from "@cat/server-shared";
+import { selectFirstServiceImplementation } from "@cat/server-shared";
 import { GlossarySchema } from "@cat/shared";
 import { TermStatusValues, TermTypeValues } from "@cat/shared";
 import { JSONObjectSchema } from "@cat/shared";
@@ -289,8 +289,14 @@ export const insertTerm = authed
       return;
     }
 
-    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
 
     if (!storage || !vectorizer) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -323,8 +329,8 @@ export const insertTerm = authed
               glossaryId,
               data: termsData,
               creatorId: user.id,
-              vectorizerId: vectorizer.id,
-              vectorStorageId: storage.id,
+              vectorizer: vectorizer.reference,
+              vectorStorage: storage.reference,
             },
             { pluginManager },
           ),
@@ -338,8 +344,8 @@ export const insertTerm = authed
         glossaryId,
         data: termsData,
         creatorId: user.id,
-        vectorizerId: vectorizer.id,
-        vectorStorageId: storage.id,
+        vectorizer: vectorizer.reference,
+        vectorStorage: storage.reference,
       },
       { pluginManager },
     );

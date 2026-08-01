@@ -6,6 +6,7 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
@@ -25,8 +26,8 @@ export const CreateTranslationInputSchema = z.object({
   ),
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()).default([]),
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  vectorizer: ServiceImplementationReferenceSchema.optional(),
+  vectorStorage: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const CreateTranslationOutputSchema = z.object({
@@ -81,8 +82,8 @@ export const createTranslationOp = async (
         text: d.text,
         languageId: d.languageId,
       })),
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.vectorStorageId,
+      vectorizer: data.vectorizer,
+      vectorStorage: data.vectorStorage,
     },
     ctx,
   );

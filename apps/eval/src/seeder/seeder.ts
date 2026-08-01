@@ -39,7 +39,10 @@ import {
 import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { normalizeMemorySeed } from "@cat/seed";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import type { JSONObject, JSONType } from "@cat/shared";
 import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
 
@@ -551,8 +554,11 @@ const vectorizeWithCache = async (opts: {
   const modelName = getVectorizerModelName(vectorizerOverride);
 
   const pm = resolvePluginManager(pluginManager);
-  const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");
-  const storageEntry = firstOrGivenService(pm, "VECTOR_STORAGE");
+  const vectorizerEntry = selectFirstServiceImplementation(
+    pm,
+    "TEXT_VECTORIZER",
+  );
+  const storageEntry = selectFirstServiceImplementation(pm, "VECTOR_STORAGE");
   if (!vectorizerEntry || !storageEntry) {
     console.warn(
       "[eval] No vectorizer or storage service available — skipping vectorization",
@@ -604,15 +610,6 @@ const vectorizeWithCache = async (opts: {
     }
 
     try {
-      const vectorizerPlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'TEXT_VECTORIZER' LIMIT 1`,
-      );
-      const storagePlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'VECTOR_STORAGE' LIMIT 1`,
-      );
-      const vectorizerId = (vectorizerPlugin.rows?.[0]?.id as number) ?? 1;
-      const vectorStorageId = (storagePlugin.rows?.[0]?.id as number) ?? 1;
-
       const flatChunks = chunkDataArrays.flatMap((chunks, textIdx) =>
         chunks.map((chunk) => ({
           textIndex: textIdx,
@@ -624,8 +621,8 @@ const vectorizeWithCache = async (opts: {
         execCtx,
         createVectorizedChunks,
         {
-          vectorizerId,
-          vectorStorageId,
+          vectorizer: vectorizerEntry.reference,
+          vectorStorage: storageEntry.reference,
           chunkSetCount: chunkDataArrays.length,
           chunks: flatChunks,
         },

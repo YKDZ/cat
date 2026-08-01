@@ -1,5 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-import type { JSONObject } from "@cat/shared";
+import {
+  type JSONObject,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { z } from "zod";
 
 import { createTranslationOp } from "./create-translation.ts";
@@ -13,7 +16,7 @@ export const AutoTranslateInputSchema = z.object({
 
   translatorId: z.uuidv4().nullable(),
 
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   memoryIds: z.array(z.uuidv4()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
   /**
@@ -23,9 +26,9 @@ export const AutoTranslateInputSchema = z.object({
 
   minMemorySimilarity: z.number().min(0).max(1),
   maxMemoryAmount: z.int().min(0).default(3),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
 });
 
 export const AutoTranslateOutputSchema = z.object({
@@ -61,13 +64,13 @@ export const autoTranslateOp = async (
       text: data.text,
       sourceLanguageId: data.sourceLanguageId,
       translationLanguageId: data.translationLanguageId,
-      advisorId: data.advisorId,
+      advisor: data.advisor,
       memoryIds: data.memoryIds,
       glossaryIds: data.glossaryIds,
       chunkIds: data.chunkIds,
       minMemorySimilarity: data.minMemorySimilarity,
       maxMemoryAmount: data.maxMemoryAmount,
-      memoryVectorStorageId: data.memoryVectorStorageId,
+      memoryVectorStorage: data.memoryVectorStorage,
     },
     ctx,
   );
@@ -82,8 +85,8 @@ export const autoTranslateOp = async (
       ...(candidate.memoryId ? { memoryId: candidate.memoryId } : {}),
       confidence: candidate.confidence,
     };
-  } else if (data.advisorId) {
-    meta = { advisorId: data.advisorId };
+  } else if (data.advisor) {
+    meta = { advisor: data.advisor };
   }
 
   const taskResult = await createTranslationOp(
@@ -98,8 +101,8 @@ export const autoTranslateOp = async (
       ],
       memoryIds: [],
       translatorId: data.translatorId,
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.translationVectorStorageId,
+      vectorizer: data.vectorizer,
+      vectorStorage: data.translationVectorStorage,
     },
     { traceId },
   );

@@ -1,15 +1,20 @@
 import type { OperationContext } from "@cat/domain";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import {
   NlpBatchSegmentResultSchema,
   NlpSegmentResultSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import * as z from "zod";
 
 import { intlSegmenterFallback } from "./nlp-intl-fallback.ts";
 
 export const NlpBatchSegmentInputSchema = z.object({
-  nlpSegmenterId: z.int().optional().meta({
+  nlpSegmenter: ServiceImplementationReferenceSchema.optional().meta({
     description:
       "Plugin service ID of the NLP_WORD_SEGMENTER to use. Omit to use the default.",
   }),
@@ -47,11 +52,16 @@ export const nlpBatchSegmentOp = async (
   ctx?: OperationContext,
 ): Promise<NlpBatchSegmentOutput> => {
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const segmenter = firstOrGivenService(
-    pluginManager,
-    "NLP_WORD_SEGMENTER",
-    data.nlpSegmenterId,
-  );
+  const segmenter = data.nlpSegmenter
+    ? {
+        reference: data.nlpSegmenter,
+        service: resolveServiceImplementation(
+          pluginManager,
+          data.nlpSegmenter,
+          "NLP_WORD_SEGMENTER",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "NLP_WORD_SEGMENTER");
 
   if (!segmenter) {
     const results = data.items.map((item) => ({

@@ -1,13 +1,16 @@
 import { account } from "@cat/db";
-import { safeZDotJson } from "@cat/shared";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  safeZDotJson,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const CreateAccountCommandSchema = z.object({
   userId: z.uuidv4(),
-  authProviderId: z.int(),
+  authProvider: ServiceImplementationReferenceSchema,
   providerIssuer: z.string(),
   providedAccountId: z.string(),
   accountMeta: safeZDotJson.optional(),
@@ -29,7 +32,7 @@ export const createAccount: Command<
       .insert(account)
       .values({
         userId: command.userId,
-        authProviderId: command.authProviderId,
+        authProvider: command.authProvider,
         providerIssuer: command.providerIssuer,
         providedAccountId: command.providedAccountId,
         meta: command.accountMeta,

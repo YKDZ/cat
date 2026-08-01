@@ -13,17 +13,17 @@ import {
   getProject,
   getProjectRootContentNode,
 } from "@cat/domain";
-import { StorageProvider } from "@cat/plugin-core";
 import {
   finishPresignedPutFile,
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   getDownloadUrl,
-  getServiceFromDBId,
+  resolveServiceImplementation,
   preparePresignedPutFile,
 } from "@cat/server-shared";
-import type { JSONType } from "@cat/shared";
+import type { JSONType, ServiceImplementationReference } from "@cat/shared";
 import { FileMetaSchema, type ContentNode } from "@cat/shared";
 import { sanitizeFileName } from "@cat/shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 import {
   EditorOverlayContentNodeRowSchema,
@@ -51,11 +51,11 @@ const toJSONType = (value: unknown): JSONType =>
 const assertFileCapability = (node: {
   id: string;
   fileId: number | null;
-  fileHandlerId: number | null;
+  fileHandler: ServiceImplementationReference | null;
   exportRole: string | null;
   boundaryType: string | null;
 }) => {
-  if (node.fileId === null || node.fileHandlerId === null) {
+  if (node.fileId === null || node.fileHandler === null) {
     throw new ORPCError("BAD_REQUEST", {
       message: `Content node ${node.id} does not support file operations`,
     });
@@ -100,7 +100,10 @@ export const prepareCreateFromFile = authed
     } = context;
     const { meta } = input;
 
-    const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "STORAGE_PROVIDER",
+    );
 
     if (!storage) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -115,7 +118,7 @@ export const prepareCreateFromFile = authed
       drizzle,
       sessionStore,
       storage.service,
-      storage.id,
+      storage.reference,
       key,
       name,
     );
@@ -146,8 +149,14 @@ export const finishCreateFromFile = authed
       pluginManager,
     } = context;
 
-    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
 
     if (!storage || !vectorizer) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -257,7 +266,8 @@ export const finishCreateFromFile = authed
             languageId,
             exportRole: "FILE",
             boundaryType: "FILE",
-            fileHandlerId: service.dbId ?? null,
+            fileHandler:
+              pluginManager.createServiceImplementationReference(service),
             fileId,
             lifecycleStatus: "ACTIVE",
             provenance: null,
@@ -342,7 +352,8 @@ export const finishCreateFromFile = authed
           stableSourceNodeRef: fileName,
           exportRole: "FILE",
           boundaryType: "FILE",
-          fileHandlerId: service.dbId,
+          fileHandler:
+            pluginManager.createServiceImplementationReference(service),
           fileId,
           localOrder: 0,
         },
@@ -367,8 +378,8 @@ export const finishCreateFromFile = authed
         contentNodeId: targetContentNodeId,
         fileId,
         languageId,
-        vectorizerId: vectorizer.id,
-        vectorStorageId: storage.id,
+        vectorizer: vectorizer.reference,
+        vectorStorage: storage.reference,
       },
       {
         pluginManager,
@@ -402,15 +413,16 @@ export const getUrl = authed
 
     if (!result) return null;
 
-    const { key, storageProviderId } = result;
-    if (!key || !storageProviderId) return null;
+    const { key, storageProvider } = result;
+    if (!key || !storageProvider) return null;
 
-    const provider = getServiceFromDBId<StorageProvider>(
+    const provider = resolveServiceImplementation(
       pluginManager,
-      storageProviderId,
+      storageProvider,
+      "STORAGE_PROVIDER",
     );
 
-    return getDownloadUrl(sessionStore, provider, storageProviderId, key, 120);
+    return getDownloadUrl(sessionStore, provider, storageProvider, key, 120);
   });
 
 export const getInfo = authed
@@ -424,7 +436,7 @@ export const getInfo = authed
     z
       .object({
         key: z.string(),
-        storageProviderId: z.int(),
+        storageProvider: ServiceImplementationReferenceSchema,
         fileName: z.string(),
       })
       .nullable(),
@@ -441,13 +453,13 @@ export const getInfo = authed
       contentNodeId: input.contentNodeId,
     });
 
-    if (!result || !result.key || !result.storageProviderId) {
+    if (!result || !result.key || !result.storageProvider) {
       return null;
     }
 
     return {
       key: result.key,
-      storageProviderId: result.storageProviderId,
+      storageProvider: result.storageProvider,
       fileName: result.fileName || node.displayLabel,
     };
   });

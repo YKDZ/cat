@@ -74,8 +74,9 @@ test("create-translatable-string should insert chunks to db", async () => {
 
   await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   await processVectorizationBatch(vectorizationQueue, 10, {

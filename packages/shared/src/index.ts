@@ -80,6 +80,12 @@ export {
   TranslationSuggestionSchema,
 } from "#/schema/plugin.ts";
 
+export {
+  type ServiceImplementationReference,
+  ServiceImplementationReferenceSchema,
+  serviceImplementationReferenceKey,
+} from "#/schema/service-implementation-reference.ts";
+
 // NLP schema
 export {
   type NlpBatchSegmentResult,
@@ -306,6 +312,14 @@ export {
   ToolExecuteResponseSchema,
   serializeAgentDefinition,
 } from "#/schema/agent.ts";
+export {
+  PluginIdentifierSchema,
+  ServiceIdentifierSchema,
+  ScopedInstallationIdentifierSchema,
+  type PluginIdentifier,
+  type ServiceIdentifier,
+  type ScopedInstallationIdentifier,
+} from "#/schema/plugin-identifier.ts";
 
 // Enum schemas (all values; these are canonical here)
 export {

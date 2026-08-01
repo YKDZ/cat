@@ -80,7 +80,7 @@ export const runToolNode = async (
       agentId,
       projectId,
       runId,
-      providerId: sessionMetadata?.providerId,
+      provider: sessionMetadata?.provider,
       branchId: sessionMetadata?.branchId,
       contentNodeIds: sessionMetadata?.contentNodeIds,
       currentElementContentNodeId: sessionMetadata?.currentElementContentNodeId,

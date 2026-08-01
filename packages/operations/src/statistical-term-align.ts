@@ -2,6 +2,10 @@ import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTranslationsByElement } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
+import {
+  type ServiceImplementationReference,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
@@ -32,7 +36,7 @@ export const StatisticalTermAlignInputSchema = z.object({
   config: z.object({
     minCoOccurrence: z.number().min(0).max(1).default(0.3),
   }),
-  nlpSegmenterId: z.int().optional(),
+  nlpSegmenter: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const StatisticalTermAlignOutputSchema = z.object({
@@ -88,7 +92,7 @@ const enrichFromTranslation = async (
   elementId: number,
   candidateText: string,
   languageId: string,
-  nlpSegmenterId: number | undefined,
+  nlpSegmenter: ServiceImplementationReference | undefined,
   ctx?: OperationContext,
 ): Promise<number[]> => {
   try {
@@ -109,7 +113,7 @@ const enrichFromTranslation = async (
           text: t.text,
         })),
         languageId,
-        nlpSegmenterId,
+        nlpSegmenter,
       },
       ctx,
     );
@@ -210,7 +214,7 @@ export const statisticalTermAlignOp = async (
             occ.elementId,
             item.candidateText,
             item.languageId,
-            data.nlpSegmenterId,
+            data.nlpSegmenter,
             ctx,
           );
           if (translationIds.length > 0) {

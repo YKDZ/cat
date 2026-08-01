@@ -1,5 +1,8 @@
 import type { OperationContext } from "@cat/domain";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 
 import { revectorizeConceptOp } from "./revectorize-concept.ts";
@@ -22,13 +25,23 @@ export const triggerConceptRevectorize = (
   ctx?: OperationContext,
 ): void => {
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
-  const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
+  const vectorizer = selectFirstServiceImplementation(
+    pluginManager,
+    "TEXT_VECTORIZER",
+  );
+  const storage = selectFirstServiceImplementation(
+    pluginManager,
+    "VECTOR_STORAGE",
+  );
 
   if (!vectorizer || !storage) return;
 
   void revectorizeConceptOp(
-    { conceptId, vectorizerId: vectorizer.id, vectorStorageId: storage.id },
+    {
+      conceptId,
+      vectorizer: vectorizer.reference,
+      vectorStorage: storage.reference,
+    },
     ctx,
   ).catch((err: unknown) => {
     logger

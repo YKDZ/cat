@@ -1,5 +1,6 @@
 import { executeCommand, executeQuery } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
+import { PluginManifestSchema } from "@cat/shared";
 import { createAuthedTestContext } from "@cat/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -27,6 +28,9 @@ import {
 } from "#/services/plugin-management.ts";
 
 const PLUGIN_ID = "no-config-plugin";
+
+const parseManifest = (manifest: unknown) =>
+  PluginManifestSchema.parse(manifest);
 
 const createContext = (manager: PluginManager): Context => {
   const base = createAuthedTestContext();
@@ -58,12 +62,14 @@ describe("plugin-management service", () => {
 
   it("returns a normal detail model for a plugin without config", async () => {
     const manager = PluginManager.get("GLOBAL", "");
-    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue({
-      id: PLUGIN_ID,
-      version: "0.0.1",
-      entry: "index.js",
-      services: [{ id: "tokenizer", type: "TOKENIZER", dynamic: false }],
-    });
+    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue(
+      parseManifest({
+        id: PLUGIN_ID,
+        version: "0.0.1",
+        entry: "index.js",
+        services: [{ id: "tokenizer", type: "TOKENIZER", dynamic: false }],
+      }),
+    );
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
       if (query === getPlugin) {
         return {
@@ -166,12 +172,18 @@ describe("plugin-management service", () => {
   it("rejects stale config saves with a conflict", async () => {
     const manager = PluginManager.get("GLOBAL", "");
     const updatedAt = new Date("2026-05-16T00:00:00.000Z");
-    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue({
-      id: PLUGIN_ID,
-      version: "0.0.1",
-      entry: "index.js",
-      config: { type: "object", properties: { endpoint: { type: "string" } } },
-    });
+    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue(
+      parseManifest({
+        id: PLUGIN_ID,
+        version: "0.0.1",
+        entry: "index.js",
+        config: {
+          type: "object",
+          properties: { endpoint: { type: "string" } },
+        },
+        configVersion: "1",
+      }),
+    );
     vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
       if (query === getPlugin) {
         return {
@@ -234,11 +246,13 @@ describe("plugin-management service", () => {
   it("rolls back config when hot apply fails", async () => {
     const manager = PluginManager.get("GLOBAL", "");
     const updatedAt = new Date("2026-05-16T00:00:00.000Z");
-    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue({
-      id: PLUGIN_ID,
-      version: "0.0.1",
-      entry: "index.js",
-    });
+    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue(
+      parseManifest({
+        id: PLUGIN_ID,
+        version: "0.0.1",
+        entry: "index.js",
+      }),
+    );
     vi.spyOn(manager, "reloadPlugin")
       .mockRejectedValueOnce(new Error("boom"))
       .mockResolvedValueOnce();
@@ -322,11 +336,13 @@ describe("plugin-management service", () => {
   it("marks runtime degraded when rollback restore fails", async () => {
     const manager = PluginManager.get("GLOBAL", "");
     const updatedAt = new Date("2026-05-16T00:00:00.000Z");
-    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue({
-      id: PLUGIN_ID,
-      version: "0.0.1",
-      entry: "index.js",
-    });
+    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue(
+      parseManifest({
+        id: PLUGIN_ID,
+        version: "0.0.1",
+        entry: "index.js",
+      }),
+    );
     vi.spyOn(manager, "reloadPlugin")
       .mockRejectedValueOnce(new Error("apiKey=sk-secret"))
       .mockRejectedValueOnce(new Error("rollback failed"));

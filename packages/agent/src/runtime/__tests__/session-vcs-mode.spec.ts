@@ -8,7 +8,10 @@
  */
 
 import type { LLMChunk } from "@cat/plugin-core";
-import type { ParsedAgentDefinition } from "@cat/shared";
+import {
+  type ParsedAgentDefinition,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { LLMGateway } from "#/llm/llm-gateway.ts";
@@ -42,7 +45,17 @@ const MOCK_DEFINITION: ParsedAgentDefinition = {
     name: "VCS Mode Test Agent",
     version: "1.0.0",
     type: "GENERAL",
-    llm: { providerId: 1, temperature: 0.0, maxTokens: 128 },
+    llm: {
+      provider: ServiceImplementationReferenceSchema.parse({
+        pluginId: "test-plugin",
+        serviceId: "llm",
+        serviceType: "LLM_PROVIDER",
+        scopeType: "GLOBAL",
+        scopeId: "",
+      }),
+      temperature: 0.0,
+      maxTokens: 128,
+    },
     tools: ["probe_tool", "finish"],
     constraints: {
       maxSteps: 2,

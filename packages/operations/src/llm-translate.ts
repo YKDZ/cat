@@ -9,12 +9,16 @@ import {
 } from "@cat/domain";
 import {
   collectLLMResponse,
-  firstOrGivenService,
+  resolveServiceImplementation,
   resolvePluginManager,
   serverLogger as logger,
+  selectFirstServiceImplementation,
 } from "@cat/server-shared";
-import type { FlattenedContextEvidence } from "@cat/shared";
-import { TranslationAdviseSchema } from "@cat/shared";
+import {
+  type FlattenedContextEvidence,
+  ServiceImplementationReferenceSchema,
+  TranslationAdviseSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 // ─── Config schema ─────────────────────────────────────────────────────────────
@@ -88,7 +92,7 @@ export const LlmTranslateInputSchema = z.object({
 
   sessionTranslations: z.array(SessionTranslationSchema).default([]),
 
-  llmProviderId: z.int().optional(),
+  llmProvider: ServiceImplementationReferenceSchema.optional(),
   temperature: z.number().default(0.3),
   maxTokens: z.int().default(1024),
 });
@@ -433,11 +437,16 @@ export const llmTranslateOp = async (
 ): Promise<LlmTranslateOutput> => {
   const input = LlmTranslateInputSchema.parse(data);
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const llmService = firstOrGivenService(
-    pluginManager,
-    "LLM_PROVIDER",
-    input.llmProviderId,
-  );
+  const llmService = input.llmProvider
+    ? {
+        reference: input.llmProvider,
+        service: resolveServiceImplementation(
+          pluginManager,
+          input.llmProvider,
+          "LLM_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "LLM_PROVIDER");
 
   if (!llmService) {
     return { suggestion: null };

@@ -30,13 +30,17 @@ import {
   resolveOperationScopeElementsOp,
 } from "@cat/operations";
 import { getPermissionEngine } from "@cat/permissions";
-import { AsyncMessageQueue, firstOrGivenService } from "@cat/server-shared";
+import {
+  AsyncMessageQueue,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import {
   EditorScopeSchema,
   OperationScopeSchema,
   QaResultItemSchema,
   QaResultSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
 import { JSONObjectSchema } from "@cat/shared";
@@ -789,7 +793,7 @@ export const autoTranslate = authed
   .input(
     z.object({
       scope: OperationScopeSchema,
-      advisorId: z.int().optional(),
+      advisor: ServiceImplementationReferenceSchema.optional(),
       languageId: z.string(),
       minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       maxMemoryAmount: z.int().min(0).default(3),
@@ -806,15 +810,21 @@ export const autoTranslate = authed
     } = context;
     const {
       scope,
-      advisorId,
+      advisor,
       languageId,
       minMemorySimilarity,
       maxMemoryAmount,
       config,
     } = input;
 
-    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
 
     if (!storage)
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -934,12 +944,12 @@ export const autoTranslate = authed
     const graphInput = JSONObjectSchema.parse({
       ...scope,
       languageId,
-      advisorId,
+      advisor,
       minMemorySimilarity,
       maxMemoryAmount,
-      memoryVectorStorageId: storage.id,
-      translationVectorStorageId: storage.id,
-      vectorizerId: vectorizer.id,
+      memoryVectorStorage: storage.reference,
+      translationVectorStorage: storage.reference,
+      vectorizer: vectorizer.reference,
       translatorId: user.id,
       memoryIds,
       glossaryIds,

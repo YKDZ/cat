@@ -9,7 +9,10 @@ import {
 } from "@cat/domain";
 import { insertMemory } from "@cat/operations";
 import type { SerializableType } from "@cat/shared";
-import { safeZDotJson } from "@cat/shared";
+import {
+  safeZDotJson,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
@@ -33,8 +36,8 @@ export const CreateTranslationInputSchema = z.object({
   ),
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()).default([]),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const CreateTranslationOutputSchema = z.object({
@@ -82,8 +85,8 @@ export const createTranslationGraph = defineGraph({
               text: item.text,
               languageId: item.languageId,
             })),
-            vectorizerId: input.vectorizerId,
-            vectorStorageId: input.vectorStorageId,
+            vectorizer: input.vectorizer,
+            vectorStorage: input.vectorStorage,
           },
           { signal: ctx.signal },
         );

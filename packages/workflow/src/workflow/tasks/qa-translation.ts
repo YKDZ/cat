@@ -81,7 +81,7 @@ export const qaTranslationGraph = defineGraph({
             resultId: resultRow.id,
             items: qa.result.map((item) => ({
               isPassed: item.isPassed,
-              checkerId: item.checkerId,
+              checker: item.checker,
               meta: item.meta,
             })),
           });

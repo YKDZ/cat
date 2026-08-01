@@ -69,8 +69,9 @@ beforeAll(async () => {
 
   await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager2.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager2.createServiceImplementationReference(vectorStorage),
   });
 
   await processVectorizationBatch(vectorizationQueue, 10, {
@@ -100,7 +101,8 @@ test("search-chunk should return similar chunks", async () => {
     maxAmount: 10,
     searchRange,
     queryChunkIds: [queryChunkId],
-    vectorStorageId: vectorStorage.dbId,
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(Array.isArray(chunks)).toBe(true);
@@ -135,7 +137,8 @@ test("search-chunk with empty searchRange should return empty chunks", async () 
     maxAmount: 10,
     searchRange: [],
     queryChunkIds: [queryChunkId],
-    vectorStorageId: vectorStorage.dbId,
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(Array.isArray(chunks)).toBe(true);
   expect(chunks.length).toEqual(0);

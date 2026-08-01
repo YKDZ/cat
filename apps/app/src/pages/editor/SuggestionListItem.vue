@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import type { TranslationSuggestion } from "@cat/shared";
+import {
+  type TranslationSuggestion,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { Skeleton } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
@@ -18,6 +21,13 @@ const { project } = storeToRefs(useEditorContextStore());
 const { t } = useI18n();
 const writeCapability = useProjectWriteCapabilityStore();
 const { canWrite, disabledReason } = storeToRefs(writeCapability);
+const noAdvisorReference = ServiceImplementationReferenceSchema.parse({
+  pluginId: "unknown-advisor",
+  serviceId: "unknown-advisor",
+  serviceType: "TRANSLATION_ADVISOR",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 /**
  * Props for a suggestion list item.
@@ -35,16 +45,22 @@ const props = defineProps<{
 }>();
 
 const { state } = useQuery({
-  key: ["reactions", props.suggestion.advisorId ?? "noAdvisor"],
+  key: [
+    "reactions",
+    props.suggestion.advisor
+      ? `${props.suggestion.advisor.pluginId}:${props.suggestion.advisor.serviceId}`
+      : "noAdvisor",
+  ],
   placeholderData: {
     id: -1,
+    reference: props.suggestion.advisor ?? noAdvisorReference,
     name: "",
   },
   query: () =>
     orpc.plugin.getTranslationAdvisor({
-      advisorId: props.suggestion.advisorId!,
+      advisor: props.suggestion.advisor!,
     }),
-  enabled: !import.meta.env.SSR && !!props.suggestion.advisorId,
+  enabled: !import.meta.env.SSR && !!props.suggestion.advisor,
 });
 
 const tagLabel = computed(() => {

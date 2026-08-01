@@ -1,5 +1,8 @@
 import { createGlossaryTerms, executeCommand, getDbHandle } from "@cat/domain";
-import { TermDataSchema } from "@cat/shared";
+import {
+  ServiceImplementationReferenceSchema,
+  TermDataSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { generateCacheKey } from "#/graph/cache.ts";
@@ -12,8 +15,8 @@ export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),
   creatorId: z.uuidv4().optional(),
   data: z.array(TermDataSchema),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const CreateTermOutputSchema = z.object({
@@ -50,8 +53,8 @@ export const createTermGraph = defineGraph({
               revectorizeConceptGraph,
               {
                 conceptId,
-                vectorizerId: input.vectorizerId,
-                vectorStorageId: input.vectorStorageId,
+                vectorizer: input.vectorizer,
+                vectorStorage: input.vectorStorage,
               },
               { signal: ctx.signal },
             );

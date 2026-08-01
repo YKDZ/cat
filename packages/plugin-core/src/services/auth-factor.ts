@@ -1,4 +1,7 @@
-import type { PluginServiceType } from "@cat/shared";
+import type {
+  PluginServiceType,
+  ServiceImplementationReference,
+} from "@cat/shared";
 
 import type { IPluginService } from "#/services/service.ts";
 
@@ -42,6 +45,8 @@ export type AuthFactorExecutionContext = {
   identifier?: string;
   /** The resolved userId if identity is already known. */
   userId?: string;
+  /** Persisted identity of this configured factor, when applicable. */
+  serviceReference?: ServiceImplementationReference;
   /** Input provided by the user in this step. */
   input: AuthFactorInput;
   /** Raw HTTP context for IP binding etc. */

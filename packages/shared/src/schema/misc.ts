@@ -2,11 +2,13 @@ import * as z from "zod";
 
 import { safeZDotJson } from "#/schema/json.ts";
 import { RecallEvidenceSchema } from "#/schema/recall.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const DrizzleDateTimeSchema = z.coerce.date();
 
 export const TranslationAdvisorDataSchema = z.object({
   id: z.int(),
+  reference: ServiceImplementationReferenceSchema,
   name: z.string(),
 });
 

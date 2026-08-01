@@ -1,4 +1,5 @@
 import { PluginManager } from "@cat/plugin-core";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import {
   afterAll,
@@ -34,6 +35,14 @@ import { runGraph } from "#/graph/dsl/index.ts";
 import { createDefaultGraphRuntime } from "#/graph/index.ts";
 
 import { termDiscoveryGraph } from "../term-discovery.ts";
+
+const nlpSegmenter = ServiceImplementationReferenceSchema.parse({
+  pluginId: "test-plugin",
+  serviceId: "segmenter",
+  serviceType: "NLP_WORD_SEGMENTER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 describe("termDiscoveryGraph", () => {
   let cleanup: (() => Promise<void>) | undefined;
@@ -112,14 +121,14 @@ describe("termDiscoveryGraph", () => {
     });
   });
 
-  it("passes nlpSegmenterId through to statistical extraction", async () => {
+  it("passes nlpSegmenter through to statistical extraction", async () => {
     const result = await runGraph(termDiscoveryGraph, {
       projectId: "22222222-2222-4222-8222-222222222222",
       contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
       elementIds: [],
       glossaryId: "11111111-1111-4111-8111-111111111111",
       sourceLanguageId: "en",
-      nlpSegmenterId: 77,
+      nlpSegmenter,
       config: {
         llm: { enabled: false },
       },
@@ -127,7 +136,7 @@ describe("termDiscoveryGraph", () => {
 
     expect(mocks.statisticalTermExtractOp).toHaveBeenCalledWith(
       expect.objectContaining({
-        nlpSegmenterId: 77,
+        nlpSegmenter,
       }),
       expect.any(Object),
     );
