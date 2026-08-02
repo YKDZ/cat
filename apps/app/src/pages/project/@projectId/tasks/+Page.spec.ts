@@ -48,7 +48,7 @@ enableAutoUnmount(afterEach);
 const projectId = "11111111-1111-4111-8111-111111111111";
 const taskId = "22222222-2222-4222-8222-222222222222";
 
-type TaskTableRow = {
+type TaskRow = {
   id: string;
   task: TaskKind;
   state: TaskState;
@@ -58,7 +58,7 @@ type TaskTableRow = {
   finishedAt: Date | string | null;
 };
 
-const task: TaskTableRow = {
+const task: TaskRow = {
   id: taskId,
   task: TaskKindSchema.parse({
     kind: "BATCH_AUTO_TRANSLATION",
@@ -146,7 +146,7 @@ describe("Task page", () => {
     const wrapper = mount(TaskPage, {
       global: {
         plugins: [i18n],
-        stubs: { ProjectPageDataError: true, TaskTable: true },
+        stubs: { ProjectPageDataError: true },
       },
     });
 
@@ -209,19 +209,11 @@ describe("Task page", () => {
         plugins: [i18n],
         stubs: {
           ProjectPageDataError: true,
-          TaskTable: {
-            emits: ["next", "previous", "update:status"],
-            template: `
-              <button data-testid="next" @click="$emit('next')">next</button>
-              <button data-testid="previous" @click="$emit('previous')">previous</button>
-              <button data-testid="filter" @click="$emit('update:status', 'FAILED')">filter</button>
-            `,
-          },
         },
       },
     });
 
-    await wrapper.get('[data-testid="next"]').trigger("click");
+    await wrapper.get('[title="下一页"]').trigger("click");
     await flushPromises();
     expect(mocks.list).toHaveBeenLastCalledWith({
       projectId,
@@ -229,13 +221,13 @@ describe("Task page", () => {
       cursor: nextCursor,
     });
 
-    await wrapper.get('[data-testid="previous"]').trigger("click");
+    await wrapper.get('[title="上一页"]').trigger("click");
     await flushPromises();
     expect(mocks.list).toHaveBeenLastCalledWith({ projectId, pageSize: 20 });
 
-    await wrapper.get('[data-testid="next"]').trigger("click");
+    await wrapper.get('[title="下一页"]').trigger("click");
     await flushPromises();
-    await wrapper.get('[data-testid="filter"]').trigger("click");
+    await wrapper.get('select[aria-label="状态"]').setValue("FAILED");
     await flushPromises();
     expect(mocks.list).toHaveBeenLastCalledWith({
       projectId,
@@ -247,14 +239,14 @@ describe("Task page", () => {
   it("keeps the newest list result and loading state when requests overlap", async () => {
     let resolveRefresh:
       | ((value: {
-          items: TaskTableRow[];
+          items: TaskRow[];
           hasMore: boolean;
           nextCursor: null;
         }) => void)
       | undefined;
     let resolveFiltered:
       | ((value: {
-          items: TaskTableRow[];
+          items: TaskRow[];
           hasMore: boolean;
           nextCursor: null;
         }) => void)
@@ -281,23 +273,15 @@ describe("Task page", () => {
         plugins: [i18n],
         stubs: {
           ProjectPageDataError: true,
-          TaskTable: {
-            props: ["data", "loading"],
-            emits: ["refresh", "update:status"],
-            template: `
-              <button data-testid="refresh" @click="$emit('refresh')">refresh</button>
-              <button data-testid="filter" @click="$emit('update:status', 'FAILED')">filter</button>
-              <output data-testid="loading">{{ loading }}</output>
-              <output data-testid="status">{{ data[0]?.state.status }}</output>
-            `,
-          },
         },
       },
     });
 
     await wrapper.get('[data-testid="refresh"]').trigger("click");
-    await wrapper.get('[data-testid="filter"]').trigger("click");
-    expect(wrapper.get('[data-testid="loading"]').text()).toBe("true");
+    await wrapper.get('select[aria-label="状态"]').setValue("FAILED");
+    expect(wrapper.get("[data-data-table]").attributes("aria-busy")).toBe(
+      "true",
+    );
 
     resolveFiltered?.({
       items: [filteredTask],
@@ -305,12 +289,14 @@ describe("Task page", () => {
       nextCursor: null,
     });
     await flushPromises();
-    expect(wrapper.get('[data-testid="loading"]').text()).toBe("false");
-    expect(wrapper.get('[data-testid="status"]').text()).toBe("FAILED");
+    expect(wrapper.get("[data-data-table]").attributes("aria-busy")).toBe(
+      "false",
+    );
+    expect(wrapper.text()).toContain("失败");
 
     resolveRefresh?.({ items: [task], hasMore: false, nextCursor: null });
     await flushPromises();
-    expect(wrapper.get('[data-testid="status"]').text()).toBe("FAILED");
+    expect(wrapper.text()).toContain("失败");
   });
 
   it("rolls back a failed filter without leaving filtered rows or state committed", async () => {
@@ -320,34 +306,25 @@ describe("Task page", () => {
         plugins: [i18n],
         stubs: {
           ProjectPageDataError: true,
-          TaskTable: {
-            props: ["data", "error", "status"],
-            emits: ["update:status"],
-            template: `
-              <button data-testid="filter" @click="$emit('update:status', 'FAILED')">filter</button>
-              <output data-testid="status">{{ status }}</output>
-              <output data-testid="row">{{ data[0]?.state.status }}</output>
-              <output data-testid="error">{{ error }}</output>
-            `,
-          },
         },
       },
     });
 
-    await wrapper.get('[data-testid="filter"]').trigger("click");
+    await wrapper.get('select[aria-label="状态"]').setValue("FAILED");
     await flushPromises();
 
-    expect(wrapper.get('[data-testid="status"]').text()).toBe("");
-    expect(wrapper.get('[data-testid="row"]').text()).toBe("PENDING");
-    expect(wrapper.get('[data-testid="error"]').text()).toContain(
-      "任务列表暂时无法加载，请重试",
-    );
+    expect(
+      (wrapper.get('select[aria-label="状态"]').element as HTMLSelectElement)
+        .value,
+    ).toBe("");
+    expect(wrapper.text()).toContain("等待中");
+    expect(wrapper.text()).toContain("任务列表暂时无法加载，请重试");
   });
 
   it("restores the last successful list when an earlier filter resolves after a later filter fails", async () => {
     let resolvePending:
       | ((value: {
-          items: TaskTableRow[];
+          items: TaskRow[];
           hasMore: boolean;
           nextCursor: null;
         }) => void)
@@ -365,39 +342,29 @@ describe("Task page", () => {
         plugins: [i18n],
         stubs: {
           ProjectPageDataError: true,
-          TaskTable: {
-            props: ["data", "error", "status"],
-            emits: ["update:status"],
-            template: `
-              <button data-testid="pending" @click="$emit('update:status', 'PENDING')">pending</button>
-              <button data-testid="failed" @click="$emit('update:status', 'FAILED')">failed</button>
-              <output data-testid="status">{{ status }}</output>
-              <output data-testid="row">{{ data[0]?.state.status }}</output>
-              <output data-testid="error">{{ error }}</output>
-            `,
-          },
         },
       },
     });
 
-    await wrapper.get('[data-testid="pending"]').trigger("click");
-    await wrapper.get('[data-testid="failed"]').trigger("click");
+    await wrapper.get('select[aria-label="状态"]').setValue("PENDING");
+    await wrapper.get('select[aria-label="状态"]').setValue("FAILED");
     await flushPromises();
     resolvePending?.({ items: [task], hasMore: false, nextCursor: null });
     await flushPromises();
 
-    expect(wrapper.get('[data-testid="status"]').text()).toBe("");
-    expect(wrapper.get('[data-testid="row"]').text()).toBe("PENDING");
-    expect(wrapper.get('[data-testid="error"]').text()).toContain(
-      "任务列表暂时无法加载，请重试",
-    );
+    expect(
+      (wrapper.get('select[aria-label="状态"]').element as HTMLSelectElement)
+        .value,
+    ).toBe("");
+    expect(wrapper.text()).toContain("等待中");
+    expect(wrapper.text()).toContain("任务列表暂时无法加载，请重试");
   });
 
   it("clears old detail during popstate and commits only the newest requested task", async () => {
     const otherTaskId = "88888888-8888-4888-8888-888888888888";
     const otherTask = { ...task, id: otherTaskId };
     let resolveDetail:
-      | ((value: { task: TaskTableRow; currentFailure: null }) => void)
+      | ((value: { task: TaskRow; currentFailure: null }) => void)
       | undefined;
     mocks.useData.mockReturnValue({
       pageError: null,
@@ -420,7 +387,7 @@ describe("Task page", () => {
     const wrapper = mount(TaskPage, {
       global: {
         plugins: [i18n],
-        stubs: { ProjectPageDataError: true, TaskTable: true },
+        stubs: { ProjectPageDataError: true },
       },
     });
 
@@ -449,29 +416,24 @@ describe("Task page", () => {
         plugins: [i18n],
         stubs: {
           ProjectPageDataError: true,
-          TaskTable: {
-            props: ["data", "actionBusy"],
-            emits: ["cancel", "retry"],
-            template: `
-              <button data-testid="cancel" @click="$emit('cancel', data[0])">cancel</button>
-              <button data-testid="retry" @click="$emit('retry', data[0])">retry</button>
-              <output data-testid="busy">{{ actionBusy }}</output>
-            `,
-          },
         },
       },
     });
 
     await wrapper.get('[data-testid="cancel"]').trigger("click");
-    await wrapper.get('[data-testid="retry"]').trigger("click");
 
     expect(mocks.cancel).toHaveBeenCalledTimes(1);
     expect(mocks.retry).not.toHaveBeenCalled();
-    expect(wrapper.get('[data-testid="busy"]').text()).toBe("true");
+    expect(wrapper.get("[data-data-table]").attributes("aria-busy")).toBe(
+      "true",
+    );
+    expect(wrapper.find('[data-testid="cancel"]').exists()).toBe(false);
 
     resolveCancel?.();
     await flushPromises();
-    expect(wrapper.get('[data-testid="busy"]').text()).toBe("false");
+    expect(wrapper.get("[data-data-table]").attributes("aria-busy")).toBe(
+      "false",
+    );
   });
 
   it("sends cancel, retry, and resume actions through the task RPC", async () => {
@@ -486,48 +448,35 @@ describe("Task page", () => {
     });
     mocks.retry.mockResolvedValue({ id: retriedTaskId });
     mocks.resume.mockResolvedValue({ id: resumedTaskId });
-    const wrapper = mount(TaskPage, {
+    const cancelWrapper = mount(TaskPage, {
       global: {
         plugins: [i18n],
-        stubs: {
-          ProjectPageDataError: true,
-          TaskTable: {
-            props: [
-              "data",
-              "hasPrevious",
-              "hasMore",
-              "loading",
-              "status",
-              "actionTaskId",
-              "actionError",
-            ],
-            emits: [
-              "refresh",
-              "update:status",
-              "previous",
-              "next",
-              "detail",
-              "cancel",
-              "retry",
-              "resume",
-            ],
-            template: `
-              <button data-testid="cancel" @click="$emit('cancel', data[0])">cancel</button>
-              <button data-testid="retry" @click="$emit('retry', data[0])">retry</button>
-              <button data-testid="resume" @click="$emit('resume', data[0])">resume</button>
-            `,
-          },
-        },
+        stubs: { ProjectPageDataError: true },
       },
     });
 
-    await wrapper.get('[data-testid="cancel"]').trigger("click");
+    await cancelWrapper.get('[data-testid="cancel"]').trigger("click");
     await flushPromises();
     expect(mocks.cancel).toHaveBeenCalledWith(
       expect.objectContaining({ projectId, taskId }),
     );
 
-    await wrapper.get('[data-testid="retry"]').trigger("click");
+    mocks.useData.mockReturnValue({
+      pageError: null,
+      projectId,
+      tasks: {
+        items: [
+          { ...task, state: { ...task.state, status: "FAILED" as const } },
+        ],
+        hasMore: false,
+        nextCursor: null,
+        total: 1,
+      },
+    });
+    const retryWrapper = mount(TaskPage, {
+      global: { plugins: [i18n], stubs: { ProjectPageDataError: true } },
+    });
+    await retryWrapper.get('[data-testid="retry"]').trigger("click");
     await flushPromises();
     expect(mocks.retry).toHaveBeenCalledWith({ projectId, taskId });
     expect(mocks.detail).toHaveBeenCalledWith({
@@ -536,7 +485,22 @@ describe("Task page", () => {
     });
     expect(globalThis.location.search).toBe(`?taskId=${retriedTaskId}`);
 
-    await wrapper.get('[data-testid="resume"]').trigger("click");
+    mocks.useData.mockReturnValue({
+      pageError: null,
+      projectId,
+      tasks: {
+        items: [
+          { ...task, state: { ...task.state, status: "BLOCKED" as const } },
+        ],
+        hasMore: false,
+        nextCursor: null,
+        total: 1,
+      },
+    });
+    const resumeWrapper = mount(TaskPage, {
+      global: { plugins: [i18n], stubs: { ProjectPageDataError: true } },
+    });
+    await resumeWrapper.get('[data-testid="resume"]').trigger("click");
     await flushPromises();
     expect(mocks.resume).toHaveBeenCalledWith(
       expect.objectContaining({ projectId, taskId }),
@@ -553,17 +517,13 @@ describe("Task page", () => {
         plugins: [i18n],
         stubs: {
           ProjectPageDataError: true,
-          TaskTable: {
-            props: ["data"],
-            emits: ["detail"],
-            template:
-              '<button data-testid="detail" @click="$emit(\'detail\', data[0].id)">detail</button>',
-          },
         },
       },
     });
 
-    await wrapper.get('[data-testid="detail"]').trigger("click");
+    await wrapper
+      .get(`tr[data-row-id="${taskId}"] button[data-row-action]`)
+      .trigger("click");
     await flushPromises();
 
     expect(mocks.detail).toHaveBeenCalledWith({ projectId, taskId });

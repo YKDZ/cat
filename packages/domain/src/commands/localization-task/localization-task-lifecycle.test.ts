@@ -840,5 +840,6 @@ describe("localization task lifecycle", () => {
       },
     );
     expect(page.items).toHaveLength(1);
+    expect(page.total).toBe(1);
   });
 });

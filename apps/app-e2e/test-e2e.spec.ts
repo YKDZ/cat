@@ -247,7 +247,7 @@ describe("release E2E selection", () => {
     ]);
   });
 
-  it("keeps one browser configuration with a 30-scenario shared release suite", async () => {
+  it("keeps one browser configuration with a 33-scenario shared release suite", async () => {
     const e2eRoot = import.meta.dirname;
     const config = await readFile(
       resolve(e2eRoot, "playwright.config.ts"),
@@ -261,6 +261,7 @@ describe("release E2E selection", () => {
         "dev-auth.spec.ts",
         "dev-runtime-probes.spec.ts",
         "editor.spec.ts",
+        "language-analysis.spec.ts",
         "lite-smoke.spec.ts",
         "plugin-management.spec.ts",
         "project-shell-refresh.spec.ts",
@@ -277,7 +278,7 @@ describe("release E2E selection", () => {
     expect(config).toContain('["dot"]');
     expect(config).toContain("outputFolder: process.env.CAT_E2E_REPORT_DIR");
     expect(config).toContain('trace: "retain-on-failure"');
-    expect(tests.join("\n").match(/\btest\(/g)).toHaveLength(30);
+    expect(tests.join("\n").match(/\btest\(/g)).toHaveLength(33);
     expect(tests.join("\n").match(/@dev-mechanism/g)).toHaveLength(2);
     expect(tests.join("\n")).not.toMatch(/\btest\.(?:only|skip)\b/);
   });

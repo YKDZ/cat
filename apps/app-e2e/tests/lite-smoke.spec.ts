@@ -4,6 +4,8 @@ import { TaskStatusSchema, type TaskStatus } from "@cat/shared";
 
 import { test, expect } from "#/fixtures.ts";
 
+import { paginationFixtureCount } from "../pagination-fixture.ts";
+
 const uploadedFileName = "lite-smoke.json";
 
 let createdProjectId: string | null = null;
@@ -22,7 +24,7 @@ const parseTaskListResponse = (
   if (typeof body !== "object" || body === null) {
     throw new Error("task.list response was not an object");
   }
-  const payload = "json" in body ? body.json : body;
+  const payload = "json" in body ? body.json : "ret" in body ? body.ret : body;
   if (
     typeof payload !== "object" ||
     payload === null ||
@@ -67,20 +69,152 @@ const taskStatusLabel = (status: TaskStatus): string =>
     }) satisfies Record<TaskStatus, string>
   )[status];
 
-const expectTaskTableToMatchResponse = async (
+type PagedResource = Readonly<{ id: string }>;
+
+type BrowserTextContainer = Readonly<{
+  clientWidth: number;
+  querySelector: (selector: string) => unknown;
+  scrollWidth: number;
+  textContent: string | null;
+}>;
+
+const parsePagedResourceResponse = (
+  body: unknown,
+): Readonly<{ data: readonly PagedResource[]; total: number }> => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("Controlled table response was not an object.");
+  }
+  const payload = "json" in body ? body.json : "ret" in body ? body.ret : body;
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("data" in payload) ||
+    !Array.isArray(payload.data) ||
+    !("total" in payload) ||
+    typeof payload.total !== "number"
+  ) {
+    throw new Error(
+      "Controlled table response did not contain data and total.",
+    );
+  }
+  const data = payload.data.map((item) => {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      !("id" in item) ||
+      typeof item.id !== "string"
+    ) {
+      throw new Error("Controlled table response item did not contain an id.");
+    }
+    return { id: item.id };
+  });
+  return { data, total: payload.total };
+};
+
+const expectOffsetRequest = (
+  response: import("@playwright/test").Response,
+  pageIndex: number,
+  pageSize: number,
+): void => {
+  const postData = response.request().postData();
+  if (postData === null) {
+    throw new Error(
+      "Controlled table request did not include pagination args.",
+    );
+  }
+  const payload: unknown = JSON.parse(postData);
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("args" in payload) ||
+    !Array.isArray(payload.args)
+  ) {
+    throw new Error(
+      "Controlled table request did not include serialized args.",
+    );
+  }
+  expect(payload.args).toEqual([pageIndex, pageSize]);
+};
+
+const expectTableControlsToFit = async (
+  page: import("@playwright/test").Page,
+  viewportWidth: number,
+): Promise<void> => {
+  const table = page.locator("[data-data-table]");
+  const textOverflow = await table.evaluate((element) => {
+    const regions = [
+      element.querySelector(":scope > div:first-child"),
+      element.querySelector(":scope > footer"),
+    ];
+    const toolbarOrFooterOverflow = regions.some((region) => {
+      if (region === null || region.scrollWidth <= region.clientWidth + 1) {
+        return false;
+      }
+      return region.textContent?.trim() !== "";
+    });
+    const tableTextEscapesCell = (
+      Array.from(element.querySelectorAll("th, td")) as BrowserTextContainer[]
+    ).some((cell) => {
+      return (
+        cell.textContent?.trim() !== "" &&
+        cell.scrollWidth > cell.clientWidth + 1 &&
+        cell.querySelector("[class*='truncate']") === null
+      );
+    });
+    return toolbarOrFooterOverflow || tableTextEscapesCell;
+  });
+  expect(textOverflow).toBe(false);
+
+  const controls = await table
+    .locator(
+      ":scope > div:first-child button, :scope > div:first-child select, :scope > footer button, :scope > footer select",
+    )
+    .evaluateAll((elements) =>
+      elements
+        .map((element) => {
+          const rect = element.getBoundingClientRect();
+          return {
+            bottom: rect.bottom,
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+          };
+        })
+        .filter((rect) => rect.right > rect.left && rect.bottom > rect.top),
+    );
+  for (const control of controls) {
+    expect(control.right).toBeLessThanOrEqual(viewportWidth);
+    expect(control.left).toBeGreaterThanOrEqual(0);
+  }
+  for (const [index, control] of controls.entries()) {
+    for (const other of controls.slice(index + 1)) {
+      const overlaps =
+        control.left < other.right &&
+        control.right > other.left &&
+        control.top < other.bottom &&
+        control.bottom > other.top;
+      expect(overlaps).toBe(false);
+    }
+  }
+};
+
+const expectTaskRowsToMatchResponse = async (
   page: import("@playwright/test").Page,
   items: Array<{ id: string; state: { status: TaskStatus } }>,
 ): Promise<void> => {
-  const rows = page.locator("tbody tr[data-task-id]");
+  const rows = page.locator("tbody tr[data-row-id]");
   await expect(rows).toHaveCount(items.length);
   const domItems = await rows.evaluateAll((elements) =>
     elements.map((element) => ({
-      id: element.getAttribute("data-task-id"),
-      status: element.getAttribute("data-task-status"),
+      id: element.getAttribute("data-row-id"),
+      status: element.children[1]?.textContent?.trim() ?? null,
     })),
   );
   expect(domItems).toEqual(
-    items.map((item) => ({ id: item.id, status: item.state.status })),
+    items.map((item) => ({
+      id: item.id,
+      status: taskStatusLabel(item.state.status),
+    })),
   );
 };
 
@@ -216,6 +350,136 @@ test.describe("CAT Lite smoke", () => {
     });
   });
 
+  test("@lite-smoke lists projects, memories, and glossaries through the controlled table", async ({
+    page,
+    refs,
+  }) => {
+    const tables = [
+      { request: "onRequestProjects", route: "/projects", target: "/project/" },
+      { request: "onRequestMemories", route: "/memories", target: "/memory/" },
+      {
+        request: "onRequestGlossaries",
+        route: "/glossaries",
+        target: "/glossary/",
+      },
+    ] as const;
+
+    for (const table of tables) {
+      const initialRequest = page.waitForResponse((response) =>
+        response.url().includes(table.request),
+      );
+      await page.goto(table.route);
+      const initialResponse = await initialRequest;
+      if (!initialResponse.ok()) {
+        throw new Error(
+          `${table.request} failed with ${initialResponse.status()}: ${await initialResponse.text()}`,
+        );
+      }
+      const firstPage = parsePagedResourceResponse(
+        await initialResponse.json(),
+      );
+      expect(firstPage.total).toBeGreaterThanOrEqual(paginationFixtureCount);
+      expect(firstPage.data).toHaveLength(10);
+
+      const firstPageRows = page.locator("tbody tr[data-row-id]");
+      await expect(firstPageRows).toHaveCount(firstPage.data.length);
+      await expect(firstPageRows.first()).toHaveAttribute(
+        "data-row-id",
+        firstPage.data[0]?.id ?? "",
+      );
+
+      const pageSizeRequest = page.waitForResponse((response) =>
+        response.url().includes(table.request),
+      );
+      await page.getByLabel("每页条数").selectOption("20");
+      const pageSizeResponse = await pageSizeRequest;
+      if (!pageSizeResponse.ok()) {
+        throw new Error(
+          `${table.request} page-size request failed with ${pageSizeResponse.status()}: ${await pageSizeResponse.text()}`,
+        );
+      }
+      expectOffsetRequest(pageSizeResponse, 0, 20);
+      expect(
+        parsePagedResourceResponse(await pageSizeResponse.json()).data,
+      ).toHaveLength(Math.min(firstPage.total, 20));
+
+      const resetPageSizeRequest = page.waitForResponse((response) =>
+        response.url().includes(table.request),
+      );
+      await page.getByLabel("每页条数").selectOption("10");
+      const resetPageSizeResponse = await resetPageSizeRequest;
+      if (!resetPageSizeResponse.ok()) {
+        throw new Error(
+          `${table.request} reset page-size request failed with ${resetPageSizeResponse.status()}: ${await resetPageSizeResponse.text()}`,
+        );
+      }
+      expectOffsetRequest(resetPageSizeResponse, 0, 10);
+
+      const nextPageRequest = page.waitForResponse((response) =>
+        response.url().includes(table.request),
+      );
+      await page.getByTitle("下一页").click();
+      const nextPageResponse = await nextPageRequest;
+      if (!nextPageResponse.ok()) {
+        throw new Error(
+          `${table.request} next page request failed with ${nextPageResponse.status()}: ${await nextPageResponse.text()}`,
+        );
+      }
+      expectOffsetRequest(nextPageResponse, 1, 10);
+      const secondPage = parsePagedResourceResponse(
+        await nextPageResponse.json(),
+      );
+      expect(secondPage.data).not.toEqual(firstPage.data);
+      await expect(
+        page.getByText(`2 / ${Math.ceil(firstPage.total / 10)}`),
+      ).toBeVisible();
+      await expect(firstPageRows).toHaveCount(secondPage.data.length);
+      await expect(firstPageRows.first()).toHaveAttribute(
+        "data-row-id",
+        secondPage.data[0]?.id ?? "",
+      );
+
+      const previousPageRequest = page.waitForResponse((response) =>
+        response.url().includes(table.request),
+      );
+      await page.getByTitle("上一页").click();
+      const previousPageResponse = await previousPageRequest;
+      if (!previousPageResponse.ok()) {
+        throw new Error(
+          `${table.request} previous page request failed with ${previousPageResponse.status()}: ${await previousPageResponse.text()}`,
+        );
+      }
+      expectOffsetRequest(previousPageResponse, 0, 10);
+      expect(
+        parsePagedResourceResponse(await previousPageResponse.json()).data,
+      ).toEqual(firstPage.data);
+      await expect(
+        page.getByText(`1 / ${Math.ceil(firstPage.total / 10)}`),
+      ).toBeVisible();
+
+      const firstRow = page.locator("tbody tr[data-row-id]").first();
+      await expect(firstRow).toBeVisible();
+      await firstRow.locator("button[data-row-action]").press("Enter");
+      await expect(page).toHaveURL(new RegExp(`^.+${table.target}`));
+    }
+
+    const tableRoutes = [
+      "/projects",
+      "/memories",
+      "/glossaries",
+      `/project/${refs.project}/tasks`,
+    ];
+    for (const route of tableRoutes) {
+      await page.setViewportSize({ width: 1280, height: 960 });
+      await page.goto(route);
+      await expect(page.locator("[data-data-table]")).toBeVisible();
+      await expectTableControlsToFit(page, 1280);
+
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expectTableControlsToFit(page, 390);
+    }
+  });
+
   test("@lite-smoke schedules and inspects a localization task", async ({
     page,
   }) => {
@@ -273,9 +537,9 @@ test.describe("CAT Lite smoke", () => {
     if (!scheduledTask) {
       throw new Error(`task.list did not include scheduled task ${taskId}`);
     }
-    await expectTaskTableToMatchResponse(page, responseItems);
+    await expectTaskRowsToMatchResponse(page, responseItems);
     for (const item of responseItems) {
-      await expect(page.locator(`tr[data-task-id="${item.id}"]`)).toContainText(
+      await expect(page.locator(`tr[data-row-id="${item.id}"]`)).toContainText(
         taskStatusLabel(item.state.status),
       );
     }
@@ -301,10 +565,10 @@ test.describe("CAT Lite smoke", () => {
       filteredItems.length,
     );
     expect(filteredItems.some((item) => item.id === taskId)).toBe(true);
-    await expectTaskTableToMatchResponse(page, filteredItems);
+    await expectTaskRowsToMatchResponse(page, filteredItems);
     for (const item of filteredItems) {
       expect(item.state.status).toBe(scheduledTask.state.status);
-      await expect(page.locator(`tr[data-task-id="${item.id}"]`)).toContainText(
+      await expect(page.locator(`tr[data-row-id="${item.id}"]`)).toContainText(
         taskStatusLabel(item.state.status),
       );
     }
@@ -393,12 +657,13 @@ test.describe("CAT Lite smoke", () => {
           item.task.kind === "RECALL_DERIVATION",
       ),
     ).toBe(true);
-    const rows = page.locator("tbody tr[data-task-id]");
+    const rows = page.locator("tbody tr[data-row-id]");
     await expect(rows).toHaveCount(payload.items.length);
     await expect(rows).toContainText("召回派生");
+    await expect(rows.first().locator("button[data-row-action]")).toBeVisible();
     await expect(page.getByTitle("重试")).toHaveCount(0);
     await expect(page.getByTitle("恢复")).toHaveCount(0);
-    await rows.first().getByRole("button", { name: "召回派生" }).click();
+    await rows.first().locator("button[data-row-action]").click();
     await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
   });
 });

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { TaskKindNameSchema, TaskStatusSchema } from "@cat/shared";
 import type {
   BatchAutoTranslationTaskPhase,
   RecallDerivationTaskPhase,
@@ -11,17 +12,28 @@ import type {
   OperationFailureSeverity,
   TaskActor,
   TaskAffectedResource,
+  TaskKind,
   TaskKindName,
+  TaskState,
   TaskStatus,
 } from "@cat/shared";
+import {
+  Button,
+  DataTable,
+  type DataTableColumn,
+  type DataTableColumnVisibility,
+  type DataTableFilters,
+  type DataTablePagination,
+  type DataTableSort,
+} from "@cat/ui";
+import { LoaderCircle, Play, RefreshCw, RotateCcw, X } from "@lucide/vue";
 import { useData } from "vike-vue/useData";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
-import type { TaskTableRow } from "#/components/TaskTable.vue";
-import TaskTable from "#/components/TaskTable.vue";
 import { orpc } from "#/rpc/orpc.ts";
+import { createDataTableLabels } from "#/utils/data-table.ts";
 
 import ProjectPageDataError from "../ProjectPageDataError.vue";
 import type { Data } from "./+data.ts";
@@ -40,9 +52,19 @@ const actionError = ref<string>();
 const actionBusy = ref(false);
 const listRequestVersion = ref(0);
 const detailRequestVersion = ref(0);
+type TaskRow = {
+  id: string;
+  task: TaskKind;
+  state: TaskState;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  startedAt: Date | string | null;
+  finishedAt: Date | string | null;
+};
+type TaskColumnId = "actions" | "progress" | "status" | "task" | "updatedAt";
 type Cursor = { updatedAt: string; id: string };
 type TaskDetail = {
-  task: TaskTableRow;
+  task: TaskRow;
   currentFailure: Partial<OperationFailure> | null;
 };
 const selectedDetail = ref<TaskDetail | undefined>(data.selectedDetail);
@@ -51,8 +73,12 @@ const detailAvailability = ref<"invalid" | "loading" | "unavailable" | null>(
 );
 const cursors = ref<Array<Cursor | undefined>>([undefined]);
 const tasks = ref(
-  data.tasks ?? { items: [], hasMore: false, nextCursor: null },
+  data.tasks ?? { items: [], hasMore: false, nextCursor: null, total: 0 },
 );
+const sorting = ref<readonly DataTableSort<TaskColumnId>[]>([]);
+const filters = ref<DataTableFilters>({});
+const columnVisibility = ref<DataTableColumnVisibility<TaskColumnId>>({});
+const labels = createDataTableLabels(t);
 type CommittedListSnapshot = {
   cursors: Array<Cursor | undefined>;
   pageIndex: number;
@@ -229,7 +255,7 @@ const retryDetail = async () => {
   if (taskId) await showDetail(taskId);
 };
 
-const cancel = async (task: TaskTableRow) => {
+const cancel = async (task: TaskRow) => {
   if (!projectId || actionBusy.value) return;
   actionBusy.value = true;
   actionTaskId.value = task.id;
@@ -249,7 +275,7 @@ const cancel = async (task: TaskTableRow) => {
   }
 };
 
-const retry = async (task: TaskTableRow) => {
+const retry = async (task: TaskRow) => {
   if (!projectId || actionBusy.value) return;
   actionBusy.value = true;
   actionTaskId.value = task.id;
@@ -266,7 +292,7 @@ const retry = async (task: TaskTableRow) => {
   }
 };
 
-const resume = async (task: TaskTableRow) => {
+const resume = async (task: TaskRow) => {
   if (!projectId || actionBusy.value) return;
   actionBusy.value = true;
   actionTaskId.value = task.id;
@@ -469,32 +495,178 @@ const capabilityLabel = (value: OperationFailureCapability): string =>
 const authorizationDecisionLabel = (
   value: OperationFailureAuthorizationDecision,
 ): string => localizedEnum(value, authorizationDecisionLabels, "未知授权决定");
+
+const taskLabel = (task: TaskKind): string =>
+  task.kind === "BATCH_AUTO_TRANSLATION" ? t("批量自动翻译") : t("召回派生");
+
+const progress = (state: TaskState): string => {
+  if (state.progressTotal === null) return t("总量待定");
+  if (state.progressCurrent === null) return t("不确定");
+  return `${state.progressCurrent} / ${state.progressTotal}`;
+};
+
+const columns: readonly DataTableColumn<TaskRow, TaskColumnId>[] = [
+  { id: "task", header: t("任务"), render: (row) => taskLabel(row.task) },
+  {
+    id: "status",
+    header: t("状态"),
+    render: (row) => taskStatusLabel(row.state.status),
+  },
+  {
+    id: "progress",
+    header: t("进度"),
+    render: (row) => progress(row.state),
+  },
+  {
+    id: "updatedAt",
+    header: t("更新时间"),
+    render: (row) => timestamp(row.updatedAt),
+  },
+  { id: "actions", header: t("操作"), render: () => "" },
+];
+
+const updateTaskPagination = async (pagination: DataTablePagination) => {
+  if (pagination.pageSize !== 20 || pagination.pageIndex === pageIndex.value) {
+    return;
+  }
+  if (pagination.pageIndex === pageIndex.value + 1) await next();
+  else if (pagination.pageIndex === pageIndex.value - 1) await previous();
+};
+
+const updateStatus = (event: Event) => {
+  const statusValue = (event.target as HTMLSelectElement).value;
+  const parsed = TaskStatusSchema.safeParse(statusValue);
+  void changeStatus(parsed.success ? parsed.data : undefined);
+};
+
+const updateKind = (event: Event) => {
+  const kindValue = (event.target as HTMLSelectElement).value;
+  const parsed = TaskKindNameSchema.safeParse(kindValue);
+  void changeKind(parsed.success ? parsed.data : undefined);
+};
 </script>
 
 <template>
   <ProjectPageDataError v-if="pageError" :message="pageError.message" />
   <section v-else class="space-y-4 p-4">
-    <TaskTable
-      :data="tasks.items"
+    <DataTable
+      :column-visibility="columnVisibility"
+      :columns="columns"
+      :filters="filters"
+      :has-next="tasks.hasMore"
       :has-previous="pageIndex > 0"
-      :has-more="tasks.hasMore"
-      :loading="loading"
-      :error="listError"
-      :status="status"
-      :kind="kind"
-      :action-task-id="actionTaskId"
-      :action-busy="actionBusy"
-      :action-error="actionError"
-      @refresh="load"
-      @update:status="changeStatus"
-      @update:kind="changeKind"
-      @previous="previous"
-      @next="next"
-      @detail="openDetail"
-      @cancel="cancel"
-      @retry="retry"
-      @resume="resume"
-    />
+      :labels="labels"
+      :loading="loading || actionBusy"
+      pagination-mode="cursor"
+      :page-size-options="[20]"
+      :pagination="{ pageIndex, pageSize: 20 }"
+      :row-count="tasks.total ?? tasks.items.length"
+      :row-action-label="
+        (task) => t('查看任务详情：{task}', { task: taskLabel(task.task) })
+      "
+      :row-key="(task) => task.id"
+      :rows="tasks.items"
+      :sorting="sorting"
+      @row-click="openDetail($event.id)"
+      @update:column-visibility="columnVisibility = $event"
+      @update:filters="filters = $event"
+      @update:pagination="updateTaskPagination"
+      @update:sorting="sorting = $event"
+    >
+      <template #toolbar>
+        <select
+          class="h-9 border px-2"
+          :aria-label="t('状态')"
+          :value="status ?? ''"
+          @change="updateStatus"
+        >
+          <option value="">{{ t("全部状态") }}</option>
+          <option value="PENDING">{{ t("等待中") }}</option>
+          <option value="RUNNING">{{ t("运行中") }}</option>
+          <option value="BLOCKED">{{ t("已阻塞") }}</option>
+          <option value="CANCEL_REQUESTED">{{ t("取消请求中") }}</option>
+          <option value="COMPLETED">{{ t("已完成") }}</option>
+          <option value="FAILED">{{ t("失败") }}</option>
+          <option value="CANCELED">{{ t("已取消") }}</option>
+        </select>
+        <select
+          class="h-9 border px-2"
+          :aria-label="t('任务类型')"
+          :value="kind ?? ''"
+          @change="updateKind"
+        >
+          <option value="">{{ t("全部任务类型") }}</option>
+          <option value="BATCH_AUTO_TRANSLATION">
+            {{ t("批量自动翻译") }}
+          </option>
+          <option value="RECALL_DERIVATION">{{ t("召回派生") }}</option>
+        </select>
+      </template>
+      <template #commands>
+        <Button
+          size="icon"
+          data-testid="refresh"
+          variant="outline"
+          :disabled="loading || actionBusy"
+          :title="t('刷新')"
+          @click="load"
+        >
+          <RefreshCw class="size-4" />
+        </Button>
+      </template>
+      <template #cell-actions="{ row }">
+        <div class="flex justify-end gap-1">
+          <Button
+            v-if="['PENDING', 'RUNNING', 'BLOCKED'].includes(row.state.status)"
+            size="icon"
+            data-testid="cancel"
+            variant="ghost"
+            :disabled="actionBusy"
+            :title="t('取消')"
+            @click="cancel(row)"
+            ><LoaderCircle
+              v-if="actionTaskId === row.id"
+              class="size-4 animate-spin" /><X v-else class="size-4"
+          /></Button>
+          <Button
+            v-if="
+              row.task.kind !== 'RECALL_DERIVATION' &&
+              row.state.status === 'BLOCKED'
+            "
+            size="icon"
+            data-testid="resume"
+            variant="ghost"
+            :disabled="actionBusy"
+            :title="t('恢复')"
+            @click="resume(row)"
+            ><LoaderCircle
+              v-if="actionTaskId === row.id"
+              class="size-4 animate-spin" /><Play v-else class="size-4"
+          /></Button>
+          <Button
+            v-else-if="
+              row.task.kind !== 'RECALL_DERIVATION' &&
+              row.state.status === 'FAILED'
+            "
+            size="icon"
+            data-testid="retry"
+            variant="ghost"
+            :disabled="actionBusy"
+            :title="t('重试')"
+            @click="retry(row)"
+            ><LoaderCircle
+              v-if="actionTaskId === row.id"
+              class="size-4 animate-spin" /><RotateCcw v-else class="size-4"
+          /></Button>
+        </div>
+      </template>
+    </DataTable>
+    <p v-if="listError" class="text-sm text-destructive" role="alert">
+      {{ listError }}
+    </p>
+    <p v-if="actionError" class="text-sm text-destructive" role="alert">
+      {{ actionError }}
+    </p>
     <section
       v-if="detailAvailability"
       class="border-t pt-4 text-sm"

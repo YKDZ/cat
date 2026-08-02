@@ -1,33 +1,22 @@
 <script setup lang="ts">
 import {
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Pagination,
-  PaginationContent,
-  PaginationFirst,
-  PaginationLast,
-  PaginationNext,
-  PaginationPrevious,
+  DataTable,
+  type DataTableColumn,
+  type DataTableColumnVisibility,
+  type DataTableFilters,
+  type DataTablePagination,
+  type DataTableSort,
 } from "@cat/ui";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-} from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
-import { ref, onMounted, watch, computed } from "vue";
+import { navigate } from "vike/client/router";
+import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { createDataTableLabels } from "#/utils/data-table.ts";
+import { formatDate } from "#/utils/format.ts";
 import { clientLogger } from "#/utils/logger.ts";
 
 import { onRequestProjects, type ProjectListItem } from "./Table.telefunc.ts";
-import TableItem from "./TableItem.vue";
 
 const { t } = useI18n();
 const ctx = usePageContext();
@@ -37,23 +26,30 @@ const pageIndex = ref(0);
 const pageSize = ref(10);
 const total = ref(0);
 const isLoading = ref(false);
+const sorting = ref<readonly DataTableSort[]>([]);
+const filters = ref<DataTableFilters>({});
+const columnVisibility = ref<DataTableColumnVisibility>({});
 
-const currentPage = computed({
-  get: () => pageIndex.value + 1,
-  set: (value) => {
-    pageIndex.value = value - 1;
+const columns: readonly DataTableColumn<ProjectListItem>[] = [
+  { id: "name", header: t("名称"), render: (project) => project.name },
+  {
+    id: "description",
+    header: t("描述"),
+    render: (project) => project.description || t("—"),
   },
-});
+  {
+    id: "createdAt",
+    header: t("创建时间"),
+    render: (project) => formatDate(project.createdAt),
+  },
+  {
+    id: "updatedAt",
+    header: t("更新时间"),
+    render: (project) => formatDate(project.updatedAt),
+  },
+];
 
-const pageTotalAmount = computed(() =>
-  total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
-);
-
-const displayRange = computed(() => {
-  const from = pageIndex.value * pageSize.value + 1;
-  const to = Math.min((pageIndex.value + 1) * pageSize.value, total.value);
-  return { from, to };
-});
+const labels = createDataTableLabels(t);
 
 const fetchProjects = async () => {
   if (!ctx.user) return;
@@ -76,93 +72,35 @@ onMounted(() => {
   fetchProjects();
 });
 
-watch([pageIndex], () => {
+watch([pageIndex, pageSize], () => {
   fetchProjects();
 });
+
+const updatePagination = (pagination: DataTablePagination) => {
+  pageIndex.value = pagination.pageIndex;
+  pageSize.value = pagination.pageSize;
+};
 </script>
 
 <template>
-  <div class="w-full">
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{{ t("名称") }}</TableHead>
-          <TableHead>{{ t("描述") }}</TableHead>
-          <TableHead>{{ t("创建时间") }}</TableHead>
-          <TableHead>{{ t("更新时间") }}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <template v-if="isLoading">
-          <TableRow v-for="i in pageSize" :key="i">
-            <TableCell>
-              <Skeleton class="h-4 w-32" />
-            </TableCell>
-            <TableCell>
-              <Skeleton class="h-4 w-48" />
-            </TableCell>
-            <TableCell>
-              <Skeleton class="h-4 w-24" />
-            </TableCell>
-            <TableCell>
-              <Skeleton class="h-4 w-24" />
-            </TableCell>
-          </TableRow>
-        </template>
-        <template v-else-if="projects.length === 0">
-          <TableRow>
-            <TableCell :colspan="4" class="py-8 text-center text-gray-500">
-              {{ t("暂无数据") }}
-            </TableCell>
-          </TableRow>
-        </template>
-        <template v-else>
-          <TableItem v-for="project in projects" :key="project.id" :project />
-        </template>
-      </TableBody>
-    </Table>
-
-    <!-- 分页 -->
-    <div v-if="total > 0" class="mt-4 flex items-center justify-between">
-      <div class="text-sm text-muted-foreground">
-        {{
-          t("显示 {from} - {to} 条，共 {total} 条", {
-            from: displayRange.from,
-            to: displayRange.to,
-            total: total,
-          })
-        }}
-      </div>
-      <Pagination
-        :items-per-page="pageSize"
-        :total="total"
-        :sibling-count="0"
-        v-model:page="currentPage"
-      >
-        <PaginationContent class="gap-0.5">
-          <PaginationFirst size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronsLeftIcon class="h-3 w-3" />
-          </PaginationFirst>
-          <PaginationPrevious size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronLeftIcon class="h-3 w-3" />
-          </PaginationPrevious>
-
-          <div
-            class="pointer-events-none flex min-w-12 items-center justify-center px-1"
-          >
-            <span class="text-xs font-medium tabular-nums">
-              {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
-            </span>
-          </div>
-
-          <PaginationNext size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronRightIcon class="h-3 w-3" />
-          </PaginationNext>
-          <PaginationLast size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronsRightIcon class="h-3 w-3" />
-          </PaginationLast>
-        </PaginationContent>
-      </Pagination>
-    </div>
-  </div>
+  <DataTable
+    :column-visibility="columnVisibility"
+    :columns="columns"
+    :filters="filters"
+    :labels="labels"
+    :loading="isLoading"
+    :pagination="{ pageIndex, pageSize }"
+    :row-count="total"
+    :row-action-label="
+      (project) => t('打开项目：{name}', { name: project.name })
+    "
+    :rows="projects"
+    :sorting="sorting"
+    :row-key="(project) => project.id"
+    @row-click="navigate(`/project/${$event.id}`)"
+    @update:column-visibility="columnVisibility = $event"
+    @update:filters="filters = $event"
+    @update:pagination="updatePagination"
+    @update:sorting="sorting = $event"
+  />
 </template>

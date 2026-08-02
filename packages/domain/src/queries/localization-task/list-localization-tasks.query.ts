@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, or, task } from "@cat/db";
+import { and, count, desc, eq, inArray, lt, or, task } from "@cat/db";
 import { TaskKindNameSchema, TaskStatusSchema } from "@cat/shared";
 import * as z from "zod";
 
@@ -33,6 +33,7 @@ export type LocalizationTaskPage = {
   items: LocalizationTaskSummary[];
   hasMore: boolean;
   nextCursor: { updatedAt: string; id: string } | null;
+  total: number;
 };
 
 const authorizationCondition = (authorization: TaskReadAuthorization) => {
@@ -64,6 +65,12 @@ export const listLocalizationTasks: Query<
   }
   if (query.status !== undefined) filters.push(eq(task.status, query.status));
   if (query.kind !== undefined) filters.push(eq(task.kind, query.kind));
+  const countRows = await ctx.db
+    .select({ total: count() })
+    .from(task)
+    .where(and(...filters));
+  const total = countRows[0]?.total ?? 0;
+
   if (query.cursor !== undefined) {
     const updatedAt = new Date(query.cursor.updatedAt);
     filters.push(
@@ -91,5 +98,6 @@ export const listLocalizationTasks: Query<
       rows.length > query.pageSize && last
         ? { updatedAt: last.updatedAt.toISOString(), id: last.id }
         : null,
+    total,
   };
 };

@@ -20,12 +20,15 @@ import { DrizzleDB, vectorizedString } from "@cat/db";
 import {
   createContentNodeUnderParent,
   createElements,
+  createGlossary,
+  createMemory,
   createPR,
   createProject,
   createQaReviewRunWithFindings,
   createRootContentNode,
   createTranslations,
   executeCommand,
+  grantPermissionTuple,
   materializeQaReviewQueueItem,
   updatePRStatus,
 } from "@cat/domain";
@@ -39,6 +42,7 @@ import {
   removeDevProbeWorkspace,
   type DevProbeWorkspace,
 } from "./dev-probe-workspace.ts";
+import { paginationFixtureCount } from "./pagination-fixture.ts";
 import type { TestServiceLease } from "./test-service-lease.ts";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -2497,6 +2501,59 @@ const seedBranchWorkspace = async (
   refs.set("branch:workspace", opened.branchId);
 };
 
+const seedPaginationFixtures = async (
+  db: DrizzleDB["client"],
+  refs: RefResolver,
+): Promise<void> => {
+  const creatorId = refs.getStringId("user:admin");
+  const projectId = refs.getStringId("project");
+
+  for (const index of Array.from(
+    { length: paginationFixtureCount },
+    (_, value) => value + 1,
+  )) {
+    const project = await executeCommand({ db }, createProject, {
+      name: `E2E pagination project ${index}`,
+      description: null,
+      creatorId,
+    });
+    await executeCommand({ db }, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "project",
+      objectId: project.id,
+    });
+
+    const glossary = await executeCommand({ db }, createGlossary, {
+      name: `E2E pagination glossary ${index}`,
+      creatorId,
+      projectIds: [projectId],
+    });
+    await executeCommand({ db }, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "glossary",
+      objectId: glossary.id,
+    });
+
+    const memory = await executeCommand({ db }, createMemory, {
+      name: `E2E pagination memory ${index}`,
+      creatorId,
+      scope: "PROJECT",
+      projectIds: [projectId],
+    });
+    await executeCommand({ db }, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "memory",
+      objectId: memory.id,
+    });
+  }
+};
+
 const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
   const database = new DrizzleDB(runtime.databaseUrl);
   await database.connect();
@@ -2514,6 +2571,7 @@ const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
     await seedQaReviewWorkbench(database.client, result.refs);
     await seedQaReviewDeferTarget(database.client, result.refs);
     await seedBranchWorkspace(database.client, result.refs);
+    await seedPaginationFixtures(database.client, result.refs);
     const refs = Object.fromEntries(
       [...result.refs.entries()].map(([key, value]) => [key, String(value)]),
     );
