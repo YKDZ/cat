@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import type { DrizzleClient } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 
@@ -85,9 +87,20 @@ export type DefaultGraphRuntime = StoredGraphRuntime;
 export const createDefaultGraphRuntime = (
   drizzle: DrizzleClient,
   pluginManager: PluginManager,
+  options?: {
+    ownerId?: string;
+    ownerLeaseMs?: number;
+    startReconciliationLoops?: boolean;
+  },
 ): DefaultGraphRuntime => {
   const eventBus = new InProcessEventBus();
-  const checkpointer = new PostgresCheckpointer(drizzle);
+  const ownerId = options?.ownerId ?? randomUUID();
+  const checkpointer = new PostgresCheckpointer(drizzle, {
+    ownerId,
+    ...(options?.ownerLeaseMs === undefined
+      ? {}
+      : { ownerLeaseMs: options.ownerLeaseMs }),
+  });
   const leaseManager = new InProcessLeaseManager();
   const compensationRegistry = new InMemoryCompensationRegistry();
   const executorPool = new QueuedExecutorPool({ leaseManager });
@@ -142,14 +155,19 @@ export const createDefaultGraphRuntime = (
     eventBus,
     checkpointer,
     scheduler,
+    ownerId,
   });
   taskProjector.install();
   const taskService = new LocalizationTaskService({
     db: drizzle,
     pluginManager,
     runtime: { scheduler },
+    ownerId,
   });
-  taskService.startReconciliationLoop();
+  if (options?.startReconciliationLoops ?? true) {
+    taskProjector.startReconciliationLoop();
+    taskService.startReconciliationLoop();
+  }
   let taskRecovery: Promise<void> | null = null;
   const ensureTaskRecovery = (): Promise<void> => {
     taskRecovery ??= (async () => {
@@ -159,7 +177,8 @@ export const createDefaultGraphRuntime = (
     return taskRecovery;
   };
   const dispose = async (): Promise<void> => {
-    await Promise.all([taskProjector.dispose(), taskService.dispose()]);
+    await taskProjector.dispose();
+    await taskService.dispose();
     await scheduler.dispose();
   };
 

@@ -33,6 +33,7 @@ import {
   TaskStatusValues,
   TaskScopeTypeValues,
   TaskKindValues,
+  WorkflowTaskDispatchStatusValues,
   TaskActorTypeValues,
   OperationFailureCodeValues,
   OperationFailureSeverityValues,
@@ -134,6 +135,10 @@ import {
 export const taskStatus = pgEnum("TaskStatus", TaskStatusValues);
 export const taskScopeType = pgEnum("TaskScopeType", TaskScopeTypeValues);
 export const taskKind = pgEnum("TaskKind", TaskKindValues);
+export const workflowTaskDispatchStatus = pgEnum(
+  "WorkflowTaskDispatchStatus",
+  WorkflowTaskDispatchStatusValues,
+);
 export const taskActorType = pgEnum("TaskActorType", TaskActorTypeValues);
 export const operationFailureCode = pgEnum(
   "OperationFailureCode",
@@ -2399,6 +2404,39 @@ export const agentRun = snakeCase.table(
     index().on(table.sessionId),
     index().on(table.status),
     uniqueIndex().on(table.deduplicationKey),
+  ],
+);
+
+/**
+ * Batch-auto-translation's private dispatch intent. Task remains a user-facing
+ * projection and must not carry queue leases, run binding or event cursors.
+ */
+export const workflowTaskDispatch = snakeCase.table(
+  "WorkflowTaskDispatch",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    taskId: uuid()
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    generation: integer().notNull(),
+    runId: uuid().defaultRandom().notNull().unique(),
+    status: workflowTaskDispatchStatus().notNull().default("REQUESTED"),
+    ownerId: uuid(),
+    ownerEpoch: integer().notNull().default(0),
+    ownerLeaseExpiresAt: timestamp({ withTimezone: true }),
+    attemptCount: integer().notNull().default(0),
+    agentSessionId: integer().references(() => agentSession.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    lastProjectedEventSequence: integer().notNull().default(0),
+    settledAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(table.taskId, table.generation),
+    index().on(table.status, table.ownerLeaseExpiresAt),
+    index().on(table.taskId, table.generation),
   ],
 );
 

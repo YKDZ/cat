@@ -1,11 +1,21 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  activateWorkflowTaskDispatch,
+  bindWorkflowTaskDispatchSession,
+  claimAgentRunOwner,
+  claimWorkflowTaskDispatch,
+  createAgentDefinition,
+  createAgentRun,
+  createAgentSession,
   createProject,
   createUser,
   executeCommand,
   executeQuery,
   getOperationFailure,
+  getLatestWorkflowTaskDispatch,
+  getAgentSessionByExternalId,
+  resumeWorkflowTaskWithDispatch,
 } from "@cat/domain";
 import {
   LanguageAnalysisRequirementError,
@@ -55,6 +65,85 @@ const serviceReference = (
   scopeId: "" as const,
 });
 
+const bindRunningTask = async (
+  adapter: BatchAutoTranslationTaskAdapter,
+): Promise<string> => {
+  if (!db) throw new Error("Test database was not initialized.");
+  const task = await adapter.refresh();
+  const definition = await executeCommand(
+    { db: db.client },
+    createAgentDefinition,
+    {
+      name: `language-binding-${randomUUID()}`,
+      description: "Language failure binding",
+      scopeType: "GLOBAL",
+      scopeId: "",
+      definitionId: `language-binding-${randomUUID()}`,
+      version: "1.0.0",
+      type: "WORKFLOW",
+      tools: [],
+      content: "",
+      isBuiltin: true,
+    },
+  );
+  const session = await executeCommand({ db: db.client }, createAgentSession, {
+    agentDefinitionId: definition.id,
+    userId: task.state.actor.id ?? "",
+    projectId: task.task.payload.invocation.projectId,
+    metadata: {},
+  });
+  const sessionRow = await executeQuery(
+    { db: db.client },
+    getAgentSessionByExternalId,
+    { externalId: session.sessionId },
+  );
+  const binding = await executeQuery(
+    { db: db.client },
+    getLatestWorkflowTaskDispatch,
+    { taskId: task.id },
+  );
+  if (!sessionRow || !binding)
+    throw new Error("Workflow test fixture missing.");
+  const claimed = await executeCommand(
+    { db: db.client },
+    claimWorkflowTaskDispatch,
+    {
+      dispatchId: binding.id,
+      ownerId: randomUUID(),
+      leaseDurationMs: 30_000,
+    },
+  );
+  if (!claimed) throw new Error("Workflow dispatch was not claimed.");
+  await executeCommand({ db: db.client }, createAgentRun, {
+    externalId: claimed.runId,
+    sessionId: session.sessionId,
+    graphDefinition: {},
+  });
+  const runLease = await executeCommand({ db: db.client }, claimAgentRunOwner, {
+    externalId: claimed.runId,
+    ownerId: claimed.ownerId ?? "",
+    leaseDurationMs: 30_000,
+  });
+  if (!runLease) throw new Error("Workflow AgentRun was not claimed.");
+  const owned = await executeCommand(
+    { db: db.client },
+    bindWorkflowTaskDispatchSession,
+    {
+      dispatchId: claimed.id,
+      ownerId: claimed.ownerId ?? "",
+      ownerEpoch: claimed.ownerEpoch,
+      agentSessionId: sessionRow.id,
+    },
+  );
+  await executeCommand({ db: db.client }, activateWorkflowTaskDispatch, {
+    dispatchId: owned.id,
+    dispatchFence: { ownerId: owned.ownerId ?? "", epoch: owned.ownerEpoch },
+    runFence: { ownerId: claimed.ownerId ?? "", epoch: runLease.epoch },
+    requestId: randomUUID(),
+  });
+  return claimed.runId;
+};
+
 describe("Language Analysis Operation Failure task projection", () => {
   it.each([
     [
@@ -95,10 +184,7 @@ describe("Language Analysis Operation Failure task projection", () => {
           glossaryIds: [],
         }),
       });
-      const runId = randomUUID();
-      const claimId = randomUUID();
-      await adapter.claimDispatch(claimId, 30_000);
-      await adapter.bindRunAndStart(runId, claimId, "PREPARING");
+      const runId = await bindRunningTask(adapter);
 
       const eventBus = new InProcessEventBus();
       const checkpointer = new MemoryCheckpointer();
@@ -190,11 +276,19 @@ describe("Language Analysis Operation Failure task projection", () => {
         capability: "LANGUAGE_ANALYSIS",
         affectedResources: adapter.task.state.resources,
       } satisfies Partial<OperationFailureInput & { id: string | null }>);
-      await adapter.resume();
+      await executeCommand({ db: db.client }, resumeWorkflowTaskWithDispatch, {
+        taskId: adapter.task.id,
+        requestId: randomUUID(),
+      });
       const resumed = await adapter.refresh();
       expect(resumed.id).toBe(adapter.task.id);
       expect(resumed.state.status).toBe("PENDING");
-      expect(resumed.state.runtime.runId).toBeNull();
+      const binding = await executeQuery(
+        { db: db.client },
+        getLatestWorkflowTaskDispatch,
+        { taskId: adapter.task.id },
+      );
+      expect(binding).toMatchObject({ generation: 2, status: "REQUESTED" });
     },
   );
 });

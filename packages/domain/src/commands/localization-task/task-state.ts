@@ -2,9 +2,6 @@ import type { TaskStatus } from "@cat/shared";
 
 export type TaskTransition =
   | "start"
-  | "claimDispatch"
-  | "bindRun"
-  | "bindRunAndStart"
   | "progress"
   | "block"
   | "resume"
@@ -14,24 +11,10 @@ export type TaskTransition =
   | "confirmCancel";
 
 const allowed: Readonly<Record<TaskStatus, readonly TaskTransition[]>> = {
-  PENDING: [
-    "claimDispatch",
-    "bindRun",
-    "bindRunAndStart",
-    "start",
-    "fail",
-    "requestCancel",
-  ],
-  RUNNING: [
-    "bindRun",
-    "progress",
-    "block",
-    "complete",
-    "fail",
-    "requestCancel",
-  ],
+  PENDING: ["start", "fail", "requestCancel"],
+  RUNNING: ["progress", "block", "complete", "fail", "requestCancel"],
   BLOCKED: ["resume", "fail", "requestCancel"],
-  CANCEL_REQUESTED: ["bindRun", "complete", "fail", "confirmCancel"],
+  CANCEL_REQUESTED: ["complete", "fail", "confirmCancel"],
   COMPLETED: [],
   FAILED: [],
   CANCELED: [],
@@ -39,9 +22,6 @@ const allowed: Readonly<Record<TaskStatus, readonly TaskTransition[]>> = {
 
 const target: Readonly<Record<TaskTransition, TaskStatus>> = {
   start: "RUNNING",
-  claimDispatch: "PENDING",
-  bindRun: "PENDING",
-  bindRunAndStart: "RUNNING",
   progress: "RUNNING",
   block: "BLOCKED",
   resume: "PENDING",
@@ -90,13 +70,6 @@ export class TaskCancellationNotAllowedError extends Error {
   }
 }
 
-export class TaskDispatchClaimConflictError extends Error {
-  public constructor(taskId: string) {
-    super(`Localization task ${taskId} already has an active dispatch claim.`);
-    this.name = "TaskDispatchClaimConflictError";
-  }
-}
-
 export class TaskTransitionRequestConflictError extends Error {
   public constructor(taskId: string, requestId: string) {
     super(
@@ -114,7 +87,6 @@ export const transitionTaskStatus = (
     throw new InvalidTaskTransitionError(current, transition);
   }
 
-  if (transition === "bindRun") return current;
   return target[transition];
 };
 

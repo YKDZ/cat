@@ -17,6 +17,7 @@ export const TaskReadAuthorizationSchema = z.strictObject({
 export const GetLocalizationTaskQuerySchema = z.strictObject({
   taskId: z.uuidv4(),
   authorization: TaskReadAuthorizationSchema,
+  requiredProjectId: z.uuidv4().optional(),
 });
 
 export type TaskReadAuthorization = z.infer<typeof TaskReadAuthorizationSchema>;
@@ -78,9 +79,18 @@ export const getLocalizationTask: Query<
     .select(taskFields)
     .from(task)
     .where(
-      authorization.systemAdmin
-        ? eq(task.id, query.taskId)
-        : and(eq(task.id, query.taskId), accessCondition),
+      and(
+        eq(task.id, query.taskId),
+        ...(query.requiredProjectId === undefined
+          ? []
+          : [
+              and(
+                eq(task.scopeType, "PROJECT"),
+                eq(task.scopeId, query.requiredProjectId),
+              ),
+            ]),
+        ...(authorization.systemAdmin ? [] : [accessCondition]),
+      ),
     );
 
   return row === undefined ? null : toSummary(row);
@@ -96,28 +106,4 @@ export const getLocalizationTaskForWorkflow: Query<
     .from(task)
     .where(eq(task.id, query.taskId));
   return row === undefined ? null : toSummary(row);
-};
-
-export const ListLocalizationTasksForWorkflowQuerySchema = z.strictObject({});
-export type ListLocalizationTasksForWorkflowQuery = z.infer<
-  typeof ListLocalizationTasksForWorkflowQuerySchema
->;
-
-/** Internal recovery scan for non-terminal workflow task projections. */
-export const listLocalizationTasksForWorkflow: Query<
-  ListLocalizationTasksForWorkflowQuery,
-  LocalizationTaskSummary[]
-> = async (ctx) => {
-  const rows = await ctx.db
-    .select(taskFields)
-    .from(task)
-    .where(
-      inArray(task.status, [
-        "PENDING",
-        "RUNNING",
-        "BLOCKED",
-        "CANCEL_REQUESTED",
-      ]),
-    );
-  return rows.map(toSummary);
 };

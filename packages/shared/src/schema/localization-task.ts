@@ -93,12 +93,6 @@ export const BatchAutoTranslationTaskResultSchema = z.strictObject({
 export const TaskRuntimeSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: TaskKindNameSchema.extract(["BATCH_AUTO_TRANSLATION"]),
-    runId: z.uuidv4().nullable(),
-    dispatchClaimId: z.uuidv4().nullable(),
-    dispatchClaimExpiresAt: z.iso.datetime().nullable(),
-    dispatchAttemptCount: z.int().nonnegative(),
-    lastTransitionRequestId: z.uuidv4().nullable(),
-    lastProjectedEventSequence: z.int().positive().nullable(),
     phase: BatchAutoTranslationTaskPhaseSchema.nullable(),
     result: BatchAutoTranslationTaskResultSchema.nullable(),
   }),

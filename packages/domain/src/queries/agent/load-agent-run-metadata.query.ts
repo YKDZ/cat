@@ -13,6 +13,7 @@ export type LoadAgentRunMetadataQuery = z.infer<
 >;
 
 export type AgentRunMetadataRow = {
+  sessionId: number;
   externalId: string;
   status: string;
   graphDefinition: NonNullJSONType;
@@ -32,6 +33,7 @@ export const loadAgentRunMetadata: Query<
 > = async (ctx, query) => {
   const [row] = await ctx.db
     .select({
+      sessionId: agentRun.sessionId,
       externalId: agentRun.externalId,
       status: agentRun.status,
       graphDefinition: agentRun.graphDefinition,

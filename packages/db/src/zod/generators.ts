@@ -62,6 +62,7 @@ import {
   sessionRecord,
   setting,
   task,
+  workflowTaskDispatch,
   term,
   termConcept,
   termConceptSubject,
@@ -151,6 +152,7 @@ type SelectSchemaTable =
   | typeof sessionRecord
   | typeof setting
   | typeof task
+  | typeof workflowTaskDispatch
   | typeof term
   | typeof termConcept
   | typeof termConceptSubject
@@ -682,6 +684,12 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           resources: "z.array(TaskAffectedResourceSchema)",
           runtime: "TaskRuntimeSchema",
         },
+      },
+      {
+        kind: "table",
+        schemaExportName: "WorkflowTaskDispatchSchema",
+        typeExportName: "WorkflowTaskDispatch",
+        buildShape: buildSelectShape(workflowTaskDispatch),
       },
       {
         kind: "table",

@@ -77,12 +77,6 @@ const row: TaskTableRow = {
     progressTotal: null,
     runtime: {
       kind: "BATCH_AUTO_TRANSLATION",
-      runId: "44444444-4444-4444-8444-444444444444",
-      dispatchClaimId: null,
-      dispatchClaimExpiresAt: null,
-      dispatchAttemptCount: 1,
-      lastTransitionRequestId: null,
-      lastProjectedEventSequence: null,
       phase: "PREPARING",
       result: null,
     },
@@ -119,7 +113,42 @@ describe("TaskTable", () => {
     expect(wrapper.emitted("resume")?.[0]).toEqual([row]);
     expect(wrapper.text()).toContain("Not permitted to resume this task.");
 
-    await wrapper.setProps({ actionTaskId: row.id });
+    await wrapper.setProps({ actionBusy: true });
     expect(resumeButton?.attributes("disabled")).toBeDefined();
+  });
+
+  it("emits controlled filter and cursor pagination intents", async () => {
+    const wrapper = mount(TaskTable, {
+      props: {
+        data: [row],
+        hasPrevious: true,
+        hasMore: true,
+      },
+      global: {
+        components: {
+          Button: { template: "<button><slot /></button>" },
+        },
+      },
+    });
+
+    await wrapper.get("select").setValue("FAILED");
+    expect(wrapper.emitted("update:status")?.[0]).toEqual(["FAILED"]);
+
+    const statusSelect = wrapper.get("select");
+    (statusSelect.element as HTMLSelectElement).value = "UNKNOWN";
+    await statusSelect.trigger("change");
+    expect(wrapper.emitted("update:status")?.[1]).toEqual([undefined]);
+
+    const previous = wrapper
+      .findAll("button")
+      .find((button) => button.text() === "上一页");
+    const next = wrapper
+      .findAll("button")
+      .find((button) => button.text() === "下一页");
+    await previous?.trigger("click");
+    await next?.trigger("click");
+
+    expect(wrapper.emitted("previous")).toHaveLength(1);
+    expect(wrapper.emitted("next")).toHaveLength(1);
   });
 });

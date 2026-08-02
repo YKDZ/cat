@@ -18,6 +18,7 @@ export const findAgentRunByDeduplicationKey: Query<
 > = async (ctx, query) => {
   const [row] = await ctx.db
     .select({
+      sessionId: agentRun.sessionId,
       externalId: agentRun.externalId,
       status: agentRun.status,
       graphDefinition: agentRun.graphDefinition,

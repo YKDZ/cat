@@ -1,5 +1,7 @@
 import { writeFileSync } from "node:fs";
 
+import { TaskStatusSchema, type TaskStatus } from "@cat/shared";
+
 import { test, expect } from "#/fixtures.ts";
 
 const uploadedFileName = "lite-smoke.json";
@@ -12,6 +14,74 @@ const getCreatedProjectId = () => {
   }
 
   return createdProjectId;
+};
+
+const parseTaskListResponse = (
+  body: unknown,
+): Array<{ id: string; state: { status: TaskStatus } }> => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("task.list response was not an object");
+  }
+  const payload = "json" in body ? body.json : body;
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("items" in payload)
+  ) {
+    throw new Error("task.list response did not contain items");
+  }
+  if (!Array.isArray(payload.items)) {
+    throw new Error("task.list response items were not an array");
+  }
+  return payload.items.map((item) => {
+    if (
+      typeof item !== "object" ||
+      item === null ||
+      !("id" in item) ||
+      typeof item.id !== "string" ||
+      !("state" in item)
+    ) {
+      throw new Error("task.list response item did not contain id/state");
+    }
+    const state = item.state;
+    if (typeof state !== "object" || state === null || !("status" in state)) {
+      throw new Error("task.list response state did not contain status");
+    }
+    return {
+      id: item.id,
+      state: { status: TaskStatusSchema.parse(state.status) },
+    };
+  });
+};
+
+const taskStatusLabel = (status: TaskStatus): string =>
+  (
+    ({
+      PENDING: "等待中",
+      RUNNING: "运行中",
+      BLOCKED: "已阻塞",
+      CANCEL_REQUESTED: "取消请求中",
+      COMPLETED: "已完成",
+      FAILED: "失败",
+      CANCELED: "已取消",
+    }) satisfies Record<TaskStatus, string>
+  )[status];
+
+const expectTaskTableToMatchResponse = async (
+  page: import("@playwright/test").Page,
+  items: Array<{ id: string; state: { status: TaskStatus } }>,
+): Promise<void> => {
+  const rows = page.locator("tbody tr[data-task-id]");
+  await expect(rows).toHaveCount(items.length);
+  const domItems = await rows.evaluateAll((elements) =>
+    elements.map((element) => ({
+      id: element.getAttribute("data-task-id"),
+      status: element.getAttribute("data-task-status"),
+    })),
+  );
+  expect(domItems).toEqual(
+    items.map((item) => ({ id: item.id, status: item.state.status })),
+  );
 };
 
 test.describe("CAT Lite smoke", () => {
@@ -167,16 +237,76 @@ test.describe("CAT Lite smoke", () => {
         `autoTranslate failed with ${response.status()}: ${await response.text()}`,
       );
     }
-    await expect(page).toHaveURL(/\/workflows\/[0-9a-f-]+$/);
-
-    await page.goto(`/project/${projectId}/tasks`);
-    const taskLink = page.getByRole("button", { name: "批量自动翻译" }).first();
-    await expect(taskLink).toBeVisible({ timeout: 30_000 });
-    await taskLink.click();
+    await expect(page).toHaveURL(
+      new RegExp(`/project/${projectId}/tasks\\?taskId=[0-9a-f-]+$`),
+    );
+    const taskId = new URL(page.url()).searchParams.get("taskId");
+    if (!taskId) throw new Error("autoTranslate did not navigate to a taskId");
     await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
     await expect(page.getByText("zh-Hans", { exact: true })).toBeVisible();
     await expect(
       page.getByRole("heading", { name: "受影响资源" }),
     ).toBeVisible();
+
+    await page.goto(`/project/${projectId}/tasks`);
+    await expect(page).toHaveURL(`/project/${projectId}/tasks`);
+    const unfilteredList = page.waitForResponse(
+      (candidate) =>
+        candidate.url().includes("/api/rpc/task/list") &&
+        candidate.request().method() === "POST",
+    );
+    await page.getByTitle("刷新").click();
+    const unfilteredResponse = await unfilteredList;
+    if (!unfilteredResponse.ok()) {
+      throw new Error(
+        `unfiltered task list failed with ${unfilteredResponse.status()}: ${await unfilteredResponse.text()}`,
+      );
+    }
+    const responseItems = parseTaskListResponse(
+      await unfilteredResponse.json(),
+    );
+    expect(responseItems.length).toBeGreaterThan(0);
+    expect(new Set(responseItems.map((item) => item.id)).size).toBe(
+      responseItems.length,
+    );
+    const scheduledTask = responseItems.find((item) => item.id === taskId);
+    if (!scheduledTask) {
+      throw new Error(`task.list did not include scheduled task ${taskId}`);
+    }
+    await expectTaskTableToMatchResponse(page, responseItems);
+    for (const item of responseItems) {
+      await expect(page.locator(`tr[data-task-id="${item.id}"]`)).toContainText(
+        taskStatusLabel(item.state.status),
+      );
+    }
+
+    const filteredList = page.waitForResponse(
+      (candidate) =>
+        candidate.url().includes("/api/rpc/task/list") &&
+        candidate.request().method() === "POST",
+    );
+    await page.getByLabel("状态").selectOption(scheduledTask.state.status);
+    const filteredResponse = await filteredList;
+    if (!filteredResponse.ok()) {
+      throw new Error(
+        `task list filter failed with ${filteredResponse.status()}: ${await filteredResponse.text()}`,
+      );
+    }
+    expect(filteredResponse.request().postData() ?? "").toContain(
+      `"status":"${scheduledTask.state.status}"`,
+    );
+    const filteredItems = parseTaskListResponse(await filteredResponse.json());
+    expect(filteredItems.length).toBeGreaterThan(0);
+    expect(new Set(filteredItems.map((item) => item.id)).size).toBe(
+      filteredItems.length,
+    );
+    expect(filteredItems.some((item) => item.id === taskId)).toBe(true);
+    await expectTaskTableToMatchResponse(page, filteredItems);
+    for (const item of filteredItems) {
+      expect(item.state.status).toBe(scheduledTask.state.status);
+      await expect(page.locator(`tr[data-task-id="${item.id}"]`)).toContainText(
+        taskStatusLabel(item.state.status),
+      );
+    }
   });
 });

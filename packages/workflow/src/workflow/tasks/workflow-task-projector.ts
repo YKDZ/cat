@@ -1,77 +1,77 @@
-import { createHash } from "node:crypto";
-
 import {
+  executeCommand,
   executeQuery,
-  listLocalizationTasksForWorkflow,
-  TaskDispatchClaimConflictError,
+  getLocalizationTaskForWorkflow,
+  getWorkflowTaskDispatchByRunId,
+  listWorkflowTaskDispatchesForProjection,
+  projectWorkflowTaskDispatchEvent,
+  requestWorkflowTaskDispatchCancel,
   type DbHandle,
-  type LocalizationTaskSummary,
+  type WorkflowTaskDispatch,
 } from "@cat/domain";
 import { JSONObjectSchema } from "@cat/shared";
 
 import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type {
+  RunMetadata,
+  RunOwnershipFence,
+} from "#/graph/checkpointer/types.ts";
 import type { AgentEventBus } from "#/graph/event-bus.ts";
 import type { AgentEvent } from "#/graph/events.ts";
-import { createAgentEvent } from "#/graph/events.ts";
 import type { Scheduler } from "#/graph/scheduler.ts";
 import { defaultWorkflowLogger } from "#/graph/workflow-logger.ts";
 
 import { batchAutoTranslateGraph } from "./batch-auto-translate.ts";
-import { BatchAutoTranslationTaskAdapter } from "./batch-auto-translation-task-adapter.ts";
 
-const taskIdFromMetadata = (metadata: unknown): string | null => {
-  if (typeof metadata !== "object" || metadata === null) return null;
-  if (!("localizationTaskId" in metadata)) return null;
-  const value = metadata.localizationTaskId;
-  return typeof value === "string" ? value : null;
-};
+const isProjectionEvent = (
+  event: AgentEvent,
+): event is Extract<
+  AgentEvent,
+  { type: "workflow:task:progress" | "run:end" }
+> => event.type === "workflow:task:progress" || event.type === "run:end";
 
-const deterministicUuid = (value: string): string => {
-  const hash = createHash("sha256").update(value).digest("hex").slice(0, 32);
-  const chars = hash.split("");
-  chars[12] = "4";
-  chars[16] = ((Number.parseInt(chars[16] ?? "0", 16) & 0x3) | 0x8).toString(
-    16,
-  );
-  return `${chars.slice(0, 8).join("")}-${chars.slice(8, 12).join("")}-${chars.slice(12, 16).join("")}-${chars.slice(16, 20).join("")}-${chars.slice(20).join("")}`;
-};
-
-const isProjectionEvent = (event: AgentEvent): boolean =>
-  event.type === "workflow:task:progress" || event.type === "run:end";
-
+/** Projects persisted workflow events through the owner-private dispatch binding. */
 export class WorkflowTaskProjector {
   private readonly db: DbHandle;
   private readonly eventBus: AgentEventBus;
   private readonly checkpointer: Checkpointer;
   private readonly scheduler: Scheduler;
-  private readonly unsubscribe: Array<() => void> = [];
+  private readonly ownerId: string;
   private readonly runQueues = new Map<string, Promise<void>>();
-  private reconciliationTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly unsubscribe: (() => void)[] = [];
   private reconciliation: Promise<void> | null = null;
+  private reconciliationTimer: ReturnType<typeof setInterval> | null = null;
+  private disposed = false;
 
   constructor(input: {
     db: DbHandle;
     eventBus: AgentEventBus;
     checkpointer: Checkpointer;
     scheduler: Scheduler;
+    ownerId?: string;
   }) {
     this.db = input.db;
     this.eventBus = input.eventBus;
     this.checkpointer = input.checkpointer;
     this.scheduler = input.scheduler;
+    this.ownerId = input.ownerId ?? crypto.randomUUID();
   }
 
   install(): void {
-    const handle = async (event: AgentEvent): Promise<void> => {
-      await this.enqueue(event);
-    };
+    if (this.disposed || this.unsubscribe.length > 0) return;
+    const enqueue = (event: AgentEvent) => this.enqueue(event);
     this.unsubscribe.push(
-      this.eventBus.subscribe("workflow:task:progress", handle),
-      this.eventBus.subscribe("run:end", handle),
+      this.eventBus.subscribe("workflow:task:progress", enqueue),
+      this.eventBus.subscribe("run:end", enqueue),
     );
+  }
+
+  startReconciliationLoop(): void {
+    if (this.disposed || this.reconciliationTimer) return;
     this.reconciliationTimer = setInterval(() => {
+      if (this.disposed) return;
       void this.reconcile().catch((error: unknown) => {
-        defaultWorkflowLogger.scheduler("task-reconciliation:error", {
+        defaultWorkflowLogger.scheduler("task-projector:reconcile:error", {
           error: error instanceof Error ? error.message : String(error),
         });
       });
@@ -80,31 +80,25 @@ export class WorkflowTaskProjector {
   }
 
   async dispose(): Promise<void> {
+    this.disposed = true;
     for (const unsubscribe of this.unsubscribe.splice(0)) unsubscribe();
     if (this.reconciliationTimer) clearInterval(this.reconciliationTimer);
     this.reconciliationTimer = null;
     await Promise.allSettled(this.runQueues.values());
-    if (this.reconciliation) await this.reconciliation;
+    await this.reconciliation;
   }
 
   async projectEvent(event: AgentEvent): Promise<void> {
     if (!isProjectionEvent(event)) return;
-
-    // Event persistence happens before projection so a crash at any later point
-    // is replayable. The insert is idempotent by (run, eventId).
     const sequence = await this.checkpointer.saveEvent(event);
-    const metadata = await this.checkpointer.loadRunMetadata(event.runId);
-    const taskId = taskIdFromMetadata(metadata?.metadata);
-    if (!taskId) return;
-
-    const adapter = await BatchAutoTranslationTaskAdapter.hydrate(
-      this.db,
-      taskId,
+    if (sequence === null) return;
+    const binding = await executeQuery(
+      { db: this.db },
+      getWorkflowTaskDispatchByRunId,
+      { runId: event.runId },
     );
-    await this.applyEvent(
-      adapter,
-      sequence === null ? event : { ...event, sequence },
-    );
+    if (!binding) return;
+    await this.applyEvent(binding, { ...event, sequence });
   }
 
   async reconcile(): Promise<void> {
@@ -118,168 +112,124 @@ export class WorkflowTaskProjector {
   }
 
   private async reconcileAll(): Promise<void> {
-    const tasks = await executeQuery(
+    const bindings = await executeQuery(
       { db: this.db },
-      listLocalizationTasksForWorkflow,
-      {},
+      listWorkflowTaskDispatchesForProjection,
+      { ownerId: this.ownerId },
     );
-    for (const task of tasks) {
-      // oxlint-disable-next-line no-await-in-loop
-      await this.reconcileTask(task);
+    for (const binding of bindings) {
+      try {
+        await this.reconcileBinding(binding);
+      } catch (error: unknown) {
+        defaultWorkflowLogger.scheduler("task-projector:reconcile:deferred", {
+          dispatchId: binding.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
     }
   }
 
-  private async reconcileTask(task: LocalizationTaskSummary): Promise<void> {
-    const runId = task.state.runtime.runId;
-    if (!runId) {
-      if (task.state.status === "CANCEL_REQUESTED") {
-        const adapter = await BatchAutoTranslationTaskAdapter.hydrate(
-          this.db,
-          task.id,
+  private async reconcileBinding(binding: WorkflowTaskDispatch): Promise<void> {
+    const events = await this.checkpointer.listEvents(
+      binding.runId,
+      binding.lastProjectedEventSequence,
+    );
+    for (const event of events) {
+      if (isProjectionEvent(event) && event.sequence !== undefined) {
+        await this.applyEvent(binding, event);
+      }
+    }
+
+    const currentBinding = await executeQuery(
+      { db: this.db },
+      getWorkflowTaskDispatchByRunId,
+      { runId: binding.runId },
+    );
+    if (!currentBinding) return;
+    const metadata = await this.checkpointer.loadRunMetadata(
+      currentBinding.runId,
+    );
+    if (!metadata) return;
+    if (currentBinding.status === "CANCELLING") {
+      if (metadata.status === "running" || metadata.status === "paused") {
+        if (this.scheduler.hasRun(currentBinding.runId))
+          await this.scheduler.cancel(currentBinding.runId);
+        return;
+      }
+      if (metadata.status === "cancelled") {
+        await this.confirmCancelledDispatch(
+          currentBinding,
+          currentBinding.lastProjectedEventSequence + 1,
         );
-        try {
-          await adapter.confirmCancel({
-            requestId: deterministicUuid(`${task.id}:undispatched:cancel`),
-          });
-        } catch (error) {
-          if (!(error instanceof TaskDispatchClaimConflictError)) throw error;
-        }
       }
       return;
     }
-
-    const adapter = await BatchAutoTranslationTaskAdapter.hydrate(
-      this.db,
-      task.id,
-    );
-    const cursor = task.state.runtime.lastProjectedEventSequence ?? 0;
-    const events = await this.checkpointer.listEvents(runId, cursor);
-    for (const event of events) {
-      if (!isProjectionEvent(event)) continue;
-      // oxlint-disable-next-line no-await-in-loop
-      await this.applyEvent(adapter, event);
-    }
-
-    await adapter.refresh();
-    const metadata = await this.checkpointer.loadRunMetadata(runId);
-    if (!metadata) return;
-    if (
-      adapter.task.state.status === "CANCEL_REQUESTED" &&
-      (metadata.status === "running" || metadata.status === "paused")
-    ) {
-      if (this.scheduler.hasRun(runId)) await this.scheduler.cancel(runId);
-      return;
-    }
-    if (
-      adapter.task.state.status === "CANCEL_REQUESTED" &&
-      metadata.status === "cancelled"
-    ) {
-      await adapter.confirmCancel({
-        requestId: deterministicUuid(`${runId}:terminal:cancel`),
-        expectedRunId: runId,
-      });
-      return;
-    }
-    if (
-      adapter.task.state.status === "CANCEL_REQUESTED" &&
-      metadata.status !== "running" &&
-      metadata.status !== "paused"
-    ) {
-      await this.projectPersistedTerminal(adapter, runId, metadata.status);
-      return;
-    }
-    if (
-      adapter.task.state.status === "RUNNING" &&
-      metadata.status !== "running" &&
-      metadata.status !== "paused"
-    ) {
-      await this.projectPersistedTerminal(adapter, runId, metadata.status);
-      return;
-    }
-    if (
-      adapter.task.state.status === "PENDING" &&
-      metadata.status !== "running" &&
-      metadata.status !== "paused"
-    ) {
-      await adapter.fail(
-        {
-          code: "CAT_OPERATION_FAILED",
-          message: "Workflow allocation ended before the task started.",
-          severity: "ERROR",
-          retryable: true,
-          affectedResources: adapter.task.state.resources,
-          remediationHint: "Retry the task to allocate a new workflow run.",
-          redactionBoundary: "INTERNAL",
-        },
-        {
-          requestId: deterministicUuid(`${runId}:allocation:failed`),
-          expectedRunId: runId,
-        },
+    if (metadata.status === "running" || metadata.status === "paused") return;
+    if (metadata.status === "completed") {
+      const snapshot = await this.checkpointer.loadSnapshot(
+        currentBinding.runId,
       );
-    }
-  }
-
-  private async projectPersistedTerminal(
-    adapter: BatchAutoTranslationTaskAdapter,
-    runId: string,
-    status: string,
-  ): Promise<void> {
-    if (status === "completed") {
-      const snapshot = await this.checkpointer.loadSnapshot(runId);
       if (!snapshot) return;
-      await this.applyEvent(
-        adapter,
-        createAgentEvent({
-          eventId: deterministicUuid(`${runId}:recovery:completed`),
-          runId,
-          type: "run:end",
-          timestamp: new Date().toISOString(),
-          payload: { status, blackboard: snapshot.data },
-        }),
-      );
-      return;
-    }
-    if (status === "cancelled") {
-      await adapter.requestCancel({
-        requestId: deterministicUuid(`${runId}:recovery:request-cancel`),
-        expectedRunId: runId,
-      });
-      await adapter.confirmCancel({
-        requestId: deterministicUuid(`${runId}:recovery:cancelled`),
-        expectedRunId: runId,
+      await this.applyEvent(currentBinding, {
+        eventId: crypto.randomUUID(),
+        runId: currentBinding.runId,
+        type: "run:end",
+        timestamp: new Date().toISOString(),
+        sequence: currentBinding.lastProjectedEventSequence + 1,
+        payload: { status: "completed", blackboard: snapshot.data },
       });
       return;
     }
-    const events = await this.checkpointer.listEvents(runId);
-    const runError = events.findLast((event) => event.type === "run:error");
-    if (runError?.type === "run:error") {
-      await this.applyEvent(
-        adapter,
-        createAgentEvent({
-          eventId: deterministicUuid(`${runId}:recovery:failed`),
-          runId,
-          type: "run:end",
-          timestamp: new Date().toISOString(),
-          payload: { status: "failed" },
-        }),
+    if (metadata.status === "cancelled") {
+      const cancelled = await executeCommand(
+        { db: this.db },
+        requestWorkflowTaskDispatchCancel,
+        {
+          taskId: currentBinding.taskId,
+          requestId: crypto.randomUUID(),
+        },
       );
+      if (cancelled.dispatch?.status === "CANCELLING") {
+        await this.confirmCancelledDispatch(
+          cancelled.dispatch,
+          cancelled.dispatch.lastProjectedEventSequence + 1,
+        );
+      }
       return;
     }
-    await adapter.fail(
-      {
-        code: "CAT_OPERATION_FAILED",
-        message: "Workflow execution was interrupted by process recovery.",
-        severity: "ERROR",
-        retryable: true,
-        affectedResources: adapter.task.state.resources,
-        remediationHint: "Retry the task to start a new workflow run.",
-        redactionBoundary: "INTERNAL",
-      },
-      {
-        requestId: deterministicUuid(`${runId}:recovery:failed`),
-        expectedRunId: runId,
-      },
+    const runError = (
+      await this.checkpointer.listEvents(currentBinding.runId)
+    ).findLast((event) => event.type === "run:error");
+    const typedFailure =
+      runError?.type === "run:error"
+        ? runError.payload.operationFailure
+        : undefined;
+    const task = await executeQuery(
+      { db: this.db },
+      getLocalizationTaskForWorkflow,
+      { taskId: currentBinding.taskId },
     );
+    if (!task) return;
+    await executeCommand({ db: this.db }, projectWorkflowTaskDispatchEvent, {
+      runId: currentBinding.runId,
+      eventId: crypto.randomUUID(),
+      sequence: currentBinding.lastProjectedEventSequence + 1,
+      action:
+        typedFailure?.capability === "LANGUAGE_ANALYSIS" &&
+        typedFailure.blocker !== undefined
+          ? "block"
+          : "fail",
+      failure: typedFailure
+        ? { ...typedFailure, affectedResources: task.state.resources }
+        : {
+            code: "CAT_OPERATION_FAILED",
+            message: "Workflow execution was interrupted by process recovery.",
+            severity: "ERROR",
+            retryable: true,
+            affectedResources: task.state.resources,
+            redactionBoundary: "INTERNAL",
+          },
+    });
   }
 
   private enqueue(event: AgentEvent): Promise<void> {
@@ -290,20 +240,13 @@ export class WorkflowTaskProjector {
         let lastError: unknown;
         for (let attempt = 0; attempt < 3; attempt += 1) {
           try {
-            // oxlint-disable-next-line no-await-in-loop
             await this.projectEvent(event);
-            return undefined;
+            return;
           } catch (error) {
             lastError = error;
           }
         }
-        defaultWorkflowLogger.scheduler("task-projection:deferred", {
-          runId: event.runId,
-          eventId: event.eventId,
-          error:
-            lastError instanceof Error ? lastError.message : String(lastError),
-        });
-        return undefined;
+        throw lastError;
       })
       .finally(() => {
         if (this.runQueues.get(event.runId) === current) {
@@ -315,86 +258,121 @@ export class WorkflowTaskProjector {
   }
 
   private async applyEvent(
-    adapter: BatchAutoTranslationTaskAdapter,
-    event: AgentEvent,
+    binding: WorkflowTaskDispatch,
+    event: AgentEvent & { sequence?: number | undefined },
   ): Promise<void> {
-    await adapter.refresh();
-    if (adapter.task.state.runtime.runId !== event.runId) return;
-    const identity = {
-      requestId: event.eventId,
-      projectionEventId: event.eventId,
-      expectedRunId: event.runId,
-      ...(event.sequence === undefined
-        ? {}
-        : { projectionEventSequence: event.sequence }),
-    };
+    if (event.sequence === undefined) return;
+    if (event.sequence <= binding.lastProjectedEventSequence) return;
     if (event.type === "workflow:task:progress") {
-      await adapter.progress(
-        {
-          current: event.payload.current,
-          total: event.payload.total,
-          phase: event.payload.phase,
-        },
-        identity,
-      );
+      await executeCommand({ db: this.db }, projectWorkflowTaskDispatchEvent, {
+        runId: binding.runId,
+        eventId: event.eventId,
+        sequence: event.sequence,
+        action: "progress",
+        current: event.payload.current,
+        total: event.payload.total,
+        phase: event.payload.phase,
+      });
       return;
     }
     if (event.type !== "run:end") return;
-
-    await adapter.refresh();
     if (event.payload.status === "completed") {
       const blackboard = JSONObjectSchema.parse(event.payload.blackboard);
-      const result = batchAutoTranslateGraph.extractResult({
-        data: blackboard,
+      await executeCommand({ db: this.db }, projectWorkflowTaskDispatchEvent, {
+        runId: binding.runId,
+        eventId: event.eventId,
+        sequence: event.sequence,
+        action: "complete",
+        result: batchAutoTranslateGraph.extractResult({ data: blackboard }),
       });
-      await adapter.complete(result, identity);
       return;
     }
     if (event.payload.status === "cancelled") {
-      await adapter.requestCancel({
-        requestId: deterministicUuid(`${event.eventId}:request-cancel`),
-        expectedRunId: event.runId,
-      });
-      await adapter.confirmCancel(identity);
+      const cancelled = await executeCommand(
+        { db: this.db },
+        requestWorkflowTaskDispatchCancel,
+        {
+          taskId: binding.taskId,
+          requestId: event.eventId,
+        },
+      );
+      if (cancelled.dispatch?.status === "CANCELLING") {
+        await this.confirmCancelledDispatch(cancelled.dispatch, event.sequence);
+      }
       return;
     }
-
-    const events = await this.checkpointer.listEvents(event.runId);
-    const runError = events.findLast(
-      (candidate) => candidate.type === "run:error",
-    );
-    const message =
-      runError?.type === "run:error"
-        ? runError.payload.error
-        : "Workflow execution failed.";
+    const runError = (
+      await this.checkpointer.listEvents(binding.runId)
+    ).findLast((candidate) => candidate.type === "run:error");
     const typedFailure =
       runError?.type === "run:error"
         ? runError.payload.operationFailure
         : undefined;
-    if (
-      typedFailure?.capability === "LANGUAGE_ANALYSIS" &&
-      typedFailure.blocker !== undefined &&
-      adapter.task.state.status !== "CANCEL_REQUESTED"
-    ) {
-      await adapter.block(
-        { ...typedFailure, affectedResources: adapter.task.state.resources },
-        identity,
-      );
-      return;
-    }
-    await adapter.fail(
-      typedFailure
-        ? { ...typedFailure, affectedResources: adapter.task.state.resources }
+    const task = await executeQuery(
+      { db: this.db },
+      getLocalizationTaskForWorkflow,
+      { taskId: binding.taskId },
+    );
+    if (!task) return;
+    await executeCommand({ db: this.db }, projectWorkflowTaskDispatchEvent, {
+      runId: binding.runId,
+      eventId: event.eventId,
+      sequence: event.sequence,
+      action:
+        typedFailure?.capability === "LANGUAGE_ANALYSIS" &&
+        typedFailure.blocker !== undefined
+          ? "block"
+          : "fail",
+      failure: typedFailure
+        ? { ...typedFailure, affectedResources: task.state.resources }
         : {
             code: "CAT_OPERATION_FAILED",
-            message,
+            message:
+              runError?.type === "run:error"
+                ? runError.payload.error
+                : "Workflow execution failed.",
             severity: "ERROR",
             retryable: true,
-            affectedResources: adapter.task.state.resources,
-            remediationHint: "Inspect the failure and retry the task.",
+            affectedResources: task.state.resources,
             redactionBoundary: "INTERNAL",
           },
-      identity,
-    );
+    });
   }
+
+  private async confirmCancelledDispatch(
+    binding: WorkflowTaskDispatch,
+    sequence: number,
+  ): Promise<void> {
+    const metadata = await this.checkpointer.loadRunMetadata(binding.runId);
+    const runFence = this.runFenceFromMetadata(binding.runId, metadata);
+    const dispatchFence = this.dispatchFenceFor(binding);
+    if (dispatchFence.ownerId !== this.ownerId) {
+      throw new Error("Workflow task cancellation owner fence is unavailable.");
+    }
+    await executeCommand({ db: this.db }, projectWorkflowTaskDispatchEvent, {
+      runId: binding.runId,
+      eventId: crypto.randomUUID(),
+      sequence,
+      action: "confirmCancel",
+      dispatchFence,
+      runFence: { ownerId: runFence.ownerId, epoch: runFence.epoch },
+    });
+  }
+
+  private dispatchFenceFor = (binding: WorkflowTaskDispatch) => {
+    if (!binding.ownerId) {
+      throw new Error("Workflow task dispatch owner fence is unavailable.");
+    }
+    return { ownerId: binding.ownerId, epoch: binding.ownerEpoch };
+  };
+
+  private runFenceFromMetadata = (
+    runId: string,
+    metadata: RunMetadata | null,
+  ): RunOwnershipFence => {
+    if (!metadata?.ownerId || metadata.ownerEpoch === undefined) {
+      throw new Error("Workflow task AgentRun owner fence is unavailable.");
+    }
+    return { runId, ownerId: metadata.ownerId, epoch: metadata.ownerEpoch };
+  };
 }

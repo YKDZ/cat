@@ -1,14 +1,13 @@
 import { randomUUID } from "node:crypto";
 
 import {
-  createLocalizationTask,
   createProject,
   createUser,
+  createWorkflowTaskWithDispatch,
   ensureCoreRelationTypes,
   executeCommand,
   grantPermissionTuple,
   MemoryCacheStore,
-  transitionLocalizationTask,
 } from "@cat/domain";
 import { initPermissionEngine } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
@@ -66,53 +65,37 @@ beforeAll(async () => {
     objectType: "project",
     objectId: project.id,
   });
-  const task = await executeCommand({ db: db.client }, createLocalizationTask, {
-    task: {
-      kind: "BATCH_AUTO_TRANSLATION",
-      payload: {
-        invocation: BatchAutoTranslationInvocationSchema.parse({
-          projectId: project.id,
-          contentNodeIds: [],
-          elementIds: [],
-          sortMode: "structure",
-          languageId: "zh-Hans",
-          minMemorySimilarity: 0.72,
-          maxMemoryAmount: 3,
-          memoryVectorStorage: serviceReference("VECTOR_STORAGE"),
-          translationVectorStorage: serviceReference("VECTOR_STORAGE"),
-          vectorizer: serviceReference("TEXT_VECTORIZER"),
-          translatorId: user.id,
-          memoryIds: [],
-          glossaryIds: [],
-        }),
-        cancelable: true,
-      },
-    },
-    scope: { type: "PROJECT", id: project.id },
-    actor: { type: "USER", id: user.id },
-    resources: [{ type: "PROJECT", id: project.id }],
-  });
-  const failed = await executeCommand(
+  const task = await executeCommand(
     { db: db.client },
-    transitionLocalizationTask,
+    createWorkflowTaskWithDispatch,
     {
-      taskId: task.id,
-      expectedRevision: task.state.revision,
-      requestId: randomUUID(),
-      transition: "fail",
-      failure: {
-        code: "CAT_OPERATION_MISSING_CAPABILITY",
-        message: "Vector service unavailable",
-        severity: "ERROR",
-        retryable: true,
-        capability: "VECTOR_STORAGE",
-        affectedResources: task.state.resources,
-        remediationHint: "Install a vector storage service.",
-        redactionBoundary: "INTERNAL",
+      task: {
+        kind: "BATCH_AUTO_TRANSLATION",
+        payload: {
+          invocation: BatchAutoTranslationInvocationSchema.parse({
+            projectId: project.id,
+            contentNodeIds: [],
+            elementIds: [],
+            sortMode: "structure",
+            languageId: "zh-Hans",
+            minMemorySimilarity: 0.72,
+            maxMemoryAmount: 3,
+            memoryVectorStorage: serviceReference("VECTOR_STORAGE"),
+            translationVectorStorage: serviceReference("VECTOR_STORAGE"),
+            vectorizer: serviceReference("TEXT_VECTORIZER"),
+            translatorId: user.id,
+            memoryIds: [],
+            glossaryIds: [],
+          }),
+          cancelable: true,
+        },
       },
+      scope: { type: "PROJECT", id: project.id },
+      actor: { type: "USER", id: user.id },
+      resources: [{ type: "PROJECT", id: project.id }],
     },
   );
-  taskId = failed.id;
+  taskId = task.task.id;
 
   const base = createAuthedTestContext(user, {
     drizzleDB: db,
@@ -137,14 +120,12 @@ afterAll(async () => {
 }, 30_000);
 
 describe("task router", () => {
-  it("returns the authorized current failure with the task detail", async () => {
+  it("returns the authorized task detail", async () => {
     if (!context) throw new Error("Test context missing.");
     const result = await call(detail, { projectId, taskId }, { context });
 
     expect(result.task.id).toBe(taskId);
-    expect(result.currentFailure).toMatchObject({
-      code: "CAT_OPERATION_MISSING_CAPABILITY",
-    });
+    expect(result.currentFailure).toBeNull();
   });
 
   it("rejects an unauthorized resume request before touching task execution", async () => {

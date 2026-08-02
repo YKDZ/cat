@@ -55,6 +55,20 @@ export const TaskKindValues = ["BATCH_AUTO_TRANSLATION"] as const;
 export const TaskKindNameSchema = z.enum(TaskKindValues);
 export type TaskKindName = (typeof TaskKindValues)[number];
 
+/** Private workflow execution state; it is never part of the Task API. */
+export const WorkflowTaskDispatchStatusValues = [
+  "REQUESTED",
+  "CLAIMED",
+  "RUNNING",
+  "CANCELLING",
+  "SETTLED",
+] as const;
+export const WorkflowTaskDispatchStatusSchema = z.enum(
+  WorkflowTaskDispatchStatusValues,
+);
+export type WorkflowTaskDispatchStatus =
+  (typeof WorkflowTaskDispatchStatusValues)[number];
+
 export const BatchAutoTranslationTaskPhaseValues = [
   "PREPARING",
   "TRANSLATING",

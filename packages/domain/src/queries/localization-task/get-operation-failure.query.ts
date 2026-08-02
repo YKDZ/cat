@@ -84,14 +84,25 @@ export const getOperationFailure: Query<
       ? sql`false`
       : and(
           isNull(operationFailure.taskId),
-          or(
-            ...authorization.authorizedProjectIds.map(
-              (projectId) =>
-                sql`${operationFailure.affectedResources} @> ${JSON.stringify([
-                  { type: "PROJECT", id: projectId },
-                ])}::jsonb`,
-            ),
-          ),
+          // A standalone failure may be public only when every project
+          // resource is in the caller's authorized set. One matching project
+          // is insufficient because its message/resources can describe all.
+          sql`EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(${operationFailure.affectedResources}) AS project_resource(value)
+            WHERE project_resource.value ->> 'type' = 'PROJECT'
+          )`,
+          sql`NOT EXISTS (
+            SELECT 1
+            FROM jsonb_array_elements(${operationFailure.affectedResources}) AS project_resource(value)
+            WHERE project_resource.value ->> 'type' = 'PROJECT'
+              AND project_resource.value ->> 'id' NOT IN (${sql.join(
+                authorization.authorizedProjectIds.map(
+                  (projectId) => sql`${projectId}`,
+                ),
+                sql`, `,
+              )})
+          )`,
         );
   const [row] = await ctx.db
     .select({ failure: operationFailure })

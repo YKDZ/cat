@@ -34,6 +34,25 @@ export const TaskSchema = z.object({
 
 export type Task = z.infer<typeof TaskSchema>;
 
+export const WorkflowTaskDispatchSchema = z.object({
+  id: z.uuidv4(),
+  taskId: z.uuidv4(),
+  generation: z.int(),
+  runId: z.uuidv4(),
+  status: z.enum(["REQUESTED", "CLAIMED", "RUNNING", "CANCELLING", "SETTLED"]),
+  ownerId: z.uuidv4().nullable(),
+  ownerEpoch: z.int(),
+  ownerLeaseExpiresAt: DrizzleDateTimeSchema.nullable(),
+  attemptCount: z.int(),
+  agentSessionId: z.int().nullable(),
+  lastProjectedEventSequence: z.int(),
+  settledAt: DrizzleDateTimeSchema.nullable(),
+  createdAt: DrizzleDateTimeSchema,
+  updatedAt: DrizzleDateTimeSchema,
+});
+
+export type WorkflowTaskDispatch = z.infer<typeof WorkflowTaskDispatchSchema>;
+
 export const OperationFailureRecordSchema = z.object({
   id: z.uuidv4(),
   code: z.enum(["CAT_OPERATION_CANCELED", "CAT_OPERATION_DEPENDENCY_UNAVAILABLE", "CAT_OPERATION_EXECUTION_DENIED", "CAT_OPERATION_INVALID_INPUT", "CAT_OPERATION_MISSING_CAPABILITY", "CAT_OPERATION_RESOURCE_NOT_FOUND", "CAT_OPERATION_FAILED", "CAT_OPERATION_PERMISSION_DENIED", "CAT_OPERATION_RELATIONSHIP_DENIED", "CAT_OPERATION_REVIEW_CHANGE_BLOCKED"]),

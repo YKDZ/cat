@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { TaskKind, TaskState } from "@cat/shared";
+import {
+  TaskStatusSchema,
+  type TaskKind,
+  type TaskState,
+  type TaskStatus,
+} from "@cat/shared";
 import { Button } from "@cat/ui";
 import { LoaderCircle, Play, RefreshCw, RotateCcw, X } from "@lucide/vue";
 import { computed } from "vue";
@@ -20,14 +25,16 @@ const props = defineProps<{
   hasPrevious: boolean;
   hasMore: boolean;
   loading?: boolean | undefined;
-  status?: string | undefined;
+  error?: string | undefined;
+  status?: TaskStatus | undefined;
   actionTaskId?: string | undefined;
+  actionBusy?: boolean | undefined;
   actionError?: string | undefined;
 }>();
 
 const emit = defineEmits<{
   refresh: [];
-  "update:status": [status: string | undefined];
+  "update:status": [status: TaskStatus | undefined];
   previous: [];
   next: [];
   detail: [taskId: string];
@@ -40,12 +47,30 @@ const { t } = useI18n();
 
 const statusValue = computed({
   get: () => props.status ?? "",
-  set: (value: string) => emit("update:status", value || undefined),
+  set: (value: string) => {
+    const status = TaskStatusSchema.safeParse(value);
+    emit("update:status", status.success ? status.data : undefined);
+  },
 });
 
 const taskLabel = (task: TaskKind): string => {
   if (task.kind === "BATCH_AUTO_TRANSLATION") return t("批量自动翻译");
   return task.kind;
+};
+
+const statusLabels: Record<TaskStatus, string> = {
+  PENDING: "等待中",
+  RUNNING: "运行中",
+  BLOCKED: "已阻塞",
+  CANCEL_REQUESTED: "取消请求中",
+  COMPLETED: "已完成",
+  FAILED: "失败",
+  CANCELED: "已取消",
+};
+
+const statusLabel = (status: TaskStatus): string => {
+  const label = statusLabels[status];
+  return label === undefined ? t("未知任务状态") : t(label);
 };
 
 const progress = (state: TaskState): string => {
@@ -62,7 +87,7 @@ const timestamp = (value: Date | string): string =>
 </script>
 
 <template>
-  <div class="space-y-3">
+  <div class="space-y-3" :aria-busy="loading || actionBusy">
     <div class="flex items-center justify-between gap-3">
       <select
         v-model="statusValue"
@@ -81,7 +106,7 @@ const timestamp = (value: Date | string): string =>
       <Button
         size="icon"
         variant="outline"
-        :disabled="loading"
+        :disabled="loading || actionBusy"
         :title="t('刷新')"
         @click="emit('refresh')"
       >
@@ -89,7 +114,7 @@ const timestamp = (value: Date | string): string =>
       </Button>
     </div>
 
-    <div class="overflow-x-auto border">
+    <div class="overflow-x-auto border" :aria-busy="loading">
       <table class="w-full text-sm">
         <thead class="border-b text-left">
           <tr>
@@ -107,6 +132,8 @@ const timestamp = (value: Date | string): string =>
             v-for="task in data"
             :key="task.id"
             class="border-b last:border-0"
+            :data-task-id="task.id"
+            :data-task-status="task.state.status"
           >
             <td class="px-3 py-2">
               <button
@@ -116,7 +143,7 @@ const timestamp = (value: Date | string): string =>
                 {{ taskLabel(task.task) }}
               </button>
             </td>
-            <td class="px-3 py-2">{{ task.state.status }}</td>
+            <td class="px-3 py-2">{{ statusLabel(task.state.status) }}</td>
             <td class="px-3 py-2">{{ progress(task.state) }}</td>
             <td class="px-3 py-2">{{ timestamp(task.updatedAt) }}</td>
             <td class="px-3 py-2 text-right">
@@ -128,7 +155,7 @@ const timestamp = (value: Date | string): string =>
                 "
                 size="icon"
                 variant="ghost"
-                :disabled="actionTaskId === task.id"
+                :disabled="actionBusy"
                 :title="t('取消')"
                 @click="emit('cancel', task)"
                 ><LoaderCircle
@@ -139,7 +166,7 @@ const timestamp = (value: Date | string): string =>
                 v-if="task.state.status === 'BLOCKED'"
                 size="icon"
                 variant="ghost"
-                :disabled="actionTaskId === task.id"
+                :disabled="actionBusy"
                 :title="t('恢复')"
                 @click="emit('resume', task)"
                 ><LoaderCircle
@@ -150,7 +177,7 @@ const timestamp = (value: Date | string): string =>
                 v-else-if="task.state.status === 'FAILED'"
                 size="icon"
                 variant="ghost"
-                :disabled="actionTaskId === task.id"
+                :disabled="actionBusy"
                 :title="t('重试')"
                 @click="emit('retry', task)"
                 ><LoaderCircle
@@ -166,10 +193,21 @@ const timestamp = (value: Date | string): string =>
               {{ t("没有任务") }}
             </td>
           </tr>
+          <tr v-if="loading">
+            <td colspan="5" class="px-3 py-3 text-center text-muted-foreground">
+              <span class="inline-flex items-center gap-2" role="status">
+                <LoaderCircle class="size-4 animate-spin" />
+                {{ t("正在加载任务") }}
+              </span>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
 
+    <p v-if="error" class="text-sm text-destructive" role="alert">
+      {{ error }}
+    </p>
     <p v-if="actionError" class="text-sm text-destructive" role="alert">
       {{ actionError }}
     </p>
@@ -178,14 +216,14 @@ const timestamp = (value: Date | string): string =>
       <Button
         size="sm"
         variant="outline"
-        :disabled="loading || !hasPrevious"
+        :disabled="loading || actionBusy || !hasPrevious"
         @click="emit('previous')"
         >{{ t("上一页") }}</Button
       >
       <Button
         size="sm"
         variant="outline"
-        :disabled="loading || !hasMore"
+        :disabled="loading || actionBusy || !hasMore"
         @click="emit('next')"
         >{{ t("下一页") }}</Button
       >

@@ -2,8 +2,8 @@ import { describe, expect, test } from "vitest";
 
 import { assertExpectedRevision, transitionTaskStatus } from "./task-state.ts";
 describe("Task state machine", () => {
-  test("requires CAS and an owner cancel confirmation", () => {
-    expect(transitionTaskStatus("RUNNING", "bindRun")).toBe("RUNNING");
+  test("exposes only product state transitions and requires CAS", () => {
+    expect(transitionTaskStatus("PENDING", "start")).toBe("RUNNING");
     expect(transitionTaskStatus("RUNNING", "requestCancel")).toBe(
       "CANCEL_REQUESTED",
     );
@@ -14,5 +14,6 @@ describe("Task state machine", () => {
       "COMPLETED",
     );
     expect(() => assertExpectedRevision(2, 1)).toThrow();
+    expect(() => transitionTaskStatus("PENDING", "progress")).toThrow();
   });
 });

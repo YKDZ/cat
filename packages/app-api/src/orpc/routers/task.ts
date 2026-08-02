@@ -7,7 +7,6 @@ import {
   listLocalizationTasks,
 } from "@cat/domain";
 import { getPermissionEngine } from "@cat/permissions";
-import { BatchAutoTranslationTaskAdapter } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 
@@ -106,6 +105,7 @@ export const detail = authed
     });
     const result = await executeQuery({ db }, getLocalizationTask, {
       taskId: input.taskId,
+      requiredProjectId: input.projectId,
       authorization: authorizationForProject({
         userId: user.id,
         projectId: input.projectId,
@@ -154,6 +154,7 @@ export const cancel = authed
     });
     const current = await executeQuery({ db }, getLocalizationTask, {
       taskId: input.taskId,
+      requiredProjectId: input.projectId,
       authorization,
     });
     if (
@@ -165,18 +166,10 @@ export const cancel = authed
     }
 
     const runtime = await getGraphRuntime(db, pluginManager);
-    const adapter = await BatchAutoTranslationTaskAdapter.hydrate(
-      db,
-      current.id,
-    );
-    await adapter.requestCancel({ requestId: input.requestId });
-    const runId = adapter.task.state.runtime.runId;
-    if (runId && runtime.scheduler.hasRun(runId)) {
-      await runtime.scheduler.cancel(runId);
-    } else {
-      await runtime.taskProjector.reconcile();
-    }
-    return await adapter.refresh();
+    return await runtime.taskService.requestCancel({
+      taskId: current.id,
+      requestId: input.requestId,
+    });
   });
 
 export const retry = authed
@@ -195,6 +188,7 @@ export const retry = authed
     });
     const current = await executeQuery({ db }, getLocalizationTask, {
       taskId: input.taskId,
+      requiredProjectId: input.projectId,
       authorization: authorizationForProject({
         userId: user.id,
         projectId: input.projectId,
@@ -231,6 +225,7 @@ export const resume = authed
     });
     const current = await executeQuery({ db }, getLocalizationTask, {
       taskId: input.taskId,
+      requiredProjectId: input.projectId,
       authorization: authorizationForProject({
         userId: user.id,
         projectId: input.projectId,

@@ -35,6 +35,7 @@ export * from "#/queries/recall-derivation/list-scoped-term-recall-derivation-st
 export * from "#/queries/recall-derivation/list-memory-recall-derivation-languages.query.ts";
 export * from "#/queries/recall-derivation/list-term-recall-derivation-languages.query.ts";
 export * from "#/queries/localization-task/index.ts";
+export * from "#/queries/workflow-task-dispatch/workflow-task-dispatch.query.ts";
 export * from "#/queries/agent/list-agent-definitions.query.ts";
 export * from "#/queries/agent/get-agent-definition.query.ts";
 export * from "#/queries/agent/get-agent-definition-by-internal-id.query.ts";

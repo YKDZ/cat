@@ -1,5 +1,7 @@
 import {
   claimAgentRunOwner,
+  createOrClaimAgentRunOwnership,
+  discardUnstartedAgentRun,
   executeCommand,
   executeQuery,
   findAgentRunByDeduplicationKey,
@@ -25,8 +27,10 @@ import { GraphDefinitionSchema, RunStatusSchema } from "#/graph/types.ts";
 
 import type {
   Checkpointer,
+  CreateOrClaimRunOwnershipInput,
   ExternalOutputRecord,
   RunMetadata,
+  RunOwnershipClaim,
 } from "./types.ts";
 
 const isRecord = (value: JSONType): value is JSONObject => {
@@ -69,14 +73,91 @@ const toRunMetadata = (row: AgentRunMetadataRow): RunMetadata => {
 
 export class PostgresCheckpointer implements Checkpointer {
   readonly #db: DbHandle;
-  readonly #ownerId = crypto.randomUUID();
+  readonly #ownerId: string;
   readonly #ownerEpochs = new Map<RunId, number>();
   readonly #ownerLeaseMs: number;
 
-  constructor(db: DbHandle, options?: { ownerLeaseMs?: number }) {
+  constructor(
+    db: DbHandle,
+    options?: { ownerLeaseMs?: number; ownerId?: string },
+  ) {
     this.#db = db;
+    this.#ownerId = options?.ownerId ?? crypto.randomUUID();
     this.#ownerLeaseMs = options?.ownerLeaseMs ?? 30_000;
   }
+
+  createOrClaimRunOwnership = async (
+    input: CreateOrClaimRunOwnershipInput,
+  ): Promise<RunOwnershipClaim> => {
+    if (input.sessionId === undefined) {
+      return {
+        kind: "claimed",
+        created: true,
+        ownershipFence: null,
+        metadata: {
+          runId: input.runId,
+          graphId: input.graphId,
+          status: "running",
+          graphDefinition: input.graphDefinition,
+          deduplicationKey: input.deduplicationKey,
+          startedAt: input.startedAt,
+          metadata: input.metadata,
+        },
+      };
+    }
+    const claim = await executeCommand(
+      { db: this.#db },
+      createOrClaimAgentRunOwnership,
+      {
+        externalId: input.runId,
+        sessionId: input.sessionId,
+        ownerId: this.#ownerId,
+        leaseDurationMs: this.#ownerLeaseMs,
+        status: "running",
+        graphDefinition: input.graphDefinition,
+        currentNodeId: null,
+        deduplicationKey: input.deduplicationKey ?? null,
+        startedAt: new Date(input.startedAt),
+        metadata: input.metadata ?? null,
+      },
+    );
+    if (claim.kind === "conflict") {
+      return { kind: "conflict", runId: claim.runId };
+    }
+    if (claim.kind === "identity-conflict") {
+      return {
+        kind: "identity-conflict",
+        externalIdRunId: claim.externalIdRunId,
+        deduplicationKeyRunId: claim.deduplicationKeyRunId,
+      };
+    }
+    this.#ownerEpochs.set(claim.runId, claim.epoch);
+    const metadata = await this.loadRunMetadata(claim.runId);
+    if (!metadata) throw new Error(`Run metadata not found: ${claim.runId}`);
+    return {
+      kind: "claimed",
+      created: claim.created,
+      metadata,
+      ownershipFence: {
+        runId: claim.runId,
+        ownerId: this.#ownerId,
+        epoch: claim.epoch,
+      },
+    };
+  };
+
+  registerRunOwnershipFence = (ownershipFence: {
+    runId: RunId;
+    ownerId: string;
+    epoch: number;
+  }): void => {
+    if (ownershipFence.ownerId !== this.#ownerId) {
+      throw new Error(
+        "Cannot register a workflow fence owned by another runtime.",
+      );
+    }
+    this.#ownerEpochs.set(ownershipFence.runId, ownershipFence.epoch);
+  };
 
   claimRunOwnership = async (runId: RunId): Promise<boolean> => {
     const lease = await executeCommand({ db: this.#db }, claimAgentRunOwner, {
@@ -107,6 +188,18 @@ export class PostgresCheckpointer implements Checkpointer {
       : { runId, ownerId: this.#ownerId, epoch };
   };
 
+  discardUnstartedRun = async (runId: RunId): Promise<boolean> => {
+    const epoch = this.#ownerEpochs.get(runId);
+    if (epoch === undefined) return false;
+    const discarded = await executeCommand(
+      { db: this.#db },
+      discardUnstartedAgentRun,
+      { runId, ownerId: this.#ownerId, ownerEpoch: epoch },
+    );
+    if (discarded) this.#ownerEpochs.delete(runId);
+    return discarded;
+  };
+
   #ownerFence = (runId: RunId) => {
     const epoch = this.#ownerEpochs.get(runId);
     return epoch === undefined
@@ -128,12 +221,21 @@ export class PostgresCheckpointer implements Checkpointer {
       metadata: extraMeta,
     } = metadata;
 
-    const sessionId =
-      typeof extraMeta?.["sessionId"] === "number"
-        ? extraMeta["sessionId"]
-        : null;
-
-    if (sessionId === null) return;
+    if (!this.#ownerEpochs.has(runId)) {
+      const persisted = await executeQuery(
+        { db: this.#db },
+        loadAgentRunMetadata,
+        { externalId: runId },
+      );
+      if (!persisted) return;
+      throw new Error("Workflow owner lease is required to save run metadata.");
+    }
+    const persisted = await executeQuery(
+      { db: this.#db },
+      loadAgentRunMetadata,
+      { externalId: runId },
+    );
+    if (!persisted) throw new Error("Workflow owner lease lost.");
 
     const mergedMetadata =
       extraMeta || deduplicationKey
@@ -147,7 +249,7 @@ export class PostgresCheckpointer implements Checkpointer {
 
     await executeCommand({ db: this.#db }, saveAgentRunMetadata, {
       externalId: runId,
-      sessionId,
+      sessionId: persisted.sessionId,
       status,
       graphDefinition: graphDefinition ?? {},
       currentNodeId: currentNodeId ?? null,
@@ -185,13 +287,15 @@ export class PostgresCheckpointer implements Checkpointer {
     runId: RunId,
     snapshot: BlackboardSnapshot,
   ): Promise<void> => {
-    if (
-      !this.#ownerEpochs.has(runId) &&
-      (await executeQuery({ db: this.#db }, getAgentRunInternalId, {
-        externalId: runId,
-      })) === null
-    ) {
-      return;
+    if (!this.#ownerEpochs.has(runId)) {
+      if (
+        (await executeQuery({ db: this.#db }, getAgentRunInternalId, {
+          externalId: runId,
+        })) === null
+      ) {
+        return;
+      }
+      throw new Error("Workflow owner lease is required to save a snapshot.");
     }
     await executeCommand({ db: this.#db }, saveAgentRunSnapshot, {
       externalId: runId,
@@ -219,6 +323,9 @@ export class PostgresCheckpointer implements Checkpointer {
       { externalId: event.runId },
     );
     if (internalId === null) return null;
+    if (!this.#ownerEpochs.has(event.runId)) {
+      throw new Error("Workflow owner lease is required to save an event.");
+    }
 
     return await executeCommand({ db: this.#db }, saveAgentEvent, {
       runInternalId: internalId,
@@ -270,6 +377,11 @@ export class PostgresCheckpointer implements Checkpointer {
       { externalId: record.runId },
     );
     if (internalId === null) return;
+    if (!this.#ownerEpochs.has(record.runId)) {
+      throw new Error(
+        "Workflow owner lease is required to save an external output.",
+      );
+    }
 
     await executeCommand({ db: this.#db }, saveAgentExternalOutput, {
       runInternalId: internalId,

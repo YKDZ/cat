@@ -1,20 +1,30 @@
-import { agentEvent, agentRun, and, eq, sql } from "@cat/db";
+import { agentEvent, agentRun, and, eq, isNull, sql } from "@cat/db";
 import { nonNullSafeZDotJson } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
-export const SaveAgentEventCommandSchema = z.object({
-  runInternalId: z.int(),
-  eventId: z.string(),
-  parentEventId: z.string().nullable(),
-  nodeId: z.string().nullable(),
-  type: z.string(),
-  payload: nonNullSafeZDotJson,
-  timestamp: z.date(),
-  ownerId: z.uuidv4().optional(),
-  ownerEpoch: z.int().positive().optional(),
-});
+export const SaveAgentEventCommandSchema = z
+  .object({
+    runInternalId: z.int(),
+    eventId: z.string(),
+    parentEventId: z.string().nullable(),
+    nodeId: z.string().nullable(),
+    type: z.string(),
+    payload: nonNullSafeZDotJson,
+    timestamp: z.date(),
+    ownerId: z.uuidv4().optional(),
+    ownerEpoch: z.int().positive().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if ((value.ownerId === undefined) !== (value.ownerEpoch === undefined)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["ownerId"],
+        message: "Agent run ownership requires both ownerId and ownerEpoch.",
+      });
+    }
+  });
 
 export type SaveAgentEventCommand = z.infer<typeof SaveAgentEventCommandSchema>;
 
@@ -22,6 +32,11 @@ export const saveAgentEvent: Command<SaveAgentEventCommand, number> = async (
   ctx,
   command,
 ) => {
+  if ((command.ownerId === undefined) !== (command.ownerEpoch === undefined)) {
+    throw new Error(
+      "Agent run ownership requires both ownerId and ownerEpoch.",
+    );
+  }
   const sequence = await ctx.db.transaction(async (tx) => {
     if (command.ownerId !== undefined && command.ownerEpoch !== undefined) {
       const [owner] = await tx
@@ -57,6 +72,15 @@ export const saveAgentEvent: Command<SaveAgentEventCommand, number> = async (
       ) {
         throw new Error("Workflow owner lease lost.");
       }
+    } else {
+      const [unowned] = await tx
+        .select({ id: agentRun.id })
+        .from(agentRun)
+        .where(
+          and(eq(agentRun.id, command.runInternalId), isNull(agentRun.ownerId)),
+        )
+        .for("update");
+      if (!unowned) throw new Error("Workflow owner lease lost.");
     }
     const [inserted] = await tx
       .insert(agentEvent)

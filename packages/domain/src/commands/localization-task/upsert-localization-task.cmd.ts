@@ -1,14 +1,12 @@
 import { createHash } from "node:crypto";
 
 import {
-  agentRun,
   and,
   eq,
   inArray,
   task,
   taskTransitionRequest,
   translatableElement,
-  sql,
 } from "@cat/db";
 import {
   BatchAutoTranslationTaskPhaseSchema,
@@ -37,7 +35,6 @@ import {
   InvalidTaskProgressError,
   type TaskTransition,
   TaskCancellationNotAllowedError,
-  TaskDispatchClaimConflictError,
   TaskNotFoundError,
   TaskRevisionConflictError,
   TaskTransitionRequestConflictError,
@@ -59,9 +56,6 @@ const transitionFields = {
   taskId: z.uuidv4(),
   expectedRevision: z.int().nonnegative(),
   requestId: z.uuidv4(),
-  projectionEventId: z.uuidv4().optional(),
-  projectionEventSequence: z.int().positive().optional(),
-  expectedRunId: z.uuidv4().optional(),
 };
 
 export const CreateLocalizationTaskCommandSchema = z
@@ -80,7 +74,14 @@ export const CreateLocalizationTaskCommandSchema = z
           "Persisted batch auto-translation tasks require resolved element IDs.",
       });
     }
-    if (value.scope.type !== "PROJECT") return;
+    if (value.scope.type !== "PROJECT") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["scope"],
+        message: "Batch auto-translation tasks require project scope.",
+      });
+      return;
+    }
 
     if (value.task.payload.invocation.projectId !== value.scope.id) {
       ctx.addIssue({
@@ -126,9 +127,8 @@ export const CreateLocalizationTaskCommandSchema = z
       .filter((resource) => resource.type === "ELEMENT")
       .map((resource) => resource.id);
     if (
-      resourceElementIds.length > 0 &&
-      (resourceElementIds.length !== invocationElementIds.size ||
-        resourceElementIds.some((id) => !invocationElementIds.has(id)))
+      resourceElementIds.length !== invocationElementIds.size ||
+      resourceElementIds.some((id) => !invocationElementIds.has(id))
     ) {
       ctx.addIssue({
         code: "custom",
@@ -143,26 +143,7 @@ export const TransitionLocalizationTaskCommandSchema = z.discriminatedUnion(
   [
     z.strictObject({
       ...transitionFields,
-      transition: z.literal("claimDispatch"),
-      claimId: z.uuidv4(),
-      leaseDurationMs: z.int().positive().max(300_000),
-    }),
-    z.strictObject({
-      ...transitionFields,
       transition: z.literal("start"),
-      phase: BatchAutoTranslationTaskPhaseSchema,
-    }),
-    z.strictObject({
-      ...transitionFields,
-      transition: z.literal("bindRun"),
-      runId: z.uuidv4(),
-      claimId: z.uuidv4(),
-    }),
-    z.strictObject({
-      ...transitionFields,
-      transition: z.literal("bindRunAndStart"),
-      runId: z.uuidv4(),
-      claimId: z.uuidv4(),
       phase: BatchAutoTranslationTaskPhaseSchema,
     }),
     z.strictObject({
@@ -288,7 +269,7 @@ const taskFields = {
   finishedAt: task.finishedAt,
 };
 
-const insertLocalizationTask = async (
+export const insertLocalizationTask = async (
   db: DbHandle,
   command: CreateLocalizationTaskCommand,
   retryOfTaskId?: string,
@@ -305,12 +286,6 @@ const insertLocalizationTask = async (
       resources: command.resources,
       runtime: {
         kind: command.task.kind,
-        runId: null,
-        dispatchClaimId: null,
-        dispatchClaimExpiresAt: null,
-        dispatchAttemptCount: 0,
-        lastTransitionRequestId: null,
-        lastProjectedEventSequence: null,
         phase: null,
         result: null,
       },
@@ -350,7 +325,7 @@ export const createLocalizationTask: Command<
   return { result: await insertLocalizationTask(ctx.db, command), events: [] };
 };
 
-const transitionTask = async (
+export const transitionTask = async (
   db: DbHandle,
   command: TransitionLocalizationTaskCommand,
 ): Promise<LocalizationTaskSummary> => {
@@ -385,103 +360,13 @@ const transitionTask = async (
   assertExpectedRevision(current.revision, command.expectedRevision);
   const currentTask = toSummary(current);
   if (
-    command.expectedRunId !== undefined &&
-    current.runtime.runId !== command.expectedRunId
-  ) {
-    throw new InvalidTaskProgressError(
-      `Workflow run ${command.expectedRunId} is not bound to this task.`,
-    );
-  }
-  if (
     command.transition === "requestCancel" &&
     !currentTask.task.payload.cancelable
   ) {
     throw new TaskCancellationNotAllowedError(command.taskId);
   }
 
-  if (
-    (command.transition === "bindRun" ||
-      command.transition === "bindRunAndStart") &&
-    current.runtime.runId !== null
-  ) {
-    if (current.runtime.runId === command.runId) return currentTask;
-    throw new InvalidTaskProgressError(
-      `Task is already bound to workflow run ${current.runtime.runId}.`,
-    );
-  }
-
-  const clock = await db.execute<{ now: Date }>(
-    sql`SELECT clock_timestamp() AS now`,
-  );
-  const now = z.coerce.date().parse(clock.rows[0]?.now);
-
-  if (
-    (command.transition === "bindRun" ||
-      command.transition === "bindRunAndStart") &&
-    (current.runtime.dispatchClaimId !== command.claimId ||
-      current.runtime.dispatchClaimExpiresAt === null ||
-      new Date(current.runtime.dispatchClaimExpiresAt).getTime() <=
-        now.getTime())
-  ) {
-    throw new TaskDispatchClaimConflictError(command.taskId);
-  }
-
-  if (command.transition === "start" && current.runtime.runId === null) {
-    throw new InvalidTaskProgressError(
-      "A workflow run must be bound before a task can start.",
-    );
-  }
-
-  if (
-    command.transition === "confirmCancel" &&
-    current.runtime.runId === null &&
-    current.runtime.dispatchClaimId !== null &&
-    current.runtime.dispatchClaimExpiresAt !== null &&
-    new Date(current.runtime.dispatchClaimExpiresAt).getTime() > now.getTime()
-  ) {
-    throw new TaskDispatchClaimConflictError(command.taskId);
-  }
-  if (command.transition === "confirmCancel") {
-    if (current.runtime.runId === null) {
-      const [allocatedRun] = await db
-        .select({ status: agentRun.status })
-        .from(agentRun)
-        .where(
-          eq(agentRun.deduplicationKey, `localization-task:${command.taskId}`),
-        );
-      if (
-        allocatedRun?.status !== undefined &&
-        allocatedRun.status !== "cancelled"
-      ) {
-        throw new TaskDispatchClaimConflictError(command.taskId);
-      }
-    } else {
-      const [run] = await db
-        .select({ status: agentRun.status })
-        .from(agentRun)
-        .where(eq(agentRun.externalId, current.runtime.runId));
-      if (run?.status !== "cancelled") {
-        throw new InvalidTaskProgressError(
-          "A bound task may only confirm cancellation after its workflow run is cancelled.",
-        );
-      }
-    }
-  }
-
-  let dispatchClaimExpiresAt = current.runtime.dispatchClaimExpiresAt;
-  if (command.transition === "claimDispatch") {
-    const currentExpiry = current.runtime.dispatchClaimExpiresAt;
-    const claimIsActive =
-      current.runtime.dispatchClaimId !== null &&
-      currentExpiry !== null &&
-      new Date(currentExpiry).getTime() > now.getTime();
-    if (claimIsActive && current.runtime.dispatchClaimId !== command.claimId) {
-      throw new TaskDispatchClaimConflictError(command.taskId);
-    }
-    dispatchClaimExpiresAt = new Date(
-      now.getTime() + command.leaseDurationMs,
-    ).toISOString();
-  }
+  const now = new Date();
 
   const status = transitionTaskStatus(
     currentTask.state.status,
@@ -515,8 +400,7 @@ const transitionTask = async (
 
   const phaseOrder = ["PREPARING", "TRANSLATING", "INDEXING"] as const;
   const nextPhase =
-    command.transition === "start" ||
-    (command.transition === "bindRunAndStart" && status === "RUNNING")
+    command.transition === "start"
       ? command.phase
       : command.transition === "progress"
         ? (command.phase ?? current.runtime.phase)
@@ -531,41 +415,6 @@ const transitionTask = async (
 
   const runtime = TaskRuntimeSchema.parse({
     kind: current.runtime.kind,
-    runId:
-      command.transition === "bindRun" ||
-      command.transition === "bindRunAndStart"
-        ? command.runId
-        : command.transition === "resume"
-          ? null
-          : current.runtime.runId,
-    dispatchClaimId:
-      command.transition === "bindRun" ||
-      command.transition === "bindRunAndStart"
-        ? null
-        : command.transition === "claimDispatch"
-          ? command.claimId
-          : command.transition === "resume"
-            ? null
-            : current.runtime.dispatchClaimId,
-    dispatchClaimExpiresAt:
-      command.transition === "bindRun" ||
-      command.transition === "bindRunAndStart"
-        ? null
-        : command.transition === "claimDispatch"
-          ? dispatchClaimExpiresAt
-          : command.transition === "resume"
-            ? null
-            : current.runtime.dispatchClaimExpiresAt,
-    dispatchAttemptCount:
-      command.transition === "claimDispatch"
-        ? current.runtime.dispatchAttemptCount + 1
-        : current.runtime.dispatchAttemptCount,
-    lastTransitionRequestId: command.requestId,
-    lastProjectedEventSequence:
-      command.transition === "resume"
-        ? null
-        : (command.projectionEventSequence ??
-          current.runtime.lastProjectedEventSequence),
     phase: command.transition === "resume" ? null : nextPhase,
     result:
       command.transition === "complete"
@@ -599,8 +448,7 @@ const transitionTask = async (
       runtime,
       currentFailureId,
       startedAt:
-        command.transition === "start" ||
-        (command.transition === "bindRunAndStart" && status === "RUNNING")
+        command.transition === "start"
           ? (current.startedAt ?? now)
           : current.startedAt,
       finishedAt:
@@ -669,12 +517,6 @@ export const retryLocalizationTask: Command<
         resources: previous.state.resources,
         runtime: {
           kind: previous.task.kind,
-          runId: null,
-          dispatchClaimId: null,
-          dispatchClaimExpiresAt: null,
-          dispatchAttemptCount: 0,
-          lastTransitionRequestId: null,
-          lastProjectedEventSequence: null,
           phase: null,
           result: null,
         },

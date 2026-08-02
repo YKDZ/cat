@@ -84,11 +84,23 @@ export const recoverCrashedAgentRuns: Command<
       id: number;
       external_id: string;
     }>(sql`
-      SELECT id, external_id
-      FROM "AgentRun"
-      WHERE status = 'running'
-      ORDER BY id ASC
-      FOR UPDATE
+      SELECT run.id, run.external_id
+      FROM "AgentRun" AS run
+      WHERE run.status = 'running'
+        AND (
+          run.owner_id IS NULL
+          OR run.owner_lease_expires_at IS NULL
+          OR run.owner_lease_expires_at <= clock_timestamp()
+        )
+        AND NOT EXISTS (
+          SELECT 1
+          FROM "WorkflowTaskDispatch" AS dispatch
+          WHERE dispatch.run_id = run.external_id
+            AND dispatch.status IN ('CLAIMED', 'RUNNING', 'CANCELLING')
+            AND dispatch.owner_lease_expires_at > clock_timestamp()
+        )
+      ORDER BY run.id ASC
+      FOR UPDATE OF run
     `);
 
     const ids: string[] = [];
