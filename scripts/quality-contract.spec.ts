@@ -273,7 +273,7 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(294);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(297);
     expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(69);
   });
 

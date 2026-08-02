@@ -6,12 +6,12 @@ import {
   listProjectGlossaryIds,
 } from "@cat/domain";
 import {
+  collectTermRecallOp,
   collectEffectiveMemoryRecallOp,
   createSuggestionCollector,
+  getEffectiveMemoryRecallCandidates,
+  getTermRecallCandidates,
   llmTranslateOp,
-  languageAnalyzeOp,
-  type MemorySuggestionWithPrecision,
-  termRecallOp,
 } from "@cat/operations";
 import {
   AsyncMessageQueue,
@@ -30,7 +30,7 @@ import {
 import * as z from "zod";
 
 import { authed, checkElementPermission } from "#/orpc/server.ts";
-import { throwLanguageAnalysisOperationFailure } from "#/services/language-analysis-operation-failure.ts";
+import { throwRecallOperationFailure } from "#/services/recall-operation-failure.ts";
 
 type EffectiveMemoryIds = {
   projectMemoryIds: string[];
@@ -115,99 +115,74 @@ export const onNew = authed
       { db: drizzle },
       listMemoryItemIdsByElement,
       { elementId },
-    ).catch((err: unknown) => {
-      logger
-        .child({ component: "rpc" })
-        .warn(
-          "suggestion.onNew: listMemoryItemIdsByElement failed, skipping self-exclusion",
-          { err },
-        );
-      return [] as string[];
-    });
-
-    // ── Language Analysis (once, shared by memory + term recall) ─────
-    const languageAnalysis = await (async () => {
-      try {
-        return await languageAnalyzeOp(
-          {
-            text: element.value,
-            languageId: element.languageId,
-          },
-          {
-            pluginManager,
-            signal: context.requestSignal,
-            traceId: crypto.randomUUID(),
-          },
-        );
-      } catch (error) {
-        return await throwLanguageAnalysisOperationFailure({
-          context,
-          error,
-          affectedResources: [
-            { type: "PROJECT", id: element.projectId },
-            { type: "ELEMENT", id: String(elementId) },
-          ],
-        });
-      }
-    })();
-    const sourceLanguageAnalysisTokens = languageAnalysis.tokens;
-    const sourceLanguageAnalysisVersion =
-      languageAnalysis.languageAnalysisVersion;
+    );
 
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
-    const [recalledMemories, termContext] = await Promise.all([
+    const [memoryRecallResult, termContext] = await Promise.all([
       allMemoryIds.length > 0
-        ? collectEffectiveMemoryRecallOp(
-            {
-              text: element.value,
-              sourceLanguageId: element.languageId,
-              translationLanguageId: languageId,
-              projectMemoryIds,
-              personalMemoryIds,
-              chunkIds: element.chunkIds,
-              excludeMemoryItemIds,
-              sourceLanguageAnalysisTokens,
-              sourceLanguageAnalysisVersion,
-            },
-            {
-              pluginManager,
-              signal: context.requestSignal,
-              traceId: crypto.randomUUID(),
-            },
-          ).catch((err: unknown) => {
-            logger
-              .child({ component: "rpc" })
-              .warn(
-                "suggestion.onNew: memory recall failed, continuing without",
-                { err },
+        ? (async () => {
+            try {
+              return await collectEffectiveMemoryRecallOp(
+                {
+                  text: element.value,
+                  sourceLanguageId: element.languageId,
+                  translationLanguageId: languageId,
+                  projectMemoryIds,
+                  personalMemoryIds,
+                  chunkIds: element.chunkIds,
+                  excludeMemoryItemIds,
+                },
+                {
+                  pluginManager,
+                  signal: context.requestSignal,
+                  traceId: crypto.randomUUID(),
+                },
               );
-            return [] as MemorySuggestionWithPrecision[];
-          })
-        : Promise.resolve([]),
+            } catch (error) {
+              return await throwRecallOperationFailure({
+                context,
+                error,
+                affectedResources: [
+                  { type: "PROJECT", id: element.projectId },
+                  { type: "ELEMENT", id: String(elementId) },
+                ],
+              });
+            }
+          })()
+        : Promise.resolve(undefined),
       glossaryIds.length > 0
-        ? termRecallOp(
-            {
-              text: element.value,
-              sourceLanguageId: element.languageId,
-              translationLanguageId: languageId,
-              glossaryIds,
-            },
-            {
-              pluginManager,
-              signal: context.requestSignal,
-              traceId: crypto.randomUUID(),
-            },
-          ).catch((err: unknown) => {
-            logger
-              .child({ component: "rpc" })
-              .warn(
-                "suggestion.onNew: term recall failed, continuing without",
-                { err },
+        ? (async () => {
+            try {
+              return await collectTermRecallOp(
+                {
+                  text: element.value,
+                  sourceLanguageId: element.languageId,
+                  translationLanguageId: languageId,
+                  glossaryIds,
+                },
+                {
+                  pluginManager,
+                  signal: context.requestSignal,
+                  traceId: crypto.randomUUID(),
+                },
               );
-            return { terms: [] };
-          })
-        : Promise.resolve({ terms: [] }),
+            } catch (error) {
+              return await throwRecallOperationFailure({
+                context,
+                error,
+                affectedResources: [
+                  { type: "PROJECT", id: element.projectId },
+                  { type: "ELEMENT", id: String(elementId) },
+                ],
+              });
+            }
+          })()
+        : Promise.resolve(undefined),
     ]);
+    const recalledMemories =
+      memoryRecallResult === undefined
+        ? []
+        : getEffectiveMemoryRecallCandidates(memoryRecallResult);
 
     // Flatten context for downstream consumers
     const preloadedMemoriesForAdvisors = recalledMemories.map((m) => ({
@@ -216,12 +191,14 @@ export const onNew = authed
       confidence: m.confidence,
     }));
 
-    const preloadedTermsForAdvisors = termContext.terms.map((t) => ({
+    const recalledTerms =
+      termContext === undefined ? [] : getTermRecallCandidates(termContext);
+    const preloadedTermsForAdvisors = recalledTerms.map((t) => ({
       term: t.term,
       translation: t.translation,
       confidence: t.confidence,
       definition: t.definition,
-      concept: t.concept,
+      concept: { subjects: [], definition: t.definition },
     }));
 
     // ── Suggestion queue (receives both Smart Suggest and advisor results) ────
@@ -262,7 +239,7 @@ export const onNew = authed
           adaptedTranslation: m.adaptedTranslation,
           confidence: m.confidence,
         })),
-        terms: termContext.terms.map((t) => ({
+        terms: recalledTerms.map((t) => ({
           term: t.term,
           translation: t.translation,
           definition: t.definition,

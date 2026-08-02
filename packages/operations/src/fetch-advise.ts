@@ -14,7 +14,10 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import {
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+} from "./collect-memory-recall.ts";
 import { termRecallOp } from "./term-recall.ts";
 
 export const FetchAdviseInputSchema = z.object({
@@ -144,7 +147,7 @@ export const fetchAdviseOp = async (
             },
             ctx,
           );
-          return results.map((m) => ({
+          return getMemoryRecallCandidates(results).map((m) => ({
             source: m.source,
             translation: m.adaptedTranslation ?? m.translation,
             confidence: m.confidence,

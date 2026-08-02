@@ -36,6 +36,23 @@ describe("SuiteConfigSchema", () => {
       }),
     ).toThrow();
   });
+
+  it("rejects unregistered scorers", () => {
+    expect(() =>
+      SuiteConfigSchema.parse({
+        name: "retired-scorer",
+        seed: { project: "seed/project.json" },
+        plugins: { loader: "test" },
+        scenarios: [
+          {
+            type: "memory-recall",
+            "test-set": "test-sets/memory.yaml",
+            scorers: ["retired-confidence"],
+          },
+        ],
+      }),
+    ).toThrow();
+  });
 });
 
 describe("ProjectSeedSchema", () => {

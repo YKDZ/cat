@@ -148,6 +148,8 @@ export {
 export {
   streamSearchTermsOp,
   StreamSearchTermsInputSchema,
+  StreamSearchTermsEventSchema,
+  type StreamSearchTermsEvent,
   type StreamSearchTermsInput,
 } from "./stream-search-terms.ts";
 
@@ -208,25 +210,38 @@ export {
 export {
   streamSearchMemoryOp,
   StreamSearchMemoryInputSchema,
+  StreamSearchMemoryEventSchema,
+  type StreamSearchMemoryEvent,
   type StreamSearchMemoryInput,
 } from "./stream-search-memory.ts";
 
 export {
   collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+  CollectMemoryRecallInputBaseSchema,
   CollectMemoryRecallInputSchema,
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
   type CollectMemoryRecallInput,
+  type MemoryRecallCandidate,
+  type MemoryRecallResult,
 } from "./collect-memory-recall.ts";
 export {
+  assertRecallOperationAvailable,
+  getCandidateRecallCandidates,
+  mapRecallOperationFailure,
+  RecallOperationFailureError,
+} from "./candidate-recall.ts";
+export {
   collectEffectiveMemoryRecallOp,
+  getEffectiveMemoryRecallCandidates,
+  EffectiveMemoryRecallResultSchema,
+  EffectiveMemoryRecallStreamEventSchema,
   CollectEffectiveMemoryRecallInputSchema,
   type CollectEffectiveMemoryRecallInput,
+  type EffectiveMemoryRecallResult,
+  type EffectiveMemoryRecallStreamEvent,
 } from "./collect-effective-memory-recall.ts";
-export {
-  BM25_DISABLED_REASON,
-  buildMemoryRecallBm25Capabilities,
-  compressBm25Score,
-  MEMORY_RECALL_BM25_REGISTRY,
-} from "./memory-recall-bm25.ts";
 
 export {
   qaTranslationOp,
@@ -389,8 +404,13 @@ export {
 
 export {
   collectTermRecallOp,
+  getTermRecallCandidates,
   CollectTermRecallInputSchema,
+  TermRecallCandidateSchema,
+  TermRecallResultSchema,
   type CollectTermRecallInput,
+  type TermRecallCandidate,
+  type TermRecallResult,
 } from "./collect-term-recall.ts";
 
 export {
@@ -466,17 +486,6 @@ export {
   runAutoTranslatePipeline,
   type RunAutoTranslatePipelineInput,
 } from "./run-auto-translate-pipeline.ts";
-
-// === Quality Components ===
-export {
-  calibrateBm25Confidence,
-  calibrateMemoryBm25,
-  calibrateTermBm25,
-} from "./confidence-calibrator/index.ts";
-export type {
-  CalibratedBm25Evidence,
-  CalibrationSummary,
-} from "./confidence-calibrator/index.ts";
 
 export {
   applyHnfPreRules,

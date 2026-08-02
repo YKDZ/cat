@@ -3,9 +3,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({
   qaOp: vi.fn(),
-  termRecallOp: vi.fn(),
+  collectTermRecallOp: vi.fn(),
+  getTermRecallCandidates: vi.fn(),
+  RecallOperationFailureError: class RecallOperationFailureError extends Error {
+    public readonly failure: unknown;
+
+    public constructor(failure: unknown) {
+      super("recall blocked");
+      this.failure = failure;
+    }
+  },
   tokenizeOp: vi.fn(),
   collectMemoryRecallOp: vi.fn(),
+  getMemoryRecallCandidates: vi.fn(),
   createTranslationOp: vi.fn(),
   getContentNode: Symbol("getContentNode"),
   getLanguage: Symbol("getLanguage"),
@@ -42,9 +52,12 @@ vi.mock("@cat/domain", () => ({
 
 vi.mock("@cat/operations", () => ({
   qaOp: mocked.qaOp,
-  termRecallOp: mocked.termRecallOp,
+  collectTermRecallOp: mocked.collectTermRecallOp,
+  getTermRecallCandidates: mocked.getTermRecallCandidates,
+  RecallOperationFailureError: mocked.RecallOperationFailureError,
   tokenizeOp: mocked.tokenizeOp,
   collectMemoryRecallOp: mocked.collectMemoryRecallOp,
+  getMemoryRecallCandidates: mocked.getMemoryRecallCandidates,
   createTranslationOp: mocked.createTranslationOp,
 }));
 
@@ -109,9 +122,11 @@ describe("translation tools", () => {
 
   beforeEach(() => {
     mocked.qaOp.mockReset();
-    mocked.termRecallOp.mockReset();
+    mocked.collectTermRecallOp.mockReset();
+    mocked.getTermRecallCandidates.mockReset();
     mocked.tokenizeOp.mockReset();
     mocked.collectMemoryRecallOp.mockReset();
+    mocked.getMemoryRecallCandidates.mockReset();
     mocked.createTranslationOp.mockReset();
     mocked.executeQuery.mockReset();
     mocked.getDbHandle.mockClear();
@@ -120,16 +135,25 @@ describe("translation tools", () => {
   });
 
   it("uses session language fallback when searching translation memory", async () => {
-    mocked.collectMemoryRecallOp.mockResolvedValue([
-      {
-        source: "hello",
-        translation: "你好",
-        adaptedTranslation: null,
-        confidence: 0.91,
-        memoryId: "33333333-3333-4333-8333-333333333333",
-        evidences: [],
+    const candidate = {
+      source: "hello",
+      translation: "你好",
+      adaptedTranslation: null,
+      confidence: 0.91,
+      memoryId: "33333333-3333-4333-8333-333333333333",
+      evidences: [],
+    };
+    mocked.collectMemoryRecallOp.mockResolvedValue({
+      requestedChannels: ["EXACT"],
+      outcomes: {
+        EXACT: { status: "SUCCEEDED", candidates: [candidate] },
+        FUZZY: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        KEYWORD: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        VARIANT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        SEMANTIC: { status: "SKIPPED", reason: "NOT_REQUESTED" },
       },
-    ]);
+    });
+    mocked.getMemoryRecallCandidates.mockReturnValue([candidate]);
 
     const result = await searchTmTool.execute({ text: "hello" }, createCtx());
 
@@ -142,6 +166,7 @@ describe("translation tools", () => {
       minSimilarity: 0.72,
       maxAmount: 5,
     });
+    expect(mocked.getMemoryRecallCandidates).toHaveBeenCalledOnce();
     expect(result).toEqual({
       memories: [
         {
@@ -158,10 +183,29 @@ describe("translation tools", () => {
     });
   });
 
-  it("prefers explicit language arguments over session fallback for termbase lookup", async () => {
-    mocked.termRecallOp.mockResolvedValue({
-      terms: [{ source: "cat", target: "猫" }],
+  it("projects a typed translation-memory recall failure", async () => {
+    const failure = {
+      code: "CAT_OPERATION_DEPENDENCY_UNAVAILABLE",
+      blocker: "recall_derivation_pending",
+      capability: "RECALL_DERIVATION",
+      retryable: true,
+      affectedResources: [{ type: "PROJECT", id: "project-1" }],
+    };
+    mocked.collectMemoryRecallOp.mockRejectedValue(
+      new mocked.RecallOperationFailureError(failure),
+    );
+
+    await expect(
+      searchTmTool.execute({ text: "hello" }, createCtx()),
+    ).resolves.toEqual({
+      memories: [],
+      operationFailure: failure,
     });
+  });
+
+  it("prefers explicit language arguments over session fallback for termbase lookup", async () => {
+    mocked.collectTermRecallOp.mockResolvedValue({});
+    mocked.getTermRecallCandidates.mockReturnValue([]);
 
     await searchTermbaseTool.execute(
       {
@@ -172,7 +216,7 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.termRecallOp).toHaveBeenCalledWith({
+    expect(mocked.collectTermRecallOp).toHaveBeenCalledWith({
       text: "cat",
       sourceLanguageId: "fr-FR",
       translationLanguageId: "de-DE",

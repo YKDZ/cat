@@ -7,6 +7,9 @@ import {
   ensureCoreRelationTypes,
   ensureLanguages,
   executeCommand,
+  executeQuery,
+  listKeywordMemorySuggestions,
+  listScopedMemoryRecallDerivationStates,
   writeValidatedLanguageAnalysisSelection,
 } from "@cat/domain";
 import type {
@@ -46,7 +49,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import {
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+} from "./collect-memory-recall.ts";
 import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requirement.ts";
 import {
   assessRecallDerivationFreshness,
@@ -352,17 +358,19 @@ describe("memory recall integration", () => {
       ),
     ).toBe(true);
 
-    const results = await collectMemoryRecallOp(
-      {
-        text: "Order 43 is completed",
-        normalizedText: "Order {NUM_0} is completed",
-        sourceLanguageId: "en",
-        translationLanguageId: "zh-Hans",
-        memoryIds: [memoryId],
-        minVariantSimilarity: 0.99,
-        maxAmount: 5,
-      },
-      { traceId: "memory-recall-forward" },
+    const results = getMemoryRecallCandidates(
+      await collectMemoryRecallOp(
+        {
+          text: "Order 43 is completed",
+          normalizedText: "Order {NUM_0} is completed",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          memoryIds: [memoryId],
+          minVariantSimilarity: 0.99,
+          maxAmount: 5,
+        },
+        { traceId: "memory-recall-forward" },
+      ),
     );
 
     expect(results[0]?.source).toBe("Order 42 is completed");
@@ -376,15 +384,17 @@ describe("memory recall integration", () => {
   });
 
   it("returns caller-oriented results for reversed lexical and variant recall", async () => {
-    const reversedExactResults = await collectMemoryRecallOp(
-      {
-        text: "订单 42 已完成",
-        sourceLanguageId: "zh-Hans",
-        translationLanguageId: "en",
-        memoryIds: [memoryId],
-        maxAmount: 5,
-      },
-      { traceId: "memory-recall-reversed-exact" },
+    const reversedExactResults = getMemoryRecallCandidates(
+      await collectMemoryRecallOp(
+        {
+          text: "订单 42 已完成",
+          sourceLanguageId: "zh-Hans",
+          translationLanguageId: "en",
+          memoryIds: [memoryId],
+          maxAmount: 5,
+        },
+        { traceId: "memory-recall-reversed-exact" },
+      ),
     );
 
     expect(reversedExactResults[0]?.source).toBe("订单 42 已完成");
@@ -395,18 +405,20 @@ describe("memory recall integration", () => {
       ),
     ).toBe(true);
 
-    const reversedVariantResults = await collectMemoryRecallOp(
-      {
-        text: "invoice 42 completed",
-        normalizedText: "invoice 42 completed",
-        sourceLanguageId: "en",
-        translationLanguageId: "zh-Hans",
-        memoryIds: [memoryId],
-        minSimilarity: 1,
-        minVariantSimilarity: 1,
-        maxAmount: 5,
-      },
-      { traceId: "memory-recall-reversed-variant" },
+    const reversedVariantResults = getMemoryRecallCandidates(
+      await collectMemoryRecallOp(
+        {
+          text: "invoice 42 completed",
+          normalizedText: "invoice 42 completed",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          memoryIds: [memoryId],
+          minSimilarity: 1,
+          minVariantSimilarity: 1,
+          maxAmount: 5,
+        },
+        { traceId: "memory-recall-reversed-variant" },
+      ),
     );
 
     expect(reversedVariantResults[0]?.source).toBe("Invoice 42 Completed");
@@ -418,46 +430,142 @@ describe("memory recall integration", () => {
     ).toBe(true);
   });
 
-  it("returns BM25 evidence for long English keyword queries", async () => {
-    const results = await collectMemoryRecallOp(
-      {
-        text: "completed order 42 status",
-        sourceLanguageId: "en",
-        translationLanguageId: "zh-Hans",
-        memoryIds: [memoryId],
-        minSimilarity: 0.99,
-        minVariantSimilarity: 0.99,
-        maxAmount: 5,
-      },
-      { traceId: "memory-recall-bm25-en" },
+  it("returns analyzer-backed Keyword evidence for scoped English recall", async () => {
+    const results = getMemoryRecallCandidates(
+      await collectMemoryRecallOp(
+        {
+          text: "completed order 42 status",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          memoryIds: [memoryId],
+          minSimilarity: 0.99,
+          minVariantSimilarity: 0.99,
+          maxAmount: 5,
+        },
+        { traceId: "memory-recall-keyword-en" },
+      ),
     );
 
     expect(results[0]?.source).toBe("Order 42 is completed");
     expect(results[0]?.translation).toBe("订单 42 已完成");
-    expect(results[0]?.evidences.some((e) => e.channel === "bm25")).toBe(true);
+    expect(results[0]?.evidences.some((e) => e.channel === "keyword")).toBe(
+      true,
+    );
     expect(results[0]?.confidence).toBeGreaterThan(0);
     expect(results[0]?.confidence).toBeLessThanOrEqual(1);
   });
 
-  it("returns caller-oriented BM25 results for zh-Hans to en queries", async () => {
-    const results = await collectMemoryRecallOp(
-      {
-        text: "发票 42 完成",
-        sourceLanguageId: "zh-Hans",
-        translationLanguageId: "en",
-        memoryIds: [memoryId],
-        minSimilarity: 0.99,
-        minVariantSimilarity: 0.99,
-        maxAmount: 5,
-      },
-      { traceId: "memory-recall-bm25-zh-hans" },
+  it("returns caller-oriented Keyword results for zh-Hans to en queries", async () => {
+    const results = getMemoryRecallCandidates(
+      await collectMemoryRecallOp(
+        {
+          text: "发票 42 完成",
+          sourceLanguageId: "zh-Hans",
+          translationLanguageId: "en",
+          memoryIds: [memoryId],
+          minSimilarity: 0.99,
+          minVariantSimilarity: 0.99,
+          maxAmount: 5,
+        },
+        { traceId: "memory-recall-keyword-zh-hans" },
+      ),
     );
 
     expect(results[0]?.source).toBe("发票 42 已完成");
     expect(results[0]?.translation).toBe("Invoice 42 Completed");
-    expect(results[0]?.evidences.some((e) => e.channel === "bm25")).toBe(true);
+    expect(results[0]?.evidences.some((e) => e.channel === "keyword")).toBe(
+      true,
+    );
     expect(results[0]?.confidence).toBeGreaterThan(0);
     expect(results[0]?.confidence).toBeLessThanOrEqual(1);
+  });
+
+  it("uses one repeatable-read snapshot for freshness and candidates", async () => {
+    const forwardItem = assertSingleNonNullish(
+      await db.client
+        .select({ id: memoryItem.id })
+        .from(memoryItem)
+        .where(eq(memoryItem.translationId, forwardTranslationId)),
+    );
+    const state = assertSingleNonNullish(
+      await db.client
+        .select()
+        .from(recallDerivationState)
+        .where(
+          and(
+            eq(recallDerivationState.targetKind, "MEMORY_ITEM"),
+            eq(recallDerivationState.targetId, String(forwardItem.id)),
+            eq(recallDerivationState.languageId, "en"),
+          ),
+        ),
+    );
+    expect(state.status).toBe("FRESH");
+    const requiredDerivationVersion = requireFixtureValue(
+      state.requiredDerivationVersion,
+    );
+    const concurrent = await db.openConcurrentClient();
+    try {
+      const snapshotCandidates = await db.client.transaction(
+        async (tx) => {
+          const scoped = await executeQuery(
+            { db: tx },
+            listScopedMemoryRecallDerivationStates,
+            {
+              memoryIds: [memoryId],
+              sourceLanguageId: "en",
+              translationLanguageId: "zh-Hans",
+            },
+          );
+          expect(
+            scoped.some(
+              (entry) =>
+                entry.targetId === String(forwardItem.id) &&
+                entry.status === "FRESH",
+            ),
+          ).toBe(true);
+
+          await concurrent.client
+            .update(recallDerivationState)
+            .set({ status: "PENDING" })
+            .where(eq(recallDerivationState.id, state.id));
+
+          return await executeQuery({ db: tx }, listKeywordMemorySuggestions, {
+            keywords: ["order"],
+            sourceLanguageId: "en",
+            translationLanguageId: "zh-Hans",
+            requiredDerivationVersion,
+            memoryIds: [memoryId],
+            maxAmount: 5,
+          });
+        },
+        { isolationLevel: "repeatable read", accessMode: "read only" },
+      );
+      expect(
+        snapshotCandidates.some((entry) => entry.id === forwardItem.id),
+      ).toBe(true);
+
+      const newSnapshotCandidates = await executeQuery(
+        { db: concurrent.client },
+        listKeywordMemorySuggestions,
+        {
+          keywords: ["order"],
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          requiredDerivationVersion,
+          memoryIds: [memoryId],
+          maxAmount: 5,
+        },
+      );
+      expect(
+        newSnapshotCandidates.some((entry) => entry.id === forwardItem.id),
+      ).toBe(false);
+    } finally {
+      await concurrent.client
+        .update(recallDerivationState)
+        .set({ status: "FRESH" })
+        .where(eq(recallDerivationState.id, state.id));
+      await concurrent.cleanup();
+    }
   });
 
   it("invalidates stale runtime generations at the production recall seam", async () => {
@@ -506,10 +614,12 @@ describe("memory recall integration", () => {
       { traceId: "memory-recall-generation-b", pluginManager },
     );
     expect(
-      firstGenerationBRecall
+      getMemoryRecallCandidates(firstGenerationBRecall)
         .flatMap((result) => result.evidences)
         .some((evidence) => evidence.matchedVariantType !== undefined),
     ).toBe(false);
+    expect(firstGenerationBRecall.outcomes.KEYWORD.status).toBe("BLOCKED");
+    expect(firstGenerationBRecall.outcomes.VARIANT.status).toBe("BLOCKED");
     const pendingB = await getEnglishState();
     expect(pendingB).toMatchObject({
       status: "PENDING",

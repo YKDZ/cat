@@ -103,6 +103,7 @@ const computeMemoryRecallDerivationVersion = async (
     rules: {
       maxWindowSize: MAX_WINDOW_SIZE,
       templateOrientation: "query-side/v1",
+      keywordTokens: "content-token-lemma/v1",
       stopWords: "language-analysis-isStop",
     },
   });
@@ -282,6 +283,15 @@ const buildSideVariants = (input: {
     (token) => !token.isStop && !token.isPunct,
   );
   if (contentTokens.length > 0) {
+    for (const token of contentTokens) {
+      variants.push({
+        querySide: input.querySide,
+        text: token.text,
+        normalizedText: joinLemmas([token], input.languageId),
+        variantType: "LEMMA",
+        meta: null,
+      });
+    }
     const lemma = joinLemmas(contentTokens, input.languageId);
     if (lemma !== trimmed && lemma !== caseFolded) {
       variants.push({

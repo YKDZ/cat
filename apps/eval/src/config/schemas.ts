@@ -39,7 +39,6 @@ export const ScorerNameSchema = z.enum([
   "token-cost",
   "agent-latency",
   "noise-rate",
-  "bm25-confidence",
   "template-match-rate",
   "self-exclusion-rate",
   "preserve-rate",

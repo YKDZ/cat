@@ -54,7 +54,7 @@ const parseTemplateArtifact = (
     : { sourceTemplate: null, translationTemplate: null, slotMapping: null };
 };
 
-const toRecallChannel = (variantType: string) => {
+const toEvidenceLane = (variantType: string) => {
   if (variantType === "TOKEN_TEMPLATE") return "template" as const;
   if (variantType === "FRAGMENT") return "fragment" as const;
   return "morphological" as const;
@@ -245,7 +245,7 @@ export const listVariantMemorySuggestions: Query<
     confidence: row.confidence,
     evidences: [
       {
-        channel: toRecallChannel(row.matchedVariantType),
+        channel: toEvidenceLane(row.matchedVariantType),
         matchedText: row.source,
         matchedVariantText: row.matchedVariantText,
         matchedVariantType: row.matchedVariantType,

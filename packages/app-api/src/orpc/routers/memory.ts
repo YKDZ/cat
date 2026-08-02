@@ -9,7 +9,6 @@ import {
   getMemory,
   getMemoryAccessContext,
   getMemoryCanonicalSnapshots,
-  listAllLanguages,
   listEffectiveMemoryIdsByProject,
   listMemoryItems,
   listMemoryItemIdsByElement,
@@ -17,16 +16,16 @@ import {
   listProjectMemories,
 } from "@cat/domain";
 import {
-  buildMemoryRecallBm25Capabilities,
   collectEffectiveMemoryRecallOp,
-  languageAnalyzeOp,
+  getEffectiveMemoryRecallCandidates,
   recallContextRerankOp,
 } from "@cat/operations";
 import { getPermissionEngine } from "@cat/permissions";
-import { MemorySchema, RecallDerivationReferenceSchema } from "@cat/shared";
 import {
-  MemoryRecallBm25CapabilityDirectorySchema,
-  MemoryRecallBm25CapabilityQuerySchema,
+  EffectiveMemoryRecallStreamEventSchema,
+  MemorySchema,
+  RecallDerivationReferenceSchema,
+  type EffectiveMemoryRecallStreamEvent,
 } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 import { ORPCError } from "@orpc/server";
@@ -35,11 +34,10 @@ import * as z from "zod";
 import { withBranchContext } from "#/orpc/middleware/with-branch-context.ts";
 import {
   authed,
-  base,
   checkElementPermission,
   checkPermission,
 } from "#/orpc/server.ts";
-import { throwLanguageAnalysisOperationFailure } from "#/services/language-analysis-operation-failure.ts";
+import { throwRecallOperationFailure } from "#/services/recall-operation-failure.ts";
 import type { Context } from "#/utils/context.ts";
 import {
   createVCSRouteHelper,
@@ -189,7 +187,10 @@ export const onNew = authed
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
-  .handler(async function* ({ context, input }) {
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<EffectiveMemoryRecallStreamEvent> {
     const {
       drizzleDB: { client: drizzle },
     } = context;
@@ -222,48 +223,14 @@ export const onNew = authed
 
     const { projectMemoryIds, personalMemoryIds } = effectiveMemoryIds;
 
-    if (
-      !element ||
-      (projectMemoryIds.length === 0 && personalMemoryIds.length === 0)
-    ) {
-      return;
-    }
-
     const excludeMemoryItemIds = await executeQuery(
       { db: drizzle },
       listMemoryItemIdsByElement,
       { elementId },
-    ).catch(() => [] as string[]);
-    const languageAnalysis = await (async () => {
+    );
+    const recallResult = await (async () => {
       try {
-        return await languageAnalyzeOp(
-          { text: element.value, languageId: element.languageId },
-          {
-            pluginManager: context.pluginManager,
-            signal: context.requestSignal,
-            traceId: crypto.randomUUID(),
-          },
-        );
-      } catch (error) {
-        return await throwLanguageAnalysisOperationFailure({
-          context,
-          error,
-          affectedResources: [
-            { type: "PROJECT", id: element.projectId },
-            { type: "ELEMENT", id: String(elementId) },
-          ],
-        });
-      }
-    })();
-    const sourceLanguageAnalysisTokens = languageAnalysis.tokens;
-    const sourceLanguageAnalysisVersion =
-      languageAnalysis.languageAnalysisVersion;
-
-    const reranked = await recallContextRerankOp(
-      {
-        elementId,
-        queryText: element.value,
-        memories: await collectEffectiveMemoryRecallOp(
+        return await collectEffectiveMemoryRecallOp(
           {
             text: element.value,
             sourceLanguageId: element.languageId,
@@ -274,15 +241,30 @@ export const onNew = authed
             minSimilarity: minConfidence,
             maxAmount,
             excludeMemoryItemIds,
-            sourceLanguageAnalysisTokens,
-            sourceLanguageAnalysisVersion,
           },
           {
             pluginManager: context.pluginManager,
             signal: context.requestSignal,
             traceId: crypto.randomUUID(),
           },
-        ),
+        );
+      } catch (error) {
+        return await throwRecallOperationFailure({
+          context,
+          error,
+          affectedResources: [
+            { type: "PROJECT", id: element.projectId },
+            { type: "ELEMENT", id: String(elementId) },
+          ],
+        });
+      }
+    })();
+
+    const reranked = await recallContextRerankOp(
+      {
+        elementId,
+        queryText: element.value,
+        memories: getEffectiveMemoryRecallCandidates(recallResult),
       },
       {
         pluginManager: context.pluginManager,
@@ -292,8 +274,15 @@ export const onNew = authed
     );
 
     for (const memory of reranked) {
-      yield memory;
+      yield EffectiveMemoryRecallStreamEventSchema.parse({
+        type: "CANDIDATE",
+        candidate: memory,
+      });
     }
+    yield EffectiveMemoryRecallStreamEventSchema.parse({
+      type: "COMPLETED",
+      result: recallResult,
+    });
   });
 
 export const getUserOwned = authed
@@ -680,7 +669,10 @@ export const searchByText = authed
     }),
   )
   .use(checkPermission("project", "viewer"), (i) => i.projectId)
-  .handler(async function* ({ context, input }) {
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<EffectiveMemoryRecallStreamEvent> {
     const {
       drizzleDB: { client: drizzle },
     } = context;
@@ -708,48 +700,42 @@ export const searchByText = authed
 
     const { projectMemoryIds, personalMemoryIds } = effectiveMemoryIds;
 
-    if (projectMemoryIds.length === 0 && personalMemoryIds.length === 0) {
-      return;
+    const recallResult = await (async () => {
+      try {
+        return await collectEffectiveMemoryRecallOp(
+          {
+            text,
+            sourceLanguageId,
+            translationLanguageId,
+            projectMemoryIds,
+            personalMemoryIds,
+            chunkIds: [],
+            minSimilarity: minConfidence,
+            maxAmount,
+          },
+          {
+            pluginManager: context.pluginManager,
+            signal: context.requestSignal,
+            traceId: crypto.randomUUID(),
+          },
+        );
+      } catch (error) {
+        return await throwRecallOperationFailure({
+          context,
+          error,
+          affectedResources: [{ type: "PROJECT", id: projectId }],
+        });
+      }
+    })();
+
+    for (const memory of getEffectiveMemoryRecallCandidates(recallResult)) {
+      yield EffectiveMemoryRecallStreamEventSchema.parse({
+        type: "CANDIDATE",
+        candidate: memory,
+      });
     }
-
-    const memories = await collectEffectiveMemoryRecallOp(
-      {
-        text,
-        sourceLanguageId,
-        translationLanguageId,
-        projectMemoryIds,
-        personalMemoryIds,
-        chunkIds: [],
-        minSimilarity: minConfidence,
-        maxAmount,
-      },
-      {
-        pluginManager: context.pluginManager,
-        signal: context.requestSignal,
-        traceId: crypto.randomUUID(),
-      },
-    );
-
-    for (const memory of memories) {
-      yield memory;
-    }
-  });
-
-export const getRecallCapabilities = base
-  .input(MemoryRecallBm25CapabilityQuerySchema)
-  .output(MemoryRecallBm25CapabilityDirectorySchema)
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-
-    const languages = await executeQuery({ db: drizzle }, listAllLanguages, {});
-    const fullCatalog = languages.map((row) => row.id);
-
-    return {
-      capabilities: buildMemoryRecallBm25Capabilities(
-        fullCatalog,
-        input.languageIds,
-      ),
-    };
+    yield EffectiveMemoryRecallStreamEventSchema.parse({
+      type: "COMPLETED",
+      result: recallResult,
+    });
   });

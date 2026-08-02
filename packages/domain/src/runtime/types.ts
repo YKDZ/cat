@@ -43,7 +43,6 @@ export type SearchRuntimeLevel = z.infer<typeof SearchRuntimeLevelSchema>;
  */
 export const RuntimeFeatureSchema = z.enum([
   "redis",
-  "bm25-memory-recall",
   "zhparser-full-text",
   "rum-index-ranking",
   "pgvector",

@@ -41,13 +41,10 @@ describe("search runtime health", () => {
     const summary = await detectSearchRuntimeHealth(db);
 
     expect(summary.searchLevel).toBe("partial-search-runtime");
-    expect(summary.disabledFeatures).toEqual(
-      expect.arrayContaining([
-        "rum-index-ranking",
-        "zhparser-full-text",
-        "bm25-memory-recall",
-      ]),
-    );
+    expect(summary.disabledFeatures).toEqual([
+      "rum-index-ranking",
+      "zhparser-full-text",
+    ]);
     expect(summary.warnings).toEqual([
       "database search capability degraded to partial-search-runtime",
     ]);
@@ -59,14 +56,11 @@ describe("search runtime health", () => {
     const summary = await detectSearchRuntimeHealth(db);
 
     expect(summary.searchLevel).toBe("basic-db-runtime");
-    expect(summary.disabledFeatures).toEqual(
-      expect.arrayContaining([
-        "pgvector",
-        "rum-index-ranking",
-        "zhparser-full-text",
-        "bm25-memory-recall",
-      ]),
-    );
+    expect(summary.disabledFeatures).toEqual([
+      "pgvector",
+      "rum-index-ranking",
+      "zhparser-full-text",
+    ]);
   });
 
   it("allows lower requirements such as basic-db-runtime", async () => {

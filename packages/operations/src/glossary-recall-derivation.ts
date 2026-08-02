@@ -77,6 +77,7 @@ const computeGlossaryRecallDerivationVersion = async (
     },
     rules: {
       maxWindowSize: MAX_WINDOW_SIZE,
+      keywordTokens: "content-token-lemma/v1",
       variants: ["SURFACE", "CASE_FOLDED", "LEMMA"],
       stopWords: "language-analysis-isStop",
     },
@@ -238,6 +239,14 @@ const buildTermVariants = (input: {
     (token) => !token.isStop && !token.isPunct,
   );
   if (contentTokens.length > 0) {
+    for (const token of contentTokens) {
+      variants.push({
+        text: token.text,
+        normalizedText: joinLemmas([token], input.languageId),
+        variantType: "LEMMA",
+        meta: { sourceTermId: input.termId },
+      });
+    }
     const lemma = joinLemmas(contentTokens, input.languageId);
     if (lemma !== caseFolded && lemma !== trimmed) {
       variants.push({

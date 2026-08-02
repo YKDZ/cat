@@ -35,9 +35,10 @@ import {
 
 const mocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
+  collectTermRecallOp: vi.fn(),
+  getTermRecallCandidates: vi.fn(),
   fetchAdviseOp: vi.fn(),
   llmRefineTranslationOp: vi.fn(),
-  termRecallOp: vi.fn(),
   nestedRunGraph: vi.fn(),
 }));
 
@@ -50,7 +51,8 @@ vi.mock("@cat/operations", async () => {
     collectMemoryRecallOp: mocks.collectMemoryRecallOp,
     fetchAdviseOp: mocks.fetchAdviseOp,
     llmRefineTranslationOp: mocks.llmRefineTranslationOp,
-    termRecallOp: mocks.termRecallOp,
+    collectTermRecallOp: mocks.collectTermRecallOp,
+    getTermRecallCandidates: mocks.getTermRecallCandidates,
   };
 });
 
@@ -114,33 +116,45 @@ describe("autoTranslateGraph", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.termRecallOp.mockResolvedValue({
-      terms: [
-        {
-          term: "memory bank",
-          translation: "记忆库",
-          confidence: 0.82,
-          definition: null,
-          concept: { subjects: [], definition: null },
-        },
-      ],
-    });
-    mocks.collectMemoryRecallOp.mockResolvedValue([
+    const terms = [
       {
-        id: 1,
-        source: "Order 42 completed",
-        translation: "订单 42 已完成",
-        adaptedTranslation: "订单 43 已完成",
-        adaptationMethod: "token-replaced",
-        confidence: 0.97,
-        memoryId: "22222222-2222-4222-8222-222222222222",
-        translationChunkSetId: null,
-        creatorId: null,
-        createdAt: new Date("2024-01-01T00:00:00.000Z"),
-        updatedAt: new Date("2024-01-01T00:00:00.000Z"),
-        evidences: [{ channel: "template", confidence: 0.97 }],
+        term: "memory bank",
+        translation: "记忆库",
+        confidence: 0.82,
+        definition: null,
+        concept: { subjects: [], definition: null },
       },
-    ]);
+    ];
+    mocks.collectTermRecallOp.mockResolvedValue({});
+    mocks.getTermRecallCandidates.mockReturnValue(terms);
+    mocks.collectMemoryRecallOp.mockResolvedValue({
+      requestedChannels: ["EXACT"],
+      outcomes: {
+        EXACT: {
+          status: "SUCCEEDED",
+          candidates: [
+            {
+              id: 1,
+              source: "Order 42 completed",
+              translation: "订单 42 已完成",
+              adaptedTranslation: "订单 43 已完成",
+              adaptationMethod: "token-replaced",
+              confidence: 0.97,
+              memoryId: "22222222-2222-4222-8222-222222222222",
+              translationChunkSetId: null,
+              creatorId: null,
+              createdAt: new Date("2024-01-01T00:00:00.000Z"),
+              updatedAt: new Date("2024-01-01T00:00:00.000Z"),
+              evidences: [{ channel: "template", confidence: 0.97 }],
+            },
+          ],
+        },
+        FUZZY: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        KEYWORD: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        VARIANT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        SEMANTIC: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+      },
+    });
     mocks.fetchAdviseOp.mockResolvedValue({
       suggestions: [{ translation: "建议译文", confidence: 0.5 }],
     });
@@ -461,7 +475,7 @@ describe("autoTranslateGraph", () => {
       translationIds,
       scopeTranslationSeed: { translation: "结账 A", confidence: 0.92 },
     });
-    expect(mocks.termRecallOp).not.toHaveBeenCalled();
+    expect(mocks.collectTermRecallOp).not.toHaveBeenCalled();
     expect(mocks.collectMemoryRecallOp).not.toHaveBeenCalled();
     expect(mocks.fetchAdviseOp).not.toHaveBeenCalled();
     expect(mocks.llmRefineTranslationOp).not.toHaveBeenCalled();

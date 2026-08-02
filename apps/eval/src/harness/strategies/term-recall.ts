@@ -1,4 +1,4 @@
-import { collectTermRecallOp } from "@cat/operations";
+import { collectTermRecallOp, getTermRecallCandidates } from "@cat/operations";
 import { ServiceImplementationReferenceSchema } from "@cat/shared";
 // oxlint-disable no-await-in-loop -- test cases are intentionally sequential to avoid overwhelming the system
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- params from unknown config require casting
@@ -73,17 +73,16 @@ export const termRecallStrategy = {
             );
 
             clearTimeout(timer);
+            const candidates = getTermRecallCandidates(result);
             const durationMs = performance.now() - start;
             caseSpan.setAttribute("eval.duration_ms", durationMs);
             caseSpan.setAttribute("eval.status", "ok");
-            caseSpan.setAttribute(
-              "eval.result_count",
-              Array.isArray(result) ? result.length : 0,
-            );
+            caseSpan.setAttribute("eval.result_count", candidates.length);
             caseSpan.setStatus({ code: SpanStatusCode.OK });
             cases.push({
               caseId: tc.id,
-              rawOutput: result,
+              rawOutput: candidates,
+              recallResult: result,
               durationMs,
               status: "ok",
             });

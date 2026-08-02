@@ -1,5 +1,9 @@
 import type { AgentToolDefinition } from "@cat/agent";
-import { termRecallOp } from "@cat/operations";
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+  RecallOperationFailureError,
+} from "@cat/operations";
 import * as z from "zod";
 
 const searchTermbaseArgs = z.object({
@@ -62,13 +66,20 @@ export const searchTermbaseTool: AgentToolDefinition = {
       );
     }
 
-    const result = await termRecallOp({
-      text: parsed.text,
-      sourceLanguageId,
-      translationLanguageId,
-      glossaryIds: parsed.glossaryIds,
-      wordSimilarityThreshold: parsed.wordSimilarityThreshold,
-    });
-    return { terms: result.terms };
+    try {
+      const result = await collectTermRecallOp({
+        text: parsed.text,
+        sourceLanguageId,
+        translationLanguageId,
+        glossaryIds: parsed.glossaryIds,
+        wordSimilarityThreshold: parsed.wordSimilarityThreshold,
+      });
+      return { terms: getTermRecallCandidates(result) };
+    } catch (error) {
+      if (error instanceof RecallOperationFailureError) {
+        return { terms: [], operationFailure: error.failure };
+      }
+      throw error;
+    }
   },
 };

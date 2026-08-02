@@ -99,6 +99,7 @@ describe("Memory recall tokenizer pipeline ordering", () => {
         lemmaJoin: "cat.language-analysis-normalization/v1",
       },
       rules: {
+        keywordTokens: "content-token-lemma/v1",
         maxWindowSize: 6,
         templateOrientation: "query-side/v1",
         stopWords: "language-analysis-isStop",

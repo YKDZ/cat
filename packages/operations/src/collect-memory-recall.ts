@@ -1,8 +1,10 @@
-import type { OperationContext } from "@cat/domain";
+import type { DbHandle, OperationContext } from "@cat/domain";
 import {
   executeQuery,
   getDbHandle,
   listExactMemorySuggestions,
+  listKeywordMemorySuggestions,
+  listScopedMemoryRecallDerivationStates,
   listTemplateMemorySuggestions,
   listTrgmMemorySuggestions,
   listVariantMemorySuggestions,
@@ -12,21 +14,37 @@ import {
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
-import type { SlotMappingEntry } from "@cat/shared";
+import type {
+  CandidateChannel,
+  CandidateChannelBlocker,
+  CandidateChannelOutcome,
+  RecallDerivationVersion,
+  SlotMappingEntry,
+} from "@cat/shared";
 import {
+  CandidateChannelRequestSchema,
+  CandidateChannelValues,
   LanguageAnalysisVersionSchema,
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
   type MemorySuggestion,
   ServiceImplementationReferenceSchema,
+  type MemoryRecallCandidate,
+  type MemoryRecallResult,
 } from "@cat/shared";
 import * as z from "zod";
 
-import { calibrateMemoryBm25 } from "./confidence-calibrator/index.ts";
+import {
+  assertRecallOperationAvailable,
+  createSucceededCandidateChannelOutcome,
+  getCandidateRecallCandidates,
+} from "./candidate-recall.ts";
 import {
   applyMemoryHnfPre,
   applyMemoryHnfPost,
 } from "./hard-negative-filter/index.ts";
 import { joinLemmas } from "./language-analysis-normalization.ts";
-import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25.ts";
+import { LanguageAnalysisRequirementError } from "./language-analysis-requirement.ts";
 import { probeMemoryRecallDependency } from "./memory-recall-derivation.ts";
 import {
   fillTemplate,
@@ -40,12 +58,20 @@ import type {
   RawMemoryResult,
   RecallCandidate,
 } from "./precision/types.ts";
+import { assessScopedRecallDerivation } from "./recall-derivation-channel.ts";
 import { searchMemoryOp } from "./search-memory.ts";
 import { applySelfExclusion } from "./self-exclusion-filter.ts";
 import { matchTemplateStructure } from "./template-structure-matcher.ts";
 import { tokenizeOp } from "./tokenize.ts";
 
-export const CollectMemoryRecallInputSchema = z.object({
+export {
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
+  type MemoryRecallCandidate,
+  type MemoryRecallResult,
+};
+
+export const CollectMemoryRecallInputBaseSchema = z.object({
   text: z.string(),
   normalizedText: z.string().optional(),
   sourceLanguageId: z.string(),
@@ -78,14 +104,30 @@ export const CollectMemoryRecallInputSchema = z.object({
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
   rerankProvider: ServiceImplementationReferenceSchema.optional(),
   rerankTimeoutMs: z.int().positive().default(3000),
+  channels: CandidateChannelRequestSchema.default([...CandidateChannelValues]),
 });
+
+export const CollectMemoryRecallInputSchema =
+  CollectMemoryRecallInputBaseSchema.superRefine((input, context) => {
+    if (
+      (input.sourceLanguageAnalysisTokens === undefined) !==
+      (input.sourceLanguageAnalysisVersion === undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["sourceLanguageAnalysisTokens"],
+        message:
+          "Language Analysis tokens and version must be supplied together.",
+      });
+    }
+  });
 
 export type CollectMemoryRecallInput = z.input<
   typeof CollectMemoryRecallInputSchema
 >;
 
 /**
- * Aggregated memory recall — multi-channel evidence merge.
+ * Aggregated memory recall with multi-channel evidence merge.
  *
  * Channels (in order of speed):
  * 1. Exact match (fastest)
@@ -99,36 +141,53 @@ export type CollectMemoryRecallInput = z.input<
 export const collectMemoryRecallOp = async (
   data: CollectMemoryRecallInput,
   ctx?: OperationContext,
-): Promise<MemorySuggestionWithPrecision[]> => {
+): Promise<MemoryRecallResult> => {
   const input = CollectMemoryRecallInputSchema.parse(data);
-  if (input.memoryIds.length === 0) return [];
+  const requestedChannels = new Set(input.channels);
+  const channelBlockers = new Map<CandidateChannel, CandidateChannelBlocker>();
+  const channelSkips = new Map<
+    CandidateChannel,
+    "NO_SCOPED_ASSETS" | "NOT_APPLICABLE"
+  >();
+
+  const setExecutionBlocker = (
+    channel: CandidateChannel,
+    error: unknown,
+    capability: CandidateChannelBlocker["capability"] = "DATABASE",
+  ) => {
+    channelBlockers.set(channel, {
+      reason: "CHANNEL_EXECUTION_FAILED",
+      message: error instanceof Error ? error.message : String(error),
+      retryable: true,
+      capability,
+    });
+  };
+
+  const emptyResult = (): MemoryRecallResult => {
+    const outcome = (
+      channel: CandidateChannel,
+    ): CandidateChannelOutcome<MemorySuggestionWithPrecision> =>
+      requestedChannels.has(channel)
+        ? { status: "SKIPPED", reason: "NO_SCOPED_ASSETS" }
+        : { status: "SKIPPED", reason: "NOT_REQUESTED" };
+    return MemoryRecallResultSchema.parse({
+      requestedChannels: input.channels,
+      outcomes: {
+        EXACT: outcome("EXACT"),
+        FUZZY: outcome("FUZZY"),
+        KEYWORD: outcome("KEYWORD"),
+        VARIANT: outcome("VARIANT"),
+        SEMANTIC: outcome("SEMANTIC"),
+      },
+    });
+  };
+  if (input.memoryIds.length === 0) return emptyResult();
 
   const { client: drizzle } = await getDbHandle();
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   const text = input.text;
-  const dependency = await probeMemoryRecallDependency({
-    db: drizzle,
-    pluginManager,
-    languageId: input.sourceLanguageId,
-    text,
-    languageAnalysisVersion: input.sourceLanguageAnalysisVersion,
-    timeoutMs: 5_000,
-    ctx,
-  });
-  const sourceLanguageAnalysisTokens =
-    input.sourceLanguageAnalysisTokens ?? dependency.tokens;
-  const { requiredDerivationVersion } = dependency;
-  const normalizedText =
-    input.normalizedText ??
-    (sourceLanguageAnalysisTokens && sourceLanguageAnalysisTokens.length > 0
-      ? joinLemmas(
-          sourceLanguageAnalysisTokens.filter(
-            (token) => !token.isStop && !token.isPunct,
-          ),
-          input.sourceLanguageId,
-        )
-      : text.toLowerCase());
+  let sourceLanguageAnalysisTokens = input.sourceLanguageAnalysisTokens;
 
   const commonInput = {
     text,
@@ -242,10 +301,15 @@ export const collectMemoryRecallOp = async (
     return base;
   };
 
-  // Global dedup: memoryItemId → suggestion (keep highest confidence + merged evidences)
+  const staged = new Map<CandidateChannel, Map<number, MemorySuggestion>>(
+    CandidateChannelValues.map((channel) => [channel, new Map()]),
+  );
+
+  // Deduplicate committed candidates by memory item across product channels.
   const seen = new Map<number, MemorySuggestion>();
 
   const pushResult = async (
+    channel: CandidateChannel,
     id: number,
     raw: {
       source: string;
@@ -305,160 +369,287 @@ export const collectMemoryRecallOp = async (
       raw.slotMapping ?? null,
     );
 
-    seen.set(id, mergeSuggestions(seen.get(id), adapted));
+    const channelCandidates = staged.get(channel);
+    if (!channelCandidates) {
+      throw new TypeError(`Missing Candidate Channel stage for ${channel}.`);
+    }
+    channelCandidates.set(
+      id,
+      mergeSuggestions(channelCandidates.get(id), adapted),
+    );
   };
 
   // Channel 1: Exact match
-  try {
-    const exactResults = await executeQuery(
-      { db: drizzle },
-      listExactMemorySuggestions,
-      commonInput,
-    );
-    await Promise.all(exactResults.map(async (r) => pushResult(r.id, r)));
-  } catch (err) {
-    logger
-      .child({ component: "operation" })
-      .error("collectMemoryRecallOp: exact match failed", { error: err });
-  }
+  if (requestedChannels.has("EXACT"))
+    try {
+      const exactResults = await executeQuery(
+        { db: drizzle },
+        listExactMemorySuggestions,
+        commonInput,
+      );
+      await Promise.all(
+        exactResults.map(async (r) => pushResult("EXACT", r.id, r)),
+      );
+    } catch (err) {
+      setExecutionBlocker("EXACT", err);
+    }
 
   // Channel 2: trgm similarity
-  try {
-    const trgmResults = await executeQuery(
-      { db: drizzle },
-      listTrgmMemorySuggestions,
-      { ...commonInput, minSimilarity: input.minSimilarity },
-    );
-    await Promise.all(trgmResults.map(async (r) => pushResult(r.id, r)));
-  } catch (err) {
-    logger
-      .child({ component: "operation" })
-      .error("collectMemoryRecallOp: trgm match failed", { error: err });
-  }
-
-  // Channel 3: Variant-based (morphological / template / fragment)
-  try {
-    const variantResults = await executeQuery(
-      { db: drizzle },
-      listVariantMemorySuggestions,
-      {
-        text,
-        normalizedText,
-        sourceLanguageId: input.sourceLanguageId,
-        translationLanguageId: input.translationLanguageId,
-        memoryIds: input.memoryIds,
-        minSimilarity: input.minVariantSimilarity,
-        maxAmount: input.maxAmount,
-        requiredDerivationVersion,
-      },
-    );
-    await Promise.all(
-      variantResults.map(async (r) => {
-        if (r.matchedVariantType === "TOKEN_TEMPLATE" && r.sourceTemplate) {
-          const match = await matchTemplateStructure(
-            text,
-            r.sourceTemplate,
-            currentSourceTemplate
-              ? {
-                  template: currentSourceTemplate,
-                  slots: (await ensureCurrentSourceTemplate()) ?? [],
-                }
-              : undefined,
-          );
-
-          if (match) {
-            // Template equality match — override confidence to 1.0
-            return pushResult(r.id, {
-              ...r,
-              confidence: 1.0,
-              evidences: [
-                {
-                  channel: "template" as const,
-                  matchedText: r.source,
-                  matchedVariantText: r.matchedVariantText,
-                  matchedVariantType: "TOKEN_TEMPLATE",
-                  confidence: 1.0,
-                  note: "template structure equality match",
-                },
-                ...r.evidences.filter((e) => e.channel !== "template"),
-              ],
-            });
-          }
-          // Template not equal — fall through to normal pushResult
-        }
-        return pushResult(r.id, r);
-      }),
-    );
-  } catch (err) {
-    logger
-      .child({ component: "operation" })
-      .error("collectMemoryRecallOp: variant match failed", { error: err });
-  }
-
-  // Channel 4: Template equality match
-  // Bypasses pg_trgm similarity by doing direct sourceTemplate equality.
-  // Catches version-number / placeholder variants that fail trgm similarity.
-  try {
-    const { tokens } = await tokenizeOp({ text }, ctx);
-    const result = placeholderize(tokens, text);
-    if (result.template) {
-      const templateResults = await executeQuery(
+  if (requestedChannels.has("FUZZY"))
+    try {
+      const trgmResults = await executeQuery(
         { db: drizzle },
-        listTemplateMemorySuggestions,
-        {
-          sourceTemplate: result.template,
-          sourceLanguageId: input.sourceLanguageId,
-          translationLanguageId: input.translationLanguageId,
-          memoryIds: input.memoryIds,
-          maxAmount: input.maxAmount,
-          requiredDerivationVersion,
-        },
+        listTrgmMemorySuggestions,
+        { ...commonInput, minSimilarity: input.minSimilarity },
       );
-      if (templateResults.length > 0) {
-        await Promise.all(
-          templateResults.map(async (r) =>
-            pushResult(r.id, {
-              ...r,
-              confidence: 1.0,
-              matchedVariantType: "TOKEN_TEMPLATE",
-              matchedText: r.source,
-              evidences: [
-                {
-                  channel: "template" as const,
-                  matchedText: r.source,
-                  matchedVariantType: "TOKEN_TEMPLATE" as const,
-                  confidence: 1.0,
-                  note: "template structure equality match",
-                },
-              ],
-            }),
-          ),
+      await Promise.all(
+        trgmResults.map(async (r) => pushResult("FUZZY", r.id, r)),
+      );
+    } catch (err) {
+      setExecutionBlocker("FUZZY", err);
+    }
+
+  const collectDerivationChannels = async (
+    derivationDb: DbHandle,
+    requiredDerivationVersion: RecallDerivationVersion,
+    normalizedText: string,
+  ) => {
+    // Channel 3: Variant-based (morphological / template / fragment)
+    if (requestedChannels.has("VARIANT"))
+      try {
+        const variantResults = await executeQuery(
+          { db: derivationDb },
+          listVariantMemorySuggestions,
+          {
+            text,
+            normalizedText,
+            sourceLanguageId: input.sourceLanguageId,
+            translationLanguageId: input.translationLanguageId,
+            memoryIds: input.memoryIds,
+            minSimilarity: input.minVariantSimilarity,
+            maxAmount: input.maxAmount,
+            requiredDerivationVersion,
+          },
         );
+        await Promise.all(
+          variantResults.map(async (r) => {
+            if (r.matchedVariantType === "TOKEN_TEMPLATE" && r.sourceTemplate) {
+              const match = await matchTemplateStructure(
+                text,
+                r.sourceTemplate,
+                currentSourceTemplate
+                  ? {
+                      template: currentSourceTemplate,
+                      slots: (await ensureCurrentSourceTemplate()) ?? [],
+                    }
+                  : undefined,
+              );
+
+              if (match) {
+                // Template equality is conclusive for this candidate.
+                return pushResult("VARIANT", r.id, {
+                  ...r,
+                  confidence: 1.0,
+                  evidences: [
+                    {
+                      channel: "template" as const,
+                      matchedText: r.source,
+                      matchedVariantText: r.matchedVariantText,
+                      matchedVariantType: "TOKEN_TEMPLATE",
+                      confidence: 1.0,
+                      note: "template structure equality match",
+                    },
+                    ...r.evidences.filter((e) => e.channel !== "template"),
+                  ],
+                });
+              }
+              // Keep the original variant result when the templates differ.
+            }
+            return pushResult("VARIANT", r.id, r);
+          }),
+        );
+      } catch (err) {
+        setExecutionBlocker("VARIANT", err);
+      }
+
+    // Channel 4: Template equality match
+    // Bypasses pg_trgm similarity by doing direct sourceTemplate equality.
+    // Catches version-number / placeholder variants that fail trgm similarity.
+    if (requestedChannels.has("VARIANT"))
+      try {
+        const { tokens } = await tokenizeOp({ text }, ctx);
+        const result = placeholderize(tokens, text);
+        if (result.template) {
+          const templateResults = await executeQuery(
+            { db: derivationDb },
+            listTemplateMemorySuggestions,
+            {
+              sourceTemplate: result.template,
+              sourceLanguageId: input.sourceLanguageId,
+              translationLanguageId: input.translationLanguageId,
+              memoryIds: input.memoryIds,
+              maxAmount: input.maxAmount,
+              requiredDerivationVersion,
+            },
+          );
+          if (templateResults.length > 0) {
+            await Promise.all(
+              templateResults.map(async (r) =>
+                pushResult("VARIANT", r.id, {
+                  ...r,
+                  confidence: 1.0,
+                  matchedVariantType: "TOKEN_TEMPLATE",
+                  matchedText: r.source,
+                  evidences: [
+                    {
+                      channel: "template" as const,
+                      matchedText: r.source,
+                      matchedVariantType: "TOKEN_TEMPLATE" as const,
+                      confidence: 1.0,
+                      note: "template structure equality match",
+                    },
+                  ],
+                }),
+              ),
+            );
+          }
+        }
+      } catch (err) {
+        setExecutionBlocker("VARIANT", err);
+      }
+
+    // Channel 5: analyzer-backed keyword overlap on fresh Recall Variants.
+    const keywords = sourceLanguageAnalysisTokens
+      ? [
+          ...new Set(
+            sourceLanguageAnalysisTokens
+              .filter((token) => !token.isStop && !token.isPunct)
+              .map((token) =>
+                joinLemmas([token], input.sourceLanguageId).trim(),
+              )
+              .filter((keyword) => keyword.length > 0),
+          ),
+        ]
+      : [];
+    if (requestedChannels.has("KEYWORD") && keywords.length > 0) {
+      try {
+        const keywordResults = await executeQuery(
+          { db: derivationDb },
+          listKeywordMemorySuggestions,
+          {
+            keywords,
+            sourceLanguageId: input.sourceLanguageId,
+            translationLanguageId: input.translationLanguageId,
+            requiredDerivationVersion,
+            memoryIds: input.memoryIds,
+            maxAmount: input.maxAmount,
+          },
+        );
+        await Promise.all(
+          keywordResults.map(async (r) => pushResult("KEYWORD", r.id, r)),
+        );
+      } catch (err) {
+        setExecutionBlocker("KEYWORD", err);
       }
     }
-  } catch (err) {
-    logger
-      .child({ component: "operation" })
-      .error("TMPL: template equality channel skipped", { error: err });
-  }
+  };
 
-  // Channel 5: BM25
-  try {
-    const bm25Results = await collectBm25MemorySuggestionsOp(
-      {
+  if (requestedChannels.has("KEYWORD") || requestedChannels.has("VARIANT")) {
+    try {
+      const dependency = await probeMemoryRecallDependency({
+        db: drizzle,
+        pluginManager,
+        languageId: input.sourceLanguageId,
         text,
-        sourceLanguageId: input.sourceLanguageId,
-        translationLanguageId: input.translationLanguageId,
-        memoryIds: input.memoryIds,
-        maxAmount: input.maxAmount,
-      },
-      drizzle,
-    );
-    await Promise.all(bm25Results.map(async (r) => pushResult(r.id, r)));
-  } catch (err) {
-    logger
-      .child({ component: "operation" })
-      .error("collectMemoryRecallOp: bm25 match failed", { error: err });
+        languageAnalysisVersion: input.sourceLanguageAnalysisVersion,
+        timeoutMs: 5_000,
+        ctx,
+      });
+      const dependencyTokens =
+        input.sourceLanguageAnalysisTokens ?? dependency.tokens;
+      if (!dependencyTokens) {
+        throw new TypeError(
+          "Current Language Analysis did not return tokens for Keyword Recall.",
+        );
+      }
+      sourceLanguageAnalysisTokens = dependencyTokens;
+      const normalizedText =
+        input.normalizedText ??
+        (sourceLanguageAnalysisTokens.length > 0
+          ? joinLemmas(
+              sourceLanguageAnalysisTokens.filter(
+                (token) => !token.isStop && !token.isPunct,
+              ),
+              input.sourceLanguageId,
+            )
+          : text.toLowerCase());
+
+      await drizzle.transaction(
+        async (tx) => {
+          const scopedStates = await executeQuery(
+            { db: tx },
+            listScopedMemoryRecallDerivationStates,
+            {
+              memoryIds: input.memoryIds,
+              sourceLanguageId: input.sourceLanguageId,
+              translationLanguageId: input.translationLanguageId,
+            },
+          );
+          const assessment = assessScopedRecallDerivation(
+            scopedStates,
+            "MEMORY_ITEM",
+            dependency.requiredDerivationVersion,
+          );
+          if (assessment.status === "BLOCKED") {
+            if (requestedChannels.has("KEYWORD")) {
+              channelBlockers.set("KEYWORD", assessment.blocker);
+            }
+            if (requestedChannels.has("VARIANT")) {
+              channelBlockers.set("VARIANT", assessment.blocker);
+            }
+            return;
+          }
+          if (assessment.status === "NO_SCOPED_ASSETS") {
+            if (requestedChannels.has("KEYWORD")) {
+              channelSkips.set("KEYWORD", "NO_SCOPED_ASSETS");
+            }
+            if (requestedChannels.has("VARIANT")) {
+              channelSkips.set("VARIANT", "NO_SCOPED_ASSETS");
+            }
+            return;
+          }
+          if (assessment.status === "FRESH") {
+            await collectDerivationChannels(
+              tx,
+              dependency.requiredDerivationVersion,
+              normalizedText,
+            );
+          }
+        },
+        { isolationLevel: "repeatable read", accessMode: "read only" },
+      );
+    } catch (error) {
+      const blocker: CandidateChannelBlocker =
+        error instanceof LanguageAnalysisRequirementError
+          ? {
+              reason: "LANGUAGE_ANALYSIS_UNAVAILABLE",
+              message: error.message,
+              retryable: error.assessment.blocker?.retryable ?? false,
+              capability: "LANGUAGE_ANALYSIS",
+            }
+          : {
+              reason: "CHANNEL_EXECUTION_FAILED",
+              message: error instanceof Error ? error.message : String(error),
+              retryable: true,
+              capability: "DATABASE",
+            };
+      if (requestedChannels.has("KEYWORD")) {
+        channelBlockers.set("KEYWORD", blocker);
+      }
+      if (requestedChannels.has("VARIANT")) {
+        channelBlockers.set("VARIANT", blocker);
+      }
+    }
   }
 
   const vectorStorage =
@@ -471,6 +662,7 @@ export const collectMemoryRecallOp = async (
   );
 
   if (
+    requestedChannels.has("SEMANTIC") &&
     vectorStorage &&
     (input.chunkIds.length > 0 ||
       (input.queryVectors && input.queryVectors.length > 0) ||
@@ -492,7 +684,7 @@ export const collectMemoryRecallOp = async (
       );
       await Promise.all(
         vectorResults.memories.map(async (r) =>
-          pushResult(r.id, {
+          pushResult("SEMANTIC", r.id, {
             ...r,
             matchedText: r.matchedText ?? r.source,
             evidences: [
@@ -508,9 +700,27 @@ export const collectMemoryRecallOp = async (
         ),
       );
     } catch (err) {
-      logger
-        .child({ component: "operation" })
-        .error("collectMemoryRecallOp: semantic match failed", { error: err });
+      setExecutionBlocker("SEMANTIC", err, "VECTOR_STORAGE");
+    }
+  } else if (requestedChannels.has("SEMANTIC")) {
+    channelBlockers.set("SEMANTIC", {
+      reason: "CAPABILITY_UNAVAILABLE",
+      message: vectorStorage
+        ? "Text vectorization is unavailable for semantic recall."
+        : "Vector storage is unavailable for semantic recall.",
+      retryable: false,
+      capability: vectorStorage ? "TEXT_VECTORIZER" : "VECTOR_STORAGE",
+    });
+  }
+
+  for (const channel of input.channels) {
+    if (channelBlockers.has(channel) || channelSkips.has(channel)) continue;
+    const channelCandidates = staged.get(channel);
+    if (!channelCandidates) {
+      throw new TypeError(`Missing Candidate Channel stage for ${channel}.`);
+    }
+    for (const [id, candidate] of channelCandidates) {
+      seen.set(id, mergeSuggestions(seen.get(id), candidate));
     }
   }
 
@@ -533,7 +743,7 @@ export const collectMemoryRecallOp = async (
     }),
   );
 
-  // ── Sparse Lexical Lane (heuristic post-merge evidence augmenter) ──
+  // Sparse lexical evidence augmentation.
   const sparseContentWords = sourceLanguageAnalysisTokens
     ? sourceLanguageAnalysisTokens
         .filter((t) => !t.isStop && !t.isPunct)
@@ -541,17 +751,7 @@ export const collectMemoryRecallOp = async (
     : text.toLowerCase().split(/\s+/).filter(Boolean);
   augmentWithSparseLane(rawMemoryResults, sparseContentWords);
 
-  // ── Confidence Calibrator (BM25 batch normalization) ─────────────────
-  const calSummary = calibrateMemoryBm25(rawMemoryResults);
-  if (calSummary.bm25Count > 0) {
-    logger
-      .child({ component: "operation" })
-      .info(
-        `CAL(memory): ${calSummary.bm25Count} BM25 evidences calibrated (maxRaw=${calSummary.maxRaw.toFixed(4)}, boost=${calSummary.boostFactor}, multi=${calSummary.multiEvidenceCount})`,
-      );
-  }
-
-  // ── Hard-Negative Filter (pre-pipeline) ──────────────────────────────
+  // Pre-pipeline hard-negative filtering.
   const hnfPreRemovals: Array<{
     surface: string;
     candidateKey: string;
@@ -567,13 +767,6 @@ export const collectMemoryRecallOp = async (
       input.text,
     );
     hnfPreRemovals.push(...hnfPreResult);
-
-    // Filter out _hnfRemoved results
-    const filtered = rawMemoryResults.filter(
-      (r) => !(r as Record<string, unknown>)["_hnfRemoved"],
-    );
-    rawMemoryResults.length = 0;
-    rawMemoryResults.push(...filtered);
 
     if (hnfPreResult.length > 0) {
       logger
@@ -594,7 +787,7 @@ export const collectMemoryRecallOp = async (
     rerankTimeoutMs: input.rerankTimeoutMs,
   });
 
-  // ── Hard-Negative Filter (post-pipeline, tier-3 semantic isolation) ──
+  // Post-pipeline semantic-isolation filtering.
   let hnfPostRemovals: Array<{
     surface: string;
     candidateKey: string;
@@ -618,7 +811,7 @@ export const collectMemoryRecallOp = async (
   // Filter out hardFiltered candidates from ranked
   const filteredRanked = ranked.filter((c) => !c.hardFiltered);
 
-  // ── Self-Exclusion Filter ──────────────────────────────────────────
+  // Self-exclusion filtering.
   const memoryCandidates = filteredRanked.filter(
     (c): c is RecallCandidate & { surface: "memory" } => c.surface === "memory",
   );
@@ -628,17 +821,64 @@ export const collectMemoryRecallOp = async (
   );
 
   // Re-attach full MemorySuggestion fields from seen Map (createdAt, updatedAt, etc.)
-  return selfExcluded.flatMap((c): MemorySuggestionWithPrecision[] => {
-    if (c.surface !== "memory") return [];
-    const raw = seen.get(c.id);
-    if (!raw) return [];
-    return [
-      {
-        ...raw,
-        confidence: c.confidence,
-        evidences: c.evidences,
-        rankingDecisions: c.rankingDecisions,
-      },
-    ];
+  const finalCandidates = selfExcluded.flatMap(
+    (c): MemorySuggestionWithPrecision[] => {
+      if (c.surface !== "memory") return [];
+      const raw = seen.get(c.id);
+      if (!raw) return [];
+      return [
+        {
+          ...raw,
+          confidence: c.confidence,
+          evidences: c.evidences,
+          rankingDecisions: c.rankingDecisions,
+        },
+      ];
+    },
+  );
+
+  const lanesByChannel = {
+    EXACT: new Set(["exact"]),
+    FUZZY: new Set(["trgm"]),
+    KEYWORD: new Set(["keyword"]),
+    VARIANT: new Set(["morphological", "template", "fragment"]),
+    SEMANTIC: new Set(["semantic"]),
+  } as const satisfies Record<CandidateChannel, ReadonlySet<string>>;
+  const outcome = (
+    channel: CandidateChannel,
+  ): CandidateChannelOutcome<MemorySuggestionWithPrecision> => {
+    if (!requestedChannels.has(channel)) {
+      return { status: "SKIPPED", reason: "NOT_REQUESTED" };
+    }
+    const skipReason = channelSkips.get(channel);
+    if (skipReason) return { status: "SKIPPED", reason: skipReason };
+    const blocker = channelBlockers.get(channel);
+    if (blocker) return { status: "BLOCKED", blocker };
+    const channelCandidates = finalCandidates.filter((candidate) =>
+      candidate.evidences.some((evidence) =>
+        lanesByChannel[channel].has(evidence.channel),
+      ),
+    );
+    if (channelCandidates.length > 0) {
+      return createSucceededCandidateChannelOutcome(channelCandidates);
+    }
+    return { status: "EMPTY" };
+  };
+  const result = MemoryRecallResultSchema.parse({
+    requestedChannels: input.channels,
+    outcomes: {
+      EXACT: outcome("EXACT"),
+      FUZZY: outcome("FUZZY"),
+      KEYWORD: outcome("KEYWORD"),
+      VARIANT: outcome("VARIANT"),
+      SEMANTIC: outcome("SEMANTIC"),
+    },
   });
+  assertRecallOperationAvailable(result);
+  return result;
 };
+
+export const getMemoryRecallCandidates = (
+  result: MemoryRecallResult,
+): MemoryRecallCandidate[] =>
+  getCandidateRecallCandidates(result, (candidate) => `${candidate.id}`);

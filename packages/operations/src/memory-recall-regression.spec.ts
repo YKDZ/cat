@@ -8,14 +8,24 @@ import type { RecallFixture } from "./testing/recall-fixture-schema.ts";
 
 const mocks = vi.hoisted(() => ({
   executeQuery: vi.fn(),
-  getDbHandle: vi.fn(async () => ({ client: {} })),
+  getDbHandle: vi.fn(async () => ({
+    client: {
+      transaction: async (
+        run: (tx: Record<string, never>) => Promise<unknown>,
+      ) => await run({}),
+    },
+  })),
   searchMemoryOp: vi.fn(),
   tokenizeOp: vi.fn(),
   probeMemoryRecallDependency: vi.fn(),
   listExactMemorySuggestions: Symbol("listExactMemorySuggestions"),
   listTrgmMemorySuggestions: Symbol("listTrgmMemorySuggestions"),
   listVariantMemorySuggestions: Symbol("listVariantMemorySuggestions"),
-  listBm25MemorySuggestions: Symbol("listBm25MemorySuggestions"),
+  listTemplateMemorySuggestions: Symbol("listTemplateMemorySuggestions"),
+  listKeywordMemorySuggestions: Symbol("listKeywordMemorySuggestions"),
+  listScopedMemoryRecallDerivationStates: Symbol(
+    "listScopedMemoryRecallDerivationStates",
+  ),
 }));
 
 vi.mock("@cat/domain", async () => {
@@ -29,7 +39,10 @@ vi.mock("@cat/domain", async () => {
     listExactMemorySuggestions: mocks.listExactMemorySuggestions,
     listTrgmMemorySuggestions: mocks.listTrgmMemorySuggestions,
     listVariantMemorySuggestions: mocks.listVariantMemorySuggestions,
-    listBm25MemorySuggestions: mocks.listBm25MemorySuggestions,
+    listTemplateMemorySuggestions: mocks.listTemplateMemorySuggestions,
+    listKeywordMemorySuggestions: mocks.listKeywordMemorySuggestions,
+    listScopedMemoryRecallDerivationStates:
+      mocks.listScopedMemoryRecallDerivationStates,
   };
 });
 
@@ -45,7 +58,11 @@ vi.mock("./memory-recall-derivation.ts", () => ({
   probeMemoryRecallDependency: mocks.probeMemoryRecallDependency,
 }));
 
-import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import {
+  CollectMemoryRecallInputSchema,
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+} from "./collect-memory-recall.ts";
 import { RecallFixtureSchema } from "./testing/recall-fixture-schema.ts";
 
 const FIXTURE_DIR = fileURLToPath(
@@ -83,6 +100,116 @@ describe("memory recall regression fixtures", () => {
     vi.clearAllMocks();
   });
 
+  it.each([
+    {
+      sourceLanguageAnalysisTokens: [],
+    },
+    {
+      sourceLanguageAnalysisVersion: `sha256:${"a".repeat(64)}`,
+    },
+  ])("rejects an incomplete Language Analysis snapshot %#", (snapshot) => {
+    expect(() =>
+      CollectMemoryRecallInputSchema.parse({
+        text: "Order completed",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        memoryIds: [MEMORY_ID],
+        ...snapshot,
+      }),
+    ).toThrow("Language Analysis tokens and version must be supplied together");
+  });
+
+  it("blocks a Candidate Channel atomically when a later internal lane fails", async () => {
+    mocks.probeMemoryRecallDependency.mockResolvedValue({
+      requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+    });
+    mocks.tokenizeOp.mockResolvedValue({
+      tokens: [{ type: "text", value: "running", start: 0, end: 7 }],
+    });
+    mocks.executeQuery.mockImplementation(async (_ctx, query) => {
+      if (query === mocks.listScopedMemoryRecallDerivationStates) {
+        return [
+          {
+            targetId: "42",
+            stateId: 1,
+            languageId: "en",
+            status: "FRESH",
+            demandRevision: 1,
+            blocker: null,
+            canonicalInputVersion: `sha256:${"c".repeat(64)}`,
+            requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+            currentCanonicalInputVersion: `sha256:${"c".repeat(64)}`,
+            currentDerivationVersion: `sha256:${"d".repeat(64)}`,
+          },
+        ];
+      }
+      if (query === mocks.listVariantMemorySuggestions) {
+        return [
+          {
+            id: 42,
+            translationId: null,
+            memoryId: MEMORY_ID,
+            creatorId: null,
+            createdAt: new Date("2026-01-01T00:00:00.000Z"),
+            updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+            source: "running",
+            translation: "running translation",
+            translationChunkSetId: null,
+            sourceTemplate: null,
+            translationTemplate: null,
+            slotMapping: null,
+            confidence: 0.9,
+            matchedVariantText: "run",
+            matchedVariantType: "LEMMA",
+            evidences: [
+              {
+                channel: "morphological",
+                confidence: 0.9,
+                matchedVariantText: "run",
+                matchedVariantType: "LEMMA",
+              },
+            ],
+          },
+        ];
+      }
+      if (query === mocks.listTemplateMemorySuggestions) {
+        throw new Error("template lane unavailable");
+      }
+      return [];
+    });
+
+    await expect(
+      collectMemoryRecallOp({
+        text: "running",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        memoryIds: [MEMORY_ID],
+        channels: ["VARIANT"],
+        sourceLanguageAnalysisTokens: [
+          {
+            text: "running",
+            lemma: "run",
+            pos: "VERB",
+            start: 0,
+            end: 7,
+            isStop: false,
+            isPunct: false,
+          },
+        ],
+        sourceLanguageAnalysisVersion: `sha256:${"a".repeat(64)}`,
+      }),
+    ).rejects.toMatchObject({
+      recallResult: {
+        outcomes: {
+          VARIANT: {
+            status: "BLOCKED",
+            blocker: { reason: "CHANNEL_EXECUTION_FAILED" },
+          },
+        },
+      },
+    });
+  });
+
   it.each(loadFixtures())("$name", async (fixture) => {
     const memoryMock = fixture.mock.memory;
     mocks.executeQuery.mockImplementation(async (_ctx, query) => {
@@ -95,11 +222,24 @@ describe("memory recall regression fixtures", () => {
       if (query === mocks.listVariantMemorySuggestions) {
         return reviveMemoryRows(memoryMock?.variant ?? []);
       }
-      if (query === mocks.listBm25MemorySuggestions) {
-        return reviveMemoryRows(memoryMock?.bm25 ?? []).map((row) => ({
-          ...row,
-          rawScore: row.confidence,
-        }));
+      if (query === mocks.listKeywordMemorySuggestions) {
+        return reviveMemoryRows(memoryMock?.keyword ?? []);
+      }
+      if (query === mocks.listScopedMemoryRecallDerivationStates) {
+        return [
+          {
+            targetId: "1",
+            stateId: 1,
+            languageId: fixture.query.sourceLanguageId,
+            status: "FRESH",
+            demandRevision: 1,
+            blocker: null,
+            canonicalInputVersion: `sha256:${"c".repeat(64)}`,
+            requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+            currentCanonicalInputVersion: `sha256:${"c".repeat(64)}`,
+            currentDerivationVersion: `sha256:${"d".repeat(64)}`,
+          },
+        ];
       }
       return [];
     });
@@ -113,7 +253,15 @@ describe("memory recall regression fixtures", () => {
     mocks.probeMemoryRecallDependency.mockResolvedValue({
       requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
       languageAnalysisVersion: `sha256:${"a".repeat(64)}`,
-      tokens: undefined,
+      tokens: fixture.query.text.split(/\s+/).map((text, index) => ({
+        text,
+        lemma: text.toLowerCase(),
+        pos: "NOUN",
+        start: index,
+        end: index + text.length,
+        isStop: false,
+        isPunct: false,
+      })),
       reconciliation: { invalidated: 0, pendingUpdated: 0 },
     });
 
@@ -131,7 +279,8 @@ describe("memory recall regression fixtures", () => {
       { traceId: "memory-recall-regression" },
     );
 
-    const top = result[0];
+    const candidates = getMemoryRecallCandidates(result);
+    const top = candidates[0];
     expect(top?.id).toBe(fixture.expected.topId);
     expect(top?.confidence ?? 0).toBeGreaterThanOrEqual(
       fixture.expected.minimumTopConfidence,
@@ -159,7 +308,7 @@ describe("memory recall regression fixtures", () => {
       );
     }
 
-    const resultIds = new Set(result.map((item) => item.id));
+    const resultIds = new Set(candidates.map((item) => item.id));
     for (const missId of fixture.expected.missIds) {
       expect(resultIds.has(missId)).toBe(false);
     }

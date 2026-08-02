@@ -1,5 +1,5 @@
 name: minecraft-quality
-description: Quality evaluation for memory recall and term recall with Hard-Negative Filter, Confidence Calibrator, Template Matcher, Trigram Guard, Self-Exclusion, and Quality Sorter
+description: Quality evaluation for memory recall and term recall with Hard-Negative Filter, Template Matcher, Trigram Guard, Self-Exclusion, and Quality Sorter
 
 seed:
   project: seed/project.json
@@ -45,9 +45,9 @@ scenarios:
       timeoutMs: 60000
 
   - type: memory-recall
-    name: bm25-confidence
-    test-set: test-sets/bm25-confidence.yaml
-    scorers: [bm25-confidence, hit-rate, confidence, latency]
+    name: keyword-recall
+    test-set: test-sets/keyword-recall.yaml
+    scorers: [channel-coverage, hit-rate, confidence, latency]
     params:
       maxAmount: 5
       minSimilarity: 0.72
@@ -83,6 +83,6 @@ scenarios:
 
 thresholds:
   noise-rate: "<= 0.10"
-  bm25-confidence: ">= 0.20"
+  channel-coverage: ">= 1.0"
   template-match-rate: ">= 0.0"
   self-exclusion-rate: ">= 1.0"

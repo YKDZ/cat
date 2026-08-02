@@ -28,6 +28,10 @@ import {
 } from "@cat/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+} from "./collect-term-recall.ts";
 import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requirement.ts";
 import {
   startRecallDerivationWorker,
@@ -201,6 +205,25 @@ describe("Glossary recall worker integration", () => {
     );
     expect(memoryVariants.length).toBeGreaterThan(0);
     expect(termVariants.length).toBeGreaterThan(0);
+
+    const keywordRecall = await collectTermRecallOp(
+      {
+        glossaryIds: [glossaryId],
+        text: "running tests status",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        channels: ["KEYWORD"],
+      },
+      { traceId: "glossary-keyword-recall", pluginManager },
+    );
+    expect(keywordRecall.outcomes.KEYWORD.status).toBe("SUCCEEDED");
+    expect(getTermRecallCandidates(keywordRecall)).toEqual([
+      expect.objectContaining({
+        term: "Running tests",
+        translation: "运行测试",
+        evidences: [expect.objectContaining({ channel: "keyword" })],
+      }),
+    ]);
 
     const statesById = new Map(states.map((state) => [state.id, state]));
     const memoryStateIds = new Set(

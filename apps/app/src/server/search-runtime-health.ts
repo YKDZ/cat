@@ -83,9 +83,6 @@ export const detectSearchRuntimeHealth = async (
   if (!extensions.zhparser || !textSearchConfigs.cat_zh_hans) {
     disabledFeatures.push("zhparser-full-text");
   }
-  if (searchLevel !== "full-search-runtime") {
-    disabledFeatures.push("bm25-memory-recall");
-  }
 
   return {
     backend: "postgres-server",

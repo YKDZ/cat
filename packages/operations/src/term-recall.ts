@@ -7,7 +7,10 @@ import {
 import { EnrichedTermMatchSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { collectTermRecallOp } from "./collect-term-recall.ts";
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+} from "./collect-term-recall.ts";
 
 export const TermRecallInputSchema = z.object({
   text: z.string(),
@@ -27,20 +30,7 @@ export type TermRecallInput = z.input<typeof TermRecallInputSchema>;
 export type TermContext = z.infer<typeof TermContextSchema>;
 export type TermRecallOutput = z.infer<typeof TermRecallOutputSchema>;
 
-/**
- *
- * 根据源文本和词汇表 ID，通过 ILIKE + word_similarity 查找匹配术语，
- * 并丰富每个术语的概念主题信息。
- * Term recall.
- *
- * Given a source text and glossary IDs, finds matching terms via ILIKE +
- * word_similarity, then enriches each match with its concept subject
- * information.
- *
- * @param data - Term recall input parameters
- * @param _ctx - Operation context (unused)
- * @returns - Term matches enriched with concept subject information
- */
+/** Recall terms and enrich each candidate with its concept subjects. */
 export const termRecallOp = async (
   data: TermRecallInput,
   _ctx?: OperationContext,
@@ -60,7 +50,8 @@ export const termRecallOp = async (
     _ctx,
   );
 
-  const uniqueConceptIds = [...new Set(lookedUpTerms.map((t) => t.conceptId))];
+  const candidates = getTermRecallCandidates(lookedUpTerms);
+  const uniqueConceptIds = [...new Set(candidates.map((t) => t.conceptId))];
   const conceptSubjects = await executeQuery(
     { db: drizzle },
     listConceptSubjectsByConceptIds,
@@ -81,7 +72,7 @@ export const termRecallOp = async (
     else subjectsMap.set(row.conceptId, [subject]);
   }
 
-  const terms = lookedUpTerms.map((t) => ({
+  const terms = candidates.map((t) => ({
     term: t.term,
     translation: t.translation,
     confidence: t.confidence,

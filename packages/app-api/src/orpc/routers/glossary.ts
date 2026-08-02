@@ -21,6 +21,7 @@ import {
   getGlossaryConceptMaterialization,
   getGlossaryTermConceptSnapshot,
   listGlossaryConceptSubjects,
+  listConceptSubjectsByConceptIds,
   listOwnedGlossaries,
   listProjectContentNodes,
   listProjectGlossaryIds,
@@ -30,10 +31,16 @@ import {
   updateGlossaryConcept,
 } from "@cat/domain";
 import type { DbHandle } from "@cat/domain";
-import { rerankTermRecallOp, termRecallOp } from "@cat/operations";
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+  rerankTermRecallOp,
+} from "@cat/operations";
 import {
   GlossaryConceptMaterializationSchema,
   GlossarySchema,
+  TermRecallStreamEventSchema,
+  type TermRecallStreamEvent,
 } from "@cat/shared";
 import { TermStatusValues, TermTypeValues } from "@cat/shared";
 import { JSONObjectSchema } from "@cat/shared";
@@ -47,6 +54,7 @@ import * as z from "zod";
 
 import { withBranchContext } from "#/orpc/middleware/with-branch-context.ts";
 import { authed, checkPermission } from "#/orpc/server.ts";
+import { throwRecallOperationFailure } from "#/services/recall-operation-failure.ts";
 import { getGraphRuntime } from "#/utils/graph-runtime.ts";
 import {
   createVCSRouteHelper,
@@ -666,7 +674,10 @@ export const searchTerm = authed
     }),
   )
   // Streams results: ILIKE matches arrive first, semantic matches follow.
-  .handler(async function* ({ context, input }) {
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<TermRecallStreamEvent> {
     // jsgen: generator required — no arrow-function equivalent for async generators
     const {
       drizzleDB: { client: drizzle },
@@ -685,27 +696,41 @@ export const searchTerm = authed
       { projectId },
     );
 
-    const recall = await termRecallOp(
-      {
-        glossaryIds,
-        text,
-        sourceLanguageId: termLanguageId,
-        translationLanguageId,
-      },
-      {
-        pluginManager: context.pluginManager,
-        traceId: crypto.randomUUID(),
-      },
-    );
+    const recallResult = await (async () => {
+      try {
+        return await collectTermRecallOp(
+          {
+            glossaryIds,
+            text,
+            sourceLanguageId: termLanguageId,
+            translationLanguageId,
+            minSemanticSimilarity: minConfidence,
+          },
+          {
+            pluginManager: context.pluginManager,
+            traceId: crypto.randomUUID(),
+          },
+        );
+      } catch (error) {
+        return await throwRecallOperationFailure({
+          context,
+          error,
+          affectedResources: [{ type: "PROJECT", id: projectId }],
+        });
+      }
+    })();
 
-    for (const term of recall.terms) {
+    for (const term of getTermRecallCandidates(recallResult)) {
       if (term.confidence < minConfidence) continue;
-      yield {
-        ...term,
-        termLanguageId,
-        translationLanguageId,
-      };
+      yield TermRecallStreamEventSchema.parse({
+        type: "CANDIDATE",
+        candidate: term,
+      });
     }
+    yield TermRecallStreamEventSchema.parse({
+      type: "COMPLETED",
+      result: recallResult,
+    });
   });
 
 export const findTerm = authed
@@ -717,7 +742,10 @@ export const findTerm = authed
     }),
   )
   // This endpoint streams term suggestions to avoid blocking response while waiting for worker
-  .handler(async function* ({ context, input }) {
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<TermRecallStreamEvent> {
     // jsgen: generator required — no arrow-function equivalent for async generators
     const {
       drizzleDB: { client: drizzle },
@@ -742,24 +770,62 @@ export const findTerm = authed
       { projectId: element.projectId },
     );
 
-    const recall = await termRecallOp(
-      {
-        glossaryIds,
-        text: element.value,
-        sourceLanguageId: element.languageId,
-        translationLanguageId,
-      },
-      {
-        pluginManager: context.pluginManager,
-        traceId: crypto.randomUUID(),
-      },
+    const recallResult = await (async () => {
+      try {
+        return await collectTermRecallOp(
+          {
+            glossaryIds,
+            text: element.value,
+            sourceLanguageId: element.languageId,
+            translationLanguageId,
+            minSemanticSimilarity: minConfidence,
+          },
+          {
+            pluginManager: context.pluginManager,
+            traceId: crypto.randomUUID(),
+          },
+        );
+      } catch (error) {
+        return await throwRecallOperationFailure({
+          context,
+          error,
+          affectedResources: [
+            { type: "PROJECT", id: element.projectId },
+            { type: "ELEMENT", id: String(elementId) },
+          ],
+        });
+      }
+    })();
+    const recalledTerms = getTermRecallCandidates(recallResult);
+    const conceptSubjects = await executeQuery(
+      { db: drizzle },
+      listConceptSubjectsByConceptIds,
+      { conceptIds: [...new Set(recalledTerms.map((term) => term.conceptId))] },
     );
+    const subjectsByConceptId = new Map<
+      number,
+      { name: string; defaultDefinition: string | null }[]
+    >();
+    for (const subject of conceptSubjects) {
+      const subjects = subjectsByConceptId.get(subject.conceptId) ?? [];
+      subjects.push({
+        name: subject.name,
+        defaultDefinition: subject.defaultDefinition,
+      });
+      subjectsByConceptId.set(subject.conceptId, subjects);
+    }
 
     const reranked = await rerankTermRecallOp(
       {
         elementId,
         queryText: element.value,
-        terms: recall.terms,
+        terms: recalledTerms.map((term) => ({
+          ...term,
+          concept: {
+            subjects: subjectsByConceptId.get(term.conceptId) ?? [],
+            definition: term.definition,
+          },
+        })),
       },
       {
         pluginManager: context.pluginManager,
@@ -769,12 +835,15 @@ export const findTerm = authed
 
     for (const term of reranked) {
       if (term.confidence < minConfidence) continue;
-      yield {
-        ...term,
-        termLanguageId: element.languageId,
-        translationLanguageId,
-      };
+      yield TermRecallStreamEventSchema.parse({
+        type: "CANDIDATE",
+        candidate: term,
+      });
     }
+    yield TermRecallStreamEventSchema.parse({
+      type: "COMPLETED",
+      result: recallResult,
+    });
   });
 
 export const updateConcept = authed

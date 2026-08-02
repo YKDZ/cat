@@ -2,7 +2,10 @@ import type { OperationContext } from "@cat/domain";
 import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { z } from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import {
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+} from "./collect-memory-recall.ts";
 import { fetchAdviseOp } from "./fetch-advise.ts";
 
 export const FetchBestTranslationCandidateInputSchema = z.object({
@@ -35,13 +38,7 @@ export type FetchBestTranslationCandidateOutput = z.infer<
   typeof FetchBestTranslationCandidateOutputSchema
 >;
 
-/**
- * 按 confidence 排序选出最优候选。memory > advisor。
- * 单个 provider 失败时静默降级，不影响另一方结果。
- * Fetch the best translation candidate by running advisor + memory recall
- * in parallel and picking the highest-confidence result. Memory > advisor.
- * Individual provider failures are silently suppressed.
- */
+/** Run advisor and memory recall, preferring the strongest memory candidate. */
 export const fetchBestTranslationCandidateOp = async (
   rawData: FetchBestTranslationCandidateInput,
   ctx?: OperationContext,
@@ -71,10 +68,10 @@ export const fetchBestTranslationCandidateOp = async (
         vectorStorage: data.memoryVectorStorage,
       },
       ctx,
-    ).catch(() => []),
+    ),
   ]);
 
-  const topMemory = memoryResult
+  const topMemory = getMemoryRecallCandidates(memoryResult)
     .sort((a, b) => b.confidence - a.confidence)
     .at(0);
 

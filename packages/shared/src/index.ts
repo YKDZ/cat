@@ -225,20 +225,66 @@ export {
   ConceptContextSchema,
   type EnrichedTermMatch,
   EnrichedTermMatchSchema,
+  type TermRecallCandidate,
+  TermRecallCandidateSchema,
+  type TermRecallResult,
+  TermRecallResultSchema,
+  type TermRecallStreamEvent,
+  TermRecallStreamEventSchema,
   type TermMatch,
   TermMatchSchema,
 } from "#/schema/term-recall.ts";
 
 // Recall schema
 export {
-  type RecallChannel,
-  RecallChannelSchema,
-  RecallChannelValues,
+  type CandidateChannel,
+  CandidateChannelSchema,
+  CandidateChannelValues,
+  type CandidateChannelCapability,
+  CandidateChannelCapabilitySchema,
+  CandidateChannelCapabilityValues,
+  type CandidateChannelOutcome,
+  type CandidateChannelOutcomes,
+  type CandidateChannelBlocker,
+  CandidateChannelBlockerSchema,
+  CandidateChannelBlockerReasonSchema,
+  CandidateChannelBlockerReasonValues,
+  type CandidateChannelOutcomeStatus,
+  CandidateChannelOutcomeStatusSchema,
+  CandidateChannelOutcomeStatusValues,
+  type CandidateChannelRequest,
+  CandidateChannelRequestSchema,
+  type CandidateRecallResult,
+  type CandidateChannelSkipReason,
+  CandidateChannelSkipReasonSchema,
+  CandidateChannelSkipReasonValues,
+  createCandidateChannelOutcomeSchema,
+  createCandidateRecallResultSchema,
+  createCandidateRecallStreamEventSchema,
+  createCandidateStreamEventSchema,
+  type EvidencedRecallCandidate,
+  type NonEmptyRecallCandidates,
   type RecallDebugContext,
   RecallDebugContextSchema,
   type RecallEvidence,
   RecallEvidenceSchema,
+  type RecallDerivationAffectedTarget,
+  RecallDerivationAffectedTargetSchema,
 } from "#/schema/recall.ts";
+export {
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
+  MemoryRecallStreamEventSchema,
+  type MemoryRecallCandidate,
+  type MemoryRecallResult,
+  type MemoryRecallStreamEvent,
+} from "#/schema/memory-recall.ts";
+export {
+  EffectiveMemoryRecallResultSchema,
+  EffectiveMemoryRecallStreamEventSchema,
+  type EffectiveMemoryRecallResult,
+  type EffectiveMemoryRecallStreamEvent,
+} from "#/schema/effective-memory-recall.ts";
 
 // Precision-recall schema
 export {
@@ -277,18 +323,6 @@ export {
   type ProjectSettingPayload,
   ProjectSettingPayloadSchema,
 } from "#/schema/project-setting.ts";
-
-// Memory-recall schema
-export {
-  type MemoryRecallBm25CapabilityDirectory,
-  MemoryRecallBm25CapabilityDirectorySchema,
-  type MemoryRecallBm25CapabilityEntry,
-  MemoryRecallBm25CapabilityEntrySchema,
-  type MemoryRecallBm25CapabilityQuery,
-  MemoryRecallBm25CapabilityQuerySchema,
-  type MemoryRecallBm25CompressionProfile,
-  MemoryRecallBm25CompressionProfileSchema,
-} from "#/schema/memory-recall.ts";
 
 // Rerank schema
 export {

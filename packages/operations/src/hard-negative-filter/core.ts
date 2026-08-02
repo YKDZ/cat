@@ -73,13 +73,7 @@ export const applyHnfPreRules = (
     // Check evidence channels
     const evidenceChannels = new Set(c.evidences.map((e) => e.channel));
     const hasOnlySemantic =
-      evidenceChannels.has("semantic") &&
-      !evidenceChannels.has("exact") &&
-      !evidenceChannels.has("bm25") &&
-      !evidenceChannels.has("trgm") &&
-      !evidenceChannels.has("template") &&
-      !evidenceChannels.has("fragment") &&
-      !evidenceChannels.has("sparse");
+      evidenceChannels.size === 1 && evidenceChannels.has("semantic");
 
     const candidateTextLen = c.candidateTextLower.length;
     const lengthRatio =

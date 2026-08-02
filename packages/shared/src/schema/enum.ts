@@ -90,6 +90,8 @@ export type OperationFailureSeverity =
 export const OperationFailureBlockerValues = [
   "branch_translation_write_failed",
   "branch_write_context_unavailable",
+  "candidate_channel_capability_unavailable",
+  "candidate_channel_execution_failed",
   "language_analysis_duplicate_implementation",
   "language_analysis_installation_scope_mismatch",
   "language_analysis_invalid_attestation",
@@ -102,6 +104,10 @@ export const OperationFailureBlockerValues = [
   "language_analysis_timeout",
   "language_analysis_unavailable",
   "language_analysis_unsupported_language",
+  "recall_derivation_blocked",
+  "recall_derivation_failed",
+  "recall_derivation_pending",
+  "recall_derivation_stale",
   "reviewable_change_write_failed",
 ] as const;
 export const OperationFailureBlockerSchema = z.enum(
@@ -111,7 +117,9 @@ export type OperationFailureBlocker =
   (typeof OperationFailureBlockerValues)[number];
 
 export const OperationFailureCapabilityValues = [
+  "CANDIDATE_RECALL",
   "LANGUAGE_ANALYSIS",
+  "RECALL_DERIVATION",
   "VECTOR_STORAGE",
   "TEXT_VECTORIZER",
 ] as const;

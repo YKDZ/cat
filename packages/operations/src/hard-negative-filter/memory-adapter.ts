@@ -68,22 +68,24 @@ export const applyMemoryHnfPre = (
     queryTextLength,
   );
 
-  // In-place mutation: update confidence and evidences for kept candidates, remove filtered ones
+  // Keep filtering and confidence updates atomic for the caller-owned array.
   const keptKeys = new Set(kept.map((c) => c.candidateKey));
   for (const r of results) {
     if (r.surface !== "memory") continue;
     const key = candidateKey(r);
-    if (!keptKeys.has(key)) {
-      // Mark for removal from results array
-      (r as Record<string, unknown>)["_hnfRemoved"] = true;
-      continue;
-    }
+    if (!keptKeys.has(key)) continue;
     const updated = kept.find((c) => c.candidateKey === key);
     if (updated) {
       r.confidence = updated.confidence;
       r.evidences = updated.evidences;
     }
   }
+  const retained = results.filter(
+    (result) =>
+      result.surface !== "memory" || keptKeys.has(candidateKey(result)),
+  );
+  results.length = 0;
+  results.push(...retained);
 
   return removals;
 };

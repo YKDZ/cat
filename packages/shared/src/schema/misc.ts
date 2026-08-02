@@ -63,7 +63,7 @@ export const MemorySuggestionSchema = z.object({
   matchedVariantText: z.string().optional(),
   /** Variant type of the matched entry (e.g. SURFACE, TOKEN_TEMPLATE, FRAGMENT). */
   matchedVariantType: z.string().optional(),
-  /** Recall evidence entries from exact/trgm/variant/bm25/semantic lanes. Backward-compatible default: []. */
+  /** Evidence from the fine-grained retrieval lanes that recalled this candidate. */
   evidences: z.array(RecallEvidenceSchema).default([]),
 });
 

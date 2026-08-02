@@ -6,10 +6,12 @@ import {
   loadAgentExternalOutputByIdempotency,
 } from "@cat/domain";
 import {
+  collectTermRecallOp,
   collectMemoryRecallOp,
   fetchAdviseOp,
+  getMemoryRecallCandidates,
+  getTermRecallCandidates,
   llmRefineTranslationOp,
-  termRecallOp,
 } from "@cat/operations";
 import {
   MemorySuggestionSchema,
@@ -333,7 +335,7 @@ export const autoTranslateGraph = defineGraph({
           };
         }
         const [termResult, memoryResult] = await Promise.all([
-          termRecallOp(
+          collectTermRecallOp(
             {
               text: input.text,
               sourceLanguageId: input.sourceLanguageId,
@@ -362,8 +364,11 @@ export const autoTranslateGraph = defineGraph({
           ),
         ]);
         return {
-          terms: termResult.terms,
-          memories: memoryResult,
+          terms: getTermRecallCandidates(termResult).map((term) => ({
+            ...term,
+            concept: { subjects: [], definition: term.definition },
+          })),
+          memories: getMemoryRecallCandidates(memoryResult),
           durableOutcome: null,
         };
       },

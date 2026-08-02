@@ -1,5 +1,9 @@
 import type { AgentToolDefinition } from "@cat/agent";
-import { collectMemoryRecallOp } from "@cat/operations";
+import {
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+  RecallOperationFailureError,
+} from "@cat/operations";
 import * as z from "zod";
 
 const searchTmArgs = z.object({
@@ -70,26 +74,34 @@ export const searchTmTool: AgentToolDefinition = {
       );
     }
 
-    const matches = await collectMemoryRecallOp({
-      text: parsed.text,
-      sourceLanguageId,
-      translationLanguageId,
-      memoryIds: parsed.memoryIds,
-      chunkIds: [],
-      minSimilarity: parsed.minSimilarity,
-      maxAmount: parsed.maxAmount,
-    });
-    return {
-      memories: matches.map((match) => ({
-        source: match.source,
-        translation: match.adaptedTranslation ?? match.translation,
-        confidence: match.confidence,
-        memoryId: match.memoryId,
-        evidences: match.evidences,
-        matchedText: match.matchedText,
-        matchedVariantText: match.matchedVariantText,
-        matchedVariantType: match.matchedVariantType,
-      })),
-    };
+    try {
+      const recallResult = await collectMemoryRecallOp({
+        text: parsed.text,
+        sourceLanguageId,
+        translationLanguageId,
+        memoryIds: parsed.memoryIds,
+        chunkIds: [],
+        minSimilarity: parsed.minSimilarity,
+        maxAmount: parsed.maxAmount,
+      });
+      const matches = getMemoryRecallCandidates(recallResult);
+      return {
+        memories: matches.map((match) => ({
+          source: match.source,
+          translation: match.adaptedTranslation ?? match.translation,
+          confidence: match.confidence,
+          memoryId: match.memoryId,
+          evidences: match.evidences,
+          matchedText: match.matchedText,
+          matchedVariantText: match.matchedVariantText,
+          matchedVariantType: match.matchedVariantType,
+        })),
+      };
+    } catch (error) {
+      if (error instanceof RecallOperationFailureError) {
+        return { memories: [], operationFailure: error.failure };
+      }
+      throw error;
+    }
   },
 };
