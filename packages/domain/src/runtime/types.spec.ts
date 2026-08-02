@@ -1,12 +1,20 @@
+import {
+  DatabaseRequirementIdSchema,
+  DatabaseRequirementStatusSchema,
+} from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
-import { RuntimeFeatureSchema } from "./types.ts";
-
-describe("RuntimeFeatureSchema", () => {
-  it("does not expose the retired BM25 memory recall feature", () => {
-    expect(RuntimeFeatureSchema.safeParse("bm25-memory-recall").success).toBe(
-      false,
-    );
-    expect(RuntimeFeatureSchema.parse("pgvector")).toBe("pgvector");
+describe("database requirement schemas", () => {
+  it("exposes the fixed shared database requirements", () => {
+    expect(DatabaseRequirementIdSchema.options).toEqual([
+      "POSTGRESQL_CORE",
+      "POSTGRESQL_TRIGRAM_MATCHING",
+      "POSTGRESQL_VECTOR_STORAGE",
+    ]);
+    expect(DatabaseRequirementStatusSchema.options).toEqual([
+      "SATISFIED",
+      "BLOCKED",
+      "UNKNOWN",
+    ]);
   });
 });

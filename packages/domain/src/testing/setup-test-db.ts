@@ -63,58 +63,9 @@ export const setupTestDB = async (): Promise<TestDB> => {
     // already set
   }
 
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS rum SCHEMA public");
-  } catch (err: unknown) {
-    const code = getPgErrorCode(err);
-    if (code !== "23505" && code !== "42710") throw err;
-  }
-  try {
-    await client.query("ALTER EXTENSION rum SET SCHEMA public");
-  } catch {
-    // already set
-  }
-
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS zhparser SCHEMA public");
-  } catch (err: unknown) {
-    const code = getPgErrorCode(err);
-    if (code !== "23505" && code !== "42710") throw err;
-  }
-  try {
-    await client.query("ALTER EXTENSION zhparser SET SCHEMA public");
-  } catch {
-    // already set
-  }
-
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
   await client.query(`CREATE SCHEMA "${schemaName}"`);
   await client.query(`SET search_path TO "${schemaName}", public`);
-  await client.query(`
-    DO $$
-    DECLARE
-      current_schema_name text := current_schema();
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1
-        FROM pg_ts_config cfg
-        JOIN pg_namespace ns ON ns.oid = cfg.cfgnamespace
-        WHERE cfg.cfgname = 'cat_zh_hans'
-          AND ns.nspname = current_schema_name
-      ) THEN
-        EXECUTE format(
-          'CREATE TEXT SEARCH CONFIGURATION %I.cat_zh_hans (PARSER = zhparser)',
-          current_schema_name
-        );
-        EXECUTE format(
-          'ALTER TEXT SEARCH CONFIGURATION %I.cat_zh_hans ADD MAPPING FOR n, v, a, i, e, l WITH simple',
-          current_schema_name
-        );
-      END IF;
-    END
-    $$;
-  `);
-
   const db = drizzle({
     client,
     relations,

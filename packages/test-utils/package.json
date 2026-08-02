@@ -33,6 +33,7 @@
   "devDependencies": {
     "@cat/typescript-config": "link:../typescript-config",
     "@types/pg": "catalog:",
-    "drizzle-kit": "catalog:"
+    "drizzle-kit": "catalog:",
+    "vitest": "catalog:"
   }
 }

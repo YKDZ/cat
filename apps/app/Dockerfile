@@ -66,6 +66,7 @@ RUN --mount=type=secret,id=turbo_team,required=false \
       /application-release/Dockerfile.dockerignore
 RUN install -d /database-preparation && \
     cp apps/app/scripts/prepare-database.mjs /database-preparation/prepare-database.mjs && \
+    cp apps/app/dist/database-preparation/database-requirements.mjs /database-preparation/database-requirements.mjs && \
     cp -r apps/app/drizzle /database-preparation/drizzle
 
 # Both final targets inherit this exact root-owned application runtime.

@@ -8,10 +8,7 @@ import localStoragePlugin from "@cat-plugin/local-storage-provider";
 import spacyPlugin from "@cat-plugin/spacy-language-analyzer";
 import app, { configureReadinessReporter } from "@cat/app-api/app";
 import { DrizzleDB, RedisConnection } from "@cat/db";
-import {
-  resolveRuntimeProfile,
-  type DatabaseRuntimeSummary,
-} from "@cat/domain";
+import { assessDatabaseRequirements, resolveRuntimeProfile } from "@cat/domain";
 import {
   LanguageAnalyzer,
   StorageProvider,
@@ -21,7 +18,6 @@ import {
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { createApplicationReadinessReporter } from "./readiness.ts";
-import { detectSearchRuntimeHealth } from "./search-runtime-health.ts";
 
 const spacyServerUrl = process.env.SPACY_SERVER_URL;
 
@@ -136,22 +132,18 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
           vectorizationQueue: {},
         },
         database,
-        detectSearchRuntime: async (): Promise<DatabaseRuntimeSummary> =>
-          await detectSearchRuntimeHealth(database.client),
+        assessDatabaseRequirements: async () =>
+          await assessDatabaseRequirements(database.client),
         getRuntimeState: () => ({
           database: {
-            backend: "postgres-server",
-            disabledFeatures: [],
-            extensions: {
-              pg_trgm: true,
-              rum: true,
-              vector: true,
-              zhparser: true,
-            },
-            functions: { rum_ts_score: true },
-            searchLevel: "full-search-runtime",
-            textSearchConfigs: { cat_zh_hans: true },
-            warnings: [],
+            requirements: [
+              { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+              {
+                id: "POSTGRESQL_TRIGRAM_MATCHING",
+                status: "SATISFIED",
+              },
+              { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+            ],
           },
           initializedAt: new Date().toISOString(),
           profile,

@@ -20,7 +20,7 @@
   "scripts": {
     "bootstrap-only": "node dist/bootstrap-only/bootstrap-only-cli.js",
     "bootstrap:local": "pnpm --filter @cat/db drizzle:push && pnpm build && node scripts/bootstrap-local.mjs",
-    "build": "vike build && vite build --config vite.bootstrap.config.ts",
+    "build": "vike build && vite build --config vite.bootstrap.config.ts && vite build --config vite.database-preparation.config.ts",
     "build:bootstrap-only": "vite build --config vite.bootstrap.config.ts",
     "copy-drizzle": "node scripts/copy-drizzle.ts",
     "dev": "node scripts/dev.ts",

@@ -1,5 +1,34 @@
 // ─── Hand-written schema modules ───
 
+export {
+  DatabaseRequirementIdSchema,
+  DatabaseRequirementIdValues,
+  type DatabaseRequirementId,
+  DatabaseRequirementStatusSchema,
+  DatabaseRequirementStatusValues,
+  type DatabaseRequirementStatus,
+} from "#/schema/enum.ts";
+
+export {
+  databaseReadinessCode,
+  DatabaseReadinessCodeSchema,
+  DatabaseReadinessCodeValues,
+  type DatabaseReadinessCode,
+  DatabaseRequirementAssessmentSchema,
+  DatabaseRequirementBlockedReasonSchema,
+  DatabaseRequirementBlockerReasonSchema,
+  DatabaseRequirementBlockerReasonValues,
+  type DatabaseRequirementBlockerReason,
+  type DatabaseRequirementBlockedReason,
+  DatabaseRequirementSchema,
+  DatabaseRequirementSetSchema,
+  type DatabaseRequirement,
+  type DatabaseRequirementAssessment,
+  type DatabaseRequirementSet,
+  DatabaseRequirementUnknownReasonSchema,
+  type DatabaseRequirementUnknownReason,
+} from "#/schema/database-requirements.ts";
+
 // Custom element schema
 export { CustomElementNameSchema } from "#/schema/ce.ts";
 export {

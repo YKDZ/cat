@@ -7,7 +7,7 @@ name: cat
 # profile, then set CAT_APPLICATION_IMAGE and CAT_APPLICATION_COMMAND=start-only.
 services:
   postgresql:
-    image: ${CAT_POSTGRES_IMAGE:-ghcr.io/ykdz/cat-postgres-search-runtime:latest}
+    image: ${CAT_POSTGRES_IMAGE:-pgvector/pgvector:0.8.6-pg18}
     environment:
       POSTGRES_DB: ${CAT_POSTGRES_DB:?CAT_POSTGRES_DB is required}
       POSTGRES_PASSWORD: ${CAT_POSTGRES_PASSWORD:?CAT_POSTGRES_PASSWORD is required}
@@ -15,14 +15,14 @@ services:
     healthcheck:
       test:
         - CMD-SHELL
-        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER} && psql -d $${POSTGRES_DB} -U $${POSTGRES_USER} -v ON_ERROR_STOP=1 -f /usr/local/share/search-runtime/healthcheck/search-runtime.sql
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
       interval: 10s
       retries: 12
       start_period: 20s
       timeout: 5s
     restart: unless-stopped
     volumes:
-      - postgresql-data:/var/lib/postgresql/data
+      - postgresql-data:/var/lib/postgresql
 
   redis:
     image: ${CAT_REDIS_IMAGE:-redis:8-alpine}

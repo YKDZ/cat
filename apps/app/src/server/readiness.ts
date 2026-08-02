@@ -5,11 +5,16 @@ import {
 } from "@cat/app-api/readiness";
 import type { RedisConnection } from "@cat/db";
 import type {
-  DatabaseRuntimeSummary,
+  DatabaseRequirementAssessment,
   RuntimeProfile,
   RuntimeState,
 } from "@cat/domain";
 import { LanguageAnalysisReadinessError } from "@cat/operations";
+import {
+  databaseReadinessCode,
+  DatabaseRequirementAssessmentSchema,
+  type DatabaseRequirement,
+} from "@cat/shared";
 
 type ApplicationReadinessDependencies = {
   backends: {
@@ -21,7 +26,9 @@ type ApplicationReadinessDependencies = {
   getRuntimeState: () => RuntimeState | undefined;
   profile: RuntimeProfile;
   redis: RedisConnection | undefined;
-  detectSearchRuntime: () => Promise<DatabaseRuntimeSummary>;
+  assessDatabaseRequirements: (
+    signal: AbortSignal,
+  ) => Promise<DatabaseRequirementAssessment>;
   assessLanguageAnalysis: (signal: AbortSignal) => Promise<void>;
   storageServices: () => Array<{ ping: () => Promise<void> }>;
 };
@@ -141,17 +148,27 @@ export const createApplicationReadinessReporter = (
     },
     {
       cost: "expensive" as const,
-      id: "search",
+      id: "database-requirements",
       required: true,
-      run: async (): Promise<void> => {
+      run: async (signal: AbortSignal): Promise<void> => {
         try {
-          const database = await dependencies.detectSearchRuntime();
-          if (database.searchLevel !== "full-search-runtime") {
-            throw new ReadinessProbeFailure("DATABASE_SEARCH_INSUFFICIENT");
+          const assessment = DatabaseRequirementAssessmentSchema.parse(
+            await dependencies.assessDatabaseRequirements(signal),
+          );
+          const unsatisfied = assessment.requirements.find(
+            (
+              requirement,
+            ): requirement is Exclude<
+              DatabaseRequirement,
+              { status: "SATISFIED" }
+            > => requirement.status !== "SATISFIED",
+          );
+          if (unsatisfied !== undefined) {
+            throw new ReadinessProbeFailure(databaseReadinessCode(unsatisfied));
           }
         } catch (error) {
           if (error instanceof ReadinessProbeFailure) throw error;
-          throw new ReadinessProbeFailure("DATABASE_SEARCH_UNAVAILABLE");
+          throw new ReadinessProbeFailure("DATABASE_REQUIREMENTS_UNAVAILABLE");
         }
       },
     },
@@ -233,7 +250,6 @@ export const createApplicationReadinessReporter = (
     runtime: {
       cacheBackend: backendKind(dependencies.backends.cacheStore),
       queueBackend: backendKind(dependencies.backends.vectorizationQueue),
-      requiredSearchLevel: dependencies.profile.requiredSearchLevel,
       sessionBackend: backendKind(dependencies.backends.sessionStore),
     },
   });

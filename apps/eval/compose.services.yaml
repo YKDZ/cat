@@ -19,8 +19,7 @@ services:
       - "6379:6379"
 
   postgresql:
-    build:
-      context: ../postgres-search-runtime
+    image: pgvector/pgvector:0.8.6-pg18
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass

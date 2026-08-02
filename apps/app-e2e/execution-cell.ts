@@ -8,7 +8,6 @@ import {
 import { randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { readFile } from "node:fs/promises";
 import {
   createConnection,
   createServer,
@@ -44,13 +43,6 @@ import type { TestServiceLease } from "./test-service-lease.ts";
 
 const root = resolve(import.meta.dirname, "../..");
 const e2eArtifactRoot = join(root, ".tmp", "e2e");
-const searchRuntimeInitializationPath = join(
-  root,
-  "apps",
-  "postgres-search-runtime",
-  "init",
-  "01-init-extensions.sql",
-);
 const startupTimeoutMs = 300_000;
 const cleanupTimeoutMs = 60_000;
 const cleanupSettlementTimeoutMs = 10_000;
@@ -752,15 +744,6 @@ const createCellDatabase = async (
     await client.end();
   }
   const databaseUrl = databaseUrlFor(adminUrl, databaseName);
-  const databaseClient = new Client({ connectionString: databaseUrl });
-  await databaseClient.connect();
-  try {
-    await databaseClient.query(
-      await readFile(searchRuntimeInitializationPath, "utf8"),
-    );
-  } finally {
-    await databaseClient.end();
-  }
   return { databaseName, databaseUrl };
 };
 
@@ -1294,7 +1277,6 @@ const assertReadiness = (
   const expectedRuntime = {
     cacheBackend: expectedProfile === "lite" ? "memory" : "redis",
     queueBackend: expectedProfile === "lite" ? "memory" : "redis",
-    requiredSearchLevel: "full-search-runtime",
     sessionBackend: expectedProfile === "lite" ? "memory" : "redis",
   };
   for (const [key, value] of Object.entries(expectedRuntime)) {

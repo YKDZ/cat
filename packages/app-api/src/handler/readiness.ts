@@ -22,7 +22,6 @@ export type ReadinessReport = {
 export type ReadinessRuntimeSummary = {
   cacheBackend: string;
   queueBackend: string;
-  requiredSearchLevel: string;
   sessionBackend: string;
 };
 

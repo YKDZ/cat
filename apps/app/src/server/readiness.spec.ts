@@ -13,13 +13,11 @@ import { createApplicationReadinessReporter } from "./readiness.ts";
 const profile = resolveRuntimeProfile({ CAT_RUNTIME_PROFILE: "lite" });
 const runtimeState: RuntimeState = {
   database: {
-    backend: "postgres-server",
-    disabledFeatures: [],
-    extensions: { pg_trgm: true, rum: true, vector: true, zhparser: true },
-    functions: { rum_ts_score: true },
-    searchLevel: "full-search-runtime",
-    textSearchConfigs: { cat_zh_hans: true },
-    warnings: [],
+    requirements: [
+      { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+      { id: "POSTGRESQL_TRIGRAM_MATCHING", status: "SATISFIED" },
+      { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+    ],
   },
   initializedAt: "2026-07-13T00:00:00.000Z",
   profile,
@@ -34,7 +32,8 @@ const createDependencies = (profileOverride = profile) => ({
   database: {
     ping: async () => {},
   },
-  detectSearchRuntime: async () => runtimeState.database,
+  assessDatabaseRequirements: async (_signal: AbortSignal) =>
+    runtimeState.database,
   getRuntimeState: () => ({ ...runtimeState, profile: profileOverride }),
   profile: profileOverride,
   redis: undefined,
@@ -47,7 +46,7 @@ afterEach(() => {
 });
 
 describe("application readiness", () => {
-  it("requires initialized Lite memory backends, storage, Language Analysis, and full PostgreSQL search without Redis", async () => {
+  it("requires initialized Lite memory backends, storage, Language Analysis, and database requirements without Redis", async () => {
     Reflect.set(globalThis, "inited", true);
     const report =
       await createApplicationReadinessReporter(createDependencies()).report();
@@ -157,6 +156,98 @@ describe("application readiness", () => {
     await vi.advanceTimersByTimeAsync(1_001);
     await expect(reporter.report()).resolves.toMatchObject({ status: "ready" });
     vi.useRealTimers();
+  });
+
+  it("reports an exact database requirement blocker", async () => {
+    Reflect.set(globalThis, "inited", true);
+    const dependencies = createDependencies();
+    dependencies.assessDatabaseRequirements = async () => ({
+      requirements: [
+        { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+        {
+          blocker: { reason: "EXTENSION_MISSING" },
+          id: "POSTGRESQL_TRIGRAM_MATCHING",
+          status: "BLOCKED",
+        },
+        { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+      ],
+    });
+
+    await expect(
+      createApplicationReadinessReporter(dependencies).report(),
+    ).resolves.toMatchObject({
+      components: {
+        "database-requirements": {
+          code: "DATABASE_POSTGRESQL_TRIGRAM_MATCHING_BLOCKED",
+          status: "failed",
+        },
+      },
+      status: "not-ready",
+    });
+  });
+
+  it("rejects malformed database assessments instead of treating them as ready", async () => {
+    Reflect.set(globalThis, "inited", true);
+    const dependencies = createDependencies();
+    Reflect.set(dependencies, "assessDatabaseRequirements", async () => ({
+      requirements: [
+        { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+        { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+        { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+      ],
+    }));
+
+    await expect(
+      createApplicationReadinessReporter(dependencies).report(),
+    ).resolves.toMatchObject({
+      components: {
+        "database-requirements": {
+          code: "DATABASE_REQUIREMENTS_UNAVAILABLE",
+          status: "failed",
+        },
+      },
+      status: "not-ready",
+    });
+  });
+
+  it("aborts a pending database assessment and retries it after the cache TTL", async () => {
+    vi.useFakeTimers();
+    try {
+      Reflect.set(globalThis, "inited", true);
+      const dependencies = createDependencies();
+      let available = false;
+      const assessor = vi.fn(async (signal: AbortSignal) => {
+        if (available) return runtimeState.database;
+        await new Promise<void>((_, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        });
+        return runtimeState.database;
+      });
+      dependencies.assessDatabaseRequirements = assessor;
+      const reporter = createApplicationReadinessReporter(dependencies);
+
+      const first = reporter.report();
+      await vi.advanceTimersByTimeAsync(2_001);
+      await expect(first).resolves.toMatchObject({
+        components: {
+          "database-requirements": { code: "TIMEOUT", status: "failed" },
+        },
+        status: "not-ready",
+      });
+      expect(assessor).toHaveBeenCalledOnce();
+      expect(assessor.mock.calls[0]?.[0].aborted).toBe(true);
+
+      available = true;
+      await vi.advanceTimersByTimeAsync(1_001);
+      await expect(reporter.report()).resolves.toMatchObject({
+        status: "ready",
+      });
+      expect(assessor).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("attests the instantiated backend kind instead of accepting the profile declaration", async () => {

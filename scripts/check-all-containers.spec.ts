@@ -1,5 +1,4 @@
-import { readFileSync, readdirSync, rmSync } from "node:fs";
-import { relative, resolve } from "node:path";
+import { readFileSync, rmSync } from "node:fs";
 
 import { describe, expect, it, vi } from "vitest";
 
@@ -18,39 +17,6 @@ const releaseImages = {
     { imageId: runtimeImageId, target: "runtime" as const },
     { imageId: spacyImageId, target: "spacy" as const },
   ],
-};
-
-const searchRuntimeSqlPattern =
-  /\b(?:CREATE\s+EXTENSION|CREATE\s+TEXT\s+SEARCH\s+CONFIGURATION|ALTER\s+TEXT\s+SEARCH\s+CONFIGURATION)\b/i;
-const searchRuntimeSqlFixturePaths = new Set([
-  "packages/domain/src/testing/setup-test-db.ts",
-  "packages/test-utils/src/test-db.ts",
-  "scripts/pglite-compat-gate.ts",
-]);
-const searchableSourceExtensions = new Set([".js", ".mjs", ".sql", ".ts"]);
-
-const sourceFilesUnder = (directory: string): string[] => {
-  const files: string[] = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (["declarations", "dist", "node_modules"].includes(entry.name))
-        continue;
-      files.push(...sourceFilesUnder(path));
-      continue;
-    }
-    if (
-      entry.isFile() &&
-      searchableSourceExtensions.has(
-        entry.name.slice(entry.name.lastIndexOf(".")),
-      ) &&
-      !entry.name.endsWith(".spec.ts") &&
-      !entry.name.endsWith(".test.ts")
-    ) {
-      files.push(path);
-    }
-  }
-  return files;
 };
 
 const runLifecycle = async (
@@ -267,17 +233,7 @@ describe("application container lifecycle", () => {
         args.includes("bootstrap-only") &&
         args.includes(standaloneImageId),
     );
-    const searchRuntimeSetupIndex = calls.findIndex(
-      (args) =>
-        args[0] === "exec" &&
-        args.some((arg) => arg.startsWith("cat_lifecycle_")) &&
-        args.some((arg) =>
-          arg.includes("CREATE EXTENSION IF NOT EXISTS pg_trgm"),
-        ),
-    );
-
     expect(createIndex).toBeGreaterThan(-1);
-    expect(searchRuntimeSetupIndex).toBeGreaterThan(createIndex);
     expect(standalonePreparations).toHaveLength(2);
     expect(standaloneBootstraps).toHaveLength(1);
     const secondPreparation = standalonePreparations.at(1);
@@ -288,9 +244,7 @@ describe("application container lifecycle", () => {
     if (standaloneBootstrap === undefined) {
       throw new Error("Expected one standalone bootstrap");
     }
-    expect(searchRuntimeSetupIndex).toBeLessThan(
-      calls.indexOf(secondPreparation),
-    );
+    expect(createIndex).toBeLessThan(calls.indexOf(secondPreparation));
     expect(calls.indexOf(secondPreparation)).toBeLessThan(
       calls.indexOf(standaloneBootstrap),
     );
@@ -309,9 +263,9 @@ describe("application container lifecycle", () => {
     expect(databaseUrl).not.toContain("cat_integration");
   });
 
-  it("uses the PostgreSQL image initialization file as the only search runtime SQL source", () => {
-    const canonicalSql = readFileSync(
-      "apps/postgres-search-runtime/init/01-init-extensions.sql",
+  it("leaves database capability mutation to the standalone preparation command", () => {
+    const preparationSource = readFileSync(
+      "apps/app/scripts/prepare-database.mjs",
       "utf8",
     );
     const lifecycleSource = readFileSync(
@@ -323,42 +277,15 @@ describe("application container lifecycle", () => {
       "utf8",
     );
 
-    expect(canonicalSql).toContain("CREATE EXTENSION IF NOT EXISTS pg_trgm");
-    expect(lifecycleSource).toContain("searchRuntimeInitializationPath");
-    expect(executionCellSource).toContain("searchRuntimeInitializationPath");
-    expect(lifecycleSource).not.toContain(
-      "const initializeSearchRuntimeCommand",
+    expect(preparationSource).toContain(
+      "CREATE EXTENSION IF NOT EXISTS vector",
     );
-    expect(executionCellSource).not.toContain(
-      "CREATE EXTENSION IF NOT EXISTS ${extension}",
+    expect(preparationSource).toContain(
+      "CREATE EXTENSION IF NOT EXISTS pg_trgm",
     );
-  });
-
-  it("keeps production search runtime DDL in the image initialization file", () => {
-    const repositoryRoot = process.cwd();
-    const canonicalPath =
-      "apps/postgres-search-runtime/init/01-init-extensions.sql";
-    const declarations = ["apps", "packages", "scripts", "tools"]
-      .flatMap((directory) =>
-        sourceFilesUnder(resolve(repositoryRoot, directory)),
-      )
-      .map((path) => ({
-        path: relative(repositoryRoot, path),
-        source: readFileSync(path, "utf8"),
-      }))
-      .filter(
-        ({ path, source }) =>
-          searchRuntimeSqlPattern.test(source) &&
-          !searchRuntimeSqlFixturePaths.has(path),
-      )
-      .map(({ path }) => path);
-
-    expect(declarations).toEqual([canonicalPath]);
-    for (const path of searchRuntimeSqlFixturePaths) {
-      expect(readFileSync(resolve(repositoryRoot, path), "utf8")).toMatch(
-        searchRuntimeSqlPattern,
-      );
-    }
+    expect(preparationSource).toContain("assertDatabaseRequirements");
+    expect(lifecycleSource).not.toContain("CREATE EXTENSION");
+    expect(executionCellSource).not.toContain("CREATE EXTENSION");
   });
 
   it("shares lifecycle storage and supplies the production service bootstrap plan", async () => {

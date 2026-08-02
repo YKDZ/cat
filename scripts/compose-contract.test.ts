@@ -219,6 +219,21 @@ describe("Compose deployment contracts", () => {
     );
     expect(resolved.services.app?.command).toEqual(["prepare-and-start"]);
     expect(resolved.services.app?.image).toBe("ghcr.io/ykdz/cat:latest");
+    expect(resolved.services.postgresql).toMatchObject({
+      image: "pgvector/pgvector:0.8.6-pg18",
+    });
+    expect(JSON.stringify(resolved.services.postgresql?.healthcheck)).toContain(
+      "pg_isready",
+    );
+    expect(
+      JSON.stringify(resolved.services.postgresql?.healthcheck),
+    ).not.toContain("psql");
+    expect(JSON.stringify(resolved.services.postgresql)).toContain(
+      "/var/lib/postgresql",
+    );
+    expect(JSON.stringify(resolved.services.postgresql)).not.toContain(
+      "/var/lib/postgresql/data",
+    );
     expect(resolved.services.redis).toMatchObject({
       environment: { REDIS_PASSWORD: composeEnvironment.CAT_REDIS_PASSWORD },
     });
@@ -289,6 +304,18 @@ describe("Compose deployment contracts", () => {
         );
         expect(service?.security_opt).toContain("no-new-privileges:true");
       }
+    }
+    for (const resolved of [localResolved, e2eResolved]) {
+      const postgresql = resolved.services.postgresql;
+      expect(postgresql).toMatchObject({
+        image: "pgvector/pgvector:0.8.6-pg18",
+      });
+      expect(JSON.stringify(postgresql?.healthcheck)).toContain("pg_isready");
+      expect(JSON.stringify(postgresql?.healthcheck)).not.toContain("psql");
+      expect(JSON.stringify(postgresql)).toContain("/var/lib/postgresql");
+      expect(JSON.stringify(postgresql)).not.toContain(
+        "/var/lib/postgresql/data",
+      );
     }
     expect(localResolved.services.redis?.environment).toMatchObject({
       REDIS_PASSWORD: "cat-local-redis",

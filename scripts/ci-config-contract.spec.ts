@@ -426,7 +426,7 @@ describe("CI configuration contract", () => {
     expect(dependabot.version).toBe(2);
     expect(
       dependabot.updates?.map((update) => update["package-ecosystem"]),
-    ).toEqual(["npm", "docker", "docker", "github-actions"]);
+    ).toEqual(["npm", "docker", "github-actions"]);
 
     const npm = dependabot.updates?.find(
       (update) => update["package-ecosystem"] === "npm",

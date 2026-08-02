@@ -17,7 +17,7 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - local-postgresql-data:/var/lib/postgresql/data
+      - local-postgresql-data:/var/lib/postgresql
 
   redis:
     extends:

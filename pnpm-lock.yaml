@@ -2087,6 +2087,9 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 1.0.0-rc.4-273829f
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(@vitest/ui@4.1.8)(happy-dom@20.10.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
 
   packages/typescript-config:
     devDependencies:

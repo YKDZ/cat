@@ -12,6 +12,8 @@ import {
   getCacheStore,
   getSessionStore,
   getRuntimeState,
+  assertDatabaseRequirements,
+  assessDatabaseRequirements,
   initRuntimeState,
   resolveRuntimeProfile,
   type DrizzleClient,
@@ -52,10 +54,6 @@ import {
   startPostgresRuntimeCleanup,
   type RuntimeCleanupHandle,
 } from "./runtime-cleanup.ts";
-import {
-  assertSearchRuntimeHealth,
-  detectSearchRuntimeHealth,
-} from "./search-runtime-health.ts";
 
 const getStringSetting = async (
   drizzle: DrizzleClient,
@@ -64,6 +62,33 @@ const getStringSetting = async (
 ): Promise<string> => {
   const value = await executeQuery({ db: drizzle }, getSetting, { key });
   return typeof value === "string" ? value : fallback;
+};
+
+const awaitAbortableQuery = async <T>(
+  query: Promise<T>,
+  signal: AbortSignal | undefined,
+): Promise<T> => {
+  if (signal === undefined) return await query;
+
+  let removeAbortListener = (): void => {};
+  const aborted = new Promise<never>((_, reject) => {
+    const abort = (): void => reject(signal.reason);
+    if (signal.aborted) {
+      abort();
+      return;
+    }
+    signal.addEventListener("abort", abort, { once: true });
+    removeAbortListener = (): void =>
+      signal.removeEventListener("abort", abort);
+  });
+
+  try {
+    return await Promise.race([query, aborted]);
+  } finally {
+    removeAbortListener();
+    // node-postgres has no AbortSignal query API; query_timeout bounds this query.
+    void query.catch(() => {});
+  }
 };
 
 const initializeAppOnce = async (): Promise<void> => {
@@ -95,7 +120,27 @@ const initializeAppOnce = async (): Promise<void> => {
     const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
-    const database = await assertSearchRuntimeHealth(drizzleDB.client, profile);
+    const requirementDb = {
+      execute: async (
+        statement: string,
+        options: { signal?: AbortSignal; timeoutMs?: number } = {},
+      ) => {
+        options.signal?.throwIfAborted();
+        const query = {
+          text: statement,
+          ...(options.timeoutMs === undefined
+            ? {}
+            : { query_timeout: options.timeoutMs }),
+        };
+        const result = await awaitAbortableQuery(
+          drizzleDB.client.$client.query(query),
+          options.signal,
+        );
+        options.signal?.throwIfAborted();
+        return { rows: result.rows };
+      },
+    };
+    const database = await assertDatabaseRequirements(requirementDb);
     initRuntimeState({
       profile,
       database,
@@ -178,8 +223,8 @@ const initializeAppOnce = async (): Promise<void> => {
         getRuntimeState,
         profile,
         redis: backends.redis,
-        detectSearchRuntime: async () =>
-          detectSearchRuntimeHealth(drizzleDB.client),
+        assessDatabaseRequirements: async (signal) =>
+          await assessDatabaseRequirements(requirementDb, { signal }),
         assessLanguageAnalysis: async (signal) =>
           await executeLanguageAnalysisReadinessAssessment({
             pluginManager,

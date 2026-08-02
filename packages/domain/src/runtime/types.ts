@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+import type { DatabaseRequirementAssessment } from "./database-requirements.ts";
+
 /**
  * Zod schema for runtime profile names.
  */
@@ -23,40 +25,6 @@ export const RuntimeBackendSchema = z.enum(["memory", "postgres", "redis"]);
  * Runtime backend kind.
  */
 export type RuntimeBackend = z.infer<typeof RuntimeBackendSchema>;
-
-/**
- * Zod schema for search runtime capability levels.
- */
-export const SearchRuntimeLevelSchema = z.enum([
-  "full-search-runtime",
-  "partial-search-runtime",
-  "basic-db-runtime",
-]);
-
-/**
- * Search runtime capability level.
- */
-export type SearchRuntimeLevel = z.infer<typeof SearchRuntimeLevelSchema>;
-
-/**
- * Zod schema for runtime feature flags.
- */
-export const RuntimeFeatureSchema = z.enum([
-  "redis",
-  "zhparser-full-text",
-  "rum-index-ranking",
-  "pgvector",
-  "external-llm",
-  "external-mt",
-  "external-language-analysis",
-  "external-rerank",
-  "external-vectorizer",
-]);
-
-/**
- * Runtime feature flag name.
- */
-export type RuntimeFeature = z.infer<typeof RuntimeFeatureSchema>;
 
 /**
  * Summary of a single runtime storage policy.
@@ -105,49 +73,11 @@ export type RuntimeProfile = {
    */
   requireRedis: boolean;
   /**
-   * Minimum required search capability level.
-   */
-  requiredSearchLevel: SearchRuntimeLevel;
-  /**
    * Whether external services may register by default and degrade by availability.
    */
   externalServicesOptional: boolean;
   /**
    * Runtime warning messages.
-   */
-  warnings: string[];
-};
-
-/**
- * Summary of database runtime capabilities.
- */
-export type DatabaseRuntimeSummary = {
-  /**
-   * Current database backend kind.
-   */
-  backend: "postgres-server" | "embedded-postgres-candidate";
-  /**
-   * Detected search capability level.
-   */
-  searchLevel: SearchRuntimeLevel;
-  /**
-   * Availability map of required extensions.
-   */
-  extensions: Record<"vector" | "pg_trgm" | "rum" | "zhparser", boolean>;
-  /**
-   * Availability map of text search configurations.
-   */
-  textSearchConfigs: Record<"cat_zh_hans", boolean>;
-  /**
-   * Availability map of runtime-dependent SQL functions.
-   */
-  functions: Record<"rum_ts_score", boolean>;
-  /**
-   * List of features disabled by current database capabilities.
-   */
-  disabledFeatures: RuntimeFeature[];
-  /**
-   * Database capability warning messages.
    */
   warnings: string[];
 };
@@ -160,10 +90,8 @@ export type RuntimeState = {
    * Currently resolved runtime profile.
    */
   profile: RuntimeProfile;
-  /**
-   * Current database capability summary.
-   */
-  database: DatabaseRuntimeSummary;
+  /** Current database requirement assessment. */
+  database: DatabaseRequirementAssessment;
   /**
    * Timestamp when runtime state was initialized.
    */

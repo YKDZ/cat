@@ -1,5 +1,25 @@
 import * as z from "zod";
 
+export const DatabaseRequirementIdValues = [
+  "POSTGRESQL_CORE",
+  "POSTGRESQL_TRIGRAM_MATCHING",
+  "POSTGRESQL_VECTOR_STORAGE",
+] as const;
+export const DatabaseRequirementIdSchema = z.enum(DatabaseRequirementIdValues);
+export type DatabaseRequirementId = z.infer<typeof DatabaseRequirementIdSchema>;
+
+export const DatabaseRequirementStatusValues = [
+  "SATISFIED",
+  "BLOCKED",
+  "UNKNOWN",
+] as const;
+export const DatabaseRequirementStatusSchema = z.enum(
+  DatabaseRequirementStatusValues,
+);
+export type DatabaseRequirementStatus = z.infer<
+  typeof DatabaseRequirementStatusSchema
+>;
+
 export const TokenTypeValues = [
   "text",
   "number",

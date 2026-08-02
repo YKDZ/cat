@@ -22,10 +22,6 @@ const dockerfile = "apps/app/Dockerfile";
 const cleanupTimeoutMs = 30_000;
 const lifecycleDatabaseCleanupTimeoutMs = 60_000;
 const lifecycleDatabaseCleanupAttempts = 3;
-const searchRuntimeInitializationPath = new URL(
-  "../apps/postgres-search-runtime/init/01-init-extensions.sql",
-  import.meta.url,
-);
 
 type ImageMode = Exclude<ReleaseImageTarget, "spacy">;
 
@@ -36,7 +32,6 @@ type ContainerServiceUrls = {
 };
 
 type LifecycleDatabase = {
-  initializeSearchRuntime: () => Promise<void>;
   serviceUrls: ContainerServiceUrls;
   remove: () => Promise<void>;
 };
@@ -351,23 +346,6 @@ WHERE datname = '${databaseName}'
   connection.port = "5432";
   connection.pathname = `/${databaseName}`;
   return {
-    initializeSearchRuntime: async (): Promise<void> => {
-      await docker(context, [
-        "exec",
-        "--env",
-        `PGPASSWORD=${password}`,
-        postgresContainer,
-        "psql",
-        "--username",
-        username,
-        "--dbname",
-        databaseName,
-        "--set",
-        "ON_ERROR_STOP=1",
-        "--command",
-        await readFile(searchRuntimeInitializationPath, "utf8"),
-      ]);
-    },
     serviceUrls: { databaseUrl: connection.toString(), redisUrl, spacyUrl },
     remove: async (): Promise<void> => {
       let lastError: unknown;
@@ -461,7 +439,7 @@ const assertImageConfig = async (
 
   const lifecycleArtifactsAssertion =
     mode === "standalone"
-      ? "test -f /app/.preparation/prepare-database.mjs && test -d /app/.preparation/drizzle && test -f /app/dist/bootstrap-only/bootstrap-only-cli.js"
+      ? "test -f /app/.preparation/prepare-database.mjs && test -f /app/.preparation/database-requirements.mjs && test -d /app/.preparation/drizzle && test -f /app/dist/bootstrap-only/bootstrap-only-cli.js"
       : "test ! -e /app/.preparation && test ! -e /app/drizzle && test ! -e /app/scripts && test ! -e /app/dist/bootstrap-only && test ! -e /app/compose.yaml && test ! -e /app/compose.local.yaml && test ! -e /app/compose.services.yaml && test ! -e /app/Dockerfile";
   await docker(context, [
     "run",
@@ -737,7 +715,6 @@ export const runApplicationLifecycle = async (
 
     lifecycleDatabase = await createLifecycleDatabase(context);
     lifecycleStorage = await createLifecycleStorage(context);
-    await lifecycleDatabase.initializeSearchRuntime();
     await runOneShot(
       context,
       standaloneImage,

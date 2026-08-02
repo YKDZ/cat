@@ -62,10 +62,19 @@ describe("resolveComposeConfig", () => {
         "utf8",
       ),
     ) as {
-      services: Record<string, { ports?: string[] }>;
+      services: Record<string, { healthcheck?: unknown; ports?: string[] }>;
     };
 
     expect(compose.services.spacy?.ports).toContain("8000:8000");
     expect(compose.services.ollama?.ports).toContain("11435:11434");
+    expect(compose.services.postgresql).toMatchObject({
+      image: "pgvector/pgvector:0.8.6-pg18",
+    });
+    expect(JSON.stringify(compose.services.postgresql?.healthcheck)).toContain(
+      "pg_isready",
+    );
+    expect(
+      JSON.stringify(compose.services.postgresql?.healthcheck),
+    ).not.toContain("psql");
   });
 });

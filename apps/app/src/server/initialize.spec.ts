@@ -46,23 +46,15 @@ const mocks = vi.hoisted(() => {
     },
     allowNonPersistentBackends: true,
     requireRedis: false,
-    requiredSearchLevel: "basic-db-runtime",
     externalServicesOptional: true,
     warnings: [],
   };
-  const fakeDatabaseSummary = {
-    backend: "postgres-server",
-    searchLevel: "basic-db-runtime",
-    extensions: {
-      vector: false,
-      pg_trgm: false,
-      rum: false,
-      zhparser: false,
-    },
-    textSearchConfigs: { cat_zh_hans: false },
-    functions: { rum_ts_score: false },
-    disabledFeatures: ["pgvector"],
-    warnings: ["database search capability degraded to basic-db-runtime"],
+  const fakeDatabaseAssessment = {
+    requirements: [
+      { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+      { id: "POSTGRESQL_TRIGRAM_MATCHING", status: "SATISFIED" },
+      { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+    ],
   };
   const fakeBackends = {
     cacheStore: { id: "cache-store" },
@@ -91,7 +83,12 @@ const mocks = vi.hoisted(() => {
   const ReadinessProbeFailure = class extends Error {};
 
   return {
-    assertSearchRuntimeHealth: vi.fn().mockResolvedValue(fakeDatabaseSummary),
+    assertDatabaseRequirements: vi
+      .fn()
+      .mockResolvedValue(fakeDatabaseAssessment),
+    assessDatabaseRequirements: vi
+      .fn()
+      .mockResolvedValue(fakeDatabaseAssessment),
     bootstrapApplicationData: vi.fn(),
     calls,
     configureReadinessReporter,
@@ -104,7 +101,7 @@ const mocks = vi.hoisted(() => {
     fakeApp,
     fakeBackends,
     fakeCleanupHandle,
-    fakeDatabaseSummary,
+    fakeDatabaseAssessment,
     fakeDiscovery,
     fakeDrizzleClient,
     fakeDrizzleDB,
@@ -170,6 +167,8 @@ vi.mock("@cat/app-api/app", () => ({
 }));
 
 vi.mock("@cat/domain", () => ({
+  assertDatabaseRequirements: mocks.assertDatabaseRequirements,
+  assessDatabaseRequirements: mocks.assessDatabaseRequirements,
   executeQuery: mocks.executeQuery,
   getCacheStore: mocks.getCacheStore,
   getCurrentRedisHandle: mocks.getCurrentRedisHandle,
@@ -246,10 +245,6 @@ vi.mock("./runtime-cleanup.ts", () => ({
   startPostgresRuntimeCleanup: mocks.startPostgresRuntimeCleanup,
 }));
 
-vi.mock("./search-runtime-health.ts", () => ({
-  assertSearchRuntimeHealth: mocks.assertSearchRuntimeHealth,
-}));
-
 import { initializeApp } from "./initialize.ts";
 import { resetRuntimeCapabilitiesForTest } from "./runtime-capabilities.ts";
 
@@ -310,14 +305,13 @@ describe("initializeApp", () => {
     await initializeApp();
 
     expect(mocks.resolveRuntimeProfile).toHaveBeenCalledOnce();
-    expect(mocks.assertSearchRuntimeHealth).toHaveBeenCalledWith(
-      mocks.fakeDrizzleClient,
-      mocks.fakeProfile,
+    expect(mocks.assertDatabaseRequirements).toHaveBeenCalledWith(
+      expect.objectContaining({ execute: expect.any(Function) }),
     );
     expect(mocks.initRuntimeState).toHaveBeenCalledWith(
       expect.objectContaining({
         profile: mocks.fakeProfile,
-        database: mocks.fakeDatabaseSummary,
+        database: mocks.fakeDatabaseAssessment,
       }),
     );
     expect(mocks.createRuntimeBackends).toHaveBeenCalledWith(
