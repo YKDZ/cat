@@ -30,6 +30,7 @@ export * from "#/queries/language-analysis/list-project-language-analysis-requir
 export * from "#/queries/recall-derivation/get-memory-canonical-snapshots.query.ts";
 export * from "#/queries/recall-derivation/get-term-concept-canonical-snapshots.query.ts";
 export * from "#/queries/recall-derivation/get-recall-derivation-states.query.ts";
+export * from "#/queries/recall-derivation/list-recall-derivation-task-ids.query.ts";
 export * from "#/queries/recall-derivation/list-scoped-memory-recall-derivation-states.query.ts";
 export * from "#/queries/recall-derivation/list-scoped-term-recall-derivation-states.query.ts";
 export * from "#/queries/recall-derivation/list-memory-recall-derivation-languages.query.ts";

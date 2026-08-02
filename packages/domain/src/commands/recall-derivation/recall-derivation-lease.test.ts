@@ -1,5 +1,8 @@
-import { recallDerivationState } from "@cat/db";
-import { CanonicalInputVersionSchema } from "@cat/shared";
+import { eq, recallDerivationState } from "@cat/db";
+import {
+  CanonicalInputVersionSchema,
+  RecallDerivationVersionSchema,
+} from "@cat/shared";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -7,6 +10,7 @@ import {
   ensureLanguages,
   recordRecallDerivationFailure,
   reconcileRecallDerivationDemands,
+  reconcileRecallDerivationDependency,
   renewRecallDerivationLease,
 } from "#/commands/index.ts";
 import { executeCommand } from "#/executor.ts";
@@ -186,5 +190,123 @@ describe("Recall Derivation leases", () => {
       },
     );
     expect(exhausted).toEqual({ status: "FAILED", retryCount: 2 });
+  });
+
+  it.each(["LANGUAGE_ANALYSIS", "TOKENIZER"] as const)(
+    "resumes a same-version %s blocker without superseding its demand",
+    async (reason) => {
+      const derivationVersion = RecallDerivationVersionSchema.parse(
+        `sha256:${"b".repeat(64)}`,
+      );
+      await db.client
+        .update(recallDerivationState)
+        .set({
+          status: "BLOCKED",
+          requiredDerivationVersion: derivationVersion,
+          retryCount: 2,
+          blocker: {
+            reason,
+            retryable: true,
+            message: `${reason} dependency is unavailable`,
+          },
+        })
+        .where(eq(recallDerivationState.targetId, "42"));
+
+      await expect(
+        executeCommand({ db: db.client }, reconcileRecallDerivationDependency, {
+          targetKind: "MEMORY_ITEM",
+          languageId: "en",
+          requiredDerivationVersion: derivationVersion,
+        }),
+      ).resolves.toEqual({ invalidated: 0, pendingUpdated: 0, resumed: 1 });
+
+      const [state] = await db.client
+        .select()
+        .from(recallDerivationState)
+        .where(eq(recallDerivationState.targetId, "42"));
+      expect(state).toMatchObject({
+        status: "PENDING",
+        demandRevision: 1,
+        retryCount: 0,
+        blocker: null,
+        requiredDerivationVersion: derivationVersion,
+      });
+    },
+  );
+
+  it("does not resume a same-version derivation execution blocker", async () => {
+    const derivationVersion = RecallDerivationVersionSchema.parse(
+      `sha256:${"c".repeat(64)}`,
+    );
+    await db.client
+      .update(recallDerivationState)
+      .set({
+        status: "BLOCKED",
+        requiredDerivationVersion: derivationVersion,
+        blocker: {
+          reason: "DERIVATION_EXECUTION",
+          retryable: false,
+          message: "Canonical snapshot is invalid.",
+        },
+      })
+      .where(eq(recallDerivationState.targetId, "42"));
+
+    await expect(
+      executeCommand({ db: db.client }, reconcileRecallDerivationDependency, {
+        targetKind: "MEMORY_ITEM",
+        languageId: "en",
+        requiredDerivationVersion: derivationVersion,
+      }),
+    ).resolves.toEqual({ invalidated: 0, pendingUpdated: 0, resumed: 0 });
+
+    const [state] = await db.client
+      .select()
+      .from(recallDerivationState)
+      .where(eq(recallDerivationState.targetId, "42"));
+    expect(state).toMatchObject({
+      status: "BLOCKED",
+      demandRevision: 1,
+      blocker: { reason: "DERIVATION_EXECUTION" },
+    });
+  });
+
+  it("supersedes a recoverable blocker when the required version changes", async () => {
+    const previousVersion = RecallDerivationVersionSchema.parse(
+      `sha256:${"d".repeat(64)}`,
+    );
+    const nextVersion = RecallDerivationVersionSchema.parse(
+      `sha256:${"e".repeat(64)}`,
+    );
+    await db.client
+      .update(recallDerivationState)
+      .set({
+        status: "BLOCKED",
+        requiredDerivationVersion: previousVersion,
+        blocker: {
+          reason: "LANGUAGE_ANALYSIS",
+          retryable: true,
+          message: "Language analysis is unavailable.",
+        },
+      })
+      .where(eq(recallDerivationState.targetId, "42"));
+
+    await expect(
+      executeCommand({ db: db.client }, reconcileRecallDerivationDependency, {
+        targetKind: "MEMORY_ITEM",
+        languageId: "en",
+        requiredDerivationVersion: nextVersion,
+      }),
+    ).resolves.toEqual({ invalidated: 1, pendingUpdated: 0, resumed: 0 });
+
+    const [state] = await db.client
+      .select()
+      .from(recallDerivationState)
+      .where(eq(recallDerivationState.targetId, "42"));
+    expect(state).toMatchObject({
+      status: "PENDING",
+      demandRevision: 2,
+      blocker: null,
+      requiredDerivationVersion: nextVersion,
+    });
   });
 });

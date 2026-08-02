@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   BatchAutoTranslationTaskPhase,
+  RecallDerivationTaskPhase,
   ElementSortMode,
   OperationFailure,
   OperationFailureAuthorizationDecision,
@@ -10,6 +11,7 @@ import type {
   OperationFailureSeverity,
   TaskActor,
   TaskAffectedResource,
+  TaskKindName,
   TaskStatus,
 } from "@cat/shared";
 import { useData } from "vike-vue/useData";
@@ -30,6 +32,7 @@ const pageError = computed(() => data.pageError);
 const projectId = data.projectId;
 const pageIndex = ref(0);
 const status = ref<TaskStatus>();
+const kind = ref<TaskKindName>();
 const loading = ref(false);
 const listError = ref<string>();
 const actionTaskId = ref<string>();
@@ -54,12 +57,14 @@ type CommittedListSnapshot = {
   cursors: Array<Cursor | undefined>;
   pageIndex: number;
   status: TaskStatus | undefined;
+  kind: TaskKindName | undefined;
   tasks: typeof tasks.value;
 };
 const committedList = ref<CommittedListSnapshot>({
   cursors: cursors.value,
   pageIndex: pageIndex.value,
   status: status.value,
+  kind: kind.value,
   tasks: tasks.value,
 });
 const commitList = () => {
@@ -67,6 +72,7 @@ const commitList = () => {
     cursors: [...cursors.value],
     pageIndex: pageIndex.value,
     status: status.value,
+    kind: kind.value,
     tasks: tasks.value,
   };
 };
@@ -75,6 +81,7 @@ const restoreCommittedList = () => {
   cursors.value = [...committed.cursors];
   pageIndex.value = committed.pageIndex;
   status.value = committed.status;
+  kind.value = committed.kind;
   tasks.value = committed.tasks;
 };
 
@@ -91,6 +98,7 @@ const load = async () => {
       pageSize: 20,
       ...(cursor === undefined ? {} : { cursor }),
       ...(status.value === undefined ? {} : { status: status.value }),
+      ...(kind.value === undefined ? {} : { kind: kind.value }),
     });
     if (requestVersion === listRequestVersion.value) {
       tasks.value = result;
@@ -105,11 +113,15 @@ const load = async () => {
   }
 };
 
-const changeStatus = async (value: TaskStatus | undefined) => {
+const changeFilters = async (input: {
+  status: TaskStatus | undefined;
+  kind: TaskKindName | undefined;
+}) => {
   if (!projectId) return;
   const requestVersion = listRequestVersion.value + 1;
   listRequestVersion.value = requestVersion;
-  status.value = value;
+  status.value = input.status;
+  kind.value = input.kind;
   pageIndex.value = 0;
   cursors.value = [undefined];
   loading.value = true;
@@ -118,7 +130,8 @@ const changeStatus = async (value: TaskStatus | undefined) => {
     const result = await orpc.task.list({
       projectId,
       pageSize: 20,
-      ...(value === undefined ? {} : { status: value }),
+      ...(input.status === undefined ? {} : { status: input.status }),
+      ...(input.kind === undefined ? {} : { kind: input.kind }),
     });
     if (requestVersion === listRequestVersion.value) {
       tasks.value = result;
@@ -133,6 +146,12 @@ const changeStatus = async (value: TaskStatus | undefined) => {
     if (requestVersion === listRequestVersion.value) loading.value = false;
   }
 };
+
+const changeStatus = async (value: TaskStatus | undefined) =>
+  await changeFilters({ status: value, kind: kind.value });
+
+const changeKind = async (value: TaskKindName | undefined) =>
+  await changeFilters({ status: status.value, kind: value });
 
 const showDetail = async (taskId: string): Promise<TaskDetail | undefined> => {
   const requestVersion = detailRequestVersion.value + 1;
@@ -286,6 +305,7 @@ const changePage = async (
       pageSize: 20,
       ...(cursor === undefined ? {} : { cursor }),
       ...(status.value === undefined ? {} : { status: status.value }),
+      ...(kind.value === undefined ? {} : { kind: kind.value }),
     });
     if (requestVersion === listRequestVersion.value) {
       tasks.value = result;
@@ -334,10 +354,16 @@ const taskStatusLabels: Record<TaskStatus, string> = {
   FAILED: "失败",
   CANCELED: "已取消",
 };
-const phaseLabels: Record<BatchAutoTranslationTaskPhase, string> = {
+const phaseLabels: Record<
+  BatchAutoTranslationTaskPhase | RecallDerivationTaskPhase,
+  string
+> = {
   PREPARING: "准备中",
   TRANSLATING: "翻译中",
   INDEXING: "索引中",
+  QUEUED: "等待派生",
+  DERIVING: "派生中",
+  PUBLISHING: "发布中",
 };
 const actorLabels: Record<TaskActor["type"], string> = {
   USER: "用户",
@@ -347,6 +373,8 @@ const resourceLabels: Record<TaskAffectedResource["type"], string> = {
   PROJECT: "项目",
   ELEMENT: "元素",
   TRANSLATION: "翻译",
+  MEMORY: "记忆库",
+  GLOSSARY: "术语库",
 };
 const sortModeLabels: Record<ElementSortMode, string> = {
   structure: "结构顺序",
@@ -417,8 +445,9 @@ const localizedEnum = <Value extends string>(
 };
 const taskStatusLabel = (value: TaskStatus): string =>
   localizedEnum(value, taskStatusLabels, "未知任务状态");
-const phaseLabel = (value: BatchAutoTranslationTaskPhase): string =>
-  localizedEnum(value, phaseLabels, "未知任务阶段");
+const phaseLabel = (
+  value: BatchAutoTranslationTaskPhase | RecallDerivationTaskPhase,
+): string => localizedEnum(value, phaseLabels, "未知任务阶段");
 const actorLabel = (value: TaskActor["type"]): string =>
   localizedEnum(value, actorLabels, "未知执行者");
 const resourceLabel = (value: TaskAffectedResource["type"]): string =>
@@ -452,11 +481,13 @@ const authorizationDecisionLabel = (
       :loading="loading"
       :error="listError"
       :status="status"
+      :kind="kind"
       :action-task-id="actionTaskId"
       :action-busy="actionBusy"
       :action-error="actionError"
       @refresh="load"
       @update:status="changeStatus"
+      @update:kind="changeKind"
       @previous="previous"
       @next="next"
       @detail="openDetail"
@@ -535,14 +566,24 @@ const authorizationDecisionLabel = (
           {{ actorLabel(selectedDetail.task.state.actor.type) }} ·
           {{ selectedDetail.task.state.actor.id ?? $t("系统") }}
         </dd>
-        <dt class="text-muted-foreground">{{ $t("语言") }}</dt>
-        <dd>{{ selectedDetail.task.task.payload.invocation.languageId }}</dd>
-        <dt class="text-muted-foreground">{{ $t("排序") }}</dt>
-        <dd>
-          {{
-            sortModeLabel(selectedDetail.task.task.payload.invocation.sortMode)
-          }}
-        </dd>
+        <template
+          v-if="selectedDetail.task.task.kind === 'BATCH_AUTO_TRANSLATION'"
+        >
+          <dt class="text-muted-foreground">{{ $t("语言") }}</dt>
+          <dd>{{ selectedDetail.task.task.payload.invocation.languageId }}</dd>
+          <dt class="text-muted-foreground">{{ $t("排序") }}</dt>
+          <dd>
+            {{
+              sortModeLabel(
+                selectedDetail.task.task.payload.invocation.sortMode,
+              )
+            }}
+          </dd>
+        </template>
+        <template v-else>
+          <dt class="text-muted-foreground">{{ $t("派生需求") }}</dt>
+          <dd>{{ selectedDetail.task.task.payload.references.length }}</dd>
+        </template>
         <dt class="text-muted-foreground">{{ $t("创建时间") }}</dt>
         <dd>{{ timestamp(selectedDetail.task.createdAt) }}</dd>
         <dt class="text-muted-foreground">{{ $t("更新时间") }}</dt>
@@ -560,7 +601,9 @@ const authorizationDecisionLabel = (
       </dl>
 
       <div class="mt-4 grid gap-4 lg:grid-cols-4">
-        <section>
+        <section
+          v-if="selectedDetail.task.task.kind === 'BATCH_AUTO_TRANSLATION'"
+        >
           <h3 class="mb-2 font-medium">{{ $t("调用参数") }}</h3>
           <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <dt class="text-muted-foreground">{{ $t("元素") }}</dt>
@@ -638,7 +681,13 @@ const authorizationDecisionLabel = (
         </section>
         <section>
           <h3 class="mb-2 font-medium">{{ $t("结果") }}</h3>
-          <template v-if="selectedDetail.task.state.runtime.result">
+          <template
+            v-if="
+              selectedDetail.task.state.runtime.result &&
+              selectedDetail.task.state.runtime.kind ===
+                'BATCH_AUTO_TRANSLATION'
+            "
+          >
             <p>
               {{ $t("翻译") }}:
               {{
@@ -658,6 +707,25 @@ const authorizationDecisionLabel = (
                 selectedDetail.task.state.runtime.result.skippedElementIds
                   .length
               }}
+            </p>
+          </template>
+          <template
+            v-else-if="
+              selectedDetail.task.state.runtime.result &&
+              selectedDetail.task.state.runtime.kind === 'RECALL_DERIVATION'
+            "
+          >
+            <p>
+              {{ $t("新鲜") }}:
+              {{ selectedDetail.task.state.runtime.result.fresh }}
+            </p>
+            <p>
+              {{ $t("失败") }}:
+              {{ selectedDetail.task.state.runtime.result.failed }}
+            </p>
+            <p>
+              {{ $t("已被替代") }}:
+              {{ selectedDetail.task.state.runtime.result.superseded }}
             </p>
           </template>
           <p v-else class="text-muted-foreground">{{ $t("无") }}</p>

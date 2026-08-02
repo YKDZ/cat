@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, lt, or, task } from "@cat/db";
-import { TaskStatusSchema } from "@cat/shared";
+import { TaskKindNameSchema, TaskStatusSchema } from "@cat/shared";
 import * as z from "zod";
 
 import {
@@ -18,6 +18,7 @@ export const ListLocalizationTasksQuerySchema = z.strictObject({
   authorization: TaskReadAuthorizationSchema,
   projectId: z.uuidv4().optional(),
   status: TaskStatusSchema.optional(),
+  kind: TaskKindNameSchema.optional(),
   pageSize: z.int().min(1).max(100).default(20),
   cursor: z
     .strictObject({ updatedAt: z.iso.datetime(), id: z.uuidv4() })
@@ -62,6 +63,7 @@ export const listLocalizationTasks: Query<
     );
   }
   if (query.status !== undefined) filters.push(eq(task.status, query.status));
+  if (query.kind !== undefined) filters.push(eq(task.kind, query.kind));
   if (query.cursor !== undefined) {
     const updatedAt = new Date(query.cursor.updatedAt);
     filters.push(

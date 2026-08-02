@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { GlossaryTermWriteOperationSchema } from "@cat/shared";
 import { Textarea } from "@cat/ui";
 import { Button } from "@cat/ui";
 import { storeToRefs } from "pinia";
@@ -91,6 +92,9 @@ const handleInsert = async () => {
     .insertTerm({
       glossaryId: props.glossaryId,
       termsData: termsData,
+      operation: GlossaryTermWriteOperationSchema.parse(
+        scopedProjectId.value === undefined ? "DIRECT_WRITE" : "BULK_IMPORT",
+      ),
       ...(scopedProjectId.value !== undefined
         ? { projectId: scopedProjectId.value }
         : {}),

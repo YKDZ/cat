@@ -8,6 +8,12 @@ export type {
 // === Memory utilities ===
 export { insertMemory } from "./memory.ts";
 export {
+  startRecallDerivationTask,
+  refreshRecallDerivationTask,
+  StartRecallDerivationTaskInputSchema,
+  type StartRecallDerivationTaskInput,
+} from "./recall-derivation-task.ts";
+export {
   processRecallDerivationBatch,
   RecallDerivationFreshnessError,
   assessRecallDerivationFreshness,

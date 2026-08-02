@@ -51,9 +51,22 @@ export const TaskScopeTypeValues = ["PROJECT", "USER", "INSTANCE"] as const;
 export const TaskScopeTypeSchema = z.enum(TaskScopeTypeValues);
 export type TaskScopeType = (typeof TaskScopeTypeValues)[number];
 
-export const TaskKindValues = ["BATCH_AUTO_TRANSLATION"] as const;
+export const TaskKindValues = [
+  "BATCH_AUTO_TRANSLATION",
+  "RECALL_DERIVATION",
+] as const;
 export const TaskKindNameSchema = z.enum(TaskKindValues);
 export type TaskKindName = (typeof TaskKindValues)[number];
+
+export const GlossaryTermWriteOperationValues = [
+  "DIRECT_WRITE",
+  "BULK_IMPORT",
+] as const;
+export const GlossaryTermWriteOperationSchema = z.enum(
+  GlossaryTermWriteOperationValues,
+);
+export type GlossaryTermWriteOperation =
+  (typeof GlossaryTermWriteOperationValues)[number];
 
 /** Private workflow execution state; it is never part of the Task API. */
 export const WorkflowTaskDispatchStatusValues = [
@@ -80,6 +93,17 @@ export const BatchAutoTranslationTaskPhaseSchema = z.enum(
 export type BatchAutoTranslationTaskPhase =
   (typeof BatchAutoTranslationTaskPhaseValues)[number];
 
+export const RecallDerivationTaskPhaseValues = [
+  "QUEUED",
+  "DERIVING",
+  "PUBLISHING",
+] as const;
+export const RecallDerivationTaskPhaseSchema = z.enum(
+  RecallDerivationTaskPhaseValues,
+);
+export type RecallDerivationTaskPhase =
+  (typeof RecallDerivationTaskPhaseValues)[number];
+
 export const TaskActorTypeValues = ["USER", "SYSTEM"] as const;
 export const TaskActorTypeSchema = z.enum(TaskActorTypeValues);
 export type TaskActorType = (typeof TaskActorTypeValues)[number];
@@ -88,6 +112,8 @@ export const TaskAffectedResourceTypeValues = [
   "PROJECT",
   "ELEMENT",
   "TRANSLATION",
+  "MEMORY",
+  "GLOSSARY",
 ] as const;
 export const TaskAffectedResourceTypeSchema = z.enum(
   TaskAffectedResourceTypeValues,

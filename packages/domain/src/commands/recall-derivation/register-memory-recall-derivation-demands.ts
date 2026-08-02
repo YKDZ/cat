@@ -68,6 +68,7 @@ export const registerMemoryRecallDerivationDemands = async (
       set: {
         canonicalInputVersion: sql`excluded.canonical_input_version`,
         demandRevision: sql`CASE WHEN ${recallDerivationState.canonicalInputVersion} = excluded.canonical_input_version THEN ${recallDerivationState.demandRevision} ELSE ${recallDerivationState.demandRevision} + 1 END`,
+        taskProjectionRevision: sql`CASE WHEN ${recallDerivationState.canonicalInputVersion} = excluded.canonical_input_version THEN ${recallDerivationState.taskProjectionRevision} ELSE ${recallDerivationState.taskProjectionRevision} + 1 END`,
         status: sql`CASE WHEN ${recallDerivationState.canonicalInputVersion} = excluded.canonical_input_version THEN ${recallDerivationState.status} ELSE 'PENDING'::"RecallDerivationStatus" END`,
         leaseOwnerId: sql`CASE WHEN ${recallDerivationState.canonicalInputVersion} = excluded.canonical_input_version THEN ${recallDerivationState.leaseOwnerId} ELSE NULL END`,
         leaseToken: sql`CASE WHEN ${recallDerivationState.canonicalInputVersion} = excluded.canonical_input_version THEN ${recallDerivationState.leaseToken} ELSE NULL END`,

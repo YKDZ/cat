@@ -36,6 +36,7 @@ export const claimRecallDerivationDemands: Command<
         leaseOwnerId: command.workerId,
         leaseToken: sql`gen_random_uuid()`,
         executionEpoch: sql`${recallDerivationState.executionEpoch} + 1`,
+        taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
         leaseExpiresAt: sql`clock_timestamp() + (${command.leaseDurationMs} * interval '1 millisecond')`,
         lastAttemptAt: sql`clock_timestamp()`,
         updatedAt: sql`clock_timestamp()`,
@@ -64,6 +65,7 @@ export const releaseRecallDerivationWorkerLeases: Command<
       leaseOwnerId: null,
       leaseToken: null,
       leaseExpiresAt: null,
+      taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
       updatedAt: sql`clock_timestamp()`,
     })
     .where(
@@ -89,6 +91,7 @@ export const reconcileRecallDerivationDemands: Command<
           lease_owner_id = NULL,
           lease_token = NULL,
           lease_expires_at = NULL,
+          task_projection_revision = task_projection_revision + 1,
           updated_at = clock_timestamp()
       WHERE status = 'RUNNING'
         AND (lease_expires_at IS NULL OR lease_expires_at <= clock_timestamp())
@@ -104,6 +107,7 @@ export const reconcileRecallDerivationDemands: Command<
           retry_count = 0,
           next_attempt_at = NULL,
           blocker = NULL,
+          task_projection_revision = task_projection_revision + 1,
           updated_at = clock_timestamp()
       WHERE status = 'FRESH'
         AND (

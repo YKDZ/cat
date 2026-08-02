@@ -3,6 +3,7 @@ import * as z from "zod";
 import { OperationScopeSchema } from "#/schema/editor.ts";
 import {
   BatchAutoTranslationTaskPhaseSchema,
+  RecallDerivationTaskPhaseSchema,
   OperationFailureBlockerSchema,
   OperationFailureAuthorizationDecisionSchema,
   OperationFailureCapabilitySchema,
@@ -14,6 +15,7 @@ import {
   TaskStatusSchema,
 } from "#/schema/enum.ts";
 import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";
+import { RecallDerivationReferenceSchema } from "#/schema/recall-derivation.ts";
 import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const TaskAffectedResourceSchema = z.strictObject({
@@ -77,11 +79,26 @@ export const BatchAutoTranslationTaskPayloadSchema = z.strictObject({
   cancelable: z.literal(true),
 });
 
+/** A user-visible projection over one or more coalesced derivation demands. */
+export const RecallDerivationTaskPayloadSchema = z.strictObject({
+  references: z.array(RecallDerivationReferenceSchema).min(1),
+  cancelable: z.literal(true),
+});
+
 export const TaskKindSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: TaskKindNameSchema.extract(["BATCH_AUTO_TRANSLATION"]),
     payload: BatchAutoTranslationTaskPayloadSchema,
   }),
+  z.strictObject({
+    kind: TaskKindNameSchema.extract(["RECALL_DERIVATION"]),
+    payload: RecallDerivationTaskPayloadSchema,
+  }),
+]);
+
+export const TaskPayloadSchema = z.union([
+  BatchAutoTranslationTaskPayloadSchema,
+  RecallDerivationTaskPayloadSchema,
 ]);
 
 export const BatchAutoTranslationTaskResultSchema = z.strictObject({
@@ -90,11 +107,23 @@ export const BatchAutoTranslationTaskResultSchema = z.strictObject({
   skippedElementIds: z.array(z.int()),
 });
 
+export const RecallDerivationTaskResultSchema = z.strictObject({
+  fresh: z.int().nonnegative(),
+  failed: z.int().nonnegative(),
+  superseded: z.int().nonnegative(),
+  total: z.int().positive(),
+});
+
 export const TaskRuntimeSchema = z.discriminatedUnion("kind", [
   z.strictObject({
     kind: TaskKindNameSchema.extract(["BATCH_AUTO_TRANSLATION"]),
     phase: BatchAutoTranslationTaskPhaseSchema.nullable(),
     result: BatchAutoTranslationTaskResultSchema.nullable(),
+  }),
+  z.strictObject({
+    kind: TaskKindNameSchema.extract(["RECALL_DERIVATION"]),
+    phase: RecallDerivationTaskPhaseSchema.nullable(),
+    result: RecallDerivationTaskResultSchema.nullable(),
   }),
 ]);
 
@@ -137,12 +166,16 @@ export type TaskAffectedResource = z.infer<typeof TaskAffectedResourceSchema>;
 export type TaskActor = z.infer<typeof TaskActorSchema>;
 export type TaskScope = z.infer<typeof TaskScopeSchema>;
 export type TaskKind = z.infer<typeof TaskKindSchema>;
+export type TaskPayload = z.infer<typeof TaskPayloadSchema>;
 export type AutoTranslateConfig = z.infer<typeof AutoTranslateConfigSchema>;
 export type BatchAutoTranslationInvocation = z.infer<
   typeof BatchAutoTranslationInvocationSchema
 >;
 export type BatchAutoTranslationTaskResult = z.infer<
   typeof BatchAutoTranslationTaskResultSchema
+>;
+export type RecallDerivationTaskResult = z.infer<
+  typeof RecallDerivationTaskResultSchema
 >;
 export type OperationFailure = z.infer<typeof OperationFailureSchema>;
 export type OperationFailureInput = z.infer<typeof OperationFailureInputSchema>;

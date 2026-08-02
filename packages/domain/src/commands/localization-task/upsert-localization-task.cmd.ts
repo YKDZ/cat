@@ -10,6 +10,7 @@ import {
 } from "@cat/db";
 import {
   BatchAutoTranslationTaskPhaseSchema,
+  type BatchAutoTranslationTaskPhase,
   BatchAutoTranslationTaskResultSchema,
   OperationFailureInputSchema,
   type TaskActor,
@@ -66,6 +67,16 @@ export const CreateLocalizationTaskCommandSchema = z
     resources: z.array(TaskAffectedResourceSchema),
   })
   .superRefine((value, ctx) => {
+    if (value.task.kind === "RECALL_DERIVATION") {
+      if (value.resources.some((resource) => resource.type === "ELEMENT")) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["resources"],
+          message: "Recall derivation tasks cannot contain element resources.",
+        });
+      }
+      return;
+    }
     if (value.task.payload.invocation.contentNodeIds.length !== 0) {
       ctx.addIssue({
         code: "custom",
@@ -176,7 +187,7 @@ export const TransitionLocalizationTaskCommandSchema = z.discriminatedUnion(
     z.strictObject({
       ...transitionFields,
       transition: z.literal("confirmCancel"),
-      owner: z.literal("WORKFLOW_ADAPTER"),
+      owner: z.enum(["WORKFLOW_ADAPTER", "RECALL_DERIVATION_ADAPTER"]),
     }),
   ],
 );
@@ -186,9 +197,17 @@ export const RetryLocalizationTaskCommandSchema = z.strictObject({
   actor: TaskActorSchema,
 });
 
-export type CreateLocalizationTaskCommand = z.infer<
+type AnyCreateLocalizationTaskCommand = z.infer<
   typeof CreateLocalizationTaskCommandSchema
 >;
+
+/** Workflow dispatch accepts only workflow-owned Task kinds. */
+export type CreateLocalizationTaskCommand = Omit<
+  AnyCreateLocalizationTaskCommand,
+  "task"
+> & {
+  task: Extract<TaskKind, { kind: "BATCH_AUTO_TRANSLATION" }>;
+};
 export type TransitionLocalizationTaskCommand = z.infer<
   typeof TransitionLocalizationTaskCommandSchema
 >;
@@ -271,7 +290,7 @@ const taskFields = {
 
 export const insertLocalizationTask = async (
   db: DbHandle,
-  command: CreateLocalizationTaskCommand,
+  command: AnyCreateLocalizationTaskCommand,
   retryOfTaskId?: string,
 ): Promise<LocalizationTaskSummary> => {
   const [row] = await db
@@ -359,6 +378,19 @@ export const transitionTask = async (
 
   assertExpectedRevision(current.revision, command.expectedRevision);
   const currentTask = toSummary(current);
+  const usesBatchRuntime =
+    command.transition === "start" ||
+    command.transition === "progress" ||
+    command.transition === "complete";
+  if (
+    usesBatchRuntime &&
+    (currentTask.task.kind !== "BATCH_AUTO_TRANSLATION" ||
+      current.runtime.kind !== "BATCH_AUTO_TRANSLATION")
+  ) {
+    throw new InvalidTaskProgressError(
+      "Workflow transitions require a batch auto-translation task.",
+    );
+  }
   if (
     command.transition === "requestCancel" &&
     !currentTask.task.payload.cancelable
@@ -398,7 +430,11 @@ export const transitionTask = async (
     throw new InvalidTaskProgressError("Task progress cannot move backwards.");
   }
 
-  const phaseOrder = ["PREPARING", "TRANSLATING", "INDEXING"] as const;
+  const phaseOrder: BatchAutoTranslationTaskPhase[] = [
+    "PREPARING",
+    "TRANSLATING",
+    "INDEXING",
+  ];
   const nextPhase =
     command.transition === "start"
       ? command.phase
@@ -406,9 +442,13 @@ export const transitionTask = async (
         ? (command.phase ?? current.runtime.phase)
         : current.runtime.phase;
   if (
+    usesBatchRuntime &&
     current.runtime.phase !== null &&
     nextPhase !== null &&
-    phaseOrder.indexOf(nextPhase) < phaseOrder.indexOf(current.runtime.phase)
+    phaseOrder.indexOf(BatchAutoTranslationTaskPhaseSchema.parse(nextPhase)) <
+      phaseOrder.indexOf(
+        BatchAutoTranslationTaskPhaseSchema.parse(current.runtime.phase),
+      )
   ) {
     throw new InvalidTaskProgressError("Task phase cannot move backwards.");
   }

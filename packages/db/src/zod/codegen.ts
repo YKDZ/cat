@@ -112,7 +112,7 @@ const renderTableDeclaration = (
   return [
     `export const ${declaration.schemaExportName} = z.object({`,
     ...fieldLines,
-    `});`,
+    `})${declaration.refinement ? `.superRefine(${declaration.refinement})` : ""};`,
     "",
     `export type ${declaration.typeExportName} = z.infer<typeof ${declaration.schemaExportName}>;`,
   ].join("\n");

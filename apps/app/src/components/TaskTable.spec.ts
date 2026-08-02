@@ -151,4 +151,45 @@ describe("TaskTable", () => {
     expect(wrapper.emitted("previous")).toHaveLength(1);
     expect(wrapper.emitted("next")).toHaveLength(1);
   });
+
+  it("keeps recall recovery actions hidden and presents an indeterminate total", () => {
+    const recall = {
+      ...row,
+      task: TaskKindSchema.parse({
+        kind: "RECALL_DERIVATION",
+        payload: {
+          references: [
+            {
+              targetKind: "MEMORY_ITEM",
+              targetId: "101",
+              languageId: "en",
+              demandRevision: 1,
+            },
+          ],
+          cancelable: true,
+        },
+      }),
+      state: TaskStateSchema.parse({
+        ...row.state,
+        status: "FAILED",
+        progressCurrent: 0,
+        progressTotal: null,
+        runtime: { kind: "RECALL_DERIVATION", phase: "DERIVING", result: null },
+      }),
+    } satisfies TaskTableRow;
+    const wrapper = mount(TaskTable, {
+      props: { data: [recall], hasPrevious: false, hasMore: false },
+      global: {
+        components: { Button: { template: "<button><slot /></button>" } },
+      },
+    });
+
+    expect(wrapper.text()).toContain("总量待定");
+    expect(
+      wrapper.findAll("button").map((button) => button.attributes("title")),
+    ).not.toContain("重试");
+    expect(
+      wrapper.findAll("button").map((button) => button.attributes("title")),
+    ).not.toContain("恢复");
+  });
 });

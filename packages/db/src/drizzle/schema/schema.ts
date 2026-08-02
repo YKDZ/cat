@@ -2882,6 +2882,7 @@ export const recallDerivationState = snakeCase.table(
       }),
     status: recallDerivationStatus().notNull().default("PENDING"),
     demandRevision: integer().notNull().default(1),
+    taskProjectionRevision: integer().notNull().default(1),
     executionEpoch: integer().notNull().default(0),
     leaseOwnerId: uuid(),
     leaseToken: uuid(),
@@ -2912,7 +2913,48 @@ export const recallDerivationState = snakeCase.table(
     ),
     check(
       "RecallDerivationState_revision_check",
-      sql`${table.demandRevision} > 0 AND ${table.executionEpoch} >= 0 AND ${table.retryCount} >= 0`,
+      sql`${table.demandRevision} > 0 AND ${table.taskProjectionRevision} > 0 AND ${table.executionEpoch} >= 0 AND ${table.retryCount} >= 0`,
+    ),
+  ],
+);
+
+/**
+ * A Task is an observer of a demand, never its lease or retry owner. Multiple
+ * initiating tasks may therefore observe one coalesced derivation state.
+ */
+export const recallDerivationTaskDemand = snakeCase.table(
+  "RecallDerivationTaskDemand",
+  {
+    id: serial().primaryKey(),
+    taskId: uuid()
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    derivationStateId: integer()
+      .references(() => recallDerivationState.id, {
+        onDelete: "set null",
+        onUpdate: "cascade",
+      }),
+    targetKind: recallDerivationTargetKind().notNull(),
+    targetId: text().notNull(),
+    languageId: text().notNull(),
+    demandRevision: integer().notNull(),
+    observedProjectionRevision: integer().notNull(),
+    detachedAt: timestamp({ withTimezone: true }),
+    supersededAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique().on(
+      table.taskId,
+      table.targetKind,
+      table.targetId,
+      table.languageId,
+      table.demandRevision,
+    ),
+    index().on(table.derivationStateId, table.detachedAt),
+    check(
+      "RecallDerivationTaskDemand_revision_check",
+      sql`${table.demandRevision} > 0 AND ${table.observedProjectionRevision} > 0`,
     ),
   ],
 );

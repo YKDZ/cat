@@ -1,12 +1,15 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  requestRecallDerivationTaskCancel,
+  executeCommand,
   executeQuery,
   getLocalizationTask,
   getOperationFailure,
   listLocalizationTasks,
 } from "@cat/domain";
 import { getPermissionEngine } from "@cat/permissions";
+import { TaskKindNameSchema, TaskStatusSchema } from "@cat/shared";
 import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 
@@ -15,17 +18,8 @@ import { getGraphRuntime } from "#/utils/graph-runtime.ts";
 
 const listInput = z.object({
   projectId: z.uuidv4(),
-  status: z
-    .enum([
-      "PENDING",
-      "RUNNING",
-      "BLOCKED",
-      "CANCEL_REQUESTED",
-      "COMPLETED",
-      "FAILED",
-      "CANCELED",
-    ])
-    .optional(),
+  status: TaskStatusSchema.optional(),
+  kind: TaskKindNameSchema.optional(),
   pageSize: z.int().min(1).max(100).default(20),
   cursor: z.object({ updatedAt: z.iso.datetime(), id: z.uuidv4() }).optional(),
 });
@@ -165,6 +159,14 @@ export const cancel = authed
       throw new ORPCError("NOT_FOUND");
     }
 
+    if (current.task.kind === "RECALL_DERIVATION") {
+      return await executeCommand({ db }, requestRecallDerivationTaskCancel, {
+        taskId: current.id,
+        expectedRevision: current.state.revision,
+        requestId: input.requestId,
+      });
+    }
+
     const runtime = await getGraphRuntime(db, pluginManager);
     return await runtime.taskService.requestCancel({
       taskId: current.id,
@@ -202,6 +204,12 @@ export const retry = authed
     ) {
       throw new ORPCError("NOT_FOUND");
     }
+    if (current.task.kind === "RECALL_DERIVATION") {
+      throw new ORPCError("BAD_REQUEST", {
+        message:
+          "Recall derivation recovery follows demand remediation and projection; retry is unavailable.",
+      });
+    }
     const runtime = await getGraphRuntime(db, pluginManager);
     return await runtime.taskService.retryAndSchedule({
       taskId: current.id,
@@ -238,6 +246,12 @@ export const resume = authed
       current.state.scope.id !== input.projectId
     ) {
       throw new ORPCError("NOT_FOUND");
+    }
+    if (current.task.kind === "RECALL_DERIVATION") {
+      throw new ORPCError("BAD_REQUEST", {
+        message:
+          "Recall derivation recovery follows demand remediation and projection; resume is unavailable.",
+      });
     }
     const runtime = await getGraphRuntime(db, pluginManager);
     return await runtime.taskService.resumeAndSchedule({

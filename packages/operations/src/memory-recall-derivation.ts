@@ -9,12 +9,14 @@ import {
   markRecallDerivationDependencyUnverified,
   publishMemoryRecallDerivation,
   publishTermRecallDerivation,
+  projectRecallDerivationTasks,
   reconcileRecallDerivationDependency,
   reconcileRecallDerivationDemands,
   recordRecallDerivationFailure,
   releaseRecallDerivationWorkerLeases,
   renewRecallDerivationLease,
   type RecallDerivationClaim,
+  listRecallDerivationTasksNeedingProjection,
 } from "@cat/domain";
 import { PluginManager, tokenize, type Tokenizer } from "@cat/plugin-core";
 import { serverLogger as logger } from "@cat/server-shared";
@@ -675,6 +677,33 @@ export const processRecallDerivationBatch = async (
       clearInterval(heartbeat);
       await renewal;
     }
+  }
+  try {
+    const taskIds = await executeQuery(
+      { db: options.db },
+      listRecallDerivationTasksNeedingProjection,
+      { limit: 25 },
+    );
+    for (const taskId of taskIds) {
+      try {
+        await executeCommand({ db: options.db }, projectRecallDerivationTasks, {
+          taskIds: [taskId],
+        });
+      } catch (error) {
+        logger.error(
+          "Recall derivation Task projection reconciliation failed",
+          {
+            error,
+            taskId,
+          },
+        );
+      }
+    }
+  } catch (error) {
+    logger.error(
+      "Recall derivation Task projection reconciliation discovery failed",
+      { error },
+    );
   }
   return { claimed, published, stale, failed };
 };

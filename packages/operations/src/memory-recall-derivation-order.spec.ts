@@ -18,7 +18,11 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@cat/domain", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@cat/domain")>()),
-  executeCommand: vi.fn(async () => ({ invalidated: 0, pendingUpdated: 0 })),
+  executeCommand: vi.fn(async () => ({
+    invalidated: 0,
+    pendingUpdated: 0,
+    resumed: 0,
+  })),
 }));
 
 import { reconcileMemoryRecallDependency } from "./memory-recall-derivation.ts";

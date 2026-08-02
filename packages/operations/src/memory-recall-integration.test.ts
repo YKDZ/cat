@@ -8,6 +8,7 @@ import {
   ensureLanguages,
   executeCommand,
   executeQuery,
+  getLanguageAnalysisSelection,
   listKeywordMemorySuggestions,
   listScopedMemoryRecallDerivationStates,
   writeValidatedLanguageAnalysisSelection,
@@ -36,16 +37,19 @@ import {
   eq,
   memoryItem,
   memoryRecallVariant,
+  operationFailure,
   project,
   recallDerivationState,
+  recallDerivationTaskDemand,
   setupTestDB,
+  task as taskTable,
   testLanguageAnalyzerManifest,
   TestLanguageAnalyzer,
   TestPluginLoader,
   type TestDB,
   vectorizedString,
 } from "@cat/test-utils";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
 
@@ -56,10 +60,13 @@ import {
 import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requirement.ts";
 import {
   assessRecallDerivationFreshness,
+  probeCurrentMemoryRecallDependencies,
+  processRecallDerivationBatch,
   startRecallDerivationWorker,
   waitForRecallDerivationFresh,
 } from "./memory-recall-derivation.ts";
 import { insertMemory } from "./memory.ts";
+import { startRecallDerivationTask } from "./recall-derivation-task.ts";
 
 class TestNumberTokenizer extends Tokenizer {
   public override getId = (): string => "test-number-tokenizer";
@@ -144,6 +151,9 @@ describe("memory recall integration", () => {
   let forwardTranslationId: number;
   let reversedTranslationId: number;
   let derivations: RecallDerivationReference[];
+  let userId: string;
+  let projectId: string;
+  let rootContentNodeId: string;
 
   const createTranslationRecord = async ({
     creatorId,
@@ -218,6 +228,66 @@ describe("memory recall integration", () => {
     return requireFixtureValue(translationId);
   };
 
+  const createIsolatedRecallTask = async ({
+    sourceText,
+    sourceLanguageId,
+    translationText,
+    translationLanguageId,
+    startTask = true,
+  }: {
+    sourceText: string;
+    sourceLanguageId: string;
+    translationText: string;
+    translationLanguageId: string;
+    startTask?: boolean;
+  }) => {
+    await executeCommand({ db: db.client }, ensureLanguages, {
+      languageIds: [sourceLanguageId, translationLanguageId],
+    });
+    const translationId = await createTranslationRecord({
+      creatorId: userId,
+      projectId,
+      contentNodeId: rootContentNodeId,
+      sourceText,
+      sourceLanguageId,
+      translationText,
+      translationLanguageId,
+    });
+    const memory = await executeCommand({ db: db.client }, createMemory, {
+      name: `Isolated recall memory ${crypto.randomUUID()}`,
+      creatorId: userId,
+    });
+    const inserted = await db.client.transaction(
+      async (tx) => await insertMemory(tx, [memory.id], [translationId]),
+    );
+    const reference = requireFixtureValue(
+      inserted.derivations.find(
+        (entry) => entry.languageId === sourceLanguageId,
+      ),
+    );
+    const task = startTask
+      ? await startRecallDerivationTask(db.client, {
+          projectId,
+          actorId: userId,
+          references: [reference],
+          resources: [{ type: "MEMORY", id: memory.id }],
+        })
+      : null;
+    return { memoryId: memory.id, reference, task };
+  };
+
+  const drainRecallDerivations = async () => {
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      const processed = await processRecallDerivationBatch({
+        db: db.client,
+        pluginManager,
+        limit: 20,
+      });
+      if (processed.claimed === 0) return;
+    }
+    throw new Error("Recall derivation test setup did not drain pending work.");
+  };
+
   beforeAll(async () => {
     db = await setupTestDB();
     cleanup = db.cleanup;
@@ -267,6 +337,7 @@ describe("memory recall integration", () => {
       email: "memory-recall@example.com",
       name: "Memory Recall Tester",
     });
+    userId = user.id;
 
     const insertedProject = assertSingleNonNullish(
       await db.client
@@ -277,6 +348,7 @@ describe("memory recall integration", () => {
         })
         .returning({ id: project.id }),
     );
+    projectId = insertedProject.id;
 
     const rootDocument = await executeCommand(
       { db: db.client },
@@ -286,11 +358,12 @@ describe("memory recall integration", () => {
         creatorId: user.id,
       },
     );
+    rootContentNodeId = rootDocument.id;
 
     forwardTranslationId = await createTranslationRecord({
-      creatorId: user.id,
-      projectId: insertedProject.id,
-      contentNodeId: rootDocument.id,
+      creatorId: userId,
+      projectId,
+      contentNodeId: rootContentNodeId,
       sourceText: "Order 42 is completed",
       sourceLanguageId: "en",
       translationText: "订单 42 已完成",
@@ -298,9 +371,9 @@ describe("memory recall integration", () => {
     });
 
     reversedTranslationId = await createTranslationRecord({
-      creatorId: user.id,
-      projectId: insertedProject.id,
-      contentNodeId: rootDocument.id,
+      creatorId: userId,
+      projectId,
+      contentNodeId: rootContentNodeId,
       sourceText: "发票 42 已完成",
       sourceLanguageId: "zh-Hans",
       translationText: "Invoice 42 Completed",
@@ -310,7 +383,7 @@ describe("memory recall integration", () => {
     memoryId = (
       await executeCommand({ db: db.client }, createMemory, {
         name: "Integration Memory",
-        creatorId: user.id,
+        creatorId: userId,
       })
     ).id;
 
@@ -751,6 +824,313 @@ describe("memory recall integration", () => {
       expect(current.demandRevision).toBeGreaterThan(before.demandRevision);
     } finally {
       await worker.stop();
+    }
+  });
+
+  it("resumes a language-analysis-blocked demand on the same Task revision", async () => {
+    await drainRecallDerivations();
+    expect(
+      await db.client
+        .select({ id: recallDerivationState.id })
+        .from(recallDerivationState)
+        .where(eq(recallDerivationState.status, "PENDING")),
+    ).toEqual([]);
+    const { memoryId, reference: createdReference } =
+      await createIsolatedRecallTask({
+        sourceText: "\u8a18\u61b6 42 \u3092\u66f4\u65b0\u3059\u308b",
+        sourceLanguageId: "ja",
+        translationText: "Update memory 42",
+        translationLanguageId: "en",
+        startTask: false,
+      });
+    await probeCurrentMemoryRecallDependencies({
+      db: db.client,
+      pluginManager,
+      languageIds: ["ja"],
+    });
+    const beforeBlock = assertSingleNonNullish(
+      await db.client
+        .select()
+        .from(recallDerivationState)
+        .where(
+          and(
+            eq(recallDerivationState.targetKind, createdReference.targetKind),
+            eq(recallDerivationState.targetId, createdReference.targetId),
+            eq(recallDerivationState.languageId, createdReference.languageId),
+          ),
+        ),
+    );
+    expect(beforeBlock.requiredDerivationVersion).not.toBeNull();
+    expect(beforeBlock).toMatchObject({
+      status: "PENDING",
+      demandRevision: createdReference.demandRevision + 1,
+    });
+    const reference = {
+      ...createdReference,
+      demandRevision: beforeBlock.demandRevision,
+    };
+    const task = await startRecallDerivationTask(db.client, {
+      projectId,
+      actorId: userId,
+      references: [reference],
+      resources: [{ type: "MEMORY", id: memoryId }],
+    });
+    const activeSelection = requireFixtureValue(
+      await executeQuery({ db: db.client }, getLanguageAnalysisSelection, {
+        key: LanguageAnalysisWildcardSelectionKey,
+      }),
+    );
+
+    await executeCommand(
+      { db: db.client },
+      writeValidatedLanguageAnalysisSelection,
+      {
+        key: LanguageAnalysisWildcardSelectionKey,
+        implementation: null,
+        configurationFingerprint: null,
+        expectedRevision: activeSelection.revision,
+      },
+    );
+    const selectionInvalidatedState = assertSingleNonNullish(
+      await db.client
+        .select()
+        .from(recallDerivationState)
+        .where(eq(recallDerivationState.id, beforeBlock.id)),
+    );
+    expect(selectionInvalidatedState).toMatchObject({
+      status: "PENDING",
+      demandRevision: reference.demandRevision,
+    });
+    let restored = false;
+    try {
+      const blockedBatch = await processRecallDerivationBatch({
+        db: db.client,
+        pluginManager,
+        limit: 20,
+      });
+      expect(blockedBatch.failed).toBeGreaterThanOrEqual(1);
+      expect(blockedBatch.published).toBe(0);
+      const blockedState = assertSingleNonNullish(
+        await db.client
+          .select()
+          .from(recallDerivationState)
+          .where(eq(recallDerivationState.id, beforeBlock.id)),
+      );
+      expect(blockedState).toMatchObject({
+        status: "BLOCKED",
+        demandRevision: reference.demandRevision,
+        blocker: { reason: "LANGUAGE_ANALYSIS" },
+      });
+      const blockedTask = assertSingleNonNullish(
+        await db.client
+          .select({
+            id: taskTable.id,
+            status: taskTable.status,
+            revision: taskTable.revision,
+            currentFailureId: taskTable.currentFailureId,
+          })
+          .from(taskTable)
+          .where(eq(taskTable.id, task.id)),
+      );
+      expect(blockedTask).toMatchObject({ status: "BLOCKED" });
+      expect(blockedTask.currentFailureId).not.toBeNull();
+
+      const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!;
+      const implementation =
+        pluginManager.createServiceImplementationReference(analyzer);
+      const validated = await validateLanguageAnalyzerConfiguration(
+        implementation,
+        { traceId: "memory-recall-ja-remediation", pluginManager },
+      );
+      await executeCommand(
+        { db: db.client },
+        writeValidatedLanguageAnalysisSelection,
+        {
+          key: LanguageAnalysisWildcardSelectionKey,
+          implementation,
+          configurationFingerprint: validated.fingerprint,
+          expectedRevision: activeSelection.revision + 1,
+        },
+      );
+      restored = true;
+      const remediation = await probeCurrentMemoryRecallDependencies({
+        db: db.client,
+        pluginManager,
+        languageIds: ["en", "ja", "zh-Hans"],
+      });
+      expect(remediation).toBeUndefined();
+      const resumedState = assertSingleNonNullish(
+        await db.client
+          .select()
+          .from(recallDerivationState)
+          .where(eq(recallDerivationState.id, beforeBlock.id)),
+      );
+      expect(resumedState).toMatchObject({
+        status: "PENDING",
+        demandRevision: reference.demandRevision,
+        blocker: null,
+      });
+
+      const completedBatch = await processRecallDerivationBatch({
+        db: db.client,
+        pluginManager,
+        limit: 20,
+      });
+      expect(completedBatch.claimed).toBeGreaterThanOrEqual(1);
+      expect(completedBatch.failed).toBe(0);
+      const completedTask = assertSingleNonNullish(
+        await db.client
+          .select({
+            id: taskTable.id,
+            status: taskTable.status,
+            revision: taskTable.revision,
+            runtime: taskTable.runtime,
+            currentFailureId: taskTable.currentFailureId,
+          })
+          .from(taskTable)
+          .where(eq(taskTable.id, task.id)),
+      );
+      expect(completedTask).toMatchObject({
+        id: task.id,
+        status: "COMPLETED",
+        runtime: {
+          kind: "RECALL_DERIVATION",
+          result: { fresh: 1, superseded: 0, total: 1 },
+        },
+        currentFailureId: null,
+      });
+      expect(completedTask.revision).toBeGreaterThan(blockedTask.revision);
+      const linkedRevision = assertSingleNonNullish(
+        await db.client
+          .select({ demandRevision: recallDerivationTaskDemand.demandRevision })
+          .from(recallDerivationTaskDemand)
+          .where(eq(recallDerivationTaskDemand.taskId, task.id)),
+      );
+      expect(linkedRevision.demandRevision).toBe(reference.demandRevision);
+    } finally {
+      if (!restored) {
+        const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!;
+        const implementation =
+          pluginManager.createServiceImplementationReference(analyzer);
+        const validated = await validateLanguageAnalyzerConfiguration(
+          implementation,
+          { traceId: "memory-recall-ja-remediation-cleanup", pluginManager },
+        );
+        const selection = await executeQuery(
+          { db: db.client },
+          getLanguageAnalysisSelection,
+          { key: LanguageAnalysisWildcardSelectionKey },
+        );
+        if (selection?.implementation === null) {
+          await executeCommand(
+            { db: db.client },
+            writeValidatedLanguageAnalysisSelection,
+            {
+              key: LanguageAnalysisWildcardSelectionKey,
+              implementation,
+              configurationFingerprint: validated.fingerprint,
+              expectedRevision: selection.revision,
+            },
+          );
+        }
+      }
+    }
+  });
+
+  it("projects a retryable tokenizer runtime failure to the owning Task", async () => {
+    await drainRecallDerivations();
+    expect(
+      await db.client
+        .select({ id: recallDerivationState.id })
+        .from(recallDerivationState)
+        .where(eq(recallDerivationState.status, "PENDING")),
+    ).toEqual([]);
+    const { reference, task } = await createIsolatedRecallTask({
+      sourceText: "Tokenizer runtime failure 43",
+      sourceLanguageId: "en",
+      translationText:
+        "\ud1a0\ud06c\ub098\uc774\uc800 \ub7f0\ud0c0\uc784 \uc2e4\ud328 43",
+      translationLanguageId: "ko",
+    });
+    const taskId = requireFixtureValue(task).id;
+    const snapshot = vi
+      .spyOn(pluginManager, "captureServiceRuntimeSnapshots")
+      .mockRejectedValue(new Error("retryable tokenizer runtime failure"));
+    try {
+      const processed = await processRecallDerivationBatch({
+        db: db.client,
+        pluginManager,
+        limit: 2,
+        maxAttempts: 1,
+      });
+      expect(processed).toEqual({
+        claimed: 2,
+        published: 0,
+        stale: 0,
+        failed: 2,
+      });
+      const failedState = assertSingleNonNullish(
+        await db.client
+          .select()
+          .from(recallDerivationState)
+          .where(
+            and(
+              eq(recallDerivationState.targetKind, reference.targetKind),
+              eq(recallDerivationState.targetId, reference.targetId),
+              eq(recallDerivationState.languageId, reference.languageId),
+            ),
+          ),
+      );
+      expect(failedState).toMatchObject({
+        status: "FAILED",
+        retryCount: 1,
+        blocker: {
+          reason: "TOKENIZER",
+          retryable: true,
+          message: "retryable tokenizer runtime failure",
+        },
+      });
+      const failedTask = assertSingleNonNullish(
+        await db.client
+          .select({
+            status: taskTable.status,
+            runtime: taskTable.runtime,
+            currentFailureId: taskTable.currentFailureId,
+          })
+          .from(taskTable)
+          .where(eq(taskTable.id, taskId)),
+      );
+      expect(failedTask).toMatchObject({
+        status: "FAILED",
+        runtime: {
+          kind: "RECALL_DERIVATION",
+          result: { fresh: 0, failed: 1, superseded: 0, total: 1 },
+        },
+      });
+      const failure = assertSingleNonNullish(
+        await db.client
+          .select({
+            code: operationFailure.code,
+            message: operationFailure.message,
+            retryable: operationFailure.retryable,
+            blocker: operationFailure.blocker,
+            capability: operationFailure.capability,
+          })
+          .from(operationFailure)
+          .where(
+            eq(
+              operationFailure.id,
+              requireFixtureValue(failedTask.currentFailureId),
+            ),
+          ),
+      );
+      expect(failure).toMatchObject({
+        code: "CAT_OPERATION_FAILED",
+        blocker: "recall_derivation_failed",
+        capability: "RECALL_DERIVATION",
+      });
+    } finally {
+      snapshot.mockRestore();
     }
   });
 });

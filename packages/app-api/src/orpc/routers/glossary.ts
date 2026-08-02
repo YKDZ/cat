@@ -3,6 +3,7 @@ import {
   assertProjectGlossaryBinding,
   appendChangesetEntriesIfUnchanged,
   countGlossaryConcepts,
+  createRecallDerivationTask,
   createAgentDefinition,
   createAgentSession,
   createInProcessCollector,
@@ -38,6 +39,7 @@ import {
 } from "@cat/operations";
 import {
   GlossaryConceptMaterializationSchema,
+  GlossaryTermWriteOperationSchema,
   GlossarySchema,
   TermRecallStreamEventSchema,
   type TermRecallStreamEvent,
@@ -542,6 +544,7 @@ export const insertTerm = authed
     z.object({
       glossaryId: z.uuidv4(),
       termsData: z.array(TermDataSchema),
+      operation: GlossaryTermWriteOperationSchema,
       branchId: z.int().optional(),
       /** Project ID for Direct mode VCS audit */
       projectId: z.uuidv4().optional(),
@@ -552,7 +555,12 @@ export const insertTerm = authed
     projectId: i.projectId,
   }))
   .use(checkPermission("glossary", "editor"), (input) => input.glossaryId)
-  .output(z.object({ derivations: z.array(RecallDerivationReferenceSchema) }))
+  .output(
+    z.object({
+      derivations: z.array(RecallDerivationReferenceSchema),
+      recallDerivationTaskId: z.uuidv4().optional(),
+    }),
+  )
   .handler(async ({ context, input }) => {
     const { user } = context;
     const { termsData, glossaryId } = input;
@@ -562,7 +570,6 @@ export const insertTerm = authed
         message: "projectId is required when branchId is provided",
       });
     }
-
     if (context.branchId !== undefined) {
       const {
         drizzleDB: { client: drizzle },
@@ -613,6 +620,7 @@ export const insertTerm = authed
       };
       const groups = collectGlossaryTermGroups(termsData);
       const derivations: z.infer<typeof RecallDerivationReferenceSchema>[] = [];
+      let recallDerivationTaskId: string | undefined;
       await drizzle.transaction(async (tx) => {
         const { middleware } = createVCSRouteHelper(tx);
         for (const group of groups) {
@@ -647,9 +655,36 @@ export const insertTerm = authed
           );
           derivations.push(...created.derivations);
         }
+        if (input.operation === "BULK_IMPORT" && derivations.length > 0) {
+          const recallTask = await executeCommand(
+            { db: tx },
+            createRecallDerivationTask,
+            {
+              references: derivations,
+              scope: { type: "PROJECT", id: vcsCtx.projectId },
+              actor: { type: "USER", id: user.id },
+              resources: [
+                { type: "PROJECT", id: vcsCtx.projectId },
+                { type: "GLOSSARY", id: glossaryId },
+              ],
+            },
+          );
+          recallDerivationTaskId = recallTask.id;
+        }
       });
       await collector.flush();
-      return { derivations };
+      return {
+        derivations,
+        ...(recallDerivationTaskId === undefined
+          ? {}
+          : { recallDerivationTaskId }),
+      };
+    }
+
+    if (input.operation === "BULK_IMPORT") {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "Bulk glossary import requires a direct project scope",
+      });
     }
 
     const {

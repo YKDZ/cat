@@ -475,6 +475,11 @@ export class LocalizationTaskService {
       { taskId: binding.taskId },
     );
     if (!task) return;
+    if (task.task.kind !== "BATCH_AUTO_TRANSLATION") {
+      throw new Error(
+        "Workflow dispatch is bound to a non-workflow task kind.",
+      );
+    }
     const sessionId =
       binding.agentSessionId ?? (await this.createAgentSession(task));
     const owned = await executeCommand(
@@ -602,6 +607,9 @@ export class LocalizationTaskService {
   private async createAgentSession(
     task: LocalizationTaskSummary,
   ): Promise<number> {
+    if (task.task.kind !== "BATCH_AUTO_TRANSLATION") {
+      throw new Error("Auto-translate sessions require a batch task.");
+    }
     const actorId = task.state.actor.id;
     if (!actorId) throw new Error("Task user actor is missing.");
     let definition = await executeQuery(

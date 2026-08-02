@@ -8,7 +8,13 @@ export const invalidateRecallDerivationDemands = async (
   languageId?: string,
   targetKind?: RecallDerivationTargetKind,
 ): Promise<number> => {
-  const conditions = [ne(recallDerivationState.status, "PENDING")];
+  const conditions = [
+    ne(recallDerivationState.status, "PENDING"),
+    sql`NOT (
+      ${recallDerivationState.status} = 'BLOCKED'
+      AND ${recallDerivationState.blocker}->>'reason' IN ('LANGUAGE_ANALYSIS', 'TOKENIZER')
+    )`,
+  ];
   if (languageId !== undefined) {
     conditions.push(eq(recallDerivationState.languageId, languageId));
   }
@@ -26,6 +32,7 @@ export const invalidateRecallDerivationDemands = async (
       retryCount: 0,
       nextAttemptAt: null,
       blocker: null,
+      taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
       requiredDerivationVersion: null,
       updatedAt: sql`clock_timestamp()`,
     })

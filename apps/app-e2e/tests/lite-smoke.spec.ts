@@ -309,4 +309,96 @@ test.describe("CAT Lite smoke", () => {
       );
     }
   });
+
+  test("@lite-smoke creates and filters a Recall derivation Task through the glossary UI", async ({
+    page,
+    refs,
+  }) => {
+    const projectId = refs["project"];
+    const glossaryId = refs["glossary"];
+    if (!projectId || !glossaryId) {
+      throw new Error(
+        "Lite smoke seed did not provide a project and glossary.",
+      );
+    }
+
+    await page.goto(`/project/${projectId}/glossaries`);
+    const glossaryRow = page.locator("tbody tr").first();
+    await expect(glossaryRow).toBeVisible();
+    await glossaryRow.click();
+    await expect(page).toHaveURL(`/glossary/${glossaryId}`);
+
+    await page.getByRole("button", { name: "插入术语" }).click();
+    await page.getByRole("tab", { name: "文本" }).click();
+    const languagePickers = page.getByPlaceholder("选择一个语言...");
+    await languagePickers.nth(0).fill("en");
+    await page.getByRole("option", { name: "en", exact: true }).click();
+    await languagePickers.nth(1).fill("zh-Hans");
+    await page.getByRole("option", { name: "zh-Hans", exact: true }).click();
+    const textareas = page.locator("textarea");
+    await textareas.nth(0).fill("recall source");
+    await textareas.nth(1).fill("召回目标");
+    const inserted = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/glossary/insertTerm") &&
+        response.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: "提交", exact: true }).click();
+    const insertResponse = await inserted;
+    if (!insertResponse.ok()) {
+      throw new Error(
+        `glossary insert failed with ${insertResponse.status()}: ${await insertResponse.text()}`,
+      );
+    }
+
+    await page.goto(`/project/${projectId}/tasks`);
+    const filteredList = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/task/list") &&
+        response.request().method() === "POST",
+    );
+    await page.getByLabel("任务类型").selectOption("RECALL_DERIVATION");
+    const response = await filteredList;
+    if (!response.ok()) {
+      throw new Error(
+        `Recall task filter failed with ${response.status()}: ${await response.text()}`,
+      );
+    }
+    expect(response.request().postData() ?? "").toContain(
+      '"kind":"RECALL_DERIVATION"',
+    );
+    const body = await response.json();
+    const payload =
+      typeof body === "object" && body !== null && "json" in body
+        ? body.json
+        : body;
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      !("items" in payload) ||
+      !Array.isArray(payload.items)
+    ) {
+      throw new Error("Recall task filter response did not contain items.");
+    }
+    expect(payload.items.length).toBeGreaterThan(0);
+    expect(
+      payload.items.every(
+        (item: unknown) =>
+          typeof item === "object" &&
+          item !== null &&
+          "task" in item &&
+          typeof item.task === "object" &&
+          item.task !== null &&
+          "kind" in item.task &&
+          item.task.kind === "RECALL_DERIVATION",
+      ),
+    ).toBe(true);
+    const rows = page.locator("tbody tr[data-task-id]");
+    await expect(rows).toHaveCount(payload.items.length);
+    await expect(rows).toContainText("召回派生");
+    await expect(page.getByTitle("重试")).toHaveCount(0);
+    await expect(page.getByTitle("恢复")).toHaveCount(0);
+    await rows.first().getByRole("button", { name: "召回派生" }).click();
+    await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
+  });
 });

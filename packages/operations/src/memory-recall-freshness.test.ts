@@ -1,9 +1,11 @@
 import {
+  createUser,
   ensureLanguages,
   executeCommand,
   writeValidatedLanguageAnalysisSelection,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
+import { serverLogger } from "@cat/server-shared";
 import {
   CanonicalInputVersionSchema,
   LanguageAnalysisWildcardSelectionKey,
@@ -13,7 +15,9 @@ import {
 import {
   recallDerivationState,
   memoryRecallVariant,
+  task as taskTable,
   eq,
+  or,
   setupTestDB,
   TestPluginLoader,
   type TestDB,
@@ -27,6 +31,7 @@ import {
   startRecallDerivationWorker,
   waitForRecallDerivationFresh,
 } from "./memory-recall-derivation.ts";
+import { startRecallDerivationTask } from "./recall-derivation-task.ts";
 
 describe("Recall Derivation freshness", () => {
   let db: TestDB;
@@ -88,6 +93,11 @@ describe("Recall Derivation freshness", () => {
   it.each(["BLOCKED", "FAILED"] as const)(
     "propagates %s without polling",
     async (status) => {
+      const blocker = {
+        reason: "DERIVATION_EXECUTION" as const,
+        retryable: false,
+        message: "derivation requires repair",
+      };
       await db.client.insert(recallDerivationState).values({
         targetKind: "MEMORY_ITEM",
         targetId: status === "BLOCKED" ? "1" : "2",
@@ -96,11 +106,7 @@ describe("Recall Derivation freshness", () => {
         canonicalInputVersion: CanonicalInputVersionSchema.parse(
           `sha256:${"a".repeat(64)}`,
         ),
-        blocker: {
-          reason: "LANGUAGE_ANALYSIS",
-          retryable: false,
-          message: "configuration required",
-        },
+        blocker,
       });
       const refs = [reference(status === "BLOCKED" ? "1" : "2")];
       const recovered = await assessRecallDerivationFreshness(refs, {
@@ -112,11 +118,7 @@ describe("Recall Derivation freshness", () => {
         .update(recallDerivationState)
         .set({
           status,
-          blocker: {
-            reason: "LANGUAGE_ANALYSIS",
-            retryable: false,
-            message: "configuration required",
-          },
+          blocker,
         })
         .where(
           eq(recallDerivationState.targetId, status === "BLOCKED" ? "1" : "2"),
@@ -296,6 +298,121 @@ describe("Recall Derivation freshness", () => {
       currentDerivationVersion: state?.requiredDerivationVersion,
     });
     expect(variants).toEqual([]);
+  });
+
+  it("publishes one coalesced demand once and settles each observing Task", async () => {
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "1001",
+      languageId: "en",
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"2".repeat(64)}`,
+      ),
+    });
+    const actor = await executeCommand({ db: db.client }, createUser, {
+      email: `${crypto.randomUUID()}@example.com`,
+      name: "Coalesced Recall observer",
+    });
+    const input = {
+      projectId: "11111111-1111-4111-8111-111111111111",
+      actorId: actor.id,
+      references: [reference("1001")],
+    };
+    const [first, second] = await Promise.all([
+      startRecallDerivationTask(db.client, input),
+      startRecallDerivationTask(db.client, input),
+    ]);
+    const processed = await processRecallDerivationBatch({
+      db: db.client,
+      pluginManager,
+      limit: 2,
+    });
+    expect(processed).toEqual({
+      claimed: 1,
+      published: 1,
+      stale: 0,
+      failed: 0,
+    });
+    const tasks = await db.client
+      .select({
+        id: taskTable.id,
+        status: taskTable.status,
+        progressCurrent: taskTable.progressCurrent,
+        progressTotal: taskTable.progressTotal,
+      })
+      .from(taskTable)
+      .where(or(eq(taskTable.id, first.id), eq(taskTable.id, second.id)));
+    expect(tasks).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: first.id,
+          status: "COMPLETED",
+          progressCurrent: 1,
+          progressTotal: 1,
+        }),
+        expect.objectContaining({
+          id: second.id,
+          status: "COMPLETED",
+          progressCurrent: 1,
+          progressTotal: 1,
+        }),
+      ]),
+    );
+  });
+
+  it("does not let reconciliation discovery failure alter worker counters and recovers next batch", async () => {
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "1000",
+      languageId: "en",
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"1".repeat(64)}`,
+      ),
+    });
+    const actor = await executeCommand({ db: db.client }, createUser, {
+      email: `${crypto.randomUUID()}@example.com`,
+      name: "Recall projection observer",
+    });
+    const task = await startRecallDerivationTask(db.client, {
+      projectId: "11111111-1111-4111-8111-111111111111",
+      actorId: actor.id,
+      references: [reference("1000")],
+    });
+    const discovery = vi
+      .spyOn(db.client, "selectDistinct")
+      .mockImplementationOnce(() => {
+        throw new Error("injected reconciliation discovery failure");
+      });
+    const logError = vi
+      .spyOn(serverLogger, "error")
+      .mockImplementation(() => undefined);
+    const first = await processRecallDerivationBatch({
+      db: db.client,
+      pluginManager,
+      limit: 1,
+    });
+    expect(first).toMatchObject({
+      claimed: 1,
+      published: 1,
+      stale: 0,
+      failed: 0,
+    });
+    expect(logError).toHaveBeenCalledWith(
+      "Recall derivation Task projection reconciliation discovery failed",
+      expect.objectContaining({ error: expect.any(Error) }),
+    );
+    discovery.mockRestore();
+    const second = await processRecallDerivationBatch({
+      db: db.client,
+      pluginManager,
+      limit: 1,
+    });
+    expect(second).toEqual({ claimed: 0, published: 0, stale: 0, failed: 0 });
+    const [projected] = await db.client
+      .select({ status: taskTable.status })
+      .from(taskTable)
+      .where(eq(taskTable.id, task.id));
+    expect(projected?.status).toBe("COMPLETED");
   });
 
   it("projects dependency and wait failures to only their affected references", async () => {

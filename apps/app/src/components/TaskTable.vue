@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {
   TaskStatusSchema,
+  TaskKindNameSchema,
   type TaskKind,
+  type TaskKindName,
   type TaskState,
   type TaskStatus,
 } from "@cat/shared";
@@ -27,6 +29,7 @@ const props = defineProps<{
   loading?: boolean | undefined;
   error?: string | undefined;
   status?: TaskStatus | undefined;
+  kind?: TaskKindName | undefined;
   actionTaskId?: string | undefined;
   actionBusy?: boolean | undefined;
   actionError?: string | undefined;
@@ -35,6 +38,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   refresh: [];
   "update:status": [status: TaskStatus | undefined];
+  "update:kind": [kind: TaskKindName | undefined];
   previous: [];
   next: [];
   detail: [taskId: string];
@@ -53,9 +57,17 @@ const statusValue = computed({
   },
 });
 
+const kindValue = computed({
+  get: () => props.kind ?? "",
+  set: (value: string) => {
+    emit("update:kind", TaskKindNameSchema.safeParse(value).data);
+  },
+});
+
 const taskLabel = (task: TaskKind): string => {
   if (task.kind === "BATCH_AUTO_TRANSLATION") return t("批量自动翻译");
-  return task.kind;
+  if (task.kind === "RECALL_DERIVATION") return t("召回派生");
+  return t("未知任务");
 };
 
 const statusLabels: Record<TaskStatus, string> = {
@@ -74,8 +86,8 @@ const statusLabel = (status: TaskStatus): string => {
 };
 
 const progress = (state: TaskState): string => {
-  if (state.progressCurrent === null || state.progressTotal === null)
-    return t("无");
+  if (state.progressTotal === null) return t("总量待定");
+  if (state.progressCurrent === null) return t("不确定");
   return `${state.progressCurrent} / ${state.progressTotal}`;
 };
 
@@ -102,6 +114,15 @@ const timestamp = (value: Date | string): string =>
         <option value="COMPLETED">{{ t("已完成") }}</option>
         <option value="FAILED">{{ t("失败") }}</option>
         <option value="CANCELED">{{ t("已取消") }}</option>
+      </select>
+      <select
+        v-model="kindValue"
+        class="h-9 border px-2"
+        :aria-label="t('任务类型')"
+      >
+        <option value="">{{ t("全部任务类型") }}</option>
+        <option value="BATCH_AUTO_TRANSLATION">{{ t("批量自动翻译") }}</option>
+        <option value="RECALL_DERIVATION">{{ t("召回派生") }}</option>
       </select>
       <Button
         size="icon"
@@ -163,7 +184,10 @@ const timestamp = (value: Date | string): string =>
                   class="size-4 animate-spin" /><X v-else class="size-4"
               /></Button>
               <Button
-                v-if="task.state.status === 'BLOCKED'"
+                v-if="
+                  task.task.kind !== 'RECALL_DERIVATION' &&
+                  task.state.status === 'BLOCKED'
+                "
                 size="icon"
                 variant="ghost"
                 :disabled="actionBusy"
@@ -174,7 +198,10 @@ const timestamp = (value: Date | string): string =>
                   class="size-4 animate-spin" /><Play v-else class="size-4"
               /></Button>
               <Button
-                v-else-if="task.state.status === 'FAILED'"
+                v-else-if="
+                  task.task.kind !== 'RECALL_DERIVATION' &&
+                  task.state.status === 'FAILED'
+                "
                 size="icon"
                 variant="ghost"
                 :disabled="actionBusy"

@@ -1,4 +1,10 @@
-import { and, eq, memoryRecallVariant, recallDerivationState } from "@cat/db";
+import {
+  and,
+  eq,
+  memoryRecallVariant,
+  recallDerivationState,
+  recallDerivationTaskDemand,
+} from "@cat/db";
 import {
   CanonicalInputVersionSchema,
   LanguageAnalysisSelectionFingerprintSchema,
@@ -10,6 +16,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   claimRecallDerivationDemands,
+  createRecallDerivationTask,
   createElements,
   createMemory,
   createMemoryItems,
@@ -21,6 +28,7 @@ import {
   ensureCoreRelationTypes,
   ensureLanguages,
   publishMemoryRecallDerivation,
+  projectRecallDerivationTasks,
   writeValidatedLanguageAnalysisSelection,
 } from "#/commands/index.ts";
 import { executeCommand, executeQuery } from "#/executor.ts";
@@ -153,7 +161,7 @@ describe("Memory Recall Derivation demand", () => {
     const memoryItemId = same.items[0]!.id;
     expect(await readLanguages(memoryItemId)).toEqual(["en"]);
 
-    await write(enSource!, frTranslation!, memoryItemId);
+    const bilingual = await write(enSource!, frTranslation!, memoryItemId);
     expect(await readLanguages(memoryItemId)).toEqual(["en", "fr"]);
     const [englishState] = await db.client
       .select()
@@ -177,8 +185,45 @@ describe("Memory Recall Derivation demand", () => {
       })
       .where(eq(recallDerivationState.id, englishState!.id));
 
+    const project = await executeCommand({ db: db.client }, createProject, {
+      creatorId: user.id,
+      description: null,
+      name: "Task snapshot project",
+    });
+    const task = await executeCommand(
+      { db: db.client },
+      createRecallDerivationTask,
+      {
+        references: bilingual.derivations,
+        scope: { type: "PROJECT", id: project.id },
+        actor: { type: "USER", id: user.id },
+        resources: [{ type: "PROJECT", id: project.id }],
+      },
+    );
+
     await write(frSource!, frTranslation!, memoryItemId);
     expect(await readLanguages(memoryItemId)).toEqual(["fr"]);
+    const demands = await db.client
+      .select()
+      .from(recallDerivationTaskDemand)
+      .where(eq(recallDerivationTaskDemand.taskId, task.id));
+    expect(demands).toHaveLength(2);
+    expect(
+      demands.some(
+        (demand) =>
+          demand.languageId === "en" && demand.derivationStateId === null,
+      ),
+    ).toBe(true);
+    const [settled] = await executeCommand(
+      { db: db.client },
+      projectRecallDerivationTasks,
+      { taskIds: [task.id] },
+    );
+    expect(settled?.state).toMatchObject({
+      status: "COMPLETED",
+      progressCurrent: 2,
+      progressTotal: 2,
+    });
 
     await write(jaSource!, frTranslation!, memoryItemId);
     expect(await readLanguages(memoryItemId)).toEqual(["fr", "ja"]);

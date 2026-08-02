@@ -129,6 +129,7 @@ export const deleteMemoryItemInTransaction = async (
       set: {
         canonicalInputVersion,
         demandRevision: sql`${recallDerivationState.demandRevision} + 1`,
+        taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
         status: "PENDING",
         leaseOwnerId: null,
         leaseToken: null,

@@ -110,6 +110,7 @@ export const recordRecallDerivationFailure: Command<
       leaseOwnerId: null,
       leaseToken: null,
       leaseExpiresAt: null,
+      taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
       updatedAt: sql`clock_timestamp()`,
     })
     .where(

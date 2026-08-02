@@ -274,7 +274,7 @@ describe("repository quality command contract", () => {
     const tests = [...workspaceTests, ...rootTests];
 
     expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(301);
-    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(72);
+    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(73);
   });
 
   it("discovers package unit and integration suites by suffix without services", () => {

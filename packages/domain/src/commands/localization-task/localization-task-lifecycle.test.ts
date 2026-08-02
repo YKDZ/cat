@@ -34,6 +34,17 @@ import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 import { transitionLocalizationTask } from "./upsert-localization-task.cmd.ts";
 
+const batchInvocation = (task: {
+  task: { kind: string; payload: unknown };
+}) => {
+  if (task.task.kind !== "BATCH_AUTO_TRANSLATION") {
+    throw new Error("Expected a batch auto-translation task fixture.");
+  }
+  return BatchAutoTranslationInvocationSchema.parse(
+    (task.task.payload as { invocation: unknown }).invocation,
+  );
+};
+
 let testDb: TestDB;
 let claimableDispatchIds = new Set<string>();
 
@@ -658,9 +669,7 @@ describe("localization task lifecycle", () => {
         id: linked.id,
         authorization: {
           viewerId: randomUUID(),
-          authorizedProjectIds: [
-            created.task.task.payload.invocation.projectId,
-          ],
+          authorizedProjectIds: [batchInvocation(created.task).projectId],
           systemAdmin: false,
         },
       },
@@ -699,7 +708,7 @@ describe("localization task lifecycle", () => {
 
   it("authorizes a standalone failure through its affected project", async () => {
     const created = await createTask();
-    const projectId = created.task.task.payload.invocation.projectId;
+    const projectId = batchInvocation(created.task).projectId;
     const operationFailure = await executeCommand(
       { db: testDb.client },
       createOperationFailure,
@@ -729,7 +738,7 @@ describe("localization task lifecycle", () => {
 
   it("does not expose a public standalone failure with an unauthorized project resource", async () => {
     const created = await createTask();
-    const authorizedProjectId = created.task.task.payload.invocation.projectId;
+    const authorizedProjectId = batchInvocation(created.task).projectId;
     const operationFailure = await executeCommand(
       { db: testDb.client },
       createOperationFailure,
@@ -802,7 +811,7 @@ describe("localization task lifecycle", () => {
     await expect(
       executeQuery({ db: testDb.client }, getLocalizationTask, {
         taskId: userScoped.id,
-        requiredProjectId: command.task.payload.invocation.projectId,
+        requiredProjectId: batchInvocation({ task: command.task }).projectId,
         authorization: {
           viewerId: randomUUID(),
           authorizedProjectIds: [],
@@ -818,7 +827,7 @@ describe("localization task lifecycle", () => {
     await createTask();
     const authorization = {
       viewerId: first.task.state.actor.id ?? randomUUID(),
-      authorizedProjectIds: [first.task.task.payload.invocation.projectId],
+      authorizedProjectIds: [batchInvocation(first.task).projectId],
       systemAdmin: false,
     };
     const page = await executeQuery(
@@ -826,7 +835,7 @@ describe("localization task lifecycle", () => {
       listLocalizationTasks,
       {
         authorization,
-        projectId: first.task.task.payload.invocation.projectId,
+        projectId: batchInvocation(first.task).projectId,
         pageSize: 2,
       },
     );

@@ -18,7 +18,7 @@ export const ReconcileRecallDerivationDependencyCommandSchema = z.strictObject({
 
 export const reconcileRecallDerivationDependency: Command<
   z.input<typeof ReconcileRecallDerivationDependencyCommandSchema>,
-  { invalidated: number; pendingUpdated: number }
+  { invalidated: number; pendingUpdated: number; resumed: number }
 > = async (ctx, input) => {
   const command = ReconcileRecallDerivationDependencyCommandSchema.parse(input);
   const result = await inDatabaseTransaction(ctx.db, async (tx) => {
@@ -38,6 +38,7 @@ export const reconcileRecallDerivationDependency: Command<
         nextAttemptAt: null,
         blocker: null,
         requiredDerivationVersion: command.requiredDerivationVersion,
+        taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
         updatedAt: sql`clock_timestamp()`,
       })
       .where(
@@ -53,6 +54,7 @@ export const reconcileRecallDerivationDependency: Command<
       .set({
         demandRevision: sql`${recallDerivationState.demandRevision} + 1`,
         requiredDerivationVersion: command.requiredDerivationVersion,
+        taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
         updatedAt: sql`clock_timestamp()`,
       })
       .where(
@@ -63,9 +65,35 @@ export const reconcileRecallDerivationDependency: Command<
         ),
       )
       .returning({ id: recallDerivationState.id });
+    const resumed = await tx
+      .update(recallDerivationState)
+      .set({
+        status: "PENDING",
+        leaseOwnerId: null,
+        leaseToken: null,
+        leaseExpiresAt: null,
+        retryCount: 0,
+        nextAttemptAt: null,
+        blocker: null,
+        taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
+        updatedAt: sql`clock_timestamp()`,
+      })
+      .where(
+        and(
+          scope,
+          eq(recallDerivationState.status, "BLOCKED"),
+          eq(
+            recallDerivationState.requiredDerivationVersion,
+            command.requiredDerivationVersion,
+          ),
+          sql`${recallDerivationState.blocker}->>'reason' IN ('LANGUAGE_ANALYSIS', 'TOKENIZER')`,
+        ),
+      )
+      .returning({ id: recallDerivationState.id });
     return {
       invalidated: invalidated.length,
       pendingUpdated: pending.length,
+      resumed: resumed.length,
     };
   });
   return { result, events: [] };

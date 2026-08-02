@@ -124,6 +124,20 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.task.id.through(r.contentNodeToTask.taskId),
         to: r.contentNode.id.through(r.contentNodeToTask.contentNodeId),
       }),
+      recallDerivationDemands: r.many.recallDerivationTaskDemand(),
+    },
+    recallDerivationState: {
+      taskDemands: r.many.recallDerivationTaskDemand(),
+    },
+    recallDerivationTaskDemand: {
+      task: r.one.task({
+        from: r.recallDerivationTaskDemand.taskId,
+        to: r.task.id,
+      }),
+      derivationState: r.one.recallDerivationState({
+        from: r.recallDerivationTaskDemand.derivationStateId,
+        to: r.recallDerivationState.id,
+      }),
     },
     glossary: {
       user: r.one.user({

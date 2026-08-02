@@ -134,12 +134,22 @@ export type CreateWorkflowTaskWithDispatchCommand = z.infer<
   typeof CreateWorkflowTaskWithDispatchCommandSchema
 >;
 
+const isBatchWorkflowTask = (
+  command: CreateWorkflowTaskWithDispatchCommand,
+): command is CreateLocalizationTaskCommand =>
+  command.task.kind === "BATCH_AUTO_TRANSLATION";
+
 /** Atomically creates the user-visible Task and generation-one execution intent. */
 export const createWorkflowTaskWithDispatch: Command<
   CreateWorkflowTaskWithDispatchCommand,
   { task: LocalizationTaskSummary; dispatch: WorkflowTaskDispatch }
 > = async (ctx, command) => {
   const parsed = CreateWorkflowTaskWithDispatchCommandSchema.parse(command);
+  if (!isBatchWorkflowTask(parsed)) {
+    throw new InvalidTaskProgressError(
+      "Workflow dispatch supports batch auto-translation tasks only.",
+    );
+  }
   const result = await ctx.db.transaction(async (tx) => {
     await validateTaskElements(tx, parsed);
     const created = await insertLocalizationTask(tx, parsed);

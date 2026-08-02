@@ -65,6 +65,7 @@ export const publishTermRecallDerivation: Command<
         retryCount: 0,
         nextAttemptAt: null,
         blocker: null,
+        taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
         publishedAt: sql`clock_timestamp()`,
         updatedAt: sql`clock_timestamp()`,
       })

@@ -54,6 +54,7 @@ import {
   qaReviewRun,
   qaReviewSuggestion,
   recallDerivationState,
+  recallDerivationTaskDemand,
   runtimeCacheEntry,
   runtimeQueueTask,
   runtimeSessionEntry,
@@ -144,6 +145,7 @@ type SelectSchemaTable =
   | typeof qaReviewRun
   | typeof qaReviewSuggestion
   | typeof recallDerivationState
+  | typeof recallDerivationTaskDemand
   | typeof runtimeCacheEntry
   | typeof runtimeQueueTask
   | typeof runtimeSessionEntry
@@ -184,6 +186,7 @@ type TableDeclaration = {
   typeExportName: string;
   buildShape: () => Record<string, unknown>;
   overrides?: Record<string, string>;
+  refinement?: string;
 };
 
 type ManualDeclaration = {
@@ -585,6 +588,16 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       },
       {
         kind: "table",
+        schemaExportName: "RecallDerivationTaskDemandSchema",
+        typeExportName: "RecallDerivationTaskDemand",
+        buildShape: buildSelectShape(recallDerivationTaskDemand),
+        overrides: {
+          languageId: "NormalizedLanguageIdSchema",
+          targetId: "RecallDerivationTargetIdSchema",
+        },
+      },
+      {
+        kind: "table",
         schemaExportName: "MemoryRecallVariantSchema",
         typeExportName: "MemoryRecallVariant",
         buildShape: buildSelectShape(memoryRecallVariant),
@@ -665,7 +678,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   {
     outputFile: "misc.ts",
     imports: [
-      'import { BatchAutoTranslationTaskPayloadSchema, TaskAffectedResourceSchema, TaskRuntimeSchema } from "#/schema/localization-task.ts";',
+      'import { TaskAffectedResourceSchema, TaskKindSchema, TaskPayloadSchema, TaskRuntimeSchema } from "#/schema/localization-task.ts";',
     ],
     declarations: [
       {
@@ -680,10 +693,19 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "Task",
         buildShape: buildSelectShape(task),
         overrides: {
-          payload: "BatchAutoTranslationTaskPayloadSchema",
+          payload: "TaskPayloadSchema",
           resources: "z.array(TaskAffectedResourceSchema)",
           runtime: "TaskRuntimeSchema",
         },
+        refinement: `(value, ctx) => {
+  const parsed = TaskKindSchema.safeParse({
+    kind: value.kind,
+    payload: value.payload,
+  });
+  if (!parsed.success) {
+    ctx.addIssue({ code: "custom", message: "Task kind and payload must agree." });
+  }
+}`,
       },
       {
         kind: "table",

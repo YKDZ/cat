@@ -278,7 +278,7 @@ describe("VCS branch-aware entrypoint guards", () => {
     ).rejects.toMatchObject({
       code: "BAD_REQUEST",
       message:
-        "Branch memory creation requires exactly one projectId matching the active branch project",
+        "Memory bank creation is unavailable in branch isolation until a governed Memory application method exists.",
     });
   });
 
@@ -304,6 +304,7 @@ describe("VCS branch-aware entrypoint guards", () => {
         {
           glossaryId: randomUUID(),
           termsData: [],
+          operation: "DIRECT_WRITE",
           branchId: pr.branchId,
         },
         { context: createContext() },
@@ -338,13 +339,14 @@ describe("VCS branch-aware entrypoint guards", () => {
       testDb.openConcurrentClient(),
     ]);
     try {
-      await Promise.all([
+      const results = await Promise.all([
         call(
           insertTerm,
           {
             glossaryId: glossary.id,
             projectId: project.id,
             branchId: pr.branchId,
+            operation: "BULK_IMPORT",
             termsData: [
               {
                 definition: "shared definition",
@@ -363,6 +365,7 @@ describe("VCS branch-aware entrypoint guards", () => {
             glossaryId: glossary.id,
             projectId: project.id,
             branchId: pr.branchId,
+            operation: "BULK_IMPORT",
             termsData: [
               {
                 definition: "shared definition",
@@ -376,6 +379,7 @@ describe("VCS branch-aware entrypoint guards", () => {
           { context: createContext(secondClient.client) },
         ),
       ]);
+      expect(results).toEqual([{ derivations: [] }, { derivations: [] }]);
     } finally {
       await Promise.all([firstClient.cleanup(), secondClient.cleanup()]);
     }
@@ -404,6 +408,75 @@ describe("VCS branch-aware entrypoint guards", () => {
         "second-target",
       ]),
     );
+  });
+
+  it("creates a projection Task only for direct project bulk imports", async () => {
+    await executeCommand({ db: testDb.client }, ensureLanguages, {
+      languageIds: ["en", "zh-Hans"],
+    });
+    const project = await seedProject("glossary-bulk-intent");
+    const glossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `Bulk intent ${randomUUID()}`,
+        creatorId,
+        projectIds: [project.id],
+      },
+    );
+    const bulk = await call(
+      insertTerm,
+      {
+        glossaryId: glossary.id,
+        projectId: project.id,
+        operation: "BULK_IMPORT",
+        termsData: [
+          {
+            definition: "bulk import",
+            term: "source",
+            translation: "target",
+            termLanguageId: "en",
+            translationLanguageId: "zh-Hans",
+          },
+        ],
+      },
+      { context: createContext() },
+    );
+    expect(bulk.recallDerivationTaskId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    );
+
+    const direct = await call(
+      insertTerm,
+      {
+        glossaryId: glossary.id,
+        projectId: project.id,
+        operation: "DIRECT_WRITE",
+        termsData: [
+          {
+            definition: "direct write",
+            term: "source-direct",
+            translation: "target-direct",
+            termLanguageId: "en",
+            translationLanguageId: "zh-Hans",
+          },
+        ],
+      },
+      { context: createContext() },
+    );
+    expect(direct.recallDerivationTaskId).toBeUndefined();
+
+    await expect(
+      call(
+        insertTerm,
+        {
+          glossaryId: glossary.id,
+          operation: "BULK_IMPORT",
+          termsData: [],
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   it("rejects direct glossary writes for an unlinked project without audit state", async () => {
@@ -457,6 +530,7 @@ describe("VCS branch-aware entrypoint guards", () => {
         {
           glossaryId: glossary.id,
           projectId: otherProject.id,
+          operation: "DIRECT_WRITE",
           termsData: [
             {
               definition: "rejected",
@@ -618,6 +692,7 @@ describe("VCS branch-aware entrypoint guards", () => {
         {
           ...branchInput,
           glossaryId: glossary.id,
+          operation: "DIRECT_WRITE",
           termsData: [
             {
               definition: "rejected",

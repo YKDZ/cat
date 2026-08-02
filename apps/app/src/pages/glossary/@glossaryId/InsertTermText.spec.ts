@@ -145,6 +145,7 @@ describe("InsertTermText", () => {
     expect(mocks.insertTerm).toHaveBeenCalledWith({
       glossaryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       termsData: expectedTermsData,
+      operation: "BULK_IMPORT",
       projectId: "11111111-1111-4111-8111-111111111111",
       branchId: 7,
     });
@@ -183,6 +184,7 @@ describe("InsertTermText", () => {
     expect(mocks.insertTerm).toHaveBeenCalledWith({
       glossaryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       termsData: expectedTermsData,
+      operation: "DIRECT_WRITE",
     });
   });
 });

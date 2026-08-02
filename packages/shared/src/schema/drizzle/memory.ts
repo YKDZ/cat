@@ -93,6 +93,7 @@ export const RecallDerivationStateSchema = z.object({
   languageId: NormalizedLanguageIdSchema,
   status: z.enum(["PENDING", "RUNNING", "FRESH", "BLOCKED", "FAILED"]),
   demandRevision: z.int(),
+  taskProjectionRevision: z.int(),
   executionEpoch: z.int(),
   leaseOwnerId: z.uuidv4().nullable(),
   leaseToken: z.uuidv4().nullable(),
@@ -111,6 +112,22 @@ export const RecallDerivationStateSchema = z.object({
 });
 
 export type RecallDerivationState = z.infer<typeof RecallDerivationStateSchema>;
+
+export const RecallDerivationTaskDemandSchema = z.object({
+  id: z.int(),
+  taskId: z.uuidv4(),
+  derivationStateId: z.int().nullable(),
+  targetKind: z.enum(["MEMORY_ITEM", "TERM_CONCEPT"]),
+  targetId: RecallDerivationTargetIdSchema,
+  languageId: NormalizedLanguageIdSchema,
+  demandRevision: z.int(),
+  observedProjectionRevision: z.int(),
+  detachedAt: DrizzleDateTimeSchema.nullable(),
+  supersededAt: DrizzleDateTimeSchema.nullable(),
+  createdAt: DrizzleDateTimeSchema,
+});
+
+export type RecallDerivationTaskDemand = z.infer<typeof RecallDerivationTaskDemandSchema>;
 
 export const MemoryRecallVariantSchema = z.object({
   id: z.int(),

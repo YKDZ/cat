@@ -112,6 +112,9 @@ const bindRunningTask = async (
   if (!db) throw new Error("Test database was not initialized.");
   const activeRuntime = ownerRuntime ?? runtime;
   const task = await adapter.refresh();
+  if (task.task.kind !== "BATCH_AUTO_TRANSLATION") {
+    throw new Error("Workflow adapter created a non-workflow Task.");
+  }
   const definition = await executeCommand(
     { db: db.client },
     createAgentDefinition,

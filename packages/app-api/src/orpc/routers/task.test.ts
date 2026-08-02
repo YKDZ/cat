@@ -4,30 +4,38 @@ import {
   createProject,
   createUser,
   createWorkflowTaskWithDispatch,
+  createRecallDerivationTask,
   ensureCoreRelationTypes,
   executeCommand,
+  ensureLanguages,
   grantPermissionTuple,
   MemoryCacheStore,
 } from "@cat/domain";
 import { initPermissionEngine } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
-import { BatchAutoTranslationInvocationSchema } from "@cat/shared";
+import {
+  BatchAutoTranslationInvocationSchema,
+  CanonicalInputVersionSchema,
+  RecallDerivationReferenceSchema,
+} from "@cat/shared";
 import {
   createAuthedTestContext,
   setupTestDB,
   type TestDB,
 } from "@cat/test-utils";
+import { recallDerivationState } from "@cat/test-utils";
 import { call } from "@orpc/server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { Context } from "#/utils/context.ts";
 
-import { detail, resume } from "./task.ts";
+import { cancel, detail, resume, retry } from "./task.ts";
 
 let db: TestDB | undefined;
 let context: Context | undefined;
 let projectId = "";
 let taskId = "";
+let recallTaskId = "";
 
 const serviceReference = (
   serviceType: "VECTOR_STORAGE" | "TEXT_VECTORIZER",
@@ -48,6 +56,9 @@ beforeAll(async () => {
     auditEnabled: false,
   });
   await executeCommand({ db: db.client }, ensureCoreRelationTypes, {});
+  await executeCommand({ db: db.client }, ensureLanguages, {
+    languageIds: ["en"],
+  });
   const user = await executeCommand({ db: db.client }, createUser, {
     email: `${randomUUID()}@example.com`,
     name: "Task reader",
@@ -62,6 +73,13 @@ beforeAll(async () => {
     subjectType: "user",
     subjectId: user.id,
     relation: "viewer",
+    objectType: "project",
+    objectId: project.id,
+  });
+  await executeCommand({ db: db.client }, grantPermissionTuple, {
+    subjectType: "user",
+    subjectId: user.id,
+    relation: "editor",
     objectType: "project",
     objectId: project.id,
   });
@@ -96,6 +114,32 @@ beforeAll(async () => {
     },
   );
   taskId = task.task.id;
+  await db.client.insert(recallDerivationState).values({
+    targetKind: "MEMORY_ITEM",
+    targetId: "909",
+    languageId: "en",
+    canonicalInputVersion: CanonicalInputVersionSchema.parse(
+      `sha256:${"9".repeat(64)}`,
+    ),
+  });
+  const recallTask = await executeCommand(
+    { db: db.client },
+    createRecallDerivationTask,
+    {
+      references: [
+        RecallDerivationReferenceSchema.parse({
+          targetKind: "MEMORY_ITEM",
+          targetId: "909",
+          languageId: "en",
+          demandRevision: 1,
+        }),
+      ],
+      scope: { type: "PROJECT", id: project.id },
+      actor: { type: "USER", id: user.id },
+      resources: [{ type: "PROJECT", id: project.id }],
+    },
+  );
+  recallTaskId = recallTask.id;
 
   const base = createAuthedTestContext(user, {
     drizzleDB: db,
@@ -158,5 +202,29 @@ describe("task router", () => {
         { context: unauthorizedContext },
       ),
     ).rejects.toMatchObject({ code: "FORBIDDEN" });
+  });
+
+  it("does not expose retry or resume as Recall derivation actions", async () => {
+    if (!context) throw new Error("Test context missing.");
+    await expect(
+      call(retry, { projectId, taskId: recallTaskId }, { context }),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    await expect(
+      call(
+        resume,
+        { projectId, taskId: recallTaskId, requestId: randomUUID() },
+        { context },
+      ),
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" });
+  });
+
+  it("cancels a Recall derivation task atomically", async () => {
+    if (!context) throw new Error("Test context missing.");
+    const canceled = await call(
+      cancel,
+      { projectId, taskId: recallTaskId, requestId: randomUUID() },
+      { context },
+    );
+    expect(canceled.state.status).toBe("CANCELED");
   });
 });

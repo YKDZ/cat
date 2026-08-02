@@ -262,7 +262,7 @@ describe("memory recall regression fixtures", () => {
         isStop: false,
         isPunct: false,
       })),
-      reconciliation: { invalidated: 0, pendingUpdated: 0 },
+      reconciliation: { invalidated: 0, pendingUpdated: 0, resumed: 0 },
     });
 
     const result = await collectMemoryRecallOp(
