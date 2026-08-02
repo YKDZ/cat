@@ -23,6 +23,8 @@ import {
   executeLanguageAnalysisReadinessAssessment,
   registerDomainEventHandlers,
   registerVectorizationConsumer,
+  startRecallDerivationWorker,
+  type RecallDerivationWorker,
 } from "@cat/operations";
 import { initPermissionEngine, registerAuditHandler } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
@@ -68,6 +70,7 @@ const initializeAppOnce = async (): Promise<void> => {
   const profile = resolveRuntimeProfile();
   let graphRuntime: DefaultGraphRuntime | null = null;
   let messageGateway: MessageGateway | null = null;
+  let recallDerivationWorker: RecallDerivationWorker | null = null;
   let runtimeCleanup: RuntimeCleanupHandle | null = null;
   configureReadinessReporter(
     createReadinessReporter({
@@ -126,6 +129,17 @@ const initializeAppOnce = async (): Promise<void> => {
     const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader, logger);
 
     await bootstrapApplicationData({ database: drizzleDB, pluginManager });
+
+    const previousRecallDerivationWorker = globalThis.recallDerivationWorker;
+    if (previousRecallDerivationWorker) {
+      globalThis.recallDerivationWorker = undefined;
+      await previousRecallDerivationWorker.stop();
+    }
+    recallDerivationWorker = await startRecallDerivationWorker({
+      db: drizzleDB.client,
+      pluginManager,
+    });
+    globalThis.recallDerivationWorker = recallDerivationWorker;
 
     graphRuntime =
       getGlobalGraphRuntimeOrNull() ??
@@ -212,6 +226,12 @@ const initializeAppOnce = async (): Promise<void> => {
     const cleanupResults = await Promise.allSettled([
       Promise.resolve().then(() => messageGateway?.stop()),
       graphRuntime?.dispose() ?? Promise.resolve(),
+      Promise.resolve().then(async () => {
+        if (globalThis.recallDerivationWorker === recallDerivationWorker) {
+          globalThis.recallDerivationWorker = undefined;
+        }
+        await recallDerivationWorker?.stop();
+      }),
       Promise.resolve().then(() => runtimeCleanup?.stop()),
     ]);
     for (const result of cleanupResults) {

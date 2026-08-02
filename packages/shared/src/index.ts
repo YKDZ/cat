@@ -141,6 +141,35 @@ export {
 } from "#/schema/language-analysis.ts";
 
 export {
+  type CanonicalInputVersion,
+  CanonicalInputVersionSchema,
+  computeCanonicalInputVersion,
+  computeRecallDerivationVersion,
+  type RecallDerivationBlocker,
+  RecallDerivationBlockerSchema,
+  type RecallDerivationReference,
+  MemoryItemRecallDerivationReferenceSchema,
+  RecallDerivationReferenceSchema,
+  RecallDerivationTargetIdSchema,
+  type RecallDerivationTokenizerPipelineEntry,
+  type RecallDerivationVersion,
+  RecallDerivationVersionInputSchema,
+  RecallDerivationVersionSchema,
+  TermConceptRecallDerivationReferenceSchema,
+} from "#/schema/recall-derivation.ts";
+
+export {
+  computeMemoryCanonicalInputVersion,
+  computeMemoryDeletionCanonicalInputVersion,
+  type MemoryCanonicalSnapshot,
+  MemoryCanonicalSnapshotSchema,
+  type MemoryRecallVariantDraft,
+  MemoryRecallVariantDraftSchema,
+  type MemoryRecallVariantMeta,
+  MemoryRecallVariantMetaSchema,
+} from "#/schema/memory-recall-derivation.ts";
+
+export {
   type LanguageAnalysisBlocker,
   LanguageAnalysisBlockerPolicy,
   LanguageAnalysisOperationFailureBlocker,
@@ -583,6 +612,12 @@ export {
   RecallQuerySideValues,
   RecallQuerySideSchema,
   type RecallQuerySide,
+  RecallDerivationStatusValues,
+  RecallDerivationStatusSchema,
+  type RecallDerivationStatus,
+  RecallDerivationTargetKindValues,
+  RecallDerivationTargetKindSchema,
+  type RecallDerivationTargetKind,
   MemoryScopeValues,
   MemoryScopeSchema,
   type MemoryScope,

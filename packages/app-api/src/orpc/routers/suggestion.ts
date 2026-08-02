@@ -151,6 +151,8 @@ export const onNew = authed
       }
     })();
     const sourceLanguageAnalysisTokens = languageAnalysis.tokens;
+    const sourceLanguageAnalysisVersion =
+      languageAnalysis.languageAnalysisVersion;
 
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
     const [recalledMemories, termContext] = await Promise.all([
@@ -165,6 +167,7 @@ export const onNew = authed
               chunkIds: element.chunkIds,
               excludeMemoryItemIds,
               sourceLanguageAnalysisTokens,
+              sourceLanguageAnalysisVersion,
             },
             {
               pluginManager,

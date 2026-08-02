@@ -447,6 +447,7 @@ describe("bootstrap plans", () => {
     const migrationsFolder = await mkdtemp(
       join(tmpdir(), "cat-bootstrap-migration-"),
     );
+    const migrationsSchema = `test_migrations_${randomUUID().replaceAll("-", "_")}`;
     const migrationName = "20260713041213_fluffy_plazm";
     const targetDirectory = join(migrationsFolder, migrationName);
     try {
@@ -462,12 +463,15 @@ describe("bootstrap plans", () => {
       );
       await testDb.client.execute(sql`DROP TABLE "BootstrapReceipt"`);
 
-      await migrate(testDb.client, { migrationsFolder });
+      await migrate(testDb.client, { migrationsFolder, migrationsSchema });
 
       await expect(
         testDb.client.select().from(bootstrapReceipt),
       ).resolves.toEqual([]);
     } finally {
+      await testDb.client.execute(
+        sql`DROP SCHEMA IF EXISTS ${sql.identifier(migrationsSchema)} CASCADE`,
+      );
       await rm(migrationsFolder, { force: true, recursive: true });
     }
   });

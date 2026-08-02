@@ -19,7 +19,7 @@ import {
   getSessionStore,
   type PluginCapabilities,
 } from "@cat/domain";
-import type { PluginServiceType, ScopeType } from "@cat/shared";
+import type { PluginData, PluginServiceType, ScopeType } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
 import { assertSingleNonNullish, logger } from "@cat/shared";
 import { Hono } from "hono";
@@ -30,6 +30,7 @@ import type {
   PluginLogger,
 } from "#/entities/plugin.ts";
 import {
+  ComponentRecordSchema,
   ComponentRegistry,
   type ComponentRecord,
 } from "#/registry/component-registry.ts";
@@ -51,7 +52,10 @@ import {
 } from "#/registry/service-registry.ts";
 import type { IPluginService } from "#/services/service.ts";
 import type { PluginServiceMap } from "#/types/plugin.ts";
-import { getPluginConfig } from "#/utils/config.ts";
+import {
+  getPluginRuntimeConfigurationSnapshot,
+  type PluginRuntimeConfigurationSnapshot,
+} from "#/utils/config.ts";
 
 export type DefaultPluginSource = string | string[];
 
@@ -69,6 +73,27 @@ export type PluginRuntimeSnapshot = {
   hasRoute: boolean;
 };
 
+export type ServiceRuntimeSnapshot = {
+  registeredService: RegisteredService;
+  reference: ServiceImplementationReference;
+  package: Readonly<{ name: string; version: string }>;
+  configuration: PluginRuntimeConfigurationSnapshot;
+  activationGeneration: number;
+};
+
+type ActivePluginRuntime = {
+  plugin: CatPlugin;
+  context: PluginContext;
+};
+
+type PreparedPluginRuntime = ActivePluginRuntime & {
+  services: RegisteredService[];
+  components: ComponentRecord[];
+  route: Hono | undefined;
+  packageData: PluginData;
+  configuration: PluginRuntimeConfigurationSnapshot;
+};
+
 /**
  * 作用域插件管理器
  * 必须绑定到一个具体的 Scope
@@ -78,7 +103,13 @@ export type PluginRuntimeSnapshot = {
 export class PluginManager {
   private static readonly instances = new Map<string, PluginManager>();
 
-  private activePlugins = new Map<string, CatPlugin>();
+  private activePlugins = new Map<string, ActivePluginRuntime>();
+  private readonly serviceRuntimeSnapshots = new Map<
+    string,
+    readonly ServiceRuntimeSnapshot[]
+  >();
+  private readonly activationGenerations = new Map<string, number>();
+  private readonly lifecycleTails = new Map<string, Promise<void>>();
   private readonly routeRegistry = new PluginRouteRegistry();
 
   public readonly scopeType: ScopeType;
@@ -185,6 +216,28 @@ export class PluginManager {
     PluginDiscoveryService.clear();
   }
 
+  private async withLifecycleLock<T>(
+    pluginId: string,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.lifecycleTails.get(pluginId) ?? Promise.resolve();
+    let release = (): void => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const tail = previous.catch(() => undefined).then(async () => await gate);
+    this.lifecycleTails.set(pluginId, tail);
+    await previous.catch(() => undefined);
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (this.lifecycleTails.get(pluginId) === tail) {
+        this.lifecycleTails.delete(pluginId);
+      }
+    }
+  }
+
   private static async readDefaultPluginIds(
     source: DefaultPluginSource,
   ): Promise<string[]> {
@@ -241,18 +294,20 @@ export class PluginManager {
     drizzle: DrizzleClient,
     pluginId: string,
   ): Promise<void> {
-    this.diagnosticLogger
-      .child({ component: "plugin" })
-      .info(
-        `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
-      );
+    await this.withLifecycleLock(pluginId, async () => {
+      this.diagnosticLogger
+        .child({ component: "plugin" })
+        .info(
+          `Installing plugin ${pluginId} into ${this.scopeType}:${this.scopeId}`,
+        );
 
-    await this.ensureDefinitionSynced(drizzle, pluginId);
+      await this.ensureDefinitionSynced(drizzle, pluginId);
 
-    await executeCommand({ db: drizzle }, installPlugin, {
-      pluginId,
-      scopeType: this.scopeType,
-      scopeId: this.scopeId,
+      await executeCommand({ db: drizzle }, installPlugin, {
+        pluginId,
+        scopeType: this.scopeType,
+        scopeId: this.scopeId,
+      });
     });
   }
 
@@ -260,24 +315,25 @@ export class PluginManager {
     drizzle: DrizzleTransaction,
     pluginId: string,
   ): Promise<void> {
-    // 卸载前先停用
-    if (this.activePlugins.has(pluginId)) {
-      await this.deactivate(drizzle, pluginId);
-    }
+    await this.withLifecycleLock(pluginId, async () => {
+      if (this.activePlugins.has(pluginId)) {
+        await this.deactivateUnlocked(drizzle, pluginId);
+      }
 
-    const installation = assertSingleNonNullish(
-      [
-        await executeQuery({ db: drizzle }, getPluginInstallation, {
-          pluginId,
-          scopeType: this.scopeType,
-          scopeId: this.scopeId,
-        }),
-      ].filter((r): r is { id: number } => r !== null),
-      `Plugin ${pluginId} not installed in ${this.scopeType}:${this.scopeId}`,
-    );
+      const installation = assertSingleNonNullish(
+        [
+          await executeQuery({ db: drizzle }, getPluginInstallation, {
+            pluginId,
+            scopeType: this.scopeType,
+            scopeId: this.scopeId,
+          }),
+        ].filter((r): r is { id: number } => r !== null),
+        `Plugin ${pluginId} not installed in ${this.scopeType}:${this.scopeId}`,
+      );
 
-    await executeCommand({ db: drizzle }, uninstallPlugin, {
-      installationId: installation.id,
+      await executeCommand({ db: drizzle }, uninstallPlugin, {
+        installationId: installation.id,
+      });
     });
   }
 
@@ -304,10 +360,19 @@ export class PluginManager {
    * 激活插件
    * 拆分为多个私有方法，职责清晰：
    *  ensureDefinitionSynced → loadPlugin →
-   *  invokeOnActivate → syncDynamicServices → registerServices →
-   *  registerComponents → mountRoutes
+   *  invokeOnActivate → prepare services/components/routes → atomic publish
    */
   public async activate(drizzle: DbHandle, pluginId: string): Promise<void> {
+    await this.withLifecycleLock(
+      pluginId,
+      async () => await this.activateUnlocked(drizzle, pluginId),
+    );
+  }
+
+  private async activateUnlocked(
+    drizzle: DbHandle,
+    pluginId: string,
+  ): Promise<void> {
     if (this.activePlugins.has(pluginId)) {
       this.diagnosticLogger
         .child({ component: "plugin" })
@@ -315,15 +380,8 @@ export class PluginManager {
       return;
     }
 
-    await this.ensureDefinitionSynced(drizzle, pluginId);
-    const { pluginObj, context } = await this.loadPlugin(drizzle, pluginId);
-    await this.invokeOnActivate(pluginObj, context);
-    await this.syncDynamicServices(drizzle, pluginId, pluginObj, context);
-    await this.registerServices(drizzle, pluginId, pluginObj, context);
-    await this.registerComponents(pluginId, pluginObj, context);
-    await this.mountRoutes(pluginId, pluginObj, context);
-
-    this.activePlugins.set(pluginId, pluginObj);
+    const prepared = await this.preparePluginRuntime(drizzle, pluginId);
+    this.publishPluginRuntime(pluginId, prepared);
 
     this.diagnosticLogger
       .child({ component: "plugin" })
@@ -336,40 +394,28 @@ export class PluginManager {
    * 停用插件并清理所有内存注册
    */
   public async deactivate(drizzle: DbHandle, pluginId: string): Promise<void> {
-    const pluginObj = this.activePlugins.get(pluginId);
-    if (!pluginObj) return;
-
-    // 1. 调用 onDeactivate 钩子
-    await this.invokeOnDeactivate(pluginObj, drizzle, pluginId);
-
-    // 2. 清理 ServiceRegistry
-    this.serviceRegistry.removeByPlugin(pluginId);
-
-    // 3. 清理 ComponentRegistry
-    this.componentRegistry.removeByPlugin(pluginId);
-
-    // 4. 清理路由代理
-    this.routeRegistry.remove(pluginId);
-
-    this.activePlugins.delete(pluginId);
-
-    this.diagnosticLogger
-      .child({ component: "plugin" })
-      .info(
-        `Plugin ${pluginId} deactivated in ${this.scopeType}:${this.scopeId}`,
-      );
+    await this.withLifecycleLock(
+      pluginId,
+      async () => await this.deactivateUnlocked(drizzle, pluginId),
+    );
   }
 
   /**
-   * 单插件热重载：deactivate → activate
-   * 用于配置更新后刷新服务实例
+   * 单插件热重载：prepare candidate → publish → deactivate previous context
+   * 用于配置更新后无中断地刷新服务实例
    */
   public async reloadPlugin(
     drizzle: DbHandle,
     pluginId: string,
   ): Promise<void> {
-    await this.deactivate(drizzle, pluginId);
-    await this.activate(drizzle, pluginId);
+    await this.withLifecycleLock(pluginId, async () => {
+      const current = this.activePlugins.get(pluginId);
+      const prepared = await this.preparePluginRuntime(drizzle, pluginId);
+      this.publishPluginRuntime(pluginId, prepared);
+      if (current) {
+        await this.invokeOnDeactivate(current.plugin, current.context);
+      }
+    });
   }
 
   /**
@@ -400,6 +446,50 @@ export class PluginManager {
   }
 
   /**
+   * Capture activation-bound service objects and provenance.
+   *
+   * The capture shares the plugin lifecycle lock, so each entry comes from a
+   * fully published activation generation and never observes reload staging.
+   */
+  public async captureServiceRuntimeSnapshots<T extends PluginServiceType>(
+    type: T,
+  ): Promise<
+    Array<
+      ServiceRuntimeSnapshot & {
+        registeredService: RegisteredService & {
+          type: T;
+          service: PluginServiceMap[T];
+        };
+        reference: ServiceImplementationReference & { serviceType: T };
+      }
+    >
+  > {
+    const pluginIds = [...this.serviceRuntimeSnapshots.keys()].sort();
+    const captures = await Promise.all(
+      pluginIds.map(
+        async (pluginId) =>
+          await this.withLifecycleLock(pluginId, async () => [
+            ...(this.serviceRuntimeSnapshots.get(pluginId) ?? []),
+          ]),
+      ),
+    );
+    const matching = captures
+      .flat()
+      .filter((snapshot) => snapshot.registeredService.type === type);
+
+    // The runtime type discriminator narrows both the service and reference.
+    return matching as Array<
+      ServiceRuntimeSnapshot & {
+        registeredService: RegisteredService & {
+          type: T;
+          service: PluginServiceMap[T];
+        };
+        reference: ServiceImplementationReference & { serviceType: T };
+      }
+    >;
+  }
+
+  /**
    * Create transient service instances with candidate config without registering services, components, or routes.
    *
    * @param drizzle - Long-lived database handle
@@ -415,7 +505,7 @@ export class PluginManager {
     const pluginObj = await this.loader.getInstance(pluginId);
     if (!pluginObj.services) return [];
 
-    const context = await this.createPluginContext(
+    const { context } = await this.createPluginContext(
       drizzle,
       pluginId,
       configOverride,
@@ -549,11 +639,25 @@ export class PluginManager {
     drizzle: DbHandle,
     pluginId: string,
     configOverride?: JSONType,
-  ): Promise<PluginContext> {
-    const config =
+  ): Promise<{
+    context: PluginContext;
+    configuration: PluginRuntimeConfigurationSnapshot;
+  }> {
+    const configuration =
       configOverride === undefined
-        ? await getPluginConfig(drizzle, pluginId, this.scopeType, this.scopeId)
-        : configOverride;
+        ? await getPluginRuntimeConfigurationSnapshot(
+            drizzle,
+            pluginId,
+            this.scopeType,
+            this.scopeId,
+          )
+        : {
+            semanticConfig: configOverride,
+            configurationDigest: "transient",
+            appliedVersion: null,
+            schemaVersion: null,
+            schemaDigest: null,
+          };
 
     // Candidate probes pass an explicit config override and must remain
     // service-independent: do not read installation state while constructing
@@ -568,24 +672,27 @@ export class PluginManager {
         : [];
 
     return {
-      config,
-      scopeType: this.scopeType,
-      scopeId: this.scopeId,
-      registeredServices,
-      capabilities: this.createCapabilities(drizzle, pluginId),
-      logger: this.diagnosticLogger.child({
-        component: "plugin",
-        pluginId,
-        scopeId: this.scopeId,
-        scopeType: this.scopeType,
-      }),
-      cacheStore: getCacheStore(),
-      sessionStore: getSessionStore(),
-      auth: {
-        pluginId,
+      configuration,
+      context: {
+        config: configuration.semanticConfig,
         scopeType: this.scopeType,
         scopeId: this.scopeId,
-        checkPermission: this.createCheckPermission(pluginId),
+        registeredServices,
+        capabilities: this.createCapabilities(drizzle, pluginId),
+        logger: this.diagnosticLogger.child({
+          component: "plugin",
+          pluginId,
+          scopeId: this.scopeId,
+          scopeType: this.scopeType,
+        }),
+        cacheStore: getCacheStore(),
+        sessionStore: getSessionStore(),
+        auth: {
+          pluginId,
+          scopeType: this.scopeType,
+          scopeId: this.scopeId,
+          checkPermission: this.createCheckPermission(pluginId),
+        },
       },
     };
   }
@@ -596,11 +703,123 @@ export class PluginManager {
   private async loadPlugin(
     drizzle: DbHandle,
     pluginId: string,
-  ): Promise<{ pluginObj: CatPlugin; context: PluginContext }> {
-    const pluginObj = await this.loader.getInstance(pluginId);
-    const context = await this.createPluginContext(drizzle, pluginId);
+  ): Promise<{
+    pluginObj: CatPlugin;
+    context: PluginContext;
+    configuration: PluginRuntimeConfigurationSnapshot;
+    packageData: PluginData;
+  }> {
+    const [pluginObj, packageData, runtimeContext] = await Promise.all([
+      this.loader.getInstance(pluginId),
+      this.loader.getData(pluginId),
+      this.createPluginContext(drizzle, pluginId),
+    ]);
 
-    return { pluginObj, context };
+    return { pluginObj, packageData, ...runtimeContext };
+  }
+
+  private async preparePluginRuntime(
+    drizzle: DbHandle,
+    pluginId: string,
+  ): Promise<PreparedPluginRuntime> {
+    await this.ensureDefinitionSynced(drizzle, pluginId);
+    const { pluginObj, context, configuration, packageData } =
+      await this.loadPlugin(drizzle, pluginId);
+    let activationStarted = false;
+    try {
+      activationStarted = true;
+      await this.invokeOnActivate(pluginObj, context);
+      const runtimeServices = await this.syncDynamicServices(
+        drizzle,
+        pluginId,
+        pluginObj,
+        context,
+      );
+      const [services, components, route] = await Promise.all([
+        this.serviceRegistry.prepare(
+          drizzle,
+          this.scopeType,
+          this.scopeId,
+          pluginId,
+          runtimeServices,
+        ),
+        this.prepareComponents(pluginId, pluginObj, context),
+        this.prepareRoute(pluginId, pluginObj, context),
+      ]);
+      return {
+        plugin: pluginObj,
+        context,
+        configuration,
+        packageData,
+        services,
+        components,
+        route,
+      };
+    } catch (error) {
+      if (activationStarted) {
+        await this.invokeOnDeactivate(pluginObj, context);
+      }
+      throw error;
+    }
+  }
+
+  private publishPluginRuntime(
+    pluginId: string,
+    prepared: PreparedPluginRuntime,
+  ): void {
+    const activationGeneration =
+      (this.activationGenerations.get(pluginId) ?? 0) + 1;
+    const packageSnapshot = Object.freeze({
+      name: prepared.packageData.name,
+      version: prepared.packageData.version,
+    });
+    const serviceSnapshots = Object.freeze(
+      prepared.services.map((registeredService) =>
+        Object.freeze({
+          registeredService,
+          reference:
+            this.createServiceImplementationReference(registeredService),
+          package: packageSnapshot,
+          configuration: prepared.configuration,
+          activationGeneration,
+        }),
+      ),
+    );
+
+    this.serviceRegistry.replaceByPlugin(pluginId, prepared.services);
+    this.componentRegistry.combine(pluginId, prepared.components);
+    if (prepared.route) {
+      this.routeRegistry.register(pluginId, prepared.route);
+    } else {
+      this.routeRegistry.remove(pluginId);
+    }
+    this.activePlugins.set(pluginId, {
+      plugin: prepared.plugin,
+      context: prepared.context,
+    });
+    this.activationGenerations.set(pluginId, activationGeneration);
+    this.serviceRuntimeSnapshots.set(pluginId, serviceSnapshots);
+  }
+
+  private async deactivateUnlocked(
+    _drizzle: DbHandle,
+    pluginId: string,
+  ): Promise<void> {
+    const active = this.activePlugins.get(pluginId);
+    if (!active) return;
+
+    await this.invokeOnDeactivate(active.plugin, active.context);
+    this.serviceRegistry.removeByPlugin(pluginId);
+    this.componentRegistry.removeByPlugin(pluginId);
+    this.routeRegistry.remove(pluginId);
+    this.activePlugins.delete(pluginId);
+    this.serviceRuntimeSnapshots.delete(pluginId);
+
+    this.diagnosticLogger
+      .child({ component: "plugin" })
+      .info(
+        `Plugin ${pluginId} deactivated in ${this.scopeType}:${this.scopeId}`,
+      );
   }
 
   /**
@@ -624,13 +843,13 @@ export class PluginManager {
     pluginId: string,
     pluginObj: CatPlugin,
     context: PluginContext,
-  ): Promise<void> {
+  ): Promise<IPluginService[]> {
     const installation = await executeQuery(
       { db: drizzle },
       getPluginInstallation,
       { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
     );
-    if (!installation) return;
+    if (!installation) return [];
 
     const manifest = await this.loader.getManifest(pluginId);
 
@@ -692,61 +911,34 @@ export class PluginManager {
         serviceDbIds: toDelete.map((service) => service.id),
       });
     }
+
+    return runtimeServices;
   }
 
-  /**
-   * 注册插件服务到内存 ServiceRegistry
-   */
-  private async registerServices(
-    drizzle: DbHandle,
+  private async prepareComponents(
     pluginId: string,
     pluginObj: CatPlugin,
     context: PluginContext,
-  ): Promise<void> {
-    if (!pluginObj.services) return;
-
-    const services = await pluginObj.services(context);
-
-    await this.serviceRegistry.combine(
-      drizzle,
-      this.scopeType,
-      this.scopeId,
-      pluginId,
-      services,
-    );
-  }
-
-  /**
-   * 注册插件组件到内存 ComponentRegistry
-   */
-  private async registerComponents(
-    pluginId: string,
-    pluginObj: CatPlugin,
-    context: PluginContext,
-  ): Promise<void> {
-    if (!pluginObj.components) return;
+  ): Promise<ComponentRecord[]> {
+    if (!pluginObj.components) return [];
 
     const components = await pluginObj.components(context);
-    this.componentRegistry.combine(
-      pluginId,
-      components.map((c) => ({ ...c, pluginId })),
+    return ComponentRecordSchema.array().parse(
+      components.map((component) => ({ ...component, pluginId })),
     );
   }
 
-  /**
-   * 挂载插件路由到路由注册表（中间件代理模式）
-   */
-  private async mountRoutes(
+  private async prepareRoute(
     pluginId: string,
     pluginObj: CatPlugin,
     context: PluginContext,
-  ): Promise<void> {
-    if (!pluginObj.routes) return;
+  ): Promise<Hono | undefined> {
+    if (!pluginObj.routes) return undefined;
 
     const route = new Hono();
     const baseURL = `/_plugin/${this.scopeType}/${this.scopeId}/${pluginId}`;
     await pluginObj.routes({ ...context, baseURL, app: route });
-    this.routeRegistry.register(pluginId, route);
+    return route;
   }
 
   // ────────────────────────────────────────────
@@ -755,44 +947,16 @@ export class PluginManager {
 
   private async invokeOnDeactivate(
     pluginObj: CatPlugin,
-    drizzle: DbHandle,
-    pluginId: string,
+    context: PluginContext,
   ): Promise<void> {
     if (!pluginObj.onDeactivate) return;
 
-    const config = await getPluginConfig(
-      drizzle,
-      pluginId,
-      this.scopeType,
-      this.scopeId,
-    );
-
     try {
-      await pluginObj.onDeactivate({
-        config,
-        scopeType: this.scopeType,
-        scopeId: this.scopeId,
-        registeredServices: [],
-        capabilities: this.createCapabilities(drizzle, pluginId),
-        logger: this.diagnosticLogger.child({
-          component: "plugin",
-          pluginId,
-          scopeId: this.scopeId,
-          scopeType: this.scopeType,
-        }),
-        cacheStore: getCacheStore(),
-        sessionStore: getSessionStore(),
-        auth: {
-          pluginId,
-          scopeType: this.scopeType,
-          scopeId: this.scopeId,
-          checkPermission: this.createCheckPermission(pluginId),
-        },
-      });
+      await pluginObj.onDeactivate(context);
     } catch (e) {
       this.diagnosticLogger
         .child({ component: "plugin" })
-        .error(`Error deactivating ${pluginId}`, { error: e });
+        .error(`Error deactivating ${context.auth.pluginId}`, { error: e });
     }
   }
 }

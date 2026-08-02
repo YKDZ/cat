@@ -62,8 +62,25 @@ export class ServiceRegistry {
     pluginId: string,
     services: IPluginService[],
   ): Promise<void> {
-    // 支持 reload：先移除旧的
-    this.removeByPlugin(pluginId);
+    const registered = await this.prepare(
+      drizzle,
+      scopeType,
+      scopeId,
+      pluginId,
+      services,
+    );
+    this.replaceByPlugin(pluginId, registered);
+  }
+
+  /** Resolve runtime services to persisted identities without publishing them. */
+  public async prepare(
+    drizzle: DbHandle,
+    scopeType: ScopeType,
+    scopeId: string,
+    pluginId: string,
+    services: IPluginService[],
+  ): Promise<RegisteredService[]> {
+    const registered: RegisteredService[] = [];
 
     for (const service of services) {
       const id = service.getId();
@@ -91,7 +108,7 @@ export class ServiceRegistry {
         continue;
       }
 
-      this.services.push({
+      registered.push({
         dbId,
         pluginId,
         type,
@@ -99,6 +116,19 @@ export class ServiceRegistry {
         service,
       });
     }
+
+    return registered;
+  }
+
+  /** Atomically replace one plugin's prepared service records. */
+  public replaceByPlugin(
+    pluginId: string,
+    services: RegisteredService[],
+  ): void {
+    this.services = [
+      ...this.services.filter((service) => service.pluginId !== pluginId),
+      ...services,
+    ];
   }
 
   /**

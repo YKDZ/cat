@@ -19,7 +19,11 @@ import {
 } from "@cat/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CatPlugin, PluginLogger } from "#/entities/plugin.ts";
+import type {
+  CatPlugin,
+  PluginContext,
+  PluginLogger,
+} from "#/entities/plugin.ts";
 import type { PluginLoader } from "#/registry/loader.ts";
 
 /* ─── Module mocks (hoisted) ───────────────────────────────────────────────── */
@@ -124,6 +128,49 @@ function setupActivateMocks(overrides?: {
 
   vi.mocked(executeCommand).mockResolvedValue(undefined);
 }
+
+const setupConfiguredActivationMocks = (
+  endpoint: string,
+  revision: number,
+): void => {
+  const mc = vi.mocked(executeQuery);
+  mc.mockReset();
+  mc.mockResolvedValueOnce({
+    schemaVersion: "1",
+    schemaDigest: "a".repeat(64),
+    isAvailable: true,
+    schema: {
+      type: "object",
+      properties: { endpoint: { type: "string" } },
+      required: ["endpoint"],
+    },
+  });
+  mc.mockResolvedValueOnce({
+    appliedVersion: "1",
+    revision,
+    value: { endpoint },
+  });
+  mc.mockResolvedValueOnce([]);
+  mc.mockResolvedValueOnce({ id: 1 });
+  mc.mockResolvedValueOnce([]);
+  mc.mockResolvedValueOnce([
+    { dbId: 1, pluginId: PLUGIN_ID, serviceId: "svc-1" },
+  ]);
+  vi.mocked(executeCommand).mockResolvedValue(undefined);
+};
+
+const getEndpoint = (context: PluginContext): string => {
+  const config = context.config;
+  if (
+    config === null ||
+    typeof config !== "object" ||
+    Array.isArray(config) ||
+    typeof config["endpoint"] !== "string"
+  ) {
+    throw new Error("Expected endpoint config");
+  }
+  return config["endpoint"];
+};
 
 /* ─── Discovery mock setup ─────────────────────────────────────────────────── */
 
@@ -451,7 +498,7 @@ describe("PluginManager — activate() → deactivate()", () => {
 });
 
 describe("PluginManager — reloadPlugin()", () => {
-  it("reloadPlugin() deactivates then re-activates the plugin", async () => {
+  it("reloadPlugin() replaces the plugin's registered services", async () => {
     const svc = {
       getId: () => "svc-1",
       getType: () => "TOKENIZER" as const,
@@ -473,6 +520,224 @@ describe("PluginManager — reloadPlugin()", () => {
 
     // Service should still be present after reload
     expect(manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1")).not.toBeNull();
+  });
+
+  it("captures only complete old or new activation provenance during reload", async () => {
+    const clients = new WeakMap<PluginContext, { closed: boolean }>();
+    let manager: PluginManager | null = null;
+    let publishedServiceAtOldCleanup: unknown;
+    const getClient = (context: PluginContext): { closed: boolean } => {
+      const client = clients.get(context);
+      if (!client) throw new Error("Activation client not initialized");
+      return client;
+    };
+    const createService = (context: PluginContext) => {
+      const client = getClient(context);
+      return {
+        getId: () => "svc-1",
+        getType: () => "TOKENIZER" as const,
+        getPriority: () => 0,
+        parse: () => {
+          if (client.closed) throw new Error("Activation client is closed");
+          return undefined;
+        },
+      };
+    };
+    let oldService: ReturnType<typeof createService> | undefined;
+    let newService: ReturnType<typeof createService> | undefined;
+    let releaseReload = (): void => undefined;
+    let markReloadEntered = (): void => undefined;
+    const reloadGate = new Promise<void>((resolve) => {
+      releaseReload = resolve;
+    });
+    const reloadEntered = new Promise<void>((resolve) => {
+      markReloadEntered = resolve;
+    });
+    const plugin = makePlugin({
+      onActivate: (context) => {
+        clients.set(context, { closed: false });
+      },
+      onDeactivate: (context) => {
+        if (getEndpoint(context) === "old") {
+          publishedServiceAtOldCleanup = manager?.getService(
+            PLUGIN_ID,
+            "TOKENIZER",
+            "svc-1",
+          )?.service;
+        }
+        getClient(context).closed = true;
+      },
+      services: vi.fn(async (context: PluginContext) => {
+        const service = createService(context);
+        if (getEndpoint(context) === "old") {
+          oldService = service;
+          return [service];
+        }
+        newService = service;
+        markReloadEntered();
+        await reloadGate;
+        return [service];
+      }),
+    });
+    const loader = makeLoader(plugin);
+    vi.mocked(loader.getData)
+      .mockResolvedValueOnce(MINIMAL_DATA)
+      .mockResolvedValueOnce(
+        PluginDataSchema.parse({ ...MINIMAL_DATA, version: "2.0.0" }),
+      );
+    manager = createManager(loader);
+    setupConfiguredActivationMocks("old", 1);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+
+    const [oldSnapshot] =
+      await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(oldSnapshot).toMatchObject({
+      activationGeneration: 1,
+      configuration: { semanticConfig: { endpoint: "old" } },
+      package: { name: "test plugin", version: "1.0.0" },
+      reference: {
+        pluginId: PLUGIN_ID,
+        serviceId: "svc-1",
+        serviceType: "TOKENIZER",
+      },
+    });
+    expect(oldSnapshot?.registeredService.service).toBe(oldService);
+    expect(() =>
+      oldSnapshot?.registeredService.service.parse({
+        source: "still live",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+    expect(Object.isFrozen(oldSnapshot?.configuration.semanticConfig)).toBe(
+      true,
+    );
+
+    setupConfiguredActivationMocks("new", 2);
+    const reload = manager.reloadPlugin(FAKE_DB, PLUGIN_ID);
+    await reloadEntered;
+    expect(() =>
+      oldSnapshot?.registeredService.service.parse({
+        source: "live during candidate preparation",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+    let captureSettled = false;
+    const capture = manager
+      .captureServiceRuntimeSnapshots("TOKENIZER")
+      .then((snapshots) => {
+        captureSettled = true;
+        return snapshots;
+      });
+    await Promise.resolve();
+    expect(captureSettled).toBe(false);
+
+    releaseReload();
+    await reload;
+    const [newSnapshot] = await capture;
+    expect(newSnapshot).toMatchObject({
+      activationGeneration: 2,
+      configuration: { semanticConfig: { endpoint: "new" } },
+      package: { name: "test plugin", version: "2.0.0" },
+    });
+    expect(newSnapshot?.registeredService.service).toBe(newService);
+    expect(publishedServiceAtOldCleanup).toBe(newService);
+    expect(() => oldService?.parse()).toThrow("Activation client is closed");
+    expect(() =>
+      newSnapshot?.registeredService.service.parse({
+        source: "new generation",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+    expect(newSnapshot?.configuration.configurationDigest).not.toBe(
+      oldSnapshot?.configuration.configurationDigest,
+    );
+  });
+
+  it("keeps the prior activation snapshot when reload preparation fails", async () => {
+    const clients = new WeakMap<PluginContext, { closed: boolean }>();
+    const getClient = (context: PluginContext): { closed: boolean } => {
+      const client = clients.get(context);
+      if (!client) throw new Error("Activation client not initialized");
+      return client;
+    };
+    const createService = (context: PluginContext) => {
+      const client = getClient(context);
+      return {
+        getId: () => "svc-1",
+        getType: () => "TOKENIZER" as const,
+        getPriority: () => 0,
+        parse: () => {
+          if (client.closed) throw new Error("Activation client is closed");
+          return undefined;
+        },
+      };
+    };
+    let oldService: ReturnType<typeof createService> | undefined;
+    let rolledBackService: ReturnType<typeof createService> | undefined;
+    let oldConfigActivationCount = 0;
+    const plugin = makePlugin({
+      onActivate: (context) => {
+        clients.set(context, { closed: false });
+      },
+      onDeactivate: (context) => {
+        getClient(context).closed = true;
+      },
+      services: vi.fn(async (context: PluginContext) => {
+        const service = createService(context);
+        if (getEndpoint(context) === "old") {
+          oldConfigActivationCount += 1;
+          if (oldConfigActivationCount === 1) oldService = service;
+          else rolledBackService = service;
+        }
+        return [service];
+      }),
+      components: vi.fn(async (context: PluginContext) => {
+        if (getEndpoint(context) === "new") {
+          throw new Error("new runtime rejected config");
+        }
+        return [];
+      }),
+    });
+    const manager = createManager(makeLoader(plugin));
+    setupConfiguredActivationMocks("old", 1);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+    const [before] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+
+    setupConfiguredActivationMocks("new", 2);
+    await expect(manager.reloadPlugin(FAKE_DB, PLUGIN_ID)).rejects.toThrow(
+      "new runtime rejected config",
+    );
+
+    const [after] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(after?.registeredService.service).toBe(oldService);
+    expect(after?.activationGeneration).toBe(1);
+    expect(after?.configuration).toBe(before?.configuration);
+    expect(() =>
+      after?.registeredService.service.parse({
+        source: "old generation after failed candidate",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+
+    setupConfiguredActivationMocks("old", 3);
+    await manager.reloadPlugin(FAKE_DB, PLUGIN_ID);
+    const [rolledBack] =
+      await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(rolledBack?.registeredService.service).toBe(rolledBackService);
+    expect(rolledBack?.activationGeneration).toBe(2);
+    expect(rolledBack?.configuration.semanticConfig).toEqual({
+      endpoint: "old",
+    });
+    expect(rolledBack?.configuration.configurationDigest).toBe(
+      before?.configuration.configurationDigest,
+    );
+    expect(() => oldService?.parse()).toThrow("Activation client is closed");
+    expect(() =>
+      rolledBack?.registeredService.service.parse({
+        source: "rolled back generation",
+        cursor: 0,
+      }),
+    ).not.toThrow();
   });
 });
 

@@ -95,6 +95,20 @@ const setupPolicyTestDb = async (): Promise<PolicyTestDb> => {
       created_at timestamptz NOT NULL,
       updated_at timestamptz NOT NULL
     );
+    CREATE TABLE "RecallDerivationState" (
+      id serial PRIMARY KEY,
+      language_id text NOT NULL,
+      status text NOT NULL,
+      demand_revision integer NOT NULL,
+      lease_owner_id uuid,
+      lease_token uuid,
+      lease_expires_at timestamptz,
+      retry_count integer NOT NULL,
+      next_attempt_at timestamptz,
+      blocker jsonb,
+      required_derivation_version text,
+      updated_at timestamptz NOT NULL
+    );
   `);
   const openConcurrentClient = async () => {
     const client = new Client({ connectionString });

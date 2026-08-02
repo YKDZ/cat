@@ -8,8 +8,8 @@ import {
   executeCommand,
 } from "@cat/domain";
 import {
-  buildMemoryRecallVariantsOp,
   diffStructuredContentOp,
+  waitForRecallDerivationFresh,
 } from "@cat/operations";
 import type { PluginManager } from "@cat/plugin-core";
 import {
@@ -158,57 +158,59 @@ export const runBootstrapSourceGraph = async (
     const createdMemoryId = memory.id;
     memoryId = createdMemoryId;
 
-    await Promise.all(
-      locale.memoryItems.map(async (item) => {
-        const [sourceStringIds, translationStringIds] = await Promise.all([
-          executeCommand(input.execCtx, createVectorizedStrings, {
-            data: [{ text: item.source, languageId: item.sourceLanguageId }],
-          }),
-          executeCommand(input.execCtx, createVectorizedStrings, {
-            data: [
-              {
-                text: item.translation,
-                languageId: item.translationLanguageId,
-              },
-            ],
-          }),
-        ]);
+    const derivations = (
+      await Promise.all(
+        locale.memoryItems.map(async (item) => {
+          const [sourceStringIds, translationStringIds] = await Promise.all([
+            executeCommand(input.execCtx, createVectorizedStrings, {
+              data: [{ text: item.source, languageId: item.sourceLanguageId }],
+            }),
+            executeCommand(input.execCtx, createVectorizedStrings, {
+              data: [
+                {
+                  text: item.translation,
+                  languageId: item.translationLanguageId,
+                },
+              ],
+            }),
+          ]);
 
-        const sourceStringId = sourceStringIds[0];
-        const translationStringId = translationStringIds[0];
-        if (sourceStringId === undefined || translationStringId === undefined) {
-          throw new Error("Failed to create bootstrap locale strings");
-        }
+          const sourceStringId = sourceStringIds[0];
+          const translationStringId = translationStringIds[0];
+          if (
+            sourceStringId === undefined ||
+            translationStringId === undefined
+          ) {
+            throw new Error("Failed to create bootstrap locale strings");
+          }
 
-        const created = await executeCommand(input.execCtx, createMemoryItems, {
-          memoryId: createdMemoryId,
-          items: [
+          const created = await executeCommand(
+            input.execCtx,
+            createMemoryItems,
             {
-              translationId: null,
-              translationStringId,
-              sourceStringId,
-              creatorId: input.creatorId,
-              sourceTemplate: null,
-              translationTemplate: null,
-              slotMapping: null,
+              memoryId: createdMemoryId,
+              items: [
+                {
+                  translationId: null,
+                  translationStringId,
+                  sourceStringId,
+                  creatorId: input.creatorId,
+                },
+              ],
             },
-          ],
-        });
-        const createdItem = created[0];
-        if (!createdItem) {
-          throw new Error("Failed to create bootstrap locale memory item");
-        }
-
-        await buildMemoryRecallVariantsOp({
-          memoryItemId: createdItem.id,
-          memoryId: createdMemoryId,
-          sourceText: item.source,
-          translationText: item.translation,
-          sourceLanguageId: item.sourceLanguageId,
-          translationLanguageId: item.translationLanguageId,
-        });
-      }),
-    );
+          );
+          const createdItem = created.items[0];
+          if (!createdItem) {
+            throw new Error("Failed to create bootstrap locale memory item");
+          }
+          return created.derivations;
+        }),
+      )
+    ).flat();
+    await waitForRecallDerivationFresh(derivations, {
+      db: input.execCtx.db,
+      pluginManager: input.pluginManager,
+    });
   }
 
   const report: BootstrapRunReport = {

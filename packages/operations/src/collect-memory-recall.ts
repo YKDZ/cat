@@ -14,6 +14,7 @@ import {
 } from "@cat/server-shared";
 import type { SlotMappingEntry } from "@cat/shared";
 import {
+  LanguageAnalysisVersionSchema,
   type MemorySuggestion,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
@@ -26,6 +27,7 @@ import {
 } from "./hard-negative-filter/index.ts";
 import { joinLemmas } from "./language-analysis-normalization.ts";
 import { collectBm25MemorySuggestionsOp } from "./memory-recall-bm25.ts";
+import { probeMemoryRecallDependency } from "./memory-recall-derivation.ts";
 import {
   fillTemplate,
   mappingToSlots,
@@ -70,6 +72,7 @@ export const CollectMemoryRecallInputSchema = z.object({
       }),
     )
     .optional(),
+  sourceLanguageAnalysisVersion: LanguageAnalysisVersionSchema.optional(),
   /** Memory item UUIDs to exclude from results (self-exclusion). */
   excludeMemoryItemIds: z.array(z.string()).optional(),
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
@@ -104,12 +107,23 @@ export const collectMemoryRecallOp = async (
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   const text = input.text;
+  const dependency = await probeMemoryRecallDependency({
+    db: drizzle,
+    pluginManager,
+    languageId: input.sourceLanguageId,
+    text,
+    languageAnalysisVersion: input.sourceLanguageAnalysisVersion,
+    timeoutMs: 5_000,
+    ctx,
+  });
+  const sourceLanguageAnalysisTokens =
+    input.sourceLanguageAnalysisTokens ?? dependency.tokens;
+  const { requiredDerivationVersion } = dependency;
   const normalizedText =
     input.normalizedText ??
-    (input.sourceLanguageAnalysisTokens &&
-    input.sourceLanguageAnalysisTokens.length > 0
+    (sourceLanguageAnalysisTokens && sourceLanguageAnalysisTokens.length > 0
       ? joinLemmas(
-          input.sourceLanguageAnalysisTokens.filter(
+          sourceLanguageAnalysisTokens.filter(
             (token) => !token.isStop && !token.isPunct,
           ),
           input.sourceLanguageId,
@@ -132,7 +146,7 @@ export const collectMemoryRecallOp = async (
 
   const ensureCurrentSourceTemplate = async () => {
     if (!currentSourceSlotsPromise) {
-      currentSourceSlotsPromise = tokenizeOp({ text })
+      currentSourceSlotsPromise = tokenizeOp({ text }, ctx)
         .then(({ tokens }) => {
           const result = placeholderize(tokens, text);
           currentSourceTemplate = result.template;
@@ -335,6 +349,7 @@ export const collectMemoryRecallOp = async (
         memoryIds: input.memoryIds,
         minSimilarity: input.minVariantSimilarity,
         maxAmount: input.maxAmount,
+        requiredDerivationVersion,
       },
     );
     await Promise.all(
@@ -396,6 +411,7 @@ export const collectMemoryRecallOp = async (
           translationLanguageId: input.translationLanguageId,
           memoryIds: input.memoryIds,
           maxAmount: input.maxAmount,
+          requiredDerivationVersion,
         },
       );
       if (templateResults.length > 0) {
@@ -518,8 +534,8 @@ export const collectMemoryRecallOp = async (
   );
 
   // ── Sparse Lexical Lane (heuristic post-merge evidence augmenter) ──
-  const sparseContentWords = input.sourceLanguageAnalysisTokens
-    ? input.sourceLanguageAnalysisTokens
+  const sparseContentWords = sourceLanguageAnalysisTokens
+    ? sourceLanguageAnalysisTokens
         .filter((t) => !t.isStop && !t.isPunct)
         .map((t) => t.lemma.toLowerCase())
     : text.toLowerCase().split(/\s+/).filter(Boolean);
@@ -544,13 +560,10 @@ export const collectMemoryRecallOp = async (
     detail?: string;
   }> = [];
 
-  if (
-    input.sourceLanguageAnalysisTokens &&
-    input.sourceLanguageAnalysisTokens.length > 0
-  ) {
+  if (sourceLanguageAnalysisTokens && sourceLanguageAnalysisTokens.length > 0) {
     const hnfPreResult = applyMemoryHnfPre(
       rawMemoryResults,
-      input.sourceLanguageAnalysisTokens,
+      sourceLanguageAnalysisTokens,
       input.text,
     );
     hnfPreRemovals.push(...hnfPreResult);
@@ -590,14 +603,8 @@ export const collectMemoryRecallOp = async (
     detail?: string;
   }> = [];
 
-  if (
-    input.sourceLanguageAnalysisTokens &&
-    input.sourceLanguageAnalysisTokens.length > 0
-  ) {
-    hnfPostRemovals = applyMemoryHnfPost(
-      ranked,
-      input.sourceLanguageAnalysisTokens,
-    );
+  if (sourceLanguageAnalysisTokens && sourceLanguageAnalysisTokens.length > 0) {
+    hnfPostRemovals = applyMemoryHnfPost(ranked, sourceLanguageAnalysisTokens);
 
     if (hnfPostRemovals.length > 0) {
       logger

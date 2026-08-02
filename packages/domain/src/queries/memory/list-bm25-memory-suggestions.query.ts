@@ -109,9 +109,9 @@ export const listBm25MemorySuggestions: Query<
     creatorId: memoryItem.creatorId,
     createdAt: memoryItem.createdAt,
     updatedAt: memoryItem.updatedAt,
-    sourceTemplate: memoryItem.sourceTemplate,
-    translationTemplate: memoryItem.translationTemplate,
-    slotMapping: memoryItem.slotMapping,
+    sourceTemplate: sql<string | null>`NULL`,
+    translationTemplate: sql<string | null>`NULL`,
+    slotMapping: sql<unknown>`NULL`,
   };
 
   const [forwardRows, reversedRows] = await Promise.all([

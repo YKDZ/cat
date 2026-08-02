@@ -5,26 +5,13 @@ import {
   executeQuery,
   fetchTranslationsForMemory,
 } from "@cat/domain";
-
-import { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants.ts";
-import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
-import {
-  placeholderize,
-  slotsToMapping,
-  type SlotMappingEntry,
-} from "./memory-template.ts";
-import { tokenizeOp } from "./tokenize.ts";
+import type { RecallDerivationReference } from "@cat/shared";
 
 /**
- *
- * 对每条翻译，使用分词器和占位符化算法生成模板（含占位符时才存储）。
- * 分词失败为非致命错误，将在无模板的情况下继续写入。
  * Write translations into the specified translation memory banks.
  *
- * For each translation, generates source and translation templates via
- * tokenization and placeholderization (templates are only stored when
- * placeholders are present). Tokenization failures are non-fatal;
- * the memory item will be inserted without a template.
+ * The canonical transaction only persists Memory Items and durable recall
+ * derivation demand. Language Analysis and variant derivation run after commit.
  *
  * @param tx - Database transaction handle
  * @param memoryIds - List of target memory bank UUIDs
@@ -38,9 +25,10 @@ export const insertMemory = async (
 ): Promise<{
   memoryItemIds: number[];
   itemsByMemoryId: Array<{ memoryId: string; memoryItemId: number }>;
+  derivations: RecallDerivationReference[];
 }> => {
   if (translationIds.length === 0 || memoryIds.length === 0) {
-    return { memoryItemIds: [], itemsByMemoryId: [] };
+    return { memoryItemIds: [], itemsByMemoryId: [], derivations: [] };
   }
 
   const translations = await executeQuery(
@@ -49,163 +37,29 @@ export const insertMemory = async (
     { translationIds },
   );
 
-  const sourceLanguageAnalysisTokensByTranslationId = new Map<
-    number,
-    BuildMemoryRecallTokens
-  >();
-
-  const translationsByLanguage = new Map<string, typeof translations>();
-  for (const translation of translations) {
-    const existing = translationsByLanguage.get(translation.sourceLanguageId);
-    if (existing) {
-      existing.push(translation);
-    } else {
-      translationsByLanguage.set(translation.sourceLanguageId, [translation]);
-    }
-  }
-
-  await Promise.all(
-    [...translationsByLanguage.entries()].map(async ([languageId, rows]) => {
-      const result = await languageAnalyzeBatchOp({
-        languageId,
-        items: rows.map((row) => ({
-          id: String(row.translationId),
-          text: row.sourceText,
-        })),
-      });
-
-      for (const { id, result: analysis } of result.results) {
-        const translationId = Number.parseInt(id, 10);
-        if (Number.isNaN(translationId)) {
-          continue;
-        }
-        sourceLanguageAnalysisTokensByTranslationId.set(
-          translationId,
-          analysis.tokens,
-        );
-      }
-    }),
-  );
-
-  // Compute templates for each translation pair
-  const templated = await Promise.all(
-    translations.map(async (t) => {
-      let sourceTemplate: string | null = null;
-      let translationTemplate: string | null = null;
-      let slotMapping: SlotMappingEntry[] | null = null;
-
-      try {
-        const [srcTokens, tgtTokens] = await Promise.all([
-          tokenizeOp({ text: t.sourceText }),
-          tokenizeOp({ text: t.translationText }),
-        ]);
-
-        const srcResult = placeholderize(srcTokens.tokens, t.sourceText);
-        const tgtResult = placeholderize(tgtTokens.tokens, t.translationText);
-
-        // Only store templates when there are actual placeholders
-        if (srcResult.slots.length > 0 || tgtResult.slots.length > 0) {
-          sourceTemplate = srcResult.template;
-          translationTemplate = tgtResult.template;
-          slotMapping = [
-            ...slotsToMapping(srcResult.slots).map((s) => ({
-              ...s,
-              placeholder: `src:${s.placeholder}`,
-            })),
-            ...slotsToMapping(tgtResult.slots).map((s) => ({
-              ...s,
-              placeholder: `tgt:${s.placeholder}`,
-            })),
-          ];
-        }
-      } catch {
-        // Tokenization failure is non-fatal — proceed without templates
-      }
-
-      return { ...t, sourceTemplate, translationTemplate, slotMapping };
-    }),
-  );
-
-  const buildTemplatedKey = (item: {
-    translationId: number | null;
-    translationStringId: number;
-    sourceStringId: number;
-  }) => {
-    return `${item.translationId ?? "null"}:${item.sourceStringId}:${item.translationStringId}`;
-  };
-
-  const templatedByInsertedKey = new Map(
-    templated.map((item) => [buildTemplatedKey(item), item]),
-  );
-
   const ids: number[] = [];
   const itemsByMemoryId: Array<{ memoryId: string; memoryItemId: number }> = [];
+  const derivations: RecallDerivationReference[] = [];
 
-  await Promise.all(
-    memoryIds.map(async (memoryId) => {
-      const result = await executeCommand({ db: tx }, createMemoryItems, {
+  for (const memoryId of [...new Set(memoryIds)].sort()) {
+    const result = await executeCommand({ db: tx }, createMemoryItems, {
+      memoryId,
+      items: translations.map((translation) => ({
+        translationId: translation.translationId,
+        translationStringId: translation.translationStringId,
+        sourceStringId: translation.sourceStringId,
+        creatorId: translation.creatorId,
+      })),
+    });
+    ids.push(...result.items.map((item) => item.id));
+    itemsByMemoryId.push(
+      ...result.items.map((item) => ({
         memoryId,
-        items: templated.map((t) => ({
-          translationId: t.translationId,
-          translationStringId: t.translationStringId,
-          sourceStringId: t.sourceStringId,
-          creatorId: t.creatorId,
-          sourceTemplate: t.sourceTemplate,
-          translationTemplate: t.translationTemplate,
-          slotMapping: t.slotMapping,
-        })),
-      });
+        memoryItemId: item.id,
+      })),
+    );
+    derivations.push(...result.derivations);
+  }
 
-      await Promise.all(
-        result.map(async (memoryItem, index) => {
-          const hasStructuredIdentity =
-            typeof memoryItem.translationStringId === "number" &&
-            typeof memoryItem.sourceStringId === "number";
-
-          const templatedRow = hasStructuredIdentity
-            ? templatedByInsertedKey.get(buildTemplatedKey(memoryItem))
-            : templated[index];
-
-          if (!templatedRow) {
-            throw new Error(
-              `Missing templated memory row for inserted memory item ${memoryItem.id}`,
-            );
-          }
-
-          await buildMemoryRecallVariantsOp(
-            {
-              memoryItemId: memoryItem.id,
-              memoryId,
-              sourceText: templatedRow.sourceText,
-              translationText: templatedRow.translationText,
-              sourceLanguageId: templatedRow.sourceLanguageId,
-              translationLanguageId: templatedRow.translationLanguageId,
-              sourceLanguageAnalysisTokens:
-                sourceLanguageAnalysisTokensByTranslationId.get(
-                  templatedRow.translationId,
-                ),
-            },
-            undefined,
-            tx,
-          );
-        }),
-      );
-
-      ids.push(...result.map((item) => item.id));
-      itemsByMemoryId.push(
-        ...result.map((item) => ({
-          memoryId,
-          memoryItemId: item.id,
-        })),
-      );
-    }),
-  );
-
-  return { memoryItemIds: ids, itemsByMemoryId };
+  return { memoryItemIds: ids, itemsByMemoryId, derivations };
 };
-
-type BuildMemoryRecallTokens = NonNullable<
-  Parameters<
-    typeof buildMemoryRecallVariantsOp
-  >[0]["sourceLanguageAnalysisTokens"]
->;

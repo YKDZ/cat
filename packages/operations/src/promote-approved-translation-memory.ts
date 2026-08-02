@@ -7,6 +7,7 @@ import {
   listMemoryIdsByProject,
   recordMemoryPromotion,
 } from "@cat/domain";
+import { RecallDerivationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { insertMemory } from "./memory.ts";
@@ -29,11 +30,16 @@ export type PromoteApprovedTranslationMemoryInput = z.infer<
 /**
  * Result of approved-translation promotion.
  */
-export type PromoteApprovedTranslationMemoryOutput = {
-  projectMemoryIds: string[];
-  promotedMemoryItemIds: number[];
-  noProjectMemoryTarget: boolean;
-};
+export const PromoteApprovedTranslationMemoryOutputSchema = z.object({
+  projectMemoryIds: z.array(z.uuidv4()),
+  promotedMemoryItemIds: z.array(z.int()),
+  noProjectMemoryTarget: z.boolean(),
+  derivations: z.array(RecallDerivationReferenceSchema),
+});
+
+export type PromoteApprovedTranslationMemoryOutput = z.infer<
+  typeof PromoteApprovedTranslationMemoryOutputSchema
+>;
 
 /**
  * Promote an approved translation into project memories (idempotent and retry-safe).
@@ -60,6 +66,7 @@ export const promoteApprovedTranslationMemoryOp = async (
       projectMemoryIds: [],
       promotedMemoryItemIds: [],
       noProjectMemoryTarget: true,
+      derivations: [],
     };
   }
 
@@ -94,10 +101,11 @@ export const promoteApprovedTranslationMemoryOp = async (
       projectMemoryIds: [],
       promotedMemoryItemIds: [],
       noProjectMemoryTarget: true,
+      derivations: [],
     };
   }
 
-  const promotedMemoryItemIds = await Promise.all(
+  const promoted = await Promise.all(
     projectMemoryIds.map(
       async (memoryId) =>
         await db.transaction(async (tx) => {
@@ -124,14 +132,18 @@ export const promoteApprovedTranslationMemoryOp = async (
             idempotencyKey: `translation:${parsed.translationId}:memory:${memoryId}`,
           });
 
-          return target.memoryItemId;
+          return {
+            memoryItemId: target.memoryItemId,
+            derivations: result.derivations,
+          };
         }),
     ),
   );
 
   return {
     projectMemoryIds,
-    promotedMemoryItemIds,
+    promotedMemoryItemIds: promoted.map((item) => item.memoryItemId),
     noProjectMemoryTarget: false,
+    derivations: promoted.flatMap((item) => item.derivations),
   };
 };

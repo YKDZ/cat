@@ -1,7 +1,19 @@
-import { and, eq, pluginConfig, pluginConfigInstance, sql } from "@cat/db";
-import { nonNullSafeZDotJson, type NonNullJSONType } from "@cat/shared";
+import {
+  and,
+  eq,
+  pluginConfig,
+  pluginConfigInstance,
+  pluginService,
+  sql,
+} from "@cat/db";
+import {
+  nonNullSafeZDotJson,
+  stableSerializeLanguageAnalysis,
+  type NonNullJSONType,
+} from "@cat/shared";
 import * as z from "zod";
 
+import { invalidateRecallDerivationDemands } from "#/commands/recall-derivation/invalidate-recall-derivation-demands.ts";
 import type { Command } from "#/types.ts";
 
 import {
@@ -52,6 +64,8 @@ export const migratePluginConfigInstance: Command<
         schemaDigest: pluginConfig.schemaDigest,
         isAvailable: pluginConfig.isAvailable,
         appliedVersion: pluginConfigInstance.appliedVersion,
+        pluginInstallationId: pluginConfigInstance.pluginInstallationId,
+        value: pluginConfigInstance.value,
       })
       .from(pluginConfigInstance)
       .innerJoin(
@@ -91,6 +105,27 @@ export const migratePluginConfigInstance: Command<
         ),
       )
       .returning();
+
+    if (
+      migrated[0] &&
+      stableSerializeLanguageAnalysis(current.value) !==
+        stableSerializeLanguageAnalysis(command.value)
+    ) {
+      const [tokenizer] = await tx
+        .select({ id: pluginService.id })
+        .from(pluginService)
+        .where(
+          and(
+            eq(
+              pluginService.pluginInstallationId,
+              current.pluginInstallationId,
+            ),
+            eq(pluginService.serviceType, "TOKENIZER"),
+          ),
+        )
+        .limit(1);
+      if (tokenizer) await invalidateRecallDerivationDemands(tx);
+    }
 
     return migrated[0] ?? null;
   });

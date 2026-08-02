@@ -33,15 +33,6 @@ vi.mock("@cat/domain", async () => {
   };
 });
 
-vi.mock("@cat/shared", async () => {
-  const actual =
-    await vi.importActual<typeof import("@cat/shared")>("@cat/shared");
-  return {
-    ...actual,
-    QaReviewActionResultSchema: { parse: (input: unknown) => input },
-  };
-});
-
 vi.mock("#/utils/vcs-route-helper.ts", async () => {
   const actual = await vi.importActual<
     typeof import("#/utils/vcs-route-helper.ts")
@@ -221,6 +212,7 @@ describe("qaReview.submitAction handler", () => {
       projectMemoryIds: ["33333333-3333-4333-8333-333333333333"],
       promotedMemoryItemIds: [42],
       noProjectMemoryTarget: false,
+      derivations: [],
     });
   });
 

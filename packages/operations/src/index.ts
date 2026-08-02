@@ -8,14 +8,27 @@ export type {
 // === Memory utilities ===
 export { insertMemory } from "./memory.ts";
 export {
+  processRecallDerivationBatch,
+  RecallDerivationFreshnessError,
+  assessRecallDerivationFreshness,
+  startRecallDerivationWorker,
+  waitForRecallDerivationFresh,
+  type ProcessRecallDerivationBatchOptions,
+  type RecallDerivationFreshnessAssessment,
+  type RecallDerivationWorker,
+} from "./memory-recall-derivation.ts";
+
+export {
   writePersonalTranslationMemoryOp,
   WritePersonalTranslationMemoryInputSchema,
+  WritePersonalTranslationMemoryOutputSchema,
   type WritePersonalTranslationMemoryInput,
   type WritePersonalTranslationMemoryOutput,
 } from "./write-personal-translation-memory.ts";
 export {
   promoteApprovedTranslationMemoryOp,
   PromoteApprovedTranslationMemoryInputSchema,
+  PromoteApprovedTranslationMemoryOutputSchema,
   type PromoteApprovedTranslationMemoryInput,
   type PromoteApprovedTranslationMemoryOutput,
 } from "./promote-approved-translation-memory.ts";
@@ -376,7 +389,6 @@ export {
 } from "./collect-term-recall.ts";
 
 export { buildTermRecallVariantsOp } from "./build-term-recall-variants.ts";
-export { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants.ts";
 export { triggerTermRecallReindex } from "./trigger-term-recall-reindex.ts";
 
 export {

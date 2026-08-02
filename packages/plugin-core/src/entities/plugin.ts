@@ -99,12 +99,15 @@ export interface CatPlugin {
   /**
    * 生命周期：插件激活后调用（在 providers/components 注册完成后）
    * 用于执行初始化逻辑，如连接外部服务
+   * Reload may activate a candidate context before deactivating the current
+   * context, so resources must be owned by the supplied context identity.
    */
   onActivate?: (ctx: PluginContext) => void | Promise<void>;
 
   /**
    * 生命周期：插件停用/卸载前调用
    * 用于清理定时器、关闭连接等
+   * Cleanup must only release resources owned by the supplied context.
    */
   onDeactivate?: (ctx: PluginContext) => void | Promise<void>;
 }

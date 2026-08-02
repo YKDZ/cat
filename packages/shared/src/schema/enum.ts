@@ -825,6 +825,29 @@ export const RecallQuerySideValues = ["SOURCE", "TRANSLATION"] as const;
 export const RecallQuerySideSchema = z.enum(RecallQuerySideValues);
 export type RecallQuerySide = (typeof RecallQuerySideValues)[number];
 
+export const RecallDerivationTargetKindValues = [
+  "MEMORY_ITEM",
+  "TERM_CONCEPT",
+] as const;
+export const RecallDerivationTargetKindSchema = z.enum(
+  RecallDerivationTargetKindValues,
+);
+export type RecallDerivationTargetKind =
+  (typeof RecallDerivationTargetKindValues)[number];
+
+export const RecallDerivationStatusValues = [
+  "PENDING",
+  "RUNNING",
+  "FRESH",
+  "BLOCKED",
+  "FAILED",
+] as const;
+export const RecallDerivationStatusSchema = z.enum(
+  RecallDerivationStatusValues,
+);
+export type RecallDerivationStatus =
+  (typeof RecallDerivationStatusValues)[number];
+
 export const MemoryScopeValues = ["PROJECT", "PERSONAL"] as const;
 export const MemoryScopeSchema = z.enum(MemoryScopeValues);
 export type MemoryScope = (typeof MemoryScopeValues)[number];

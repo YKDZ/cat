@@ -1,5 +1,4 @@
 import {
-  executeCommand,
   executeQuery,
   getPlugin,
   getPluginConfig,
@@ -7,7 +6,6 @@ import {
   isPluginInstalled,
   listPluginServiceIdsByType,
   listPlugins,
-  writePluginConfigInstance,
 } from "@cat/domain";
 import { ComponentRecordSchema } from "@cat/plugin-core";
 import {
@@ -17,7 +15,6 @@ import {
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { ScopeTypeSchema } from "@cat/shared";
-import { nonNullSafeZDotJson } from "@cat/shared";
 import {
   AuthMethodSchema,
   TranslationAdvisorDataSchema,
@@ -151,31 +148,6 @@ export const getConfig = authed
       drizzleDB: { client: drizzle },
     } = context;
     return executeQuery({ db: drizzle }, getPluginConfig, input);
-  });
-
-export const upsertConfigInstance = authed
-  .input(
-    z.object({
-      pluginId: z.string(),
-      scopeType: ScopeTypeSchema,
-      scopeId: z.string(),
-      value: nonNullSafeZDotJson,
-      expectedSchemaVersion: z.string().min(1),
-      expectedSchemaDigest: z.string().length(64),
-      expectedRevision: z.int().positive().nullable().optional(),
-    }),
-  )
-  .use(checkPermission("system", "admin"), () => "*")
-  .output(PluginConfigInstanceSchema.nullable())
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      user,
-    } = context;
-    return executeCommand({ db: drizzle }, writePluginConfigInstance, {
-      ...input,
-      creatorId: user.id,
-    });
   });
 
 export const get = authed

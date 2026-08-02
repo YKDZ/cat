@@ -17,9 +17,10 @@ import {
 import type {
   JSONObject,
   OperationFailure,
+  RecallDerivationReference,
   TaskAffectedResource,
 } from "@cat/shared";
-import { JSONObjectSchema } from "@cat/shared";
+import { JSONObjectSchema, RecallDerivationReferenceSchema } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 import { EditorOverlayTranslationStateSchema } from "@cat/vcs";
 import { createTranslationGraph, runGraph } from "@cat/workflow/tasks";
@@ -51,6 +52,8 @@ export const DirectTranslationWriteInputSchema = z.object({
 
 export const DirectTranslationWriteOutputSchema = z.object({
   translationIds: z.array(z.int()),
+  memoryItemIds: z.array(z.int()),
+  derivations: z.array(RecallDerivationReferenceSchema),
   writeMode: z.enum(["direct", "reviewable_change"]).default("direct"),
   reviewableChange: z
     .object({
@@ -498,6 +501,8 @@ export const directTranslationWriteContract = defineOperationContract({
 
           return {
             translationIds: [],
+            memoryItemIds: [],
+            derivations: [],
             writeMode: "reviewable_change",
             reviewableChange: {
               sourceOperation: "translation.directWrite",
@@ -577,13 +582,19 @@ export const directTranslationWriteContract = defineOperationContract({
         },
       );
 
+      let memoryItemIds = result.memoryItemIds;
+      let derivations: RecallDerivationReference[] = result.derivations;
       if (createMemory && result.translationIds.length > 0) {
         try {
-          await writePersonalTranslationMemoryOp({
+          const personalMemory = await writePersonalTranslationMemoryOp({
             translationIds: result.translationIds,
             userId: actor.id,
             projectId: element.projectId,
           });
+          memoryItemIds = [
+            ...new Set([...memoryItemIds, ...personalMemory.memoryItemIds]),
+          ];
+          derivations = [...derivations, ...personalMemory.derivations];
         } catch (error) {
           logger
             .child({ component: "rpc" })
@@ -593,6 +604,8 @@ export const directTranslationWriteContract = defineOperationContract({
 
       return {
         translationIds: result.translationIds,
+        memoryItemIds,
+        derivations,
         writeMode: "direct",
       };
     } catch (error) {

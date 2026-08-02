@@ -71,6 +71,8 @@ const mocks = vi.hoisted(() => {
     redis: undefined,
   };
   const fakeCleanupHandle = { stop: vi.fn() };
+  const stopRecallDerivationWorker = vi.fn().mockResolvedValue(undefined);
+  const fakeRecallDerivationWorker = { stop: stopRecallDerivationWorker };
   const ensureTaskRecovery = vi.fn().mockResolvedValue(undefined);
   const disposeGraphRuntime = vi.fn().mockResolvedValue(undefined);
   const fakeGraphRuntime = {
@@ -90,6 +92,7 @@ const mocks = vi.hoisted(() => {
 
   return {
     assertSearchRuntimeHealth: vi.fn().mockResolvedValue(fakeDatabaseSummary),
+    bootstrapApplicationData: vi.fn(),
     calls,
     configureReadinessReporter,
     createReadinessReporter,
@@ -108,6 +111,7 @@ const mocks = vi.hoisted(() => {
     fakeGraphRuntime,
     fakePluginLoader,
     fakePluginManager,
+    fakeRecallDerivationWorker,
     fakeProfile,
     fakeRouteRegistry,
     getCacheStore: vi.fn(() => fakeBackends.cacheStore),
@@ -137,6 +141,8 @@ const mocks = vi.hoisted(() => {
     registerAuditHandler: vi.fn(),
     registerDomainEventHandlers: vi.fn(),
     registerVectorizationConsumer: vi.fn().mockResolvedValue(undefined),
+    startRecallDerivationWorker: vi.fn(),
+    stopRecallDerivationWorker,
     ReadinessProbeFailure,
     disposeGraphRuntime,
     resolveRuntimeProfile: vi.fn(() => fakeProfile),
@@ -184,6 +190,7 @@ vi.mock("@cat/message", () => ({
 vi.mock("@cat/operations", () => ({
   registerDomainEventHandlers: mocks.registerDomainEventHandlers,
   registerVectorizationConsumer: mocks.registerVectorizationConsumer,
+  startRecallDerivationWorker: mocks.startRecallDerivationWorker,
 }));
 
 vi.mock("@cat/permissions", () => ({
@@ -228,7 +235,7 @@ vi.mock("./default-plugins/catalog.ts", () => ({
 }));
 
 vi.mock("./application-data-bootstrap.ts", () => ({
-  bootstrapApplicationData: vi.fn().mockResolvedValue(undefined),
+  bootstrapApplicationData: mocks.bootstrapApplicationData,
 }));
 
 vi.mock("./runtime-backends.ts", () => ({
@@ -264,6 +271,13 @@ describe("initializeApp", () => {
     mocks.registerVectorizationConsumer.mockImplementation(async () => {
       mocks.calls.push("vectorization-consumer");
     });
+    mocks.bootstrapApplicationData.mockImplementation(async () => {
+      mocks.calls.push("bootstrap");
+    });
+    mocks.startRecallDerivationWorker.mockImplementation(async () => {
+      mocks.calls.push("recall-derivation-worker");
+      return mocks.fakeRecallDerivationWorker;
+    });
     mocks.createDefaultGraphRuntime.mockImplementation(() => {
       mocks.calls.push("graph-runtime");
       return mocks.fakeGraphRuntime;
@@ -279,6 +293,7 @@ describe("initializeApp", () => {
     Reflect.deleteProperty(globalThis, "messageGateway");
     Reflect.deleteProperty(globalThis, "pluginManager");
     globalThis.runtimeCleanup = undefined;
+    globalThis.recallDerivationWorker = undefined;
   });
 
   it("initializes lite runtime without requiring Redis and installs default plugins from an array", async () => {
@@ -330,6 +345,8 @@ describe("initializeApp", () => {
     expect(mocks.fakeApp.all).not.toHaveBeenCalled();
     expect(mocks.fakeDrizzleDB.migrate).not.toHaveBeenCalled();
     expect(mocks.calls).toEqual([
+      "bootstrap",
+      "recall-derivation-worker",
       "graph-runtime",
       "recover-tasks",
       "domain-handlers",
@@ -340,11 +357,18 @@ describe("initializeApp", () => {
     expect(mocks.registerVectorizationConsumer).toHaveBeenCalledWith(
       mocks.fakeBackends.vectorizationQueue,
     );
+    expect(mocks.startRecallDerivationWorker).toHaveBeenCalledWith({
+      db: mocks.fakeDrizzleClient,
+      pluginManager: mocks.fakePluginManager,
+    });
     expect(mocks.getCurrentRedisHandle).toHaveBeenCalledOnce();
     expect(globalThis.app).toBe(mocks.fakeApp);
     expect(globalThis.redis).toBeUndefined();
     expect(globalThis.pluginManager).toBe(mocks.fakePluginManager);
     expect(globalThis.runtimeCleanup).toBe(mocks.fakeCleanupHandle);
+    expect(globalThis.recallDerivationWorker).toBe(
+      mocks.fakeRecallDerivationWorker,
+    );
     expect(mocks.configureReadinessReporter).toHaveBeenCalledTimes(2);
     expect(globalThis.inited).toBe(true);
     expect(exitSpy).not.toHaveBeenCalled();
@@ -370,6 +394,44 @@ describe("initializeApp", () => {
     expect(mocks.createRuntimeBackends).toHaveBeenCalledOnce();
   });
 
+  it("stops an existing worker before replacing it during re-initialization", async () => {
+    const previousStop = vi.fn().mockImplementation(async () => {
+      mocks.calls.push("previous-worker-stop");
+    });
+    globalThis.recallDerivationWorker = { stop: previousStop };
+
+    await initializeApp();
+
+    expect(previousStop).toHaveBeenCalledOnce();
+    expect(mocks.calls).toEqual(
+      expect.arrayContaining([
+        "bootstrap",
+        "previous-worker-stop",
+        "recall-derivation-worker",
+      ]),
+    );
+    expect(mocks.calls.indexOf("previous-worker-stop")).toBeLessThan(
+      mocks.calls.indexOf("recall-derivation-worker"),
+    );
+    expect(globalThis.recallDerivationWorker).toBe(
+      mocks.fakeRecallDerivationWorker,
+    );
+  });
+
+  it("stops the replacement worker when re-initialization later fails", async () => {
+    const previousStop = vi.fn().mockResolvedValue(undefined);
+    globalThis.recallDerivationWorker = { stop: previousStop };
+    mocks.ensureTaskRecovery.mockRejectedValueOnce(
+      new Error("db recovery failed"),
+    );
+
+    await expect(initializeApp()).resolves.toBeUndefined();
+
+    expect(previousStop).toHaveBeenCalledOnce();
+    expect(mocks.stopRecallDerivationWorker).toHaveBeenCalledOnce();
+    expect(globalThis.recallDerivationWorker).toBeUndefined();
+  });
+
   it("keeps HTTP liveness available and reports bootstrap failure when run recovery fails", async () => {
     const exitSpy = vi.spyOn(process, "exit");
     mocks.ensureTaskRecovery.mockRejectedValueOnce(
@@ -385,6 +447,8 @@ describe("initializeApp", () => {
     expect(mocks.createDefaultGraphRuntime).toHaveBeenCalledOnce();
     expect(mocks.messageGatewayStart).not.toHaveBeenCalled();
     expect(mocks.disposeGraphRuntime).toHaveBeenCalledOnce();
+    expect(mocks.stopRecallDerivationWorker).toHaveBeenCalledOnce();
+    expect(globalThis.recallDerivationWorker).toBeUndefined();
     expect(mocks.fakeCleanupHandle.stop).toHaveBeenCalledOnce();
     expect(globalThis.runtimeCleanup).toBeUndefined();
 

@@ -11,10 +11,12 @@ import {
 import { insertMemory } from "@cat/operations";
 import type { SerializableType } from "@cat/shared";
 import {
+  RecallDerivationReferenceSchema,
   safeZDotJson,
   ScopeTranslationSeedSchema,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
+import type { RecallDerivationReference } from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
@@ -46,6 +48,7 @@ export const CreateTranslationInputSchema = z.object({
 export const CreateTranslationOutputSchema = z.object({
   translationIds: z.array(z.int()),
   memoryItemIds: z.array(z.int()),
+  derivations: z.array(RecallDerivationReferenceSchema),
 });
 
 export const CreateTranslationPubPayloadSchema = z.object({
@@ -88,6 +91,7 @@ export const createTranslationGraph = defineGraph({
         const existing = await ctx.checkSideEffect<{
           translationIds: number[];
           memoryItemIds: number[];
+          derivations: RecallDerivationReference[];
         }>(sideEffectKey);
         if (existing !== null) {
           return existing;
@@ -211,29 +215,36 @@ export const createTranslationGraph = defineGraph({
         );
 
         let memoryItemIds: number[] = [];
+        let derivations: RecallDerivationReference[] = [];
         if (input.memoryIds.length > 0) {
           const memoryPhaseKey = `translation-memory:${input.memoryIds
             .toSorted()
             .join(",")}:${translationIds.join(",")}`;
-          const persistedMemory =
-            await ctx.checkSideEffect<number[]>(memoryPhaseKey);
+          const persistedMemory = await ctx.checkSideEffect<{
+            memoryItemIds: number[];
+            derivations: RecallDerivationReference[];
+          }>(memoryPhaseKey);
           if (persistedMemory !== null) {
-            memoryItemIds = persistedMemory;
+            memoryItemIds = persistedMemory.memoryItemIds;
+            derivations = persistedMemory.derivations;
           } else {
             const { client: memoryDb } = await getDbHandle();
             await memoryDb.transaction(async (tx) => {
               if (ctx.ownershipFence) {
                 await assertActiveAgentRunOwnership(tx, ctx.ownershipFence);
               }
-              memoryItemIds = (
-                await insertMemory(tx, input.memoryIds, translationIds)
-              ).memoryItemIds;
+              const inserted = await insertMemory(
+                tx,
+                input.memoryIds,
+                translationIds,
+              );
+              memoryItemIds = inserted.memoryItemIds;
+              derivations = inserted.derivations;
             });
-            await ctx.recordSideEffect(
-              memoryPhaseKey,
-              "db_write",
+            await ctx.recordSideEffect(memoryPhaseKey, "db_write", {
               memoryItemIds,
-            );
+              derivations,
+            });
           }
         }
 
@@ -253,7 +264,7 @@ export const createTranslationGraph = defineGraph({
           }),
         );
 
-        const output = { translationIds, memoryItemIds };
+        const output = { translationIds, memoryItemIds, derivations };
         await ctx.recordSideEffect(sideEffectKey, "db_write", output);
         return output;
       },

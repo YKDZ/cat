@@ -5,11 +5,15 @@ import {
   inArray,
   memoryItem,
   memoryRecallVariant,
+  recallDerivationState,
   sql,
   vectorizedString,
 } from "@cat/db";
-import type { SlotMappingEntry } from "@cat/shared";
-import { SlotMappingEntrySchema } from "@cat/shared";
+import type { MemoryRecallVariantMeta, SlotMappingEntry } from "@cat/shared";
+import {
+  MemoryRecallVariantMetaSchema,
+  RecallDerivationVersionSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { RawMemorySuggestion } from "#/queries/memory/list-lexical-memory-suggestions.query.ts";
@@ -20,6 +24,7 @@ export const ListVariantMemorySuggestionsQuerySchema = z.object({
   normalizedText: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
+  requiredDerivationVersion: RecallDerivationVersionSchema,
   memoryIds: z.array(z.uuidv4()),
   minSimilarity: z.number().min(0).max(1).default(0.7),
   maxAmount: z.int().min(1).default(10),
@@ -29,9 +34,24 @@ export type ListVariantMemorySuggestionsQuery = z.infer<
   typeof ListVariantMemorySuggestionsQuerySchema
 >;
 
-const parseSlotMapping = (raw: unknown): SlotMappingEntry[] | null => {
-  const result = z.array(SlotMappingEntrySchema).safeParse(raw);
-  return result.success ? result.data : null;
+const parseTemplateArtifact = (
+  raw: unknown,
+): {
+  sourceTemplate: string | null;
+  translationTemplate: string | null;
+  slotMapping: SlotMappingEntry[] | null;
+} => {
+  const result = MemoryRecallVariantMetaSchema.safeParse(raw);
+  const meta: MemoryRecallVariantMeta | null = result.success
+    ? result.data
+    : null;
+  return meta && "sourceTemplate" in meta
+    ? {
+        sourceTemplate: meta.sourceTemplate,
+        translationTemplate: meta.translationTemplate,
+        slotMapping: meta.slotMapping,
+      }
+    : { sourceTemplate: null, translationTemplate: null, slotMapping: null };
 };
 
 const toRecallChannel = (variantType: string) => {
@@ -71,9 +91,7 @@ export const listVariantMemorySuggestions: Query<
     creatorId: memoryItem.creatorId,
     createdAt: memoryItem.createdAt,
     updatedAt: memoryItem.updatedAt,
-    sourceTemplate: memoryItem.sourceTemplate,
-    translationTemplate: memoryItem.translationTemplate,
-    slotMapping: memoryItem.slotMapping,
+    variantMeta: memoryRecallVariant.meta,
     confidence: sql<number>`similarity(${memoryRecallVariant.normalizedText}, ${normalizedText})`,
     matchedVariantText: memoryRecallVariant.text,
     matchedVariantType: memoryRecallVariant.variantType,
@@ -92,6 +110,10 @@ export const listVariantMemorySuggestions: Query<
         memoryItem,
         eq(memoryItem.id, memoryRecallVariant.memoryItemId),
       )
+      .innerJoin(
+        recallDerivationState,
+        eq(recallDerivationState.id, memoryRecallVariant.derivationStateId),
+      )
       .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
       .innerJoin(
         translationString,
@@ -102,6 +124,35 @@ export const listVariantMemorySuggestions: Query<
           inArray(memoryItem.memoryId, query.memoryIds),
           eq(memoryRecallVariant.languageId, query.sourceLanguageId),
           eq(memoryRecallVariant.querySide, "SOURCE"),
+          eq(recallDerivationState.status, "FRESH"),
+          eq(
+            memoryRecallVariant.recallDerivationVersion,
+            query.requiredDerivationVersion,
+          ),
+          eq(
+            recallDerivationState.currentDerivationVersion,
+            query.requiredDerivationVersion,
+          ),
+          eq(
+            recallDerivationState.requiredDerivationVersion,
+            query.requiredDerivationVersion,
+          ),
+          eq(
+            memoryRecallVariant.canonicalInputVersion,
+            recallDerivationState.currentCanonicalInputVersion,
+          ),
+          eq(
+            memoryRecallVariant.recallDerivationVersion,
+            recallDerivationState.currentDerivationVersion,
+          ),
+          eq(
+            recallDerivationState.currentCanonicalInputVersion,
+            recallDerivationState.canonicalInputVersion,
+          ),
+          eq(
+            recallDerivationState.currentDerivationVersion,
+            recallDerivationState.requiredDerivationVersion,
+          ),
           eq(sourceString.languageId, query.sourceLanguageId),
           eq(translationString.languageId, query.translationLanguageId),
           sql`similarity(${memoryRecallVariant.normalizedText}, ${normalizedText}) >= ${query.minSimilarity}`,
@@ -123,6 +174,10 @@ export const listVariantMemorySuggestions: Query<
         memoryItem,
         eq(memoryItem.id, memoryRecallVariant.memoryItemId),
       )
+      .innerJoin(
+        recallDerivationState,
+        eq(recallDerivationState.id, memoryRecallVariant.derivationStateId),
+      )
       .innerJoin(sourceString, eq(sourceString.id, memoryItem.sourceStringId))
       .innerJoin(
         translationString,
@@ -133,6 +188,35 @@ export const listVariantMemorySuggestions: Query<
           inArray(memoryItem.memoryId, query.memoryIds),
           eq(memoryRecallVariant.languageId, query.sourceLanguageId),
           eq(memoryRecallVariant.querySide, "TRANSLATION"),
+          eq(recallDerivationState.status, "FRESH"),
+          eq(
+            memoryRecallVariant.recallDerivationVersion,
+            query.requiredDerivationVersion,
+          ),
+          eq(
+            recallDerivationState.currentDerivationVersion,
+            query.requiredDerivationVersion,
+          ),
+          eq(
+            recallDerivationState.requiredDerivationVersion,
+            query.requiredDerivationVersion,
+          ),
+          eq(
+            memoryRecallVariant.canonicalInputVersion,
+            recallDerivationState.currentCanonicalInputVersion,
+          ),
+          eq(
+            memoryRecallVariant.recallDerivationVersion,
+            recallDerivationState.currentDerivationVersion,
+          ),
+          eq(
+            recallDerivationState.currentCanonicalInputVersion,
+            recallDerivationState.canonicalInputVersion,
+          ),
+          eq(
+            recallDerivationState.currentDerivationVersion,
+            recallDerivationState.requiredDerivationVersion,
+          ),
           eq(translationString.languageId, query.sourceLanguageId),
           eq(sourceString.languageId, query.translationLanguageId),
           sql`similarity(${memoryRecallVariant.normalizedText}, ${normalizedText}) >= ${query.minSimilarity}`,
@@ -144,15 +228,12 @@ export const listVariantMemorySuggestions: Query<
       .limit(query.maxAmount),
   ]);
 
-  const rows = [
-    ...new Map(
-      [...forwardRows, ...reversedRows]
-        .sort((a, b) => b.confidence - a.confidence)
-        .map((row) => [row.id, row]),
-    ).values(),
-  ].slice(0, query.maxAmount);
+  const rows = [...forwardRows, ...reversedRows]
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, query.maxAmount);
 
   return rows.map((row) => ({
+    ...parseTemplateArtifact(row.variantMeta),
     id: row.id,
     source: row.source,
     translation: row.translation,
@@ -173,9 +254,6 @@ export const listVariantMemorySuggestions: Query<
       },
     ],
     matchedText: row.source,
-    sourceTemplate: row.sourceTemplate,
-    translationTemplate: row.translationTemplate,
-    slotMapping: parseSlotMapping(row.slotMapping),
     matchedVariantText: row.matchedVariantText,
     matchedVariantType: row.matchedVariantType,
   }));

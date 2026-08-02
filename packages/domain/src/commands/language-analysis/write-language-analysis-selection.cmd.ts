@@ -8,10 +8,13 @@ import {
   LanguageAnalysisSelectionFingerprintSchema,
   LanguageAnalysisSelectionSchema,
   LanguageAnalysisSelectionWriteSchema,
+  LanguageAnalysisWildcardSelectionKey,
+  stableSerializeLanguageAnalysis,
   type LanguageAnalysisSelection,
 } from "@cat/shared";
 import * as z from "zod";
 
+import { invalidateRecallDerivationDemands } from "#/commands/recall-derivation/invalidate-recall-derivation-demands.ts";
 import type { Command, DbHandle } from "#/types.ts";
 
 const DEPLOYMENT_POLICY_ID = 1;
@@ -75,6 +78,15 @@ export const writeValidatedLanguageAnalysisSelection: Command<
     if (policy === undefined) {
       throw new Error("Failed to lock the Language Analysis policy epoch.");
     }
+    const [previous] = await tx
+      .select({
+        implementation: languageAnalysisSelection.implementation,
+        configurationFingerprint:
+          languageAnalysisSelection.configurationFingerprint,
+      })
+      .from(languageAnalysisSelection)
+      .where(eq(languageAnalysisSelection.key, command.key))
+      .limit(1);
 
     const record =
       command.expectedRevision === 0
@@ -119,6 +131,20 @@ export const writeValidatedLanguageAnalysisSelection: Command<
       .update(languageAnalysisPolicy)
       .set({ epoch: policy.epoch + 1, updatedAt: now })
       .where(eq(languageAnalysisPolicy.id, DEPLOYMENT_POLICY_ID));
+
+    const dependencyChanged =
+      previous === undefined ||
+      previous.configurationFingerprint !== command.configurationFingerprint ||
+      stableSerializeLanguageAnalysis(previous.implementation) !==
+        stableSerializeLanguageAnalysis(command.implementation);
+    if (dependencyChanged) {
+      await invalidateRecallDerivationDemands(
+        tx,
+        command.key === LanguageAnalysisWildcardSelectionKey
+          ? undefined
+          : command.key,
+      );
+    }
 
     return LanguageAnalysisSelectionSchema.parse({
       key: record.key,

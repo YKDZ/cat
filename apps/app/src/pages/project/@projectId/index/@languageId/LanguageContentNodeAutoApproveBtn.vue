@@ -40,8 +40,12 @@ const handleAutoApprove = async () => {
       },
       languageId: props.language.id,
     })
-    .then((count) => {
-      info(t("成功自动批准 {count} 条可用翻译", { count }));
+    .then((result) => {
+      info(
+        t("成功自动批准 {count} 条可用翻译", {
+          count: result.count,
+        }),
+      );
     })
     .catch(rpcWarn);
 };

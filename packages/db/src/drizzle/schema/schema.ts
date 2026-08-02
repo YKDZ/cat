@@ -10,6 +10,10 @@ import type {
   QaReviewTextRange,
   ServiceImplementationReference,
   LanguageAnalysisRequirementAssessment,
+  CanonicalInputVersion,
+  MemoryRecallVariantMeta,
+  RecallDerivationBlocker,
+  RecallDerivationVersion,
 } from "@cat/shared";
 import type {
   _JSONSchema,
@@ -63,6 +67,8 @@ import {
   ChangesetEntryAsyncStatusValues,
   RecallVariantTypeValues,
   RecallQuerySideValues,
+  RecallDerivationStatusValues,
+  RecallDerivationTargetKindValues,
   IssueStatusValues,
   PullRequestStatusValues,
   PullRequestTypeValues,
@@ -686,7 +692,7 @@ export const memoryItem = snakeCase.table(
     memoryId: uuid()
       .notNull()
       .references(() => memory.id, {
-        onDelete: "cascade",
+        onDelete: "restrict",
         onUpdate: "cascade",
       }),
     sourceElementId: integer().references(() => translatableElement.id, {
@@ -709,12 +715,6 @@ export const memoryItem = snakeCase.table(
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
-    /** Placeholderized source text template, e.g. "Error Code: {NUM_0}" */
-    sourceTemplate: text(),
-    /** Placeholderized translation text template */
-    translationTemplate: text(),
-    /** JSON mapping of placeholder → original value + token type */
-    slotMapping: jsonb().$type<JSONType>(),
     ...timestamps,
   },
   (table) => [
@@ -2832,6 +2832,63 @@ export const recallVariantType = pgEnum(
 );
 
 export const recallQuerySide = pgEnum("RecallQuerySide", RecallQuerySideValues);
+export const recallDerivationStatus = pgEnum(
+  "RecallDerivationStatus",
+  RecallDerivationStatusValues,
+);
+export const recallDerivationTargetKind = pgEnum(
+  "RecallDerivationTargetKind",
+  RecallDerivationTargetKindValues,
+);
+
+export const recallDerivationState = snakeCase.table(
+  "RecallDerivationState",
+  {
+    id: serial().primaryKey(),
+    targetKind: recallDerivationTargetKind().notNull(),
+    targetId: text().notNull(),
+    languageId: text()
+      .notNull()
+      .references(() => language.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    status: recallDerivationStatus().notNull().default("PENDING"),
+    demandRevision: integer().notNull().default(1),
+    executionEpoch: integer().notNull().default(0),
+    leaseOwnerId: uuid(),
+    leaseToken: uuid(),
+    leaseExpiresAt: timestamp({ withTimezone: true }),
+    retryCount: integer().notNull().default(0),
+    nextAttemptAt: timestamp({ withTimezone: true }),
+    blocker: jsonb().$type<RecallDerivationBlocker>(),
+    canonicalInputVersion: text().$type<CanonicalInputVersion>().notNull(),
+    requiredDerivationVersion: text().$type<RecallDerivationVersion>(),
+    currentCanonicalInputVersion: text().$type<CanonicalInputVersion>(),
+    currentDerivationVersion: text().$type<RecallDerivationVersion>(),
+    lastAttemptAt: timestamp({ withTimezone: true }),
+    publishedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex().on(table.targetKind, table.targetId, table.languageId),
+    uniqueIndex().on(table.leaseToken),
+    index().on(table.status, table.nextAttemptAt),
+    index().on(table.leaseExpiresAt),
+    check(
+      "RecallDerivationState_running_lease_check",
+      sql`(${table.status} = 'RUNNING' AND ${table.executionEpoch} > 0 AND ${table.leaseOwnerId} IS NOT NULL AND ${table.leaseToken} IS NOT NULL AND ${table.leaseExpiresAt} IS NOT NULL) OR (${table.status} <> 'RUNNING' AND ${table.leaseOwnerId} IS NULL AND ${table.leaseToken} IS NULL AND ${table.leaseExpiresAt} IS NULL)`,
+    ),
+    check(
+      "RecallDerivationState_fresh_version_check",
+      sql`${table.status} <> 'FRESH' OR (${table.canonicalInputVersion} IS NOT NULL AND ${table.requiredDerivationVersion} IS NOT NULL AND ${table.currentCanonicalInputVersion} IS NOT NULL AND ${table.currentDerivationVersion} IS NOT NULL AND ${table.currentCanonicalInputVersion} = ${table.canonicalInputVersion} AND ${table.currentDerivationVersion} = ${table.requiredDerivationVersion})`,
+    ),
+    check(
+      "RecallDerivationState_revision_check",
+      sql`${table.demandRevision} > 0 AND ${table.executionEpoch} >= 0 AND ${table.retryCount} >= 0`,
+    ),
+  ],
+);
 
 // ─── Term Recall Variant Table ────────────────────────────────────────────
 
@@ -2873,6 +2930,12 @@ export const memoryRecallVariant = snakeCase.table(
   "MemoryRecallVariant",
   {
     id: serial().primaryKey(),
+    derivationStateId: integer()
+      .notNull()
+      .references(() => recallDerivationState.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     memoryItemId: integer()
       .notNull()
       .references(() => memoryItem.id, {
@@ -2895,11 +2958,18 @@ export const memoryRecallVariant = snakeCase.table(
     text: text().notNull(),
     normalizedText: text().notNull(),
     variantType: recallVariantType().notNull(),
-    meta: jsonb().$type<JSONType>(),
+    meta: jsonb().$type<MemoryRecallVariantMeta>(),
+    canonicalInputVersion: text().$type<CanonicalInputVersion>().notNull(),
+    recallDerivationVersion: text().$type<RecallDerivationVersion>().notNull(),
     ...timestamps,
   },
   (table) => [
     index().using("btree", table.memoryItemId.asc().nullsLast()),
+    index().on(
+      table.derivationStateId,
+      table.canonicalInputVersion,
+      table.recallDerivationVersion,
+    ),
     index().using("btree", table.memoryId.asc().nullsLast()),
     index().using("btree", table.languageId.asc().nullsLast()),
     index("idx_memory_recall_variant_text_trgm").using(

@@ -53,6 +53,7 @@ import {
   qaReviewQueueItem,
   qaReviewRun,
   qaReviewSuggestion,
+  recallDerivationState,
   runtimeCacheEntry,
   runtimeQueueTask,
   runtimeSessionEntry,
@@ -141,6 +142,7 @@ type SelectSchemaTable =
   | typeof qaReviewQueueItem
   | typeof qaReviewRun
   | typeof qaReviewSuggestion
+  | typeof recallDerivationState
   | typeof runtimeCacheEntry
   | typeof runtimeQueueTask
   | typeof runtimeSessionEntry
@@ -511,7 +513,12 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "memory.ts",
-    imports: ['import { TokenTypeSchema } from "#/schema/enum.ts";'],
+    imports: [
+      'import { TokenTypeSchema } from "#/schema/enum.ts";',
+      'import { MemoryRecallVariantMetaSchema } from "#/schema/memory-recall-derivation.ts";',
+      'import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";',
+      'import { CanonicalInputVersionSchema, RecallDerivationBlockerSchema, RecallDerivationTargetIdSchema, RecallDerivationVersionSchema } from "#/schema/recall-derivation.ts";',
+    ],
     declarations: [
       manualDeclaration(
         `export const SlotMappingEntrySchema = z.object({\n  placeholder: z.string(),\n  value: z.string(),\n  tokenType: TokenTypeSchema,\n});\n\nexport type SlotMappingEntry = z.infer<typeof SlotMappingEntrySchema>;`,
@@ -527,9 +534,6 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "MemoryItemSchema",
         typeExportName: "MemoryItem",
         buildShape: buildSelectShape(memoryItem),
-        overrides: {
-          slotMapping: "z.array(SlotMappingEntrySchema).nullable()",
-        },
       },
       {
         kind: "table",
@@ -557,11 +561,30 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       },
       {
         kind: "table",
+        schemaExportName: "RecallDerivationStateSchema",
+        typeExportName: "RecallDerivationState",
+        buildShape: buildSelectShape(recallDerivationState),
+        overrides: {
+          blocker: "RecallDerivationBlockerSchema.nullable()",
+          canonicalInputVersion: "CanonicalInputVersionSchema",
+          currentCanonicalInputVersion:
+            "CanonicalInputVersionSchema.nullable()",
+          currentDerivationVersion: "RecallDerivationVersionSchema.nullable()",
+          languageId: "NormalizedLanguageIdSchema",
+          requiredDerivationVersion: "RecallDerivationVersionSchema.nullable()",
+          targetId: "RecallDerivationTargetIdSchema",
+        },
+      },
+      {
+        kind: "table",
         schemaExportName: "MemoryRecallVariantSchema",
         typeExportName: "MemoryRecallVariant",
         buildShape: buildSelectShape(memoryRecallVariant),
         overrides: {
-          meta: "safeZDotJson.nullable()",
+          canonicalInputVersion: "CanonicalInputVersionSchema",
+          languageId: "NormalizedLanguageIdSchema",
+          meta: "MemoryRecallVariantMetaSchema.nullable()",
+          recallDerivationVersion: "RecallDerivationVersionSchema",
         },
       },
     ],

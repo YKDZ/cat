@@ -23,6 +23,7 @@ import {
   type DbHandle,
 } from "@cat/domain";
 import {
+  PromoteApprovedTranslationMemoryOutputSchema,
   promoteApprovedTranslationMemoryOp,
   resolveOperationScopeElementsOp,
 } from "@cat/operations";
@@ -38,6 +39,7 @@ import {
   OperationScopeSchema,
   QaResultItemSchema,
   QaResultSchema,
+  RecallDerivationReferenceSchema,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
@@ -710,7 +712,12 @@ export const autoApprove = authed
     }),
   )
   .use(checkPermission("project", "editor"), (i) => i.scope.projectId)
-  .output(z.int())
+  .output(
+    z.object({
+      count: z.int().nonnegative(),
+      derivations: z.array(RecallDerivationReferenceSchema),
+    }),
+  )
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -723,7 +730,7 @@ export const autoApprove = authed
       statusFilter: "translated",
     });
 
-    if (elements.length === 0) return 0;
+    if (elements.length === 0) return { count: 0, derivations: [] };
 
     const result = await executeCommand(
       { db: drizzle },
@@ -734,10 +741,10 @@ export const autoApprove = authed
       },
     );
 
-    await Promise.allSettled(
+    const promotions = await Promise.allSettled(
       result.approvedTranslationIds.map(async (translationId) => {
         try {
-          await promoteApprovedTranslationMemoryOp({
+          return await promoteApprovedTranslationMemoryOp({
             translationId,
             approvedById: user.id,
           });
@@ -748,11 +755,19 @@ export const autoApprove = authed
               `approved translation memory promotion failed: ${translationId}`,
               { error: error },
             );
+          return null;
         }
       }),
     );
 
-    return result.count;
+    return {
+      count: result.count,
+      derivations: promotions.flatMap((promotion) =>
+        promotion.status === "fulfilled"
+          ? (promotion.value?.derivations ?? [])
+          : [],
+      ),
+    };
   });
 
 export const approve = authed
@@ -762,7 +777,7 @@ export const approve = authed
     }),
   )
   .use(checkTranslationPermission("editor"), (i) => i.translationId)
-  .output(z.void())
+  .output(PromoteApprovedTranslationMemoryOutputSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -771,7 +786,7 @@ export const approve = authed
     await executeCommand({ db: drizzle }, approveTranslation, input);
 
     try {
-      await promoteApprovedTranslationMemoryOp({
+      return await promoteApprovedTranslationMemoryOp({
         translationId: input.translationId,
         approvedById: user.id,
       });
@@ -782,6 +797,7 @@ export const approve = authed
           `approved translation memory promotion failed: ${input.translationId}`,
           { error: error },
         );
+      return null;
     }
   });
 

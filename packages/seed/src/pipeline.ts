@@ -49,20 +49,27 @@ import {
   writePluginConfigInstance,
 } from "@cat/domain";
 import {
-  buildMemoryRecallVariantsOp,
   buildTermRecallVariantsOp,
+  waitForRecallDerivationFresh,
 } from "@cat/operations";
 import type { PluginLoader } from "@cat/plugin-core";
-import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
+import {
+  BuiltinPluginLoader,
+  CompositePluginLoader,
+  FileSystemPluginLoader,
+  PluginManager,
+} from "@cat/plugin-core";
 import {
   defaultProductPluginIds,
   selectFirstServiceImplementation,
   resolvePluginManager,
+  systemPgVectorEntry,
 } from "@cat/server-shared";
 import {
   CoreRelationTypeDefinitions,
   type JSONObject,
   type JSONType,
+  type RecallDerivationReference,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 
@@ -281,7 +288,10 @@ export const runSeedPipeline = async (
   } else {
     loader =
       opts.pluginLoader ??
-      new FileSystemPluginLoader({ pluginsDir: opts.pluginsDir });
+      new CompositePluginLoader([
+        new BuiltinPluginLoader([systemPgVectorEntry]),
+        new FileSystemPluginLoader({ pluginsDir: opts.pluginsDir }),
+      ]);
   }
   const pluginManager = PluginManager.get("GLOBAL", "", loader);
 
@@ -463,6 +473,8 @@ export const runSeedPipeline = async (
   }
   if (skipPluginBootstrap) {
     await assertFixtureHydrationPrerequisites(execCtx, [...allLanguages]);
+    // Rehydrate the persisted application service configuration for fixture work.
+    await pluginManager.restore(execCtx.db);
     await createBootstrapUser();
   } else {
     await executeCommand(execCtx, ensureLanguages, {
@@ -728,6 +740,7 @@ export const runSeedPipeline = async (
 
   // ── 10. Memory seeding ─────────────────────────────────────────────
   let memoryId: string | undefined;
+  const memoryDerivations: RecallDerivationReference[] = [];
   if (memorySeed) {
     let defaultMemoryRefBound = false;
 
@@ -820,7 +833,7 @@ export const runSeedPipeline = async (
           translationStringIds,
           "create translation vectorized string",
         );
-        const items = await executeCommand(execCtx, createMemoryItems, {
+        const created = await executeCommand(execCtx, createMemoryItems, {
           memoryId: containerMemoryId,
           items: [
             {
@@ -828,13 +841,10 @@ export const runSeedPipeline = async (
               translationStringId,
               sourceStringId,
               creatorId,
-              sourceTemplate: null,
-              translationTemplate: null,
-              slotMapping: null,
             },
           ],
         });
-        const memoryItem = requireFirst(items, "create memory item");
+        const memoryItem = requireFirst(created.items, "create memory item");
         refs.set(itemSeed.ref, memoryItem.id);
         summary.memoryItems += 1;
         if (containerScope === "PROJECT") {
@@ -843,17 +853,14 @@ export const runSeedPipeline = async (
           summary.personalMemoryItems += 1;
         }
 
-        await buildMemoryRecallVariantsOp({
-          memoryItemId: memoryItem.id,
-          memoryId: containerMemoryId,
-          sourceText: itemSeed.source,
-          translationText: itemSeed.translation,
-          sourceLanguageId: itemSeed.sourceLanguage,
-          translationLanguageId: itemSeed.translationLanguage,
-        });
+        memoryDerivations.push(...created.derivations);
       }
     }
   }
+  await waitForRecallDerivationFresh(memoryDerivations, {
+    db: execCtx.db,
+    pluginManager,
+  });
 
   // ── 11. Element seeding ────────────────────────────────────────────
   if (elementsSeed) {

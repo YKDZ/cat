@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   getDbHandle: vi.fn(async () => ({ client: {} })),
   searchMemoryOp: vi.fn(),
   tokenizeOp: vi.fn(),
+  probeMemoryRecallDependency: vi.fn(),
   listExactMemorySuggestions: Symbol("listExactMemorySuggestions"),
   listTrgmMemorySuggestions: Symbol("listTrgmMemorySuggestions"),
   listVariantMemorySuggestions: Symbol("listVariantMemorySuggestions"),
@@ -38,6 +39,10 @@ vi.mock("./search-memory.ts", () => ({
 
 vi.mock("./tokenize.ts", () => ({
   tokenizeOp: mocks.tokenizeOp,
+}));
+
+vi.mock("./memory-recall-derivation.ts", () => ({
+  probeMemoryRecallDependency: mocks.probeMemoryRecallDependency,
 }));
 
 import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
@@ -104,6 +109,12 @@ describe("memory recall regression fixtures", () => {
     });
     mocks.tokenizeOp.mockResolvedValue({
       tokens: memoryMock?.queryTokens ?? [],
+    });
+    mocks.probeMemoryRecallDependency.mockResolvedValue({
+      requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+      languageAnalysisVersion: `sha256:${"a".repeat(64)}`,
+      tokens: undefined,
+      reconciliation: { invalidated: 0, pendingUpdated: 0 },
     });
 
     const result = await collectMemoryRecallOp(

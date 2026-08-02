@@ -33,8 +33,8 @@ import {
   writePluginConfigInstance,
 } from "@cat/domain";
 import {
-  buildMemoryRecallVariantsOp,
   buildTermRecallVariantsOp,
+  waitForRecallDerivationFresh,
 } from "@cat/operations";
 import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
@@ -43,7 +43,11 @@ import {
   resolvePluginManager,
   selectFirstServiceImplementation,
 } from "@cat/server-shared";
-import type { JSONObject, JSONType } from "@cat/shared";
+import type {
+  JSONObject,
+  JSONType,
+  RecallDerivationReference,
+} from "@cat/shared";
 import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
 
 import type { LoadedSuite } from "#/config/index.ts";
@@ -247,6 +251,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   // ── 9. Memory seeding ──────────────────────────────────────────────
   let memoryId: string | undefined;
   let defaultMemoryRefBound = false;
+  const memoryDerivations: RecallDerivationReference[] = [];
   for (const memoryContainer of memoryContainers) {
     let containerMemoryId: string;
 
@@ -323,7 +328,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
         translationStringIds,
         "create translation vectorized string",
       );
-      const items = await executeCommand(execCtx, createMemoryItems, {
+      const created = await executeCommand(execCtx, createMemoryItems, {
         memoryId: containerMemoryId,
         items: [
           {
@@ -331,27 +336,23 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
             translationStringId,
             sourceStringId,
             creatorId: userId,
-            sourceTemplate: null,
-            translationTemplate: null,
-            slotMapping: null,
           },
         ],
       });
-      const memoryItem = requireFirst(items, "create memory item");
+      const memoryItem = requireFirst(created.items, "create memory item");
       refs.set(itemSeed.ref, memoryItem.id);
-
-      await buildMemoryRecallVariantsOp(
-        {
-          memoryItemId: memoryItem.id,
-          memoryId: containerMemoryId,
-          sourceText: itemSeed.source,
-          translationText: itemSeed.translation,
-          sourceLanguageId: itemSeed.sourceLanguage,
-          translationLanguageId: itemSeed.translationLanguage,
-        },
-        { pluginManager, traceId: crypto.randomUUID() },
-      );
+      memoryDerivations.push(...created.derivations);
     }
+  }
+  try {
+    await waitForRecallDerivationFresh(memoryDerivations, {
+      db: testDb.client,
+      pluginManager,
+    });
+  } catch (error) {
+    await testDb.cleanup();
+    redis.disconnect();
+    throw error;
   }
 
   // ── 9b. Core relation types ──────────────────────────────────────

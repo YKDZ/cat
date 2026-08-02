@@ -608,7 +608,7 @@ export type LanguageAnalyzerConfigurationAssessment =
   | {
       status: "VALID";
       supportedLanguages: NormalizedLanguageId[];
-      semanticConfiguration: Record<string, JSONType>;
+      semanticConfiguration: Record<string, JsonValue>;
     }
   | { status: "INVALID"; reason: "INVALID_CONFIGURATION" };
 export declare const LanguageAnalyzerConfigurationAssessmentSchema: ZodType<LanguageAnalyzerConfigurationAssessment>;
@@ -767,6 +767,14 @@ export declare class ServiceRegistry {
     pluginId: string,
     services: IPluginService[],
   ): Promise<void>;
+  prepare(
+    drizzle: unknown,
+    scopeType: ScopeType,
+    scopeId: string,
+    pluginId: string,
+    services: IPluginService[],
+  ): Promise<RegisteredService[]>;
+  replaceByPlugin(pluginId: string, services: RegisteredService[]): void;
   removeByPlugin(pluginId: string): void;
   clear(): void;
 }
@@ -790,6 +798,13 @@ export type PluginRuntimeSnapshot = {
   components: ComponentRecord[];
   hasRoute: boolean;
 };
+export type PluginRuntimeConfigurationSnapshot = Readonly<{
+  semanticConfig: JsonValue;
+  configurationDigest: string;
+  appliedVersion: string | null;
+  schemaVersion: string | null;
+  schemaDigest: string | null;
+}>;
 export type PluginServiceMap = {
   AGENT_CONTEXT_PROVIDER: AgentContextProvider;
   AGENT_TOOL_PROVIDER: AgentToolProvider;
@@ -822,6 +837,13 @@ export type ServiceImplementationReference =
       scopeType: "PROJECT" | "USER";
       scopeId: ScopedInstallationIdentifier;
     };
+export type ServiceRuntimeSnapshot = {
+  registeredService: RegisteredService;
+  reference: ServiceImplementationReference;
+  package: Readonly<{ name: string; version: string }>;
+  configuration: PluginRuntimeConfigurationSnapshot;
+  activationGeneration: number;
+};
 export type ServiceImplementationResolution<T extends PluginServiceType> =
   | {
       kind: "RESOLVED";
@@ -885,6 +907,19 @@ export declare class PluginManager {
   reloadPlugin(drizzle: unknown, pluginId: string): Promise<void>;
   isActive(pluginId: string): boolean;
   getRuntimeSnapshot(pluginId: string): PluginRuntimeSnapshot;
+  captureServiceRuntimeSnapshots<T extends PluginServiceType>(
+    type: T,
+  ): Promise<
+    Array<
+      ServiceRuntimeSnapshot & {
+        registeredService: RegisteredService & {
+          type: T;
+          service: PluginServiceMap[T];
+        };
+        reference: ServiceImplementationReference & { serviceType: T };
+      }
+    >
+  >;
   createTransientServices(
     drizzle: unknown,
     pluginId: string,

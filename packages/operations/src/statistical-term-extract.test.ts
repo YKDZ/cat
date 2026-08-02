@@ -93,7 +93,7 @@ describe("statisticalTermExtractOp", () => {
           traceId: "test-trace-unavailable",
         },
       ),
-    ).rejects.toThrow("No Language Analyzer");
+    ).rejects.toThrow("Language Analysis requirement");
   });
 
   it("requires the deployment Language Analysis selection", async () => {

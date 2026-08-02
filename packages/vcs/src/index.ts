@@ -43,6 +43,7 @@ export { VCSMiddleware } from "./vcs-middleware.ts";
 export { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
 export type { EntityStateFetcher } from "./methods/simple-application-method.ts";
 export { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
+export { MemoryItemApplicationMethod } from "./methods/memory-item-application-method.ts";
 
 // ── Functions ─────────────────────────────────────────────────────────────────
 export { detectConflicts, mergeBranch, rebaseBranch } from "./branch-merge.ts";
@@ -69,6 +70,7 @@ import { ApplicationMethodRegistry } from "./application-method-registry.ts";
 import { registerAllDiffStrategies } from "./diff-strategies-init.ts";
 import { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
 import { AutoTranslationApplicationMethod } from "./methods/auto-translation-application-method.ts";
+import { MemoryItemApplicationMethod } from "./methods/memory-item-application-method.ts";
 import { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
 import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
@@ -97,17 +99,13 @@ export const getDefaultRegistries = (): {
   const appMethodRegistry = new ApplicationMethodRegistry();
 
   // Entities requiring async vectorization
-  for (const entityType of [
-    "translation",
-    "element",
-    "term_concept",
-    "memory_item",
-  ]) {
+  for (const entityType of ["translation", "element", "term_concept"]) {
     appMethodRegistry.register(
       entityType,
       new VectorizedStringApplicationMethod(entityType),
     );
   }
+  appMethodRegistry.register("memory_item", new MemoryItemApplicationMethod());
 
   // Entities with simple CRUD (no async deps)
   for (const entityType of [

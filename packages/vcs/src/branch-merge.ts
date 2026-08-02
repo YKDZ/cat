@@ -248,6 +248,7 @@ export async function rebaseBranch(
         const entityIds = entries.map((e) => e.entityId);
         const stateMap = await method.fetchCurrentStates(entityIds, {
           projectId: branch.projectId,
+          db,
         });
 
         const batch: Array<{ entryId: number; before: unknown }> = [];
