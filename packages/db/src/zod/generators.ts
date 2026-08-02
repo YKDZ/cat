@@ -463,6 +463,10 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "glossary.ts",
+    imports: [
+      'import { TermRecallVariantMetaSchema } from "#/schema/glossary-recall-derivation.ts";',
+      'import { CanonicalInputVersionSchema, RecallDerivationVersionSchema } from "#/schema/recall-derivation.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -506,7 +510,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "TermRecallVariant",
         buildShape: buildSelectShape(termRecallVariant),
         overrides: {
-          meta: "safeZDotJson.nullable()",
+          meta: "TermRecallVariantMetaSchema",
+          canonicalInputVersion: "CanonicalInputVersionSchema",
+          recallDerivationVersion: "RecallDerivationVersionSchema",
         },
       },
     ],

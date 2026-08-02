@@ -44,6 +44,7 @@ export { SimpleApplicationMethod } from "./methods/simple-application-method.ts"
 export type { EntityStateFetcher } from "./methods/simple-application-method.ts";
 export { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 export { MemoryItemApplicationMethod } from "./methods/memory-item-application-method.ts";
+export { GlossaryConceptApplicationMethod } from "./methods/glossary-concept-application-method.ts";
 
 // ── Functions ─────────────────────────────────────────────────────────────────
 export { detectConflicts, mergeBranch, rebaseBranch } from "./branch-merge.ts";
@@ -51,6 +52,7 @@ export { detectConflicts, mergeBranch, rebaseBranch } from "./branch-merge.ts";
 export {
   readWithOverlay,
   listWithOverlay,
+  listOverlayStates,
   getBranchChangesetId,
 } from "./branch-overlay.ts";
 
@@ -70,17 +72,17 @@ import { ApplicationMethodRegistry } from "./application-method-registry.ts";
 import { registerAllDiffStrategies } from "./diff-strategies-init.ts";
 import { DiffStrategyRegistry } from "./diff-strategy-registry.ts";
 import { AutoTranslationApplicationMethod } from "./methods/auto-translation-application-method.ts";
+import { GlossaryConceptApplicationMethod } from "./methods/glossary-concept-application-method.ts";
 import { MemoryItemApplicationMethod } from "./methods/memory-item-application-method.ts";
 import { SimpleApplicationMethod } from "./methods/simple-application-method.ts";
 import { VectorizedStringApplicationMethod } from "./methods/vectorized-string-application-method.ts";
 
 /**
- * 向量化实体（translation、element、term_concept、memory_item）使用
- * VectorizedStringApplicationMethod；其余实体使用 SimpleApplicationMethod。
+ * Translation and Element use VectorizedStringApplicationMethod; Glossary
+ * concepts and Memory Items use their canonical domain application methods.
  * Create and return registries pre-populated with all default strategies
  * and application methods.
- * Vectorized entities (translation, element, term_concept, memory_item) use
- * VectorizedStringApplicationMethod; others use SimpleApplicationMethod.
+ * Other entities use SimpleApplicationMethod.
  */
 let _cachedRegistries: {
   diffRegistry: DiffStrategyRegistry;
@@ -99,12 +101,16 @@ export const getDefaultRegistries = (): {
   const appMethodRegistry = new ApplicationMethodRegistry();
 
   // Entities requiring async vectorization
-  for (const entityType of ["translation", "element", "term_concept"]) {
+  for (const entityType of ["translation", "element"]) {
     appMethodRegistry.register(
       entityType,
       new VectorizedStringApplicationMethod(entityType),
     );
   }
+  appMethodRegistry.register(
+    "term_concept",
+    new GlossaryConceptApplicationMethod(),
+  );
   appMethodRegistry.register("memory_item", new MemoryItemApplicationMethod());
 
   // Entities with simple CRUD (no async deps)
@@ -118,7 +124,6 @@ export const getDefaultRegistries = (): {
     "semantic_diff",
     "comment",
     "comment_reaction",
-    "term",
     "project_settings",
     "project_member",
     "project_attributes",

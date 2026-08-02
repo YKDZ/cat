@@ -18,7 +18,7 @@ import {
   TestPluginLoader,
   type TestDB,
 } from "@cat/test-utils";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requirement.ts";
 import {
@@ -42,7 +42,7 @@ describe("Recall Derivation freshness", () => {
       await pluginManager.restore(tx);
     });
     await executeCommand({ db: db.client }, ensureLanguages, {
-      languageIds: ["en"],
+      languageIds: ["en", "fr"],
     });
     const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!;
     const implementation =
@@ -64,6 +64,7 @@ describe("Recall Derivation freshness", () => {
   });
 
   afterEach(async () => {
+    vi.restoreAllMocks();
     PluginManager.clear();
     await db.cleanup();
   });
@@ -74,6 +75,14 @@ describe("Recall Derivation freshness", () => {
       targetId,
       languageId: "en",
       demandRevision,
+    });
+
+  const termReference = (targetId: string, languageId: string) =>
+    RecallDerivationReferenceSchema.parse({
+      targetKind: "TERM_CONCEPT",
+      targetId,
+      languageId,
+      demandRevision: 1,
     });
 
   it.each(["BLOCKED", "FAILED"] as const)(
@@ -287,5 +296,117 @@ describe("Recall Derivation freshness", () => {
       currentDerivationVersion: state?.requiredDerivationVersion,
     });
     expect(variants).toEqual([]);
+  });
+
+  it("projects dependency and wait failures to only their affected references", async () => {
+    const canonicalInputVersion = CanonicalInputVersionSchema.parse(
+      `sha256:${"7".repeat(64)}`,
+    );
+    const references = [
+      reference("7"),
+      termReference("8", "en"),
+      termReference("9", "fr"),
+    ];
+    await db.client.insert(recallDerivationState).values(
+      references.map((entry) => ({
+        targetKind: entry.targetKind,
+        targetId: entry.targetId,
+        languageId: entry.languageId,
+        canonicalInputVersion,
+      })),
+    );
+
+    const assessment = await assessRecallDerivationFreshness(references, {
+      db: db.client,
+      pluginManager,
+    });
+    expect(assessment).toMatchObject({
+      status: "BLOCKED",
+      references: [termReference("9", "fr")],
+    });
+    await expect(
+      waitForRecallDerivationFresh(references, {
+        db: db.client,
+        pluginManager,
+        timeoutMs: 5_000,
+      }),
+    ).rejects.toMatchObject({
+      status: "BLOCKED",
+      references: [termReference("9", "fr")],
+    });
+  });
+
+  it("prioritizes a tokenizer failure over a concurrent analyzer blocker", async () => {
+    const canonicalInputVersion = CanonicalInputVersionSchema.parse(
+      `sha256:${"9".repeat(64)}`,
+    );
+    const references = [reference("12"), termReference("13", "fr")];
+    await db.client.insert(recallDerivationState).values(
+      references.map((entry) => ({
+        targetKind: entry.targetKind,
+        targetId: entry.targetId,
+        languageId: entry.languageId,
+        canonicalInputVersion,
+      })),
+    );
+    vi.spyOn(pluginManager, "captureServiceRuntimeSnapshots").mockRejectedValue(
+      new Error("tokenizer snapshot failed"),
+    );
+
+    const assessment = await assessRecallDerivationFreshness(references, {
+      db: db.client,
+      pluginManager,
+    });
+
+    expect(assessment).toMatchObject({
+      status: "FAILED",
+      references,
+    });
+    expect(
+      assessment.status === "FAILED"
+        ? new Set(assessment.blockers.map((blocker) => blocker.reason))
+        : null,
+    ).toEqual(new Set(["TOKENIZER", "LANGUAGE_ANALYSIS"]));
+  });
+
+  it("continues the healthy adapter when another target kind is blocked", async () => {
+    const canonicalInputVersion = CanonicalInputVersionSchema.parse(
+      `sha256:${"8".repeat(64)}`,
+    );
+    await db.client.insert(recallDerivationState).values([
+      {
+        targetKind: "MEMORY_ITEM",
+        targetId: "10",
+        languageId: "en",
+        canonicalInputVersion,
+      },
+      {
+        targetKind: "TERM_CONCEPT",
+        targetId: "11",
+        languageId: "fr",
+        canonicalInputVersion,
+      },
+    ]);
+
+    const processed = await processRecallDerivationBatch({
+      db: db.client,
+      pluginManager,
+      limit: 2,
+    });
+    expect(processed).toMatchObject({
+      claimed: 2,
+      published: 1,
+      failed: 1,
+    });
+    const states = await db.client.select().from(recallDerivationState);
+    expect(
+      states.find((entry) => entry.targetKind === "MEMORY_ITEM"),
+    ).toMatchObject({ status: "FRESH" });
+    expect(
+      states.find((entry) => entry.targetKind === "TERM_CONCEPT"),
+    ).toMatchObject({
+      status: "BLOCKED",
+      blocker: { reason: "LANGUAGE_ANALYSIS" },
+    });
   });
 });

@@ -8,6 +8,7 @@ import {
   listMemoryRecallDerivationLanguages,
   markRecallDerivationDependencyUnverified,
   publishMemoryRecallDerivation,
+  publishTermRecallDerivation,
   reconcileRecallDerivationDependency,
   reconcileRecallDerivationDemands,
   recordRecallDerivationFailure,
@@ -18,6 +19,7 @@ import {
 import { PluginManager, tokenize, type Tokenizer } from "@cat/plugin-core";
 import { serverLogger as logger } from "@cat/server-shared";
 import {
+  compareRecallDerivationTokenizerPipelineEntries,
   computeCanonicalInputVersion,
   computeRecallDerivationVersion,
   RecallDerivationReferenceSchema,
@@ -33,6 +35,10 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
+import {
+  deriveGlossaryRecall,
+  probeCurrentGlossaryRecallDependencies,
+} from "./glossary-recall-derivation.ts";
 import {
   buildTokenWindows,
   joinLemmas,
@@ -74,14 +80,11 @@ const captureTokenizerPipeline = async (
       dbId: registeredService.dbId,
     };
   });
-  return captured.sort(
-    (left, right) =>
-      right.descriptor.priority - left.descriptor.priority ||
-      (left.descriptor.tieBreak < right.descriptor.tieBreak
-        ? -1
-        : left.descriptor.tieBreak > right.descriptor.tieBreak
-          ? 1
-          : 0),
+  return captured.sort((left, right) =>
+    compareRecallDerivationTokenizerPipelineEntries(
+      left.descriptor,
+      right.descriptor,
+    ),
   );
 };
 
@@ -180,7 +183,7 @@ export const probeMemoryRecallDependency = async (input: {
       await executeCommand(
         { db: input.db },
         markRecallDerivationDependencyUnverified,
-        { languageId: input.languageId },
+        { targetKind: "MEMORY_ITEM", languageId: input.languageId },
       );
     } catch {
       // Preserve the dependency failure that made prior derivations unsafe.
@@ -456,6 +459,91 @@ const deriveMemoryRecall = async (
   return { memoryId: snapshot.memoryId, variants, recallDerivationVersion };
 };
 
+const deriveAndPublishClaim = async (input: {
+  db: DbHandle;
+  pluginManager: PluginManager;
+  claim: RecallDerivationClaim & { leaseToken: string };
+  signal?: AbortSignal | undefined;
+}) => {
+  const { claim } = input;
+  if (claim.targetKind === "MEMORY_ITEM") {
+    const derived = await deriveMemoryRecall(
+      input.db,
+      input.pluginManager,
+      claim,
+      input.signal,
+    );
+    if (
+      claim.requiredDerivationVersion !== null &&
+      claim.requiredDerivationVersion !== derived.recallDerivationVersion
+    ) {
+      await executeCommand(
+        { db: input.db },
+        reconcileRecallDerivationDependency,
+        {
+          targetKind: claim.targetKind,
+          languageId: claim.languageId,
+          requiredDerivationVersion: derived.recallDerivationVersion,
+        },
+      );
+    }
+    return await executeCommand(
+      { db: input.db },
+      publishMemoryRecallDerivation,
+      {
+        targetId: claim.targetId,
+        memoryId: derived.memoryId,
+        languageId: claim.languageId,
+        demandRevision: claim.demandRevision,
+        executionEpoch: claim.executionEpoch,
+        leaseToken: claim.leaseToken,
+        canonicalInputVersion: claim.canonicalInputVersion,
+        recallDerivationVersion: derived.recallDerivationVersion,
+        variants: derived.variants,
+      },
+    );
+  }
+
+  if (claim.targetKind !== "TERM_CONCEPT") {
+    const exhaustive: never = claim.targetKind;
+    throw new TypeError(
+      `Unsupported Recall target kind: ${String(exhaustive)}`,
+    );
+  }
+
+  const derived = await deriveGlossaryRecall(
+    input.db,
+    input.pluginManager,
+    claim,
+    input.signal,
+  );
+  if (
+    claim.requiredDerivationVersion !== null &&
+    claim.requiredDerivationVersion !== derived.recallDerivationVersion
+  ) {
+    await executeCommand(
+      { db: input.db },
+      reconcileRecallDerivationDependency,
+      {
+        targetKind: claim.targetKind,
+        languageId: claim.languageId,
+        requiredDerivationVersion: derived.recallDerivationVersion,
+      },
+    );
+  }
+  return await executeCommand({ db: input.db }, publishTermRecallDerivation, {
+    targetId: claim.targetId,
+    conceptId: derived.conceptId,
+    languageId: claim.languageId,
+    demandRevision: claim.demandRevision,
+    executionEpoch: claim.executionEpoch,
+    leaseToken: claim.leaseToken,
+    canonicalInputVersion: claim.canonicalInputVersion,
+    recallDerivationVersion: derived.recallDerivationVersion,
+    variants: derived.variants,
+  });
+};
+
 export type ProcessRecallDerivationBatchOptions = {
   db: DbHandle;
   pluginManager: PluginManager;
@@ -495,7 +583,15 @@ export const processRecallDerivationBatch = async (
     );
     if (!claim) break;
     claimed += 1;
-    if (claim.targetKind !== "MEMORY_ITEM" || !claim.leaseToken) continue;
+    if (!claim.leaseToken) {
+      await executeCommand(
+        { db: options.db },
+        reconcileRecallDerivationDemands,
+        {},
+      );
+      failed += 1;
+      continue;
+    }
     const fence = {
       stateId: claim.id,
       demandRevision: claim.demandRevision,
@@ -525,41 +621,12 @@ export const processRecallDerivationBatch = async (
     );
     heartbeat.unref();
     try {
-      const derived = await deriveMemoryRecall(
-        options.db,
-        options.pluginManager,
-        claim,
-        options.signal,
-      );
-      if (
-        claim.requiredDerivationVersion !== null &&
-        claim.requiredDerivationVersion !== derived.recallDerivationVersion
-      ) {
-        await executeCommand(
-          { db: options.db },
-          reconcileRecallDerivationDependency,
-          {
-            targetKind: "MEMORY_ITEM",
-            languageId: claim.languageId,
-            requiredDerivationVersion: derived.recallDerivationVersion,
-          },
-        );
-      }
-      const result = await executeCommand(
-        { db: options.db },
-        publishMemoryRecallDerivation,
-        {
-          targetId: claim.targetId,
-          memoryId: derived.memoryId,
-          languageId: claim.languageId,
-          demandRevision: claim.demandRevision,
-          executionEpoch: claim.executionEpoch,
-          leaseToken: claim.leaseToken,
-          canonicalInputVersion: claim.canonicalInputVersion,
-          recallDerivationVersion: derived.recallDerivationVersion,
-          variants: derived.variants,
-        },
-      );
+      const result = await deriveAndPublishClaim({
+        db: options.db,
+        pluginManager: options.pluginManager,
+        claim: { ...claim, leaseToken: claim.leaseToken },
+        ...(options.signal ? { signal: options.signal } : {}),
+      });
       if (result.status === "PUBLISHED") published += 1;
       else stale += 1;
     } catch (error) {
@@ -702,9 +769,14 @@ const abortableDelay = async (
   });
 };
 
+const flattenProbeErrors = (error: unknown): unknown[] =>
+  error instanceof AggregateError
+    ? error.errors.flatMap((entry) => flattenProbeErrors(entry))
+    : [error];
+
 const freshnessProbeStatus = (error: unknown): "BLOCKED" | "FAILED" => {
-  const errors = error instanceof AggregateError ? error.errors : [error];
-  return errors.some(
+  const errors = flattenProbeErrors(error);
+  return errors.every(
     (entry) => entry instanceof LanguageAnalysisRequirementError,
   )
     ? "BLOCKED"
@@ -712,7 +784,7 @@ const freshnessProbeStatus = (error: unknown): "BLOCKED" | "FAILED" => {
 };
 
 const freshnessProbeBlockers = (error: unknown): RecallDerivationBlocker[] => {
-  const errors = error instanceof AggregateError ? error.errors : [error];
+  const errors = flattenProbeErrors(error);
   return errors.map((entry) =>
     entry instanceof LanguageAnalysisRequirementError
       ? {
@@ -741,26 +813,59 @@ export const assessRecallDerivationFreshness = async (
   const memoryReferences = references.filter(
     (reference) => reference.targetKind === "MEMORY_ITEM",
   );
-  if (memoryReferences.length === 0) {
-    return await assessPersistedRecallDerivationFreshness(
-      references,
-      options.db,
-    );
+  const glossaryReferences = references.filter(
+    (reference) => reference.targetKind === "TERM_CONCEPT",
+  );
+  const probes = [
+    ...[...new Set(memoryReferences.map((entry) => entry.languageId))].map(
+      (languageId) => ({
+        references: memoryReferences.filter(
+          (reference) => reference.languageId === languageId,
+        ),
+        run: async () =>
+          await probeCurrentMemoryRecallDependencies({
+            db: options.db,
+            pluginManager: options.pluginManager,
+            languageIds: [languageId],
+            timeoutMs: options.dependencyProbeTimeoutMs ?? 5_000,
+            signal: options.signal,
+          }),
+      }),
+    ),
+    ...[...new Set(glossaryReferences.map((entry) => entry.languageId))].map(
+      (languageId) => ({
+        references: glossaryReferences.filter(
+          (reference) => reference.languageId === languageId,
+        ),
+        run: async () =>
+          await probeCurrentGlossaryRecallDependencies({
+            db: options.db,
+            pluginManager: options.pluginManager,
+            languageIds: [languageId],
+            timeoutMs: options.dependencyProbeTimeoutMs ?? 5_000,
+            signal: options.signal,
+          }),
+      }),
+    ),
+  ];
+  const failures: Array<{
+    error: unknown;
+    references: RecallDerivationReference[];
+  }> = [];
+  for (const probe of probes) {
+    try {
+      await probe.run();
+    } catch (error) {
+      options.signal?.throwIfAborted();
+      failures.push({ error, references: probe.references });
+    }
   }
-  try {
-    await probeCurrentMemoryRecallDependencies({
-      db: options.db,
-      pluginManager: options.pluginManager,
-      languageIds: memoryReferences.map((reference) => reference.languageId),
-      timeoutMs: options.dependencyProbeTimeoutMs ?? 5_000,
-      signal: options.signal,
-    });
-  } catch (error) {
-    options.signal?.throwIfAborted();
+  if (failures.length > 0) {
+    const errors = failures.map((failure) => failure.error);
     return {
-      status: freshnessProbeStatus(error),
-      references: memoryReferences,
-      blockers: freshnessProbeBlockers(error),
+      status: freshnessProbeStatus(new AggregateError(errors)),
+      references: failures.flatMap((failure) => failure.references),
+      blockers: freshnessProbeBlockers(new AggregateError(errors)),
     };
   }
   return await assessPersistedRecallDerivationFreshness(references, options.db);
@@ -796,13 +901,19 @@ export const waitForRecallDerivationFresh = async (
       nextDependencyProbeAt = Date.now() + dependencyProbeIntervalMs;
       if (assessment.status === "FRESH") return;
       if (assessment.status === "BLOCKED" || assessment.status === "FAILED") {
-        throw new RecallDerivationFreshnessError(assessment.status, references);
+        throw new RecallDerivationFreshnessError(
+          assessment.status,
+          assessment.references,
+        );
       }
     } else if (
       assessment.status === "BLOCKED" ||
       assessment.status === "FAILED"
     ) {
-      throw new RecallDerivationFreshnessError(assessment.status, references);
+      throw new RecallDerivationFreshnessError(
+        assessment.status,
+        assessment.references,
+      );
     }
     await processRecallDerivationBatch(options);
     await abortableDelay(pollIntervalMs, options.signal);
@@ -837,12 +948,33 @@ export const startRecallDerivationWorker = async (
         try {
           if (Date.now() >= nextDependencyProbeAt) {
             nextDependencyProbeAt = Date.now() + dependencyProbeIntervalMs;
-            await probeCurrentMemoryRecallDependencies({
-              db: options.db,
-              pluginManager: options.pluginManager,
-              timeoutMs: options.dependencyProbeTimeoutMs ?? 5_000,
-              signal: controller.signal,
-            });
+            const dependencyProbes = [
+              async () =>
+                await probeCurrentMemoryRecallDependencies({
+                  db: options.db,
+                  pluginManager: options.pluginManager,
+                  timeoutMs: options.dependencyProbeTimeoutMs ?? 5_000,
+                  signal: controller.signal,
+                }),
+              async () =>
+                await probeCurrentGlossaryRecallDependencies({
+                  db: options.db,
+                  pluginManager: options.pluginManager,
+                  timeoutMs: options.dependencyProbeTimeoutMs ?? 5_000,
+                  signal: controller.signal,
+                }),
+            ];
+            for (const probe of dependencyProbes) {
+              try {
+                await probe();
+              } catch (error) {
+                logger
+                  .child({ component: "recall-derivation-worker", workerId })
+                  .warn("Recall Derivation dependency probe failed", {
+                    error,
+                  });
+              }
+            }
           }
           await processRecallDerivationBatch({
             ...options,

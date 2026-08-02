@@ -28,8 +28,10 @@ export * from "#/queries/language-analysis/get-language-analysis-selection.query
 export * from "#/queries/language-analysis/get-language-analysis-observation.query.ts";
 export * from "#/queries/language-analysis/list-project-language-analysis-requirements.query.ts";
 export * from "#/queries/recall-derivation/get-memory-canonical-snapshots.query.ts";
+export * from "#/queries/recall-derivation/get-term-concept-canonical-snapshots.query.ts";
 export * from "#/queries/recall-derivation/get-recall-derivation-states.query.ts";
 export * from "#/queries/recall-derivation/list-memory-recall-derivation-languages.query.ts";
+export * from "#/queries/recall-derivation/list-term-recall-derivation-languages.query.ts";
 export * from "#/queries/localization-task/index.ts";
 export * from "#/queries/agent/list-agent-definitions.query.ts";
 export * from "#/queries/agent/get-agent-definition.query.ts";
@@ -64,6 +66,7 @@ export * from "#/queries/element/list-element-comments.query.ts";
 export * from "#/queries/element/list-element-source-texts.query.ts";
 export * from "#/queries/element/get-element-contexts.query.ts";
 export * from "#/queries/glossary/get-glossary.query.ts";
+export * from "#/queries/glossary/get-glossary-term-concept-snapshot.query.ts";
 export * from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
 export * from "#/queries/glossary/get-concept-recall-detail.query.ts";
 export * from "#/queries/glossary/list-morphological-term-suggestions.query.ts";

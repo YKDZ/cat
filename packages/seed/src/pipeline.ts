@@ -48,10 +48,7 @@ import {
   getPluginConfigSchemaDigest,
   writePluginConfigInstance,
 } from "@cat/domain";
-import {
-  buildTermRecallVariantsOp,
-  waitForRecallDerivationFresh,
-} from "@cat/operations";
+import { waitForRecallDerivationFresh } from "@cat/operations";
 import type { PluginLoader } from "@cat/plugin-core";
 import {
   BuiltinPluginLoader,
@@ -691,6 +688,7 @@ export const runSeedPipeline = async (
   }
 
   // ── 9. Glossary seeding ────────────────────────────────────────────
+  const recallDerivations: RecallDerivationReference[] = [];
   let glossaryId: string | undefined;
   if (glossarySeed) {
     const g = glossarySeed.glossary;
@@ -721,7 +719,7 @@ export const runSeedPipeline = async (
       refs.set(conceptSeed.ref, concept.id);
       summary.glossaryConcepts += 1;
 
-      await executeCommand(execCtx, createGlossaryTerms, {
+      const created = await executeCommand(execCtx, createGlossaryTerms, {
         glossaryId,
         creatorId,
         data: conceptSeed.terms.map((t) => ({
@@ -733,14 +731,12 @@ export const runSeedPipeline = async (
           definition: conceptSeed.definition,
         })),
       });
-
-      await buildTermRecallVariantsOp({ conceptId: concept.id });
+      recallDerivations.push(...created.derivations);
     }
   }
 
   // ── 10. Memory seeding ─────────────────────────────────────────────
   let memoryId: string | undefined;
-  const memoryDerivations: RecallDerivationReference[] = [];
   if (memorySeed) {
     let defaultMemoryRefBound = false;
 
@@ -853,11 +849,11 @@ export const runSeedPipeline = async (
           summary.personalMemoryItems += 1;
         }
 
-        memoryDerivations.push(...created.derivations);
+        recallDerivations.push(...created.derivations);
       }
     }
   }
-  await waitForRecallDerivationFresh(memoryDerivations, {
+  await waitForRecallDerivationFresh(recallDerivations, {
     db: execCtx.db,
     pluginManager,
   });

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
+import { compareCodeUnitStrings } from "../utils/string.ts";
 import {
+  computeTermConceptCanonicalInputVersion,
+  TermConceptCanonicalSnapshotSchema,
+} from "./glossary-recall-derivation.ts";
+import {
+  compareRecallDerivationTokenizerPipelineEntries,
   computeRecallDerivationVersion,
   RecallDerivationReferenceSchema,
 } from "./recall-derivation.ts";
@@ -76,5 +82,116 @@ describe("Recall Derivation contract", () => {
       languageId: "zh-Hans",
       demandRevision: 3,
     });
+  });
+
+  it("orders Unicode by code unit and hashes reordered Glossary input identically", async () => {
+    expect(["ä-tokenizer", "z-tokenizer"].sort(compareCodeUnitStrings)).toEqual(
+      ["z-tokenizer", "ä-tokenizer"],
+    );
+
+    const snapshot = TermConceptCanonicalSnapshotSchema.parse({
+      id: 7,
+      glossaryId: "16c4a6c9-78b1-4f29-926c-79a603225821",
+      creatorId: null,
+      definition: "Unicode canonical input",
+      terms: [
+        {
+          id: 12,
+          creatorId: null,
+          text: "äther",
+          languageId: "en",
+          type: "FULL_FORM",
+          status: "PREFERRED",
+        },
+        {
+          id: 2,
+          creatorId: null,
+          text: "zebra",
+          languageId: "en",
+          type: "FULL_FORM",
+          status: "PREFERRED",
+        },
+      ],
+      subjects: [
+        {
+          id: 5,
+          creatorId: null,
+          subject: "ä-subject",
+          defaultDefinition: null,
+          isPrimary: false,
+        },
+        {
+          id: 3,
+          creatorId: null,
+          subject: "z-subject",
+          defaultDefinition: null,
+          isPrimary: true,
+        },
+      ],
+    });
+
+    await expect(
+      computeTermConceptCanonicalInputVersion(snapshot, "en"),
+    ).resolves.toBe(
+      await computeTermConceptCanonicalInputVersion(
+        {
+          ...snapshot,
+          terms: [...snapshot.terms].reverse(),
+          subjects: [...snapshot.subjects].reverse(),
+        },
+        "en",
+      ),
+    );
+  });
+
+  it("keeps the Glossary tokenizer pipeline order and version stable for z and ä", async () => {
+    const tokenizerEntry = (tieBreak: string) => ({
+      reference: {
+        pluginId:
+          tieBreak === "z-tokenizer" ? "tokenizer-z" : "tokenizer-umlaut",
+        serviceId: "tokenizer",
+        serviceType: "TOKENIZER" as const,
+        scopeType: "GLOBAL" as const,
+        scopeId: "" as const,
+      },
+      packageName: `@cat-plugin/${tieBreak}`,
+      packageVersion: "1.0.0",
+      priority: 10,
+      tieBreak,
+      semanticConfig: null,
+      configurationDigest:
+        "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    });
+    const pipeline = [
+      tokenizerEntry("ä-tokenizer"),
+      tokenizerEntry("z-tokenizer"),
+    ];
+    const ordered = [...pipeline].sort(
+      compareRecallDerivationTokenizerPipelineEntries,
+    );
+    const reordered = [...pipeline]
+      .reverse()
+      .sort(compareRecallDerivationTokenizerPipelineEntries);
+    expect(ordered.map((entry) => entry.tieBreak)).toEqual([
+      "z-tokenizer",
+      "ä-tokenizer",
+    ]);
+
+    const versionInput = {
+      contract: "cat.glossary-recall-derivation/v1",
+      languageAnalysisVersion:
+        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      normalization: { caseFolding: "Intl.toLocaleLowerCase" },
+      rules: { maxWindowSize: 6 },
+    };
+    const orderedVersion = await computeRecallDerivationVersion({
+      ...versionInput,
+      tokenizerPipeline: ordered,
+    });
+    const reorderedVersion = await computeRecallDerivationVersion({
+      ...versionInput,
+      tokenizerPipeline: reordered,
+    });
+    expect(orderedVersion).toBe(reorderedVersion);
   });
 });

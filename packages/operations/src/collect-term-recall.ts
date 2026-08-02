@@ -14,6 +14,7 @@ import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { calibrateTermBm25 } from "./confidence-calibrator/index.ts";
+import { probeGlossaryRecallDependency } from "./glossary-recall-derivation.ts";
 import { applyTermHnfPre } from "./hard-negative-filter/index.ts";
 import { joinLemmas } from "./language-analysis-normalization.ts";
 import { languageAnalyzeOp } from "./language-analyze.ts";
@@ -61,9 +62,23 @@ const normalizeRecallQuery = async (
   text: string,
   languageId: string,
   ctx?: OperationContext,
-): Promise<string> => {
+): Promise<{
+  normalizedText: string;
+  languageAnalysisVersion: Awaited<
+    ReturnType<typeof languageAnalyzeOp>
+  >["languageAnalysisVersion"];
+}> => {
   const trimmed = text.trim();
-  if (trimmed.length === 0) return "";
+  if (trimmed.length === 0) {
+    const analysis = await languageAnalyzeOp(
+      { text: trimmed, languageId },
+      ctx,
+    );
+    return {
+      normalizedText: "",
+      languageAnalysisVersion: analysis.languageAnalysisVersion,
+    };
+  }
 
   const analysis = await languageAnalyzeOp({ text: trimmed, languageId }, ctx);
   const contentTokens = analysis.tokens.filter(
@@ -71,10 +86,16 @@ const normalizeRecallQuery = async (
   );
 
   if (contentTokens.length === 0) {
-    return trimmed.toLowerCase();
+    return {
+      normalizedText: trimmed.toLocaleLowerCase(languageId),
+      languageAnalysisVersion: analysis.languageAnalysisVersion,
+    };
   }
 
-  return joinLemmas(contentTokens, languageId).trim();
+  return {
+    normalizedText: joinLemmas(contentTokens, languageId).trim(),
+    languageAnalysisVersion: analysis.languageAnalysisVersion,
+  };
 };
 
 const getLanguageAnalysisContentWords = async (
@@ -97,11 +118,19 @@ export const collectTermRecallOp = async (
 
   const { client: drizzle } = await getDbHandle();
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const normalizedText = await normalizeRecallQuery(
+  const normalized = await normalizeRecallQuery(
     input.text,
     input.sourceLanguageId,
     ctx,
   );
+  const dependency = await probeGlossaryRecallDependency({
+    db: drizzle,
+    pluginManager,
+    languageId: input.sourceLanguageId,
+    text: input.text,
+    languageAnalysisVersion: normalized.languageAnalysisVersion,
+    ctx,
+  });
 
   const tasks: Array<Promise<LookedUpTerm[]>> = [
     executeQuery({ db: drizzle }, listLexicalTermSuggestions, {
@@ -113,15 +142,16 @@ export const collectTermRecallOp = async (
     }),
   ];
 
-  if (normalizedText.length > 0) {
+  if (normalized.normalizedText.length > 0) {
     tasks.push(
       executeQuery({ db: drizzle }, listMorphologicalTermSuggestions, {
         glossaryIds: input.glossaryIds,
-        normalizedText,
+        normalizedText: normalized.normalizedText,
         sourceLanguageId: input.sourceLanguageId,
         translationLanguageId: input.translationLanguageId,
         minSimilarity: input.minMorphologySimilarity,
         maxAmount: input.maxAmount,
+        requiredDerivationVersion: dependency.requiredDerivationVersion,
       }),
     );
   }

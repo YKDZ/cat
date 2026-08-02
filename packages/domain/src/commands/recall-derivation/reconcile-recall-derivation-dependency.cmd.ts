@@ -73,6 +73,7 @@ export const reconcileRecallDerivationDependency: Command<
 
 export const MarkRecallDerivationDependencyUnverifiedCommandSchema =
   z.strictObject({
+    targetKind: RecallDerivationTargetKindSchema,
     languageId: NormalizedLanguageIdSchema,
   });
 
@@ -85,7 +86,25 @@ export const markRecallDerivationDependencyUnverified: Command<
   const invalidated = await invalidateRecallDerivationDemands(
     ctx.db,
     command.languageId,
-    "MEMORY_ITEM",
+    command.targetKind,
+  );
+  return { result: { invalidated }, events: [] };
+};
+
+export const InvalidateAllRecallDerivationDependenciesCommandSchema =
+  z.strictObject({
+    languageId: NormalizedLanguageIdSchema,
+  });
+
+export const invalidateAllRecallDerivationDependencies: Command<
+  z.infer<typeof InvalidateAllRecallDerivationDependenciesCommandSchema>,
+  { invalidated: number }
+> = async (ctx, input) => {
+  const command =
+    InvalidateAllRecallDerivationDependenciesCommandSchema.parse(input);
+  const invalidated = await invalidateRecallDerivationDemands(
+    ctx.db,
+    command.languageId,
   );
   return { result: { invalidated }, events: [] };
 };

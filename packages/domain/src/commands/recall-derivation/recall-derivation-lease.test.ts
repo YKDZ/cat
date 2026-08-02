@@ -62,16 +62,16 @@ describe("Recall Derivation leases", () => {
   });
 
   it("recovers an expired lease after process interruption", async () => {
+    const interrupted = await db.openConcurrentClient();
     const workerId = crypto.randomUUID();
     const claimed = await executeCommand(
-      { db: db.client },
+      { db: interrupted.client },
       claimRecallDerivationDemands,
-      { leaseDurationMs: 60_000, limit: 1, workerId },
+      { leaseDurationMs: 3_000, limit: 1, workerId },
     );
     expect(claimed).toHaveLength(1);
-    await db.client
-      .update(recallDerivationState)
-      .set({ leaseExpiresAt: new Date(0) });
+    await interrupted.cleanup();
+    await new Promise((resolve) => setTimeout(resolve, 3_100));
 
     const recovered = await executeCommand(
       { db: db.client },

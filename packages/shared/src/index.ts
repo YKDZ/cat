@@ -143,6 +143,7 @@ export {
 export {
   type CanonicalInputVersion,
   CanonicalInputVersionSchema,
+  compareRecallDerivationTokenizerPipelineEntries,
   computeCanonicalInputVersion,
   computeRecallDerivationVersion,
   type RecallDerivationBlocker,
@@ -168,6 +169,20 @@ export {
   type MemoryRecallVariantMeta,
   MemoryRecallVariantMetaSchema,
 } from "#/schema/memory-recall-derivation.ts";
+
+export {
+  computeTermConceptCanonicalInputVersion,
+  computeTermConceptDeletionCanonicalInputVersion,
+  type TermConceptCanonicalSnapshot,
+  TermConceptCanonicalSnapshotSchema,
+  type GlossaryConceptMaterialization,
+  GlossaryConceptMaterializationSchema,
+  GlossaryTermMaterializationSchema,
+  type TermRecallVariantDraft,
+  TermRecallVariantDraftSchema,
+  type TermRecallVariantMeta,
+  TermRecallVariantMetaSchema,
+} from "#/schema/glossary-recall-derivation.ts";
 
 export {
   type LanguageAnalysisBlocker,
@@ -985,6 +1000,10 @@ export { resolveRouteTemplate } from "#/utils/resolve-route-template.ts";
 
 export { useStringTemplate } from "#/utils/string-template.ts";
 
-export { parsePreferredLanguage, toShortFixed } from "#/utils/string.ts";
+export {
+  compareCodeUnitStrings,
+  parsePreferredLanguage,
+  toShortFixed,
+} from "#/utils/string.ts";
 
 export { safeJoinURL } from "#/utils/url.ts";

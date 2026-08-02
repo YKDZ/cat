@@ -205,7 +205,10 @@ export class MemoryItemApplicationMethod implements ApplicationMethod {
     }
     const identified = { ...parsed, memoryItemId: entityId.data };
     const result = await executeCommand(
-      { db: ctx.db },
+      {
+        db: ctx.db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
       createMemoryItems,
       toCreateCommand(identified),
     );
@@ -239,7 +242,10 @@ export class MemoryItemApplicationMethod implements ApplicationMethod {
 
     const identified = { ...parsed, memoryItemId: parsed.memoryItemId };
     const result = await executeCommand(
-      { db: ctx.db },
+      {
+        db: ctx.db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
       createMemoryItems,
       toCreateCommand(identified),
     );
@@ -257,13 +263,20 @@ export class MemoryItemApplicationMethod implements ApplicationMethod {
     const parsed = await resolveDeletionPayload(entry.before, entry, ctx);
     if (!parsed) return failed("DELETE", "requires a canonical payload.");
 
-    await executeCommand({ db: ctx.db }, deleteMemoryItem, {
-      memoryItemId: parsed.memoryItemId,
-      deletedById: parsed.deletedById,
-      scope: parsed.scope,
-      projectId: parsed.projectId,
-      reason: parsed.reason,
-    });
+    await executeCommand(
+      {
+        db: ctx.db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
+      deleteMemoryItem,
+      {
+        memoryItemId: parsed.memoryItemId,
+        deletedById: parsed.deletedById,
+        scope: parsed.scope,
+        projectId: parsed.projectId,
+        reason: parsed.reason,
+      },
+    );
     return { status: "APPLIED" };
   }
 

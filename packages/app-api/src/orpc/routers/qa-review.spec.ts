@@ -96,7 +96,7 @@ const invokeHandler = async (
 };
 
 import {
-  createChangeset,
+  getOrCreateActiveBranchChangeset,
   getFirstQaReviewableElement,
   listTranslationsByIds,
   submitQaReviewAction,
@@ -352,7 +352,7 @@ describe("qaReview.submitAction handler", () => {
           };
         }
 
-        if (command === createChangeset) {
+        if (command === getOrCreateActiveBranchChangeset) {
           return { id: 456 };
         }
 
@@ -397,11 +397,10 @@ describe("qaReview.submitAction handler", () => {
     expect(mocks.executeCommand).toHaveBeenNthCalledWith(
       2,
       { db: {} },
-      createChangeset,
+      getOrCreateActiveBranchChangeset,
       {
         projectId: baseInput.projectId,
         branchId: 66,
-        status: "PENDING",
       },
     );
     expect(mocks.interceptWrite).toHaveBeenCalledWith(

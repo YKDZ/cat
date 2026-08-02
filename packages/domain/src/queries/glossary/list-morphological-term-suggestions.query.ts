@@ -3,11 +3,13 @@ import {
   and,
   eq,
   inArray,
+  recallDerivationState,
   sql,
   term,
   termConcept,
   termRecallVariant,
 } from "@cat/db";
+import { RecallDerivationVersionSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { LookedUpTerm } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
@@ -21,6 +23,7 @@ export const ListMorphologicalTermSuggestionsQuerySchema = z.object({
   translationLanguageId: z.string().min(1),
   minSimilarity: z.number().min(0).max(1).default(0.7),
   maxAmount: z.int().min(1).default(20),
+  requiredDerivationVersion: RecallDerivationVersionSchema,
 });
 
 export type ListMorphologicalTermSuggestionsQuery = z.infer<
@@ -54,6 +57,15 @@ export const listMorphologicalTermSuggestions: Query<
       similarity: sql<number>`similarity(${termRecallVariant.normalizedText}, ${normalizedText})`,
     })
     .from(termRecallVariant)
+    .innerJoin(
+      recallDerivationState,
+      and(
+        eq(recallDerivationState.id, termRecallVariant.derivationStateId),
+        eq(recallDerivationState.targetKind, "TERM_CONCEPT"),
+        sql`${recallDerivationState.targetId} = ${termRecallVariant.conceptId}::text`,
+        eq(recallDerivationState.languageId, termRecallVariant.languageId),
+      ),
+    )
     .innerJoin(termConcept, eq(termConcept.id, termRecallVariant.conceptId))
     .innerJoin(
       sourceTerm,
@@ -66,6 +78,27 @@ export const listMorphologicalTermSuggestions: Query<
       and(
         inArray(termConcept.glossaryId, query.glossaryIds),
         eq(termRecallVariant.languageId, query.sourceLanguageId),
+        eq(recallDerivationState.status, "FRESH"),
+        eq(
+          recallDerivationState.requiredDerivationVersion,
+          query.requiredDerivationVersion,
+        ),
+        eq(
+          recallDerivationState.currentDerivationVersion,
+          query.requiredDerivationVersion,
+        ),
+        eq(
+          recallDerivationState.currentCanonicalInputVersion,
+          recallDerivationState.canonicalInputVersion,
+        ),
+        eq(
+          termRecallVariant.canonicalInputVersion,
+          recallDerivationState.canonicalInputVersion,
+        ),
+        eq(
+          termRecallVariant.recallDerivationVersion,
+          query.requiredDerivationVersion,
+        ),
         sql`similarity(${termRecallVariant.normalizedText}, ${normalizedText}) >= ${query.minSimilarity}`,
       ),
     )

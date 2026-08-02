@@ -12,6 +12,7 @@ import type {
   LanguageAnalysisRequirementAssessment,
   CanonicalInputVersion,
   MemoryRecallVariantMeta,
+  TermRecallVariantMeta,
   RecallDerivationBlocker,
   RecallDerivationVersion,
 } from "@cat/shared";
@@ -2896,6 +2897,12 @@ export const termRecallVariant = snakeCase.table(
   "TermRecallVariant",
   {
     id: serial().primaryKey(),
+    derivationStateId: integer()
+      .notNull()
+      .references(() => recallDerivationState.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     conceptId: integer()
       .notNull()
       .references(() => termConcept.id, {
@@ -2911,11 +2918,18 @@ export const termRecallVariant = snakeCase.table(
     text: text().notNull(),
     normalizedText: text().notNull(),
     variantType: recallVariantType().notNull(),
-    meta: jsonb().$type<JSONType>(),
+    meta: jsonb().$type<TermRecallVariantMeta>().notNull(),
+    canonicalInputVersion: text().$type<CanonicalInputVersion>().notNull(),
+    recallDerivationVersion: text().$type<RecallDerivationVersion>().notNull(),
     ...timestamps,
   },
   (table) => [
     index().using("btree", table.conceptId.asc().nullsLast()),
+    index().on(
+      table.derivationStateId,
+      table.canonicalInputVersion,
+      table.recallDerivationVersion,
+    ),
     index().using("btree", table.languageId.asc().nullsLast()),
     index("idx_term_recall_variant_text_trgm").using(
       "gin",

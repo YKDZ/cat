@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   getDbHandle: vi.fn(async () => ({ client: {} })),
   languageAnalyzeOp: vi.fn(),
   semanticSearchTermsOp: vi.fn(),
+  probeGlossaryRecallDependency: vi.fn(),
   listLexicalTermSuggestions: Symbol("listLexicalTermSuggestions"),
   listMorphologicalTermSuggestions: Symbol("listMorphologicalTermSuggestions"),
 }));
@@ -33,6 +34,10 @@ vi.mock("./language-analyze.ts", () => ({
 
 vi.mock("./semantic-search-terms.ts", () => ({
   semanticSearchTermsOp: mocks.semanticSearchTermsOp,
+}));
+
+vi.mock("./glossary-recall-derivation.ts", () => ({
+  probeGlossaryRecallDependency: mocks.probeGlossaryRecallDependency,
 }));
 
 import { collectTermRecallOp } from "./collect-term-recall.ts";
@@ -70,9 +75,13 @@ describe("term recall regression fixtures", () => {
     });
 
     mocks.semanticSearchTermsOp.mockResolvedValue(termMock?.semantic ?? []);
+    mocks.probeGlossaryRecallDependency.mockResolvedValue({
+      requiredDerivationVersion: `sha256:${"a".repeat(64)}`,
+    });
     mocks.languageAnalyzeOp.mockResolvedValue({
       tokens: termMock?.languageAnalysisTokens ?? [],
       sentences: [],
+      languageAnalysisVersion: `sha256:${"b".repeat(64)}`,
     });
 
     const result = await collectTermRecallOp(

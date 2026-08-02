@@ -9,7 +9,13 @@ import {
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
-export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
+export type TestDB = DrizzleDB & {
+  cleanup: () => Promise<void>;
+  openConcurrentClient: () => Promise<{
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  }>;
+};
 
 /**
  * 向 globalThis 填充基于 NodePg 的测试数据库
@@ -155,6 +161,24 @@ export const setupTestDB = async (): Promise<TestDB> => {
     },
   } as unknown as DrizzleDB;
 
+  const openConcurrentClient = async (): Promise<{
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  }> => {
+    const concurrent = new Client({ connectionString });
+    await concurrent.connect();
+    await concurrent.query(`SET search_path TO "${schemaName}", public`);
+    return {
+      client: drizzle({
+        client: concurrent,
+        relations,
+      }) as unknown as DrizzleDB["client"],
+      cleanup: async () => {
+        await concurrent.end();
+      },
+    };
+  };
+
   globalThis["__DRIZZLE_DB__"] = drizzleDB;
 
   const cleanup = async () => {
@@ -173,5 +197,5 @@ export const setupTestDB = async (): Promise<TestDB> => {
   };
 
   // oxlint-disable-next-line typescript/no-misused-spread, no-unsafe-type-assertion
-  return { ...drizzleDB, cleanup } as unknown as TestDB;
+  return { ...drizzleDB, cleanup, openConcurrentClient } as unknown as TestDB;
 };

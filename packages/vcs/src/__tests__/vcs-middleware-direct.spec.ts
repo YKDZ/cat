@@ -82,6 +82,53 @@ describe("VCSMiddleware — Direct mode", () => {
     expect(ctx.currentChangesetId).toBe(42);
   });
 
+  test("records identity and snapshot resolved by the canonical write", async () => {
+    mockCreateChangeSet.mockClear();
+    mockAddEntry.mockClear();
+
+    const mw = new VCSMiddleware(mockCsService, mockDiffRegistry);
+    const ctx: VCSContext = { mode: "direct", projectId: "proj-1" };
+
+    const result = await mw.interceptResolvedWrite(
+      ctx,
+      "term_concept",
+      "UPDATE",
+      { before: true },
+      async () => ({
+        entityId: "17",
+        after: { after: true },
+        result: { conceptId: 17 },
+      }),
+    );
+
+    expect(mockCreateChangeSet).toHaveBeenCalledOnce();
+    expect(mockAddEntry).toHaveBeenCalledWith(42, {
+      entityType: "term_concept",
+      entityId: "17",
+      action: "UPDATE",
+      before: { before: true },
+      after: { after: true },
+      riskLevel: "LOW",
+    });
+    expect(result).toEqual({ conceptId: 17 });
+  });
+
+  test("does not create an audit changeset for a canonical no-op mutation", async () => {
+    mockCreateChangeSet.mockClear();
+    mockAddEntry.mockClear();
+
+    const mw = new VCSMiddleware(mockCsService, mockDiffRegistry);
+    const result = await mw.interceptMutationWrite(
+      { mode: "direct", projectId: "proj-1" },
+      "term_concept",
+      async () => ({ mutation: null, result: { deleted: false } }),
+    );
+
+    expect(result).toEqual({ deleted: false });
+    expect(mockCreateChangeSet).not.toHaveBeenCalled();
+    expect(mockAddEntry).not.toHaveBeenCalled();
+  });
+
   test("Isolation mode does NOT execute writeFn", async () => {
     const mw = new VCSMiddleware(mockCsService, mockDiffRegistry);
     const writeFn = vi.fn();

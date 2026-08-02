@@ -17,6 +17,11 @@ export {
   type RecallDerivationFreshnessAssessment,
   type RecallDerivationWorker,
 } from "./memory-recall-derivation.ts";
+export {
+  probeGlossaryRecallDependency,
+  probeCurrentGlossaryRecallDependencies,
+  reconcileGlossaryRecallDependency,
+} from "./glossary-recall-derivation.ts";
 
 export {
   writePersonalTranslationMemoryOp,
@@ -387,9 +392,6 @@ export {
   CollectTermRecallInputSchema,
   type CollectTermRecallInput,
 } from "./collect-term-recall.ts";
-
-export { buildTermRecallVariantsOp } from "./build-term-recall-variants.ts";
-export { triggerTermRecallReindex } from "./trigger-term-recall-reindex.ts";
 
 export {
   llmTermEnhanceOp,

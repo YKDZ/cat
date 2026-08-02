@@ -1,4 +1,8 @@
-import { createChangeset, executeCommand, type DbHandle } from "@cat/domain";
+import {
+  executeCommand,
+  getOrCreateActiveBranchChangeset,
+  type DbHandle,
+} from "@cat/domain";
 import {
   ChangeSetService,
   getDefaultRegistries,
@@ -49,11 +53,11 @@ export const ensureBranchWriteContext = async (input: {
   const branchChangesetId =
     input.branchChangesetId ??
     (
-      await executeCommand({ db: input.drizzle }, createChangeset, {
-        projectId: input.branchProjectId,
-        branchId: input.branchId,
-        status: "PENDING",
-      })
+      await executeCommand(
+        { db: input.drizzle },
+        getOrCreateActiveBranchChangeset,
+        { branchId: input.branchId, projectId: input.branchProjectId },
+      )
     ).id;
 
   return {

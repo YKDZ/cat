@@ -6,6 +6,7 @@ import {
   stableSerializeLanguageAnalysis,
 } from "#/schema/language-analysis.ts";
 import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
+import { compareCodeUnitStrings } from "#/utils/string.ts";
 
 declare const recallDerivationVersion: unique symbol;
 declare const canonicalInputVersion: unique symbol;
@@ -64,6 +65,13 @@ export type RecallDerivationVersionInput = z.input<
 export type RecallDerivationTokenizerPipelineEntry = z.infer<
   typeof RecallDerivationVersionInputSchema.shape.tokenizerPipeline.element
 >;
+
+export const compareRecallDerivationTokenizerPipelineEntries = (
+  left: Pick<RecallDerivationTokenizerPipelineEntry, "priority" | "tieBreak">,
+  right: Pick<RecallDerivationTokenizerPipelineEntry, "priority" | "tieBreak">,
+): number =>
+  right.priority - left.priority ||
+  compareCodeUnitStrings(left.tieBreak, right.tieBreak);
 
 export const computeRecallDerivationVersion = async (
   input: RecallDerivationVersionInput,

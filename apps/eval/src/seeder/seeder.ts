@@ -32,10 +32,7 @@ import {
   registerPluginDefinition,
   writePluginConfigInstance,
 } from "@cat/domain";
-import {
-  buildTermRecallVariantsOp,
-  waitForRecallDerivationFresh,
-} from "@cat/operations";
+import { waitForRecallDerivationFresh } from "@cat/operations";
 import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
 import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
 import { normalizeMemorySeed } from "@cat/seed";
@@ -207,6 +204,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   refs.set("content-node:root", rootNode.id);
 
   // ── 8. Glossary seeding ────────────────────────────────────────────
+  const recallDerivations: RecallDerivationReference[] = [];
   let glossaryId: string | undefined;
   if (glossarySeed) {
     const g = glossarySeed.glossary;
@@ -229,7 +227,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       });
       refs.set(conceptSeed.ref, concept.id);
 
-      await executeCommand(execCtx, createGlossaryTerms, {
+      const created = await executeCommand(execCtx, createGlossaryTerms, {
         glossaryId,
         creatorId: userId,
         data: conceptSeed.terms.map(
@@ -243,15 +241,13 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
           }),
         ),
       });
-
-      await buildTermRecallVariantsOp({ conceptId: concept.id });
+      recallDerivations.push(...created.derivations);
     }
   }
 
   // ── 9. Memory seeding ──────────────────────────────────────────────
   let memoryId: string | undefined;
   let defaultMemoryRefBound = false;
-  const memoryDerivations: RecallDerivationReference[] = [];
   for (const memoryContainer of memoryContainers) {
     let containerMemoryId: string;
 
@@ -341,11 +337,11 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       });
       const memoryItem = requireFirst(created.items, "create memory item");
       refs.set(itemSeed.ref, memoryItem.id);
-      memoryDerivations.push(...created.derivations);
+      recallDerivations.push(...created.derivations);
     }
   }
   try {
-    await waitForRecallDerivationFresh(memoryDerivations, {
+    await waitForRecallDerivationFresh(recallDerivations, {
       db: testDb.client,
       pluginManager,
     });
