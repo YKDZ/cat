@@ -110,7 +110,7 @@ catalog:
   happy-dom: ^20.10.2
   hono: ^4.12.25
   hono-rate-limiter: ^0.5.3
-  isomorphic-dompurify: ^3.16.0
+  isomorphic-dompurify: ^3.21.0
   jiti: ^2.7.0
   js-yaml: ^4.2.0
   marked: ^18.0.5
