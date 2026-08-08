@@ -11,6 +11,7 @@ import type { MemoryRecallTestSet, ScenarioConfig } from "#/config/schemas.ts";
 
 import { throwIfEvaluationAborted } from "../../cancellation.ts";
 import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
+import { DEFAULT_RECALL_OPERATION_TIMEOUT_MS } from "./recall-timeout.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
 
@@ -43,7 +44,9 @@ export const memoryRecallStrategy = {
           try {
             const traceId = `eval-memory-${tc.id}-${Date.now()}`;
             const controller = new AbortController();
-            const timeoutMs = (params.timeoutMs as number) ?? 30_000;
+            const timeoutMs =
+              (params.timeoutMs as number) ??
+              DEFAULT_RECALL_OPERATION_TIMEOUT_MS;
             timer = setTimeout(() => {
               controller.abort();
             }, timeoutMs);
