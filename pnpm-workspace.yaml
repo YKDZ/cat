@@ -149,7 +149,7 @@ catalog:
   vee-validate: ^4.15.1
   vike: ^0.4.259
   vike-vue: ^0.9.11
-  vite: ^8.0.16
+  vite: ^8.2.0
   vite-plugin-vue-devtools: ^8.1.2
   vitepress: 2.0.0-alpha.17
   vitest: ^4.1.8
