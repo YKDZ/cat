@@ -1,4 +1,3 @@
-import type { OperationContext } from "@cat/domain";
 import {
   LanguageAnalysisResultSchema,
   LanguageAnalysisVersionSchema,
@@ -7,7 +6,10 @@ import {
 import * as z from "zod";
 
 import { type HostValidatedLanguageAnalysisResult } from "./language-analysis-execution.ts";
-import { executeRequiredLanguageAnalysis } from "./language-analysis-requirement.ts";
+import {
+  executeRequiredLanguageAnalysis,
+  type LanguageAnalysisOperationContext,
+} from "./language-analysis-requirement.ts";
 
 export const LanguageAnalysisInputSchema = z.strictObject({
   text: z.string(),
@@ -27,7 +29,7 @@ export type LanguageAnalysisOutput = HostValidatedLanguageAnalysisResult;
 /** Performs full Language Analysis through a configured Language Analyzer. */
 export const languageAnalyzeOp = async (
   input: LanguageAnalysisInput,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<LanguageAnalysisOutput> => {
   const data = LanguageAnalysisInputSchema.parse(input);
   return await executeRequiredLanguageAnalysis(data, ctx);

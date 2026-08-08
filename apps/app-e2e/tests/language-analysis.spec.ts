@@ -1,4 +1,71 @@
+import {
+  NormalizedLanguageIdSchema,
+  LanguageAnalysisRequirementStatusSchema,
+  LanguageAnalysisSelectionSourceSchema,
+  type NormalizedLanguageId,
+} from "@cat/shared";
+
 import { test, expect } from "#/fixtures.ts";
+import { gotoHydrated } from "#/pages/app-navigation.ts";
+
+type ObservationTiming =
+  | { assessmentStatus: "UNKNOWN"; observationStatus: null }
+  | { assessmentStatus: "SATISFIED"; observationStatus: "SATISFIED" };
+
+const parseObservationTiming = (
+  body: unknown,
+  languageId: NormalizedLanguageId,
+): ObservationTiming => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("Language Analysis response body is not an object");
+  }
+  const views = Reflect.get(body, "json");
+  if (!Array.isArray(views)) {
+    throw new Error("Language Analysis response did not include a view array");
+  }
+  const view = views.find(
+    (candidate) =>
+      typeof candidate === "object" &&
+      candidate !== null &&
+      Reflect.get(candidate, "languageId") === languageId,
+  );
+  if (typeof view !== "object" || view === null) {
+    throw new Error(`Language Analysis response did not include ${languageId}`);
+  }
+  LanguageAnalysisSelectionSourceSchema.parse(Reflect.get(view, "source"));
+  const assessment = Reflect.get(view, "assessment");
+  if (typeof assessment !== "object" || assessment === null) {
+    throw new Error("Language Analysis view did not include an assessment");
+  }
+  const assessmentStatus = LanguageAnalysisRequirementStatusSchema.parse(
+    Reflect.get(assessment, "status"),
+  );
+  const observation = Reflect.get(view, "observation");
+  if (assessmentStatus === "UNKNOWN" && observation === null) {
+    return { assessmentStatus, observationStatus: null };
+  }
+  if (assessmentStatus === "SATISFIED") {
+    if (typeof observation !== "object" || observation === null) {
+      throw new Error("Satisfied Language Analysis view has no observation");
+    }
+    const observationAssessment = Reflect.get(observation, "assessment");
+    if (
+      typeof observationAssessment !== "object" ||
+      observationAssessment === null
+    ) {
+      throw new Error("Language Analysis observation has no assessment");
+    }
+    const observationStatus = LanguageAnalysisRequirementStatusSchema.parse(
+      Reflect.get(observationAssessment, "status"),
+    );
+    if (observationStatus === "SATISFIED") {
+      return { assessmentStatus, observationStatus };
+    }
+  }
+  throw new Error(
+    `Unexpected Language Analysis observation timing: ${assessmentStatus}`,
+  );
+};
 
 test.describe("Language Analysis policy surfaces", () => {
   test("admin CAS conflict preserves the losing operator input", async ({
@@ -7,8 +74,8 @@ test.describe("Language Analysis policy surfaces", () => {
     const competingPage = await page.context().newPage();
     try {
       await Promise.all([
-        page.goto("/admin/language-analysis"),
-        competingPage.goto("/admin/language-analysis"),
+        gotoHydrated(page, "/admin/language-analysis"),
+        gotoHydrated(competingPage, "/admin/language-analysis"),
       ]);
 
       const winningLanguageInput = page.getByRole("textbox", {
@@ -19,6 +86,10 @@ test.describe("Language Analysis policy surfaces", () => {
       });
       const winningImplementationSelect = page.locator("form select");
       const losingImplementationSelect = competingPage.locator("form select");
+      await Promise.all([
+        expect(winningImplementationSelect.locator("option")).toHaveCount(2),
+        expect(losingImplementationSelect.locator("option")).toHaveCount(2),
+      ]);
       await winningLanguageInput.fill("en");
       await losingLanguageInput.fill("en");
       await winningImplementationSelect.selectOption({ index: 1 });
@@ -47,7 +118,7 @@ test.describe("Language Analysis policy surfaces", () => {
     }
   });
 
-  test("authorized Workbench reads observations without invoking analysis", async ({
+  test("authorized observation reads do not execute analysis while Workbench reflects cached status", async ({
     page,
     editorPage,
     refs,
@@ -59,11 +130,17 @@ test.describe("Language Analysis policy surfaces", () => {
       if (!response.ok) throw new Error("spaCy request counter is unavailable");
       return (await response.json()) as Record<string, number>;
     };
-    const before = await requestCounts();
     const observations = page.waitForResponse((response) =>
       response
         .url()
         .includes("/api/rpc/languageAnalysis/getProjectObservations"),
+    );
+    const analysisDependencies = [
+      "/api/rpc/suggestion/onNew",
+      "/api/rpc/memory/onNew",
+      "/api/rpc/glossary/findTerm",
+    ].map((endpoint) =>
+      page.waitForResponse((response) => response.url().includes(endpoint)),
     );
 
     await editorPage.navigateToEditor({
@@ -72,8 +149,77 @@ test.describe("Language Analysis policy surfaces", () => {
       contentNodeId: refs["content-node:elements"],
     });
 
-    expect((await observations).ok()).toBe(true);
-    await expect(page.getByRole("status").first()).toBeVisible();
+    const observationResponse = await observations;
+    expect(observationResponse.ok()).toBe(true);
+    const sourceLanguageId = NormalizedLanguageIdSchema.parse("en");
+    const initialTiming = parseObservationTiming(
+      await observationResponse.json(),
+      sourceLanguageId,
+    );
+    if (initialTiming.assessmentStatus === "UNKNOWN") {
+      await expect(
+        page
+          .getByRole("status")
+          .filter({ hasText: `语言分析 (${sourceLanguageId}):未知` }),
+      ).toHaveText(`语言分析 (${sourceLanguageId}):未知`);
+    } else {
+      await expect(
+        page
+          .getByRole("status")
+          .filter({ hasText: `语言分析 (${sourceLanguageId}):` }),
+      ).toHaveCount(0);
+    }
+    const dependencyResponses = await Promise.all(analysisDependencies);
+    expect(dependencyResponses.every((response) => response.ok())).toBe(true);
+
+    // Recall routes are SSE streams. A response is usable once its initial
+    // recall events reach the Workbench; waiting for transport closure would
+    // incorrectly wait for a still-subscribed stream.
+    const memoryPanel = page
+      .getByRole("heading", { name: "翻译记忆" })
+      .locator("..");
+    const termPanel = page.getByRole("heading", { name: "术语" }).locator("..");
+    await Promise.all([
+      expect(
+        memoryPanel.getByText("E2E Memory", { exact: true }),
+      ).toBeVisible(),
+      expect(termPanel.getByText("Hello", { exact: true })).toBeVisible(),
+      expect(termPanel.getByText("World", { exact: true })).toBeVisible(),
+    ]);
+
+    const csrfToken = (await page.context().cookies()).find(
+      (cookie) => cookie.name === "csrfToken",
+    )?.value;
+    if (csrfToken === undefined) {
+      throw new Error("Authenticated Workbench did not expose a CSRF token");
+    }
+    const before = await requestCounts();
+    const directObservation = await page.evaluate(
+      async ({ csrfToken: requestCsrfToken, projectId }) => {
+        const response = await fetch(
+          "/api/rpc/languageAnalysis/getProjectObservations",
+          {
+            body: JSON.stringify({ json: { projectId } }),
+            credentials: "same-origin",
+            headers: {
+              "content-type": "application/json",
+              "x-csrf-token": requestCsrfToken,
+            },
+            method: "POST",
+          },
+        );
+        const body: unknown = await response.json();
+        return { body, ok: response.ok };
+      },
+      { csrfToken, projectId: refs.project },
+    );
+    expect(directObservation.ok).toBe(true);
+    expect(
+      parseObservationTiming(directObservation.body, sourceLanguageId),
+    ).toEqual({
+      assessmentStatus: "SATISFIED",
+      observationStatus: "SATISFIED",
+    });
     expect(await requestCounts()).toEqual(before);
   });
 });

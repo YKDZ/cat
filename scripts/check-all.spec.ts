@@ -1,6 +1,14 @@
+import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
-import { readFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { inspect } from "node:util";
 
 import { describe, expect, it, vi } from "vitest";
@@ -12,12 +20,14 @@ import {
   parseCheckAllCommand,
   runCheckAllCli,
   runCheckAllCommand,
+  signalCommandProcessTree,
   type CommandRunner,
   runCheckAll,
   type SignalSource,
 } from "./check-all.ts";
 
 const spacyImageId = `sha256:${"c".repeat(64)}`;
+const readySpacyProbe = vi.fn(async () => undefined);
 
 type TestSignalSource = SignalSource & {
   emit(signal: "SIGINT" | "SIGTERM"): boolean;
@@ -34,7 +44,10 @@ const signalSource = (): TestSignalSource => {
 
 const successfulRunner = (): CommandRunner => {
   let servicesStarted = false;
+  let projectName = "";
   return vi.fn(async (command, args, options) => {
+    const projectNameIndex = args.indexOf("--project-name");
+    if (projectNameIndex >= 0) projectName = args[projectNameIndex + 1] ?? "";
     if (command === "pnpm" && args.includes("test:e2e")) {
       const path = options.env.CAT_E2E_ATTESTATION_PATH;
       if (path === undefined) throw new Error("missing E2E attestation path");
@@ -96,6 +109,25 @@ const successfulRunner = (): CommandRunner => {
     }
     if (command === "docker" && args[0] === "image" && args[1] === "inspect") {
       return { stderr: "", stdout: `${spacyImageId}\n` };
+    }
+    if (
+      command === "docker" &&
+      args[0] === "container" &&
+      args[1] === "inspect" &&
+      args.includes("{{json .}}")
+    ) {
+      return {
+        stderr: "",
+        stdout: JSON.stringify({
+          Config: {
+            Labels: {
+              "cat.test-service-lease.token": options.env.CAT_E2E_LEASE_TOKEN,
+              "com.docker.compose.project": projectName,
+            },
+          },
+          Id: `probe-id-${args[2]}`,
+        }),
+      };
     }
     if (command === "docker" && args.includes("ps")) {
       return {
@@ -163,7 +195,7 @@ describe("check:all service lifecycle", () => {
     expect(drizzleConfig).toContain("verbose: false");
     expect(drizzleConfig).toContain("strict: true");
     expect(packageManifest.scripts?.["drizzle:push"]).toBe(
-      "drizzle-kit push --force",
+      "node src/prepare-database-capabilities.ts && drizzle-kit push --force && node src/prepare-vector-runtime-schema.ts",
     );
   });
 
@@ -228,7 +260,90 @@ describe("check:all service lifecycle", () => {
     );
   });
 
-  it("redacts both output streams and omits secret-bearing arguments at the process boundary", async () => {
+  it("treats an already-exited POSIX process group as successfully signaled", () => {
+    if (process.platform === "win32") return;
+    const childKill = vi.fn(() => false);
+    const processKill = vi.spyOn(process, "kill").mockImplementation(() => {
+      throw Object.assign(new Error("process group not found"), {
+        code: "ESRCH",
+      });
+    });
+    try {
+      const failure = signalCommandProcessTree(
+        { kill: childKill, pid: 123_456_789 } as unknown as ChildProcess,
+        "SIGTERM",
+      );
+
+      expect(failure).toBeUndefined();
+      expect(processKill).toHaveBeenCalledWith(-123_456_789, "SIGTERM");
+      expect(childKill).not.toHaveBeenCalled();
+    } finally {
+      processKill.mockRestore();
+    }
+  });
+
+  it("waits for an aborted command to finish cleanup before releasing its caller", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "cat-check-all-abort-"));
+    const readyPath = join(directory, "ready");
+    const cleanupPath = join(directory, "cleanup");
+    const controller = new AbortController();
+    try {
+      const running = runCheckAllCommand(
+        process.execPath,
+        [
+          "-e",
+          `const { writeFileSync } = require("node:fs"); writeFileSync(${JSON.stringify(readyPath)}, "ready"); process.on("SIGTERM", () => setTimeout(() => { writeFileSync(${JSON.stringify(cleanupPath)}, "complete"); process.exit(0); }, 100)); setInterval(() => undefined, 1000);`,
+        ],
+        {
+          cwd: process.cwd(),
+          env: process.env,
+          signal: controller.signal,
+          stdio: "pipe",
+        },
+      );
+      await vi.waitFor(() => expect(existsSync(readyPath)).toBe(true));
+      controller.abort(new Error("interrupt check:all"));
+
+      await expect(running).rejects.toThrow();
+      expect(existsSync(cleanupPath)).toBe(true);
+    } finally {
+      await vi.waitFor(() => expect(existsSync(cleanupPath)).toBe(true));
+      rmSync(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("waits for descendant cleanup after the direct command exits", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "cat-check-all-tree-abort-"));
+    const readyPath = join(directory, "ready");
+    const cleanupPath = join(directory, "cleanup");
+    const controller = new AbortController();
+    const descendant = `const { writeFileSync } = require("node:fs"); writeFileSync(process.argv[1], "ready"); process.on("SIGTERM", () => setTimeout(() => { writeFileSync(process.argv[2], "complete"); process.exit(0); }, 100)); setInterval(() => undefined, 1000);`;
+    try {
+      const running = runCheckAllCommand(
+        process.execPath,
+        [
+          "-e",
+          `const { spawn } = require("node:child_process"); spawn(process.execPath, ["-e", ${JSON.stringify(descendant)}, ${JSON.stringify(readyPath)}, ${JSON.stringify(cleanupPath)}], { stdio: "inherit" }); setInterval(() => undefined, 1000);`,
+        ],
+        {
+          cwd: process.cwd(),
+          env: process.env,
+          signal: controller.signal,
+          stdio: "pipe",
+        },
+      );
+      await vi.waitFor(() => expect(existsSync(readyPath)).toBe(true));
+      controller.abort(new Error("interrupt command tree"));
+
+      await expect(running).rejects.toThrow();
+      expect(existsSync(cleanupPath)).toBe(true);
+    } finally {
+      await vi.waitFor(() => expect(existsSync(cleanupPath)).toBe(true));
+      rmSync(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("redacts failed output streams and omits secret-bearing arguments at the process boundary", async () => {
     const databaseSecret = "database-process-secret";
     const redisSecret = "redis-process-secret";
     const bootstrapSecret = "bootstrap-process-secret";
@@ -263,23 +378,27 @@ describe("check:all service lifecycle", () => {
     expect(commandFailure.message).not.toMatch(
       /database-process-secret|redis-process-secret|bootstrap-process-secret/,
     );
+  });
 
+  it("preserves successful structured stdout for internal consumers", async () => {
+    const composeStatus = `${JSON.stringify({
+      Health: "healthy",
+      Service: "postgresql",
+      State: "running",
+      Labels:
+        "com.docker.compose.service=postgresql,cat.test-service-lease.token=lease-secret",
+    })}\n`;
     const successful = await runCheckAllCommand(
       process.execPath,
-      [
-        "-e",
-        'process.stdout.write("token=successful-stdout-secret\\n"); process.stderr.write("password=successful-stderr-secret\\n")',
-      ],
+      ["-e", "process.stdout.write(process.env.CAT_COMPOSE_STATUS ?? '')"],
       {
         cwd: process.cwd(),
-        env: process.env,
+        env: { ...process.env, CAT_COMPOSE_STATUS: composeStatus },
         stdio: "pipe",
       },
     );
-    expect(successful).toEqual({
-      stderr: "password=[REDACTED]\n",
-      stdout: "token=[REDACTED]\n",
-    });
+    expect(successful.stdout).toBe(composeStatus);
+    expect(() => JSON.parse(successful.stdout)).not.toThrow();
   });
 
   it("expands and redacts primary and cleanup failures at the CLI boundary", async () => {
@@ -348,9 +467,8 @@ describe("check:all service lifecycle", () => {
       runCheckAll({
         applicationLifecycle,
         appPort: 49154,
-        dockerHost: "127.0.0.1",
+        dockerHost: "172.17.0.1",
         env: {
-          CAT_CHECK_ALL_POSTGRES_DB: "cat_contract_db",
           CAT_CHECK_ALL_POSTGRES_PASSWORD: "contract-password",
           CAT_CHECK_ALL_POSTGRES_USER: "contract_user",
           CAT_CHECK_ALL_REDIS_PASSWORD: "test-only-password",
@@ -361,6 +479,7 @@ describe("check:all service lifecycle", () => {
         projectName: "cat-check-all-contract",
         run,
         signals: signalSource(),
+        spacyReadyProbe: readySpacyProbe,
       }),
     ).resolves.toBeUndefined();
     expect(logs).toContain("check:all stage=check status=started");
@@ -410,11 +529,11 @@ describe("check:all service lifecycle", () => {
     );
     expect(integrationCall?.[2].env).toMatchObject({
       DATABASE_URL:
-        "postgresql://contract_user:contract-password@127.0.0.1:49152/postgres",
+        "postgresql://contract_user:contract-password@172.17.0.1:49152/postgres",
       TEST_DATABASE_URL:
-        "postgresql://contract_user:contract-password@127.0.0.1:49152/postgres",
-      REDIS_URL: "redis://:test-only-password@127.0.0.1:49153",
-      SPACY_SERVER_URL: "http://127.0.0.1:49155",
+        "postgresql://contract_user:contract-password@172.17.0.1:49152/postgres",
+      REDIS_URL: "redis://:test-only-password@172.17.0.1:49153",
+      SPACY_SERVER_URL: "http://172.17.0.1:49155",
       PORT: "49154",
     });
     expect(
@@ -481,6 +600,9 @@ describe("check:all service lifecycle", () => {
       CAT_E2E_RUNTIME_IMAGE_ID: builtImages.images[1]?.imageId,
       CAT_E2E_STANDALONE_IMAGE_ID: builtImages.images[0]?.imageId,
     });
+    expect(
+      JSON.parse(e2eCall?.[2].env.CAT_TEST_SERVICE_LEASE ?? "{}"),
+    ).toMatchObject({ databaseCleanup: "lease-volume", version: 2 });
     expect(e2eCall?.[1]).toEqual(
       expect.arrayContaining(["--concurrency", "2"]),
     );
@@ -507,6 +629,7 @@ describe("check:all service lifecycle", () => {
       projectName: "cat-check-all-socket-client",
       run,
       signals: signalSource(),
+      spacyReadyProbe: readySpacyProbe,
     });
 
     const composeUpCall = vi
@@ -534,11 +657,12 @@ describe("check:all service lifecycle", () => {
     await expect(
       runCheckAll({
         appPort: 49154,
-        dockerHost: "127.0.0.1",
+        dockerHost: "172.17.0.1",
         log: discardCheckAllLog,
         projectName: "cat-check-all-failure",
         run,
         signals: signalSource(),
+        spacyReadyProbe: readySpacyProbe,
       }),
     ).rejects.toThrow("integration failed");
 
@@ -559,7 +683,7 @@ describe("check:all service lifecycle", () => {
     await expect(
       runCheckAll({
         appPort: 49154,
-        dockerHost: "127.0.0.1",
+        dockerHost: "172.17.0.1",
         imageBuilder: vi.fn().mockResolvedValue({
           images: [builtImages.images[0]!],
         }),
@@ -567,6 +691,7 @@ describe("check:all service lifecycle", () => {
         projectName: "cat-check-all-missing-runtime",
         run: successfulRunner(),
         signals: signalSource(),
+        spacyReadyProbe: readySpacyProbe,
       }),
     ).rejects.toThrow("every immutable release target");
     expect(
@@ -597,12 +722,13 @@ describe("check:all service lifecycle", () => {
     await expect(
       runCheckAll({
         appPort: 49154,
-        dockerHost: "127.0.0.1",
+        dockerHost: "172.17.0.1",
         imageBuilder: vi.fn().mockResolvedValue(builtImages),
         log: (message) => e2eLogs.push(message),
         projectName: "cat-check-all-invalid-attestation",
         run,
         signals: signalSource(),
+        spacyReadyProbe: readySpacyProbe,
       }),
     ).rejects.toThrow("does not match the built images");
     expect(
@@ -617,46 +743,108 @@ describe("check:all service lifecycle", () => {
     ).toBe(false);
   });
 
-  it("waits for cleanup after a termination signal", async () => {
-    const signals = signalSource();
-    const cleanupObserved = vi.fn();
-    let cleanupSignal: AbortSignal | undefined;
-    const run = successfulRunner();
-    const successful = successfulRunner();
-    vi.mocked(run).mockImplementation(async (command, args, options) => {
-      if (command === "pnpm" && args.includes("test:integration")) {
-        signals.emit("SIGTERM");
-        const abortError = new Error("The operation was aborted");
-        abortError.name = "AbortError";
-        throw abortError;
-      }
-      if (command === "docker" && args.includes("down")) {
-        cleanupObserved();
-        cleanupSignal = options.signal;
-      }
-      return await successful(command, args, options);
-    });
+  it.each(["SIGINT", "SIGTERM"] as const)(
+    "waits for cleanup after %s",
+    async (signal) => {
+      const signals = signalSource();
+      const cleanupObserved = vi.fn();
+      let cleanupSignal: AbortSignal | undefined;
+      const run = successfulRunner();
+      const successful = successfulRunner();
+      vi.mocked(run).mockImplementation(async (command, args, options) => {
+        if (command === "pnpm" && args.includes("test:integration")) {
+          signals.emit(signal);
+          const abortError = new Error("The operation was aborted");
+          abortError.name = "AbortError";
+          throw abortError;
+        }
+        if (command === "docker" && args.includes("down")) {
+          cleanupObserved();
+          cleanupSignal = options.signal;
+        }
+        return await successful(command, args, options);
+      });
 
-    await expect(
-      runCheckAll({
-        appPort: 49154,
-        dockerHost: "127.0.0.1",
-        log: discardCheckAllLog,
-        projectName: "cat-check-all-signal",
-        run,
-        signals,
-      }),
-    ).rejects.toBeInstanceOf(CheckAllInterruptedError);
-    expect(cleanupObserved).toHaveBeenCalledOnce();
-    expect(cleanupSignal).toBeDefined();
-    expect(cleanupSignal?.aborted).toBe(false);
-    const cleanupCall = vi
-      .mocked(run)
-      .mock.calls.find(
-        ([command, args]) => command === "docker" && args.includes("down"),
+      await expect(
+        runCheckAll({
+          appPort: 49154,
+          dockerHost: "172.17.0.1",
+          log: discardCheckAllLog,
+          projectName: "cat-check-all-signal",
+          run,
+          signals,
+          spacyReadyProbe: readySpacyProbe,
+        }),
+      ).rejects.toBeInstanceOf(CheckAllInterruptedError);
+      expect(cleanupObserved).toHaveBeenCalledOnce();
+      expect(cleanupSignal).toBeDefined();
+      expect(cleanupSignal?.aborted).toBe(false);
+      const cleanupCall = vi
+        .mocked(run)
+        .mock.calls.find(
+          ([command, args]) => command === "docker" && args.includes("down"),
+        );
+      expect(cleanupCall?.[1]).toEqual(
+        expect.arrayContaining(["--timeout", "15"]),
       );
-    expect(cleanupCall?.[1]).toEqual(
-      expect.arrayContaining(["--timeout", "15"]),
-    );
-  });
+    },
+  );
+
+  it.each([
+    ["SIGINT", 130],
+    ["SIGTERM", 143],
+  ] as const)(
+    "preserves a lease cleanup failure while returning the %s exit code",
+    async (signal, expectedExitCode) => {
+      const signals = signalSource();
+      const run = successfulRunner();
+      const successful = successfulRunner();
+      vi.mocked(run).mockImplementation(async (command, args, options) => {
+        if (command === "pnpm" && args.includes("test:integration")) {
+          signals.emit(signal);
+          const abortError = new Error("The operation was aborted");
+          abortError.name = "AbortError";
+          throw abortError;
+        }
+        if (command === "docker" && args.includes("down")) {
+          throw new Error("compose down cleanup failed");
+        }
+        return await successful(command, args, options);
+      });
+
+      let failure: unknown;
+      try {
+        await runCheckAll({
+          appPort: 49154,
+          dockerHost: "172.17.0.1",
+          log: discardCheckAllLog,
+          projectName: "cat-check-all-signal-cleanup-failure",
+          run,
+          signals,
+          spacyReadyProbe: readySpacyProbe,
+        });
+      } catch (error) {
+        failure = error;
+      }
+
+      expect(failure).toBeInstanceOf(CheckAllInterruptedError);
+      if (!(failure instanceof CheckAllInterruptedError)) {
+        throw new Error("Expected check:all interruption failure");
+      }
+      expect(failure.signal).toBe(signal);
+      expect(failure.cause).toBeInstanceOf(AggregateError);
+
+      const output: string[] = [];
+      const exitCode = await runCheckAllCli({
+        args: [],
+        execute: async () => {
+          throw failure;
+        },
+        writeError: (message) => output.push(message),
+      });
+      expect(exitCode).toBe(expectedExitCode);
+      expect(output).toHaveLength(1);
+      expect(output[0]).toContain("compose down cleanup failed");
+    },
+  );
 });

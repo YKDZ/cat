@@ -35,11 +35,7 @@ const PluginManifestBaseSchema = z.object({
     )
     .optional(),
   config: JSONSchemaSchema.optional(),
-  configVersion: z
-    .string()
-    .min(1)
-    .refine((version) => version !== "legacy-unverified")
-    .optional(),
+  configVersion: z.string().min(1).optional(),
 });
 
 const requireConfigVersion = (

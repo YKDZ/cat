@@ -227,6 +227,7 @@ const initializeAppOnce = async (): Promise<void> => {
           await assessDatabaseRequirements(requirementDb, { signal }),
         assessLanguageAnalysis: async (signal) =>
           await executeLanguageAnalysisReadinessAssessment({
+            db: drizzleDB.client,
             pluginManager,
             signal,
             traceId: "readiness-language-analysis",

@@ -599,6 +599,7 @@ export const sendMessage = authed
       preCheckServices: createPreCheckServices(),
       pluginManager,
     });
+    const runtimeSignal = context.requestSignal ?? new AbortController().signal;
 
     // Create a new run for this message turn
     const graphDef = buildAgentDAG();
@@ -659,6 +660,7 @@ export const sendMessage = authed
     for await (const event of runtime.runLoop(
       input.sessionId,
       runResult.runId,
+      runtimeSignal,
     )) {
       const base = {
         runId: runResult.runId,

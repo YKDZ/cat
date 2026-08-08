@@ -687,27 +687,6 @@ importers:
         specifier: 'catalog:'
         version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(@vitest/ui@4.1.8)(happy-dom@20.10.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
 
-  '@cat-plugin/pgvector-storage':
-    devDependencies:
-      '@cat/domain':
-        specifier: link:../../packages/domain
-        version: link:../../packages/domain
-      '@cat/plugin-core':
-        specifier: link:../../packages/plugin-core
-        version: link:../../packages/plugin-core
-      '@cat/shared':
-        specifier: link:../../packages/shared
-        version: link:../../packages/shared
-      '@cat/typescript-config':
-        specifier: link:../../packages/typescript-config
-        version: link:../../packages/typescript-config
-      vite:
-        specifier: 'catalog:'
-        version: 8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
-      vitest:
-        specifier: 'catalog:'
-        version: 4.1.8(@opentelemetry/api@1.9.1)(@types/node@25.9.3)(@vitest/ui@4.1.8)(happy-dom@20.10.2)(jsdom@29.1.1(@noble/hashes@1.8.0))(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
-
   '@cat-plugin/s3-storage-provider':
     dependencies:
       '@aws-sdk/client-s3':
@@ -1327,6 +1306,12 @@ importers:
 
   apps/eval:
     dependencies:
+      '@cat-plugin/openai-vectorizer':
+        specifier: link:../../@cat-plugin/openai-vectorizer
+        version: link:../../@cat-plugin/openai-vectorizer
+      '@cat-plugin/spacy-language-analyzer':
+        specifier: link:../../@cat-plugin/spacy-language-analyzer
+        version: link:../../@cat-plugin/spacy-language-analyzer
       '@cat/agent':
         specifier: link:../../packages/agent
         version: link:../../packages/agent

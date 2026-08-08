@@ -1,6 +1,8 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createSSRApp } from "vue";
+import { renderToString } from "vue/server-renderer";
 
 const mocks = vi.hoisted(() => ({
   getProjectObservations: vi.fn(),
@@ -33,7 +35,7 @@ vi.mock("#/stores/editor/context.ts", async () => {
 
 import LanguageAnalysisStatus from "./LanguageAnalysisStatus.vue";
 
-const view = (status: "UNKNOWN" | "BLOCKED") => ({
+const view = (status: "UNKNOWN" | "BLOCKED" | "SATISFIED") => ({
   languageId: "zh-Hans",
   source: "WILDCARD",
   selection: null,
@@ -83,6 +85,27 @@ describe("LanguageAnalysisStatus", () => {
       expect(wrapper.text()).toContain(text);
     },
   );
+
+  it("does not request observations during server rendering", async () => {
+    mocks.getProjectObservations.mockResolvedValue([]);
+    const app = createSSRApp(LanguageAnalysisStatus);
+    app.use(createPinia());
+
+    await renderToString(app);
+
+    expect(mocks.getProjectObservations).not.toHaveBeenCalled();
+  });
+
+  it("does not render a blocker for a satisfied cached observation", async () => {
+    mocks.getProjectObservations.mockResolvedValue([view("SATISFIED")]);
+    const wrapper = mount(LanguageAnalysisStatus, {
+      global: { plugins: [createPinia()] },
+    });
+    await flushPromises();
+
+    expect(wrapper.find('[role="status"]').exists()).toBe(false);
+    expect(mocks.analyze).not.toHaveBeenCalled();
+  });
 
   it("renders every blocked and unknown persisted project language", async () => {
     mocks.getProjectObservations.mockResolvedValue([

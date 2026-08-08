@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:net";
@@ -11,6 +11,7 @@ import { formatDiagnosticErrorTree, redactDiagnosticText } from "@cat/shared";
 import {
   runWithTestServiceLease,
   serializeTestServiceLease,
+  type SpacyReadyProbe,
 } from "../apps/app-e2e/test-service-lease.ts";
 import {
   exportValidatedImages,
@@ -160,6 +161,7 @@ export interface RunCheckAllOptions {
   projectName?: string;
   run?: CommandRunner;
   signals?: SignalSource;
+  spacyReadyProbe?: SpacyReadyProbe;
 }
 
 const workspaceRoot = resolve(import.meta.dirname, "..");
@@ -336,6 +338,46 @@ const directExecution = (): boolean => {
   );
 };
 
+const commandTerminationGraceMs = 60_000;
+const commandTerminationSettlementMs = 5_000;
+
+const commandProcessGroupIsAlive = (child: ChildProcess): boolean => {
+  if (child.pid === undefined || process.platform === "win32") return false;
+  try {
+    process.kill(-child.pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code !== "ESRCH";
+  }
+};
+
+export const signalCommandProcessTree = (
+  child: ChildProcess,
+  signal: NodeJS.Signals,
+): Error | undefined => {
+  if (child.pid !== undefined && process.platform !== "win32") {
+    try {
+      process.kill(-child.pid, signal);
+      return undefined;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ESRCH") return undefined;
+      return new Error(
+        `Could not signal command process group with ${signal}: ${error instanceof Error ? error.message : String(error)}`,
+        { cause: error },
+      );
+    }
+  }
+  try {
+    if (child.kill(signal)) return undefined;
+    return new Error(`Could not signal command process with ${signal}`);
+  } catch (error) {
+    return new Error(
+      `Could not signal command process with ${signal}: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
+    );
+  }
+};
+
 export const runCheckAllCommand: CommandRunner = async (
   command,
   args,
@@ -345,31 +387,48 @@ export const runCheckAllCommand: CommandRunner = async (
     const pipeOutput = options.stdio === "pipe";
     const child = spawn(command, args, {
       cwd: options.cwd,
+      detached: process.platform !== "win32",
       env: options.env,
-      signal: options.signal,
       stdio: pipeOutput
         ? ["ignore", "pipe", "pipe"]
         : ["inherit", "inherit", "inherit"],
     });
     let stdout = "";
     let stderr = "";
-    child.stdout?.setEncoding("utf8");
-    child.stdout?.on("data", (chunk: string) => {
-      stdout += chunk;
-    });
-    child.stderr?.setEncoding("utf8");
-    child.stderr?.on("data", (chunk: string) => {
-      stderr += chunk;
-    });
-    child.once("error", (error) => {
-      reject(safeCommandStartError(command, error, options.signal));
-    });
-    child.once("close", (code, signal) => {
+    let closed:
+      | { code: number | null; signal: NodeJS.Signals | null }
+      | undefined;
+    let forcedSettlement: NodeJS.Timeout | undefined;
+    let forceTermination: NodeJS.Timeout | undefined;
+    let requestedFailure: Error | undefined;
+    let settlementPoll: NodeJS.Timeout | undefined;
+    let settlementExpired = false;
+    let settled = false;
+    const cleanup = (): void => {
+      options.signal?.removeEventListener("abort", abort);
+      if (forcedSettlement !== undefined) clearTimeout(forcedSettlement);
+      if (forceTermination !== undefined) clearTimeout(forceTermination);
+      if (settlementPoll !== undefined) clearTimeout(settlementPoll);
+    };
+    const finish = (): void => {
+      if (settled || closed === undefined) return;
+      if (
+        requestedFailure !== undefined &&
+        !settlementExpired &&
+        commandProcessGroupIsAlive(child)
+      ) {
+        settlementPoll = setTimeout(finish, 10);
+        return;
+      }
+      settled = true;
+      cleanup();
+      if (requestedFailure !== undefined) {
+        reject(requestedFailure);
+        return;
+      }
+      const { code, signal } = closed;
       if (code === 0) {
-        resolvePromise({
-          stderr: redactDiagnosticText(stderr),
-          stdout: redactDiagnosticText(stdout),
-        });
+        resolvePromise({ stderr, stdout });
         return;
       }
       reject(
@@ -385,6 +444,68 @@ export const runCheckAllCommand: CommandRunner = async (
           stdout,
         ),
       );
+    };
+    const abort = (): void => {
+      if (requestedFailure !== undefined) return;
+      requestedFailure = safeCommandStartError(
+        command,
+        options.signal?.reason,
+        options.signal,
+      );
+      const terminationFailure = signalCommandProcessTree(child, "SIGTERM");
+      if (terminationFailure !== undefined) {
+        requestedFailure = new AggregateError(
+          [requestedFailure, terminationFailure],
+          `${command} command could not be interrupted`,
+        );
+      }
+      forceTermination = setTimeout(() => {
+        if (!commandProcessGroupIsAlive(child)) {
+          finish();
+          return;
+        }
+        const forceFailure = signalCommandProcessTree(child, "SIGKILL");
+        if (forceFailure !== undefined) {
+          requestedFailure = new AggregateError(
+            [requestedFailure!, forceFailure],
+            `${command} command could not be force-stopped`,
+          );
+        }
+        forcedSettlement = setTimeout(() => {
+          settlementExpired = true;
+          if (commandProcessGroupIsAlive(child)) {
+            requestedFailure = new AggregateError(
+              [
+                requestedFailure!,
+                new Error(`${command} command process group remained alive`),
+              ],
+              `${command} command did not settle after interruption`,
+            );
+          }
+          closed ??= { code: null, signal: "SIGKILL" };
+          finish();
+        }, commandTerminationSettlementMs);
+      }, commandTerminationGraceMs);
+    };
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) abort();
+    child.stdout?.setEncoding("utf8");
+    child.stdout?.on("data", (chunk: string) => {
+      stdout += chunk;
+    });
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", (chunk: string) => {
+      stderr += chunk;
+    });
+    child.once("error", (error) => {
+      if (requestedFailure !== undefined) return;
+      settled = true;
+      cleanup();
+      reject(safeCommandStartError(command, error, options.signal));
+    });
+    child.once("close", (code, signal) => {
+      closed = { code, signal };
+      finish();
     });
   });
 
@@ -409,8 +530,10 @@ const availablePort = async (): Promise<number> =>
 export class CheckAllInterruptedError extends Error {
   readonly signal: CheckAllSignal;
 
-  constructor(signal: CheckAllSignal) {
-    super(`check:all interrupted by ${signal}`);
+  constructor(signal: CheckAllSignal, cause?: unknown) {
+    super(`check:all interrupted by ${signal}`, {
+      ...(cause === undefined ? {} : { cause }),
+    });
     this.name = "CheckAllInterruptedError";
     this.signal = signal;
   }
@@ -489,9 +612,9 @@ export const runCheckAll = async (
     signals.on(signal, listener);
   }
 
-  const throwIfInterrupted = (): void => {
+  const throwIfInterrupted = (cause?: unknown): void => {
     if (interruptedBy !== undefined) {
-      throw new CheckAllInterruptedError(interruptedBy);
+      throw new CheckAllInterruptedError(interruptedBy, cause);
     }
   };
   const runOperationStage = async <Result>(
@@ -516,7 +639,7 @@ export const runCheckAll = async (
       );
       // Node reports an AbortError from spawn before the signal handler's
       // lifecycle cleanup has returned; normalize it after release completes.
-      throwIfInterrupted();
+      throwIfInterrupted(error);
       throw error;
     }
   };
@@ -558,9 +681,6 @@ export const runCheckAll = async (
         environment: {
           ...baseEnv,
           CAT_SPACY_IMAGE_ID: spacyImageId,
-          ...(baseEnv.CAT_CHECK_ALL_POSTGRES_DB === undefined
-            ? {}
-            : { CAT_E2E_POSTGRES_DB: baseEnv.CAT_CHECK_ALL_POSTGRES_DB }),
           ...(baseEnv.CAT_CHECK_ALL_POSTGRES_PASSWORD === undefined
             ? {}
             : {
@@ -577,6 +697,9 @@ export const runCheckAll = async (
         run: async (command, args, commandOptions) =>
           await run(command, args, commandOptions),
         signal: abortController.signal,
+        ...(options.spacyReadyProbe === undefined
+          ? {}
+          : { spacyReadyProbe: options.spacyReadyProbe }),
         ...(dockerHost === undefined ? {} : { dockerHost }),
       },
       async (lease) => {
@@ -683,7 +806,7 @@ export const runCheckAll = async (
     );
     throwIfInterrupted();
   } catch (error) {
-    throwIfInterrupted();
+    throwIfInterrupted(error);
     throw error;
   } finally {
     for (const [signal, listener] of signalListeners) {

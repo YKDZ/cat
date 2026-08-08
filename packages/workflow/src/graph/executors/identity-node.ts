@@ -59,6 +59,7 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
   }
 
   const result = await handler(input, {
+    db: ctx.runtime.db,
     runId: ctx.runId,
     nodeId: ctx.nodeId,
     signal: ctx.signal,

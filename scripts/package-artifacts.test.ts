@@ -453,7 +453,9 @@ import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
 
 class ConsumerLanguageAnalyzer extends LanguageAnalyzer {
   getId() { return "consumer-language-analyzer"; }
-  async getSupportedLanguages() { return [normalizeLanguageId("en-US")]; }
+  getLanguageAnalysisConfigurationAssessment() {
+    return { status: "VALID" as const, supportedLanguages: [normalizeLanguageId("en-US")], semanticConfiguration: {} };
+  }
   async analyze(ctx: LanguageAnalysisContext): Promise<never> { throw new Error(ctx.text); }
 }
 
@@ -604,9 +606,9 @@ const spacy = (await plugins.get("@cat-plugin/spacy-language-analyzer").default.
   config: { serverUrl: "http://127.0.0.1:1" },
   logger: pluginLogger,
 }))[0];
-await spacy.getSupportedLanguages();
-if (diagnostics[0]?.fields?.code !== "SPACY_LANGUAGES_UNAVAILABLE") {
-  throw new Error("plugin diagnostics did not cross the packaged plugin boundary");
+const availability = await spacy.getAvailability();
+if (availability.available || availability.reason !== "remote-unreachable") {
+  throw new Error("spaCy availability did not cross the packaged plugin boundary");
 }
 console.log("isolated runtime ok");
 `,

@@ -1,8 +1,10 @@
 import { writeFileSync } from "node:fs";
 
 import { TaskStatusSchema, type TaskStatus } from "@cat/shared";
+import type { Locator, Page, Request, Response } from "@playwright/test";
 
 import { test, expect } from "#/fixtures.ts";
+import { gotoHydrated } from "#/pages/app-navigation.ts";
 
 import { paginationFixtureCount } from "../pagination-fixture.ts";
 
@@ -71,6 +73,11 @@ const taskStatusLabel = (status: TaskStatus): string =>
 
 type PagedResource = Readonly<{ id: string }>;
 
+type TelefuncRequestPayload = Readonly<{
+  args: readonly unknown[];
+  name: string;
+}>;
+
 type BrowserTextContainer = Readonly<{
   clientWidth: number;
   querySelector: (selector: string) => unknown;
@@ -111,24 +118,67 @@ const parsePagedResourceResponse = (
   return { data, total: payload.total };
 };
 
-const expectOffsetRequest = (
-  response: import("@playwright/test").Response,
-  pageIndex: number,
-  pageSize: number,
-): void => {
-  const postData = response.request().postData();
-  if (postData === null) {
-    throw new Error(
-      "Controlled table request did not include pagination args.",
-    );
+const parseTelefuncRequest = (
+  request: Request,
+): TelefuncRequestPayload | null => {
+  if (
+    request.method() !== "POST" ||
+    new URL(request.url()).pathname !== "/_telefunc"
+  ) {
+    return null;
   }
-  const payload: unknown = JSON.parse(postData);
+
+  let payload: unknown;
+  try {
+    payload = request.postDataJSON() as unknown;
+  } catch {
+    return null;
+  }
   if (
     typeof payload !== "object" ||
     payload === null ||
+    !("name" in payload) ||
+    typeof payload.name !== "string" ||
     !("args" in payload) ||
     !Array.isArray(payload.args)
   ) {
+    return null;
+  }
+
+  return { args: payload.args, name: payload.name };
+};
+
+const waitForTelefuncResponse = (page: Page, name: string): Promise<Response> =>
+  page.waitForResponse(
+    (response) => parseTelefuncRequest(response.request())?.name === name,
+  );
+
+const selectOpenLanguage = async (
+  page: Page,
+  trigger: Locator,
+  language: string,
+): Promise<void> => {
+  await expect(trigger).toHaveCount(1);
+  await trigger.click();
+
+  const search = page.locator(
+    'input[role="combobox"][placeholder="选择一个语言..."][aria-expanded="true"]',
+  );
+  await expect(search).toHaveCount(1);
+  await search.fill(language);
+
+  const option = page.getByRole("option", { name: language, exact: true });
+  await expect(option).toHaveCount(1);
+  await option.click();
+};
+
+const expectOffsetRequest = (
+  response: Response,
+  pageIndex: number,
+  pageSize: number,
+): void => {
+  const payload = parseTelefuncRequest(response.request());
+  if (payload === null) {
     throw new Error(
       "Controlled table request did not include serialized args.",
     );
@@ -227,7 +277,9 @@ test.describe("CAT Lite smoke", () => {
     const response = await page.request.get("/_health/ready");
     expect(response.ok()).toBe(true);
     await expect(response.json()).resolves.toMatchObject({
-      components: { spacy: { code: "OK", status: "ready" } },
+      components: {
+        "language-analysis": { code: "OK", status: "ready" },
+      },
       status: "ready",
     });
   });
@@ -235,7 +287,7 @@ test.describe("CAT Lite smoke", () => {
   test("@lite-smoke admits a first source distinct from project targets without changing membership", async ({
     page,
   }) => {
-    await page.goto("/");
+    await gotoHydrated(page, "/");
     await page.getByRole("button", { name: /创建项目/ }).click();
     await expect(page).toHaveURL(/\/init\/file/);
 
@@ -302,7 +354,7 @@ test.describe("CAT Lite smoke", () => {
     createdProjectId = new URL(page.url()).pathname.split("/")[2] ?? null;
     expect(createdProjectId).toBeTruthy();
 
-    await page.goto(`/project/${createdProjectId}/zh-Hans`);
+    await gotoHydrated(page, `/project/${createdProjectId}/zh-Hans`);
     await expect(page.getByText(uploadedFileName, { exact: true })).toBeVisible(
       {
         timeout: 30_000,
@@ -329,7 +381,10 @@ test.describe("CAT Lite smoke", () => {
     await editorPage.submitTranslation();
     await editorPage.expectTranslationVisible("Lite smoke translation");
 
-    const projectResponse = await page.goto(`/project/${projectId}/zh-Hans`);
+    const projectResponse = await gotoHydrated(
+      page,
+      `/project/${projectId}/zh-Hans`,
+    );
     if (!projectResponse)
       throw new Error("Imported content page did not return an SSR response");
     expect(await projectResponse.text()).toContain(uploadedFileName);
@@ -365,10 +420,8 @@ test.describe("CAT Lite smoke", () => {
     ] as const;
 
     for (const table of tables) {
-      const initialRequest = page.waitForResponse((response) =>
-        response.url().includes(table.request),
-      );
-      await page.goto(table.route);
+      const initialRequest = waitForTelefuncResponse(page, table.request);
+      await gotoHydrated(page, table.route);
       const initialResponse = await initialRequest;
       if (!initialResponse.ok()) {
         throw new Error(
@@ -388,9 +441,7 @@ test.describe("CAT Lite smoke", () => {
         firstPage.data[0]?.id ?? "",
       );
 
-      const pageSizeRequest = page.waitForResponse((response) =>
-        response.url().includes(table.request),
-      );
+      const pageSizeRequest = waitForTelefuncResponse(page, table.request);
       await page.getByLabel("每页条数").selectOption("20");
       const pageSizeResponse = await pageSizeRequest;
       if (!pageSizeResponse.ok()) {
@@ -403,9 +454,7 @@ test.describe("CAT Lite smoke", () => {
         parsePagedResourceResponse(await pageSizeResponse.json()).data,
       ).toHaveLength(Math.min(firstPage.total, 20));
 
-      const resetPageSizeRequest = page.waitForResponse((response) =>
-        response.url().includes(table.request),
-      );
+      const resetPageSizeRequest = waitForTelefuncResponse(page, table.request);
       await page.getByLabel("每页条数").selectOption("10");
       const resetPageSizeResponse = await resetPageSizeRequest;
       if (!resetPageSizeResponse.ok()) {
@@ -415,9 +464,7 @@ test.describe("CAT Lite smoke", () => {
       }
       expectOffsetRequest(resetPageSizeResponse, 0, 10);
 
-      const nextPageRequest = page.waitForResponse((response) =>
-        response.url().includes(table.request),
-      );
+      const nextPageRequest = waitForTelefuncResponse(page, table.request);
       await page.getByTitle("下一页").click();
       const nextPageResponse = await nextPageRequest;
       if (!nextPageResponse.ok()) {
@@ -439,9 +486,7 @@ test.describe("CAT Lite smoke", () => {
         secondPage.data[0]?.id ?? "",
       );
 
-      const previousPageRequest = page.waitForResponse((response) =>
-        response.url().includes(table.request),
-      );
+      const previousPageRequest = waitForTelefuncResponse(page, table.request);
       await page.getByTitle("上一页").click();
       const previousPageResponse = await previousPageRequest;
       if (!previousPageResponse.ok()) {
@@ -471,7 +516,7 @@ test.describe("CAT Lite smoke", () => {
     ];
     for (const route of tableRoutes) {
       await page.setViewportSize({ width: 1280, height: 960 });
-      await page.goto(route);
+      await gotoHydrated(page, route);
       await expect(page.locator("[data-data-table]")).toBeVisible();
       await expectTableControlsToFit(page, 1280);
 
@@ -484,7 +529,7 @@ test.describe("CAT Lite smoke", () => {
     page,
   }) => {
     const projectId = getCreatedProjectId();
-    await page.goto(`/project/${projectId}/zh-Hans`);
+    await gotoHydrated(page, `/project/${projectId}/zh-Hans`);
     const trigger = page.getByTitle("自动翻译").first();
     await expect(trigger).toBeVisible({ timeout: 30_000 });
     await trigger.click();
@@ -512,7 +557,7 @@ test.describe("CAT Lite smoke", () => {
       page.getByRole("heading", { name: "受影响资源" }),
     ).toBeVisible();
 
-    await page.goto(`/project/${projectId}/tasks`);
+    await gotoHydrated(page, `/project/${projectId}/tasks`);
     await expect(page).toHaveURL(`/project/${projectId}/tasks`);
     const unfilteredList = page.waitForResponse(
       (candidate) =>
@@ -580,25 +625,35 @@ test.describe("CAT Lite smoke", () => {
   }) => {
     const projectId = refs["project"];
     const glossaryId = refs["glossary"];
-    if (!projectId || !glossaryId) {
-      throw new Error(
-        "Lite smoke seed did not provide a project and glossary.",
-      );
-    }
 
-    await page.goto(`/project/${projectId}/glossaries`);
-    const glossaryRow = page.locator("tbody tr").first();
-    await expect(glossaryRow).toBeVisible();
-    await glossaryRow.click();
+    await gotoHydrated(page, `/project/${projectId}/glossaries`);
+    const glossaryLink = page.getByRole("link", {
+      name: "E2E Glossary",
+      exact: true,
+    });
+    await expect(glossaryLink).toHaveAttribute(
+      "href",
+      `/glossary/${glossaryId}`,
+    );
+    await glossaryLink.click();
     await expect(page).toHaveURL(`/glossary/${glossaryId}`);
 
     await page.getByRole("button", { name: "插入术语" }).click();
     await page.getByRole("tab", { name: "文本" }).click();
-    const languagePickers = page.getByPlaceholder("选择一个语言...");
-    await languagePickers.nth(0).fill("en");
-    await page.getByRole("option", { name: "en", exact: true }).click();
-    await languagePickers.nth(1).fill("zh-Hans");
-    await page.getByRole("option", { name: "zh-Hans", exact: true }).click();
+    await selectOpenLanguage(
+      page,
+      page
+        .getByRole("group", { name: "术语语言", exact: true })
+        .getByRole("button", { name: "选择一个语言...", exact: true }),
+      "en",
+    );
+    await selectOpenLanguage(
+      page,
+      page
+        .getByRole("group", { name: "翻译语言", exact: true })
+        .getByRole("button", { name: "选择一个语言...", exact: true }),
+      "zh-Hans",
+    );
     const textareas = page.locator("textarea");
     await textareas.nth(0).fill("recall source");
     await textareas.nth(1).fill("召回目标");
@@ -615,7 +670,7 @@ test.describe("CAT Lite smoke", () => {
       );
     }
 
-    await page.goto(`/project/${projectId}/tasks`);
+    await gotoHydrated(page, `/project/${projectId}/tasks`);
     const filteredList = page.waitForResponse(
       (response) =>
         response.url().includes("/api/rpc/task/list") &&

@@ -250,6 +250,22 @@ describe("repository quality command contract", () => {
     }
   });
 
+  it("keeps the mandatory release eval integration executable and non-vacuous", () => {
+    const manifest = JSON.parse(
+      readFileSync(resolve(root, "apps/eval/package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    const integration = manifest.scripts?.["test:integration"] ?? "";
+
+    expect(integration).toContain("--exclude '**/*.spec.ts'");
+    expect(integration).not.toContain("passWithNoTests");
+    expect(
+      existsSync(resolve(root, "apps/eval/src/release-recall.test.ts")),
+    ).toBe(true);
+    expect(
+      readFileSync(resolve(root, "apps/eval/vitest.config.ts"), "utf8"),
+    ).toContain("**/*.{spec,test}.ts");
+  });
+
   it("uses agent output for every package unit or integration task", () => {
     for (const file of workspacePackageFiles()) {
       const manifest = JSON.parse(readFileSync(file, "utf8")) as {
@@ -273,8 +289,8 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(304);
-    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(73);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(343);
+    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(77);
   });
 
   it("discovers package unit and integration suites by suffix without services", () => {

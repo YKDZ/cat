@@ -1,3 +1,4 @@
+import type { DbHandle } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
@@ -55,6 +56,7 @@ export type NodeExecutionContext = {
 };
 
 export type GraphRuntimeContext = {
+  db?: DbHandle | undefined;
   /** Durable run-owner fence. Side-effecting nodes must check this at commit. */
   assertRunOwnership?: () => Promise<void>;
   ownershipFence?: RunOwnershipFence | null | undefined;

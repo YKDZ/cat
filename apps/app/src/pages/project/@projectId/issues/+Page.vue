@@ -10,6 +10,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
+import { formatCalendarDate } from "#/utils/format.ts";
 
 import ProjectPageDataError from "../ProjectPageDataError.vue";
 import type { Data } from "./+data.ts";
@@ -151,7 +152,7 @@ const debouncedSearch = useDebounceFn((val: string) => {
               {{
                 t("#{id} · 创建于 {date}", {
                   id: issue.number,
-                  date: new Date(issue.createdAt).toLocaleDateString("zh-CN"),
+                  date: formatCalendarDate(issue.createdAt),
                 })
               }}
             </p>

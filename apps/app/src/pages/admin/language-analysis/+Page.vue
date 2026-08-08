@@ -8,11 +8,14 @@ import {
 } from "@cat/shared";
 import { Button, Input } from "@cat/ui";
 import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
+import { formatTimestamp } from "#/utils/format.ts";
 
 const toast = useToastStore();
+const { locale } = useI18n();
 const selections = ref<LanguageAnalysisSelection[]>([]);
 const implementations = ref<ServiceImplementationReference[]>([]);
 const key = ref("*");
@@ -133,7 +136,9 @@ onMounted(() => void refresh());
           <dt class="text-muted-foreground">Observed</dt>
           <dd>
             {{
-              diagnostic?.observation?.observedAt?.toLocaleString() ?? "Unknown"
+              diagnostic?.observation?.observedAt
+                ? formatTimestamp(diagnostic.observation.observedAt, locale)
+                : "Unknown"
             }}
           </dd>
         </div>

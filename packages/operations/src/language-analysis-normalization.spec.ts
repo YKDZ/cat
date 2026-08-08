@@ -6,6 +6,7 @@ import {
   isCjkLanguage,
   joinLemmas,
   joinTokens,
+  normalizeTokenLemma,
 } from "./language-analysis-normalization.ts";
 
 const makeToken = (text: string, lemma: string): LanguageAnalysisToken => ({
@@ -51,6 +52,13 @@ describe("language-analysis-normalization", () => {
 
     expect(joinLemmas(englishTokens, "en")).toBe("run test");
     expect(joinLemmas(cjkTokens, "zh-Hans")).toBe("运行测试");
+  });
+
+  it("uses the token surface when an analyzer returns an empty lemma", () => {
+    const tokens = [makeToken("允许", ""), makeToken("传送", "")];
+
+    expect(normalizeTokenLemma(tokens[0]!)).toBe("允许");
+    expect(joinLemmas(tokens, "zh-Hans")).toBe("允许传送");
   });
 
   it("builds bounded token windows with shared normalization rules", () => {

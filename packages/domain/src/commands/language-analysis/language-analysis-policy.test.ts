@@ -100,6 +100,7 @@ const setupPolicyTestDb = async (): Promise<PolicyTestDb> => {
       language_id text NOT NULL,
       status text NOT NULL,
       demand_revision integer NOT NULL,
+      task_projection_revision integer NOT NULL DEFAULT 1,
       lease_owner_id uuid,
       lease_token uuid,
       lease_expires_at timestamptz,

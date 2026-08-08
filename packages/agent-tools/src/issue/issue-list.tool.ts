@@ -36,14 +36,18 @@ export const issueListTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = issueListArgs.parse(args);
 
-    return await executeQuery({ db }, listIssues, {
+    ctx.signal.throwIfAborted();
+    const issues = await executeQuery({ db }, listIssues, {
       projectId: ctx.session.projectId,
       status: parsed.status,
       limit: parsed.limit,
       offset: parsed.offset,
     });
+    ctx.signal.throwIfAborted();
+    return issues;
   },
 };

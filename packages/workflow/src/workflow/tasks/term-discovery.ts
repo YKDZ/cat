@@ -10,6 +10,7 @@ import {
 } from "@cat/shared";
 import * as z from "zod";
 
+import { requireWorkflowDatabase } from "#/graph/dsl/database-context.ts";
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 // ─── Config Schema ───────────────────────────────────────────────────────────
@@ -272,7 +273,12 @@ export const termDiscoveryGraph = defineGraph({
         config: "config",
       },
       handler: async (input, ctx) => {
-        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const opCtx = {
+          db: requireWorkflowDatabase(ctx),
+          pluginManager: ctx.pluginManager,
+          traceId: ctx.runId,
+          signal: ctx.signal,
+        };
         const statConfig = input.config?.statistical;
 
         if (input.elements.length === 0 || statConfig?.enabled === false) {

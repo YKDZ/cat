@@ -14,7 +14,6 @@ const pluginPackageDirectories = [
   "openai-llm-provider",
   "openai-vectorizer",
   "password-auth-provider",
-  "pgvector-storage",
   "s3-storage-provider",
   "spacy-language-analyzer",
   "tei-rerank-provider",

@@ -265,6 +265,85 @@ describe("PluginManager — static instance management", () => {
 
     expect(recreated.getLoader()).toBe(secondLoader);
   });
+
+  it("installScoped() restores the previous manager without changing other scopes", () => {
+    const previousLoader = makeLoader(makePlugin());
+    const installedLoader = makeLoader(makePlugin());
+    const otherLoader = makeLoader(makePlugin());
+    const previous = PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader);
+    const other = PluginManager.get(SCOPE_TYPE, "other-scope", otherLoader);
+
+    const installation = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      installedLoader,
+    );
+
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID)).toBe(installation.manager);
+    expect(PluginManager.get(SCOPE_TYPE, "other-scope", otherLoader)).toBe(
+      other,
+    );
+
+    installation.restore();
+    installation.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader)).toBe(
+      previous,
+    );
+  });
+
+  it("installScoped() restores nested owners in LIFO order", () => {
+    const previousLoader = makeLoader(makePlugin());
+    const previous = PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader);
+    const first = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      makeLoader(makePlugin()),
+    );
+    const replacementLoader = makeLoader(makePlugin());
+    const replacement = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      replacementLoader,
+    );
+
+    replacement.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID)).toBe(first.manager);
+    first.restore();
+    replacement.restore();
+    first.restore();
+
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader)).toBe(
+      previous,
+    );
+  });
+
+  it("installScoped() skips an earlier owner restored out of order", () => {
+    const previousLoader = makeLoader(makePlugin());
+    const previous = PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader);
+    const first = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      makeLoader(makePlugin()),
+    );
+    const replacementLoader = makeLoader(makePlugin());
+    const replacement = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      replacementLoader,
+    );
+
+    first.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, replacementLoader)).toBe(
+      replacement.manager,
+    );
+
+    replacement.restore();
+    first.restore();
+    replacement.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader)).toBe(
+      previous,
+    );
+  });
 });
 
 describe("PluginManager — install()", () => {
@@ -494,6 +573,27 @@ describe("PluginManager — activate() → deactivate()", () => {
 
     await manager.deactivate(FAKE_DB, PLUGIN_ID);
     expect(manager.getComponentOfSlot("toolbar")).toHaveLength(0);
+  });
+
+  it("keeps the plugin active when deactivation fails so cleanup can retry", async () => {
+    const cause = new Error("temporary deactivation failure");
+    const onDeactivate = vi
+      .fn()
+      .mockRejectedValueOnce(cause)
+      .mockResolvedValueOnce(undefined);
+    const loader = makeLoader(makePlugin({ onDeactivate }));
+    setupActivateMocks();
+    const manager = createManager(loader);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+
+    await expect(manager.deactivate(FAKE_DB, PLUGIN_ID)).rejects.toBe(cause);
+    expect(manager.isActive(PLUGIN_ID)).toBe(true);
+
+    await expect(
+      manager.deactivate(FAKE_DB, PLUGIN_ID),
+    ).resolves.toBeUndefined();
+    expect(manager.isActive(PLUGIN_ID)).toBe(false);
+    expect(onDeactivate).toHaveBeenCalledTimes(2);
   });
 });
 

@@ -1,9 +1,11 @@
 import {
   executeQuery,
   listProjectLanguageAnalysisRequirements,
-  type OperationContext,
 } from "@cat/domain";
-import { assessLanguageAnalysisConfiguration } from "@cat/operations";
+import {
+  assessLanguageAnalysisConfiguration,
+  type LanguageAnalysisOperationContext,
+} from "@cat/operations";
 import {
   LanguageAnalysisPolicySnapshotSchema,
   normalizeLanguageId,
@@ -15,9 +17,10 @@ import type { Context } from "#/utils/context.ts";
 
 export const assertLanguageAnalysisPreflight = async (
   languageIds: readonly string[],
-  context: Pick<Context, "pluginManager" | "requestSignal">,
+  context: Pick<Context, "drizzleDB" | "pluginManager" | "requestSignal">,
 ): Promise<LanguageAnalysisPolicySnapshot> => {
-  const operationContext: OperationContext = {
+  const operationContext: LanguageAnalysisOperationContext = {
+    db: context.drizzleDB.client,
     pluginManager: context.pluginManager,
     signal: context.requestSignal,
     traceId: "language-analysis-preflight",

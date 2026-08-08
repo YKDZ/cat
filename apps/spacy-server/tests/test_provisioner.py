@@ -5,15 +5,20 @@ import json
 import os
 import shutil
 import stat
+import subprocess
 import tempfile
+import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from http.client import IncompleteRead
 from pathlib import Path
-from typing import ClassVar
 from unittest import mock
 
 from src.generations import GenerationStore, load_plan, make_tree_owner_writable
 from src.provisioner import (
+    DOWNLOAD_ATTEMPT_TIMEOUT_SECONDS,
+    DOWNLOAD_MAX_ATTEMPTS,
+    DOWNLOAD_TIMEOUT_SECONDS,
     ArtifactError,
     ModelValidationError,
     Provisioner,
@@ -21,6 +26,7 @@ from src.provisioner import (
     load_hash_locked_external_plan,
     pip_install_wheel,
 )
+from src.startup_budget import PROVISION_TIMEOUT_SECONDS
 
 from .test_generations import model, write_plan
 
@@ -51,14 +57,16 @@ class ProvisionerTest(unittest.TestCase):
         self.validations = 0
 
     def provisioner(self) -> Provisioner:
-        def install(wheel: Path, site_packages: Path) -> None:
+        def install(wheel: Path, site_packages: Path, _timeout_seconds: float) -> None:
             self.installs.append((wheel, site_packages))
             site_packages.mkdir(parents=True, exist_ok=True)
             (site_packages / "installed.py").write_text(
                 "installed = True\n", encoding="utf-8"
             )
 
-        def validate(_entry: object, _site_packages: Path) -> ValidatedModel:
+        def validate(
+            _entry: object, _site_packages: Path, _timeout_seconds: float
+        ) -> ValidatedModel:
             self.validations += 1
             return ValidatedModel(
                 pipeline_id="sentencizer",
@@ -148,15 +156,22 @@ class ProvisionerTest(unittest.TestCase):
 
         self.assertEqual(list(provisioner.store.generations.iterdir()), [])
 
-    def test_https_download_uses_one_monotonic_overall_deadline(self) -> None:
+    def test_https_download_resumes_after_a_transient_stream_failure(self) -> None:
         remote_path = self.root / "remote.json"
+        artifact = b"first second"
         entry = model("en", "en_core_web_sm")
-        entry["sha256"] = hashlib.sha256(b"chunk").hexdigest()
+        entry["maxBytes"] = len(artifact)
+        entry["sha256"] = hashlib.sha256(artifact).hexdigest()
         write_plan(remote_path, [entry])
         remote = load_plan(remote_path).models[0]
 
         class Response:
-            headers: ClassVar[dict[str, str]] = {}
+            def __init__(
+                self, chunks: list[bytes | Exception], *, resumed: bool
+            ) -> None:
+                self.chunks = iter(chunks)
+                self.headers = {"Content-Range": "bytes 5-11/12"} if resumed else {}
+                self.status = 206 if resumed else 200
 
             def __enter__(self) -> Response:
                 return self
@@ -168,24 +183,186 @@ class ProvisionerTest(unittest.TestCase):
                 return "https://example.invalid/model.whl"
 
             def read(self, _size: int = -1) -> bytes:
-                return b"chunk"
+                next_chunk = next(self.chunks, b"")
+                if isinstance(next_chunk, Exception):
+                    raise next_chunk
+                return next_chunk
 
+        first = Response([b"first", TimeoutError("stalled")], resumed=False)
+        resumed = Response([b" second"], resumed=True)
         destination = self.root / "download.whl"
-        with (
-            mock.patch(
-                "src.provisioner.time.monotonic",
-                side_effect=[0.0, 0.1, 0.2, 31.0],
-            ),
-            mock.patch(
-                "src.provisioner.urllib.request.urlopen",
-                return_value=Response(),
-            ) as urlopen,
-            self.assertRaisesRegex(ArtifactError, "timed out"),
-        ):
+        with mock.patch(
+            "src.provisioner.urllib.request.urlopen",
+            side_effect=[first, resumed],
+        ) as urlopen:
             self.provisioner()._copy_artifact(remote, destination)
 
-        self.assertFalse(destination.exists())
-        self.assertAlmostEqual(urlopen.call_args.kwargs["timeout"], 29.9)
+        self.assertEqual(destination.read_bytes(), artifact)
+        self.assertEqual(urlopen.call_count, 2)
+        self.assertIsNone(urlopen.call_args_list[0].args[0].get_header("Range"))
+        self.assertEqual(
+            urlopen.call_args_list[1].args[0].get_header("Range"), "bytes=5-"
+        )
+
+    def test_https_download_resumes_after_incomplete_read_without_losing_partial(
+        self,
+    ) -> None:
+        remote_path = self.root / "remote.json"
+        artifact = b"first second"
+        entry = model("en", "en_core_web_sm")
+        entry["maxBytes"] = len(artifact)
+        entry["sha256"] = hashlib.sha256(artifact).hexdigest()
+        write_plan(remote_path, [entry])
+        remote = load_plan(remote_path).models[0]
+
+        class Response:
+            def __init__(
+                self, chunks: list[bytes | Exception], *, resumed: bool
+            ) -> None:
+                self.chunks = iter(chunks)
+                self.headers = {"Content-Range": "bytes 5-11/12"} if resumed else {}
+                self.status = 206 if resumed else 200
+
+            def __enter__(self) -> Response:
+                return self
+
+            def __exit__(self, *_args: object) -> None:
+                return None
+
+            def geturl(self) -> str:
+                return "https://example.invalid/model.whl"
+
+            def read(self, _size: int = -1) -> bytes:
+                next_chunk = next(self.chunks, b"")
+                if isinstance(next_chunk, Exception):
+                    raise next_chunk
+                return next_chunk
+
+        destination = self.root / "download.whl"
+        with mock.patch(
+            "src.provisioner.urllib.request.urlopen",
+            side_effect=[
+                Response([IncompleteRead(b"first", len(b" second"))], resumed=False),
+                Response([b" second"], resumed=True),
+            ],
+        ) as urlopen:
+            self.provisioner()._copy_artifact(remote, destination)
+
+        self.assertEqual(destination.read_bytes(), artifact)
+        self.assertEqual(
+            urlopen.call_args_list[1].args[0].get_header("Range"), "bytes=5-"
+        )
+
+    def test_https_download_restarts_when_a_server_ignores_range(self) -> None:
+        remote_path = self.root / "remote.json"
+        artifact = b"first second"
+        entry = model("en", "en_core_web_sm")
+        entry["sha256"] = hashlib.sha256(artifact).hexdigest()
+        write_plan(remote_path, [entry])
+        remote = load_plan(remote_path).models[0]
+
+        class Response:
+            status = 200
+
+            def __init__(self, chunks: list[bytes | Exception]) -> None:
+                self.chunks = iter(chunks)
+                self.headers = {"Content-Length": str(len(artifact))}
+
+            def __enter__(self) -> Response:
+                return self
+
+            def __exit__(self, *_args: object) -> None:
+                return None
+
+            def geturl(self) -> str:
+                return "https://example.invalid/model.whl"
+
+            def read(self, _size: int = -1) -> bytes:
+                next_chunk = next(self.chunks, b"")
+                if isinstance(next_chunk, Exception):
+                    raise next_chunk
+                return next_chunk
+
+        destination = self.root / "download.whl"
+        with mock.patch(
+            "src.provisioner.urllib.request.urlopen",
+            side_effect=[
+                Response([b"first", TimeoutError("stalled")]),
+                Response([artifact]),
+            ],
+        ) as urlopen:
+            self.provisioner()._copy_artifact(remote, destination)
+
+        self.assertEqual(destination.read_bytes(), artifact)
+        self.assertEqual(
+            urlopen.call_args_list[1].args[0].get_header("Range"), "bytes=5-"
+        )
+
+    def test_https_download_stops_after_the_bounded_retry_count(self) -> None:
+        remote_path = self.root / "remote.json"
+        entry = model("en", "en_core_web_sm")
+        entry["sha256"] = hashlib.sha256(b"artifact").hexdigest()
+        write_plan(remote_path, [entry])
+        remote = load_plan(remote_path).models[0]
+
+        with (
+            mock.patch(
+                "src.provisioner.urllib.request.urlopen",
+                side_effect=TimeoutError("unavailable"),
+            ) as urlopen,
+            self.assertRaisesRegex(ArtifactError, "Could not download"),
+        ):
+            self.provisioner()._copy_artifact(remote, self.root / "download.whl")
+
+        self.assertEqual(urlopen.call_count, DOWNLOAD_MAX_ATTEMPTS)
+        self.assertGreater(DOWNLOAD_TIMEOUT_SECONDS, DOWNLOAD_ATTEMPT_TIMEOUT_SECONDS)
+
+    def test_provisioning_shares_one_deadline_across_artifacts(self) -> None:
+        remote_path = self.root / "remote.json"
+        first = model("en", "en_core_web_sm")
+        second = model("zh-Hans", "zh_core_web_sm")
+        write_plan(remote_path, [first, second])
+        plan = load_plan(remote_path)
+        provisioner = self.provisioner()
+        remaining_budgets: list[float] = []
+
+        def copy(entry: object, destination: Path, *, deadline: float) -> None:
+            del entry
+            remaining_budgets.append(deadline - time.monotonic())
+            if len(remaining_budgets) == 1:
+                time.sleep(0.1)
+            destination.write_bytes(b"wheel")
+
+        with (
+            mock.patch.object(provisioner, "_copy_artifact", side_effect=copy),
+            mock.patch.object(provisioner, "_validate_wheel"),
+        ):
+            provisioner.provision(plan)
+
+        self.assertLessEqual(remaining_budgets[0], PROVISION_TIMEOUT_SECONDS)
+        self.assertLess(remaining_budgets[1], remaining_budgets[0] - 0.05)
+
+    def test_install_timeout_is_typed_and_removes_staging(self) -> None:
+        def install(
+            _wheel: Path, _site_packages: Path, _timeout_seconds: float
+        ) -> None:
+            raise subprocess.TimeoutExpired("pip", 1)
+
+        provisioner = Provisioner(
+            GenerationStore(self.root / "models-timeout"),
+            install_wheel=install,
+            validate_model=lambda _entry, _site, _timeout: ValidatedModel(
+                pipeline_id="sentencizer", pipeline_version="1"
+            ),
+            spacy_version="3.8.7",
+            python_abi="cpython-312",
+            platform="linux-x86_64",
+        )
+
+        with self.assertRaisesRegex(ArtifactError, "Wheel installation timed out"):
+            provisioner.provision(self.plan)
+
+        self.assertEqual(list(provisioner.store.generations.iterdir()), [])
 
     def test_model_validation_failure_does_not_change_active(self) -> None:
         provisioner = self.provisioner()
@@ -202,8 +379,8 @@ class ProvisionerTest(unittest.TestCase):
         write_plan(other_path, [entry])
         failing = Provisioner(
             provisioner.store,
-            install_wheel=lambda _wheel, _site: None,
-            validate_model=lambda _entry, _site: (_ for _ in ()).throw(
+            install_wheel=lambda _wheel, _site, _timeout: None,
+            validate_model=lambda _entry, _site, _timeout: (_ for _ in ()).throw(
                 ModelValidationError("incompatible wheel")
             ),
             spacy_version="3.8.7",
@@ -355,7 +532,10 @@ class ProvisionerTest(unittest.TestCase):
             store = GenerationStore(self.root / f"models-{marker}")
 
             def install(
-                _wheel: Path, site_packages: Path, content: str = marker
+                _wheel: Path,
+                site_packages: Path,
+                _timeout_seconds: float,
+                content: str = marker,
             ) -> None:
                 site_packages.mkdir(parents=True, exist_ok=True)
                 (site_packages / "installed.py").write_text(content)
@@ -363,7 +543,7 @@ class ProvisionerTest(unittest.TestCase):
             provisioner = Provisioner(
                 store,
                 install_wheel=install,
-                validate_model=lambda _entry, _site: ValidatedModel(
+                validate_model=lambda _entry, _site, _timeout: ValidatedModel(
                     pipeline_id="sentencizer", pipeline_version="1"
                 ),
                 spacy_version="3.8.7",
@@ -494,8 +674,8 @@ class ExternalPlanTest(unittest.TestCase):
                     plan = load_plan(plan_path, allow_local=True)
                     provisioner = Provisioner(
                         GenerationStore(root / f"models-{source.name}"),
-                        install_wheel=lambda _wheel, _site: None,
-                        validate_model=lambda _entry, _site: ValidatedModel(
+                        install_wheel=lambda _wheel, _site, _timeout: None,
+                        validate_model=lambda _entry, _site, _timeout: ValidatedModel(
                             pipeline_id="sentencizer", pipeline_version="1"
                         ),
                         spacy_version="3.8.7",
@@ -521,7 +701,7 @@ class PipCommandTest(unittest.TestCase):
         wheel = Path("/models/generations/.staging/artifacts/model.whl")
         site = Path("/models/generations/.staging/site-packages")
 
-        pip_install_wheel(wheel, site)
+        pip_install_wheel(wheel, site, 42.0)
 
         command = run.call_args.args[0]
         self.assertIn("--no-index", command)
@@ -530,6 +710,7 @@ class PipCommandTest(unittest.TestCase):
         self.assertIn("--only-binary=:all:", command)
         self.assertEqual(command[-1], str(wheel))
         self.assertNotIn("https://", " ".join(command))
+        self.assertEqual(run.call_args.kwargs["timeout"], 42.0)
         run.assert_called_once()
 
 

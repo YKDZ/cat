@@ -15,6 +15,7 @@ import { useI18n } from "vue-i18n";
 import { createDataTableLabels } from "#/utils/data-table.ts";
 import { formatDate } from "#/utils/format.ts";
 import { clientLogger } from "#/utils/logger.ts";
+import { useRequestOwnership } from "#/utils/vue.ts";
 
 import {
   onRequestGlossaries,
@@ -23,6 +24,7 @@ import {
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const requestOwnership = useRequestOwnership();
 
 const glossaries = ref<GlossaryListItem[]>([]);
 const pageIndex = ref(0);
@@ -58,18 +60,22 @@ const fetchGlossaries = async () => {
   if (!ctx.user) return;
 
   isLoading.value = true;
-  try {
-    const result = await onRequestGlossaries(pageIndex.value, pageSize.value);
-    glossaries.value = result.data;
-    total.value = result.total;
-  } catch (err) {
+  const result = await requestOwnership.run(() =>
+    onRequestGlossaries(pageIndex.value, pageSize.value),
+  );
+  if (result.status === "released") return;
+  if (result.status === "failure") {
     clientLogger
       .child({ component: "glossary-table" })
-      .error("Failed to fetch glossaries", { error: err });
-  } finally {
-    isLoading.value = false;
+      .error("Failed to fetch glossaries", { error: result.error });
+  } else {
+    glossaries.value = result.value.data;
+    total.value = result.value.total;
   }
+  isLoading.value = false;
 };
+
+requestOwnership.onResume(() => void fetchGlossaries());
 
 onMounted(() => {
   fetchGlossaries();

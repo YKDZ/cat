@@ -187,4 +187,29 @@ describe("InsertTermText", () => {
       operation: "DIRECT_WRITE",
     });
   });
+
+  it("groups the term and translation language inputs by their purpose", () => {
+    const wrapper = mount(InsertTermText, {
+      props: {
+        glossaryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        glossaryProjectIds: [],
+      },
+      global: {
+        plugins: [i18n],
+      },
+    });
+
+    const [termLanguageGroup, translationLanguageGroup] =
+      wrapper.findAll("fieldset");
+    if (!termLanguageGroup || !translationLanguageGroup) {
+      throw new Error("Expected term and translation language groups");
+    }
+
+    expect(termLanguageGroup.get("legend").text()).toBe("术语语言");
+    expect(termLanguageGroup.findAll("[data-language-picker]")).toHaveLength(1);
+    expect(translationLanguageGroup.get("legend").text()).toBe("翻译语言");
+    expect(
+      translationLanguageGroup.findAll("[data-language-picker]"),
+    ).toHaveLength(1);
+  });
 });

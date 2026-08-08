@@ -1,9 +1,9 @@
-import type { OperationContext } from "@cat/domain";
-import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTranslationsByElement } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
 import * as z from "zod";
 
+import { joinLemmas } from "./language-analysis-normalization.ts";
+import type { LanguageAnalysisOperationContext } from "./language-analysis-requirement.ts";
 import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 
 // ─── Input / Output Schemas ───
@@ -87,15 +87,13 @@ const enrichFromTranslation = async (
   elementId: number,
   candidateText: string,
   languageId: string,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<number[]> => {
   try {
-    const { client: drizzle } = await getDbHandle();
-    const translations = await executeQuery(
-      { db: drizzle },
-      listTranslationsByElement,
-      { elementId, languageId },
-    );
+    const translations = await executeQuery(ctx, listTranslationsByElement, {
+      elementId,
+      languageId,
+    });
 
     if (translations.length === 0) return [];
 
@@ -118,9 +116,8 @@ const enrichFromTranslation = async (
       const translationId = parseInt(id, 10);
       if (Number.isNaN(translationId)) continue;
 
-      // Build lemma string from non-stop non-punct tokens
       const contentTokens = result.tokens.filter((t) => !t.isPunct);
-      const lemmaString = contentTokens.map((t) => t.lemma).join(" ");
+      const lemmaString = joinLemmas(contentTokens, languageId);
 
       if (lemmaString.includes(candidateLemma)) {
         matchingTranslationIds.push(translationId);
@@ -155,7 +152,7 @@ const enrichFromTranslation = async (
  */
 export const statisticalTermAlignOp = async (
   data: StatisticalTermAlignInput,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<StatisticalTermAlignOutput> => {
   if (data.termGroups.length < 2) {
     return { alignedPairs: [] };

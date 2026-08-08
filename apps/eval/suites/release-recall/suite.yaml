@@ -1,0 +1,36 @@
+name: release-recall
+description: Deterministic release gate for native pgvector term recall.
+
+seed:
+  project: seed/project.json
+  glossary: seed/glossary.json
+
+vectorization: required
+
+plugins:
+  loader: real
+  overrides:
+    - plugin: openai-vectorizer
+      scope: GLOBAL
+      config:
+        model-id: release-eval-deterministic
+        baseURL: "${VECTORIZER_BASE_URL}"
+        apiKey: release-eval
+    - plugin: spacy-language-analyzer
+      scope: GLOBAL
+      config:
+        serverUrl: "${SPACY_SERVER_URL}"
+
+scenarios:
+  - type: term-recall
+    test-set: test-sets/term-recall.yaml
+    scorers: [precision, recall, hit-rate, channel-coverage]
+    params:
+      maxAmount: 5
+      wordSimilarityThreshold: 0.3
+      minMorphologySimilarity: 0.7
+      minSemanticSimilarity: 0.6
+
+thresholds:
+  "recall@5": ">= 1"
+  "channel-coverage": ">= 1"

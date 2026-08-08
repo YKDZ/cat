@@ -409,6 +409,11 @@ describe("autoTranslateGraph", () => {
       sessionId: session.sessionId,
       graphDefinition: autoTranslateGraph.graphDefinition,
     });
+    expect(await runtime.checkpointer.claimRunOwnership(run.runId)).toBe(true);
+    const ownershipFence = runtime.checkpointer.getRunOwnershipFence(run.runId);
+    if (ownershipFence === null) {
+      throw new Error("Expected claimed run ownership fence");
+    }
     await runtime.checkpointer.saveExternalOutput({
       runId: run.runId,
       nodeId: "main",
@@ -462,11 +467,7 @@ describe("autoTranslateGraph", () => {
       },
       {
         pluginManager,
-        ownershipFence: {
-          runId: run.runId,
-          ownerId: randomUUID(),
-          epoch: 1,
-        },
+        ownershipFence,
         assertRunOwnership: async () => undefined,
       },
     );

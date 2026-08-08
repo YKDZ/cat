@@ -122,19 +122,21 @@ const handleInsert = async () => {
       <p>{{ t("术语都是双向的") }}</p>
     </article>
     <div class="flex items-start gap-3">
-      <div class="flex flex-col gap-2">
+      <fieldset class="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+        <legend class="sr-only">{{ t("术语语言") }}</legend>
         <span>{{ t("{amount} 条术语", { amount: terms.length }) }}</span>
         <LanguagePicker v-model="termLanguageId" full-width />
         <Textarea v-model="termsText" full-width />
-      </div>
+      </fieldset>
       <Button class="self-center" size="icon"
         ><div class="icon-[mdi--arrow-left-right] size-4"
       /></Button>
-      <div class="flex flex-col gap-2">
+      <fieldset class="m-0 flex min-w-0 flex-col gap-2 border-0 p-0">
+        <legend class="sr-only">{{ t("翻译语言") }}</legend>
         <span>{{ t("{amount} 条翻译", { amount: translations.length }) }}</span>
         <LanguagePicker v-model="translationLanguageId" full-width />
         <Textarea v-model="translationsText" full-width />
-      </div>
+      </fieldset>
     </div>
     <Button @click="handleInsert">{{ t("提交") }}</Button>
   </div>

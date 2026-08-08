@@ -15,11 +15,13 @@ import { useI18n } from "vue-i18n";
 import { createDataTableLabels } from "#/utils/data-table.ts";
 import { formatDate } from "#/utils/format.ts";
 import { clientLogger } from "#/utils/logger.ts";
+import { useRequestOwnership } from "#/utils/vue.ts";
 
 import { onRequestMemories, type MemoryListItem } from "./Table.telefunc.ts";
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const requestOwnership = useRequestOwnership();
 
 const memories = ref<MemoryListItem[]>([]);
 const pageIndex = ref(0);
@@ -55,18 +57,22 @@ const fetchMemories = async () => {
   if (!ctx.user) return;
 
   isLoading.value = true;
-  try {
-    const result = await onRequestMemories(pageIndex.value, pageSize.value);
-    memories.value = result.data;
-    total.value = result.total;
-  } catch (err) {
+  const result = await requestOwnership.run(() =>
+    onRequestMemories(pageIndex.value, pageSize.value),
+  );
+  if (result.status === "released") return;
+  if (result.status === "failure") {
     clientLogger
       .child({ component: "memory-table" })
-      .error("Failed to fetch memories", { error: err });
-  } finally {
-    isLoading.value = false;
+      .error("Failed to fetch memories", { error: result.error });
+  } else {
+    memories.value = result.value.data;
+    total.value = result.value.total;
   }
+  isLoading.value = false;
 };
+
+requestOwnership.onResume(() => void fetchMemories());
 
 onMounted(() => {
   fetchMemories();

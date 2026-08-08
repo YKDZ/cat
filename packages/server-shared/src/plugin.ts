@@ -10,7 +10,7 @@ import type {
   PluginServiceType,
   ServiceImplementationReference,
 } from "@cat/shared";
-import { assertFirstNonNullish } from "@cat/shared";
+import { assertFirstNonNullish, RequiredVectorDimension } from "@cat/shared";
 
 export class ServiceImplementationResolutionError<
   T extends PluginServiceType,
@@ -118,7 +118,7 @@ export const initAllVectorStorage = async (
     // oxlint-disable-next-line no-await-in-loop
     await serivce.service.init({
       // TODO 维度协调
-      dimension: 1024,
+      dimension: RequiredVectorDimension,
     });
   }
 };
@@ -126,7 +126,7 @@ export const initAllVectorStorage = async (
 export const resolvePluginManager = (
   maybePluginManager: unknown,
 ): PluginManager => {
-  if (maybePluginManager instanceof PluginManager) {
+  if (PluginManager.isInstance(maybePluginManager)) {
     return maybePluginManager;
   }
 

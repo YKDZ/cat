@@ -361,6 +361,7 @@ export {
   LanguageAnalysisReadinessError,
   LanguageAnalysisRequirementError,
   validateLanguageAnalyzerConfiguration,
+  type LanguageAnalysisOperationContext,
 } from "./language-analysis-requirement.ts";
 
 export {

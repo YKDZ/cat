@@ -63,7 +63,7 @@ services:
         - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).read()
       interval: 10s
       retries: 18
-      start_period: 60s
+      start_period: 480s
       timeout: 5s
     restart: unless-stopped
     read_only: true

@@ -50,19 +50,31 @@ describe("source file Language Analysis preflight", () => {
     expect(mocks.assessLanguageAnalysisConfiguration.mock.calls).toEqual([
       [
         { languageId: "de" },
-        expect.objectContaining({ traceId: "language-analysis-preflight" }),
+        expect.objectContaining({
+          db: expect.anything(),
+          traceId: "language-analysis-preflight",
+        }),
       ],
       [
         { languageId: "en" },
-        expect.objectContaining({ traceId: "language-analysis-preflight" }),
+        expect.objectContaining({
+          db: expect.anything(),
+          traceId: "language-analysis-preflight",
+        }),
       ],
       [
         { languageId: "fr" },
-        expect.objectContaining({ traceId: "language-analysis-preflight" }),
+        expect.objectContaining({
+          db: expect.anything(),
+          traceId: "language-analysis-preflight",
+        }),
       ],
       [
         { languageId: "he" },
-        expect.objectContaining({ traceId: "language-analysis-preflight" }),
+        expect.objectContaining({
+          db: expect.anything(),
+          traceId: "language-analysis-preflight",
+        }),
       ],
     ]);
   });

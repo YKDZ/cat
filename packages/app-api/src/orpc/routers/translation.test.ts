@@ -58,6 +58,12 @@ type FakeRunGraphOptions = {
   vcsContext?: VCSContext;
 };
 
+type FakeRunGraphOutput = {
+  derivations: [];
+  memoryItemIds: number[];
+  translationIds: number[];
+};
+
 const mocks = vi.hoisted(() => ({
   interceptWrite: vi.fn(
     async (
@@ -91,8 +97,12 @@ const mocks = vi.hoisted(() => ({
       graph: unknown,
       input: FakeRunGraphInput,
       options?: FakeRunGraphOptions,
-    ) => Promise<{ translationIds: number[] }>
-  >(async () => ({ translationIds: [101] })),
+    ) => Promise<FakeRunGraphOutput>
+  >(async () => ({
+    translationIds: [101],
+    memoryItemIds: [],
+    derivations: [],
+  })),
   selectFirstServiceImplementation: vi.fn(
     (_: unknown, kind: string): { id: number } | null => ({
       id: kind === "VECTOR_STORAGE" ? 1 : 2,
@@ -312,7 +322,7 @@ const writeTranslationsWithFakeGraph = async (
   _graph: unknown,
   input: FakeRunGraphInput,
   _options?: FakeRunGraphOptions,
-): Promise<{ translationIds: number[] }> => {
+): Promise<FakeRunGraphOutput> => {
   const stringIds = await executeCommand(
     { db: testDb.client },
     createVectorizedStrings,
@@ -339,7 +349,7 @@ const writeTranslationsWithFakeGraph = async (
     },
   );
 
-  return { translationIds };
+  return { translationIds, memoryItemIds: [], derivations: [] };
 };
 
 beforeAll(async () => {

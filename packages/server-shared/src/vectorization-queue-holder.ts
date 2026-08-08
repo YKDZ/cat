@@ -24,6 +24,24 @@ export const setVectorizationQueue = (
 };
 
 /**
+ * Install a queue and return an idempotent handle that restores the previous
+ * queue only while this installation still owns the holder.
+ */
+export const installVectorizationQueue = (
+  nextQueue: TaskQueue<VectorizationTask>,
+): (() => void) => {
+  const previousQueue = queue;
+  let restored = false;
+  queue = nextQueue;
+
+  return () => {
+    if (restored) return;
+    restored = true;
+    if (queue === nextQueue) queue = previousQueue;
+  };
+};
+
+/**
  * Get the global vectorization task queue instance.
  */
 export const getVectorizationQueue = (): TaskQueue<VectorizationTask> => {

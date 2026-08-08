@@ -35,8 +35,9 @@ async function collectChunks(
   return result;
 }
 
-const mockRequest: ChatCompletionRequest = {
+const mockRequest: ChatCompletionRequest & { signal: AbortSignal } = {
   messages: [{ role: "user", content: "Hello" }],
+  signal: new AbortController().signal,
 };
 
 describe("LLMGateway", () => {
@@ -118,8 +119,11 @@ describe("LLMGateway", () => {
     // concurrency=1, rateLimit=0 so queing is the only bottleneck
     const gateway = new LLMGateway({ provider, concurrency: 1 });
 
-    const makeReq = (label: string): ChatCompletionRequest => ({
+    const makeReq = (
+      label: string,
+    ): ChatCompletionRequest & { signal: AbortSignal } => ({
       messages: [{ role: "user", content: label }],
+      signal: new AbortController().signal,
     });
 
     // First request gets the slot immediately

@@ -4,7 +4,6 @@ import {
   executeCommand,
   executeQuery,
   getLanguageAnalysisPolicyEpoch,
-  getDbHandle,
   listLanguageAnalysisSelections,
   resolveLanguageAnalysisSelection,
   StaleLanguageAnalysisObservationError,
@@ -48,6 +47,8 @@ import {
   type HostValidatedLanguageAnalysisResult,
   type HostValidatedLanguageAnalysisBatchResult,
 } from "./language-analysis-execution.ts";
+
+export type LanguageAnalysisOperationContext = OperationContext & DbContext;
 
 const RequirementInputSchema = z.strictObject({
   languageId: NormalizedLanguageIdSchema,
@@ -161,18 +162,15 @@ export const validateLanguageAnalyzerConfiguration = async (
  */
 export const assessLanguageAnalysisConfiguration = async (
   input: z.input<typeof RequirementInputSchema>,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<LanguageAnalysisRequirementAssessment> => {
   const { languageId } = RequirementInputSchema.parse({
     languageId: input.languageId,
     ...(input.timeoutMs === undefined ? {} : { timeoutMs: input.timeoutMs }),
   });
-  const { client } = await getDbHandle();
-  const resolved = await executeQuery(
-    { db: client },
-    resolveLanguageAnalysisSelection,
-    { languageId },
-  );
+  const resolved = await executeQuery(ctx, resolveLanguageAnalysisSelection, {
+    languageId,
+  });
   const selection = resolved.selection;
   if (selection?.implementation === null || selection === null) {
     return blocked(
@@ -263,6 +261,7 @@ export const assessLanguageAnalysisConfiguration = async (
 
 const persistObservation = async (
   assessment: LanguageAnalysisRequirementAssessment,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<void> => {
   if (
     assessment.selection === null ||
@@ -271,7 +270,6 @@ const persistObservation = async (
   ) {
     return;
   }
-  const { client } = await getDbHandle();
   const observation: LanguageAnalysisObservation = {
     languageId: assessment.languageId,
     policyEpoch: assessment.policyEpoch,
@@ -281,11 +279,7 @@ const persistObservation = async (
     assessment,
     observedAt: assessment.assessedAt,
   };
-  await executeCommand(
-    { db: client },
-    writeLanguageAnalysisObservation,
-    observation,
-  );
+  await executeCommand(ctx, writeLanguageAnalysisObservation, observation);
 };
 
 const executionFailureReason = (
@@ -309,7 +303,7 @@ const rethrowCancellation = (
 const rejectStaleObservation = async (
   error: unknown,
   input: z.input<typeof RequirementInputSchema>,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<never> => {
   rethrowCancellation(error, ctx?.signal);
   if (!(error instanceof StaleLanguageAnalysisObservationError)) throw error;
@@ -323,7 +317,7 @@ const rejectStaleObservation = async (
 /** Execution gate that always re-evaluates policy and refreshes its observation. */
 export const executeRequiredLanguageAnalysis = async (
   input: z.input<typeof RequirementInputSchema> & { text: string },
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<HostValidatedLanguageAnalysisResult> => {
   const parsed = RequirementInputSchema.extend({ text: z.string() }).parse(
     input,
@@ -335,7 +329,7 @@ export const executeRequiredLanguageAnalysis = async (
     implementation === null ||
     implementation === undefined
   ) {
-    await persistObservation(assessment);
+    await persistObservation(assessment, ctx);
     throw new LanguageAnalysisRequirementError(assessment);
   }
   let result: HostValidatedLanguageAnalysisResult;
@@ -362,7 +356,7 @@ export const executeRequiredLanguageAnalysis = async (
       reason,
       implementation,
     );
-    await persistObservation(failed);
+    await persistObservation(failed, ctx);
     throw new LanguageAnalysisRequirementError(failed, error);
   }
   try {
@@ -371,6 +365,7 @@ export const executeRequiredLanguageAnalysis = async (
         ...assessment,
         assessedAt: new Date(),
       }),
+      ctx,
     );
   } catch (error) {
     return await rejectStaleObservation(error, parsed, ctx);
@@ -382,7 +377,7 @@ export const executeRequiredLanguageAnalysisBatch = async (
   input: z.input<typeof RequirementInputSchema> & {
     items: Array<{ id: string; text: string }>;
   },
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<HostValidatedLanguageAnalysisBatchResult> => {
   const parsed = RequirementInputSchema.extend({
     items: z.array(z.strictObject({ id: z.string(), text: z.string() })).min(1),
@@ -394,7 +389,7 @@ export const executeRequiredLanguageAnalysisBatch = async (
     implementation === null ||
     implementation === undefined
   ) {
-    await persistObservation(assessment);
+    await persistObservation(assessment, ctx);
     throw new LanguageAnalysisRequirementError(assessment);
   }
   let result: HostValidatedLanguageAnalysisBatchResult;
@@ -421,7 +416,7 @@ export const executeRequiredLanguageAnalysisBatch = async (
       reason,
       implementation,
     );
-    await persistObservation(failed);
+    await persistObservation(failed, ctx);
     throw new LanguageAnalysisRequirementError(failed, error);
   }
   try {
@@ -430,6 +425,7 @@ export const executeRequiredLanguageAnalysisBatch = async (
         ...assessment,
         assessedAt: new Date(),
       }),
+      ctx,
     );
   } catch (error) {
     return await rejectStaleObservation(error, parsed, ctx);
@@ -558,12 +554,9 @@ const validateReadinessSelection = async (
  * of its declared model assets are available at runtime.
  */
 export const executeLanguageAnalysisReadinessAssessment = async (
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<void> => {
-  const { client } = await getDbHandle();
-  const selections = await readStableLanguageAnalysisSelections({
-    db: client,
-  });
+  const selections = await readStableLanguageAnalysisSelections(ctx);
   const wildcard = selections.find(
     (selection) => selection.key === LanguageAnalysisWildcardSelectionKey,
   );

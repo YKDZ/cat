@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import type { ExecutorContext } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
+import { RecallDerivationReferenceSchema } from "@cat/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { BootstrapProfile } from "#/schemas.ts";
@@ -83,11 +84,30 @@ const makeInput = (seedDir: string) => ({
   skipVectorization: true,
 });
 
+const makeMemoryItemDerivation = () =>
+  RecallDerivationReferenceSchema.parse({
+    targetKind: "MEMORY_ITEM",
+    targetId: "101",
+    languageId: "en",
+    demandRevision: 1,
+  });
+
 afterEach(() => {
   vi.clearAllMocks();
 });
 
 describe("runBootstrapSourceGraph", () => {
+  it("rejects the retired memory aggregate derivation discriminator", () => {
+    expect(
+      RecallDerivationReferenceSchema.safeParse({
+        targetKind: "MEMORY",
+        targetId: "101",
+        languageId: "en",
+        demandRevision: 1,
+      }).success,
+    ).toBe(false);
+  });
+
   it("fails when bootstrap extraction yields zero elements", async () => {
     const dir = await mkdtemp(join(tmpdir(), "seed-bootstrap-source-"));
     try {
@@ -234,12 +254,7 @@ describe("runBootstrapSourceGraph", () => {
         ...makeInput(dir),
         execCtx: { db } as ExecutorContext,
       };
-      const derivation = {
-        targetKind: "MEMORY" as const,
-        targetId: "101",
-        languageId: "en",
-        demandRevision: 1,
-      };
+      const derivation = makeMemoryItemDerivation();
       sourceCollectorMock.extract.mockResolvedValue({
         importerId: "vue-i18n",
         relationTypes: [],
@@ -342,6 +357,7 @@ describe("runBootstrapSourceGraph", () => {
         ...makeInput(dir),
         execCtx: { db: {} } as ExecutorContext,
       };
+      const derivation = makeMemoryItemDerivation();
       const freshnessFailure = Object.assign(new Error("blocked"), {
         status: "BLOCKED",
       });
@@ -425,14 +441,7 @@ describe("runBootstrapSourceGraph", () => {
           if (command === domainMock.createMemoryItems) {
             return Promise.resolve({
               items: [{ id: 101 }],
-              derivations: [
-                {
-                  targetKind: "MEMORY",
-                  targetId: "101",
-                  languageId: "en",
-                  demandRevision: 1,
-                },
-              ],
+              derivations: [derivation],
             });
           }
           throw new Error("Unexpected command");

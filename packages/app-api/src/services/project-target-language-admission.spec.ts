@@ -34,6 +34,7 @@ describe("project target language admission", () => {
     const admission = await prepareProjectTargetLanguageAdmission(
       ["en-us", "en-US"],
       {
+        drizzleDB: { client: {} },
         pluginManager: {},
         requestSignal: new AbortController().signal,
       } as never,
@@ -42,7 +43,10 @@ describe("project target language admission", () => {
     expect(mocks.assessLanguageAnalysisConfiguration).toHaveBeenCalledTimes(1);
     expect(mocks.assessLanguageAnalysisConfiguration).toHaveBeenCalledWith(
       { languageId: "en-US" },
-      expect.objectContaining({ traceId: "language-analysis-preflight" }),
+      expect.objectContaining({
+        db: expect.anything(),
+        traceId: "language-analysis-preflight",
+      }),
     );
 
     const db = {} as never;

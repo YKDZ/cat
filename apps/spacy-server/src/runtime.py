@@ -9,6 +9,7 @@ import platform as platform_module
 import subprocess
 import sys
 import sysconfig
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -28,6 +29,7 @@ from .generations import (
     parse_plan_bytes,
     site_packages_digest,
 )
+from .startup_budget import RUNTIME_VALIDATION_TIMEOUT_SECONDS
 
 
 @dataclass(frozen=True)
@@ -251,15 +253,22 @@ def load_runtime_manifest(path: Path) -> RuntimeManifest:
 
 
 def _validate_generation_models(manifest: RuntimeManifest, site_packages: Path) -> None:
+    deadline = time.monotonic() + RUNTIME_VALIDATION_TIMEOUT_SECONDS
     models = {model.language_id: model for model in manifest.models}
     for entry in manifest.effective_plan.models:
         try:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise GenerationStateError(
+                    "Generation model startup validation timed out."
+                )
             result = subprocess.run(
                 [sys.executable, "-m", "src.model_validator", str(site_packages)],
                 input=canonical_json(entry.canonical_value()),
                 capture_output=True,
                 check=True,
                 env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+                timeout=remaining,
             )
             value = json.loads(
                 result.stdout.decode("utf-8"), object_pairs_hook=_unique_object

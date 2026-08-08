@@ -18,7 +18,6 @@ COPY --from=uv /uv /usr/local/bin/uv
 
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends \
-  ca-certificates \
   curl \
   git \
   openssh-client \

@@ -36,12 +36,14 @@ export const prCreateTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = prCreateArgs.parse(args);
 
     const agentId = parseInt(ctx.session.agentId, 10) || undefined;
 
-    return await executeCommand({ db }, createPR, {
+    ctx.signal.throwIfAborted();
+    const pullRequest = await executeCommand({ db }, createPR, {
       projectId: ctx.session.projectId,
       title: parsed.title,
       body: parsed.body ?? "",
@@ -49,5 +51,6 @@ export const prCreateTool: AgentToolDefinition = {
       reviewers: [],
       issueId: parsed.issueId,
     });
+    return pullRequest;
   },
 };

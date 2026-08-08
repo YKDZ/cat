@@ -100,7 +100,7 @@ const computeMemoryRecallDerivationVersion = async (
     tokenizerPipeline: pipeline.map((entry) => entry.descriptor),
     normalization: {
       caseFolding: "Intl.toLocaleLowerCase",
-      lemmaJoin: "cat.language-analysis-normalization/v1",
+      lemmaJoin: "cat.language-analysis-normalization/v2",
     },
     rules: {
       maxWindowSize: MAX_WINDOW_SIZE,
@@ -159,6 +159,7 @@ export const probeMemoryRecallDependency = async (input: {
           },
           {
             ...input.ctx,
+            db: input.db,
             traceId:
               input.ctx?.traceId ??
               `memory-recall-dependency-probe:${input.languageId}`,
@@ -445,6 +446,7 @@ const deriveMemoryRecall = async (
       items: sides.map((side) => ({ id: side.id, text: side.value })),
     },
     {
+      db,
       traceId: `recall-derivation:${claim.id}:${claim.executionEpoch}`,
       pluginManager,
       ...(signal ? { signal } : {}),
@@ -708,18 +710,37 @@ export const processRecallDerivationBatch = async (
   return { claimed, published, stale, failed };
 };
 
+const formatRecallDerivationBlockers = (
+  blockers: RecallDerivationBlocker[],
+): string => {
+  const unique = [
+    ...new Set(
+      blockers.map((blocker) => `${blocker.reason}: ${blocker.message}`),
+    ),
+  ];
+  if (unique.length === 0) return "";
+  const displayed = unique.slice(0, 5);
+  const omitted = unique.length - displayed.length;
+  return ` Blockers: ${displayed.join("; ")}${omitted === 0 ? "" : `; +${omitted} more`}`;
+};
+
 export class RecallDerivationFreshnessError extends Error {
   public readonly status: "BLOCKED" | "FAILED" | "TIMEOUT";
   public readonly references: RecallDerivationReference[];
+  public readonly blockers: RecallDerivationBlocker[];
 
   public constructor(
     status: "BLOCKED" | "FAILED" | "TIMEOUT",
     references: RecallDerivationReference[],
+    blockers: RecallDerivationBlocker[] = [],
   ) {
-    super(`Recall Derivation freshness wait ended with ${status}.`);
+    super(
+      `Recall Derivation freshness wait ended with ${status}.${formatRecallDerivationBlockers(blockers)}`,
+    );
     this.name = "RecallDerivationFreshnessError";
     this.status = status;
     this.references = references;
+    this.blockers = blockers;
   }
 }
 
@@ -943,6 +964,7 @@ export const waitForRecallDerivationFresh = async (
         throw new RecallDerivationFreshnessError(
           assessment.status,
           assessment.references,
+          assessment.blockers,
         );
       }
     } else if (
@@ -952,6 +974,7 @@ export const waitForRecallDerivationFresh = async (
       throw new RecallDerivationFreshnessError(
         assessment.status,
         assessment.references,
+        assessment.blockers,
       );
     }
     await processRecallDerivationBatch(options);

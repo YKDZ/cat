@@ -10,6 +10,18 @@ import { parse } from "yaml";
 const root = resolve(import.meta.dirname, "..");
 const productionCompose = resolve(root, "apps/app/compose.yaml");
 const localCompose = resolve(root, "apps/app/compose.local.yaml");
+const serviceCompose = resolve(root, "apps/app/compose.services.yaml");
+const spacyDockerfile = resolve(root, "apps/spacy-server/Dockerfile");
+const spacyStartupBudget = resolve(
+  root,
+  "apps/spacy-server/src/startup_budget.py",
+);
+const testServiceLease = resolve(root, "apps/app-e2e/test-service-lease.ts");
+const evalCompose = resolve(root, "apps/eval/compose.services.yaml");
+const releaseEvalCompose = resolve(
+  root,
+  "apps/eval/suites/release-recall/compose.eval.yaml",
+);
 const temporaryDirectories: string[] = [];
 
 const composeEnvironment = {
@@ -87,6 +99,96 @@ afterEach(async () => {
 });
 
 describe("Compose deployment contracts", () => {
+  it("keeps the spaCy service wait budget above every bounded cold-start phase", async () => {
+    const budget = await readFile(spacyStartupBudget, "utf8");
+    const timeout = (name: string): number => {
+      const value = budget.match(
+        new RegExp(`^${name} = (\\d+)\\.0$`, "m"),
+      )?.[1];
+      if (value === undefined) throw new Error(`Missing ${name}`);
+      return Number(value);
+    };
+    const serviceStartupSeconds =
+      timeout("PROVISION_TIMEOUT_SECONDS") +
+      timeout("RUNTIME_VALIDATION_TIMEOUT_SECONDS") +
+      timeout("WORKER_START_TIMEOUT_SECONDS");
+
+    expect(serviceStartupSeconds).toBe(450);
+    await expect(readFile(testServiceLease, "utf8")).resolves.toContain(
+      "const spacyServiceStartupTimeoutSeconds = 480;",
+    );
+    const services = parse(
+      await readFile(serviceCompose, "utf8"),
+    ) as ComposeConfig;
+    expect(services.services.spacy?.healthcheck).toMatchObject({
+      start_period: "480s",
+    });
+    const production = JSON.parse(
+      await runComposeConfig(productionCompose),
+    ) as ComposeConfig;
+    expect(production.services.spacy?.healthcheck).toMatchObject({
+      start_period: "8m0s",
+    });
+    await expect(readFile(spacyDockerfile, "utf8")).resolves.toContain(
+      "--start-period=480s",
+    );
+  });
+
+  it("keeps eval services pinned, source-image based, and compatible with the shared lifecycle contract", async () => {
+    const resolved = JSON.parse(
+      await runComposeConfig(evalCompose, [], {
+        CAT_SPACY_IMAGE_ID: "sha256:eval-spacy-image",
+      }),
+    ) as ComposeConfig;
+
+    expect(resolved.services.postgresql).toMatchObject({
+      image: "pgvector/pgvector:0.8.6-pg18",
+    });
+    expect(resolved.services.redis).toMatchObject({
+      image:
+        "redis:8.8.0-alpine@sha256:9d317178eceac8454a2284a9e6df2466b93c745529947f0cd42a0fa9609d7005",
+    });
+    expect(resolved.services.spacy).toMatchObject({
+      image: "sha256:eval-spacy-image",
+      read_only: true,
+      user: "10001:10001",
+    });
+    expect(resolved.services.ollama).toMatchObject({
+      image: "ollama/ollama:0.16.1",
+    });
+    for (const service of Object.values(resolved.services)) {
+      expect(service).not.toHaveProperty("build");
+      expect(service).not.toHaveProperty("extends");
+      expect(service.restart).toBe("no");
+      expect(service.security_opt).toContain("no-new-privileges:true");
+      for (const port of service.ports ?? []) {
+        expect(port.host_ip).toBe("127.0.0.1");
+      }
+    }
+    expect(JSON.stringify(resolved.services.postgresql?.healthcheck)).toContain(
+      "pg_isready",
+    );
+    expect(
+      JSON.stringify(resolved.services.postgresql?.healthcheck),
+    ).not.toContain("psql");
+  });
+
+  it("resolves the release recall suite Compose entry through the shared eval capability contract", async () => {
+    const resolved = JSON.parse(
+      await runComposeConfig(releaseEvalCompose, [], {
+        CAT_SPACY_IMAGE_ID: "sha256:eval-spacy-image",
+      }),
+    ) as ComposeConfig;
+
+    expect(resolved.services).toEqual(
+      expect.objectContaining({
+        postgresql: expect.any(Object),
+        redis: expect.any(Object),
+        spacy: expect.objectContaining({ image: "sha256:eval-spacy-image" }),
+      }),
+    );
+  });
+
   it("keeps the canonical local Compose entry visible in a clean checkout", async () => {
     await expect(readFile(localCompose, "utf8")).resolves.toContain(
       "name: cat-local",

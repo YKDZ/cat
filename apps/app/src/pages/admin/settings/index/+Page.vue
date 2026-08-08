@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DisplayLanguageSchema } from "@cat/shared";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
@@ -17,7 +18,7 @@ const site = z.toJSONSchema(
         title: t("站点地址"),
         description: t("站点的最终公开可访问地址，常作为 OAuth 等协议的回调"),
       }),
-      "server.default-language": z.url().meta({
+      "server.default-language": DisplayLanguageSchema.meta({
         title: t("默认语言"),
         description: t("在无法自动推测用户的语言时，采取的默认显示语言"),
       }),

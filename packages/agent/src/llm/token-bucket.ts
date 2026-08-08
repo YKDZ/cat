@@ -1,3 +1,5 @@
+import { setTimeout as delay } from "node:timers/promises";
+
 /**
  * In-memory token bucket for LLM request rate limiting.
  *
@@ -31,7 +33,8 @@ export class TokenBucket {
   /**
    * Attempt to acquire one token; waits if the bucket is empty until a token becomes available.
    */
-  async acquire(): Promise<void> {
+  async acquire(signal: AbortSignal): Promise<void> {
+    if (signal.aborted) throw signal.reason;
     this.refill();
 
     if (this.tokens >= 1) {
@@ -41,8 +44,14 @@ export class TokenBucket {
 
     // Calculate wait time until next token becomes available
     const waitMs = Math.ceil((1 - this.tokens) / this.ratePerSecond) * 1000;
-    await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+    try {
+      await delay(waitMs, undefined, { signal });
+    } catch (error) {
+      if (signal.aborted) throw signal.reason;
+      throw error;
+    }
     this.refill();
+    if (signal.aborted) throw signal.reason;
     this.tokens = Math.max(0, this.tokens - 1);
   }
 

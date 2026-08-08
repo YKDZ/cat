@@ -9,6 +9,7 @@ import {
   mapLanguageAnalysisOperationFailure,
 } from "@cat/operations";
 
+import { requireWorkflowDatabase } from "#/graph/dsl/database-context.ts";
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 export {
@@ -38,6 +39,7 @@ export const languageAnalyzeGraph = defineGraph({
       handler: async (input, ctx) => {
         try {
           return await languageAnalyzeOp(input, {
+            db: requireWorkflowDatabase(ctx),
             traceId: ctx.traceId,
             signal: ctx.signal,
             pluginManager: ctx.pluginManager,
@@ -64,6 +66,7 @@ export const languageAnalyzeBatchGraph = defineGraph({
       handler: async (input, ctx) => {
         try {
           return await languageAnalyzeBatchOp(input, {
+            db: requireWorkflowDatabase(ctx),
             traceId: ctx.traceId,
             signal: ctx.signal,
             pluginManager: ctx.pluginManager,

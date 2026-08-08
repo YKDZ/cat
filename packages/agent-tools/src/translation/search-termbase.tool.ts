@@ -54,6 +54,7 @@ export const searchTermbaseTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = searchTermbaseArgs.parse(args);
     const sourceLanguageId =
       parsed.sourceLanguageId ?? ctx.session.sourceLanguageId;
@@ -67,15 +68,24 @@ export const searchTermbaseTool: AgentToolDefinition = {
     }
 
     try {
-      const result = await collectTermRecallOp({
-        text: parsed.text,
-        sourceLanguageId,
-        translationLanguageId,
-        glossaryIds: parsed.glossaryIds,
-        wordSimilarityThreshold: parsed.wordSimilarityThreshold,
-      });
+      const result = await collectTermRecallOp(
+        {
+          text: parsed.text,
+          sourceLanguageId,
+          translationLanguageId,
+          glossaryIds: parsed.glossaryIds,
+          wordSimilarityThreshold: parsed.wordSimilarityThreshold,
+        },
+        {
+          traceId: `agent-tool:${ctx.session.runId}:search-termbase`,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        },
+      );
+      ctx.signal.throwIfAborted();
       return { terms: getTermRecallCandidates(result) };
     } catch (error) {
+      ctx.signal.throwIfAborted();
       if (error instanceof RecallOperationFailureError) {
         return { terms: [], operationFailure: error.failure };
       }

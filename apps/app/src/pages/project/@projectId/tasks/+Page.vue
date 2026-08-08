@@ -34,12 +34,13 @@ import * as z from "zod";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { createDataTableLabels } from "#/utils/data-table.ts";
+import { formatTimestamp } from "#/utils/format.ts";
 
 import ProjectPageDataError from "../ProjectPageDataError.vue";
 import type { Data } from "./+data.ts";
 
 const data = useData<Data>();
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const pageError = computed(() => data.pageError);
 const projectId = data.projectId;
 const pageIndex = ref(0);
@@ -359,12 +360,7 @@ const next = async () => {
 };
 
 const timestamp = (value: Date | string | null): string =>
-  value
-    ? new Intl.DateTimeFormat(undefined, {
-        dateStyle: "medium",
-        timeStyle: "medium",
-      }).format(new Date(value))
-    : "-";
+  value ? formatTimestamp(value, locale.value) : "-";
 
 const serviceLabel = (reference: {
   pluginId: string;

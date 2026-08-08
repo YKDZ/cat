@@ -75,7 +75,7 @@ export const RecallFixtureSchema = z.object({
   name: z.string(),
   description: z.string(),
   kind: z.enum(["term", "memory"]),
-  matrix: z.enum(["fallback", "mock-language-analysis"]),
+  matrix: z.enum(["baseline", "mock-language-analysis"]),
   query: z.object({
     text: z.string(),
     sourceLanguageId: z.string(),

@@ -1,4 +1,5 @@
 import { serverLogger as logger } from "@cat/server-shared";
+import type { LanguageAnalysisToken } from "@cat/shared";
 
 import type {
   RawResult,
@@ -34,12 +35,7 @@ const toHnfCandidate = (r: RawMemoryResult): HnfCandidate => ({
  */
 export const applyMemoryHnfPre = (
   results: RawResult[],
-  sourceLanguageAnalysisTokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  sourceLanguageAnalysisTokens: LanguageAnalysisToken[],
   queryText: string,
 ): HardNegativeRemoval[] => {
   if (results.length === 0) return [];
@@ -99,12 +95,7 @@ export const applyMemoryHnfPre = (
  */
 export const applyMemoryHnfPost = (
   ranked: RecallCandidate[],
-  sourceLanguageAnalysisTokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  sourceLanguageAnalysisTokens: LanguageAnalysisToken[],
 ): HardNegativeRemoval[] => {
   if (ranked.length === 0) return [];
 

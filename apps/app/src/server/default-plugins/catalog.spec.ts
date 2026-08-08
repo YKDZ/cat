@@ -27,10 +27,9 @@ afterEach(async () => {
 });
 
 describe("default plugin catalog", () => {
-  it("matches the shared product defaults and excludes pgvector-storage", () => {
+  it("matches the shared product defaults", () => {
     expect(defaultPluginIds).toEqual([...defaultProductPluginIds]);
     expect(defaultPluginIds).toContain(systemPgVectorEntry.manifest.id);
-    expect(defaultPluginIds).not.toContain("pgvector-storage");
   });
 
   it("provides builtin entries for every default plugin id", async () => {

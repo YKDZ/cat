@@ -36,7 +36,15 @@ const runDev = (
     env: {
       ...env,
       CAT_REPOSITORY_ROOT: fixtureDirectory,
+      FAKE_DB_CAPABILITIES_FILE: join(
+        fixtureDirectory,
+        "database-capabilities.txt",
+      ),
       FAKE_DB_PUSH_FILE: join(fixtureDirectory, "database-push.txt"),
+      FAKE_VECTOR_RUNTIME_SCHEMA_FILE: join(
+        fixtureDirectory,
+        "vector-runtime-schema.txt",
+      ),
       FAKE_INITIAL_BUILD_FILE: join(fixtureDirectory, "initial-build.txt"),
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -91,8 +99,12 @@ const { writeFileSync } = require("node:fs");
 
 const args = process.argv.slice(2);
 if (args[0] === "--filter" && args[1] === "@cat/db" && args[2] === "drizzle:push") {
+  if (process.env.FAKE_DB_CAPABILITIES_MODE === "fail") process.exit(16);
+  writeFileSync(process.env.FAKE_DB_CAPABILITIES_FILE, "prepared");
   if (process.env.FAKE_DB_PUSH_MODE === "fail") process.exit(17);
   writeFileSync(process.env.FAKE_DB_PUSH_FILE, "pushed");
+  if (process.env.FAKE_VECTOR_RUNTIME_SCHEMA_MODE === "fail") process.exit(18);
+  writeFileSync(process.env.FAKE_VECTOR_RUNTIME_SCHEMA_FILE, "prepared");
   process.exit(0);
 }
 
@@ -171,7 +183,7 @@ afterEach(async () => {
 });
 
 describe("development runner", () => {
-  it("pushes the development schema before building plugins", async () => {
+  it("prepares database capabilities and pushes the schema before building plugins", async () => {
     const argsFile = join(fixtureDirectory, "args.json");
     const { result } = runDev([], {
       ...process.env,
@@ -182,11 +194,30 @@ describe("development runner", () => {
 
     await expect(result).resolves.toMatchObject({ code: 0, signal: null });
     await expect(
+      readFile(join(fixtureDirectory, "database-capabilities.txt"), "utf8"),
+    ).resolves.toBe("prepared");
+    await expect(
       readFile(join(fixtureDirectory, "database-push.txt"), "utf8"),
     ).resolves.toBe("pushed");
     await expect(
+      readFile(join(fixtureDirectory, "vector-runtime-schema.txt"), "utf8"),
+    ).resolves.toBe("prepared");
+    await expect(
       readFile(join(fixtureDirectory, "initial-build.txt"), "utf8"),
     ).resolves.toBe("built");
+  });
+
+  it("stops before schema push when database capability preparation fails", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_DB_CAPABILITIES_MODE: "fail",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 16, signal: null });
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+    expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
   });
 
   it("stops when the development schema push fails", async () => {
@@ -201,6 +232,22 @@ describe("development runner", () => {
     expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
   });
 
+  it("stops before application build when vector schema preparation fails", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_VECTOR_RUNTIME_SCHEMA_MODE: "fail",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 18, signal: null });
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(true);
+    expect(
+      existsSync(join(fixtureDirectory, "vector-runtime-schema.txt")),
+    ).toBe(false);
+    expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
+  });
+
   it("can skip the development schema push", async () => {
     const { result } = runDev([], {
       ...process.env,
@@ -212,7 +259,13 @@ describe("development runner", () => {
     });
 
     await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    expect(
+      existsSync(join(fixtureDirectory, "database-capabilities.txt")),
+    ).toBe(false);
     expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+    expect(
+      existsSync(join(fixtureDirectory, "vector-runtime-schema.txt")),
+    ).toBe(false);
   });
 
   it("requires explicit approval before pushing a remote database", async () => {

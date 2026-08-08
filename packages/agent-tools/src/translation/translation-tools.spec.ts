@@ -1,4 +1,4 @@
-import type { ToolExecutionContext } from "@cat/agent";
+import { ToolRegistry, type ToolExecutionContext } from "@cat/agent";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({
@@ -77,7 +77,9 @@ import { submitTranslationTool } from "./submit-translation.tool.ts";
 
 const createCtx = (
   overrides?: Partial<ToolExecutionContext["session"]>,
+  signal: AbortSignal = new AbortController().signal,
 ): ToolExecutionContext => ({
+  signal,
   session: {
     sessionId: "11111111-1111-4111-8111-111111111111",
     agentId: "agent-1",
@@ -157,15 +159,20 @@ describe("translation tools", () => {
 
     const result = await searchTmTool.execute({ text: "hello" }, createCtx());
 
-    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith({
-      text: "hello",
-      sourceLanguageId: "en-US",
-      translationLanguageId: "zh-CN",
-      memoryIds: [],
-      chunkIds: [],
-      minSimilarity: 0.72,
-      maxAmount: 5,
-    });
+    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: "hello",
+        sourceLanguageId: "en-US",
+        translationLanguageId: "zh-CN",
+        memoryIds: [],
+        chunkIds: [],
+        minSimilarity: 0.72,
+        maxAmount: 5,
+      },
+      expect.objectContaining({
+        traceId: "agent-tool:22222222-2222-4222-8222-222222222222:search-tm",
+      }),
+    );
     expect(mocked.getMemoryRecallCandidates).toHaveBeenCalledOnce();
     expect(result).toEqual({
       memories: [
@@ -203,6 +210,32 @@ describe("translation tools", () => {
     });
   });
 
+  it("cancels a non-cooperative built-in translation-memory read", async () => {
+    const controller = new AbortController();
+    const cause = new Error("read cancelled");
+    mocked.collectMemoryRecallOp.mockImplementationOnce(
+      async () => await new Promise<never>(() => undefined),
+    );
+    const registry = new ToolRegistry();
+    registry.register(searchTmTool);
+
+    const operation = registry.execute(
+      "search_tm",
+      { text: "hello" },
+      createCtx(undefined, controller.signal),
+    );
+    await vi.waitFor(() => {
+      expect(mocked.collectMemoryRecallOp).toHaveBeenCalledOnce();
+    });
+    controller.abort(cause);
+
+    await expect(operation).rejects.toBe(cause);
+    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
   it("prefers explicit language arguments over session fallback for termbase lookup", async () => {
     mocked.collectTermRecallOp.mockResolvedValue({});
     mocked.getTermRecallCandidates.mockReturnValue([]);
@@ -216,13 +249,19 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.collectTermRecallOp).toHaveBeenCalledWith({
-      text: "cat",
-      sourceLanguageId: "fr-FR",
-      translationLanguageId: "de-DE",
-      glossaryIds: [],
-      wordSimilarityThreshold: 0.3,
-    });
+    expect(mocked.collectTermRecallOp).toHaveBeenCalledWith(
+      {
+        text: "cat",
+        sourceLanguageId: "fr-FR",
+        translationLanguageId: "de-DE",
+        glossaryIds: [],
+        wordSimilarityThreshold: 0.3,
+      },
+      expect.objectContaining({
+        traceId:
+          "agent-tool:22222222-2222-4222-8222-222222222222:search-termbase",
+      }),
+    );
   });
 
   it("uses session language fallback for qa_check", async () => {
@@ -239,19 +278,24 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.qaOp).toHaveBeenCalledWith({
-      source: {
-        languageId: "en-US",
-        text: "hello",
-        tokens: ["hello"],
+    expect(mocked.qaOp).toHaveBeenCalledWith(
+      {
+        source: {
+          languageId: "en-US",
+          text: "hello",
+          tokens: ["hello"],
+        },
+        translation: {
+          languageId: "zh-CN",
+          text: "你好",
+          tokens: ["你好"],
+        },
+        glossaryIds: [],
       },
-      translation: {
-        languageId: "zh-CN",
-        text: "你好",
-        tokens: ["你好"],
-      },
-      glossaryIds: [],
-    });
+      expect.objectContaining({
+        traceId: "agent-tool:22222222-2222-4222-8222-222222222222:qa-check",
+      }),
+    );
     expect(result).toEqual({ passed: true, issues: [] });
   });
 
@@ -773,23 +817,82 @@ describe("translation tools", () => {
       { tag: "plugin-manager" },
       "VECTOR_STORAGE",
     );
-    expect(mocked.createTranslationOp).toHaveBeenCalledWith({
-      data: [
-        {
-          translatableElementId: 5,
-          text: "你好",
-          languageId: "zh-CN",
-        },
-      ],
-      translatorId: null,
-      memoryIds: [],
-      vectorizer,
-      vectorStorage,
-    });
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith(
+      {
+        data: [
+          {
+            translatableElementId: 5,
+            text: "你好",
+            languageId: "zh-CN",
+          },
+        ],
+        translatorId: null,
+        memoryIds: [],
+        vectorizer,
+        vectorStorage,
+      },
+      expect.objectContaining({
+        traceId:
+          "agent-tool:22222222-2222-4222-8222-222222222222:submit-translation",
+      }),
+    );
     expect(result).toEqual({
       translationIds: [88],
       memoryItemIds: [99],
     });
+  });
+
+  it("returns the committed built-in translation outcome after abort", async () => {
+    const controller = new AbortController();
+    const cause = new Error("write cancellation requested");
+    let settleWrite: (() => void) | undefined;
+    const write = new Promise<void>((resolve) => {
+      settleWrite = resolve;
+    });
+    mocked.executeQuery
+      .mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "project-1",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
+        chunkIds: [1],
+      })
+      .mockResolvedValueOnce({ id: "zh-CN" });
+    mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
+    mocked.selectFirstServiceImplementation.mockReturnValue(undefined);
+    mocked.createTranslationOp.mockImplementationOnce(async () => {
+      await write;
+      return { translationIds: [88], memoryItemIds: [] };
+    });
+    const registry = new ToolRegistry();
+    registry.register(submitTranslationTool);
+
+    let settled = false;
+    const operation = registry
+      .execute(
+        "submit_translation",
+        { elementId: 5, text: "你好" },
+        createCtx(undefined, controller.signal),
+      )
+      .finally(() => {
+        settled = true;
+      });
+    await vi.waitFor(() => {
+      expect(mocked.createTranslationOp).toHaveBeenCalledOnce();
+    });
+    controller.abort(cause);
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    settleWrite?.();
+    await expect(operation).resolves.toEqual({
+      translationIds: [88],
+      memoryItemIds: [],
+    });
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ signal: controller.signal }),
+    );
   });
 
   it("submits translations even when vector services are unavailable", async () => {
@@ -816,19 +919,25 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.createTranslationOp).toHaveBeenCalledWith({
-      data: [
-        {
-          translatableElementId: 10,
-          text: "提示",
-          languageId: "zh-CN",
-        },
-      ],
-      translatorId: null,
-      memoryIds: [],
-      vectorizer: undefined,
-      vectorStorage: undefined,
-    });
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith(
+      {
+        data: [
+          {
+            translatableElementId: 10,
+            text: "提示",
+            languageId: "zh-CN",
+          },
+        ],
+        translatorId: null,
+        memoryIds: [],
+        vectorizer: undefined,
+        vectorStorage: undefined,
+      },
+      expect.objectContaining({
+        traceId:
+          "agent-tool:22222222-2222-4222-8222-222222222222:submit-translation",
+      }),
+    );
     expect(result).toEqual({
       translationIds: [108],
       memoryItemIds: [209],

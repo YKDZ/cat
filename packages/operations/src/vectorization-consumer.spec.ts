@@ -1,7 +1,7 @@
 import { InMemoryTaskQueue } from "@cat/core";
 import type { VectorizationTask } from "@cat/server-shared";
 import { ServiceImplementationReferenceSchema } from "@cat/shared";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Mock @cat/domain ────────────────────────────────────────────────────────
 
@@ -64,8 +64,11 @@ const makeTask = (
   ...overrides,
 });
 
-afterEach(() => {
-  vi.clearAllMocks();
+beforeEach(() => {
+  mockPublish.mockReset().mockResolvedValue(undefined);
+  mockGetDbHandle.mockReset().mockResolvedValue({ client: {} });
+  mockExecuteCommand.mockReset().mockResolvedValue(undefined);
+  mockVectorizeToChunkSetOp.mockReset();
 });
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -101,6 +104,164 @@ describe("processVectorizationBatch", () => {
 
     // Task should be acked (pendingCount = 0)
     expect(await queue.pendingCount()).toBe(0);
+  });
+
+  it("continues a batch after a completed-event publication failure without redoing acknowledged storage", async () => {
+    const queue = new InMemoryTaskQueue<VectorizationTask>();
+    const publishFailure = new Error("completed event unavailable");
+    mockVectorizeToChunkSetOp
+      .mockResolvedValueOnce({ chunkSetIds: [100, 200] })
+      .mockResolvedValueOnce({ chunkSetIds: [300, 400] });
+    mockPublish.mockRejectedValueOnce(publishFailure);
+
+    await queue.enqueue([
+      makeTask({ taskId: "first" }),
+      makeTask({ taskId: "second" }),
+    ]);
+
+    await expect(processVectorizationBatch(queue, 10)).rejects.toMatchObject({
+      errors: [publishFailure],
+    });
+    expect(await queue.pendingCount()).toBe(0);
+    expect(mockVectorizeToChunkSetOp).toHaveBeenCalledTimes(2);
+    expect(mockExecuteCommand).toHaveBeenCalledTimes(2);
+    expect(mockPublish).toHaveBeenCalledTimes(2);
+
+    await expect(processVectorizationBatch(queue, 10)).resolves.toBeUndefined();
+    expect(mockVectorizeToChunkSetOp).toHaveBeenCalledTimes(2);
+  });
+
+  it("collects an acknowledgement failure and continues the remaining batch", async () => {
+    const queue = new InMemoryTaskQueue<VectorizationTask>();
+    const acknowledgementFailure = new Error("ack unavailable");
+    const acknowledge = queue.ack;
+    const acknowledgeSpy = vi
+      .spyOn(queue, "ack")
+      .mockRejectedValueOnce(acknowledgementFailure)
+      .mockImplementation(acknowledge);
+    mockVectorizeToChunkSetOp
+      .mockResolvedValueOnce({ chunkSetIds: [100, 200] })
+      .mockResolvedValueOnce({ chunkSetIds: [300, 400] });
+    await queue.enqueue([
+      makeTask({ taskId: "first" }),
+      makeTask({ taskId: "second" }),
+    ]);
+    await expect(processVectorizationBatch(queue, 10)).rejects.toMatchObject({
+      errors: [acknowledgementFailure],
+    });
+    expect(mockVectorizeToChunkSetOp).toHaveBeenCalledTimes(2);
+    expect(mockExecuteCommand).toHaveBeenCalledTimes(2);
+    expect(acknowledgeSpy).toHaveBeenCalledTimes(2);
+    expect(mockPublish).toHaveBeenCalledOnce();
+    expect(mockPublish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "vectorization:completed",
+        payload: expect.objectContaining({ taskId: "second" }),
+      }),
+    );
+  });
+
+  it("collects a nack failure with its task error and continues the remaining batch", async () => {
+    const queue = new InMemoryTaskQueue<VectorizationTask>();
+    const vectorizationFailure = new Error("vectorization unavailable");
+    const nackFailure = new Error("nack unavailable");
+    vi.spyOn(queue, "nack").mockRejectedValueOnce(nackFailure);
+    mockVectorizeToChunkSetOp
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockResolvedValueOnce({ chunkSetIds: [300, 400] });
+    await queue.enqueue([
+      makeTask({ taskId: "first" }),
+      makeTask({ taskId: "second" }),
+    ]);
+    await expect(processVectorizationBatch(queue, 10)).rejects.toMatchObject({
+      errors: [
+        expect.objectContaining({
+          errors: [vectorizationFailure, nackFailure],
+        }),
+      ],
+    });
+    expect(mockVectorizeToChunkSetOp).toHaveBeenCalledTimes(2);
+    expect(mockExecuteCommand).toHaveBeenCalledOnce();
+    expect(mockPublish).toHaveBeenCalledOnce();
+    expect(mockPublish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "vectorization:completed",
+        payload: expect.objectContaining({ taskId: "second" }),
+      }),
+    );
+  });
+
+  it("continues a batch after a terminal failed-event publication failure", async () => {
+    const queue = new InMemoryTaskQueue<VectorizationTask>();
+    const vectorizationFailure = new Error("vectorization failed");
+    const publishFailure = new Error("failed event unavailable");
+    mockVectorizeToChunkSetOp
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockResolvedValueOnce({ chunkSetIds: [300, 400] });
+
+    await queue.enqueue([makeTask({ taskId: "first" })]);
+    await expect(processVectorizationBatch(queue, 10)).resolves.toBeUndefined();
+    await expect(processVectorizationBatch(queue, 10)).resolves.toBeUndefined();
+    expect(await queue.pendingCount()).toBe(1);
+
+    mockPublish.mockRejectedValueOnce(publishFailure);
+    await queue.enqueue([makeTask({ taskId: "second" })]);
+    expect(await queue.pendingCount()).toBe(2);
+
+    await expect(processVectorizationBatch(queue, 10)).rejects.toMatchObject({
+      errors: [
+        expect.objectContaining({
+          errors: [vectorizationFailure, publishFailure],
+        }),
+      ],
+    });
+    expect(await queue.pendingCount()).toBe(0);
+    expect(mockVectorizeToChunkSetOp).toHaveBeenCalledTimes(4);
+    expect(mockExecuteCommand).toHaveBeenCalledTimes(2);
+    expect(mockPublish).toHaveBeenCalledTimes(2);
+
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    const eventTypes = mockPublish.mock.calls.map(
+      (call) => (call[0] as { type: string }).type,
+    );
+    expect(eventTypes).toEqual([
+      "vectorization:failed",
+      "vectorization:completed",
+    ]);
+  });
+
+  it("collects a terminal status update failure with its task error and continues the remaining batch", async () => {
+    const queue = new InMemoryTaskQueue<VectorizationTask>();
+    const vectorizationFailure = new Error("vectorization failed");
+    const statusUpdateFailure = new Error("status update unavailable");
+    mockVectorizeToChunkSetOp
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockRejectedValueOnce(vectorizationFailure)
+      .mockResolvedValueOnce({ chunkSetIds: [300, 400] });
+    await queue.enqueue([makeTask({ taskId: "first" })]);
+    await expect(processVectorizationBatch(queue, 10)).resolves.toBeUndefined();
+    await expect(processVectorizationBatch(queue, 10)).resolves.toBeUndefined();
+    mockExecuteCommand.mockRejectedValueOnce(statusUpdateFailure);
+    await queue.enqueue([makeTask({ taskId: "second" })]);
+    await expect(processVectorizationBatch(queue, 10)).rejects.toMatchObject({
+      errors: [
+        expect.objectContaining({
+          errors: [vectorizationFailure, statusUpdateFailure],
+        }),
+      ],
+    });
+    expect(mockVectorizeToChunkSetOp).toHaveBeenCalledTimes(4);
+    expect(mockExecuteCommand).toHaveBeenCalledTimes(2);
+    expect(mockPublish).toHaveBeenCalledOnce();
+    expect(mockPublish).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "vectorization:completed",
+        payload: expect.objectContaining({ taskId: "second" }),
+      }),
+    );
   });
 
   it("nacks the task on vectorization failure and does not publish failed if retryCount < MAX_RETRIES-1", async () => {

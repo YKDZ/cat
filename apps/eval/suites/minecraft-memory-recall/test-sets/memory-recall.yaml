@@ -379,12 +379,12 @@ cases:
         expectedTranslation: "Steve被戳死了"
     negativeMemories: []
   - id: mc-mem-041
-    inputText: "允许实体乘客通过下界和末地传送门传送"
+    inputText: "允许被骑乘实体通过下界传送门、末地传送门和末地折跃门传送。"
     sourceLanguage: zh-Hans
     targetLanguage: en
     expectedMemories:
       - memoryItemRef: "mem:gamerule:gamerule_entitiesWithPassengersCanUsePortals_description_zh"
         expectedSource: "允许被骑乘的实体通过下界传送门、末地传送门和末地折跃门传送。"
         expectedTranslation: "Allow entities with passengers to teleport through Nether Portals, End Portals, and End Gateways."
-        requiredChannels: ["trgm"]
+        requiredChannels: ["trgm", "semantic"]
     negativeMemories: []

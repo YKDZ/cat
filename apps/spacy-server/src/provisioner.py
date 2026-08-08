@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import importlib.metadata
 import json
 import os
@@ -11,6 +12,7 @@ import subprocess
 import sys
 import sysconfig
 import time
+import urllib.error
 import urllib.request
 import uuid
 from collections.abc import Callable, Iterator
@@ -41,26 +43,37 @@ from .generations import (
     parse_plan_bytes,
     site_packages_digest,
 )
+from .startup_budget import PROVISION_TIMEOUT_SECONDS
 
 MANIFEST_SCHEMA_VERSION = "1"
-DOWNLOAD_TIMEOUT_SECONDS = 30.0
+DOWNLOAD_TIMEOUT_SECONDS = 300.0
+DOWNLOAD_ATTEMPT_TIMEOUT_SECONDS = 120.0
+DOWNLOAD_MAX_ATTEMPTS = 3
 COPY_CHUNK_SIZE = 1024 * 1024
 
 
 class ArtifactError(RuntimeError):
-    pass
+    def __init__(self, message: str, *, retryable: bool = False) -> None:
+        super().__init__(message)
+        self.retryable = retryable
 
 
 class ModelValidationError(RuntimeError):
     pass
 
 
+class HttpHeaders(Protocol):
+    def get(self, key: str, default: str | None = None) -> str | None: ...
+
+
 class HttpResponse(Protocol):
-    headers: object
+    headers: HttpHeaders
 
     def read(self, size: int = -1) -> bytes: ...
 
     def geturl(self) -> str: ...
+
+    def getcode(self) -> int | None: ...
 
     def __enter__(self) -> HttpResponse: ...
 
@@ -73,8 +86,8 @@ class ValidatedModel:
     pipeline_version: str
 
 
-InstallWheel = Callable[[Path, Path], None]
-ValidateModel = Callable[[ModelPlan, Path], ValidatedModel]
+InstallWheel = Callable[[Path, Path, float], None]
+ValidateModel = Callable[[ModelPlan, Path, float], ValidatedModel]
 
 
 def load_hash_locked_external_plan(path: Path, expected_sha256: str) -> ProvisionPlan:
@@ -96,7 +109,7 @@ def load_hash_locked_external_plan(path: Path, expected_sha256: str) -> Provisio
     return parse_plan_bytes(data, path, allow_local=True)
 
 
-def pip_install_wheel(wheel: Path, site_packages: Path) -> None:
+def pip_install_wheel(wheel: Path, site_packages: Path, timeout_seconds: float) -> None:
     site_packages.mkdir(parents=True, exist_ok=True)
     subprocess.run(
         [
@@ -120,10 +133,13 @@ def pip_install_wheel(wheel: Path, site_packages: Path) -> None:
             "PIP_NO_CACHE_DIR": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
         },
+        timeout=timeout_seconds,
     )
 
 
-def validate_installed_model(entry: ModelPlan, site_packages: Path) -> ValidatedModel:
+def validate_installed_model(
+    entry: ModelPlan, site_packages: Path, timeout_seconds: float
+) -> ValidatedModel:
     try:
         result = subprocess.run(
             [sys.executable, "-m", "src.model_validator", str(site_packages)],
@@ -131,10 +147,15 @@ def validate_installed_model(entry: ModelPlan, site_packages: Path) -> Validated
             capture_output=True,
             check=True,
             env={**os.environ, "PYTHONDONTWRITEBYTECODE": "1"},
+            timeout=timeout_seconds,
         )
         value = json.loads(
             result.stdout.decode("utf-8"), object_pairs_hook=_unique_object
         )
+    except subprocess.TimeoutExpired as error:
+        raise ModelValidationError(
+            f"Model {entry.distribution} isolated validation timed out."
+        ) from error
     except (
         subprocess.SubprocessError,
         UnicodeDecodeError,
@@ -183,19 +204,26 @@ class Provisioner:
         self._lock_timeout_seconds = lock_timeout_seconds
 
     def provision(self, plan: ProvisionPlan) -> str:
-        with self.store.provision_lock(timeout_seconds=self._lock_timeout_seconds):
+        deadline = time.monotonic() + PROVISION_TIMEOUT_SECONDS
+        with self.store.provision_lock(
+            timeout_seconds=min(
+                self._lock_timeout_seconds,
+                self._remaining_seconds(deadline, "provision lock"),
+            )
+        ):
             self.store.cleanup_staging()
-            reusable = self._find_reusable(plan)
+            reusable = self._find_reusable(plan, deadline)
             if reusable is not None:
                 storage_key, identifier = reusable
                 self.store.activate(storage_key)
                 self._best_effort_cleanup()
                 return identifier
-            return self._build_activate_cleanup(plan)
+            return self._build_activate_cleanup(plan, deadline)
 
     def _build_activate_cleanup(
         self,
         plan: ProvisionPlan,
+        deadline: float,
     ) -> str:
         storage_key = f"generation-{uuid.uuid4().hex}"
         staging = self.store.generations / f".staging-{storage_key}"
@@ -209,13 +237,13 @@ class Provisioner:
             for entry in plan.models:
                 filename = self._artifact_filename(entry)
                 destination = artifacts / filename
-                self._copy_artifact(entry, destination)
+                self._copy_artifact(entry, destination, deadline=deadline)
                 self._validate_wheel(entry, destination)
                 local_wheels.append((entry, destination))
             for _entry, wheel in local_wheels:
-                self._install_wheel(wheel, site_packages)
+                self._install_with_deadline(wheel, site_packages, deadline)
             validated = [
-                (entry, self._validate_model(entry, site_packages))
+                (entry, self._validate_with_deadline(entry, site_packages, deadline))
                 for entry, _wheel in local_wheels
             ]
             installed_digest = site_packages_digest(site_packages)
@@ -242,50 +270,38 @@ class Provisioner:
                 make_tree_owner_writable(staging)
                 shutil.rmtree(staging)
 
-    def _copy_artifact(self, entry: ModelPlan, destination: Path) -> None:
-        deadline = time.monotonic() + DOWNLOAD_TIMEOUT_SECONDS
+    def _copy_artifact(
+        self, entry: ModelPlan, destination: Path, *, deadline: float | None = None
+    ) -> None:
+        provisioning_deadline = deadline or (
+            time.monotonic() + PROVISION_TIMEOUT_SECONDS
+        )
+        deadline = min(
+            provisioning_deadline,
+            time.monotonic() + DOWNLOAD_TIMEOUT_SECONDS,
+        )
         try:
-            with self._open_source(entry, deadline) as source:
-                headers = getattr(source, "headers", None)
-                if headers is not None:
-                    length_value = headers.get("Content-Length")
-                    if length_value is not None and int(length_value) > entry.max_bytes:
-                        raise ArtifactError(
-                            f"Artifact for {entry.distribution} exceeds its size limit."
-                        )
-                    final_url = getattr(source, "geturl", lambda: "")()
-                    if urlparse(final_url).scheme != "https":
-                        raise ArtifactError(
-                            "HTTPS artifact redirected to a non-HTTPS URL."
-                        )
-                digest = hashlib.sha256()
-                written = 0
-                with destination.open("xb") as output:
-                    while True:
-                        remaining = deadline - time.monotonic()
-                        if remaining <= 0:
-                            raise ArtifactError(
-                                f"Artifact download timed out for {entry.distribution}."
-                            )
-                        self._set_read_timeout(source, remaining)
-                        chunk = source.read(COPY_CHUNK_SIZE)
-                        if time.monotonic() > deadline:
-                            raise ArtifactError(
-                                f"Artifact download timed out for {entry.distribution}."
-                            )
-                        if not chunk:
-                            break
-                        written += len(chunk)
-                        if written > entry.max_bytes:
-                            raise ArtifactError(
-                                f"Artifact for {entry.distribution} "
-                                "exceeds its size limit."
-                            )
-                        digest.update(chunk)
-                        output.write(chunk)
-                    output.flush()
-                    os.fsync(output.fileno())
-            actual = digest.hexdigest()
+            for attempt in range(DOWNLOAD_MAX_ATTEMPTS):
+                attempt_deadline = min(
+                    deadline,
+                    time.monotonic() + DOWNLOAD_ATTEMPT_TIMEOUT_SECONDS,
+                )
+                try:
+                    self._copy_artifact_attempt(entry, destination, attempt_deadline)
+                    break
+                except ArtifactError as error:
+                    if (
+                        not error.retryable
+                        or entry.source.kind != "https"
+                        or attempt + 1 == DOWNLOAD_MAX_ATTEMPTS
+                        or time.monotonic() >= deadline
+                    ):
+                        raise
+            else:
+                raise ArtifactError(
+                    f"Artifact download timed out for {entry.distribution}."
+                )
+            actual = self._artifact_digest(destination)
             if actual != entry.sha256:
                 raise ArtifactError(
                     f"Artifact SHA-256 mismatch for {entry.distribution}: "
@@ -300,9 +316,144 @@ class Provisioner:
                 f"Could not stage artifact for {entry.distribution}."
             ) from error
 
+    def _copy_artifact_attempt(
+        self, entry: ModelPlan, destination: Path, deadline: float
+    ) -> None:
+        offset = destination.stat().st_size if destination.exists() else 0
+        with self._open_source(entry, deadline, offset=offset) as source:
+            if entry.source.kind == "https":
+                offset = self._validate_remote_response(
+                    entry, cast(HttpResponse, source), offset
+                )
+                if offset == 0 and destination.exists():
+                    destination.unlink()
+            written = offset
+            with destination.open("ab") as output:
+                while True:
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        raise ArtifactError(
+                            f"Artifact download timed out for {entry.distribution}.",
+                            retryable=entry.source.kind == "https",
+                        )
+                    self._set_read_timeout(source, remaining)
+                    try:
+                        chunk = source.read(COPY_CHUNK_SIZE)
+                    except http.client.IncompleteRead as error:
+                        written = self._write_download_chunk(
+                            entry, output, written, error.partial
+                        )
+                        output.flush()
+                        os.fsync(output.fileno())
+                        raise ArtifactError(
+                            f"Could not download {entry.distribution}.",
+                            retryable=entry.source.kind == "https",
+                        ) from error
+                    except (OSError, ValueError) as error:
+                        raise ArtifactError(
+                            f"Could not download {entry.distribution}.",
+                            retryable=entry.source.kind == "https",
+                        ) from error
+                    if time.monotonic() > deadline:
+                        raise ArtifactError(
+                            f"Artifact download timed out for {entry.distribution}.",
+                            retryable=entry.source.kind == "https",
+                        )
+                    if not chunk:
+                        break
+                    written = self._write_download_chunk(entry, output, written, chunk)
+                output.flush()
+                os.fsync(output.fileno())
+
+    @staticmethod
+    def _write_download_chunk(
+        entry: ModelPlan, output: BinaryIO, written: int, chunk: bytes
+    ) -> int:
+        updated = written + len(chunk)
+        if updated > entry.max_bytes:
+            raise ArtifactError(
+                f"Artifact for {entry.distribution} exceeds its size limit."
+            )
+        output.write(chunk)
+        return updated
+
+    @staticmethod
+    def _remaining_seconds(deadline: float, operation: str) -> float:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise ArtifactError(f"Provisioning timed out during {operation}.")
+        return remaining
+
+    def _install_with_deadline(
+        self, wheel: Path, site_packages: Path, deadline: float
+    ) -> None:
+        try:
+            self._install_wheel(
+                wheel,
+                site_packages,
+                self._remaining_seconds(deadline, "wheel installation"),
+            )
+        except subprocess.TimeoutExpired as error:
+            raise ArtifactError("Wheel installation timed out.") from error
+
+    def _validate_with_deadline(
+        self, entry: ModelPlan, site_packages: Path, deadline: float
+    ) -> ValidatedModel:
+        try:
+            return self._validate_model(
+                entry,
+                site_packages,
+                self._remaining_seconds(deadline, "model validation"),
+            )
+        except subprocess.TimeoutExpired as error:
+            raise ModelValidationError(
+                f"Model {entry.distribution} isolated validation timed out."
+            ) from error
+
+    @staticmethod
+    def _artifact_digest(path: Path) -> str:
+        digest = hashlib.sha256()
+        with path.open("rb") as artifact:
+            while chunk := artifact.read(COPY_CHUNK_SIZE):
+                digest.update(chunk)
+        return digest.hexdigest()
+
+    @staticmethod
+    def _validate_remote_response(
+        entry: ModelPlan, source: HttpResponse, offset: int
+    ) -> int:
+        headers = source.headers
+        if urlparse(source.geturl()).scheme != "https":
+            raise ArtifactError("HTTPS artifact redirected to a non-HTTPS URL.")
+        status = getattr(source, "status", None)
+        if status is None:
+            status = source.getcode()
+        if offset == 0:
+            effective_offset = 0
+        else:
+            content_range = headers.get("Content-Range") or ""
+            if status == 206 and content_range.startswith(f"bytes {offset}-"):
+                effective_offset = offset
+            elif status == 200:
+                effective_offset = 0
+            else:
+                raise ArtifactError(
+                    f"Artifact range response is invalid for {entry.distribution}.",
+                    retryable=True,
+                )
+        length_value = headers.get("Content-Length")
+        if (
+            length_value is not None
+            and effective_offset + int(length_value) > entry.max_bytes
+        ):
+            raise ArtifactError(
+                f"Artifact for {entry.distribution} exceeds its size limit."
+            )
+        return effective_offset
+
     @contextmanager
     def _open_source(
-        self, entry: ModelPlan, deadline: float
+        self, entry: ModelPlan, deadline: float, *, offset: int = 0
     ) -> Iterator[BinaryIO | HttpResponse]:
         if entry.source.kind == "local":
             path = cast(Path, entry.source.location)
@@ -368,12 +519,15 @@ class Provisioner:
             finally:
                 os.close(directory_descriptor)
             return
+        headers = {
+            "Accept-Encoding": "identity",
+            "User-Agent": "cat-spacy-provisioner/1",
+        }
+        if offset > 0:
+            headers["Range"] = f"bytes={offset}-"
         request = urllib.request.Request(
             cast(str, entry.source.location),
-            headers={
-                "Accept-Encoding": "identity",
-                "User-Agent": "cat-spacy-provisioner/1",
-            },
+            headers=headers,
         )
         try:
             remaining = deadline - time.monotonic()
@@ -388,8 +542,15 @@ class Provisioner:
                 yield response
         except ArtifactError:
             raise
-        except Exception as error:
-            raise ArtifactError(f"Could not download {entry.distribution}.") from error
+        except urllib.error.HTTPError as error:
+            raise ArtifactError(
+                f"Could not download {entry.distribution}.",
+                retryable=error.code in {408, 425, 429} or error.code >= 500,
+            ) from error
+        except (OSError, ValueError) as error:
+            raise ArtifactError(
+                f"Could not download {entry.distribution}.", retryable=True
+            ) from error
 
     @staticmethod
     def _set_read_timeout(source: BinaryIO | HttpResponse, timeout: float) -> None:
@@ -399,7 +560,9 @@ class Provisioner:
         if socket is not None:
             socket.settimeout(timeout)
 
-    def _find_reusable(self, plan: ProvisionPlan) -> tuple[str, str] | None:
+    def _find_reusable(
+        self, plan: ProvisionPlan, deadline: float
+    ) -> tuple[str, str] | None:
         candidates: list[str] = []
         try:
             state = self.store.read_state()
@@ -414,12 +577,14 @@ class Provisioner:
             if path.is_dir() and not path.name.startswith(".staging-")
         )
         for storage_key in dict.fromkeys(candidates):
-            identifier = self._reusable_identifier(storage_key, plan)
+            identifier = self._reusable_identifier(storage_key, plan, deadline)
             if identifier is not None:
                 return storage_key, identifier
         return None
 
-    def _reusable_identifier(self, storage_key: str, plan: ProvisionPlan) -> str | None:
+    def _reusable_identifier(
+        self, storage_key: str, plan: ProvisionPlan, deadline: float
+    ) -> str | None:
         path = self.store.generation_path(storage_key)
         try:
             manifest = json.loads(
@@ -453,7 +618,12 @@ class Provisioner:
             return None
         try:
             validated = [
-                (entry, self._validate_model(entry, path / "site-packages"))
+                (
+                    entry,
+                    self._validate_with_deadline(
+                        entry, path / "site-packages", deadline
+                    ),
+                )
                 for entry in plan.models
             ]
         except ModelValidationError:

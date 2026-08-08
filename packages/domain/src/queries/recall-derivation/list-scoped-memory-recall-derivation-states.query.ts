@@ -9,6 +9,10 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
+import {
+  NormalizedLanguageIdSchema,
+  type NormalizedLanguageId,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -16,15 +20,19 @@ import type { Query } from "#/types.ts";
 export const ListScopedMemoryRecallDerivationStatesQuerySchema = z.strictObject(
   {
     memoryIds: z.array(z.uuidv4()),
-    sourceLanguageId: z.string().min(1),
-    translationLanguageId: z.string().min(1),
+    sourceLanguageId: NormalizedLanguageIdSchema,
+    translationLanguageId: NormalizedLanguageIdSchema,
   },
 );
+
+export type ListScopedMemoryRecallDerivationStatesQuery = z.input<
+  typeof ListScopedMemoryRecallDerivationStatesQuerySchema
+>;
 
 export type ScopedRecallDerivationStateView = {
   targetId: string;
   stateId: number | null;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   status: typeof recallDerivationState.$inferSelect.status | null;
   demandRevision: number | null;
   blocker: typeof recallDerivationState.$inferSelect.blocker | null;
@@ -43,10 +51,11 @@ export type ScopedRecallDerivationStateView = {
 };
 
 export const listScopedMemoryRecallDerivationStates: Query<
-  z.infer<typeof ListScopedMemoryRecallDerivationStatesQuerySchema>,
+  ListScopedMemoryRecallDerivationStatesQuery,
   ScopedRecallDerivationStateView[]
 > = async (ctx, input) => {
-  if (input.memoryIds.length === 0) return [];
+  const query = ListScopedMemoryRecallDerivationStatesQuerySchema.parse(input);
+  if (query.memoryIds.length === 0) return [];
   const sourceString = aliasedTable(vectorizedString, "scopedSourceString");
   const translationString = aliasedTable(
     vectorizedString,
@@ -56,7 +65,7 @@ export const listScopedMemoryRecallDerivationStates: Query<
     .select({
       targetId: sql<string>`${memoryItem.id}::text`,
       stateId: recallDerivationState.id,
-      languageId: sql<string>`${input.sourceLanguageId}`,
+      languageId: sql<NormalizedLanguageId>`${query.sourceLanguageId}`,
       status: recallDerivationState.status,
       demandRevision: recallDerivationState.demandRevision,
       blocker: recallDerivationState.blocker,
@@ -78,20 +87,20 @@ export const listScopedMemoryRecallDerivationStates: Query<
       and(
         eq(recallDerivationState.targetKind, "MEMORY_ITEM"),
         sql`${recallDerivationState.targetId} = ${memoryItem.id}::text`,
-        eq(recallDerivationState.languageId, input.sourceLanguageId),
+        eq(recallDerivationState.languageId, query.sourceLanguageId),
       ),
     )
     .where(
       and(
-        inArray(memoryItem.memoryId, input.memoryIds),
+        inArray(memoryItem.memoryId, query.memoryIds),
         or(
           and(
-            eq(sourceString.languageId, input.sourceLanguageId),
-            eq(translationString.languageId, input.translationLanguageId),
+            eq(sourceString.languageId, query.sourceLanguageId),
+            eq(translationString.languageId, query.translationLanguageId),
           ),
           and(
-            eq(translationString.languageId, input.sourceLanguageId),
-            eq(sourceString.languageId, input.translationLanguageId),
+            eq(translationString.languageId, query.sourceLanguageId),
+            eq(sourceString.languageId, query.translationLanguageId),
           ),
         ),
       ),

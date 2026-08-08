@@ -7,6 +7,7 @@ import {
 import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
+import { requireWorkflowDatabase } from "#/graph/dsl/database-context.ts";
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 // ─── Input Schema ────────────────────────────────────────────────────────────
@@ -308,7 +309,12 @@ export const termAlignmentGraph = defineGraph({
         config: "config",
       },
       handler: async (input, ctx) => {
-        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const opCtx = {
+          db: requireWorkflowDatabase(ctx),
+          pluginManager: ctx.pluginManager,
+          traceId: ctx.runId,
+          signal: ctx.signal,
+        };
         const statCfg = input.config?.statistical;
 
         if (statCfg?.enabled === false) {

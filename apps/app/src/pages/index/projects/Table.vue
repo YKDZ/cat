@@ -15,11 +15,13 @@ import { useI18n } from "vue-i18n";
 import { createDataTableLabels } from "#/utils/data-table.ts";
 import { formatDate } from "#/utils/format.ts";
 import { clientLogger } from "#/utils/logger.ts";
+import { useRequestOwnership } from "#/utils/vue.ts";
 
 import { onRequestProjects, type ProjectListItem } from "./Table.telefunc.ts";
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const requestOwnership = useRequestOwnership();
 
 const projects = ref<ProjectListItem[]>([]);
 const pageIndex = ref(0);
@@ -55,18 +57,22 @@ const fetchProjects = async () => {
   if (!ctx.user) return;
 
   isLoading.value = true;
-  try {
-    const result = await onRequestProjects(pageIndex.value, pageSize.value);
-    projects.value = result.data;
-    total.value = result.total;
-  } catch (err) {
+  const result = await requestOwnership.run(() =>
+    onRequestProjects(pageIndex.value, pageSize.value),
+  );
+  if (result.status === "released") return;
+  if (result.status === "failure") {
     clientLogger
       .child({ component: "project-table" })
-      .error("Failed to fetch projects", { error: err });
-  } finally {
-    isLoading.value = false;
+      .error("Failed to fetch projects", { error: result.error });
+  } else {
+    projects.value = result.value.data;
+    total.value = result.value.total;
   }
+  isLoading.value = false;
 };
+
+requestOwnership.onResume(() => void fetchProjects());
 
 onMounted(() => {
   fetchProjects();

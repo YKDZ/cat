@@ -1,4 +1,5 @@
 import { serverLogger as logger } from "@cat/server-shared";
+import type { LanguageAnalysisToken } from "@cat/shared";
 
 import type { RawResult, RawTermResult } from "../precision/types.ts";
 import { candidateKey } from "../precision/types.ts";
@@ -18,12 +19,7 @@ const toHnfCandidate = (r: RawTermResult): HnfCandidate => ({
  */
 export const applyTermHnfPre = (
   results: RawResult[],
-  sourceLanguageAnalysisTokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  sourceLanguageAnalysisTokens: LanguageAnalysisToken[],
   queryText: string,
 ): HardNegativeRemoval[] => {
   if (results.length === 0) return [];

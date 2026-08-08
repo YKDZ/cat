@@ -1,4 +1,3 @@
-import type { OperationContext } from "@cat/domain";
 import {
   LanguageAnalysisBatchResultSchema,
   LanguageAnalysisVersionSchema,
@@ -7,7 +6,10 @@ import {
 import * as z from "zod";
 
 import { type HostValidatedLanguageAnalysisBatchResult } from "./language-analysis-execution.ts";
-import { executeRequiredLanguageAnalysisBatch } from "./language-analysis-requirement.ts";
+import {
+  executeRequiredLanguageAnalysisBatch,
+  type LanguageAnalysisOperationContext,
+} from "./language-analysis-requirement.ts";
 
 export const LanguageAnalysisBatchInputSchema = z.strictObject({
   items: z
@@ -34,7 +36,7 @@ export type LanguageAnalysisBatchOutput =
 /** Performs batch Language Analysis and validates each runtime attestation. */
 export const languageAnalyzeBatchOp = async (
   input: LanguageAnalysisBatchInput,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<LanguageAnalysisBatchOutput> => {
   const data = LanguageAnalysisBatchInputSchema.parse(input);
   return await executeRequiredLanguageAnalysisBatch(data, ctx);

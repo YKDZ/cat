@@ -172,7 +172,11 @@ function makeCaptureRegistry(): {
 
 async function collectEvents(runtime: AgentRuntime): Promise<string[]> {
   const events: string[] = [];
-  for await (const event of runtime.runLoop(MOCK_SESSION_ID, MOCK_RUN_ID)) {
+  for await (const event of runtime.runLoop(
+    MOCK_SESSION_ID,
+    MOCK_RUN_ID,
+    new AbortController().signal,
+  )) {
     events.push(event.type);
   }
   return events;

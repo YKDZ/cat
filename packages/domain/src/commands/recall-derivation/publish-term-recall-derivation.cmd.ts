@@ -10,6 +10,7 @@ import {
 } from "@cat/db";
 import {
   CanonicalInputVersionSchema,
+  NormalizedLanguageIdSchema,
   RecallDerivationReferenceSchema,
   RecallDerivationVersionSchema,
   TermRecallVariantDraftSchema,
@@ -24,7 +25,7 @@ export const PublishTermRecallDerivationCommandSchema = z
   .strictObject({
     targetId: z.string().regex(/^\d+$/),
     conceptId: z.int().positive().nullable(),
-    languageId: z.string().min(1),
+    languageId: NormalizedLanguageIdSchema,
     demandRevision: z.int().positive(),
     executionEpoch: z.int().positive(),
     leaseToken: z.uuidv4(),

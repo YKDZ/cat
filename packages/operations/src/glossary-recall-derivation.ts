@@ -73,7 +73,7 @@ const computeGlossaryRecallDerivationVersion = async (
     tokenizerPipeline: pipeline.map((entry) => entry.descriptor),
     normalization: {
       caseFolding: "Intl.toLocaleLowerCase",
-      lemmaJoin: "cat.language-analysis-normalization/v1",
+      lemmaJoin: "cat.language-analysis-normalization/v2",
     },
     rules: {
       maxWindowSize: MAX_WINDOW_SIZE,
@@ -132,6 +132,7 @@ export const probeGlossaryRecallDependency = async (input: {
           },
           {
             ...input.ctx,
+            db: input.db,
             traceId:
               input.ctx?.traceId ??
               `glossary-recall-dependency-probe:${input.languageId}`,
@@ -297,6 +298,7 @@ export const deriveGlossaryRecall = async (
         ],
       },
       {
+        db,
         traceId: `recall-derivation:${claim.id}:${claim.executionEpoch}`,
         pluginManager,
         ...(signal ? { signal } : {}),
@@ -328,6 +330,7 @@ export const deriveGlossaryRecall = async (
         ],
       },
       {
+        db,
         traceId: `recall-derivation:${claim.id}:${claim.executionEpoch}`,
         pluginManager,
         ...(signal ? { signal } : {}),
@@ -349,6 +352,7 @@ export const deriveGlossaryRecall = async (
       items: terms.map((entry) => ({ id: String(entry.id), text: entry.text })),
     },
     {
+      db,
       traceId: `recall-derivation:${claim.id}:${claim.executionEpoch}`,
       pluginManager,
       ...(signal ? { signal } : {}),

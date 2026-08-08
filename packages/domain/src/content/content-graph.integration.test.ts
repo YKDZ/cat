@@ -9,7 +9,7 @@ import {
   user,
   vectorizedString,
 } from "@cat/db";
-import { beforeAll, describe, expect, test } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
   createContentNodeUnderParent,
@@ -43,6 +43,10 @@ beforeAll(async () => {
       email: `graph-${CREATOR_ID}@test.local`,
     })
     .onConflictDoNothing();
+});
+
+afterAll(async () => {
+  await testDb?.cleanup();
 });
 
 describe("content graph domain commands", () => {

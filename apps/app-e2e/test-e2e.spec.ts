@@ -49,9 +49,9 @@ const runDirectE2E = async (
 const serializedLease = (redisUrl: string): string =>
   JSON.stringify({
     coordinates: {
-      databaseUrl: "postgresql://postgres:postgres@127.0.0.1:5432/cat",
+      databaseUrl: "postgresql://postgres:postgres@172.17.0.1:5432/cat",
       redisUrl,
-      spacyUrl: "http://127.0.0.1:8000",
+      spacyUrl: "http://172.17.0.1:8000",
     },
     ownership: { projectName: "cat-e2e-redaction", token: "lease-token" },
     version: 1,
@@ -82,7 +82,7 @@ describe("release E2E selection", () => {
   it("redacts a password-only Redis URL from a direct CLI child failure", async () => {
     const directory = await mkdtemp(join(tmpdir(), "cat-e2e-cli-redaction-"));
     const docker = join(directory, "docker");
-    const redisUrl = "redis://:redis-password@127.0.0.1:6379";
+    const redisUrl = "redis://:redis-password@172.17.0.1:6379";
     await writeFile(
       docker,
       `#!/usr/bin/env node\nprocess.stderr.write('Docker rejected ${redisUrl}\\n');\nprocess.exit(1);\n`,
@@ -98,7 +98,7 @@ describe("release E2E selection", () => {
 
       expect(result.code).toBe(1);
       expect(result.stdout).not.toContain("redis-password");
-      expect(result.stderr).toContain("redis://[REDACTED]@127.0.0.1:6379");
+      expect(result.stderr).toContain("redis://[REDACTED]@172.17.0.1:6379");
       expect(result.stderr).not.toContain("redis-password");
     } finally {
       await rm(directory, { force: true, recursive: true });

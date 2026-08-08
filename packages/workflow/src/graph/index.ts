@@ -142,6 +142,7 @@ export const createDefaultGraphRuntime = (
   graphRegistry.register(vectorizeGraph.graphDefinition);
 
   const scheduler = new Scheduler({
+    db: drizzle,
     eventBus,
     checkpointer,
     executorPool,

@@ -8,12 +8,15 @@ import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  assertReadiness,
   ExecutionCell,
   DevTargetAdapter,
   developmentRuntimeEnvironment,
-  dropCellDatabase,
+  cleanupCellDatabase,
+  formatCellDatabaseCleanupDiagnostic,
   formatDockerContainerPhaseFailure,
   isServerErrorDiagnostic,
+  parseCellDatabaseName,
   playwrightChildEnvironment,
   persistOneShotPreparerAttestation,
   processIdentityMatches,
@@ -34,6 +37,24 @@ const input = {
 } satisfies ExecutionCellInput;
 
 const discardCellOutput = (_message: string): void => undefined;
+
+const rejectedDeferred = <Value>(): {
+  promise: Promise<Value>;
+  reject: (reason?: unknown) => void;
+} => {
+  let reject: ((reason?: unknown) => void) | undefined;
+  const promise = new Promise<Value>((_resolve, rejectPromise) => {
+    reject = rejectPromise;
+  });
+  return {
+    promise,
+    reject: (reason) => reject?.(reason),
+  };
+};
+
+const testCellDatabaseName = parseCellDatabaseName(
+  `cat_e2e_cell_${"0".repeat(32)}`,
+);
 
 const recordedProcessIds = (paths: string[]): number[] => [
   ...new Set(
@@ -63,7 +84,7 @@ const createTestRuntime = (
   applicationUrl: "http://127.0.0.1:3000",
   artifactDirectory: "/tmp/cat-e2e-artifacts",
   baseUrl: "http://127.0.0.1:3000",
-  databaseName: "cat_e2e",
+  databaseName: testCellDatabaseName,
   databaseUrl: "postgresql://localhost/cat_e2e",
   environment: {},
   port: 3000,
@@ -81,8 +102,57 @@ const createTestRuntime = (
   ...overrides,
 });
 
+const readyReport = (profile: "lite" | "production") => ({
+  components: {
+    bootstrap: { status: "ready" },
+    cache: { status: "ready" },
+    "database-requirements": { status: "ready" },
+    "language-analysis": { status: "ready" },
+    postgres: { status: "ready" },
+    queue: { status: "ready" },
+    ...(profile === "production" ? { redis: { status: "ready" } } : {}),
+    runtime: { status: "ready" },
+    session: { status: "ready" },
+    storage: { status: "ready" },
+  },
+  profile,
+  runtime: {
+    cacheBackend: profile === "lite" ? "memory" : "redis",
+    queueBackend: profile === "lite" ? "memory" : "redis",
+    sessionBackend: profile === "lite" ? "memory" : "redis",
+  },
+  status: "ready",
+});
+
 describe("ExecutionCell scheduler", () => {
-  it("passes the cell deployment plan to standalone aggregate startup", async () => {
+  it.each(["lite", "production"] as const)(
+    "accepts the canonical %s readiness component identities",
+    (profile) => {
+      expect(() =>
+        assertReadiness(readyReport(profile), profile),
+      ).not.toThrow();
+    },
+  );
+
+  it("includes the failed readiness component response in diagnostics", () => {
+    const report = readyReport("lite");
+    const failedReport = {
+      ...report,
+      components: {
+        ...report.components,
+        "language-analysis": {
+          code: "LANGUAGE_ANALYSIS_CONFIGURATION_INVALID",
+          status: "failed",
+        },
+      },
+    };
+
+    expect(() => assertReadiness(failedReport, "lite")).toThrow(
+      'Readiness component language-analysis is not ready, received {"code":"LANGUAGE_ANALYSIS_CONFIGURATION_INVALID","status":"failed"}',
+    );
+  });
+
+  it("persists the lease-reachable spaCy endpoint through standalone bootstrap and aggregate startup", async () => {
     const directory = await mkdtemp(join(tmpdir(), "cat-e2e-docker-"));
     const docker = join(directory, "docker");
     const recorder = join(directory, "docker-recorder.mjs");
@@ -131,7 +201,7 @@ describe("ExecutionCell scheduler", () => {
           CAT_E2E_DOCKER_RECORDER: recorder,
           PATH: `${directory}:${process.env.PATH ?? ""}`,
           REDIS_URL: "redis://localhost:6379/0",
-          SPACY_SERVER_URL: "http://localhost:8000",
+          SPACY_SERVER_URL: "http://172.17.0.1:49154",
         },
       });
       const adapter = new StandaloneTargetAdapter(
@@ -161,6 +231,17 @@ describe("ExecutionCell scheduler", () => {
           .find((argument) => argument.startsWith("CAT_BOOTSTRAP_PLAN="));
         return environment?.slice("CAT_BOOTSTRAP_PLAN=".length);
       };
+      const environmentValue = (
+        args: string[],
+        key: string,
+      ): string | undefined => {
+        const pairs = args.flatMap((argument, index) =>
+          argument === "--env" ? [args[index + 1]] : [],
+        );
+        return pairs
+          .find((pair) => pair?.startsWith(`${key}=`))
+          ?.slice(key.length + 1);
+      };
       const bootstrapCreates = invocations.filter(
         (args) => args[0] === "create" && args.at(-1) === "bootstrap-only",
       );
@@ -180,10 +261,13 @@ describe("ExecutionCell scheduler", () => {
         operations: expect.arrayContaining([
           expect.objectContaining({
             pluginId: "spacy-language-analyzer",
-            value: { serverUrl: "http://spacy:8000/" },
+            value: { serverUrl: "http://172.17.0.1:49154" },
           }),
         ]),
       });
+      expect(environmentValue(aggregateCreate!, "SPACY_SERVER_URL")).toBe(
+        "http://172.17.0.1:49154",
+      );
     } finally {
       await Promise.all(
         registered.map(async (unregister) => await unregister()),
@@ -192,14 +276,535 @@ describe("ExecutionCell scheduler", () => {
     }
   });
 
-  it("closes a database cleanup client only once when abort races its finalizer", async () => {
+  it("gates, terminates, drains, and drops a cell database by default", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ activeConnections: 1 }] })
+      .mockResolvedValueOnce({ rows: [{ activeConnections: 0 }] })
+      .mockResolvedValueOnce({ rows: [] });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const databaseName = parseCellDatabaseName(
+      `cat_e2e_cell_${"a".repeat(32)}`,
+    );
+    const states: Array<{
+      phase: string;
+      primaryFailurePhase?: string;
+    }> = [];
+
+    await cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      databaseName,
+      new AbortController().signal,
+      client as never,
+      (state) => states.push(state),
+    );
+
+    expect(query).toHaveBeenCalledTimes(5);
+    expect(query).toHaveBeenNthCalledWith(
+      1,
+      `ALTER DATABASE "${databaseName}" WITH ALLOW_CONNECTIONS false`,
+    );
+    expect(query).toHaveBeenNthCalledWith(
+      2,
+      "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()",
+      [databaseName],
+    );
+    expect(query).toHaveBeenNthCalledWith(
+      3,
+      'SELECT pg_backend_pid()::integer AS "cleanupBackendPid", count(*)::integer AS "activeConnections" FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
+      [databaseName],
+    );
+    expect(query).toHaveBeenNthCalledWith(
+      4,
+      'SELECT pg_backend_pid()::integer AS "cleanupBackendPid", count(*)::integer AS "activeConnections" FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()',
+      [databaseName],
+    );
+    expect(query).toHaveBeenNthCalledWith(
+      5,
+      `DROP DATABASE IF EXISTS "${databaseName}"`,
+    );
+    expect(client.end).toHaveBeenCalledOnce();
+    expect(states.map((state) => state.phase)).toEqual([
+      "connect",
+      "connection-gate",
+      "terminate",
+      "drain",
+      "drop",
+      "close",
+      "complete",
+    ]);
+  });
+
+  it("retires a drained cell database when its lease owns the service volume", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ activeConnections: 0 }] });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const databaseName = parseCellDatabaseName(
+      `cat_e2e_cell_${"b".repeat(32)}`,
+    );
+    const states: Array<{ phase: string }> = [];
+
+    await cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      databaseName,
+      new AbortController().signal,
+      client as never,
+      (state) => states.push(state),
+      undefined,
+      0,
+      "lease-volume",
+    );
+
+    expect(query).toHaveBeenCalledTimes(3);
+    expect(
+      query.mock.calls.some(
+        ([statement]) =>
+          typeof statement === "string" &&
+          statement.startsWith("DROP DATABASE"),
+      ),
+    ).toBe(false);
+    expect(states.map((state) => state.phase)).toEqual([
+      "connect",
+      "connection-gate",
+      "terminate",
+      "drain",
+      "retire",
+      "close",
+      "complete",
+    ]);
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("formats only the allowlisted database drop diagnostic fields", () => {
+    const diagnostic = formatCellDatabaseCleanupDiagnostic({
+      dropDiagnostic: {
+        blockingPids: [7],
+        locks: [
+          {
+            classId: null,
+            databaseOid: 12,
+            granted: false,
+            locktype: "object",
+            mode: "AccessExclusiveLock",
+            objectId: 12,
+            relationOid: null,
+          },
+        ],
+        preparedTransactionCount: 0,
+        replicationSlotCount: 0,
+        status: "captured",
+        waitEvent: "relation",
+        waitEventType: "Lock",
+      },
+      phase: "drop",
+      primaryFailurePhase: "drop",
+    });
+
+    expect(diagnostic).toContain("phase=drop primaryPhase=drop");
+    expect(diagnostic).toContain('"waitEventType":"Lock"');
+    expect(diagnostic).not.toMatch(/query|user|address|postgresql/i);
+  });
+
+  it("preserves the drain phase when cleanup is aborted while waiting for terminated connections", async () => {
     const controller = new AbortController();
-    let completeDrop: (() => void) | undefined;
+    const abortFailure = new Error("database cleanup timeout");
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValue({ rows: [{ activeConnections: 1 }] });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const states: Array<{
+      phase: string;
+      primaryFailurePhase?: string;
+    }> = [];
+    const cleanup = cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      parseCellDatabaseName(`cat_e2e_cell_${"9".repeat(32)}`),
+      controller.signal,
+      client as never,
+      (state) => states.push(state),
+    );
+
+    await vi.waitFor(() => expect(query).toHaveBeenCalledTimes(3));
+    controller.abort(abortFailure);
+
+    await expect(cleanup).rejects.toBe(abortFailure);
+    expect(states).toContainEqual({ phase: "drain" });
+    expect(states.at(-2)).toEqual({
+      phase: "drain",
+      primaryFailurePhase: "drain",
+    });
+    expect(states.at(-1)).toEqual({
+      phase: "close",
+      primaryFailurePhase: "drain",
+    });
+    expect(
+      query.mock.calls.some(
+        ([statement]) =>
+          typeof statement === "string" &&
+          statement.startsWith("DROP DATABASE"),
+      ),
+    ).toBe(false);
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("refuses to drop when the database cannot report a valid drained connection count", async () => {
+    const query = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ activeConnections: "0" }] });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const states: Array<{
+      phase: string;
+      primaryFailurePhase?: string;
+    }> = [];
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"8".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        (state) => states.push(state),
+      ),
+    ).rejects.toThrow(
+      "Database cleanup received an invalid active connection count",
+    );
+
+    expect(query).toHaveBeenCalledTimes(3);
+    expect(states.at(-2)).toEqual({
+      phase: "drain",
+      primaryFailurePhase: "drain",
+    });
+    expect(states.at(-1)).toEqual({
+      phase: "close",
+      primaryFailurePhase: "drain",
+    });
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("preserves a drain failure when closing the cleanup client also fails", async () => {
+    const drainFailure = new Error("invalid connection count");
+    const closeFailure = new Error("close failed");
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => {
+        throw closeFailure;
+      }),
+      query: vi
+        .fn()
+        .mockResolvedValueOnce({ rows: [] })
+        .mockResolvedValueOnce({ rows: [] })
+        .mockRejectedValueOnce(drainFailure),
+    };
+    const states: Array<{
+      phase: string;
+      primaryFailurePhase?: string;
+    }> = [];
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"7".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        (state) => states.push(state),
+      ),
+    ).rejects.toSatisfy((error: unknown) => {
+      if (!(error instanceof AggregateError)) return false;
+      return (
+        error.message === "Database cleanup and client close both failed" &&
+        error.errors[0] === drainFailure &&
+        error.errors[1] === closeFailure
+      );
+    });
+
+    expect(states.at(-2)).toEqual({
+      phase: "drain",
+      primaryFailurePhase: "drain",
+    });
+    expect(states.at(-1)).toEqual({
+      phase: "close",
+      primaryFailurePhase: "drain",
+    });
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("records a sanitized lock snapshot while a database drop is blocked", async () => {
+    let resolveDrop: (() => void) | undefined;
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.includes("count(*)")) {
+          return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+        }
+        if (statement.startsWith("DROP DATABASE")) {
+          await new Promise<void>((resolveDropQuery) => {
+            resolveDrop = resolveDropQuery;
+          });
+        }
+        return { rows: [] };
+      }),
+    };
+    const inspector = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.startsWith("SELECT oid")) {
+          return { rows: [{ databaseOid: "12" }] };
+        }
+        return {
+          rows: [
+            {
+              blockingPids: [7],
+              locks: [
+                {
+                  classId: null,
+                  databaseOid: "12",
+                  granted: false,
+                  locktype: "object",
+                  mode: "AccessExclusiveLock",
+                  objectId: "12",
+                  relationOid: null,
+                  query: "SELECT secret",
+                  user: "admin",
+                },
+              ],
+              preparedTransactionCount: 0,
+              replicationSlotCount: 0,
+              waitEvent: "relation",
+              waitEventType: "Lock",
+            },
+          ],
+        };
+      }),
+    };
+    const states: Array<{
+      dropDiagnostic?: unknown;
+      phase: string;
+    }> = [];
+    const cleanup = cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      parseCellDatabaseName(`cat_e2e_cell_${"6".repeat(32)}`),
+      new AbortController().signal,
+      client as never,
+      (state) => states.push(state),
+      inspector as never,
+      0,
+    );
+
+    await vi.waitFor(() => expect(inspector.query).toHaveBeenCalledTimes(2));
+    const snapshot = states.findLast(
+      (state) =>
+        state.phase === "drop" &&
+        typeof state.dropDiagnostic === "object" &&
+        state.dropDiagnostic !== null &&
+        Reflect.get(state.dropDiagnostic, "status") === "captured",
+    )?.dropDiagnostic;
+
+    expect(snapshot).toEqual({
+      blockingPids: [7],
+      locks: [
+        {
+          classId: null,
+          databaseOid: 12,
+          granted: false,
+          locktype: "object",
+          mode: "AccessExclusiveLock",
+          objectId: 12,
+          relationOid: null,
+        },
+      ],
+      preparedTransactionCount: 0,
+      replicationSlotCount: 0,
+      status: "captured",
+      waitEvent: "relation",
+      waitEventType: "Lock",
+    });
+    expect(JSON.stringify(snapshot)).not.toContain("secret");
+    expect(JSON.stringify(snapshot)).not.toContain("admin");
+
+    resolveDrop?.();
+    await expect(cleanup).resolves.toBeUndefined();
+    expect(client.end).toHaveBeenCalledOnce();
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("closes a preconnected inspector once when an in-flight drop is aborted", async () => {
+    const controller = new AbortController();
+    const timeout = new Error("database cleanup timeout");
+    let resolveDrop: (() => void) | undefined;
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.includes("count(*)")) {
+          return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+        }
+        if (statement.startsWith("DROP DATABASE")) {
+          await new Promise<void>((resolveDropQuery) => {
+            resolveDrop = resolveDropQuery;
+          });
+        }
+        return { rows: [] };
+      }),
+    };
+    const inspector = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async () => ({ rows: [] })),
+    };
+    const cleanup = cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      parseCellDatabaseName(`cat_e2e_cell_${"5".repeat(32)}`),
+      controller.signal,
+      client as never,
+      () => undefined,
+      inspector as never,
+    );
+
+    await vi.waitFor(() => expect(resolveDrop).toBeTypeOf("function"));
+    controller.abort(timeout);
+    resolveDrop?.();
+
+    await expect(cleanup).rejects.toBe(timeout);
+    expect(client.end).toHaveBeenCalledOnce();
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("continues cleanup and closes an inspector whose connection failed", async () => {
+    const inspectorFailure = Object.assign(
+      new Error("inspector connection failed with secrets=not-for-diagnostics"),
+      { code: "08001" },
+    );
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.includes("count(*)")) {
+          return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+        }
+        return { rows: [] };
+      }),
+    };
+    const inspector = {
+      connect: vi.fn(async () => {
+        throw inspectorFailure;
+      }),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async () => ({ rows: [] })),
+    };
+    const states: Array<{ dropDiagnostic?: unknown; phase: string }> = [];
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"4".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        (state) => states.push(state),
+        inspector as never,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(states).toContainEqual({
+      dropDiagnostic: {
+        category: "connection",
+        code: "08001",
+        status: "unavailable",
+      },
+      phase: "drop",
+    });
+    expect(JSON.stringify(states)).not.toContain("secrets");
+    expect(client.end).toHaveBeenCalledOnce();
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("caches only the safe SQLSTATE when snapshot sampling fails", async () => {
+    let resolveDrop: (() => void) | undefined;
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.includes("count(*)")) {
+          return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+        }
+        if (statement.startsWith("DROP DATABASE")) {
+          await new Promise<void>((resolveDropQuery) => {
+            resolveDrop = resolveDropQuery;
+          });
+        }
+        return { rows: [] };
+      }),
+    };
+    const inspector = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.startsWith("SELECT oid")) {
+          return { rows: [{ databaseOid: "12" }] };
+        }
+        throw Object.assign(
+          new Error("operator does not exist: name = integer; password=secret"),
+          { code: "42883" },
+        );
+      }),
+    };
+    const states: Array<{ dropDiagnostic?: unknown; phase: string }> = [];
+    const cleanup = cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      parseCellDatabaseName(`cat_e2e_cell_${"3".repeat(32)}`),
+      new AbortController().signal,
+      client as never,
+      (state) => states.push(state),
+      inspector as never,
+      0,
+    );
+
+    await vi.waitFor(() =>
+      expect(states).toContainEqual({
+        dropDiagnostic: {
+          category: "query",
+          code: "42883",
+          status: "unavailable",
+        },
+        phase: "drop",
+      }),
+    );
+    expect(JSON.stringify(states)).not.toContain("password");
+
+    resolveDrop?.();
+    await expect(cleanup).resolves.toBeUndefined();
+  });
+
+  it("does not let a non-settling inspector connection delay a cell drop", async () => {
     const query = vi.fn(async (statement: string) => {
-      if (statement.startsWith("DROP DATABASE")) {
-        await new Promise<void>((resolveDrop) => {
-          completeDrop = resolveDrop;
-        });
+      if (statement.includes("count(*)")) {
+        return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
       }
       return { rows: [] };
     });
@@ -208,18 +813,461 @@ describe("ExecutionCell scheduler", () => {
       end: vi.fn(async () => undefined),
       query,
     };
-    const cleanup = dropCellDatabase(
+    const inspector = {
+      connect: vi.fn(async () => await new Promise<void>(() => undefined)),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async () => ({ rows: [] })),
+    };
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"2".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        () => undefined,
+        inspector as never,
+        0,
+        "cell-drop",
+        0,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(
+      query.mock.calls.some(
+        ([statement]) =>
+          typeof statement === "string" &&
+          statement.startsWith("DROP DATABASE"),
+      ),
+    ).toBe(true);
+    expect(inspector.query).not.toHaveBeenCalled();
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("does not let non-settling diagnostic setup delay a cell drop", async () => {
+    const query = vi.fn(async (statement: string) => {
+      if (statement.includes("count(*)")) {
+        return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+      }
+      return { rows: [] };
+    });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const inspector = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async () => await new Promise<void>(() => undefined)),
+    };
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"1".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        () => undefined,
+        inspector as never,
+        0,
+        "cell-drop",
+        0,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(
+      query.mock.calls.some(
+        ([statement]) =>
+          typeof statement === "string" &&
+          statement.startsWith("DROP DATABASE"),
+      ),
+    ).toBe(true);
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("does not wait for a snapshot after a fast cell drop", async () => {
+    const query = vi.fn(async (statement: string) => {
+      if (statement.includes("count(*)")) {
+        return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+      }
+      if (statement.startsWith("DROP DATABASE")) {
+        await new Promise<void>((resolveDrop) => setTimeout(resolveDrop, 0));
+      }
+      return { rows: [] };
+    });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const inspector = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.startsWith("SELECT oid")) {
+          return { rows: [{ databaseOid: "12" }] };
+        }
+        return await new Promise<void>(() => undefined);
+      }),
+    };
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"0".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        () => undefined,
+        inspector as never,
+        0,
+        "cell-drop",
+        0,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(inspector.query).toHaveBeenCalledTimes(2);
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("does not let a non-settling inspector close delay a cell drop", async () => {
+    const query = vi.fn(async (statement: string) => {
+      if (statement.includes("count(*)")) {
+        return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+      }
+      return { rows: [] };
+    });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const inspector = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => await new Promise<void>(() => undefined)),
+      query: vi.fn(async () => ({ rows: [{ databaseOid: "12" }] })),
+    };
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"f".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+        () => undefined,
+        inspector as never,
+        10_000,
+        "cell-drop",
+        0,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(
+      query.mock.calls.some(
+        ([statement]) =>
+          typeof statement === "string" &&
+          statement.startsWith("DROP DATABASE"),
+      ),
+    ).toBe(true);
+    expect(inspector.end).toHaveBeenCalledOnce();
+  });
+
+  it("observes late diagnostic rejections after their short budgets expire", async () => {
+    const unhandledRejections: unknown[] = [];
+    const onUnhandledRejection = (reason: unknown): void => {
+      unhandledRejections.push(reason);
+    };
+    process.on("unhandledRejection", onUnhandledRejection);
+    const rejectedConnect = rejectedDeferred<void>();
+    const rejectedSetup = rejectedDeferred<{
+      rows: Array<{ databaseOid: string }>;
+    }>();
+    const rejectedEnd = rejectedDeferred<void>();
+    const rejectedCapture = rejectedDeferred<{
+      rows: Array<Record<string, unknown>>;
+    }>();
+    const createClient = () => ({
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query: vi.fn(async (statement: string) => {
+        if (statement.includes("count(*)")) {
+          return { rows: [{ activeConnections: 0, cleanupBackendPid: 42 }] };
+        }
+        return { rows: [] };
+      }),
+    });
+    try {
+      const connectClient = createClient();
+      await cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"a".repeat(32)}`),
+        new AbortController().signal,
+        connectClient as never,
+        () => undefined,
+        {
+          connect: vi.fn(async () => await rejectedConnect.promise),
+          end: vi.fn(async () => undefined),
+          query: vi.fn(async () => ({ rows: [] })),
+        } as never,
+        10_000,
+        "cell-drop",
+        0,
+      );
+      rejectedConnect.reject(new Error("late inspector connect rejection"));
+
+      const setupClient = createClient();
+      await cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"b".repeat(32)}`),
+        new AbortController().signal,
+        setupClient as never,
+        () => undefined,
+        {
+          connect: vi.fn(async () => undefined),
+          end: vi.fn(async () => undefined),
+          query: vi.fn(async () => await rejectedSetup.promise),
+        } as never,
+        10_000,
+        "cell-drop",
+        0,
+      );
+      rejectedSetup.reject(new Error("late diagnostic setup rejection"));
+
+      const endClient = createClient();
+      await cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"c".repeat(32)}`),
+        new AbortController().signal,
+        endClient as never,
+        () => undefined,
+        {
+          connect: vi.fn(async () => undefined),
+          end: vi.fn(async () => await rejectedEnd.promise),
+          query: vi.fn(async () => ({ rows: [{ databaseOid: "12" }] })),
+        } as never,
+        10_000,
+        "cell-drop",
+        0,
+      );
+      rejectedEnd.reject(new Error("late inspector close rejection"));
+
+      const captureClient = {
+        connect: vi.fn(async () => undefined),
+        end: vi.fn(async () => undefined),
+        query: vi.fn(async (statement: string) => {
+          if (statement.includes("count(*)")) {
+            return {
+              rows: [{ activeConnections: 0, cleanupBackendPid: 42 }],
+            };
+          }
+          if (statement.startsWith("DROP DATABASE")) {
+            await new Promise<void>((resolveDrop) =>
+              setTimeout(resolveDrop, 0),
+            );
+          }
+          return { rows: [] };
+        }),
+      };
+      const captureInspector = {
+        connect: vi.fn(async () => undefined),
+        end: vi.fn(async () => undefined),
+        query: vi.fn(async (statement: string) =>
+          statement.startsWith("SELECT oid")
+            ? { rows: [{ databaseOid: "12" }] }
+            : await rejectedCapture.promise,
+        ),
+      };
+      await cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"d".repeat(32)}`),
+        new AbortController().signal,
+        captureClient as never,
+        () => undefined,
+        captureInspector as never,
+        0,
+        "cell-drop",
+        0,
+      );
+      expect(captureInspector.query).toHaveBeenCalledTimes(2);
+      rejectedCapture.reject(new Error("late diagnostic capture rejection"));
+
+      await new Promise<void>((resolveWait) => setImmediate(resolveWait));
+      expect(unhandledRejections).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+
+  it.each([
+    "postgres",
+    "admin",
+    "cat_e2e_cell_ordinary",
+    "cat_e2e_cell_0123456789abcdef0123456789abcdeg",
+    'cat_e2e_cell_0123456789abcdef0123456789abcde"',
+  ])(
+    "refuses to connect before dropping an unowned database %s",
+    async (name) => {
+      const client = {
+        connect: vi.fn(async () => undefined),
+        end: vi.fn(async () => undefined),
+        query: vi.fn(async () => ({ rows: [] })),
+      };
+
+      expect(() => parseCellDatabaseName(name)).toThrow(
+        "Refusing to drop a database that is not owned by an E2E cell",
+      );
+      await expect(
+        cleanupCellDatabase(
+          "postgresql://example.test/postgres",
+          name as never,
+          new AbortController().signal,
+          client as never,
+        ),
+      ).rejects.toThrow(
+        "Refusing to drop a database that is not owned by an E2E cell",
+      );
+
+      expect(client.connect).not.toHaveBeenCalled();
+      expect(client.query).not.toHaveBeenCalled();
+      expect(client.end).not.toHaveBeenCalled();
+    },
+  );
+
+  it("treats a missing cell database as an idempotent cleanup success", async () => {
+    const missing = Object.assign(new Error("database does not exist"), {
+      code: "3D000",
+    });
+    const query = vi.fn(async () => {
+      throw missing;
+    });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"b".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(query).toHaveBeenCalledOnce();
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("preserves a query failure when closing the cleanup client also fails", async () => {
+    const queryFailure = new Error("drop query failed");
+    const closeFailure = new Error("close failed");
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => {
+        throw closeFailure;
+      }),
+      query: vi.fn(async () => {
+        throw queryFailure;
+      }),
+    };
+
+    await expect(
+      cleanupCellDatabase(
+        "postgresql://example.test/postgres",
+        parseCellDatabaseName(`cat_e2e_cell_${"c".repeat(32)}`),
+        new AbortController().signal,
+        client as never,
+      ),
+    ).rejects.toSatisfy((error: unknown) => {
+      if (!(error instanceof AggregateError)) return false;
+      return (
+        error.message === "Database cleanup and client close both failed" &&
+        error.errors[0] === queryFailure &&
+        error.errors[1] === closeFailure
+      );
+    });
+
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("preserves an abort failure when closing the cleanup client also fails", async () => {
+    const controller = new AbortController();
+    const abortFailure = new Error("database cleanup timeout");
+    const closeFailure = new Error("close failed");
+    let completeConnect: (() => void) | undefined;
+    const client = {
+      connect: vi.fn(
+        async () =>
+          await new Promise<void>((resolveConnect) => {
+            completeConnect = resolveConnect;
+          }),
+      ),
+      end: vi.fn(async () => {
+        throw closeFailure;
+      }),
+      query: vi.fn(async () => ({ rows: [] })),
+    };
+    const cleanup = cleanupCellDatabase(
       "postgresql://example.test/postgres",
-      "cat_e2e_cell_test",
+      parseCellDatabaseName(`cat_e2e_cell_${"d".repeat(32)}`),
       controller.signal,
       client as never,
     );
 
-    await vi.waitFor(() => expect(query).toHaveBeenCalledTimes(2));
-    controller.abort(new Error("database cleanup timeout"));
-    completeDrop?.();
-    await cleanup;
+    await vi.waitFor(() => expect(client.connect).toHaveBeenCalledOnce());
+    controller.abort(abortFailure);
+    completeConnect?.();
 
+    await expect(cleanup).rejects.toSatisfy((error: unknown) => {
+      if (!(error instanceof AggregateError)) return false;
+      return (
+        error.message === "Database cleanup and client close both failed" &&
+        error.errors[0] === abortFailure &&
+        error.errors[1] === closeFailure
+      );
+    });
+
+    expect(client.query).not.toHaveBeenCalled();
+    expect(client.end).toHaveBeenCalledOnce();
+  });
+
+  it("closes a database cleanup client only once when abort races its final drop", async () => {
+    const controller = new AbortController();
+    const timeout = new Error("database cleanup timeout");
+    let completeDrop: (() => void) | undefined;
+    const query = vi.fn(async (statement: string) => {
+      if (statement.startsWith("DROP DATABASE")) {
+        await new Promise<void>((resolveDrop) => {
+          completeDrop = resolveDrop;
+        });
+      }
+      if (statement.includes("count(*)")) {
+        return { rows: [{ activeConnections: 0 }] };
+      }
+      return { rows: [] };
+    });
+    const client = {
+      connect: vi.fn(async () => undefined),
+      end: vi.fn(async () => undefined),
+      query,
+    };
+    const cleanup = cleanupCellDatabase(
+      "postgresql://example.test/postgres",
+      parseCellDatabaseName(`cat_e2e_cell_${"e".repeat(32)}`),
+      controller.signal,
+      client as never,
+    );
+
+    await vi.waitFor(() => expect(completeDrop).toBeTypeOf("function"));
+    controller.abort(timeout);
+    completeDrop?.();
+    await expect(cleanup).rejects.toBe(timeout);
+
+    expect(query).toHaveBeenNthCalledWith(
+      4,
+      `DROP DATABASE IF EXISTS "cat_e2e_cell_${"e".repeat(32)}"`,
+    );
     expect(client.end).toHaveBeenCalledTimes(1);
   });
 
@@ -356,6 +1404,83 @@ describe("ExecutionCell scheduler", () => {
     await rm(artifactDirectory, { force: true, recursive: true });
   });
 
+  it("keeps the failed database cleanup phase after closing its client", async () => {
+    const artifactDirectory = await mkdtemp(join(tmpdir(), "cat-e2e-cell-"));
+    const errors: string[] = [];
+    const databaseName = parseCellDatabaseName(
+      `cat_e2e_cell_${"f".repeat(32)}`,
+    );
+    const dropFailure = new Error("drop query failed");
+    const query = vi.fn(async (statement: string) => {
+      if (statement.startsWith("DROP DATABASE")) throw dropFailure;
+      if (statement.includes("count(*)")) {
+        return { rows: [{ activeConnections: 0 }] };
+      }
+      return { rows: [] };
+    });
+    let diagnostic = "phase=connect";
+
+    try {
+      await expect(
+        new ExecutionCell(input, {
+          createRuntime: async (register) => {
+            register(
+              "cell database",
+              async (signal) =>
+                await cleanupCellDatabase(
+                  "postgresql://example.test/postgres",
+                  databaseName,
+                  signal,
+                  {
+                    connect: async () => undefined,
+                    end: async () => undefined,
+                    query,
+                  } as never,
+                  (state) => {
+                    diagnostic = `phase=${state.phase}${
+                      state.primaryFailurePhase === undefined
+                        ? ""
+                        : ` primaryPhase=${state.primaryFailurePhase}`
+                    }`;
+                  },
+                ),
+              () => diagnostic,
+            );
+            return createTestRuntime({ artifactDirectory });
+          },
+          createTarget: () => ({
+            applyExternalServicePlan: async () => undefined,
+            attest: async () => undefined,
+            bootstrap: async () => undefined,
+            prepare: async () => undefined,
+            start: async () =>
+              ({
+                child: { exitCode: 0, signalCode: null } as ChildProcess,
+                diagnostics: [],
+                label: "test application",
+                ownedPids: new Set(),
+                processIdentities: new Map(),
+              }) satisfies StartedProcess,
+            stop: async () => undefined,
+          }),
+          hydrateFixtures: async () => undefined,
+          runPlaywright: async () => undefined,
+          write: discardCellOutput,
+          writeError: (message) => errors.push(message),
+        }).run(),
+      ).rejects.toThrow("Execution cell cleanup failed");
+
+      expect(query).toHaveBeenLastCalledWith(
+        `DROP DATABASE IF EXISTS "${databaseName}"`,
+      );
+      expect(errors).toHaveLength(1);
+      expect(errors[0]).toContain("phase=close primaryPhase=drop");
+      expect(errors[0]).toContain("drop query failed");
+    } finally {
+      await rm(artifactDirectory, { force: true, recursive: true });
+    }
+  });
+
   it("reports the primary phase and every nested validation and cleanup error", async () => {
     const artifactDirectory = await mkdtemp(join(tmpdir(), "cat-e2e-cell-"));
     const errors: string[] = [];
@@ -436,18 +1561,22 @@ describe("ExecutionCell scheduler", () => {
       const running = new ExecutionCell(input, {
         cleanupTimeoutMs: 10,
         createRuntime: async (register) => {
-          register("slow test resource", async (signal) => {
-            await new Promise<void>((_resolve, reject) => {
-              signal.addEventListener(
-                "abort",
-                () => {
-                  cleanupAborted = true;
-                  reject(signal.reason);
-                },
-                { once: true },
-              );
-            });
-          });
+          register(
+            "slow test resource",
+            async (signal) => {
+              await new Promise<void>((_resolve, reject) => {
+                signal.addEventListener(
+                  "abort",
+                  () => {
+                    cleanupAborted = true;
+                    reject(signal.reason);
+                  },
+                  { once: true },
+                );
+              });
+            },
+            () => "phase=drop",
+          );
           return createTestRuntime({ artifactDirectory });
         },
         createTarget: () => target,
@@ -472,7 +1601,7 @@ describe("ExecutionCell scheduler", () => {
       await rejection;
       expect(cleanupAborted).toBe(true);
       expect(errors).toContain(
-        "e2e cleanup label=slow test resource status=timed-out duration=10ms waiting=resource-settlement",
+        "e2e cleanup label=slow test resource status=timed-out duration=10ms phase=drop waiting=resource-settlement",
       );
     } finally {
       vi.useRealTimers();
@@ -1710,7 +2839,7 @@ describe("ExecutionCell scheduler", () => {
       applicationUrl: "http://127.0.0.1:0",
       artifactDirectory: tmpdir(),
       baseUrl: "http://127.0.0.1:0",
-      databaseName: "test",
+      databaseName: testCellDatabaseName,
       databaseUrl: "postgres://test",
       environment: {},
       port: 0,
@@ -1936,7 +3065,7 @@ describe("ExecutionCell scheduler", () => {
         applicationUrl: "http://127.0.0.1:0",
         artifactDirectory,
         baseUrl: "http://127.0.0.1:0",
-        databaseName: "test",
+        databaseName: testCellDatabaseName,
         databaseUrl: "postgres://test",
         environment: {},
         port: 0,
@@ -2030,7 +3159,7 @@ describe("ExecutionCell scheduler", () => {
       applicationUrl: "http://127.0.0.1:0",
       artifactDirectory: tmpdir(),
       baseUrl: "http://127.0.0.1:0",
-      databaseName: "test",
+      databaseName: testCellDatabaseName,
       databaseUrl: "postgres://test",
       environment: {},
       port: 0,

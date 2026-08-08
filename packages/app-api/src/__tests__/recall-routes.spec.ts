@@ -4,7 +4,10 @@ import {
   RecallOperationFailureError,
 } from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
-import { RecallDerivationVersionSchema } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  RecallDerivationVersionSchema,
+} from "@cat/shared";
 import { createAuthedTestContext } from "@cat/test-utils";
 import { call } from "@orpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -508,7 +511,7 @@ describe("recall routes", () => {
                   {
                     targetKind: "MEMORY_ITEM",
                     targetId: "1",
-                    languageId: "en",
+                    languageId: NormalizedLanguageIdSchema.parse("en"),
                   },
                 ],
                 requiredDerivationVersion: RecallDerivationVersionSchema.parse(

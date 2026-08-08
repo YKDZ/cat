@@ -57,6 +57,8 @@ import {
   type PluginRuntimeConfigurationSnapshot,
 } from "#/utils/config.ts";
 
+const pluginManagerInstanceMarker = Symbol.for("cat.plugin-manager.instance");
+
 export type DefaultPluginSource = string | string[];
 
 /**
@@ -94,6 +96,16 @@ type PreparedPluginRuntime = ActivePluginRuntime & {
   configuration: PluginRuntimeConfigurationSnapshot;
 };
 
+export type ScopedPluginManagerInstallation = {
+  manager: PluginManager;
+  restore: () => void;
+};
+
+type ScopedPluginManagerInstallationState = {
+  previous: PluginManager | undefined;
+  revoked: boolean;
+};
+
 /**
  * 作用域插件管理器
  * 必须绑定到一个具体的 Scope
@@ -102,6 +114,10 @@ type PreparedPluginRuntime = ActivePluginRuntime & {
  */
 export class PluginManager {
   private static readonly instances = new Map<string, PluginManager>();
+  private static readonly scopedInstallations = new WeakMap<
+    PluginManager,
+    ScopedPluginManagerInstallationState
+  >();
 
   private activePlugins = new Map<string, ActivePluginRuntime>();
   private readonly serviceRuntimeSnapshots = new Map<
@@ -129,6 +145,7 @@ export class PluginManager {
     componentRegistry: ComponentRegistry = new ComponentRegistry(),
     diagnosticLogger: PluginLogger = logger,
   ) {
+    Object.defineProperty(this, pluginManagerInstanceMarker, { value: true });
     this.scopeType = scopeType;
     this.scopeId = scopeId;
     this.loader = loader ?? new FileSystemPluginLoader({ diagnosticLogger });
@@ -209,6 +226,67 @@ export class PluginManager {
     PluginManager.instances.set(key, instance);
 
     return instance;
+  }
+
+  public static isInstance(value: unknown): value is PluginManager {
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      Reflect.get(value, pluginManagerInstanceMarker) === true
+    );
+  }
+
+  /**
+   * Install a manager for one scope and return an owner-aware restoration
+   * handle for temporary runtimes.
+   */
+  public static installScoped(
+    scopeType: ScopeType,
+    scopeId: string,
+    loader?: PluginLoader,
+    diagnosticLogger?: PluginLogger,
+  ): ScopedPluginManagerInstallation {
+    const key = `${scopeType}:${scopeId}`;
+    const previous = PluginManager.instances.get(key);
+    const manager = new PluginManager(
+      scopeType,
+      scopeId,
+      loader,
+      undefined,
+      undefined,
+      undefined,
+      diagnosticLogger,
+    );
+    PluginManager.instances.set(key, manager);
+    const state: ScopedPluginManagerInstallationState = {
+      previous,
+      revoked: false,
+    };
+    PluginManager.scopedInstallations.set(manager, state);
+
+    return {
+      manager,
+      restore: () => {
+        if (state.revoked) return;
+        state.revoked = true;
+        if (PluginManager.instances.get(key) !== manager) return;
+        const livePrevious = PluginManager.resolveLivePrevious(previous);
+        if (livePrevious === undefined) PluginManager.instances.delete(key);
+        else PluginManager.instances.set(key, livePrevious);
+      },
+    };
+  }
+
+  private static resolveLivePrevious(
+    manager: PluginManager | undefined,
+  ): PluginManager | undefined {
+    let candidate = manager;
+    while (candidate !== undefined) {
+      const installation = PluginManager.scopedInstallations.get(candidate);
+      if (installation === undefined || !installation.revoked) return candidate;
+      candidate = installation.previous;
+    }
+    return undefined;
   }
 
   public static clear(): void {
@@ -413,7 +491,10 @@ export class PluginManager {
       const prepared = await this.preparePluginRuntime(drizzle, pluginId);
       this.publishPluginRuntime(pluginId, prepared);
       if (current) {
-        await this.invokeOnDeactivate(current.plugin, current.context);
+        await this.invokeOnDeactivateBestEffort(
+          current.plugin,
+          current.context,
+        );
       }
     });
   }
@@ -757,7 +838,7 @@ export class PluginManager {
       };
     } catch (error) {
       if (activationStarted) {
-        await this.invokeOnDeactivate(pluginObj, context);
+        await this.invokeOnDeactivateBestEffort(pluginObj, context);
       }
       throw error;
     }
@@ -951,8 +1032,17 @@ export class PluginManager {
   ): Promise<void> {
     if (!pluginObj.onDeactivate) return;
 
+    await pluginObj.onDeactivate(context);
+  }
+
+  private async invokeOnDeactivateBestEffort(
+    pluginObj: CatPlugin,
+    context: PluginContext,
+  ): Promise<void> {
+    if (!pluginObj.onDeactivate) return;
+
     try {
-      await pluginObj.onDeactivate(context);
+      await this.invokeOnDeactivate(pluginObj, context);
     } catch (e) {
       this.diagnosticLogger
         .child({ component: "plugin" })

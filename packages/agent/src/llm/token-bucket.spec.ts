@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TokenBucket } from "./token-bucket.ts";
 
 describe("TokenBucket", () => {
+  const activeSignal = new AbortController().signal;
+
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -14,62 +16,64 @@ describe("TokenBucket", () => {
   it("allows immediate consume when bucket is full", async () => {
     const bucket = new TokenBucket(10, 10);
     const start = Date.now();
-    await bucket.acquire();
+    await bucket.acquire(activeSignal);
     expect(Date.now() - start).toBeLessThan(50);
   });
 
   it("replenishes tokens over time", async () => {
     const bucket = new TokenBucket(10, 10);
-    // Drain the bucket
-    // oxlint-disable-next-line no-await-in-loop -- sequential token consumption required for state setup
     for (let i = 0; i < 10; i += 1) {
-      // oxlint-disable-next-line no-await-in-loop -- sequential token consumption required for state setup
-      await bucket.acquire();
+      // oxlint-disable-next-line no-await-in-loop -- sequential token consumption sets bucket state
+      await bucket.acquire(activeSignal);
     }
 
-    // Advance time by 500ms — should add 5 tokens at 10/s
     vi.advanceTimersByTime(500);
-
-    // Should allow 5 more acquires without waiting
     let resolved = 0;
     for (let i = 0; i < 5; i += 1) {
-      const p = bucket.acquire().then(() => {
+      const operation = bucket.acquire(activeSignal).then(() => {
         resolved += 1;
       });
-      // Run any pending timers
       vi.runAllTimers();
-      // oxlint-disable-next-line no-await-in-loop -- sequential: each acquire needs timer advancement before next
-      await p;
+      // oxlint-disable-next-line no-await-in-loop -- each acquire observes the previous token state
+      await operation;
     }
     expect(resolved).toBe(5);
   });
 
   it("rate-limits when bucket is empty", async () => {
-    const bucket = new TokenBucket(1, 1); // 1 token per second, capacity 1
-
-    // First acquire consumes the single token
-    await bucket.acquire();
-
-    // Second acquire should wait ~1000ms
+    const bucket = new TokenBucket(1, 1);
+    await bucket.acquire(activeSignal);
     let acquired = false;
-    const p = bucket.acquire().then(() => {
+    const operation = bucket.acquire(activeSignal).then(() => {
       acquired = true;
     });
 
     expect(acquired).toBe(false);
-
-    // Advance timer by 1100ms to ensure refill
-    vi.advanceTimersByTime(1100);
-    await p;
+    await vi.advanceTimersByTimeAsync(1_100);
+    await operation;
     expect(acquired).toBe(true);
   });
 
   it("respects burst capacity limit", async () => {
-    const bucket = new TokenBucket(100, 5); // high rate but cap at 5
-    // Should be able to acquire 5 at once without waiting
-    const acquires = Array.from({ length: 5 }, async () => bucket.acquire());
+    const bucket = new TokenBucket(100, 5);
+    const acquires = Array.from(
+      { length: 5 },
+      async () => await bucket.acquire(activeSignal),
+    );
     await Promise.all(acquires);
-    // All resolved without needing to advance time
     expect(acquires).toHaveLength(5);
+  });
+
+  it("rejects a rate-limit wait immediately when its signal aborts", async () => {
+    const bucket = new TokenBucket(1, 1);
+    const first = new AbortController();
+    await bucket.acquire(first.signal);
+    const controller = new AbortController();
+    const cause = new Error("cancelled while rate limited");
+
+    const waiting = bucket.acquire(controller.signal);
+    controller.abort(cause);
+
+    await expect(waiting).rejects.toBe(cause);
   });
 });

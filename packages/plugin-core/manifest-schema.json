@@ -98,7 +98,6 @@
     "configVersion": {
       "type": "string",
       "minLength": 1,
-      "not": { "const": "legacy-unverified" },
       "description": "Version of the configuration schema, independent from the plugin package version"
     },
     "components": {

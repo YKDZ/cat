@@ -1,3 +1,4 @@
+import type { DbHandle } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 import type { NonNullJSONType } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
@@ -17,6 +18,7 @@ import type {
 
 /** Step handler 执行时注入的上下文 */
 export type TypedNodeContext = {
+  db?: DbHandle | undefined;
   runId: string;
   nodeId: string;
   signal?: AbortSignal | undefined;

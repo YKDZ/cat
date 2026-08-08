@@ -67,6 +67,7 @@ import {
   type JSONObject,
   type JSONType,
   type RecallDerivationReference,
+  RequiredVectorDimension,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 
@@ -114,74 +115,62 @@ const assertFixtureHydrationPrerequisites = async (
   execCtx: ExecutorContext,
   requiredLanguageIds: readonly string[],
 ): Promise<void> => {
-  const [
-    languages,
-    systemRoles,
-    passwordService,
-    relationTypes,
-    rootAccount,
-    requiredSetting,
-    defaultPluginDefinitions,
-    defaultPluginInstallations,
-    builtinAgent,
-  ] = await Promise.all([
-    execCtx.db
-      .select({ id: language.id })
-      .from(language)
-      .where(inArray(language.id, [...requiredLanguageIds])),
-    execCtx.db
-      .select({ name: role.name })
-      .from(role)
-      .where(inArray(role.name, ["superadmin", "admin", "user", "viewer"])),
-    execCtx.db
-      .select({ id: pluginService.id })
-      .from(pluginService)
-      .where(eq(pluginService.serviceId, "PASSWORD"))
-      .limit(1),
-    execCtx.db
-      .select({
-        name: contentRelationType.name,
-        namespace: contentRelationType.namespace,
-        version: contentRelationType.version,
-      })
-      .from(contentRelationType),
-    execCtx.db
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.email, "admin@encmys.cn"))
-      .limit(1),
-    execCtx.db
-      .select({ key: setting.key })
-      .from(setting)
-      .where(eq(setting.key, "server.url"))
-      .limit(1),
-    execCtx.db
-      .select({ id: plugin.id })
-      .from(plugin)
-      .where(inArray(plugin.id, defaultProductPluginIds)),
-    execCtx.db
-      .select({ id: pluginInstallation.id })
-      .from(pluginInstallation)
-      .where(
-        and(
-          eq(pluginInstallation.scopeType, "GLOBAL"),
-          eq(pluginInstallation.scopeId, ""),
-          inArray(pluginInstallation.pluginId, defaultProductPluginIds),
-        ),
+  const languages = await execCtx.db
+    .select({ id: language.id })
+    .from(language)
+    .where(inArray(language.id, [...requiredLanguageIds]));
+  const systemRoles = await execCtx.db
+    .select({ name: role.name })
+    .from(role)
+    .where(inArray(role.name, ["superadmin", "admin", "user", "viewer"]));
+  const passwordService = await execCtx.db
+    .select({ id: pluginService.id })
+    .from(pluginService)
+    .where(eq(pluginService.serviceId, "PASSWORD"))
+    .limit(1);
+  const relationTypes = await execCtx.db
+    .select({
+      name: contentRelationType.name,
+      namespace: contentRelationType.namespace,
+      version: contentRelationType.version,
+    })
+    .from(contentRelationType);
+  const rootAccount = await execCtx.db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, "admin@encmys.cn"))
+    .limit(1);
+  const requiredSetting = await execCtx.db
+    .select({ key: setting.key })
+    .from(setting)
+    .where(eq(setting.key, "server.url"))
+    .limit(1);
+  const defaultPluginDefinitions = await execCtx.db
+    .select({ id: plugin.id })
+    .from(plugin)
+    .where(inArray(plugin.id, defaultProductPluginIds));
+  const defaultPluginInstallations = await execCtx.db
+    .select({ id: pluginInstallation.id })
+    .from(pluginInstallation)
+    .where(
+      and(
+        eq(pluginInstallation.scopeType, "GLOBAL"),
+        eq(pluginInstallation.scopeId, ""),
+        inArray(pluginInstallation.pluginId, defaultProductPluginIds),
       ),
-    execCtx.db
-      .select({ id: agentDefinition.id })
-      .from(agentDefinition)
-      .where(
-        and(
-          eq(agentDefinition.definitionId, "translator"),
-          eq(agentDefinition.scopeType, "GLOBAL"),
-          eq(agentDefinition.scopeId, ""),
-          eq(agentDefinition.isBuiltin, true),
-        ),
-      )
-      .limit(1),
-  ]);
+    );
+  const builtinAgent = await execCtx.db
+    .select({ id: agentDefinition.id })
+    .from(agentDefinition)
+    .where(
+      and(
+        eq(agentDefinition.definitionId, "translator"),
+        eq(agentDefinition.scopeType, "GLOBAL"),
+        eq(agentDefinition.scopeId, ""),
+        eq(agentDefinition.isBuiltin, true),
+      ),
+    )
+    .limit(1);
 
   const missingLanguages = requiredLanguageIds.filter(
     (id) => !languages.some((languageRow) => languageRow.id === id),
@@ -312,8 +301,6 @@ export const runSeedPipeline = async (
     console.log(
       "[seed] Plugin defaults installed (syncDefinitions + installDefaults).",
     );
-  } else {
-    console.log("[fixture] Reusing application-bootstrap plugin state.");
   }
 
   // ── 3. GLOBAL plugin config overrides ──────────────────────────────
@@ -419,7 +406,7 @@ export const runSeedPipeline = async (
     console.log("[seed] Plugin restore complete.");
   }
 
-  // ── 4. Dimension reconciliation ────────────────────────────────────
+  // ── 4. Vector storage selection ────────────────────────────────────
   if (
     !skipPluginBootstrap &&
     opts.defaultPluginIds?.includes("system-pgvector-storage")
@@ -442,7 +429,6 @@ export const runSeedPipeline = async (
   const vectorizerOverride = config.plugins.overrides.find(
     (o) => o.plugin === "openai-vectorizer" || o.plugin.includes("vectorizer"),
   );
-  const dimension = getDimensionFromConfig(vectorizerOverride) ?? 1024;
   // ── 5. Languages ───────────────────────────────────────────────────
   const allLanguages = new Set<string>();
   allLanguages.add(projectSeed.sourceLanguage);
@@ -472,6 +458,7 @@ export const runSeedPipeline = async (
     await assertFixtureHydrationPrerequisites(execCtx, [...allLanguages]);
     // Rehydrate the persisted application service configuration for fixture work.
     await pluginManager.restore(execCtx.db);
+    console.log("[fixture] Restored installed application plugin state.");
     await createBootstrapUser();
   } else {
     await executeCommand(execCtx, ensureLanguages, {
@@ -624,6 +611,7 @@ export const runSeedPipeline = async (
       projectId: project.id,
       creatorId,
       parentContentNodeId: rootNode.id,
+      languageId: projectSeed.sourceLanguage,
       kind: "FILE",
       displayLabel: elementsContentNodeLabel,
       importerId: "seed",
@@ -921,7 +909,6 @@ export const runSeedPipeline = async (
       pluginManager,
       cache: new VectorCache(opts.cacheDir),
       vectorizerOverride,
-      dimension,
     });
   } else {
     console.log("[seed] Vectorization skipped (--skip-vectorization).");
@@ -963,21 +950,6 @@ export const runFixtureHydration = async (
   });
 };
 
-const getDimensionFromConfig = (
-  override: PluginOverride | undefined,
-): number | undefined => {
-  if (!override) return undefined;
-  if (!isRecordConfig(override.config)) return undefined;
-  const model = override.config["model-id"] ?? override.config.model;
-  if (typeof model !== "string") return undefined;
-  const dimensionMap: Record<string, number> = {
-    "text-embedding-3-small": 1536,
-    "text-embedding-3-large": 3072,
-    "text-embedding-ada-002": 1536,
-  };
-  return dimensionMap[model] ?? 1024;
-};
-
 const isRecordConfig = (
   config: PluginOverride["config"] | undefined,
 ): config is JSONObject => {
@@ -1010,14 +982,13 @@ const getVectorizerModelName = (
   return typeof model === "string" ? model : "unknown";
 };
 
-const vectorizeWithCache = async (opts: {
+export const vectorizeWithCache = async (opts: {
   execCtx: ExecutorContext;
   pluginManager: PluginManager;
   cache: VectorCache;
   vectorizerOverride: PluginOverride | undefined;
-  dimension: number;
 }): Promise<void> => {
-  const { execCtx, pluginManager, cache, vectorizerOverride, dimension } = opts;
+  const { execCtx, pluginManager, cache, vectorizerOverride } = opts;
   const modelName = getVectorizerModelName(vectorizerOverride);
 
   const pm = resolvePluginManager(pluginManager);
@@ -1062,8 +1033,19 @@ const vectorizeWithCache = async (opts: {
         // oxlint-disable-next-line typescript/no-unsafe-return
         Array.isArray(r) ? r : [r],
       ) as typeof chunkDataArrays;
-      cache.set(modelName, text, languageId, chunkDataArrays, dimension);
     }
+
+    if (
+      chunkDataArrays.some((chunks) =>
+        chunks.some((chunk) => chunk.vector.length !== RequiredVectorDimension),
+      )
+    ) {
+      cache.invalidateModel(modelName);
+      throw new Error(
+        `[seed] Vectorizer model "${modelName}" returned vectors that do not match CAT's fixed ${RequiredVectorDimension}-dimension contract.`,
+      );
+    }
+    if (!cached) cache.set(modelName, text, languageId, chunkDataArrays);
 
     {
       const flatChunks = chunkDataArrays.flatMap((chunks, textIdx) =>

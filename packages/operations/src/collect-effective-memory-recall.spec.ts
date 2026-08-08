@@ -1,4 +1,7 @@
-import { RecallDerivationVersionSchema } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  RecallDerivationVersionSchema,
+} from "@cat/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
@@ -92,7 +95,7 @@ const blockedRecallError = () =>
               {
                 targetKind: "MEMORY_ITEM",
                 targetId: "42",
-                languageId: "en",
+                languageId: NormalizedLanguageIdSchema.parse("en"),
               },
             ],
             requiredDerivationVersion: RecallDerivationVersionSchema.parse(

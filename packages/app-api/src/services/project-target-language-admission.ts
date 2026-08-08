@@ -15,7 +15,7 @@ const ProjectTargetLanguageIdsSchema = z.array(NormalizedLanguageIdSchema);
 
 export const prepareProjectTargetLanguageAdmission = async (
   languageIds: readonly string[],
-  context: Pick<Context, "pluginManager" | "requestSignal">,
+  context: Pick<Context, "drizzleDB" | "pluginManager" | "requestSignal">,
 ) => {
   const normalizedLanguageIds = [
     ...new Set(ProjectTargetLanguageIdsSchema.parse(languageIds)),

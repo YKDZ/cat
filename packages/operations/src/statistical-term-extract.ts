@@ -1,8 +1,8 @@
-import type { OperationContext } from "@cat/domain";
 import { NormalizedLanguageIdSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { joinTokens, joinLemmas } from "./language-analysis-normalization.ts";
+import type { LanguageAnalysisOperationContext } from "./language-analysis-requirement.ts";
 import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 
 // ─── Types ───
@@ -167,7 +167,7 @@ export type StatisticalTermExtractOutput = z.infer<
  */
 export const statisticalTermExtractOp = async (
   data: StatisticalTermExtractInput,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<StatisticalTermExtractOutput> => {
   const input = StatisticalTermExtractInputSchema.parse(data);
   if (input.texts.length === 0) {

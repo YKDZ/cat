@@ -1,5 +1,13 @@
 import type { LanguageAnalysisToken } from "@cat/shared";
 
+/**
+ * Language analyzers may omit lemmas for languages whose token surface is
+ * already the canonical recall unit. Consumers must retain that surface.
+ */
+export const normalizeTokenLemma = (
+  token: Pick<LanguageAnalysisToken, "text" | "lemma">,
+): string => (token.lemma.trim().length > 0 ? token.lemma : token.text);
+
 export const isCjkLanguage = (languageId: string): boolean => {
   const lang = languageId.split("-")[0]?.toLowerCase() ?? "";
   return ["zh", "ja", "ko"].includes(lang);
@@ -18,7 +26,7 @@ export const joinLemmas = (
   languageId: string,
 ): string => {
   const separator = isCjkLanguage(languageId) ? "" : " ";
-  return tokens.map((token) => token.lemma).join(separator);
+  return tokens.map(normalizeTokenLemma).join(separator);
 };
 
 export type TokenWindow = {

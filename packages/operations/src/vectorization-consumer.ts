@@ -28,6 +28,7 @@ export const processVectorizationBatch = async (
   const effectiveCtx: OperationContext = ctx ?? {
     traceId: crypto.randomUUID(),
   };
+  const postTaskErrors: unknown[] = [];
 
   for (const task of tasks) {
     try {
@@ -60,8 +61,46 @@ export const processVectorizationBatch = async (
           return { stringId, chunkSetId };
         }),
       });
+    } catch (error) {
+      try {
+        if (task.retryCount >= MAX_RETRIES - 1) {
+          // oxlint-disable-next-line no-await-in-loop
+          const { client: drizzle } = await getDbHandle();
+          // oxlint-disable-next-line no-await-in-loop
+          await executeCommand({ db: drizzle }, updateVectorizedStringStatus, {
+            stringIds: task.payload.stringIds,
+            status: "VECTORIZE_FAILED",
+          });
+          // Remove only after the terminal status is durable, so a stable enqueue ID
+          // cannot be reinserted during the transition.
+          // oxlint-disable-next-line no-await-in-loop
+          await queue.ack(task.id);
+          // oxlint-disable-next-line no-await-in-loop
+          await domainEventBus.publish(
+            domainEvent("vectorization:failed", {
+              stringIds: task.payload.stringIds,
+              taskId: task.payload.taskId,
+              error,
+            }),
+          );
+        } else {
+          // oxlint-disable-next-line no-await-in-loop
+          await queue.nack(task.id);
+        }
+      } catch (settlementError) {
+        postTaskErrors.push(
+          new AggregateError(
+            [error, settlementError],
+            `Vectorization task "${task.id}" failed and could not be settled.`,
+          ),
+        );
+      }
+      continue;
+    }
 
-      // 3. Ack + publish success
+    // The durable vectorization write is complete. A completion event failure
+    // must remain observable, but cannot requeue an already acknowledged task.
+    try {
       // oxlint-disable-next-line no-await-in-loop
       await queue.ack(task.id);
       // oxlint-disable-next-line no-await-in-loop
@@ -71,31 +110,15 @@ export const processVectorizationBatch = async (
           taskId: task.payload.taskId,
         }),
       );
-    } catch (error) {
-      if (task.retryCount >= MAX_RETRIES - 1) {
-        // oxlint-disable-next-line no-await-in-loop
-        const { client: drizzle } = await getDbHandle();
-        // oxlint-disable-next-line no-await-in-loop
-        await executeCommand({ db: drizzle }, updateVectorizedStringStatus, {
-          stringIds: task.payload.stringIds,
-          status: "VECTORIZE_FAILED",
-        });
-        // Remove only after the terminal status is durable, so a stable enqueue ID
-        // cannot be reinserted during the transition.
-        // oxlint-disable-next-line no-await-in-loop
-        await queue.ack(task.id);
-        // oxlint-disable-next-line no-await-in-loop
-        await domainEventBus.publish(
-          domainEvent("vectorization:failed", {
-            stringIds: task.payload.stringIds,
-            taskId: task.payload.taskId,
-            error,
-          }),
-        );
-      } else {
-        // oxlint-disable-next-line no-await-in-loop
-        await queue.nack(task.id);
-      }
+    } catch (postTaskError) {
+      postTaskErrors.push(postTaskError);
     }
+  }
+
+  if (postTaskErrors.length > 0) {
+    throw new AggregateError(
+      postTaskErrors,
+      "Vectorization batch completed with task settlement failures.",
+    );
   }
 };

@@ -1,5 +1,6 @@
 import {
   DatabaseRequirementAssessmentSchema,
+  RequiredVectorDimension,
   type DatabaseRequirement,
   type DatabaseRequirementAssessment,
   type DatabaseRequirementBlockedReason,
@@ -155,8 +156,8 @@ const assessVector = async (
         a.attnotnull AS is_not_null,
         chunk_attribute.attnotnull AS has_not_null_chunk,
         (
-          array_fill(1::real, ARRAY[1024])::vector(1024)
-          <=> array_fill(1::real, ARRAY[1024])::vector(1024)
+          array_fill(1::real, ARRAY[${RequiredVectorDimension}])::vector(${RequiredVectorDimension})
+          <=> array_fill(1::real, ARRAY[${RequiredVectorDimension}])::vector(${RequiredVectorDimension})
         ) = 0 AS has_cosine_behaviour,
         EXISTS (
           SELECT 1
@@ -216,7 +217,7 @@ const assessVector = async (
     const schema = result.rows.at(0);
     if (
       schema === undefined ||
-      schema.dimension !== 1024 ||
+      schema.dimension !== RequiredVectorDimension ||
       schema.has_hnsw_index !== true ||
       schema.has_chunk_foreign_key !== true ||
       schema.has_unique_chunk_index !== true ||

@@ -21,6 +21,7 @@ from src.generations import (
     canonical_json,
     generation_id,
 )
+from src.provisioner import ModelValidationError, validate_installed_model
 from src.runtime import GenerationRuntime
 
 
@@ -186,6 +187,24 @@ class RuntimeTest(unittest.TestCase):
             ):
                 GenerationRuntime.open_active(store)
 
+    def test_provisioning_validation_reports_subprocess_timeout(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            store = GenerationStore(Path(directory))
+            identifier = write_generation(store, "a", "en")
+            with GenerationRuntime.open_generation(
+                store, identifier, validate_models=False
+            ) as runtime:
+                entry = runtime.manifest.effective_plan.models[0]
+
+            with (
+                mock.patch(
+                    "src.provisioner.subprocess.run",
+                    side_effect=subprocess.TimeoutExpired(["validator"], 1),
+                ),
+                self.assertRaisesRegex(ModelValidationError, "timed out"),
+            ):
+                validate_installed_model(entry, Path(directory), 1)
+
     def test_startup_rejects_site_packages_tampering(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             store = GenerationStore(Path(directory))
@@ -345,10 +364,11 @@ class CliModeTest(unittest.TestCase):
             store.activate(identifier)
             provision.return_value = identifier
 
-            with mock.patch("src.runtime._validate_generation_models"):
+            with mock.patch("src.cli.GenerationRuntime.open_active") as open_active:
                 main(["provision-and-serve", "--models-root", directory])
 
         provision.assert_called_once()
+        open_active.assert_not_called()
         execute.assert_called_once()
 
 

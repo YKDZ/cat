@@ -68,6 +68,7 @@ import {
   upsertChunkVectors,
   getChunkVectors,
   searchChunkCosineSimilarity,
+  EnsureVectorStorageSchemaCommandSchema,
   ensureVectorStorageSchema,
 } from "#/index.ts";
 import { getAccountMetaByIdentity } from "#/queries/auth/get-account-meta-by-identity.query.ts";
@@ -240,7 +241,11 @@ export const createPluginCapabilities = (
       await executeCommand(execCtx, updateVectorDimension, { dimension });
     },
     ensureSchema: async (dimension) => {
-      await executeCommand(execCtx, ensureVectorStorageSchema, { dimension });
+      await executeCommand(
+        execCtx,
+        ensureVectorStorageSchema,
+        EnsureVectorStorageSchemaCommandSchema.parse({ dimension }),
+      );
     },
   },
   language: {

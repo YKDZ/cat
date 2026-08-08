@@ -34,7 +34,7 @@ import {
   type UpdateDimensionContext,
   type InitContext,
 } from "@cat/plugin-core";
-import type { VectorizedTextData } from "@cat/shared";
+import { RequiredVectorDimension, type VectorizedTextData } from "@cat/shared";
 import {
   type PluginData,
   type PluginManifest,
@@ -59,7 +59,7 @@ const vector = snakeCase.table(
   "Vector",
   {
     id: serial().primaryKey(),
-    vector: dbVector({ dimensions: 1024 }).notNull(),
+    vector: dbVector({ dimensions: RequiredVectorDimension }).notNull(),
     chunkId: integer()
       .notNull()
       .references(() => chunk.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -175,8 +175,8 @@ export class TestTextVectorizer extends TextVectorizer {
     elements,
   }: VectorizeContext): Promise<VectorizedTextData[]> => {
     return elements.map((element) => {
-      // 1. 初始化 1024 维零向量
-      const vector = Array.from({ length: 1024 }, () => 0);
+      // 1. 初始化固定维度零向量
+      const vector = Array.from({ length: RequiredVectorDimension }, () => 0);
       const text = element.text || ""; // 假设 element 有 content 字段
 
       // 2. 简单的分词 (按空格和标点分割)
@@ -186,7 +186,7 @@ export class TestTextVectorizer extends TextVectorizer {
       tokens.forEach((token) => {
         if (!token) return;
         const hash = this.simpleHash(token);
-        const index = Math.abs(hash) % 1024;
+        const index = Math.abs(hash) % RequiredVectorDimension;
         vector[index] = (vector[index] ?? 0) + 1;
       });
 

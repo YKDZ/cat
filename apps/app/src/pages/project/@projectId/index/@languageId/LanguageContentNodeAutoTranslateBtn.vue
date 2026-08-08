@@ -149,7 +149,7 @@ const { state: llmState } = useQuery({
 
 <template>
   <Dialog v-if="hydrated">
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button variant="outline" size="icon" :title="t('自动翻译')">
         <div class="icon-[mdi--translate] size-4" />
       </Button>

@@ -52,7 +52,7 @@ const setupPluginManager = async (
     languageIds: ["en", "zh-Hans", "ja", "ko"],
   });
 
-  return { cleanup: db.cleanup, pluginManager };
+  return { cleanup: db.cleanup, db: db.client, pluginManager };
 };
 
 let cleanup: (() => Promise<void>) | undefined;
@@ -89,6 +89,7 @@ describe("statisticalTermExtractOp", () => {
           },
         },
         {
+          db: runtime.db,
           pluginManager: runtime.pluginManager,
           traceId: "test-trace-unavailable",
         },
@@ -120,7 +121,11 @@ describe("statisticalTermExtractOp", () => {
             cvalueWeight: 0.4,
           },
         },
-        { pluginManager: runtime.pluginManager, traceId: "test-trace-plugin" },
+        {
+          db: runtime.db,
+          pluginManager: runtime.pluginManager,
+          traceId: "test-trace-plugin",
+        },
       ),
     ).rejects.toThrow("Language Analysis requirement");
   });

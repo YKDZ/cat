@@ -17,11 +17,11 @@ const mocks = vi.hoisted(() => {
 
   return {
     ResolutionError,
+    db: {},
     executeCommand: vi.fn(),
     executeQuery: vi.fn(),
     executeLanguageAnalysis: vi.fn(),
     executeLanguageAnalysisBatch: vi.fn(),
-    getDbHandle: vi.fn(async () => ({ client: {} })),
     resolvePluginManager: vi.fn(),
     resolveServiceImplementation: vi.fn(),
     getPolicyEpochQuery: Symbol("getLanguageAnalysisPolicyEpoch"),
@@ -34,7 +34,6 @@ vi.mock("@cat/domain", () => ({
   executeCommand: mocks.executeCommand,
   executeQuery: mocks.executeQuery,
   getLanguageAnalysisPolicyEpoch: mocks.getPolicyEpochQuery,
-  getDbHandle: mocks.getDbHandle,
   listLanguageAnalysisSelections: mocks.listSelectionsQuery,
   resolveLanguageAnalysisSelection: mocks.resolveSelectionQuery,
   StaleLanguageAnalysisObservationError: class extends Error {},
@@ -79,6 +78,7 @@ const selection = {
   revision: 4,
   updatedAt: new Date(),
 };
+const operationContext = { db: mocks.db as never, traceId: "test" };
 
 describe("Language Analysis configuration assessment", () => {
   beforeEach(() => {
@@ -98,7 +98,10 @@ describe("Language Analysis configuration assessment", () => {
     });
 
     await expect(
-      assessLanguageAnalysisConfiguration({ languageId: "zh-Hans" }),
+      assessLanguageAnalysisConfiguration(
+        { languageId: "zh-Hans" },
+        operationContext,
+      ),
     ).resolves.toMatchObject({
       blocker: {
         implementation,
@@ -107,6 +110,11 @@ describe("Language Analysis configuration assessment", () => {
       selection: { key: "zh-Hans", revision: 4 },
       status: "BLOCKED",
     });
+    expect(mocks.executeQuery).toHaveBeenCalledWith(
+      operationContext,
+      mocks.resolveSelectionQuery,
+      { languageId: "zh-Hans" },
+    );
   });
 
   it("blocks a non-global selection before it can resolve a scoped implementation", async () => {
@@ -122,7 +130,10 @@ describe("Language Analysis configuration assessment", () => {
     });
 
     await expect(
-      assessLanguageAnalysisConfiguration({ languageId: "zh-Hans" }),
+      assessLanguageAnalysisConfiguration(
+        { languageId: "zh-Hans" },
+        operationContext,
+      ),
     ).resolves.toMatchObject({
       blocker: { reason: "INSTALLATION_SCOPE_MISMATCH" },
       status: "BLOCKED",
@@ -140,7 +151,10 @@ describe("Language Analysis configuration assessment", () => {
     });
 
     await expect(
-      assessLanguageAnalysisConfiguration({ languageId: "zh-Hans" }),
+      assessLanguageAnalysisConfiguration(
+        { languageId: "zh-Hans" },
+        operationContext,
+      ),
     ).resolves.toMatchObject({
       blocker: { reason: "INVALID_CONFIGURATION" },
       status: "BLOCKED",
@@ -158,7 +172,7 @@ describe("Language Analysis configuration assessment", () => {
     await expect(
       assessLanguageAnalysisConfiguration(
         { languageId: "zh-Hans" },
-        { signal: controller.signal, traceId: "test" },
+        { ...operationContext, signal: controller.signal },
       ),
     ).rejects.toBe(reason);
   });
@@ -199,7 +213,7 @@ describe("Language Analysis configuration assessment", () => {
     await expect(
       executeRequiredLanguageAnalysis(
         { languageId: "zh-Hans", text: "test" },
-        { traceId: "test" },
+        operationContext,
       ),
     ).rejects.toBe(error);
   });
@@ -243,7 +257,7 @@ describe("Language Analysis configuration assessment", () => {
 
     await executeRequiredLanguageAnalysis(
       { languageId: "zh-Hans", text: "test" },
-      { traceId: "test" },
+      operationContext,
     );
 
     expect(mocks.executeCommand).toHaveBeenCalledWith(
@@ -299,14 +313,20 @@ describe("Language Analysis configuration assessment", () => {
 
       const promise =
         kind === "single"
-          ? executeRequiredLanguageAnalysis({
-              languageId: "zh-Hans",
-              text: "test",
-            })
-          : executeRequiredLanguageAnalysisBatch({
-              languageId: "zh-Hans",
-              items: [{ id: "1", text: "test" }],
-            });
+          ? executeRequiredLanguageAnalysis(
+              {
+                languageId: "zh-Hans",
+                text: "test",
+              },
+              operationContext,
+            )
+          : executeRequiredLanguageAnalysisBatch(
+              {
+                languageId: "zh-Hans",
+                items: [{ id: "1", text: "test" }],
+              },
+              operationContext,
+            );
       await expect(promise).rejects.toMatchObject({
         assessment: { blocker: { reason: code } },
       });
@@ -366,7 +386,7 @@ describe("Language Analysis configuration assessment", () => {
     mocks.resolveServiceImplementation.mockReturnValue(analyzer);
     mocks.executeLanguageAnalysis.mockResolvedValue({ tokens: [] } as never);
 
-    await executeLanguageAnalysisReadinessAssessment({ traceId: "test" });
+    await executeLanguageAnalysisReadinessAssessment(operationContext);
 
     expect(mocks.executeLanguageAnalysis).toHaveBeenCalledTimes(40);
     expect(
@@ -419,7 +439,7 @@ describe("Language Analysis configuration assessment", () => {
     mocks.resolveServiceImplementation.mockReturnValue(analyzer);
 
     await expect(
-      executeLanguageAnalysisReadinessAssessment({ traceId: "test" }),
+      executeLanguageAnalysisReadinessAssessment(operationContext),
     ).rejects.toMatchObject({ reason: "INVALID_CONFIGURATION" });
     expect(mocks.executeLanguageAnalysis).not.toHaveBeenCalled();
   });
@@ -475,7 +495,7 @@ describe("Language Analysis configuration assessment", () => {
     mocks.resolveServiceImplementation.mockReturnValue(analyzer);
     mocks.executeLanguageAnalysis.mockResolvedValue({ tokens: [] } as never);
 
-    await executeLanguageAnalysisReadinessAssessment({ traceId: "test" });
+    await executeLanguageAnalysisReadinessAssessment(operationContext);
 
     expect(mocks.executeLanguageAnalysis).toHaveBeenCalledWith(
       expect.objectContaining({ languageId: "de" }),
@@ -522,7 +542,7 @@ describe("Language Analysis configuration assessment", () => {
     mocks.resolveServiceImplementation.mockReturnValue(analyzer);
     mocks.executeLanguageAnalysis.mockResolvedValue({ tokens: [] } as never);
 
-    await executeLanguageAnalysisReadinessAssessment({ traceId: "test" });
+    await executeLanguageAnalysisReadinessAssessment(operationContext);
 
     expect(
       mocks.executeQuery.mock.calls.filter(

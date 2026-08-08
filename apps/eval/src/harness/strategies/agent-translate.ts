@@ -9,6 +9,10 @@ import type {
   TranslationTestSet,
 } from "#/config/schemas.ts";
 
+import {
+  abortableEvaluationDelay,
+  throwIfEvaluationAborted,
+} from "../../cancellation.ts";
 import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
@@ -46,6 +50,7 @@ export const agentTranslateStrategy = {
     const timeoutMs = (params.timeoutMs as number) ?? 600_000;
 
     for (const tc of testSet.cases) {
+      throwIfEvaluationAborted(ctx.signal);
       const result = await runTranslationCase(tc, ctx, timeoutMs);
       cases.push(result);
     }
@@ -93,6 +98,7 @@ const runTranslationCase = async (
           status: "ok" as const,
         };
       } catch (err) {
+        throwIfEvaluationAborted(ctx.signal);
         const durationMs = performance.now() - start;
         const isAbort =
           err instanceof DOMException && err.name === "AbortError";
@@ -211,6 +217,7 @@ const executeAgentTranslation = async (
   const overallDeadline = Date.now() + timeoutMs;
 
   for (let batchIndex = 0; batchIndex < batches.length; batchIndex += 1) {
+    throwIfEvaluationAborted(ctx.signal);
     if (Date.now() >= overallDeadline) {
       console.warn(
         `[eval] Overall timeout reached; stopping before batch ${batchIndex + 1}/${batches.length}`,
@@ -244,6 +251,7 @@ const executeAgentTranslation = async (
 
     // ── Retry loop for transient LLM/network errors ───────────────────────
     for (let attempt = 0; attempt <= MAX_BATCH_RETRIES; attempt += 1) {
+      throwIfEvaluationAborted(ctx.signal);
       if (Date.now() >= overallDeadline) break;
 
       if (attempt > 0) {
@@ -255,7 +263,7 @@ const executeAgentTranslation = async (
           `[eval] Batch ${batchIndex + 1}/${batches.length} retry ${attempt}/${MAX_BATCH_RETRIES} — waiting ${Math.round(waitMs / 1000)}s...`,
         );
         // oxlint-disable-next-line no-await-in-loop -- intentional sequential retry delay
-        await new Promise<void>((resolve) => setTimeout(resolve, waitMs));
+        await abortableEvaluationDelay(waitMs, ctx.signal);
         if (Date.now() >= overallDeadline) break;
       }
 
@@ -280,6 +288,10 @@ const executeAgentTranslation = async (
       const timer = setTimeout(() => {
         timeoutController.abort();
       }, batchTimeoutMs);
+      const signal =
+        ctx.signal === undefined
+          ? timeoutController.signal
+          : AbortSignal.any([ctx.signal, timeoutController.signal]);
 
       let attemptPromptTokens = 0;
       let attemptCompletionTokens = 0;
@@ -289,8 +301,9 @@ const executeAgentTranslation = async (
 
       try {
         // oxlint-disable-next-line no-await-in-loop -- agent event loop is inherently sequential
-        for await (const event of runtime.runLoop(sessionId, runId)) {
-          if (timeoutController.signal.aborted) {
+        for await (const event of runtime.runLoop(sessionId, runId, signal)) {
+          if (signal.aborted) {
+            throwIfEvaluationAborted(ctx.signal);
             throw new DOMException("Agent timed out", "AbortError");
           }
           if (event.type === "llm_complete") {
@@ -306,6 +319,7 @@ const executeAgentTranslation = async (
         }
         attemptSucceeded = true;
       } catch (err) {
+        throwIfEvaluationAborted(ctx.signal);
         if (err instanceof DOMException && err.name === "AbortError") {
           console.warn(
             `[eval] Batch ${batchIndex + 1}/${batches.length} timed out after ${Math.round(batchTimeoutMs / 1000)}s; keeping partial results`,
@@ -353,6 +367,7 @@ const executeAgentTranslation = async (
   const translations: AgentTranslateRawOutput["translations"] = [];
 
   for (const [ref, elementId] of elementIdMap.entries()) {
+    throwIfEvaluationAborted(ctx.signal);
     // oxlint-disable-next-line no-await-in-loop -- sequential DB reads for ordered element collection
     const results = await executeQuery({ db }, listTranslationsByElement, {
       elementId,

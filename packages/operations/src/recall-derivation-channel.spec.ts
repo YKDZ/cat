@@ -1,6 +1,7 @@
 import type { ScopedRecallDerivationStateView } from "@cat/domain";
 import {
   CanonicalInputVersionSchema,
+  NormalizedLanguageIdSchema,
   RecallDerivationVersionSchema,
 } from "@cat/shared";
 import { describe, expect, it } from "vitest";
@@ -15,7 +16,7 @@ const state = (
 ): ScopedRecallDerivationStateView => ({
   targetId: "42",
   stateId: 1,
-  languageId: "en",
+  languageId: NormalizedLanguageIdSchema.parse("en"),
   status: "FRESH",
   demandRevision: 1,
   blocker: null,

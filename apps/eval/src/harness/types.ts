@@ -15,6 +15,7 @@ export type HarnessContext = {
   contentNodeId: string | undefined;
   db: DrizzleDB;
   userId: string;
+  signal?: AbortSignal | undefined;
 };
 
 export type CaseResult = {

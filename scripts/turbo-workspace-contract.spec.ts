@@ -240,6 +240,7 @@ describe("Turbo workspace contract", () => {
     );
     expect(turbo.tasks.lint?.dependsOn ?? []).not.toContain("^lint");
     expect(turbo.tasks["test:unit"]?.env).toContain("CI");
+    expect(turbo.tasks["test:integration"]?.env).toContain("SPACY_SERVER_URL");
     expect(turbo.tasks["pack:artifact"]?.inputs).toEqual(
       expect.arrayContaining([
         "$TURBO_ROOT$/scripts/pack-package-artifact.ts",

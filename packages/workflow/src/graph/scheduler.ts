@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import type { DbHandle } from "@cat/domain";
 import { evaluateCondition } from "@cat/graph";
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared";
@@ -49,6 +50,7 @@ type RunContext = {
 };
 
 export type SchedulerOptions = {
+  db?: DbHandle | undefined;
   eventBus: AgentEventBus;
   checkpointer: Checkpointer;
   executorPool: ExecutorPool;
@@ -202,6 +204,8 @@ export class Scheduler {
 
   readonly logger: WorkflowLogger;
 
+  private readonly db: DbHandle | undefined;
+
   private readonly reclaimIntervalMs: number;
 
   private readonly reclaimCooldownMs: number;
@@ -222,6 +226,7 @@ export class Scheduler {
 
   constructor(options: SchedulerOptions) {
     this.eventBus = options.eventBus;
+    this.db = options.db;
     this.checkpointer = options.checkpointer;
     this.executorPool = options.executorPool;
     this.graphRegistry = options.graphRegistry;
@@ -263,6 +268,7 @@ export class Scheduler {
     const ownershipRequired =
       options?.ownershipFence != null || options?.sessionId !== undefined;
     return {
+      db: this.db,
       pluginManager: options?.pluginManager,
       vcsContext: options?.vcsContext,
       vcsMiddleware: options?.vcsMiddleware,
@@ -320,7 +326,8 @@ export class Scheduler {
           throw new WorkflowRunIdentityConflictError(ownership);
         }
         const runtime = this.buildRuntime(existing.runId, options);
-        runtime.ownershipFence = ownership.ownershipFence;
+        runtime.ownershipFence =
+          options?.ownershipFence ?? ownership.ownershipFence;
         if ((await options?.onRunActivated?.(existing.runId)) === false) {
           await this.checkpointer.saveRunMetadata(existing.runId, {
             ...ownership.metadata,
@@ -387,7 +394,8 @@ export class Scheduler {
     const runtime = this.buildRuntime(runId, options);
 
     if (!ownership.created) {
-      runtime.ownershipFence = ownership.ownershipFence;
+      runtime.ownershipFence =
+        options?.ownershipFence ?? ownership.ownershipFence;
       if ((await options?.onRunActivated?.(runId)) === false) {
         await this.checkpointer.saveRunMetadata(runId, {
           ...ownership.metadata,
@@ -431,7 +439,8 @@ export class Scheduler {
       completedNodes: new Set<NodeId>(),
     };
 
-    context.runtime.ownershipFence = ownership.ownershipFence;
+    context.runtime.ownershipFence =
+      options?.ownershipFence ?? ownership.ownershipFence;
 
     let activationFailureHandled = false;
     try {
@@ -706,9 +715,10 @@ export class Scheduler {
         existingContext.runtime = {
           ...existingContext.runtime,
           ...(options?.runtime ?? {}),
-          ...(options?.ownershipFence
-            ? { ownershipFence: options.ownershipFence }
-            : {}),
+          ownershipFence:
+            options?.runtime?.ownershipFence ??
+            options?.ownershipFence ??
+            existingContext.runtime.ownershipFence,
         };
       }
       if (options?.cancelRequested && !existingContext.cancelRequested) {
@@ -735,13 +745,20 @@ export class Scheduler {
     const graph =
       metadata.graphDefinition ?? this.graphRegistry.get(metadata.graphId);
 
-    const runtime = options?.runtime ?? {};
-    runtime.ownershipFence =
-      options?.ownershipFence ?? this.checkpointer.getRunOwnershipFence(runId);
-    runtime.assertRunOwnership ??= async () => {
-      if (!(await this.checkpointer.renewRunOwnership(runId))) {
-        throw new Error("Workflow owner lease lost");
-      }
+    const runtime: GraphRuntimeContext = {
+      ...(options?.runtime ?? {}),
+      db: options?.runtime?.db ?? this.db,
+      ownershipFence:
+        options?.runtime?.ownershipFence ??
+        options?.ownershipFence ??
+        this.checkpointer.getRunOwnershipFence(runId),
+      assertRunOwnership:
+        options?.runtime?.assertRunOwnership ??
+        (async () => {
+          if (!(await this.checkpointer.renewRunOwnership(runId))) {
+            throw new Error("Workflow owner lease lost");
+          }
+        }),
     };
 
     const abortController = new AbortController();

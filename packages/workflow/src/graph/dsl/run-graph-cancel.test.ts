@@ -21,6 +21,7 @@ import { runGraph, startGraph } from "./run-graph.ts";
 
 let handlerStarted: (() => void) | undefined;
 let releaseHandler: (() => void) | undefined;
+let observedOwnershipFence: unknown;
 
 const cancellationGraph = defineGraph({
   id: "structured-cancellation-test",
@@ -45,6 +46,25 @@ const cancellationGraph = defineGraph({
   exit: ["wait"],
 });
 
+const ownershipContextGraph = defineGraph({
+  id: "supplied-ownership-context-test",
+  input: z.object({}),
+  output: z.object({}),
+  nodes: {
+    observe: defineNode({
+      input: z.object({}),
+      output: z.object({}),
+      handler: async (_input, ctx) => {
+        observedOwnershipFence = ctx.ownershipFence;
+        return {};
+      },
+    }),
+  },
+  edges: [],
+  entry: "observe",
+  exit: ["observe"],
+});
+
 let db: TestDB;
 let runtime: DefaultGraphRuntime;
 
@@ -58,6 +78,7 @@ beforeAll(async () => {
   );
   runtime = createDefaultGraphRuntime(db.client, pluginManager);
   runtime.graphRegistry.register(cancellationGraph.graphDefinition);
+  runtime.graphRegistry.register(ownershipContextGraph.graphDefinition);
 });
 
 afterAll(async () => {
@@ -70,6 +91,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   handlerStarted = undefined;
   releaseHandler = undefined;
+  observedOwnershipFence = undefined;
 });
 
 describe("runGraph cancellation", () => {
@@ -180,5 +202,24 @@ describe("runGraph cancellation", () => {
     releaseHandler?.();
 
     await expect(handle.complete).rejects.toMatchObject({ name: "AbortError" });
+  });
+
+  it("preserves a supplied parent ownership fence in a child run", async () => {
+    const parentFence = {
+      runId: "11111111-1111-4111-8111-111111111111",
+      ownerId: "22222222-2222-4222-8222-222222222222",
+      epoch: 3,
+    };
+
+    await runGraph(
+      ownershipContextGraph,
+      {},
+      {
+        ownershipFence: parentFence,
+        assertRunOwnership: async () => undefined,
+      },
+    );
+
+    expect(observedOwnershipFence).toEqual(parentFence);
   });
 });

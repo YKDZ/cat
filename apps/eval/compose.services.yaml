@@ -1,85 +1,79 @@
+name: cat-eval
+
 services:
+  postgresql:
+    extends:
+      file: ../app/compose.services.yaml
+      service: postgresql
+    environment:
+      POSTGRES_DB: cat
+      POSTGRES_PASSWORD: pass
+      POSTGRES_USER: user
+    ports:
+      - "127.0.0.1:${CAT_EVAL_POSTGRES_HOST_PORT:-5432}:5432"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - eval-postgresql-data:/var/lib/postgresql
+
   redis:
-    image: redis
+    extends:
+      file: ../app/compose.services.yaml
+      service: redis
+    image: redis:8.8.0-alpine@sha256:9d317178eceac8454a2284a9e6df2466b93c745529947f0cd42a0fa9609d7005
     command:
       - redis-server
       - --appendonly
       - "yes"
       - --appendfsync
       - everysec
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - redis-cli ping | grep PONG
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 3s
-    ports:
-      - "6379:6379"
-
-  postgresql:
-    image: pgvector/pgvector:0.8.6-pg18
+      - --requirepass
+      - eval-redis
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: cat
+      REDIS_PASSWORD: eval-redis
     ports:
-      - "5432:5432"
-    healthcheck:
-      test:
-        - CMD-SHELL
-        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
-      start_period: 20s
-      interval: 30s
-      retries: 5
-      timeout: 5s
+      - "127.0.0.1:${CAT_EVAL_REDIS_HOST_PORT:-6379}:6379"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - eval-redis-data:/data
 
   ollama:
-    image: ollama/ollama
-    volumes:
-      - ollama-data:/root/.ollama
+    image: ollama/ollama:0.16.1
     ports:
-      - "11435:11434"
+      - "127.0.0.1:${CAT_EVAL_OLLAMA_HOST_PORT:-11435}:11434"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - eval-ollama-data:/root/.ollama
     healthcheck:
       test:
         - CMD-SHELL
         - bash -c '</dev/tcp/localhost/11434'
-      start_period: 30s
       interval: 15s
       retries: 5
+      start_period: 30s
       timeout: 5s
 
   spacy:
-    image: cat-spacy-server:local
-    build:
-      context: ../spacy-server
-    command: ["provision-and-serve"]
-    environment:
-      SPACY_MODELS_ROOT: /models
+    extends:
+      file: ../app/compose.services.yaml
+      service: spacy
+    build: !reset null
+    image: ${CAT_SPACY_IMAGE_ID:?CAT_SPACY_IMAGE_ID must be an immutable spaCy image ID}
     ports:
-      - "8000:8000"
-    healthcheck:
-      test:
-        - CMD
-        - python
-        - -c
-        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).read()
-      interval: 30s
-      timeout: 10s
-      start_period: 60s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-    read_only: true
-    tmpfs:
-      - /tmp:rw,nosuid,nodev,noexec,mode=1777
-    user: "10001:10001"
+      - "127.0.0.1:${CAT_EVAL_SPACY_HOST_PORT:-8000}:8000"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
     volumes:
-      - spacy-models:/models
+      - eval-spacy-models:/models
 
 volumes:
-  ollama-data:
-  spacy-models:
+  eval-ollama-data:
+  eval-postgresql-data:
+  eval-redis-data:
+  eval-spacy-models:

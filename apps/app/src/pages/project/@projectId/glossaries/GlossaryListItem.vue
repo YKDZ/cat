@@ -35,6 +35,21 @@ const handleCheck = async () => {
   await navigate(`/glossary/${props.glossary.id}`);
 };
 
+const handleLinkClick = async (event: MouseEvent) => {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
+    return;
+  }
+  event.preventDefault();
+  await handleCheck();
+};
+
 const handleUnlink = async () => {
   await orpc.project
     .unlinkGlossary({
@@ -55,7 +70,11 @@ onMounted(updateTermAmount);
 
 <template>
   <TableRow class="cursor-pointer hover:bg-background" @click="handleCheck">
-    <TableCell>{{ glossary.name }}</TableCell>
+    <TableCell>
+      <a :href="`/glossary/${glossary.id}`" @click.stop="handleLinkClick">
+        {{ glossary.name }}
+      </a>
+    </TableCell>
     <TableCell>{{ glossary.description }}</TableCell>
     <TableCell>{{ termAmount }}</TableCell>
     <TableCell>

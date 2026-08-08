@@ -28,6 +28,7 @@ import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requi
 import {
   assessRecallDerivationFreshness,
   processRecallDerivationBatch,
+  RecallDerivationFreshnessError,
   startRecallDerivationWorker,
   waitForRecallDerivationFresh,
 } from "./memory-recall-derivation.ts";
@@ -135,10 +136,29 @@ describe("Recall Derivation freshness", () => {
           timeoutMs: 10_000,
         }),
       ).rejects.toMatchObject({
+        blockers: [blocker],
+        message: `Recall Derivation freshness wait ended with ${status}. Blockers: DERIVATION_EXECUTION: derivation requires repair`,
         status,
       });
     },
   );
+
+  it("deduplicates identical blocker diagnostics", () => {
+    const blocker = {
+      reason: "LANGUAGE_ANALYSIS" as const,
+      retryable: true,
+      message: "Language Analysis requirement is BLOCKED.",
+    };
+    const error = new RecallDerivationFreshnessError(
+      "BLOCKED",
+      [],
+      [blocker, blocker],
+    );
+
+    expect(error.message).toBe(
+      "Recall Derivation freshness wait ended with BLOCKED. Blockers: LANGUAGE_ANALYSIS: Language Analysis requirement is BLOCKED.",
+    );
+  });
 
   it("times out pending work and propagates AbortSignal cancellation", async () => {
     await db.client.insert(recallDerivationState).values({

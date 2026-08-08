@@ -53,7 +53,7 @@ const handleAutoApprove = async () => {
 
 <template>
   <Dialog v-if="hydrated">
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button variant="outline" size="icon"><Check /></Button>
     </DialogTrigger>
     <DialogContent>

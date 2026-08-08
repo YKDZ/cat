@@ -1,4 +1,5 @@
 import { expect, test } from "#/fixtures.ts";
+import { gotoHydrated } from "#/pages/app-navigation.ts";
 
 import {
   writeDevHmrProbe,
@@ -25,7 +26,7 @@ test(
   "cold dependency optimization renders authentication and home without invalid nodes",
   { tag: "@dev-mechanism" },
   async ({ page }) => {
-    await page.goto("/auth");
+    await gotoHydrated(page, "/auth");
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator("body")).not.toBeEmpty();
 
@@ -43,7 +44,7 @@ test(
   "native HMR updates application and private JIT workspace sources",
   { tag: "@dev-mechanism" },
   async ({ page }) => {
-    await page.goto("/__e2e/hmr");
+    await gotoHydrated(page, "/__e2e/hmr");
     const mainFrame = page.mainFrame();
     let mainFrameNavigations = 0;
     let documentRequests = 0;

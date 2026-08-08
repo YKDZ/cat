@@ -1,5 +1,6 @@
 import * as z from "zod";
 
+import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";
 import { EvidenceLaneSchema } from "#/schema/precision-recall.ts";
 import {
   CanonicalInputVersionSchema,
@@ -82,12 +83,12 @@ export const RecallDerivationAffectedTargetSchema = z.discriminatedUnion(
     z.strictObject({
       targetKind: z.literal("MEMORY_ITEM"),
       targetId: z.string().regex(/^[1-9]\d*$/),
-      languageId: z.string().min(1),
+      languageId: NormalizedLanguageIdSchema,
     }),
     z.strictObject({
       targetKind: z.literal("TERM_CONCEPT"),
       targetId: z.string().regex(/^[1-9]\d*$/),
-      languageId: z.string().min(1),
+      languageId: NormalizedLanguageIdSchema,
     }),
   ],
 );
@@ -313,7 +314,7 @@ export const createCandidateRecallStreamEventSchema = <
 
 export const RecallDebugContextSchema = z.object({
   queryText: z.string().optional(),
-  sourceLanguageId: z.string().optional(),
+  sourceLanguageId: NormalizedLanguageIdSchema.optional(),
   channelsAttempted: z.array(CandidateChannelSchema).optional(),
   rerankNotes: z.array(z.string()).optional(),
 });

@@ -13,6 +13,7 @@ describe("SuiteConfigSchema", () => {
     const result = SuiteConfigSchema.parse({
       name: "test-suite",
       seed: { project: "seed/project.json" },
+      vectorization: "skip",
       plugins: { loader: "test" },
       scenarios: [
         {
@@ -24,6 +25,7 @@ describe("SuiteConfigSchema", () => {
     });
     expect(result.name).toBe("test-suite");
     expect(result.plugins.overrides).toEqual([]);
+    expect(result.vectorization).toBe("skip");
   });
 
   it("rejects empty scenarios", () => {

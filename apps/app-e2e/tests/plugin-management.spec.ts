@@ -1,4 +1,5 @@
 import { test, expect } from "#/fixtures.ts";
+import { gotoHydrated } from "#/pages/app-navigation.ts";
 
 test.describe("Plugin management", () => {
   test("administrator probes the official spaCy Language Analyzer through the product API", async ({
@@ -6,7 +7,7 @@ test.describe("Plugin management", () => {
   }) => {
     test.setTimeout(150_000);
 
-    await page.goto("/admin/plugin/spacy-language-analyzer");
+    await gotoHydrated(page, "/admin/plugin/spacy-language-analyzer");
     await expect(
       page.getByRole("heading", { name: "spacy-language-analyzer" }),
     ).toBeVisible();
@@ -39,7 +40,7 @@ test.describe("Plugin management", () => {
   test("admin can open a no-config plugin without being redirected home", async ({
     page,
   }) => {
-    await page.goto("/admin/plugin/basic-tokenizer");
+    await gotoHydrated(page, "/admin/plugin/basic-tokenizer");
 
     await expect(page).toHaveURL(/\/admin\/plugin\/basic-tokenizer/);
     await expect(
@@ -52,7 +53,7 @@ test.describe("Plugin management", () => {
   test("admin sees unsupported probe state for tokenizer-only plugin", async ({
     page,
   }) => {
-    await page.goto("/admin/plugin/basic-tokenizer");
+    await gotoHydrated(page, "/admin/plugin/basic-tokenizer");
 
     await expect(page.getByText("不支持检测").first()).toBeVisible();
     await expect(

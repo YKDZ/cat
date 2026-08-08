@@ -10,6 +10,13 @@ export {
 } from "#/schema/enum.ts";
 
 export {
+  DefaultDisplayLanguage,
+  type DisplayLanguage,
+  DisplayLanguageSchema,
+  DisplayLanguageValues,
+} from "#/schema/display-language.ts";
+
+export {
   databaseReadinessCode,
   DatabaseReadinessCodeSchema,
   DatabaseReadinessCodeValues,
@@ -28,6 +35,11 @@ export {
   DatabaseRequirementUnknownReasonSchema,
   type DatabaseRequirementUnknownReason,
 } from "#/schema/database-requirements.ts";
+
+export {
+  RequiredVectorDimension,
+  RequiredVectorDimensionSchema,
+} from "#/schema/vector-runtime.ts";
 
 // Custom element schema
 export { CustomElementNameSchema } from "#/schema/ce.ts";

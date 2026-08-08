@@ -17,6 +17,7 @@ from .protocol_limits import (
     MAX_PARENT_REQUEST_FRAME_BYTES,
     MAX_WORKER_RESPONSE_FRAME_BYTES,
 )
+from .startup_budget import WORKER_START_TIMEOUT_SECONDS
 
 
 class ClientDisconnected(Exception):
@@ -57,7 +58,7 @@ class AnalysisCoordinator:
         generation_id: str | None = None,
         generation_storage_key: str | None = None,
         models_root: str | None = None,
-        worker_start_timeout_s: float = 30.0,
+        worker_start_timeout_s: float = WORKER_START_TIMEOUT_SECONDS,
     ) -> None:
         self._worker_command = worker_command or (sys.executable, "-m", "src.worker")
         self._poll_interval_s = poll_interval_s

@@ -18,6 +18,8 @@ const removedTsxPackage = ["t", "sx"].join("");
 const removedDtsPackage = ["unplugin", "dts"].join("-");
 const removedLegacyDeployCommand = ["pnpm deploy --", "legacy"].join("");
 const retiredRunnerPackage = `@${retiredRunner}repo/cli`;
+const retiredPgvectorPlugin = ["pgvector", "storage"].join("-");
+const retiredPgvectorPluginPackage = `@cat-plugin/${retiredPgvectorPlugin}`;
 const retiredRunnerConfig = `${retiredRunner}.yml`;
 const retiredRunnerReference = new RegExp(
   [
@@ -82,6 +84,27 @@ const legacyGuidanceReference = new RegExp(
 );
 
 describe("toolchain retirement contract", () => {
+  it("does not retain the replaced filesystem pgvector plugin", () => {
+    const staleReference = new RegExp(
+      [
+        `@cat-plugin/${retiredPgvectorPlugin}`,
+        `plugin:\\s+${retiredPgvectorPlugin}\\b`,
+        `['"]${retiredPgvectorPlugin}['"]`,
+      ].join("|"),
+    );
+    const offenders = repositoryFiles().filter((path) =>
+      staleReference.test(readFileSync(path, "utf8")),
+    );
+
+    expect(existsSync(join(root, "@cat-plugin", retiredPgvectorPlugin))).toBe(
+      false,
+    );
+    expect(offenders.map((path) => relative(root, path))).toEqual([]);
+    expect(readFileSync(join(root, "pnpm-lock.yaml"), "utf8")).not.toContain(
+      retiredPgvectorPluginPackage,
+    );
+  });
+
   it("does not scan ignored runtime artifacts as repository source", () => {
     const artifactDirectory = join(
       root,

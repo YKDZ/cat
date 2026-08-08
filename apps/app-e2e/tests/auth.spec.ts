@@ -1,4 +1,5 @@
 import { test, expect } from "#/fixtures.ts";
+import { gotoHydrated } from "#/pages/app-navigation.ts";
 import { LoginPage } from "#/pages/login-page.ts";
 
 test.describe("Authentication", () => {
@@ -23,7 +24,7 @@ test.describe("Authentication", () => {
     });
 
     test("unauthenticated user is redirected to /auth", async ({ page }) => {
-      await page.goto("/");
+      await gotoHydrated(page, "/");
       // The guard should redirect to auth
       await expect(page).toHaveURL(/\/auth/);
     });
@@ -34,7 +35,7 @@ test.describe("Authentication", () => {
     test("authenticated user is redirected from /auth to home", async ({
       page,
     }) => {
-      await page.goto("/auth");
+      await gotoHydrated(page, "/auth");
       // The auth guard redirects authenticated users away from /auth
       await expect(page).toHaveURL("/");
     });

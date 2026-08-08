@@ -71,6 +71,7 @@ export const SuiteConfigSchema = z.object({
     loader: z.enum(["real", "test"]).default("real"),
     overrides: z.array(PluginOverrideSchema).default([]),
   }),
+  vectorization: z.enum(["required", "skip"]),
   scenarios: z.array(ScenarioConfigSchema).min(1),
   thresholds: ThresholdSchema.optional(),
 });

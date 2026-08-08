@@ -868,8 +868,8 @@ export const pluginConfig = snakeCase.table(
         onUpdate: "cascade",
     }),
     schema: jsonb().notNull().$type<_JSONSchema>(),
-    schemaVersion: text().notNull().default("legacy-unverified"),
-    schemaDigest: text().notNull().default(""),
+    schemaVersion: text().notNull(),
+    schemaDigest: text().notNull(),
     isAvailable: boolean().notNull().default(true),
     ...timestamps,
   },
@@ -885,7 +885,7 @@ export const pluginConfigInstance = snakeCase.table(
       onDelete: "set null",
       onUpdate: "cascade",
     }),
-    appliedVersion: text().notNull().default("legacy-unverified"),
+    appliedVersion: text().notNull(),
     revision: integer().notNull().default(1),
     configId: integer()
       .notNull()

@@ -60,6 +60,7 @@ const renderComposeConfig = (relativePath: string): ComposeConfig => {
         CAT_POSTGRES_PASSWORD: "postgres-password",
         CAT_POSTGRES_USER: "cat",
         CAT_REDIS_PASSWORD: "redis-password",
+        CAT_SPACY_IMAGE_ID: "sha256:test-spacy-image",
       },
     },
   );

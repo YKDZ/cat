@@ -8,7 +8,13 @@ import localStoragePlugin from "@cat-plugin/local-storage-provider";
 import spacyPlugin from "@cat-plugin/spacy-language-analyzer";
 import app, { configureReadinessReporter } from "@cat/app-api/app";
 import { DrizzleDB, RedisConnection } from "@cat/db";
-import { assessDatabaseRequirements, resolveRuntimeProfile } from "@cat/domain";
+import {
+  assessDatabaseRequirements,
+  PostgresCacheStore,
+  PostgresSessionStore,
+  PostgresTaskQueue,
+  resolveRuntimeProfile,
+} from "@cat/domain";
 import {
   LanguageAnalyzer,
   StorageProvider,
@@ -127,9 +133,12 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
     configureReadinessReporter(
       createApplicationReadinessReporter({
         backends: {
-          cacheStore: {},
-          sessionStore: {},
-          vectorizationQueue: {},
+          cacheStore: new PostgresCacheStore(database.client),
+          sessionStore: new PostgresSessionStore(database.client),
+          vectorizationQueue: new PostgresTaskQueue(
+            database.client,
+            "readiness-integration",
+          ),
         },
         database,
         assessDatabaseRequirements: async () =>
@@ -201,7 +210,7 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
     Reflect.set(globalThis, "inited", true);
     database = new DrizzleDB();
     await database.connect();
-    redis = new RedisConnection();
+    redis = new RedisConnection({ mode: "fail-fast", onError: () => {} });
     await redis.connect();
     storageDirectory = await mkdtemp(
       join(tmpdir(), "cat-readiness-integration-"),
@@ -246,7 +255,10 @@ describe.skipIf(spacyServerUrl === undefined)("readiness integration", () => {
         redis.disconnect();
       },
       async () => {
-        redis = new RedisConnection();
+        redis = new RedisConnection({
+          mode: "fail-fast",
+          onError: () => {},
+        });
         await redis.connect();
       },
     );

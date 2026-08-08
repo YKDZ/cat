@@ -26,9 +26,6 @@ plugins:
         model-id: dataset-model
         baseURL: http://dataset-vectorizer.test/v1
         apiKey: dataset-key
-    - plugin: pgvector-storage
-      scope: GLOBAL
-      config: {}
 `,
     "utf-8",
   );
@@ -79,7 +76,7 @@ describe("loadDevSeed local overrides", () => {
     expect(loaded.localOverrideSources).toEqual([
       { path: localPath, pluginOverrideCount: 2 },
     ]);
-    expect(loaded.config.plugins.overrides).toHaveLength(3);
+    expect(loaded.config.plugins.overrides).toHaveLength(2);
     expect(
       loaded.config.plugins.overrides.find(
         (override) => override.plugin === "openai-vectorizer",
@@ -89,11 +86,6 @@ describe("loadDevSeed local overrides", () => {
       baseURL: "http://local-vectorizer.test/v1",
       apiKey: "local-key",
     });
-    expect(
-      loaded.config.plugins.overrides.some(
-        (override) => override.plugin === "pgvector-storage",
-      ),
-    ).toBe(true);
     expect(
       loaded.config.plugins.overrides.some(
         (override) => override.plugin === "spacy-language-analyzer",
@@ -193,7 +185,7 @@ plugins:
     });
 
     expect(loaded.localOverrideSources).toEqual([]);
-    expect(loaded.config.plugins.overrides).toHaveLength(2);
+    expect(loaded.config.plugins.overrides).toHaveLength(1);
   });
 
   it("can require local override files to exist", () => {

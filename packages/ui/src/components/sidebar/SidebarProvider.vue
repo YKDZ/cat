@@ -3,11 +3,12 @@ import { useEventListener, useMediaQuery } from "@vueuse/core";
 import { TooltipProvider } from "reka-ui";
 import { usePageContext } from "vike-vue/usePageContext";
 import type { HTMLAttributes } from "vue";
-import { computed, ref, shallowRef, watchEffect } from "vue";
+import { computed, ref, watchEffect } from "vue";
 
 import {
   provideSidebarContext,
   SIDEBAR_KEYBOARD_SHORTCUT,
+  SIDEBAR_MOBILE_MAX_WIDTH,
   SIDEBAR_WIDTH,
   SIDEBAR_MIN_WIDTH,
   SIDEBAR_MAX_WIDTH,
@@ -31,9 +32,11 @@ const props = withDefaults(
 
 const ctx = usePageContext();
 
-const isMobile = !ctx.isClientSide
-  ? shallowRef(ctx.isMobile)
-  : useMediaQuery("(max-width: 768px)");
+const isMobile = useMediaQuery(`(max-width: ${SIDEBAR_MOBILE_MAX_WIDTH}px)`, {
+  ssrWidth: ctx.isMobile
+    ? SIDEBAR_MOBILE_MAX_WIDTH
+    : SIDEBAR_MOBILE_MAX_WIDTH + 1,
+});
 const openMobile = ref(false);
 
 const open = defineModel<boolean>({ default: true });

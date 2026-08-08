@@ -43,7 +43,10 @@ import {
   applyMemoryHnfPre,
   applyMemoryHnfPost,
 } from "./hard-negative-filter/index.ts";
-import { joinLemmas } from "./language-analysis-normalization.ts";
+import {
+  joinLemmas,
+  normalizeTokenLemma,
+} from "./language-analysis-normalization.ts";
 import { LanguageAnalysisRequirementError } from "./language-analysis-requirement.ts";
 import { probeMemoryRecallDependency } from "./memory-recall-derivation.ts";
 import {
@@ -661,46 +664,104 @@ export const collectMemoryRecallOp = async (
     "TEXT_VECTORIZER",
   );
 
-  if (
-    requestedChannels.has("SEMANTIC") &&
-    vectorStorage &&
-    (input.chunkIds.length > 0 ||
-      (input.queryVectors && input.queryVectors.length > 0) ||
-      vectorizer)
-  ) {
-    try {
-      const vectorResults = await searchMemoryOp(
-        {
-          chunkIds: input.chunkIds,
-          ...(input.queryVectors ? { queryVectors: input.queryVectors } : {}),
-          memoryIds: input.memoryIds,
-          sourceLanguageId: input.sourceLanguageId,
-          translationLanguageId: input.translationLanguageId,
-          minSimilarity: input.minSimilarity,
-          maxAmount: input.maxAmount,
-          vectorStorage: vectorStorage.reference,
-        },
-        ctx,
-      );
-      await Promise.all(
-        vectorResults.memories.map(async (r) =>
-          pushResult("SEMANTIC", r.id, {
-            ...r,
-            matchedText: r.matchedText ?? r.source,
-            evidences: [
-              ...r.evidences,
-              {
-                channel: "semantic" as const,
-                matchedText: r.matchedText ?? r.source,
-                confidence: r.confidence,
-                note: "vector semantic match",
-              },
+  if (requestedChannels.has("SEMANTIC") && vectorStorage) {
+    const suppliedQueryVectors =
+      input.queryVectors && input.queryVectors.length > 0
+        ? input.queryVectors
+        : undefined;
+    const suppliedChunkIds =
+      input.chunkIds.length > 0 ? input.chunkIds : undefined;
+    let queryVectors = suppliedQueryVectors;
+    let semanticInputAvailable =
+      suppliedQueryVectors !== undefined || suppliedChunkIds !== undefined;
+
+    if (!semanticInputAvailable) {
+      if (!vectorizer) {
+        channelBlockers.set("SEMANTIC", {
+          reason: "CAPABILITY_UNAVAILABLE",
+          message: "Text vectorization is unavailable for semantic recall.",
+          retryable: false,
+          capability: "TEXT_VECTORIZER",
+        });
+      } else if (
+        !vectorizer.service.canVectorize({
+          languageId: input.sourceLanguageId,
+        })
+      ) {
+        channelBlockers.set("SEMANTIC", {
+          reason: "CAPABILITY_UNAVAILABLE",
+          message: "Text vectorization is unavailable for semantic recall.",
+          retryable: false,
+          capability: "TEXT_VECTORIZER",
+        });
+      } else {
+        try {
+          ctx?.signal?.throwIfAborted();
+          const vectorized = await vectorizer.service.vectorize({
+            elements: [
+              { text: input.text, languageId: input.sourceLanguageId },
             ],
-          }),
-        ),
-      );
-    } catch (err) {
-      setExecutionBlocker("SEMANTIC", err, "VECTOR_STORAGE");
+            ...(ctx?.signal === undefined ? {} : { signal: ctx.signal }),
+          });
+          ctx?.signal?.throwIfAborted();
+          const vectorizedChunks = vectorized[0] ?? [];
+          if (vectorizedChunks.length === 0) {
+            semanticInputAvailable = false;
+          } else if (
+            vectorizedChunks.some((chunk) => chunk.vector.length === 0)
+          ) {
+            setExecutionBlocker(
+              "SEMANTIC",
+              new Error("Text vectorizer returned an empty vector."),
+              "TEXT_VECTORIZER",
+            );
+          } else {
+            queryVectors = vectorizedChunks.map((chunk) => chunk.vector);
+            semanticInputAvailable = true;
+          }
+        } catch (error) {
+          ctx?.signal?.throwIfAborted();
+          setExecutionBlocker("SEMANTIC", error, "TEXT_VECTORIZER");
+        }
+      }
+    }
+    if (!channelBlockers.has("SEMANTIC") && semanticInputAvailable) {
+      try {
+        ctx?.signal?.throwIfAborted();
+        const vectorResults = await searchMemoryOp(
+          {
+            chunkIds: queryVectors ? [] : (suppliedChunkIds ?? []),
+            ...(queryVectors ? { queryVectors } : {}),
+            memoryIds: input.memoryIds,
+            sourceLanguageId: input.sourceLanguageId,
+            translationLanguageId: input.translationLanguageId,
+            minSimilarity: input.minSimilarity,
+            maxAmount: input.maxAmount,
+            vectorStorage: vectorStorage.reference,
+          },
+          ctx,
+        );
+        await Promise.all(
+          vectorResults.memories.map(async (r) =>
+            pushResult("SEMANTIC", r.id, {
+              ...r,
+              matchedText: r.matchedText ?? r.source,
+              evidences: [
+                ...r.evidences,
+                {
+                  channel: "semantic" as const,
+                  matchedText: r.matchedText ?? r.source,
+                  confidence: r.confidence,
+                  note: "vector semantic match",
+                },
+              ],
+            }),
+          ),
+        );
+      } catch (err) {
+        ctx?.signal?.throwIfAborted();
+        setExecutionBlocker("SEMANTIC", err, "VECTOR_STORAGE");
+      }
     }
   } else if (requestedChannels.has("SEMANTIC")) {
     channelBlockers.set("SEMANTIC", {
@@ -747,7 +808,7 @@ export const collectMemoryRecallOp = async (
   const sparseContentWords = sourceLanguageAnalysisTokens
     ? sourceLanguageAnalysisTokens
         .filter((t) => !t.isStop && !t.isPunct)
-        .map((t) => t.lemma.toLowerCase())
+        .map((t) => normalizeTokenLemma(t).toLowerCase())
     : text.toLowerCase().split(/\s+/).filter(Boolean);
   augmentWithSparseLane(rawMemoryResults, sparseContentWords);
 

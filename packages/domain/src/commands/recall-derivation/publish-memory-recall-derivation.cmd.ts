@@ -11,6 +11,7 @@ import {
 import {
   CanonicalInputVersionSchema,
   MemoryRecallVariantDraftSchema,
+  NormalizedLanguageIdSchema,
   RecallDerivationReferenceSchema,
   RecallDerivationVersionSchema,
   type RecallDerivationReference,
@@ -24,7 +25,7 @@ export const PublishMemoryRecallDerivationCommandSchema = z
   .strictObject({
     targetId: z.string().regex(/^\d+$/),
     memoryId: z.uuidv4().nullable(),
-    languageId: z.string().min(1),
+    languageId: NormalizedLanguageIdSchema,
     demandRevision: z.int().positive(),
     executionEpoch: z.int().positive(),
     leaseToken: z.uuidv4(),

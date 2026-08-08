@@ -26,7 +26,7 @@ const runLifecycle = async (
     {
       ...context,
       env: {
-        SPACY_SERVER_URL: "http://127.0.0.1:49155",
+        SPACY_SERVER_URL: "http://172.17.0.1:49155",
         ...context.env,
       },
     },
@@ -145,8 +145,8 @@ describe("application container lifecycle", () => {
     await runLifecycle({
       buildId: "release-identity",
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-explicit-build-id",
       reportError,
@@ -160,8 +160,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-contract",
       run,
@@ -202,8 +202,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat_integration",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat_integration",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-lifecycle-db",
       run,
@@ -264,6 +264,10 @@ describe("application container lifecycle", () => {
   });
 
   it("leaves database capability mutation to the standalone preparation command", () => {
+    const capabilitySource = readFileSync(
+      "packages/db/src/database-capabilities.ts",
+      "utf8",
+    );
     const preparationSource = readFileSync(
       "apps/app/scripts/prepare-database.mjs",
       "utf8",
@@ -277,12 +281,12 @@ describe("application container lifecycle", () => {
       "utf8",
     );
 
-    expect(preparationSource).toContain(
-      "CREATE EXTENSION IF NOT EXISTS vector",
-    );
-    expect(preparationSource).toContain(
+    expect(capabilitySource).toContain("CREATE EXTENSION IF NOT EXISTS vector");
+    expect(capabilitySource).toContain(
       "CREATE EXTENSION IF NOT EXISTS pg_trgm",
     );
+    expect(preparationSource).toContain("prepareDatabaseCapabilities");
+    expect(preparationSource).not.toContain("CREATE EXTENSION");
     expect(preparationSource).toContain("assertDatabaseRequirements");
     expect(lifecycleSource).not.toContain("CREATE EXTENSION");
     expect(executionCellSource).not.toContain("CREATE EXTENSION");
@@ -292,8 +296,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-lifecycle-storage",
       run,
@@ -380,9 +384,9 @@ describe("application container lifecycle", () => {
       env: {
         CAT_TEST_SERVICE_LEASE: JSON.stringify({
           coordinates: {
-            databaseUrl: "postgresql://user:pass@127.0.0.1:49152/postgres",
-            redisUrl: "redis://127.0.0.1:49153",
-            spacyUrl: "http://127.0.0.1:49155",
+            databaseUrl: "postgresql://user:pass@172.17.0.1:49152/postgres",
+            redisUrl: "redis://172.17.0.1:49153",
+            spacyUrl: "http://172.17.0.1:49155",
           },
           ownership: {
             projectName: "cat-e2e-leased-services",
@@ -390,8 +394,8 @@ describe("application container lifecycle", () => {
           },
           version: 1,
         }),
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/postgres",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/postgres",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-check-all-build-id",
       run,
@@ -424,8 +428,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-command-rejections",
       run,
@@ -471,8 +475,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-direct-node",
       run,
@@ -515,8 +519,8 @@ describe("application container lifecycle", () => {
 
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-terminate-clients",
       run,
@@ -559,8 +563,8 @@ describe("application container lifecycle", () => {
 
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-retry-drop",
       run,
@@ -582,8 +586,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-drop-error",
         run,
@@ -623,8 +627,8 @@ describe("application container lifecycle", () => {
       await expect(
         runLifecycle({
           env: {
-            DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-            REDIS_URL: "redis://127.0.0.1:49153",
+            DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+            REDIS_URL: "redis://172.17.0.1:49153",
           },
           projectName: "cat-container-diagnostics",
           run,
@@ -691,8 +695,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-aggregate-cleanup",
         run,
@@ -731,8 +735,8 @@ describe("application container lifecycle", () => {
       runLifecycle({
         env: {
           DATABASE_URL:
-            "postgresql://user:pass@127.0.0.1:49152/cat_integration",
-          REDIS_URL: "redis://127.0.0.1:49153",
+            "postgresql://user:pass@172.17.0.1:49152/cat_integration",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-cleanup-db",
         run,
@@ -762,8 +766,8 @@ describe("application container lifecycle", () => {
     const context = {
       env: {
         CAT_CHECK_ALL_EXPORT_IMAGES_DIR: exportDirectory,
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-export",
       run,
@@ -867,8 +871,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-abort",
         reportError: (message) => errors.push(message),
@@ -909,8 +913,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-wrong-exit",
         run,

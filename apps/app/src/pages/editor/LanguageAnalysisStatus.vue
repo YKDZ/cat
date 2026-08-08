@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LanguageAnalysisObservationView } from "@cat/shared";
 import { storeToRefs } from "pinia";
-import { ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
@@ -11,17 +11,19 @@ const { projectId } = storeToRefs(useEditorContextStore());
 const { t } = useI18n();
 const views = ref<LanguageAnalysisObservationView[]>([]);
 
-watch(
-  projectId,
-  async (nextProjectId) => {
-    views.value = [];
-    if (!nextProjectId) return;
-    views.value = await orpc.languageAnalysis.getProjectObservations({
-      projectId: nextProjectId,
-    });
-  },
-  { immediate: true },
-);
+onMounted(() => {
+  watch(
+    projectId,
+    async (nextProjectId) => {
+      views.value = [];
+      if (!nextProjectId) return;
+      views.value = await orpc.languageAnalysis.getProjectObservations({
+        projectId: nextProjectId,
+      });
+    },
+    { immediate: true },
+  );
+});
 </script>
 
 <template>

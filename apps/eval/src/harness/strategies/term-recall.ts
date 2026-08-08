@@ -6,6 +6,7 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 import type { ScenarioConfig, TermRecallTestSet } from "#/config/schemas.ts";
 
+import { throwIfEvaluationAborted } from "../../cancellation.ts";
 import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
@@ -21,6 +22,7 @@ export const termRecallStrategy = {
     const params = scenario.params ?? {};
 
     for (const tc of testSet.cases) {
+      throwIfEvaluationAborted(ctx.signal);
       await tracer.startActiveSpan(
         "eval.case",
         {
@@ -34,11 +36,12 @@ export const termRecallStrategy = {
         },
         async (caseSpan) => {
           const start = performance.now();
+          let timer: ReturnType<typeof setTimeout> | undefined;
           try {
             const traceId = `eval-term-${tc.id}-${Date.now()}`;
             const controller = new AbortController();
             const timeoutMs = (params.timeoutMs as number) ?? 30_000;
-            const timer = setTimeout(() => {
+            timer = setTimeout(() => {
               controller.abort();
             }, timeoutMs);
 
@@ -67,12 +70,14 @@ export const termRecallStrategy = {
               },
               {
                 traceId,
-                signal: controller.signal,
+                signal:
+                  ctx.signal === undefined
+                    ? controller.signal
+                    : AbortSignal.any([ctx.signal, controller.signal]),
                 pluginManager: ctx.pluginManager,
               },
             );
 
-            clearTimeout(timer);
             const candidates = getTermRecallCandidates(result);
             const durationMs = performance.now() - start;
             caseSpan.setAttribute("eval.duration_ms", durationMs);
@@ -87,6 +92,7 @@ export const termRecallStrategy = {
               status: "ok",
             });
           } catch (err) {
+            throwIfEvaluationAborted(ctx.signal);
             const durationMs = performance.now() - start;
             const isAbort =
               err instanceof DOMException && err.name === "AbortError";
@@ -105,6 +111,7 @@ export const termRecallStrategy = {
               error: String(err),
             });
           } finally {
+            if (timer !== undefined) clearTimeout(timer);
             caseSpan.end();
           }
         },

@@ -8,6 +8,10 @@ import {
   term,
   termConcept,
 } from "@cat/db";
+import {
+  NormalizedLanguageIdSchema,
+  type NormalizedLanguageId,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { ScopedRecallDerivationStateView } from "#/queries/recall-derivation/list-scoped-memory-recall-derivation-states.query.ts";
@@ -15,22 +19,27 @@ import type { Query } from "#/types.ts";
 
 export const ListScopedTermRecallDerivationStatesQuerySchema = z.strictObject({
   glossaryIds: z.array(z.uuidv4()),
-  sourceLanguageId: z.string().min(1),
-  translationLanguageId: z.string().min(1),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
 });
 
+export type ListScopedTermRecallDerivationStatesQuery = z.input<
+  typeof ListScopedTermRecallDerivationStatesQuerySchema
+>;
+
 export const listScopedTermRecallDerivationStates: Query<
-  z.infer<typeof ListScopedTermRecallDerivationStatesQuerySchema>,
+  ListScopedTermRecallDerivationStatesQuery,
   ScopedRecallDerivationStateView[]
 > = async (ctx, input) => {
-  if (input.glossaryIds.length === 0) return [];
+  const query = ListScopedTermRecallDerivationStatesQuerySchema.parse(input);
+  if (query.glossaryIds.length === 0) return [];
   const sourceTerm = aliasedTable(term, "scopedSourceTerm");
   const translationTerm = aliasedTable(term, "scopedTranslationTerm");
   return await ctx.db
     .selectDistinct({
       targetId: sql<string>`${termConcept.id}::text`,
       stateId: recallDerivationState.id,
-      languageId: sql<string>`${input.sourceLanguageId}`,
+      languageId: sql<NormalizedLanguageId>`${query.sourceLanguageId}`,
       status: recallDerivationState.status,
       demandRevision: recallDerivationState.demandRevision,
       blocker: recallDerivationState.blocker,
@@ -46,14 +55,14 @@ export const listScopedTermRecallDerivationStates: Query<
       sourceTerm,
       and(
         eq(sourceTerm.termConceptId, termConcept.id),
-        eq(sourceTerm.languageId, input.sourceLanguageId),
+        eq(sourceTerm.languageId, query.sourceLanguageId),
       ),
     )
     .innerJoin(
       translationTerm,
       and(
         eq(translationTerm.termConceptId, termConcept.id),
-        eq(translationTerm.languageId, input.translationLanguageId),
+        eq(translationTerm.languageId, query.translationLanguageId),
       ),
     )
     .leftJoin(
@@ -61,9 +70,9 @@ export const listScopedTermRecallDerivationStates: Query<
       and(
         eq(recallDerivationState.targetKind, "TERM_CONCEPT"),
         sql`${recallDerivationState.targetId} = ${termConcept.id}::text`,
-        eq(recallDerivationState.languageId, input.sourceLanguageId),
+        eq(recallDerivationState.languageId, query.sourceLanguageId),
       ),
     )
-    .where(inArray(termConcept.glossaryId, input.glossaryIds))
+    .where(inArray(termConcept.glossaryId, query.glossaryIds))
     .orderBy(sql`${termConcept.id}::text`);
 };

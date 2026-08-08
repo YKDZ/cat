@@ -62,6 +62,7 @@ describe("runToolNode", () => {
           sourceLanguageId: "en-US",
         },
         logger: createNoopAgentLogger(),
+        signal: new AbortController().signal,
         vcsMode: "direct",
         permissionChecker: async () => true,
       },
@@ -90,6 +91,108 @@ describe("runToolNode", () => {
       elementId: 88,
       languageId: "zh-CN",
       sourceLanguageId: "en-US",
+    });
+  });
+
+  it("preserves the failed outcome when a mutating tool observes abort", async () => {
+    const controller = new AbortController();
+    const cause = new Error("tool cancelled");
+    const registry = new ToolRegistry();
+    registry.register(
+      createTool(
+        "blocking",
+        async (_args, ctx) =>
+          await new Promise((_, reject) => {
+            ctx.signal.addEventListener(
+              "abort",
+              () => reject(ctx.signal.reason),
+              {
+                once: true,
+              },
+            );
+          }),
+      ),
+    );
+    const operation = runToolNode(
+      {
+        messages: [],
+        tool_calls: [{ id: "tool-1", name: "blocking", arguments: "{}" }],
+      },
+      {
+        toolRegistry: registry,
+        sessionId: "session-1",
+        runId: "run-1",
+        agentId: "agent-1",
+        projectId: "project-1",
+        sessionMetadata: null,
+        logger: createNoopAgentLogger(),
+        signal: controller.signal,
+        vcsMode: "direct",
+        permissionChecker: async () => true,
+      },
+    );
+    controller.abort(cause);
+
+    const errorContent = JSON.stringify({ error: cause.message });
+    await expect(operation).resolves.toMatchObject({
+      toolResults: [{ toolCallId: "tool-1", content: errorContent }],
+      updates: {
+        tool_results: [{ toolCallId: "tool-1", content: errorContent }],
+        messages: [
+          { role: "tool", toolCallId: "tool-1", content: errorContent },
+        ],
+      },
+    });
+  });
+
+  it("preserves the committed outcome when abort arrives during a mutating tool", async () => {
+    const controller = new AbortController();
+    let markStarted: (() => void) | undefined;
+    let settleMutation: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    const mutation = new Promise<void>((resolve) => {
+      settleMutation = resolve;
+    });
+    const registry = new ToolRegistry();
+    registry.register(
+      createTool("write", async () => {
+        markStarted?.();
+        await mutation;
+        return { committed: true };
+      }),
+    );
+    const operation = runToolNode(
+      {
+        messages: [],
+        tool_calls: [{ id: "tool-1", name: "write", arguments: "{}" }],
+      },
+      {
+        toolRegistry: registry,
+        sessionId: "session-1",
+        runId: "run-1",
+        agentId: "agent-1",
+        projectId: "project-1",
+        sessionMetadata: null,
+        logger: createNoopAgentLogger(),
+        signal: controller.signal,
+        vcsMode: "direct",
+        permissionChecker: async () => true,
+      },
+    );
+
+    await started;
+    controller.abort(new Error("write cancellation requested"));
+    settleMutation?.();
+
+    const content = JSON.stringify({ committed: true });
+    await expect(operation).resolves.toMatchObject({
+      toolResults: [{ toolCallId: "tool-1", content }],
+      updates: {
+        tool_results: [{ toolCallId: "tool-1", content }],
+        messages: [{ role: "tool", toolCallId: "tool-1", content }],
+      },
     });
   });
 });

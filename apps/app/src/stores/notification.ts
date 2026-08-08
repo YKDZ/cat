@@ -16,6 +16,10 @@ export type NotificationItem = {
   createdAt: Date;
 };
 
+type StreamGeneration = Readonly<{
+  controller: AbortController;
+}>;
+
 const isNotificationPushPayload = (
   value: unknown,
 ): value is NotificationPushPayload => {
@@ -41,12 +45,16 @@ export const useNotificationStore = defineStore("notification", () => {
   const unreadCount = ref(0);
   const recentNotifications = ref<NotificationItem[]>([]);
   const isStreaming = ref(false);
-  let abortController: AbortController | null = null;
+  let activeGeneration: StreamGeneration | null = null;
   let navigationStopInstalled = false;
 
   const stopStreaming = () => {
-    abortController?.abort();
-    abortController = null;
+    const generation = activeGeneration;
+    activeGeneration = null;
+    if (generation !== null) {
+      generation.controller.abort();
+      setNotificationStreamSignal(undefined);
+    }
     isStreaming.value = false;
     if (navigationStopInstalled && typeof window !== "undefined") {
       window.removeEventListener("beforeunload", stopStreaming);
@@ -66,10 +74,13 @@ export const useNotificationStore = defineStore("notification", () => {
 
   /** Start the WebSocket notification stream. */
   const startStreaming = async () => {
-    if (isStreaming.value) return;
+    if (activeGeneration !== null) return;
     isStreaming.value = true;
-    const controller = new AbortController();
-    abortController = controller;
+    const generation: StreamGeneration = {
+      controller: new AbortController(),
+    };
+    const { controller } = generation;
+    activeGeneration = generation;
     setNotificationStreamSignal(controller.signal);
     if (!navigationStopInstalled && typeof window !== "undefined") {
       window.addEventListener("beforeunload", stopStreaming, { once: true });
@@ -78,11 +89,13 @@ export const useNotificationStore = defineStore("notification", () => {
 
     try {
       await waitForWsOpen(controller.signal);
+      if (activeGeneration !== generation || controller.signal.aborted) return;
       const stream = await ws.notification.stream(undefined, {
         signal: controller.signal,
       });
+      if (activeGeneration !== generation || controller.signal.aborted) return;
       for await (const payload of stream) {
-        if (controller.signal.aborted) break;
+        if (activeGeneration !== generation || controller.signal.aborted) break;
         if (!isNotificationPushPayload(payload)) continue;
         const item = payload;
         unreadCount.value += 1;
@@ -95,20 +108,27 @@ export const useNotificationStore = defineStore("notification", () => {
           data: item.data,
           createdAt: new Date(),
         });
-        // 保持最近 10 条
+        // Keep the most recent 10 notifications.
         if (recentNotifications.value.length > 10) {
           recentNotifications.value = recentNotifications.value.slice(0, 10);
         }
       }
     } catch (err) {
-      if (!controller.signal.aborted) {
+      if (activeGeneration === generation && !controller.signal.aborted) {
         logger
           .child({ component: "web" })
           .error("Notification stream error", { error: err });
       }
     } finally {
-      setNotificationStreamSignal(undefined);
-      isStreaming.value = false;
+      if (activeGeneration === generation) {
+        activeGeneration = null;
+        setNotificationStreamSignal(undefined);
+        isStreaming.value = false;
+        if (navigationStopInstalled && typeof window !== "undefined") {
+          window.removeEventListener("beforeunload", stopStreaming);
+          navigationStopInstalled = false;
+        }
+      }
     }
   };
 

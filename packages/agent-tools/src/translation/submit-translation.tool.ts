@@ -44,6 +44,7 @@ export const submitTranslationTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = submitTranslationArgs.parse(args);
     const languageId = parsed.languageId ?? ctx.session.languageId;
     const languageIdSource = parsed.languageId
@@ -55,10 +56,12 @@ export const submitTranslationTool: AgentToolDefinition = {
     }
 
     const element = await assertElementInSession(parsed.elementId, ctx);
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const targetLanguage = await executeQuery({ db }, getLanguage, {
       languageId,
     });
+    ctx.signal.throwIfAborted();
 
     if (!targetLanguage) {
       const projectTargetLanguages = await executeQuery(
@@ -68,6 +71,7 @@ export const submitTranslationTool: AgentToolDefinition = {
           projectId: element.projectId,
         },
       );
+      ctx.signal.throwIfAborted();
       const projectTargetLanguageIds = projectTargetLanguages.map(
         (language) => language.id,
       );
@@ -91,19 +95,27 @@ export const submitTranslationTool: AgentToolDefinition = {
       "VECTOR_STORAGE",
     );
 
-    const result = await createTranslationOp({
-      data: [
-        {
-          translatableElementId: parsed.elementId,
-          text: parsed.text,
-          languageId: targetLanguage.id,
-        },
-      ],
-      translatorId: null,
-      memoryIds: [],
-      vectorizer: vectorizer?.reference,
-      vectorStorage: vectorStorage?.reference,
-    });
+    ctx.signal.throwIfAborted();
+    const result = await createTranslationOp(
+      {
+        data: [
+          {
+            translatableElementId: parsed.elementId,
+            text: parsed.text,
+            languageId: targetLanguage.id,
+          },
+        ],
+        translatorId: null,
+        memoryIds: [],
+        vectorizer: vectorizer?.reference,
+        vectorStorage: vectorStorage?.reference,
+      },
+      {
+        traceId: `agent-tool:${ctx.session.runId}:submit-translation`,
+        signal: ctx.signal,
+        pluginManager: ctx.pluginManager,
+      },
+    );
 
     return {
       translationIds: result.translationIds,

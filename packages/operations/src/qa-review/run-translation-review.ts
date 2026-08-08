@@ -40,8 +40,9 @@ export const runQaReviewForTranslationOp = async (
   ctx?: OperationContext,
 ): Promise<{ queueItemId: number | null }> => {
   const { client: db } = await getDbHandle();
-  const pluginManager =
-    ctx?.pluginManager instanceof PluginManager ? ctx.pluginManager : undefined;
+  const pluginManager = PluginManager.isInstance(ctx?.pluginManager)
+    ? ctx.pluginManager
+    : undefined;
   const profile = await executeQuery({ db }, resolveQaReviewProfile, {
     projectId: input.projectId,
     languageId: input.languageId,

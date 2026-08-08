@@ -1,5 +1,6 @@
 import { flushPromises, mount } from "@vue/test-utils";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createI18n } from "vue-i18n";
 
 const implementation = {
   pluginId: "custom-analyzer",
@@ -50,6 +51,13 @@ vi.mock("#/stores/toast.ts", () => ({
 
 import Page from "./+Page.vue";
 
+const createTestI18n = () =>
+  createI18n({
+    legacy: false,
+    locale: "zh-CN",
+    messages: { "zh-CN": {} },
+  });
+
 describe("Language Analysis administration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,7 +67,9 @@ describe("Language Analysis administration", () => {
 
   it("keeps the operator input intact after a CAS conflict", async () => {
     mocks.writeSelection.mockRejectedValue(new Error("CONFLICT"));
-    const wrapper = mount(Page);
+    const wrapper = mount(Page, {
+      global: { plugins: [createTestI18n()] },
+    });
     await flushPromises();
 
     await wrapper.get('input[aria-label="Language"]').setValue("de");
@@ -127,7 +137,9 @@ describe("Language Analysis administration", () => {
         assessedAt: updatedAt,
       },
     });
-    const wrapper = mount(Page);
+    const wrapper = mount(Page, {
+      global: { plugins: [createTestI18n()] },
+    });
     await flushPromises();
 
     await wrapper.get("tbody tr:nth-child(2)").trigger("click");

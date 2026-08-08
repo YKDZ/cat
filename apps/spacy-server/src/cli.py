@@ -73,9 +73,10 @@ def main(arguments: Sequence[str] | None = None) -> None:
     store = GenerationStore(models_root)
     if args.mode in {"provision-only", "provision-and-serve"}:
         provision(args, store)
-    if args.mode in {"serve-only", "provision-and-serve"}:
+    if args.mode == "serve-only":
         with GenerationRuntime.open_active(store):
             pass
+    if args.mode in {"serve-only", "provision-and-serve"}:
         exec_server(models_root)
 
 
