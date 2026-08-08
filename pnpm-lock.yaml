@@ -335,8 +335,8 @@ catalogs:
       specifier: ^3.6.0
       version: 3.6.0
     tailwindcss:
-      specifier: ^4.3.0
-      version: 4.3.0
+      specifier: ^4.3.3
+      version: 4.3.3
     telefunc:
       specifier: ^0.2.20
       version: 0.2.20
@@ -1101,7 +1101,7 @@ importers:
         version: 4.2.0
       tailwindcss:
         specifier: 'catalog:'
-        version: 4.3.0
+        version: 4.3.3
       telefunc:
         specifier: 'catalog:'
         version: 0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -1159,13 +1159,13 @@ importers:
         version: 1.2.3
       '@iconify/tailwind4':
         specifier: 'catalog:'
-        version: 1.2.3(tailwindcss@4.3.0)
+        version: 1.2.3(tailwindcss@4.3.3)
       '@pinia/colada-devtools':
         specifier: 'catalog:'
         version: 1.0.0
       '@tailwindcss/typography':
         specifier: 'catalog:'
-        version: 0.5.20(tailwindcss@4.3.0)
+        version: 0.5.20(tailwindcss@4.3.3)
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1268,7 +1268,7 @@ importers:
         version: 4.3.0(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       tailwindcss:
         specifier: 'catalog:'
-        version: 4.3.0
+        version: 4.3.3
     devDependencies:
       '@cat/typescript-config':
         specifier: link:../../packages/typescript-config
@@ -1278,10 +1278,10 @@ importers:
         version: 1.2.3
       '@iconify/tailwind4':
         specifier: 'catalog:'
-        version: 1.2.3(tailwindcss@4.3.0)
+        version: 1.2.3(tailwindcss@4.3.3)
       '@mermaid-js/mermaid-zenuml':
         specifier: 'catalog:'
-        version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.0)
+        version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.3)
       '@vue/tsconfig':
         specifier: 'catalog:'
         version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
@@ -8865,6 +8865,9 @@ packages:
   tailwindcss@4.3.0:
     resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
 
+  tailwindcss@4.3.3:
+    resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
+
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
@@ -10510,9 +10513,9 @@ snapshots:
       react-dom: 19.2.7(react@19.2.7)
       use-sync-external-store: 1.6.0(react@19.2.7)
 
-  '@headlessui/tailwindcss@0.2.2(tailwindcss@4.3.0)':
+  '@headlessui/tailwindcss@0.2.2(tailwindcss@4.3.3)':
     dependencies:
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.3
 
   '@hono/mcp@0.3.0(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.12.25))(hono@4.12.25)(zod@4.4.3)':
     dependencies:
@@ -10575,12 +10578,12 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify/tailwind4@1.2.3(tailwindcss@4.3.0)':
+  '@iconify/tailwind4@1.2.3(tailwindcss@4.3.3)':
     dependencies:
       '@iconify/tools': 5.0.12
       '@iconify/types': 2.0.0
       '@iconify/utils': 3.1.3
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.3
 
   '@iconify/tools@5.0.12':
     dependencies:
@@ -10759,9 +10762,9 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
-  '@mermaid-js/mermaid-zenuml@0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.0)':
+  '@mermaid-js/mermaid-zenuml@0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.3)':
     dependencies:
-      '@zenuml/core': 3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.0)
+      '@zenuml/core': 3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.3)
       mermaid: 11.15.0
     transitivePeerDependencies:
       - '@babel/core'
@@ -12491,10 +12494,10 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.0
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.0
 
-  '@tailwindcss/typography@0.5.20(tailwindcss@4.3.0)':
+  '@tailwindcss/typography@0.5.20(tailwindcss@4.3.3)':
     dependencies:
       postcss-selector-parser: 6.0.10
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.3
 
   '@tailwindcss/vite@4.3.0(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
@@ -13366,11 +13369,11 @@ snapshots:
     dependencies:
       vue: 3.5.38(typescript@6.0.3)
 
-  '@zenuml/core@3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.0)':
+  '@zenuml/core@3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.3)':
     dependencies:
       '@floating-ui/react': 0.27.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@headlessui/react': 2.2.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@headlessui/tailwindcss': 0.2.2(tailwindcss@4.3.0)
+      '@headlessui/tailwindcss': 0.2.2(tailwindcss@4.3.3)
       antlr4: 4.11.0
       class-variance-authority: 0.7.1
       clsx: 2.1.1
@@ -16635,6 +16638,8 @@ snapshots:
   tailwind-merge@3.6.0: {}
 
   tailwindcss@4.3.0: {}
+
+  tailwindcss@4.3.3: {}
 
   tapable@2.3.3: {}
 
