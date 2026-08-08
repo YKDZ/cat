@@ -224,8 +224,8 @@ catalogs:
       specifier: ^9.0.0
       version: 9.0.0
     dompurify:
-      specifier: ^3.4.10
-      version: 3.4.10
+      specifier: ^3.4.13
+      version: 3.4.13
     dotenv:
       specifier: ^17.4.2
       version: 17.4.2
@@ -1059,7 +1059,7 @@ importers:
         version: 9.0.0
       dompurify:
         specifier: 'catalog:'
-        version: 3.4.10
+        version: 3.4.13
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
@@ -6626,6 +6626,9 @@ packages:
 
   dompurify@3.4.10:
     resolution: {integrity: sha512-0xzNv0e7oYC6yyuOGZIABPM4qtg3QxLFniDNPP4ZP90wR8Yq3zgwpRbrNiT4N3IKqDbbYFEJLV+JWEs19aZ//w==}
+
+  dompurify@3.4.13:
+    resolution: {integrity: sha512-2vmYIoqjze2d+kakP8S/nS5shfsl587kzwEjcGlTdiksUVgFHnFCsLYDVj/JNqJVOQZGSYBTmuycv0PodwmnMQ==}
 
   domutils@3.2.2:
     resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
@@ -14060,6 +14063,10 @@ snapshots:
     optionalDependencies:
       '@types/trusted-types': 2.0.7
 
+  dompurify@3.4.13:
+    optionalDependencies:
+      '@types/trusted-types': 2.0.7
+
   domutils@3.2.2:
     dependencies:
       dom-serializer: 2.0.0
@@ -14852,7 +14859,7 @@ snapshots:
 
   isomorphic-dompurify@3.16.0(@noble/hashes@1.8.0):
     dependencies:
-      dompurify: 3.4.10
+      dompurify: 3.4.13
       jsdom: 29.1.1(@noble/hashes@1.8.0)
     transitivePeerDependencies:
       - '@noble/hashes'
