@@ -100,75 +100,72 @@ export const getQaReviewQueueItemDetail: Query<
     return null;
   }
 
-  const [
-    candidateRow,
-    approvedRow,
-    latestRun,
-    findings,
-    annotations,
-    decisions,
-  ] = await Promise.all([
+  const candidateRow =
     queueItem.translationId === null
-      ? Promise.resolve(null)
-      : ctx.db
-          .select({
-            id: candidateTranslation.id,
-            text: candidateString.value,
-            translatorId: candidateTranslation.translatorId,
-            createdAt: candidateTranslation.createdAt,
-          })
-          .from(candidateTranslation)
-          .innerJoin(
-            candidateString,
-            eq(candidateString.id, candidateTranslation.stringId),
-          )
-          .where(eq(candidateTranslation.id, queueItem.translationId))
-          .limit(1)
-          .then((rows) => rows[0] ?? null),
+      ? null
+      : ((
+          await ctx.db
+            .select({
+              id: candidateTranslation.id,
+              text: candidateString.value,
+              translatorId: candidateTranslation.translatorId,
+              createdAt: candidateTranslation.createdAt,
+            })
+            .from(candidateTranslation)
+            .innerJoin(
+              candidateString,
+              eq(candidateString.id, candidateTranslation.stringId),
+            )
+            .where(eq(candidateTranslation.id, queueItem.translationId))
+            .limit(1)
+        )[0] ?? null);
+  const approvedRow =
     elementRow.approvedTranslationId === null
-      ? Promise.resolve(null)
-      : ctx.db
-          .select({
-            id: approvedTranslation.id,
-            text: approvedString.value,
-            translatorId: approvedTranslation.translatorId,
-            createdAt: approvedTranslation.createdAt,
-          })
-          .from(approvedTranslation)
-          .innerJoin(
-            approvedString,
-            eq(approvedString.id, approvedTranslation.stringId),
-          )
-          .where(eq(approvedTranslation.id, elementRow.approvedTranslationId))
-          .limit(1)
-          .then((rows) => rows[0] ?? null),
-    ctx.db
-      .select({ summary: qaReviewRun.summary })
-      .from(qaReviewRun)
-      .where(
-        and(
-          eq(qaReviewRun.projectId, queueItem.projectId),
-          eq(qaReviewRun.elementId, queueItem.elementId),
-          sql`${qaReviewRun.translationId} IS NOT DISTINCT FROM ${queueItem.translationId}`,
-        ),
-      )
-      .orderBy(desc(qaReviewRun.createdAt), desc(qaReviewRun.id))
-      .limit(1)
-      .then((rows) => rows[0]?.summary ?? null),
-    listQaReviewFindings(ctx, {
-      queueItemId: queueItem.id,
-      includeSuppressed: true,
-    }),
-    listQaReviewAnnotations(ctx, {
-      queueItemId: queueItem.id,
-      includeHidden: true,
-    }),
-    ctx.db
-      .select({ ...getColumns(qaReviewDecision) })
-      .from(qaReviewDecision)
-      .where(eq(qaReviewDecision.queueItemId, queueItem.id))
-      .orderBy(desc(qaReviewDecision.createdAt), desc(qaReviewDecision.id)),
-  ]);
+      ? null
+      : ((
+          await ctx.db
+            .select({
+              id: approvedTranslation.id,
+              text: approvedString.value,
+              translatorId: approvedTranslation.translatorId,
+              createdAt: approvedTranslation.createdAt,
+            })
+            .from(approvedTranslation)
+            .innerJoin(
+              approvedString,
+              eq(approvedString.id, approvedTranslation.stringId),
+            )
+            .where(eq(approvedTranslation.id, elementRow.approvedTranslationId))
+            .limit(1)
+        )[0] ?? null);
+  const latestRun =
+    (
+      await ctx.db
+        .select({ summary: qaReviewRun.summary })
+        .from(qaReviewRun)
+        .where(
+          and(
+            eq(qaReviewRun.projectId, queueItem.projectId),
+            eq(qaReviewRun.elementId, queueItem.elementId),
+            sql`${qaReviewRun.translationId} IS NOT DISTINCT FROM ${queueItem.translationId}`,
+          ),
+        )
+        .orderBy(desc(qaReviewRun.createdAt), desc(qaReviewRun.id))
+        .limit(1)
+    )[0]?.summary ?? null;
+  const findings = await listQaReviewFindings(ctx, {
+    queueItemId: queueItem.id,
+    includeSuppressed: true,
+  });
+  const annotations = await listQaReviewAnnotations(ctx, {
+    queueItemId: queueItem.id,
+    includeHidden: true,
+  });
+  const decisions = await ctx.db
+    .select({ ...getColumns(qaReviewDecision) })
+    .from(qaReviewDecision)
+    .where(eq(qaReviewDecision.queueItemId, queueItem.id))
+    .orderBy(desc(qaReviewDecision.createdAt), desc(qaReviewDecision.id));
 
   const annotationIds = annotations.map((annotation) => annotation.id);
   const suggestions =
