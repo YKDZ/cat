@@ -192,6 +192,186 @@ describe("Recall Derivation freshness", () => {
     ).rejects.toBe(reason);
   });
 
+  it("retries a transient dependency blocker within the freshness deadline", async () => {
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "30",
+      languageId: "en",
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"3".repeat(64)}`,
+      ),
+    });
+    const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!.service;
+    const analyze = vi
+      .spyOn(analyzer, "analyze")
+      .mockRejectedValueOnce(
+        new DOMException("transient dependency timeout", "TimeoutError"),
+      );
+
+    await expect(
+      waitForRecallDerivationFresh([reference("30")], {
+        db: db.client,
+        pluginManager,
+        dependencyProbeIntervalMs: 1,
+        timeoutMs: 5_000,
+      }),
+    ).resolves.toBeUndefined();
+    expect(analyze.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("times out when a retryable dependency blocker does not recover", async () => {
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "31",
+      languageId: "en",
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"4".repeat(64)}`,
+      ),
+    });
+    const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!.service;
+    const observedTimeouts: number[] = [];
+    const analyze = vi.spyOn(analyzer, "analyze").mockImplementation(
+      async (context) =>
+        await new Promise<never>((_resolve, reject) => {
+          observedTimeouts.push(context.timeoutMs ?? Number.POSITIVE_INFINITY);
+          const timer = setTimeout(
+            () =>
+              reject(
+                new DOMException(
+                  "persistent dependency timeout",
+                  "TimeoutError",
+                ),
+              ),
+            10_000,
+          );
+          context.signal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timer);
+              reject(context.signal?.reason);
+            },
+            { once: true },
+          );
+        }),
+    );
+
+    const startedAt = Date.now();
+    await expect(
+      waitForRecallDerivationFresh([reference("31")], {
+        db: db.client,
+        pluginManager,
+        dependencyProbeIntervalMs: 1,
+        timeoutMs: 2_000,
+      }),
+    ).rejects.toMatchObject({ status: "TIMEOUT" });
+    expect(analyze).toHaveBeenCalled();
+    expect(observedTimeouts.every((timeout) => timeout <= 2_000)).toBe(true);
+    expect(Date.now() - startedAt).toBeLessThan(6_000);
+  });
+
+  it("does not let a transient live probe mask a persisted blocker", async () => {
+    const blocker = {
+      reason: "DERIVATION_EXECUTION" as const,
+      retryable: false,
+      message: "persisted derivation failure",
+    };
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "32",
+      languageId: "en",
+      status: "BLOCKED",
+      blocker,
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"5".repeat(64)}`,
+      ),
+    });
+    const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!.service;
+    const analyze = vi
+      .spyOn(analyzer, "analyze")
+      .mockRejectedValue(
+        new DOMException("transient dependency timeout", "TimeoutError"),
+      );
+
+    await expect(
+      waitForRecallDerivationFresh([reference("32")], {
+        db: db.client,
+        pluginManager,
+        timeoutMs: 5_000,
+      }),
+    ).rejects.toMatchObject({ blockers: [blocker], status: "BLOCKED" });
+    expect(analyze).not.toHaveBeenCalled();
+  });
+
+  it("reconciles a persisted dependency blocker after recovery", async () => {
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "33",
+      languageId: "en",
+      status: "BLOCKED",
+      blocker: {
+        reason: "LANGUAGE_ANALYSIS",
+        retryable: false,
+        message: "language analysis was unavailable",
+      },
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"6".repeat(64)}`,
+      ),
+    });
+
+    await expect(
+      waitForRecallDerivationFresh([reference("33")], {
+        db: db.client,
+        pluginManager,
+        timeoutMs: 5_000,
+      }),
+    ).resolves.toBeUndefined();
+    const [state] = await db.client
+      .select()
+      .from(recallDerivationState)
+      .where(eq(recallDerivationState.targetId, "33"));
+    expect(state).toMatchObject({ status: "FRESH" });
+  });
+
+  it("does not reconcile a mixed persisted block with missing diagnostics", async () => {
+    await db.client.insert(recallDerivationState).values([
+      {
+        targetKind: "MEMORY_ITEM",
+        targetId: "34",
+        languageId: "en",
+        status: "BLOCKED",
+        blocker: {
+          reason: "LANGUAGE_ANALYSIS",
+          retryable: false,
+          message: "language analysis was unavailable",
+        },
+        canonicalInputVersion: CanonicalInputVersionSchema.parse(
+          `sha256:${"7".repeat(64)}`,
+        ),
+      },
+      {
+        targetKind: "MEMORY_ITEM",
+        targetId: "35",
+        languageId: "en",
+        status: "BLOCKED",
+        blocker: null,
+        canonicalInputVersion: CanonicalInputVersionSchema.parse(
+          `sha256:${"8".repeat(64)}`,
+        ),
+      },
+    ]);
+    const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!.service;
+    const analyze = vi.spyOn(analyzer, "analyze");
+
+    await expect(
+      waitForRecallDerivationFresh([reference("34"), reference("35")], {
+        db: db.client,
+        pluginManager,
+        timeoutMs: 5_000,
+      }),
+    ).rejects.toMatchObject({ status: "BLOCKED" });
+    expect(analyze).not.toHaveBeenCalled();
+  });
+
   it("accepts a superseding revision only when its current versions are fresh", async () => {
     const canonicalInputVersion = CanonicalInputVersionSchema.parse(
       `sha256:${"c".repeat(64)}`,

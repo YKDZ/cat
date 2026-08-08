@@ -945,40 +945,83 @@ export const waitForRecallDerivationFresh = async (
   const timeoutMs = options.timeoutMs ?? 30_000;
   const pollIntervalMs = options.pollIntervalMs ?? 100;
   const dependencyProbeIntervalMs = options.dependencyProbeIntervalMs ?? 1_000;
+  options.signal?.throwIfAborted();
+  if (timeoutMs <= 0) {
+    throw new RecallDerivationFreshnessError("TIMEOUT", references);
+  }
+  const deadlineSignal = AbortSignal.timeout(timeoutMs);
+  const signal =
+    options.signal === undefined
+      ? deadlineSignal
+      : AbortSignal.any([options.signal, deadlineSignal]);
+  const executionOptions = { ...options, signal };
   let nextDependencyProbeAt = startedAt;
-  while (true) {
-    options.signal?.throwIfAborted();
-    let assessment = await assessPersistedRecallDerivationFreshness(
-      references,
-      options.db,
-    );
-    if (Date.now() - startedAt >= timeoutMs) {
-      throw new RecallDerivationFreshnessError("TIMEOUT", references);
-    }
-    const now = Date.now();
-    if (assessment.status === "FRESH" || now >= nextDependencyProbeAt) {
-      assessment = await assessRecallDerivationFreshness(references, options);
-      nextDependencyProbeAt = Date.now() + dependencyProbeIntervalMs;
-      if (assessment.status === "FRESH") return;
-      if (assessment.status === "BLOCKED" || assessment.status === "FAILED") {
+  try {
+    while (true) {
+      signal.throwIfAborted();
+      let assessment = await assessPersistedRecallDerivationFreshness(
+        references,
+        options.db,
+      );
+      signal.throwIfAborted();
+      const canReconcilePersistedDependencyBlock =
+        assessment.status === "BLOCKED" &&
+        assessment.blockers.length > 0 &&
+        assessment.blockers.length === assessment.references.length &&
+        assessment.blockers.every(
+          (blocker) =>
+            blocker.reason === "LANGUAGE_ANALYSIS" ||
+            blocker.reason === "TOKENIZER",
+        );
+      if (
+        assessment.status === "FAILED" ||
+        (assessment.status === "BLOCKED" &&
+          !canReconcilePersistedDependencyBlock)
+      ) {
         throw new RecallDerivationFreshnessError(
           assessment.status,
           assessment.references,
           assessment.blockers,
         );
       }
-    } else if (
-      assessment.status === "BLOCKED" ||
-      assessment.status === "FAILED"
-    ) {
-      throw new RecallDerivationFreshnessError(
-        assessment.status,
-        assessment.references,
-        assessment.blockers,
-      );
+      const now = Date.now();
+      if (assessment.status === "FRESH" || now >= nextDependencyProbeAt) {
+        const remainingMs = Math.max(1, timeoutMs - (now - startedAt));
+        assessment = await assessRecallDerivationFreshness(references, {
+          ...executionOptions,
+          dependencyProbeTimeoutMs: Math.min(
+            options.dependencyProbeTimeoutMs ?? 5_000,
+            remainingMs,
+          ),
+        });
+        nextDependencyProbeAt = Date.now() + dependencyProbeIntervalMs;
+        if (assessment.status === "FRESH") return;
+        if (
+          assessment.status === "BLOCKED" &&
+          assessment.blockers.length > 0 &&
+          assessment.blockers.every((blocker) => blocker.retryable)
+        ) {
+          await abortableDelay(dependencyProbeIntervalMs, signal);
+          continue;
+        }
+        if (assessment.status === "BLOCKED" || assessment.status === "FAILED") {
+          throw new RecallDerivationFreshnessError(
+            assessment.status,
+            assessment.references,
+            assessment.blockers,
+          );
+        }
+      }
+      await processRecallDerivationBatch(executionOptions);
+      await abortableDelay(pollIntervalMs, signal);
     }
-    await processRecallDerivationBatch(options);
-    await abortableDelay(pollIntervalMs, options.signal);
+  } catch (error) {
+    options.signal?.throwIfAborted();
+    if (deadlineSignal.aborted) {
+      if (error instanceof RecallDerivationFreshnessError) throw error;
+      throw new RecallDerivationFreshnessError("TIMEOUT", references);
+    }
+    throw error;
   }
 };
 
