@@ -1,4 +1,5 @@
 {
+  "$schema": "https://turborepo.com/schema.json",
   "extends": ["//"],
   "tags": [
     "data-tool",
@@ -6,5 +7,10 @@
     "database-path",
     "library",
     "server"
-  ]
+  ],
+  "tasks": {
+    "test:integration": {
+      "dependsOn": ["$TURBO_EXTENDS$", "@cat/app#build"]
+    }
+  }
 }
