@@ -34,7 +34,7 @@ RUN groupadd --gid 10001 cat-spacy \
 USER 10001:10001
 VOLUME ["/models"]
 EXPOSE 8000
-HEALTHCHECK --interval=10s --timeout=5s --start-period=480s --retries=18 \
+HEALTHCHECK --interval=10s --timeout=5s --start-period=510s --retries=18 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).read()"
 ENTRYPOINT ["python", "-m", "src.cli"]
 CMD ["provision-and-serve"]

@@ -183,7 +183,7 @@ describe("TestServiceLease", () => {
         "--progress",
         "quiet",
         "--wait-timeout",
-        "480",
+        "510",
       ]),
     );
     expect(vi.mocked(run).mock.calls.at(-1)?.[1]).toEqual(

@@ -6,6 +6,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from typing import cast
 from unittest import mock
 
 from src.coordinator import (
@@ -16,7 +17,8 @@ from src.coordinator import (
 )
 from src.offsets import utf16_offsets
 from src.protocol import validate_batch_item_ids
-from src.worker import ResponseFrameTooLarge, write_frame
+from src.runtime import GenerationRuntime
+from src.worker import ResponseFrameTooLarge, serve, write_frame
 
 NORMAL_REQUEST_TIMEOUT_MS = 1_000
 
@@ -39,6 +41,62 @@ class Utf16OffsetsTest(unittest.TestCase):
             self.assertRaises(ResponseFrameTooLarge),
         ):
             write_frame({"value": "too large"})
+
+
+class WorkerReadinessTest(unittest.TestCase):
+    def test_worker_publishes_ready_only_after_every_model_is_warm(self) -> None:
+        runtime = mock.Mock()
+        runtime.generation_id = "generation-test"
+        runtime.manifest.effective_plan.models = (
+            mock.Mock(language_id="en", validation_text="English warm-up"),
+            mock.Mock(language_id="zh-Hans", validation_text="中文预热"),
+        )
+        events: list[str] = []
+
+        def get_model(language_id: str) -> mock.Mock:
+            events.append(f"load:{language_id}")
+            pipeline = mock.Mock()
+            pipeline.side_effect = lambda text: events.append(
+                f"analyze:{language_id}:{text}"
+            )
+            return pipeline
+
+        runtime.get_model.side_effect = get_model
+        with (
+            mock.patch.dict(os.environ, {"SPACY_WORKER_EPOCH": "1"}),
+            mock.patch("src.worker.read_frame", return_value=None),
+            mock.patch(
+                "src.worker.write_frame",
+                side_effect=lambda _message: events.append("ready"),
+            ),
+        ):
+            serve(cast(GenerationRuntime, runtime))
+
+        self.assertEqual(
+            events,
+            [
+                "load:en",
+                "analyze:en:English warm-up",
+                "load:zh-Hans",
+                "analyze:zh-Hans:中文预热",
+                "ready",
+            ],
+        )
+
+    def test_worker_does_not_publish_ready_when_a_model_cannot_warm(self) -> None:
+        runtime = mock.Mock()
+        runtime.manifest.effective_plan.models = (
+            mock.Mock(language_id="en", validation_text="warm-up"),
+        )
+        runtime.get_model.side_effect = RuntimeError("model load failed")
+
+        with (
+            mock.patch("src.worker.write_frame") as ready,
+            self.assertRaisesRegex(RuntimeError, "model load failed"),
+        ):
+            serve(cast(GenerationRuntime, runtime))
+
+        ready.assert_not_called()
 
 
 class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
