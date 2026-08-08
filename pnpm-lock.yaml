@@ -308,8 +308,8 @@ catalogs:
       specifier: ^6.0.0
       version: 6.0.0
     reka-ui:
-      specifier: ^2.9.10
-      version: 2.9.10
+      specifier: ^2.10.1
+      version: 2.10.1
     remark-frontmatter:
       specifier: ^5.0.0
       version: 5.0.0
@@ -1095,7 +1095,7 @@ importers:
         version: 10.3.1
       reka-ui:
         specifier: 'catalog:'
-        version: 2.9.10(vue@3.5.38(typescript@6.0.3))
+        version: 2.10.1(vue@3.5.38(typescript@6.0.3))
       shiki:
         specifier: 'catalog:'
         version: 4.2.0
@@ -2116,7 +2116,7 @@ importers:
         version: 0.11.1
       reka-ui:
         specifier: 'catalog:'
-        version: 2.9.10(vue@3.5.38(typescript@6.0.3))
+        version: 2.10.1(vue@3.5.38(typescript@6.0.3))
       tailwind-merge:
         specifier: 'catalog:'
         version: 3.6.0
@@ -8510,8 +8510,8 @@ packages:
     resolution: {integrity: sha512-RSYAtP31mvYLkAHrOlh25pCNQ5hWnT106VukGaaFfuJrZFkGRX5GhUAdPqpSDXxOhA2c4akmRuplv1mRqnBn6Q==}
     engines: {node: '>=8'}
 
-  reka-ui@2.9.10:
-    resolution: {integrity: sha512-yuvZVTp4fWH2G3qk+ze/x6YYlyc2Xl1d+eMUlIYrKqzTowBKteoDoN17fitURmqSUck3mc7JbcYgp49DnGu2EQ==}
+  reka-ui@2.10.1:
+    resolution: {integrity: sha512-drcOQ4rQtDYAcGCsyQBqQg8QQ+H3B+zDaMJU0h8KPEPMa7g9BHu3zcOi4OB39XJSWizceFoNO0Z9tctSGLOXqg==}
     peerDependencies:
       vue: '>= 3.4.0'
 
@@ -16140,7 +16140,7 @@ snapshots:
 
   regexparam@3.0.0: {}
 
-  reka-ui@2.9.10(vue@3.5.38(typescript@6.0.3)):
+  reka-ui@2.10.1(vue@3.5.38(typescript@6.0.3)):
     dependencies:
       '@floating-ui/dom': 1.7.6
       '@floating-ui/vue': 1.1.11(vue@3.5.38(typescript@6.0.3))
@@ -16380,7 +16380,7 @@ snapshots:
       postcss: 8.5.15
       postcss-selector-parser: 7.1.4
       prompts: 2.4.2
-      reka-ui: 2.9.10(vue@3.5.38(typescript@6.0.3))
+      reka-ui: 2.10.1(vue@3.5.38(typescript@6.0.3))
       semver: 7.8.4
       stringify-object: 6.0.0
       tailwindcss: 4.3.0
