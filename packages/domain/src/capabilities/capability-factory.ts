@@ -1,3 +1,8 @@
+import {
+  GlossaryListByCreatorCapabilityInputSchema,
+  MemoryListByCreatorCapabilityInputSchema,
+  ProjectListByCreatorCapabilityInputSchema,
+} from "#/capabilities/resource-list-contracts.ts";
 import type { PluginCapabilities } from "#/capabilities/types.ts";
 import {
   createAgentDefinition,
@@ -103,7 +108,11 @@ export const createPluginCapabilities = (
   project: {
     get: async (input) => executeQuery(execCtx, getProject, input),
     listByCreator: async (input) =>
-      executeQuery(execCtx, listProjectsByCreator, input),
+      executeQuery(
+        execCtx,
+        listProjectsByCreator,
+        ProjectListByCreatorCapabilityInputSchema.parse(input),
+      ),
     listOwned: async (input) => executeQuery(execCtx, listOwnedProjects, input),
     getTargetLanguages: async (input) =>
       executeQuery(execCtx, getProjectTargetLanguages, input),
@@ -298,7 +307,11 @@ export const createPluginCapabilities = (
     listTermPairs: async (input) =>
       executeQuery(execCtx, listGlossaryTermPairs, input),
     listByCreator: async (input) =>
-      executeQuery(execCtx, listGlossariesByCreator, input),
+      executeQuery(
+        execCtx,
+        listGlossariesByCreator,
+        GlossaryListByCreatorCapabilityInputSchema.parse(input),
+      ),
     listOwned: async (input) =>
       executeQuery(execCtx, listOwnedGlossaries, input),
     listProjectOwned: async (input) =>
@@ -322,7 +335,11 @@ export const createPluginCapabilities = (
   memory: {
     get: async (input) => executeQuery(execCtx, getMemory, input),
     listByCreator: async (input) =>
-      executeQuery(execCtx, listMemoriesByCreator, input),
+      executeQuery(
+        execCtx,
+        listMemoriesByCreator,
+        MemoryListByCreatorCapabilityInputSchema.parse(input),
+      ),
     listOwned: async (input) => executeQuery(execCtx, listOwnedMemories, input),
     listProjectOwned: async (input) =>
       executeQuery(execCtx, listProjectMemories, input),

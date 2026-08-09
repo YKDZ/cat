@@ -1,5 +1,6 @@
 import {
   createUser,
+  createRecallDerivationTask,
   ensureLanguages,
   executeCommand,
   writeValidatedLanguageAnalysisSelection,
@@ -11,6 +12,7 @@ import {
   LanguageAnalysisWildcardSelectionKey,
   RecallDerivationVersionSchema,
   RecallDerivationReferenceSchema,
+  type RecallDerivationReference,
 } from "@cat/shared";
 import {
   recallDerivationState,
@@ -23,20 +25,67 @@ import {
   type TestDB,
 } from "@cat/test-utils";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as z from "zod";
 
 import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requirement.ts";
 import {
   assessRecallDerivationFreshness,
-  processRecallDerivationBatch,
+  processRecallDerivationBatch as processRecallDerivationBatchRuntime,
   RecallDerivationFreshnessError,
-  startRecallDerivationWorker,
-  waitForRecallDerivationFresh,
-} from "./memory-recall-derivation.ts";
-import { startRecallDerivationTask } from "./recall-derivation-task.ts";
+  startRecallDerivationWorker as startRecallDerivationWorkerRuntime,
+  waitForRecallDerivationFresh as waitForRecallDerivationFreshRuntime,
+} from "./recall-derivation-runtime.ts";
+import { createRecallDerivationTaskProjectionObserver } from "./recall-derivation-task-projection.ts";
 
 describe("Recall Derivation freshness", () => {
   let db: TestDB;
   let pluginManager: PluginManager;
+
+  const createProductionTaskProjectionObserver = () =>
+    createRecallDerivationTaskProjectionObserver({ db: db.client });
+
+  const processRecallDerivationBatch = async (
+    input: Parameters<typeof processRecallDerivationBatchRuntime>[0],
+  ) =>
+    await processRecallDerivationBatchRuntime({
+      ...input,
+      onStateCommitted: createProductionTaskProjectionObserver(),
+    });
+
+  const waitForRecallDerivationFresh = async (
+    references: Parameters<typeof waitForRecallDerivationFreshRuntime>[0],
+    input: Parameters<typeof waitForRecallDerivationFreshRuntime>[1],
+  ) =>
+    await waitForRecallDerivationFreshRuntime(references, {
+      ...input,
+    });
+
+  const startRecallDerivationWorker = async (
+    input: Parameters<typeof startRecallDerivationWorkerRuntime>[0],
+  ) =>
+    await startRecallDerivationWorkerRuntime({
+      ...input,
+      onStateCommitted: createProductionTaskProjectionObserver(),
+    });
+
+  const startRecallDerivationTask = async (
+    handle: TestDB["client"],
+    input: {
+      projectId: string;
+      actorId: string;
+      references: RecallDerivationReference[];
+      resources?: Array<{ type: "MEMORY"; id: string }>;
+    },
+  ) =>
+    await executeCommand({ db: handle }, createRecallDerivationTask, {
+      references: input.references,
+      scope: { type: "PROJECT", id: input.projectId },
+      actor: { type: "USER", id: input.actorId },
+      resources: [
+        { type: "PROJECT", id: input.projectId },
+        ...(input.resources ?? []),
+      ],
+    });
 
   beforeEach(async () => {
     db = await setupTestDB();
@@ -95,7 +144,10 @@ describe("Recall Derivation freshness", () => {
     "propagates %s without polling",
     async (status) => {
       const blocker = {
-        reason: "DERIVATION_EXECUTION" as const,
+        reason:
+          status === "BLOCKED"
+            ? ("LANGUAGE_ANALYSIS" as const)
+            : ("DERIVATION_EXECUTION" as const),
         retryable: false,
         message: "derivation requires repair",
       };
@@ -124,20 +176,21 @@ describe("Recall Derivation freshness", () => {
         .where(
           eq(recallDerivationState.targetId, status === "BLOCKED" ? "1" : "2"),
         );
-      const assessment = await assessRecallDerivationFreshness(refs, {
-        db: db.client,
-        pluginManager,
-      });
-      expect(assessment.status).toBe(status);
+      if (status === "FAILED") {
+        const assessment = await assessRecallDerivationFreshness(refs, {
+          db: db.client,
+          pluginManager,
+        });
+        expect(assessment.status).toBe(status);
+      }
       await expect(
         waitForRecallDerivationFresh(refs, {
           db: db.client,
-          pluginManager,
           timeoutMs: 10_000,
         }),
       ).rejects.toMatchObject({
         blockers: [blocker],
-        message: `Recall Derivation freshness wait ended with ${status}. Blockers: DERIVATION_EXECUTION: derivation requires repair`,
+        message: `Recall Derivation freshness wait ended with ${status}. Blockers: ${blocker.reason}: derivation requires repair`,
         status,
       });
     },
@@ -173,7 +226,6 @@ describe("Recall Derivation freshness", () => {
     await expect(
       waitForRecallDerivationFresh(refs, {
         db: db.client,
-        pluginManager,
         timeoutMs: 0,
       }),
     ).rejects.toMatchObject({
@@ -186,13 +238,12 @@ describe("Recall Derivation freshness", () => {
     await expect(
       waitForRecallDerivationFresh(refs, {
         db: db.client,
-        pluginManager,
         signal: controller.signal,
       }),
     ).rejects.toBe(reason);
   });
 
-  it("retries a transient dependency blocker within the freshness deadline", async () => {
+  it("times out pending work without a worker and leaves it untouched", async () => {
     await db.client.insert(recallDerivationState).values({
       targetKind: "MEMORY_ITEM",
       targetId: "30",
@@ -202,71 +253,21 @@ describe("Recall Derivation freshness", () => {
       ),
     });
     const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!.service;
-    const analyze = vi
-      .spyOn(analyzer, "analyze")
-      .mockRejectedValueOnce(
-        new DOMException("transient dependency timeout", "TimeoutError"),
-      );
+    const analyze = vi.spyOn(analyzer, "analyze");
 
     await expect(
       waitForRecallDerivationFresh([reference("30")], {
         db: db.client,
-        pluginManager,
-        dependencyProbeIntervalMs: 1,
-        timeoutMs: 5_000,
-      }),
-    ).resolves.toBeUndefined();
-    expect(analyze.mock.calls.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it("times out when a retryable dependency blocker does not recover", async () => {
-    await db.client.insert(recallDerivationState).values({
-      targetKind: "MEMORY_ITEM",
-      targetId: "31",
-      languageId: "en",
-      canonicalInputVersion: CanonicalInputVersionSchema.parse(
-        `sha256:${"4".repeat(64)}`,
-      ),
-    });
-    const analyzer = pluginManager.getServices("LANGUAGE_ANALYZER")[0]!.service;
-    const observedTimeouts: number[] = [];
-    const analyze = vi.spyOn(analyzer, "analyze").mockImplementation(
-      async (context) =>
-        await new Promise<never>((_resolve, reject) => {
-          observedTimeouts.push(context.timeoutMs ?? Number.POSITIVE_INFINITY);
-          const timer = setTimeout(
-            () =>
-              reject(
-                new DOMException(
-                  "persistent dependency timeout",
-                  "TimeoutError",
-                ),
-              ),
-            10_000,
-          );
-          context.signal?.addEventListener(
-            "abort",
-            () => {
-              clearTimeout(timer);
-              reject(context.signal?.reason);
-            },
-            { once: true },
-          );
-        }),
-    );
-
-    const startedAt = Date.now();
-    await expect(
-      waitForRecallDerivationFresh([reference("31")], {
-        db: db.client,
-        pluginManager,
-        dependencyProbeIntervalMs: 1,
-        timeoutMs: 2_000,
+        pollIntervalMs: 1,
+        timeoutMs: 50,
       }),
     ).rejects.toMatchObject({ status: "TIMEOUT" });
-    expect(analyze).toHaveBeenCalled();
-    expect(observedTimeouts.every((timeout) => timeout <= 2_000)).toBe(true);
-    expect(Date.now() - startedAt).toBeLessThan(6_000);
+    expect(analyze).not.toHaveBeenCalled();
+    const [state] = await db.client
+      .select()
+      .from(recallDerivationState)
+      .where(eq(recallDerivationState.targetId, "30"));
+    expect(state).toMatchObject({ status: "PENDING" });
   });
 
   it("does not let a transient live probe mask a persisted blocker", async () => {
@@ -295,36 +296,38 @@ describe("Recall Derivation freshness", () => {
     await expect(
       waitForRecallDerivationFresh([reference("32")], {
         db: db.client,
-        pluginManager,
         timeoutMs: 5_000,
       }),
-    ).rejects.toMatchObject({ blockers: [blocker], status: "BLOCKED" });
+    ).rejects.toMatchObject({ blockers: [blocker], status: "FAILED" });
     expect(analyze).not.toHaveBeenCalled();
   });
 
-  it("reconciles a persisted dependency blocker after recovery", async () => {
+  it("reaches fresh state only while the production worker runs", async () => {
     await db.client.insert(recallDerivationState).values({
       targetKind: "MEMORY_ITEM",
       targetId: "33",
       languageId: "en",
-      status: "BLOCKED",
-      blocker: {
-        reason: "LANGUAGE_ANALYSIS",
-        retryable: false,
-        message: "language analysis was unavailable",
-      },
       canonicalInputVersion: CanonicalInputVersionSchema.parse(
         `sha256:${"6".repeat(64)}`,
       ),
     });
 
-    await expect(
-      waitForRecallDerivationFresh([reference("33")], {
-        db: db.client,
-        pluginManager,
-        timeoutMs: 5_000,
-      }),
-    ).resolves.toBeUndefined();
+    const worker = await startRecallDerivationWorker({
+      db: db.client,
+      pluginManager,
+      pollIntervalMs: 1,
+    });
+    try {
+      await expect(
+        waitForRecallDerivationFresh([reference("33")], {
+          db: db.client,
+          pollIntervalMs: 1,
+          timeoutMs: 5_000,
+        }),
+      ).resolves.toBeUndefined();
+    } finally {
+      await worker.stop();
+    }
     const [state] = await db.client
       .select()
       .from(recallDerivationState)
@@ -365,7 +368,6 @@ describe("Recall Derivation freshness", () => {
     await expect(
       waitForRecallDerivationFresh([reference("34"), reference("35")], {
         db: db.client,
-        pluginManager,
         timeoutMs: 5_000,
       }),
     ).rejects.toMatchObject({ status: "BLOCKED" });
@@ -394,7 +396,6 @@ describe("Recall Derivation freshness", () => {
     await expect(
       waitForRecallDerivationFresh(refs, {
         db: db.client,
-        pluginManager,
         timeoutMs: 5_000,
       }),
     ).resolves.toBeUndefined();
@@ -435,7 +436,7 @@ describe("Recall Derivation freshness", () => {
     });
   });
 
-  it("reclaims an expired RUNNING lease while waiting for freshness", async () => {
+  it("reclaims an expired RUNNING lease while the worker is running", async () => {
     await db.client.insert(recallDerivationState).values({
       targetKind: "MEMORY_ITEM",
       targetId: "6",
@@ -449,13 +450,22 @@ describe("Recall Derivation freshness", () => {
         `sha256:${"6".repeat(64)}`,
       ),
     });
-    await expect(
-      waitForRecallDerivationFresh([reference("6")], {
-        db: db.client,
-        pluginManager,
-        timeoutMs: 5_000,
-      }),
-    ).resolves.toBeUndefined();
+    const worker = await startRecallDerivationWorker({
+      db: db.client,
+      pluginManager,
+      pollIntervalMs: 1,
+    });
+    try {
+      await expect(
+        waitForRecallDerivationFresh([reference("6")], {
+          db: db.client,
+          pollIntervalMs: 1,
+          timeoutMs: 5_000,
+        }),
+      ).resolves.toBeUndefined();
+    } finally {
+      await worker.stop();
+    }
     const [state] = await db.client
       .select()
       .from(recallDerivationState)
@@ -630,6 +640,8 @@ describe("Recall Derivation freshness", () => {
         targetId: entry.targetId,
         languageId: entry.languageId,
         canonicalInputVersion,
+        nextAttemptAt:
+          entry.languageId === "fr" ? null : new Date(Date.now() + 60_000),
       })),
     );
 
@@ -642,18 +654,65 @@ describe("Recall Derivation freshness", () => {
       references: [termReference("9", "fr")],
     });
     await expect(
-      waitForRecallDerivationFresh(references, {
+      processRecallDerivationBatch({
         db: db.client,
         pluginManager,
+        limit: 1,
+      }),
+    ).resolves.toEqual({ claimed: 1, published: 0, stale: 0, failed: 1 });
+    const states = await db.client
+      .select({
+        targetKind: recallDerivationState.targetKind,
+        targetId: recallDerivationState.targetId,
+        languageId: recallDerivationState.languageId,
+        status: recallDerivationState.status,
+        blocker: recallDerivationState.blocker,
+      })
+      .from(recallDerivationState);
+    expect(states.filter((state) => state.status === "BLOCKED")).toEqual([
+      {
+        targetKind: "TERM_CONCEPT",
+        targetId: "9",
+        languageId: "fr",
+        status: "BLOCKED",
+        blocker: {
+          reason: "LANGUAGE_ANALYSIS",
+          retryable: false,
+          message: "Language Analysis requirement is BLOCKED.",
+        },
+      },
+    ]);
+    expect(
+      states
+        .filter((state) => state.targetId !== "9")
+        .map(({ targetId, status, blocker }) => ({
+          targetId,
+          status,
+          blocker,
+        })),
+    ).toEqual([
+      { targetId: "7", status: "PENDING", blocker: null },
+      { targetId: "8", status: "PENDING", blocker: null },
+    ]);
+    await expect(
+      waitForRecallDerivationFresh(references, {
+        db: db.client,
         timeoutMs: 5_000,
       }),
     ).rejects.toMatchObject({
       status: "BLOCKED",
       references: [termReference("9", "fr")],
+      blockers: [
+        {
+          reason: "LANGUAGE_ANALYSIS",
+          retryable: false,
+          message: "Language Analysis requirement is BLOCKED.",
+        },
+      ],
     });
   });
 
-  it("prioritizes a tokenizer failure over a concurrent analyzer blocker", async () => {
+  it("keeps tokenizer and analyzer dependency blockers nonterminal", async () => {
     const canonicalInputVersion = CanonicalInputVersionSchema.parse(
       `sha256:${"9".repeat(64)}`,
     );
@@ -666,8 +725,12 @@ describe("Recall Derivation freshness", () => {
         canonicalInputVersion,
       })),
     );
+    const invalidTokenizerSnapshot = z.string().safeParse(null);
+    if (invalidTokenizerSnapshot.success) {
+      throw new Error("Expected an invalid tokenizer snapshot fixture.");
+    }
     vi.spyOn(pluginManager, "captureServiceRuntimeSnapshots").mockRejectedValue(
-      new Error("tokenizer snapshot failed"),
+      invalidTokenizerSnapshot.error,
     );
 
     const assessment = await assessRecallDerivationFreshness(references, {
@@ -676,11 +739,11 @@ describe("Recall Derivation freshness", () => {
     });
 
     expect(assessment).toMatchObject({
-      status: "FAILED",
+      status: "BLOCKED",
       references,
     });
     expect(
-      assessment.status === "FAILED"
+      assessment.status === "BLOCKED" || assessment.status === "FAILED"
         ? new Set(assessment.blockers.map((blocker) => blocker.reason))
         : null,
     ).toEqual(new Set(["TOKENIZER", "LANGUAGE_ANALYSIS"]));

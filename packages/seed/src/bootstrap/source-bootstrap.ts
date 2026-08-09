@@ -9,6 +9,7 @@ import {
 } from "@cat/domain";
 import {
   diffStructuredContentOp,
+  startRecallDerivationWorker,
   waitForRecallDerivationFresh,
 } from "@cat/operations";
 import type { PluginManager } from "@cat/plugin-core";
@@ -207,10 +208,19 @@ export const runBootstrapSourceGraph = async (
         }),
       )
     ).flat();
-    await waitForRecallDerivationFresh(derivations, {
-      db: input.execCtx.db,
-      pluginManager: input.pluginManager,
-    });
+    if (derivations.length > 0) {
+      const worker = await startRecallDerivationWorker({
+        db: input.execCtx.db,
+        pluginManager: input.pluginManager,
+      });
+      try {
+        await waitForRecallDerivationFresh(derivations, {
+          db: input.execCtx.db,
+        });
+      } finally {
+        await worker.stop();
+      }
+    }
   }
 
   const report: BootstrapRunReport = {

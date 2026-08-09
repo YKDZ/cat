@@ -2,6 +2,8 @@ import { and, eq, inArray, recallDerivationState, sql } from "@cat/db";
 import {
   computeTermConceptCanonicalInputVersion,
   computeTermConceptDeletionCanonicalInputVersion,
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
   RecallDerivationReferenceSchema,
   type RecallDerivationReference,
 } from "@cat/shared";
@@ -12,7 +14,7 @@ import type { DbHandle } from "#/types.ts";
 type TermConceptDemandRow = {
   targetKind: "TERM_CONCEPT";
   targetId: string;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   canonicalInputVersion: Awaited<
     ReturnType<typeof computeTermConceptCanonicalInputVersion>
   >;
@@ -89,7 +91,7 @@ export const registerTermConceptRecallDerivationDemands = async (
           ...snapshot.terms.map((entry) => entry.languageId),
           ...existingStates
             .filter((state) => state.targetId === targetId)
-            .map((state) => state.languageId),
+            .map((state) => NormalizedLanguageIdSchema.parse(state.languageId)),
         ]),
       ].sort();
       return await Promise.all(
@@ -126,7 +128,13 @@ export const registerTermConceptRecallDeletionDemands = async (
   const rows = (
     await Promise.all(
       targets.map(async (target) => {
-        const languageIds = [...new Set(target.languageIds)].sort();
+        const languageIds = [
+          ...new Set(
+            target.languageIds.map((languageId) =>
+              NormalizedLanguageIdSchema.parse(languageId),
+            ),
+          ),
+        ].sort();
         if (languageIds.length === 0) return [];
         const canonicalInputVersion =
           await computeTermConceptDeletionCanonicalInputVersion({
