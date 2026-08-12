@@ -159,6 +159,8 @@ describe("repository quality command contract", () => {
     const scripts = readRootManifest().scripts ?? {};
 
     expect(scripts["build:e2e"]).toContain("--filter=@cat/app-e2e");
+    expect(scripts["build:e2e"]).toContain("--filter=@cat/plugin-core");
+    expect(scripts["build:e2e"]).toContain("--filter='@cat-plugin/*'");
     expect(scripts["test:e2e"]).toMatch(
       /^pnpm build:e2e && pnpm --filter @cat\/app-e2e test:e2e$/,
     );
