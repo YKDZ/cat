@@ -151,6 +151,7 @@ CMD ["provision-and-serve"]
       runIdentity: "artifact-contract-run",
     };
     const ownerToken = "docker-provenance-owner-token";
+    const carrierTag = `cat-audit-carrier-${process.pid}-${Date.now()}:contract`;
     const imageIds: string[] = [];
     const spoofTags: string[] = [];
     try {
@@ -194,10 +195,23 @@ CMD ["provision-and-serve"]
         run: async (args) => (await docker(args)).stdout,
       });
 
+      await writeFile(join(directory, "carrier"), "spoof bundle carrier\n");
+      await writeFile(
+        join(directory, "Dockerfile.carrier"),
+        'FROM scratch\nCOPY carrier /carrier\nCMD ["carrier"]\n',
+      );
+      await docker([
+        "build",
+        "--file",
+        join(directory, "Dockerfile.carrier"),
+        "--tag",
+        carrierTag,
+        directory,
+      ]);
       for (const imageId of imageIds) {
         const spoofTag = `cat-audit/sha256:${imageId.slice("sha256:".length)}`;
         spoofTags.push(spoofTag);
-        await docker(["image", "tag", "busybox:1.36.1", spoofTag]);
+        await docker(["image", "tag", carrierTag, spoofTag]);
       }
       await docker([
         "image",
@@ -248,6 +262,9 @@ CMD ["provision-and-serve"]
         }),
       ).rejects.toThrow("invalid image set");
     } finally {
+      await docker(["image", "rm", "--force", carrierTag]).catch(
+        () => undefined,
+      );
       if (spoofTags.length > 0) {
         await docker(["image", "rm", "--force", ...spoofTags]).catch(
           () => undefined,
