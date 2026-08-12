@@ -1,22 +1,19 @@
-import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { redactDiagnosticText } from "@cat/shared";
 
 import { parseTestServiceLease } from "../apps/app-e2e/test-service-lease.ts";
 import {
-  CommandExecutionError,
-  type ApplicationLifecycleContext,
-  type CommandExecutionResult,
-} from "./check-all.ts";
-import {
-  createValidatedImageManifest,
   type ReleaseImage,
   type ReleaseImageBuildResult,
   type ReleaseImageTarget,
 } from "./image-builder.ts";
+import {
+  CommandExecutionError,
+  type ApplicationLifecycleContext,
+  type VerificationCommandResult as CommandExecutionResult,
+} from "./verification-runtime.ts";
 
 const dockerfile = "apps/app/Dockerfile";
 const cleanupTimeoutMs = 30_000;
@@ -39,11 +36,6 @@ type LifecycleDatabase = {
 type LifecycleStorage = {
   mountArgs: string[];
   remove: () => Promise<void>;
-};
-
-export type ValidatedImageExport = {
-  manifestDigest: string;
-  manifestPath: string;
 };
 
 export type ApplicationLifecycleReport = {
@@ -306,7 +298,9 @@ const createLifecycleDatabase = async (
   const redisUrl = context.env.REDIS_URL;
   const spacyUrl = context.env.SPACY_SERVER_URL;
   if (!databaseUrl || !redisUrl || !spacyUrl) {
-    throw new Error("check:all container lifecycle requires database URLs");
+    throw new Error(
+      "Complete verification container lifecycle requires database URLs",
+    );
   }
 
   const connection = new URL(databaseUrl);
@@ -314,7 +308,7 @@ const createLifecycleDatabase = async (
   const password = decodeURIComponent(connection.password);
   if (username === "" || password === "") {
     throw new Error(
-      "check:all container lifecycle requires database credentials",
+      "Complete verification container lifecycle requires database credentials",
     );
   }
   const databaseName = `cat_lifecycle_${randomUUID().replaceAll("-", "")}`;
@@ -657,40 +651,6 @@ const assertRuntimeRejectsCapabilityOverride = async (
     throw error;
   }
   throw new Error("Runtime image accepted an overridden lifecycle capability");
-};
-
-export const exportValidatedImages = async (
-  context: ApplicationLifecycleContext,
-  images: ReleaseImageBuildResult,
-): Promise<ValidatedImageExport | undefined> => {
-  const directory = context.env.CAT_CHECK_ALL_EXPORT_IMAGES_DIR;
-  if (directory === undefined || directory === "") return undefined;
-  await mkdir(directory, { recursive: true });
-  for (const target of ["standalone", "runtime", "spacy"] as const) {
-    await docker(context, [
-      "image",
-      "save",
-      "--output",
-      join(directory, `${target}.tar`),
-      releaseImage(images, target).imageId,
-    ]);
-  }
-  const manifestPath = join(directory, "manifest.json");
-  await writeFile(
-    manifestPath,
-    `${JSON.stringify(
-      createValidatedImageManifest(
-        images,
-        context.buildId ?? context.projectName,
-      ),
-    )}\n`,
-  );
-  return {
-    manifestDigest: createHash("sha256")
-      .update(await readFile(manifestPath))
-      .digest("hex"),
-    manifestPath,
-  };
 };
 
 export const runApplicationLifecycle = async (

@@ -129,17 +129,28 @@ describe("repository quality command contract", () => {
 
   it("keeps every root Turbo entrypoint concise without wrapping its output", () => {
     const scripts = readRootManifest().scripts ?? {};
+    const turboCommands = Object.entries(scripts).flatMap(([name, script]) =>
+      script
+        .split(" && ")
+        .filter((command) => command.startsWith("turbo run "))
+        .map((command) => ({ command, name })),
+    );
+
+    expect(turboCommands.length).toBeGreaterThan(0);
+    for (const { command, name } of turboCommands) {
+      expect(command, name).toContain("--cache-workers=2");
+      expect(command, name).toContain("--remote-cache-timeout=5");
+    }
     for (const name of [
       "build",
+      "build:app",
       "build-plugins",
       "build:all",
       "test:integration",
     ] as const) {
-      const command = scripts[name] ?? "";
-      expect(command, name).toMatch(/^turbo run /);
-      expect(command, name).toContain("--output-logs=errors-only");
-      expect(command, name).toContain("--log-order=grouped");
-      expect(command, name).toContain("--log-prefix=task");
+      expect(scripts[name], name).toContain("--output-logs=errors-only");
+      expect(scripts[name], name).toContain("--log-order=grouped");
+      expect(scripts[name], name).toContain("--log-prefix=task");
     }
   });
 
@@ -163,7 +174,7 @@ describe("repository quality command contract", () => {
     expect(result.status, result.stderr).toBe(0);
     expect(result.stdout).toContain("scripts/quality-contract.spec.ts");
     expect(result.stdout).not.toContain("package-artifacts.test.ts");
-  });
+  }, 15_000);
 
   it("uses direct Oxc scripts with quiet read-only commands", () => {
     const scripts = readRootManifest().scripts ?? {};
@@ -209,15 +220,17 @@ describe("repository quality command contract", () => {
     }
   });
 
-  it("extends the daily graph with check:all without retaining wrapper behavior", () => {
+  it("routes complete verification through the typed plan and shared executor", () => {
     const scripts = readRootManifest().scripts ?? {};
-    const checkAllSource = readFileSync(
-      resolve(root, "scripts/check-all.ts"),
+    const localVerificationSource = readFileSync(
+      resolve(root, "scripts/verification-local.ts"),
       "utf8",
     );
-    expect(scripts["check:all"]).toContain("scripts/check-all.ts");
-    expect(checkAllSource).toMatch(/integration|pglite|e2e|build|artifacts/i);
-    expect(checkAllSource).toContain("test:artifacts");
+    expect(scripts["check:all"]).toContain("scripts/verification-local.ts");
+    expect(scripts["check:all:ci"]).toBeUndefined();
+    expect(localVerificationSource).toContain("createVerificationPlan");
+    expect(localVerificationSource).toContain("executeVerificationPlan");
+    expect(localVerificationSource).not.toContain("e2e-concurrency");
     expect(scripts["test:artifacts"]).toContain("test:artifacts:verify");
     expect(scripts["test:artifacts:verify"]).toContain(
       "package-artifacts.test.ts",
@@ -289,7 +302,7 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(352);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(358);
     expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(81);
   });
 

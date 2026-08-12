@@ -230,6 +230,13 @@ describe("release E2E selection", () => {
     });
   });
 
+  it("resolves browser-only diagnostics through the full catalogue", () => {
+    expect(parseE2ESelection(["--browser", "firefox"])).toEqual({
+      browser: "firefox",
+      target: "all",
+    });
+  });
+
   it("uses the complete development and release matrix when invoked without arguments", async () => {
     expect(parseE2ESelection([])).toEqual({ target: "all" });
 
