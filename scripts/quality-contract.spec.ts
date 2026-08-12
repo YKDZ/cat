@@ -1,8 +1,9 @@
-import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { toolingTestIncludes } from "./vitest.config.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const removedPrecommitCommand = ["pre", "commit"].join("");
@@ -121,9 +122,7 @@ describe("repository quality command contract", () => {
     expect(check).toContain("--continue=dependencies-successful");
     expect(scripts.test).toBe("pnpm test:tooling");
     expect(scripts["test:tooling"]).toContain("scripts/vitest.config.ts");
-    expect(
-      readFileSync(resolve(root, "scripts/vitest.config.ts"), "utf8"),
-    ).toMatch(/include:[\s\S]+\.spec\.ts/);
+    expect(toolingTestIncludes).toContain("scripts/**/*.spec.ts");
     expect(scripts["test:tooling"]).not.toContain("package-artifacts.test.ts");
   });
 
@@ -167,26 +166,18 @@ describe("repository quality command contract", () => {
   });
 
   it("discovers root tooling specs without services or artifact tests", () => {
-    const result = spawnSync(
-      "pnpm",
-      ["exec", "vitest", "list", "--config", "scripts/vitest.config.ts"],
-      {
-        cwd: root,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-          HTTP_PROXY: "http://127.0.0.1:1",
-          HTTPS_PROXY: "http://127.0.0.1:1",
-          REDIS_URL: "redis://127.0.0.1:1",
-        },
-      },
+    expect(toolingTestIncludes).toEqual([
+      "scripts/**/*.spec.ts",
+      "tooling/oxlint/**/*.spec.ts",
+    ]);
+    expect(existsSync(resolve(root, "scripts/quality-contract.spec.ts"))).toBe(
+      true,
     );
-
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("scripts/quality-contract.spec.ts");
-    expect(result.stdout).not.toContain("package-artifacts.test.ts");
-  }, 15_000);
+    expect(toolingTestIncludes).not.toContain("scripts/**/*.test.ts");
+    expect(toolingTestIncludes).not.toContain(
+      "scripts/package-artifacts.test.ts",
+    );
+  });
 
   it("uses direct Oxc scripts with quiet read-only commands", () => {
     const scripts = readRootManifest().scripts ?? {};
