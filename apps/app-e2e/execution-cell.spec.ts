@@ -12,6 +12,7 @@ import {
   ExecutionCell,
   DevTargetAdapter,
   developmentRuntimeEnvironment,
+  e2eArtifactRootFrom,
   cleanupCellDatabase,
   formatCellDatabaseCleanupDiagnostic,
   formatDockerContainerPhaseFailure,
@@ -125,6 +126,14 @@ const readyReport = (profile: "lite" | "production") => ({
 });
 
 describe("ExecutionCell scheduler", () => {
+  it("places execution-cell diagnostics beneath the configured artifact root", () => {
+    expect(
+      e2eArtifactRootFrom({
+        CAT_E2E_ARTIFACT_ROOT: "/tmp/cat-e2e-run-123",
+      }),
+    ).toBe("/tmp/cat-e2e-run-123");
+  });
+
   it.each(["lite", "production"] as const)(
     "accepts the canonical %s readiness component identities",
     (profile) => {

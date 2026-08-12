@@ -58,7 +58,12 @@ import type {
 } from "./test-service-lease.ts";
 
 const root = resolve(import.meta.dirname, "../..");
-const e2eArtifactRoot = join(root, ".tmp", "e2e");
+export const e2eArtifactRootFrom = (env: NodeJS.ProcessEnv): string =>
+  resolve(
+    env.CAT_E2E_ARTIFACT_ROOT === undefined || env.CAT_E2E_ARTIFACT_ROOT === ""
+      ? join(root, ".tmp", "e2e")
+      : env.CAT_E2E_ARTIFACT_ROOT,
+  );
 const startupTimeoutMs = 300_000;
 export const executionCellCleanupTimeoutMs = 60_000;
 const cleanupTimeoutMs = executionCellCleanupTimeoutMs;
@@ -3461,6 +3466,7 @@ export class ExecutionCell {
 
   private async createRuntime(): Promise<CellRuntime> {
     const cellId = randomUUID();
+    const e2eArtifactRoot = e2eArtifactRootFrom(process.env);
     await mkdir(e2eArtifactRoot, { recursive: true });
     const artifactDirectory = await mkdtemp(
       join(

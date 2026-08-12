@@ -82,7 +82,8 @@ describe("application container contract", () => {
     );
     expect(dockerfile).toContain("COPY --from=pruner /repo/out/json/ ./");
     expect(dockerfile).toContain("COPY --from=pruner /repo/out/full/ ./");
-    expect(dockerfile).toContain("pnpm exec turbo run build --filter=@cat/app");
+    expect(dockerfile).toContain("pnpm build:app");
+    expect(dockerfile).not.toContain("pnpm exec turbo run build");
     expect(dockerfile).not.toContain("pnpm build-plugins");
     for (const secret of [
       "turbo_team",
@@ -121,6 +122,39 @@ describe("application container contract", () => {
     }
     expect(rules.has("tools/**")).toBe(true);
     expect(rules.has("!tools/*/package.json")).toBe(true);
+  });
+
+  it("keeps immutable dependency inputs ahead of source layers in both build families", async () => {
+    const application = await readFile(
+      resolve(root, "apps/app/Dockerfile"),
+      "utf8",
+    );
+    const spacy = await readFile(
+      resolve(root, "apps/spacy-server/Dockerfile"),
+      "utf8",
+    );
+
+    expect(
+      application.indexOf("COPY --from=pruner /repo/out/json/ ./"),
+    ).toBeLessThan(
+      application.indexOf("COPY --from=pruner /repo/out/full/ ./"),
+    );
+    expect(application.indexOf("pnpm install --frozen-lockfile")).toBeLessThan(
+      application.indexOf("COPY --from=pruner /repo/out/full/ ./"),
+    );
+    expect(
+      application.indexOf("FROM application-runtime AS database-preparation"),
+    ).toBeLessThan(
+      application.indexOf("FROM database-preparation AS standalone"),
+    );
+    expect(application).toContain("FROM application-runtime AS runtime");
+
+    expect(spacy.indexOf("COPY pyproject.toml uv.lock ./")).toBeLessThan(
+      spacy.indexOf("COPY src ./src"),
+    );
+    expect(
+      spacy.indexOf("uv sync --frozen --no-dev --no-install-project"),
+    ).toBeLessThan(spacy.indexOf("COPY src ./src"));
   });
 
   it("checks the real application readiness route", async () => {
