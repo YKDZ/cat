@@ -144,6 +144,7 @@ describe("repository quality command contract", () => {
     for (const name of [
       "build",
       "build:app",
+      "build:e2e",
       "build-plugins",
       "build:all",
       "test:integration",
@@ -152,6 +153,15 @@ describe("repository quality command contract", () => {
       expect(scripts[name], name).toContain("--log-order=grouped");
       expect(scripts[name], name).toContain("--log-prefix=task");
     }
+  });
+
+  it("builds E2E source dependencies through the public root entrypoint", () => {
+    const scripts = readRootManifest().scripts ?? {};
+
+    expect(scripts["build:e2e"]).toContain("--filter=@cat/app-e2e");
+    expect(scripts["test:e2e"]).toMatch(
+      /^pnpm build:e2e && pnpm --filter @cat\/app-e2e test:e2e$/,
+    );
   });
 
   it("discovers root tooling specs without services or artifact tests", () => {
