@@ -19,6 +19,7 @@ import {
   isServerErrorDiagnostic,
   parseCellDatabaseName,
   playwrightChildEnvironment,
+  playwrightTimeoutMs,
   persistOneShotPreparerAttestation,
   processIdentityMatches,
   runAbortableCommand,
@@ -38,6 +39,11 @@ const input = {
 } satisfies ExecutionCellInput;
 
 const discardCellOutput = (_message: string): void => undefined;
+
+it("keeps the Playwright cell deadline below its verification node budget", () => {
+  expect(playwrightTimeoutMs).toBe(10 * 60_000);
+  expect(playwrightTimeoutMs).toBeLessThan(40 * 60_000);
+});
 
 const rejectedDeferred = <Value>(): {
   promise: Promise<Value>;
