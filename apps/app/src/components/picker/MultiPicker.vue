@@ -37,7 +37,7 @@ const props = withDefaults(
 );
 
 const modalValue = defineModel<T[]>({
-  default: [],
+  default: () => [] as T[],
 });
 
 const selectedOptions = shallowRef<PickerOption<T>[]>([]);
