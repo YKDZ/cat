@@ -90,6 +90,26 @@ const createRun = async (options?: {
   };
 };
 
+const createDeferred = <T = void>(): {
+  promise: Promise<T>;
+  resolve: (value?: T | PromiseLike<T>) => void;
+} => {
+  let resolve: ((value: T | PromiseLike<T>) => void) | undefined;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return {
+    promise,
+    resolve: (value) => {
+      if (value === undefined) {
+        resolve?.(undefined as T);
+        return;
+      }
+      resolve?.(value);
+    },
+  };
+};
+
 describe("PostgresCheckpointer owner fencing", () => {
   it("keeps a sessionless run ephemeral even when metadata resembles a session", async () => {
     const session = await createRun();
@@ -161,6 +181,8 @@ describe("PostgresCheckpointer owner fencing", () => {
     const runA = randomUUID();
     const runB = randomUUID();
     const other = await db.openConcurrentClient();
+    const winnerStarted = createDeferred();
+    const releaseWinner = createDeferred();
     let executions = 0;
     const createScheduler = (checkpointer: PostgresCheckpointer) => {
       const eventBus = new InProcessEventBus();
@@ -169,7 +191,8 @@ describe("PostgresCheckpointer owner fencing", () => {
       graphRegistry.register(graph);
       nodeRegistry.register("transform", async () => {
         executions += 1;
-        await new Promise((resolve) => setTimeout(resolve, 20));
+        winnerStarted.resolve();
+        await releaseWinner.promise;
         return { status: "completed" };
       });
       return new Scheduler({
@@ -188,16 +211,18 @@ describe("PostgresCheckpointer owner fencing", () => {
     const schedulerB = createScheduler(ownerB);
 
     try {
-      const results = await Promise.allSettled([
-        schedulerA.start(
-          graph.id,
-          {},
-          {
-            preallocatedRunId: runA,
-            sessionId: session.sessionDbId,
-            deduplicationKey,
-          },
-        ),
+      const winningStart = schedulerA.start(
+        graph.id,
+        {},
+        {
+          preallocatedRunId: runA,
+          sessionId: session.sessionDbId,
+          deduplicationKey,
+        },
+      );
+      await winnerStarted.promise;
+
+      await expect(
         schedulerB.start(
           graph.id,
           {},
@@ -207,23 +232,9 @@ describe("PostgresCheckpointer owner fencing", () => {
             deduplicationKey,
           },
         ),
-      ]);
-      const fulfilled = results.filter(
-        (result): result is PromiseFulfilledResult<string> =>
-          result.status === "fulfilled",
-      );
-      const rejected = results.filter(
-        (result): result is PromiseRejectedResult =>
-          result.status === "rejected",
-      );
-
-      expect(fulfilled).toHaveLength(1);
-      expect(rejected).toHaveLength(1);
-      expect(rejected[0]?.reason).toBeInstanceOf(
-        WorkflowRunOwnershipConflictError,
-      );
-      const winnerRunId = fulfilled[0]?.value;
-      if (!winnerRunId) throw new Error("Expected a winning scheduler run.");
+      ).rejects.toBeInstanceOf(WorkflowRunOwnershipConflictError);
+      releaseWinner.resolve();
+      const winnerRunId = await winningStart;
 
       await expect.poll(() => executions).toBe(1);
       expect(await ownerA.loadSnapshot(winnerRunId)).not.toBeNull();
@@ -238,6 +249,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         await ownerA.loadSnapshot(runA === winnerRunId ? runB : runA),
       ).toBeNull();
     } finally {
+      releaseWinner.resolve();
       await schedulerA.dispose();
       await schedulerB.dispose();
       await other.cleanup();
