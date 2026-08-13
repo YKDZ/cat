@@ -35,7 +35,7 @@ export default defineConfig({
   build: {
     emptyOutDir: true,
     outDir: "dist/bootstrap-only",
-    rollupOptions: { external: [...serverExternalPackages] },
+    rolldownOptions: { external: [...serverExternalPackages] },
     ssr: "src/server/bootstrap-only-cli.ts",
     target: "esnext",
   },
