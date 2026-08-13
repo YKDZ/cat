@@ -23,6 +23,9 @@ minimumReleaseAgeStrict: true
 
 nodeLinker: isolated
 
+overrides:
+  postcss: 8.5.26
+
 strictDepBuilds: true
 
 trustLockfile: false
