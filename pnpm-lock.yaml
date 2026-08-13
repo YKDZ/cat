@@ -266,8 +266,8 @@ catalogs:
       specifier: ^18.0.5
       version: 18.0.5
     mermaid:
-      specifier: ^11.15.0
-      version: 11.15.0
+      specifier: ^11.16.1
+      version: 11.16.1
     openai:
       specifier: ^7.4.0
       version: 7.4.0
@@ -1281,7 +1281,7 @@ importers:
         version: 1.2.3(tailwindcss@4.3.3)
       '@mermaid-js/mermaid-zenuml':
         specifier: 'catalog:'
-        version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.3)
+        version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.16.1)(tailwindcss@4.3.3)
       '@vue/tsconfig':
         specifier: 'catalog:'
         version: 0.9.1(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3))
@@ -1290,7 +1290,7 @@ importers:
         version: 14.4.0(vue@3.5.41(typescript@6.0.3))
       mermaid:
         specifier: 'catalog:'
-        version: 11.15.0
+        version: 11.16.1
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -3446,8 +3446,8 @@ packages:
     peerDependencies:
       mermaid: ^10 || ^11
 
-  '@mermaid-js/parser@1.1.1':
-    resolution: {integrity: sha512-VuHdsYMK1bT6X2JbcAaWAhugTRvRBRyuZgd+c22swUeI9g/ntaxF7CY7dYarhZovofCbUNO0G7JesfmNtjYOCw==}
+  '@mermaid-js/parser@1.2.0':
+    resolution: {integrity: sha512-oYPyv8A4As1yH5Bx+04iQEQxXuIQDe0GKCNSRgao6z8AM9jixXIfP0vsppRLvGf+nKIOb9/LdpWA4YuJiVvESA==}
 
   '@modelcontextprotocol/sdk@1.29.0':
     resolution: {integrity: sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ==}
@@ -8029,8 +8029,8 @@ packages:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
     engines: {node: '>= 8'}
 
-  mermaid@11.15.0:
-    resolution: {integrity: sha512-pTMbcf3rWdtLiYGpmoTjHEpeY8seiy6sR+9nD7LOs8KfUbHE4lOUAprTRqRAcWSQ6MQpdX+YEsxShtGsINtPtw==}
+  mermaid@11.16.1:
+    resolution: {integrity: sha512-TQsq6u22fAn3rek5VOubrhKPo1g5hwC3FXUN9hiyupTckcYiGuuKGkNQrKYwGJkXUxZdojwRG46gsSCFZMDp4g==}
 
   micromark-core-commonmark@2.0.3:
     resolution: {integrity: sha512-RDBrHEMSxVFLg6xvnXmb1Ayr2WzLAWjeSATAoxwKYJV94TeNavgoIdA0a9ytzDSVzBy2YKFK+emCPOEibLeCrg==}
@@ -11050,10 +11050,10 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
-  '@mermaid-js/mermaid-zenuml@0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.3)':
+  '@mermaid-js/mermaid-zenuml@0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.16.1)(tailwindcss@4.3.3)':
     dependencies:
       '@zenuml/core': 3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.3)
-      mermaid: 11.15.0
+      mermaid: 11.16.1
     transitivePeerDependencies:
       - '@babel/core'
       - '@babel/template'
@@ -11061,7 +11061,7 @@ snapshots:
       - playwright-core
       - tailwindcss
 
-  '@mermaid-js/parser@1.1.1':
+  '@mermaid-js/parser@1.2.0':
     dependencies:
       '@chevrotain/types': 11.1.2
 
@@ -15735,11 +15735,11 @@ snapshots:
 
   merge2@1.4.1: {}
 
-  mermaid@11.15.0:
+  mermaid@11.16.1:
     dependencies:
       '@braintree/sanitize-url': 7.1.2
       '@iconify/utils': 3.1.3
-      '@mermaid-js/parser': 1.1.1
+      '@mermaid-js/parser': 1.2.0
       '@types/d3': 7.4.3
       '@upsetjs/venn.js': 2.0.0
       cytoscape: 3.34.0
