@@ -106,6 +106,14 @@ const runWithConcurrentCleanup = async <T>(options: {
   } catch (error) {
     appendError(errors, error);
   }
+  try {
+    await options.within(
+      Promise.all(options.settlements),
+      "Concurrent database work settlement",
+    );
+  } catch (error) {
+    appendError(errors, error);
+  }
   const cleanupSettlements: ConcurrentWorkSettlement[] = [];
   for (const { pid, cleanup } of options.clients) {
     const boundedCleanup = options.within(
@@ -117,14 +125,6 @@ const runWithConcurrentCleanup = async <T>(options: {
   const cleanupResults = await Promise.all(cleanupSettlements);
   for (const result of cleanupResults) {
     if (result.status === "rejected") appendError(errors, result.reason);
-  }
-  try {
-    await options.within(
-      Promise.all(options.settlements),
-      "Concurrent database work settlement",
-    );
-  } catch (error) {
-    appendError(errors, error);
   }
   throwCollectedErrors(errors, "Concurrent database test cleanup failed");
   if (!outcome.ok) throw outcome.error;
