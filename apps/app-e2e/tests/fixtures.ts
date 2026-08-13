@@ -498,13 +498,6 @@ export const consumeMatchingNavigationOwnedCancellationPageError = (
   return false;
 };
 
-const isBenignRequestCancellationPageError = (
-  failure: RecordedDiagnosticFailure,
-): boolean =>
-  failure.source === "page" &&
-  failure.kind === "page-error" &&
-  failure.value === "CAT request was cancelled";
-
 interface E2EWorkerFixtures {
   /** Path to the admin user's storageState file (worker-scoped, reused across tests) */
   adminStorageState: string;
@@ -1332,7 +1325,6 @@ export const test = baseTest.extend<
             failure,
             navigation.committedNavigationIds,
           ) &&
-          !isBenignRequestCancellationPageError(failure) &&
           !consumeControlledCancellation(
             failure,
             cancellations,

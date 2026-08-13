@@ -14,7 +14,7 @@ test("development login reaches the home page without client errors", async ({
   await page.getByRole("button", { name: "继续" }).click();
 
   const password = page.locator('input[type="password"]');
-  await expect(password).toBeVisible({ timeout: 30_000 });
+  await expect(password).toBeVisible();
   await password.fill("password");
   await page.getByRole("button", { name: "验证" }).click();
 
