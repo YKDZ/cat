@@ -326,7 +326,7 @@ describe("PostgresCheckpointer owner fencing", () => {
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }),
-      ).rejects.toThrow("owner lease lost");
+      ).rejects.toThrow(/owner lease lost/i);
     } finally {
       await scheduler.dispose();
       await other.cleanup();
@@ -402,7 +402,7 @@ describe("PostgresCheckpointer owner fencing", () => {
           ...winner.metadata,
           metadata: { source: "loser" },
         }),
-      ).rejects.toThrow("owner lease");
+      ).rejects.toThrow(/owner lease/i);
       expect((await ownerA.loadRunMetadata(runId))?.metadata).toEqual({
         source: winnerSource,
         sessionId: session.sessionDbId,
@@ -461,7 +461,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
   });
 
   it("increments the epoch when the same owner reclaims an expired lease", async () => {
@@ -484,7 +484,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         ownerId: staleFence?.ownerId,
         ownerEpoch: staleFence?.epoch,
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
   });
 
   it("rejects a live-owner takeover and fences every stale persistence write after expiry", async () => {
@@ -507,7 +507,7 @@ describe("PostgresCheckpointer owner fencing", () => {
       updatedAt: new Date().toISOString(),
     };
     await expect(ownerA.saveSnapshot(run.runId, snapshot)).rejects.toThrow(
-      "owner lease lost",
+      /owner lease lost/i,
     );
     await expect(
       ownerA.saveEvent({
@@ -517,7 +517,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         timestamp: new Date().toISOString(),
         payload: { error: "stale" },
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
     await expect(
       ownerA.saveExternalOutput({
         runId: run.runId,
@@ -527,7 +527,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         payload: {},
         createdAt: new Date().toISOString(),
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
 
     await ownerB.saveSnapshot(run.runId, snapshot);
     await ownerB.saveEvent({
@@ -575,7 +575,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         payload: {},
         createdAt: new Date().toISOString(),
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
     await expect(
       owner.saveEvent({
         eventId: randomUUID(),
@@ -584,7 +584,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         timestamp: new Date().toISOString(),
         payload: { error: "late" },
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
     await expect(
       owner.saveEvent({
         eventId: randomUUID(),
@@ -593,7 +593,7 @@ describe("PostgresCheckpointer owner fencing", () => {
         timestamp: new Date().toISOString(),
         payload: { status: "failed" },
       }),
-    ).rejects.toThrow("owner lease lost");
+    ).rejects.toThrow(/owner lease lost/i);
     await expect(
       owner.saveEvent({
         eventId: randomUUID(),
