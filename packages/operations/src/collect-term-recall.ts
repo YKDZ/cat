@@ -486,19 +486,17 @@ export const collectTermRecallOp = async (
     }
   }
   const collected = [...collectedByKey.values()];
-  const raw = collected.map(
-    (candidate): RawTermResult => ({
-      surface: "term",
-      conceptId: candidate.conceptId,
-      glossaryId: candidate.glossaryId,
-      term: candidate.term,
-      translation: candidate.translation,
-      definition: candidate.definition,
-      confidence: candidate.confidence,
-      matchedText: candidate.matchedText,
-      evidences: candidate.evidences,
-    }),
-  );
+  const raw = collected.map((candidate): RawTermResult => ({
+    surface: "term",
+    conceptId: candidate.conceptId,
+    glossaryId: candidate.glossaryId,
+    term: candidate.term,
+    translation: candidate.translation,
+    definition: candidate.definition,
+    confidence: candidate.confidence,
+    matchedText: candidate.matchedText,
+    evidences: candidate.evidences,
+  }));
   if (analysisTokens && analysisTokens.length > 0) {
     applyTermHnfPre(raw, analysisTokens, input.text);
   }
