@@ -97,7 +97,14 @@ export class QaReviewPage {
       if (result?.ok()) return;
       if (attempt === 0) {
         const handledError = this.page.getByText("Failed to fetch").last();
-        if (await handledError.isVisible({ timeout: 1_000 }).catch(() => false))
+        if (
+          await expect(handledError)
+            .toBeVisible({ timeout: 1_000 })
+            .then(
+              () => true,
+              () => false,
+            )
+        )
           continue;
       }
       throw new Error(
