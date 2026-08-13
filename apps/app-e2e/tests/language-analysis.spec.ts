@@ -91,6 +91,17 @@ const parseObservationTiming = (
   );
 };
 
+const delay = (milliseconds: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+const requestCountsEqual = (
+  left: Record<string, number>,
+  right: Record<string, number>,
+): boolean => {
+  const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+  return [...keys].every((key) => left[key] === right[key]);
+};
+
 test.describe("Language Analysis policy surfaces", () => {
   test("admin CAS conflict preserves the losing operator input", async ({
     page,
@@ -153,6 +164,21 @@ test.describe("Language Analysis policy surfaces", () => {
       const response = await fetch(`${spacyUrl}/_test/request-counts`);
       if (!response.ok) throw new Error("spaCy request counter is unavailable");
       return (await response.json()) as Record<string, number>;
+    };
+    const waitForStableRequestCounts = async (): Promise<
+      Record<string, number>
+    > => {
+      const deadline = Date.now() + 15_000;
+      let previous = await requestCounts();
+      while (Date.now() < deadline) {
+        await delay(750);
+        const next = await requestCounts();
+        if (requestCountsEqual(previous, next)) return next;
+        previous = next;
+      }
+      throw new Error(
+        `spaCy request counts did not settle: ${JSON.stringify(previous)}`,
+      );
     };
     const observations = page.waitForResponse((response) =>
       response
@@ -283,7 +309,7 @@ test.describe("Language Analysis policy surfaces", () => {
     if (csrfToken === undefined) {
       throw new Error("Authenticated Workbench did not expose a CSRF token");
     }
-    const before = await requestCounts();
+    const before = await waitForStableRequestCounts();
     const directObservation = await page.evaluate(
       async ({ csrfToken: requestCsrfToken, projectId }) => {
         const response = await fetch(
@@ -310,6 +336,6 @@ test.describe("Language Analysis policy surfaces", () => {
       assessmentStatus: "SATISFIED",
       observationStatus: "SATISFIED",
     });
-    expect(await requestCounts()).toEqual(before);
+    expect(await waitForStableRequestCounts()).toEqual(before);
   });
 });
