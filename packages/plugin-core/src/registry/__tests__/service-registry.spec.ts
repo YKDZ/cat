@@ -31,6 +31,8 @@ const makeRegisteredService = (
   type: "FILE_IMPORTER",
   dbId: 1,
   service: makeService(partial.id),
+  scopeType: "GLOBAL",
+  scopeId: "",
   ...partial,
 });
 
@@ -137,7 +139,11 @@ describe("ServiceRegistry.combine (with mocked domain)", () => {
       "AUTH_PASS",
     );
     expect(registered).not.toBeNull();
-    expect(registered?.dbId).toBe(42);
+    expect(registered).toMatchObject({
+      dbId: 42,
+      scopeType: "PROJECT",
+      scopeId: "proj-1",
+    });
   });
 
   it("skips service when no DB record is found", async () => {

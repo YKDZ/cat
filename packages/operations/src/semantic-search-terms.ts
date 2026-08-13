@@ -1,11 +1,13 @@
 import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listSemanticTermSearchRange } from "@cat/domain";
-import { fetchTermsByConceptIds, type LookedUpTerm } from "@cat/domain";
+import { fetchTermsByConceptIds } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import { resolveServiceImplementation } from "@cat/server-shared";
 import {
+  NormalizedLanguageIdSchema,
   ServiceImplementationReferenceSchema,
+  type TermMatch,
   TermMatchSchema,
 } from "@cat/shared";
 import * as z from "zod";
@@ -13,8 +15,8 @@ import * as z from "zod";
 export const SemanticSearchTermsInputSchema = z.object({
   glossaryIds: z.array(z.string()),
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   vectorizer: ServiceImplementationReferenceSchema,
   vectorStorage: ServiceImplementationReferenceSchema,
   minSimilarity: z.number().min(0).max(1).optional().default(0.6),
@@ -23,10 +25,10 @@ export const SemanticSearchTermsInputSchema = z.object({
 
 export const SemanticSearchTermsOutputSchema = z.array(TermMatchSchema);
 
-export type SemanticSearchTermsInput = z.infer<
+export type SemanticSearchTermsInput = z.input<
   typeof SemanticSearchTermsInputSchema
 >;
-export type SemanticSearchTermsOutput = LookedUpTerm[];
+export type SemanticSearchTermsOutput = TermMatch[];
 
 /**
  *
@@ -53,6 +55,7 @@ export const semanticSearchTermsOp = async (
   data: SemanticSearchTermsInput,
   _ctx?: OperationContext,
 ): Promise<SemanticSearchTermsOutput> => {
+  const input = SemanticSearchTermsInputSchema.parse(data);
   const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
 
@@ -62,7 +65,7 @@ export const semanticSearchTermsOp = async (
   const rangeRows = await executeQuery(
     { db: drizzle },
     listSemanticTermSearchRange,
-    { glossaryIds: data.glossaryIds },
+    { glossaryIds: input.glossaryIds },
   );
 
   if (rangeRows.length === 0) return [];
@@ -76,11 +79,11 @@ export const semanticSearchTermsOp = async (
   // 2. Vectorize the query text on-the-fly via TEXT_VECTORIZER.
   const vectorizer = resolveServiceImplementation(
     pluginManager,
-    data.vectorizer,
+    input.vectorizer,
     "TEXT_VECTORIZER",
   );
   const queryChunks = await vectorizer.vectorize({
-    elements: [{ text: data.text, languageId: data.sourceLanguageId }],
+    elements: [{ text: input.text, languageId: input.sourceLanguageId }],
   });
 
   // queryChunks[0] contains all sub-chunks produced for the single input text.
@@ -90,14 +93,14 @@ export const semanticSearchTermsOp = async (
   // 3. Cosine similarity search within the pre-built range.
   const vectorStorage = resolveServiceImplementation(
     pluginManager,
-    data.vectorStorage,
+    input.vectorStorage,
     "VECTOR_STORAGE",
   );
   const similar = await vectorStorage.cosineSimilarity({
     vectors: queryVectors,
     chunkIdRange: searchRange,
-    minSimilarity: data.minSimilarity,
-    maxAmount: data.maxAmount,
+    minSimilarity: input.minSimilarity,
+    maxAmount: input.maxAmount,
   });
 
   if (similar.length === 0) return [];
@@ -127,18 +130,18 @@ export const semanticSearchTermsOp = async (
   const terms = await fetchTermsByConceptIds(
     drizzle,
     conceptIds,
-    data.sourceLanguageId,
-    data.translationLanguageId,
+    input.sourceLanguageId,
+    input.translationLanguageId,
     conceptSimilarityMap,
   );
 
   return terms.map((term) => ({
     ...term,
-    matchedText: data.text,
+    matchedText: input.text,
     evidences: [
       {
         channel: "semantic",
-        matchedText: data.text,
+        matchedText: input.text,
         confidence: term.confidence,
         note: "vector similarity match",
       },

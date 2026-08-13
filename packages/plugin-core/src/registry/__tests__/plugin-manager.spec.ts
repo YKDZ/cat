@@ -32,7 +32,12 @@ import type { PluginLoader } from "#/registry/loader.ts";
 vi.mock("@cat/domain");
 
 /* ─── Imports that follow mocks ────────────────────────────────────────────── */
-import { executeCommand, executeQuery } from "@cat/domain";
+import {
+  deletePluginServices,
+  executeCommand,
+  executeQuery,
+  syncPluginServices,
+} from "@cat/domain";
 
 import { ComponentRegistry } from "#/registry/component-registry.ts";
 import { PluginDiscoveryService } from "#/registry/plugin-discovery.ts";
@@ -95,7 +100,10 @@ function createManager(
 }
 
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-const FAKE_DB = {} as DrizzleClient;
+const FAKE_DB = {
+  transaction: async <T>(fn: (tx: DrizzleClient) => Promise<T>) =>
+    await fn(FAKE_DB as DrizzleClient),
+} as DrizzleClient;
 const SCOPE_TYPE = "GLOBAL" as const;
 const SCOPE_ID = "";
 const PLUGIN_ID = "test-plugin";
@@ -132,6 +140,7 @@ function setupActivateMocks(overrides?: {
 const setupConfiguredActivationMocks = (
   endpoint: string,
   revision: number,
+  dbId = 1,
 ): void => {
   const mc = vi.mocked(executeQuery);
   mc.mockReset();
@@ -151,11 +160,9 @@ const setupConfiguredActivationMocks = (
     value: { endpoint },
   });
   mc.mockResolvedValueOnce([]);
-  mc.mockResolvedValueOnce({ id: 1 });
+  mc.mockResolvedValueOnce({ id: dbId });
   mc.mockResolvedValueOnce([]);
-  mc.mockResolvedValueOnce([
-    { dbId: 1, pluginId: PLUGIN_ID, serviceId: "svc-1" },
-  ]);
+  mc.mockResolvedValueOnce([{ dbId, pluginId: PLUGIN_ID, serviceId: "svc-1" }]);
   vi.mocked(executeCommand).mockResolvedValue(undefined);
 };
 
@@ -435,6 +442,13 @@ describe("PluginManager — activate() → deactivate()", () => {
     if (!registered) return;
 
     const reference = manager.createServiceImplementationReference(registered);
+    expect(reference).toEqual({
+      pluginId: PLUGIN_ID,
+      serviceId: "svc-1",
+      serviceType: "TOKENIZER",
+      scopeType: "GLOBAL",
+      scopeId: "",
+    });
     const resolved = manager.resolveServiceImplementationReference(
       reference,
       "TOKENIZER",
@@ -712,7 +726,7 @@ describe("PluginManager — reloadPlugin()", () => {
       true,
     );
 
-    setupConfiguredActivationMocks("new", 2);
+    setupConfiguredActivationMocks("new", 2, 42);
     const reload = manager.reloadPlugin(FAKE_DB, PLUGIN_ID);
     await reloadEntered;
     expect(() =>
@@ -740,6 +754,16 @@ describe("PluginManager — reloadPlugin()", () => {
       package: { name: "test plugin", version: "2.0.0" },
     });
     expect(newSnapshot?.registeredService.service).toBe(newService);
+    if (!oldSnapshot) throw new Error("Expected an old activation snapshot.");
+    expect(
+      manager.resolveServiceImplementationReference(
+        oldSnapshot.reference,
+        "TOKENIZER",
+      ),
+    ).toMatchObject({
+      kind: "RESOLVED",
+      service: { dbId: 42, pluginId: PLUGIN_ID, id: "svc-1" },
+    });
     expect(publishedServiceAtOldCleanup).toBe(newService);
     expect(() => oldService?.parse()).toThrow("Activation client is closed");
     expect(() =>
@@ -763,7 +787,7 @@ describe("PluginManager — reloadPlugin()", () => {
     const createService = (context: PluginContext) => {
       const client = getClient(context);
       return {
-        getId: () => "svc-1",
+        getId: () => (getEndpoint(context) === "new" ? "svc-2" : "svc-1"),
         getType: () => "TOKENIZER" as const,
         getPriority: () => 0,
         parse: () => {
@@ -804,8 +828,14 @@ describe("PluginManager — reloadPlugin()", () => {
     const [before] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
 
     setupConfiguredActivationMocks("new", 2);
+    vi.mocked(executeCommand).mockClear();
     await expect(manager.reloadPlugin(FAKE_DB, PLUGIN_ID)).rejects.toThrow(
       "new runtime rejected config",
+    );
+    expect(executeCommand).not.toHaveBeenCalledWith(
+      expect.anything(),
+      syncPluginServices,
+      expect.anything(),
     );
 
     const [after] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
@@ -839,6 +869,91 @@ describe("PluginManager — reloadPlugin()", () => {
       }),
     ).not.toThrow();
   });
+
+  it("rolls back dynamic service changes when service registration fails", async () => {
+    const plugin = makePlugin({
+      services: vi.fn(async (context: PluginContext) => [
+        {
+          getId: () => (getEndpoint(context) === "new" ? "svc-2" : "svc-1"),
+          getType: () => "TOKENIZER" as const,
+        },
+      ]),
+    });
+    const serviceRegistry = new ServiceRegistry();
+    const manager = createManager(makeLoader(plugin), serviceRegistry);
+    setupConfiguredActivationMocks("old", 1);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+    const [before] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+
+    const durableServices = [{ id: 1, serviceId: "svc-1" }];
+    let stagedServices: typeof durableServices | undefined;
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    const transactionDb = {} as DrizzleClient;
+    const transactionalDb = {
+      transaction: async <T>(run: (tx: DrizzleClient) => Promise<T>) => {
+        stagedServices = durableServices.map((service) => ({ ...service }));
+        try {
+          const result = await run(transactionDb);
+          durableServices.splice(0, durableServices.length, ...stagedServices);
+          return result;
+        } finally {
+          stagedServices = undefined;
+        }
+      },
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    } as DrizzleClient;
+
+    setupConfiguredActivationMocks("new", 2);
+    vi.mocked(executeCommand).mockClear();
+    vi.spyOn(serviceRegistry, "prepare").mockRejectedValueOnce(
+      new Error("registration failed"),
+    );
+    vi.mocked(executeCommand).mockImplementation(
+      async ({ db }, command, args) => {
+        if (db !== transactionDb || stagedServices === undefined) return;
+        if (command === syncPluginServices) {
+          const services = (args as { services: { serviceId: string }[] })
+            .services;
+          stagedServices.push(
+            ...services.map((service, index) => ({
+              id: durableServices.length + index + 1,
+              serviceId: service.serviceId,
+            })),
+          );
+        }
+        if (command === deletePluginServices) {
+          const serviceDbIds = (args as { serviceDbIds: number[] })
+            .serviceDbIds;
+          stagedServices = stagedServices.filter(
+            (service) => !serviceDbIds.includes(service.id),
+          );
+        }
+      },
+    );
+
+    await expect(
+      manager.reloadPlugin(transactionalDb, PLUGIN_ID),
+    ).rejects.toThrow("registration failed");
+
+    expect(executeCommand).toHaveBeenCalledWith(
+      { db: transactionDb },
+      syncPluginServices,
+      expect.objectContaining({
+        services: [
+          expect.objectContaining({
+            serviceId: "svc-2",
+            serviceType: "TOKENIZER",
+          }),
+        ],
+      }),
+    );
+    expect(durableServices).toEqual([{ id: 1, serviceId: "svc-1" }]);
+    const [after] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(after?.registeredService.service).toBe(
+      before?.registeredService.service,
+    );
+    expect(after?.activationGeneration).toBe(before?.activationGeneration);
+  });
 });
 
 describe("PluginManager — uninstall()", () => {
@@ -867,6 +982,8 @@ describe("PluginManager — service & component getters", () => {
       pluginId: PLUGIN_ID,
       type: "TOKENIZER" as const,
       id: "svc-1",
+      scopeType: "GLOBAL" as const,
+      scopeId: "",
     };
     const registry = new ServiceRegistry([svc]);
     const manager = createManager(makeLoader(makePlugin()), registry);
@@ -883,6 +1000,8 @@ describe("PluginManager — service & component getters", () => {
       pluginId: PLUGIN_ID,
       type: "TOKENIZER" as const,
       id: "svc-2",
+      scopeType: "GLOBAL" as const,
+      scopeId: "",
     };
     const registry = new ServiceRegistry([svc]);
     const manager = createManager(makeLoader(makePlugin()), registry);

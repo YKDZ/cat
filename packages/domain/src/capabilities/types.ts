@@ -4,6 +4,11 @@ import type {
   ServiceImplementationReference,
 } from "@cat/shared";
 
+import type {
+  GlossaryListByCreatorCapabilityInput,
+  MemoryListByCreatorCapabilityInput,
+  ProjectListByCreatorCapabilityInput,
+} from "#/capabilities/resource-list-contracts.ts";
 import type { createAgentDefinition } from "#/commands/agent/create-agent-definition.cmd.ts";
 import type { createAgentSession } from "#/commands/agent/create-agent-session.cmd.ts";
 import type { deleteAgentDefinition } from "#/commands/agent/delete-agent-definition.cmd.ts";
@@ -86,7 +91,7 @@ export type ProjectCapabilities = {
     input: CapabilityInput<typeof getProject>,
   ) => Promise<CapabilityOutput<typeof getProject>>;
   listByCreator: (
-    input: CapabilityInput<typeof listProjectsByCreator>,
+    input: ProjectListByCreatorCapabilityInput,
   ) => Promise<CapabilityOutput<typeof listProjectsByCreator>>;
   listOwned: (
     input: CapabilityInput<typeof listOwnedProjects>,
@@ -262,7 +267,7 @@ export type GlossaryCapabilities = {
     input: CapabilityInput<typeof listGlossaryTermPairs>,
   ) => Promise<CapabilityOutput<typeof listGlossaryTermPairs>>;
   listByCreator: (
-    input: CapabilityInput<typeof listGlossariesByCreator>,
+    input: GlossaryListByCreatorCapabilityInput,
   ) => Promise<CapabilityOutput<typeof listGlossariesByCreator>>;
   listOwned: (
     input: CapabilityInput<typeof listOwnedGlossaries>,
@@ -301,7 +306,7 @@ export type MemoryCapabilities = {
     input: CapabilityInput<typeof getMemory>,
   ) => Promise<CapabilityOutput<typeof getMemory>>;
   listByCreator: (
-    input: CapabilityInput<typeof listMemoriesByCreator>,
+    input: MemoryListByCreatorCapabilityInput,
   ) => Promise<CapabilityOutput<typeof listMemoriesByCreator>>;
   listOwned: (
     input: CapabilityInput<typeof listOwnedMemories>,

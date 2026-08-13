@@ -192,6 +192,36 @@ describe("Recall Derivation leases", () => {
     expect(exhausted).toEqual({ status: "FAILED", retryCount: 2 });
   });
 
+  it("records a nonretryable execution failure as failed", async () => {
+    const [claim] = await executeCommand(
+      { db: db.client },
+      claimRecallDerivationDemands,
+      {
+        leaseDurationMs: 60_000,
+        limit: 1,
+        workerId: crypto.randomUUID(),
+      },
+    );
+
+    await expect(
+      executeCommand({ db: db.client }, recordRecallDerivationFailure, {
+        stateId: claim!.id,
+        demandRevision: claim!.demandRevision,
+        executionEpoch: claim!.executionEpoch,
+        leaseToken: claim!.leaseToken!,
+        canonicalInputVersion: claim!.canonicalInputVersion,
+        blocker: {
+          reason: "DERIVATION_EXECUTION",
+          retryable: false,
+          message: "Canonical derivation input is invalid.",
+        },
+        maxAttempts: 5,
+        initialBackoffMs: 100,
+        maxBackoffMs: 1_000,
+      }),
+    ).resolves.toEqual({ status: "FAILED", retryCount: 1 });
+  });
+
   it.each(["LANGUAGE_ANALYSIS", "TOKENIZER"] as const)(
     "resumes a same-version %s blocker without superseding its demand",
     async (reason) => {
@@ -270,7 +300,7 @@ describe("Recall Derivation leases", () => {
     });
   });
 
-  it("supersedes a recoverable blocker when the required version changes", async () => {
+  it("requeues a recoverable blocker without superseding its demand when the required version changes", async () => {
     const previousVersion = RecallDerivationVersionSchema.parse(
       `sha256:${"d".repeat(64)}`,
     );
@@ -304,7 +334,7 @@ describe("Recall Derivation leases", () => {
       .where(eq(recallDerivationState.targetId, "42"));
     expect(state).toMatchObject({
       status: "PENDING",
-      demandRevision: 2,
+      demandRevision: 1,
       blocker: null,
       requiredDerivationVersion: nextVersion,
     });

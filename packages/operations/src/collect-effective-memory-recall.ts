@@ -62,6 +62,7 @@ export const collectEffectiveMemoryRecallOp = async (
   ctx?: OperationContext,
 ): Promise<EffectiveMemoryRecallResult> => {
   const parsed = CollectEffectiveMemoryRecallInputSchema.parse(input);
+  const { projectMemoryIds, personalMemoryIds, ...recallInput } = parsed;
 
   const collectScope = async (
     memoryIds: string[],
@@ -74,7 +75,7 @@ export const collectEffectiveMemoryRecallOp = async (
       return {
         status: "SUCCEEDED",
         result: await collectMemoryRecallOp(
-          { ...parsed, memoryIds, memoryScope },
+          { ...recallInput, memoryIds, memoryScope },
           ctx,
         ),
       };
@@ -89,8 +90,8 @@ export const collectEffectiveMemoryRecallOp = async (
   };
 
   const [projectResult, personalResult] = await Promise.all([
-    collectScope(parsed.projectMemoryIds, "PROJECT"),
-    collectScope(parsed.personalMemoryIds, "PERSONAL"),
+    collectScope(projectMemoryIds, "PROJECT"),
+    collectScope(personalMemoryIds, "PERSONAL"),
   ]);
   const result = EffectiveMemoryRecallResultSchema.parse({
     scopes: {

@@ -8,6 +8,13 @@ export const AssertProjectGlossaryBindingCommandSchema = z.strictObject({
   projectId: z.uuidv4(),
 });
 
+export class GlossaryProjectBindingError extends Error {
+  public constructor(glossaryId: string, projectId: string) {
+    super(`Glossary ${glossaryId} is not linked to project ${projectId}.`);
+    this.name = "GlossaryProjectBindingError";
+  }
+}
+
 export const assertProjectGlossaryBinding: Command<
   z.infer<typeof AssertProjectGlossaryBindingCommandSchema>,
   void
@@ -24,7 +31,11 @@ export const assertProjectGlossaryBinding: Command<
     )
     .limit(1)
     .for("key share");
-  if (!binding)
-    throw new TypeError("Glossary is not linked to the requested project.");
+  if (!binding) {
+    throw new GlossaryProjectBindingError(
+      command.glossaryId,
+      command.projectId,
+    );
+  }
   return { result: undefined, events: [] };
 };

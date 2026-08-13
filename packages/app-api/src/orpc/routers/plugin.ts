@@ -190,12 +190,9 @@ export const getAllAuthMethod = base
 
     const methods: AuthMethod[] = [];
 
-    for (const { dbId, id, service } of pluginManager.getServices(
-      "AUTH_FACTOR",
-    )) {
+    for (const { id, service } of pluginManager.getServices("AUTH_FACTOR")) {
       if (service.getAal() === 1 && providersData.includes(service.getId())) {
         methods.push({
-          providerDBId: dbId,
           providerId: id,
           name: service.getName(),
           icon: service.getIcon(),
@@ -216,7 +213,6 @@ export const getAllTranslationAdvisors = authed
       pluginManager.getServices("TRANSLATION_ADVISOR").map(
         async (registered) =>
           ({
-            id: registered.dbId,
             reference:
               pluginManager.createServiceImplementationReference(registered),
             name: registered.service.getDisplayName(),
@@ -241,7 +237,6 @@ export const getTranslationAdvisor = authed
     if (service.kind !== "RESOLVED") throw new ORPCError("NOT_FOUND");
 
     return {
-      id: service.service.dbId,
       reference: input.advisor,
       name: service.service.service.getDisplayName(),
     };

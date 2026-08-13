@@ -1,5 +1,7 @@
 import {
   requestRecallDerivationTaskCancel,
+  createRecallDerivationTask,
+  type DbHandle,
   projectRecallDerivationTasks,
   reconcileRecallDerivationDependency,
   createUser,
@@ -25,10 +27,7 @@ import {
 } from "@cat/test-utils";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import {
-  refreshRecallDerivationTask,
-  startRecallDerivationTask,
-} from "./recall-derivation-task.ts";
+import { createRecallDerivationTaskProjectionObserver } from "./recall-derivation-task-projection.ts";
 
 describe("Recall derivation Task projection", () => {
   let db: TestDB;
@@ -72,6 +71,44 @@ describe("Recall derivation Task projection", () => {
     }),
   ];
 
+  type RecallTaskInput = {
+    projectId: string;
+    actorId: string;
+    references: ReturnType<typeof references>;
+    resources?: Array<{ type: "MEMORY"; id: string }>;
+  };
+
+  const startRecallDerivationTask = async (
+    dbOrInput: DbHandle | RecallTaskInput,
+    maybeInput?: RecallTaskInput,
+  ) => {
+    const input = maybeInput ?? (dbOrInput as RecallTaskInput);
+    const handle = maybeInput ? (dbOrInput as DbHandle) : db.client;
+    return await executeCommand({ db: handle }, createRecallDerivationTask, {
+      references: input.references,
+      scope: { type: "PROJECT", id: input.projectId },
+      actor: { type: "USER", id: input.actorId },
+      resources: [
+        { type: "PROJECT", id: input.projectId },
+        ...(input.resources ?? []),
+      ],
+    });
+  };
+
+  const refreshRecallDerivationTask = async (
+    dbOrTaskId: DbHandle | string,
+    maybeTaskId?: string,
+  ) => {
+    const taskId = maybeTaskId ?? (dbOrTaskId as string);
+    const handle = maybeTaskId ? (dbOrTaskId as DbHandle) : db.client;
+    const [projected] = await executeCommand(
+      { db: handle },
+      projectRecallDerivationTasks,
+      { taskIds: [taskId] },
+    );
+    return projected ?? null;
+  };
+
   const seedDemands = async () => {
     await db.client.insert(recallDerivationState).values(
       references().map((reference) => ({
@@ -83,15 +120,37 @@ describe("Recall derivation Task projection", () => {
     );
   };
 
+  it("projects committed runtime state through the observer", async () => {
+    await seedDemands();
+    const task = await startRecallDerivationTask({
+      projectId,
+      actorId,
+      references: references(),
+    });
+    await db.client
+      .update(recallDerivationState)
+      .set({
+        status: "FRESH",
+        requiredDerivationVersion: derivation,
+        currentCanonicalInputVersion: canonical,
+        currentDerivationVersion: derivation,
+        taskProjectionRevision: 2,
+      })
+      .where(eq(recallDerivationState.targetId, "101"));
+    await createRecallDerivationTaskProjectionObserver({ db: db.client })();
+    const projected = await refreshRecallDerivationTask(task.id);
+    expect(projected?.state.progressCurrent).toBe(1);
+  });
+
   it("projects coalesced demands once, preserves a blocker failure, and settles superseded work", async () => {
     await seedDemands();
-    const first = await startRecallDerivationTask(db.client, {
+    const first = await startRecallDerivationTask({
       projectId,
       actorId,
       references: references(),
       resources: [{ type: "MEMORY", id: "memory-1" }],
     });
-    const second = await startRecallDerivationTask(db.client, {
+    const second = await startRecallDerivationTask({
       projectId,
       actorId,
       references: references(),
@@ -115,14 +174,14 @@ describe("Recall derivation Task projection", () => {
         status: "BLOCKED",
         blocker: {
           reason: "LANGUAGE_ANALYSIS",
-          retryable: true,
-          message: "Language analyzer is unavailable.",
+          retryable: false,
+          message: "Language analyzer configuration is missing.",
         },
         taskProjectionRevision: 2,
       })
       .where(eq(recallDerivationState.targetId, "202"));
 
-    const blocked = await refreshRecallDerivationTask(db.client, first.id);
+    const blocked = await refreshRecallDerivationTask(first.id);
     expect(blocked?.state).toMatchObject({
       status: "BLOCKED",
       progressCurrent: 1,
@@ -130,7 +189,7 @@ describe("Recall derivation Task projection", () => {
     });
     const failureId = blocked?.state.currentFailureId;
     expect(failureId).not.toBeNull();
-    const repeated = await refreshRecallDerivationTask(db.client, first.id);
+    const repeated = await refreshRecallDerivationTask(first.id);
     expect(repeated?.state.currentFailureId).toBe(failureId);
     expect(repeated?.state.revision).toBe(blocked?.state.revision);
 
@@ -145,10 +204,7 @@ describe("Recall derivation Task projection", () => {
         taskProjectionRevision: 3,
       })
       .where(eq(recallDerivationState.targetId, "202"));
-    const changedBlocker = await refreshRecallDerivationTask(
-      db.client,
-      first.id,
-    );
+    const changedBlocker = await refreshRecallDerivationTask(first.id);
     expect(changedBlocker?.state.currentFailureId).not.toBe(failureId);
 
     await db.client
@@ -160,7 +216,7 @@ describe("Recall derivation Task projection", () => {
         taskProjectionRevision: 4,
       })
       .where(eq(recallDerivationState.targetId, "202"));
-    const settled = await refreshRecallDerivationTask(db.client, first.id);
+    const settled = await refreshRecallDerivationTask(first.id);
     expect(settled?.state).toMatchObject({
       status: "COMPLETED",
       progressCurrent: 2,
@@ -359,7 +415,7 @@ describe("Recall derivation Task projection", () => {
       .set({
         status: "FAILED",
         blocker: {
-          reason: "LANGUAGE_ANALYSIS",
+          reason: "DERIVATION_EXECUTION",
           retryable: false,
           message: "First failure is retained.",
         },
@@ -371,7 +427,7 @@ describe("Recall derivation Task projection", () => {
       .set({
         status: "FAILED",
         blocker: {
-          reason: "LANGUAGE_ANALYSIS",
+          reason: "DERIVATION_EXECUTION",
           retryable: true,
           message: "Second failure is not selected.",
         },
@@ -393,6 +449,94 @@ describe("Recall derivation Task projection", () => {
       retryable: false,
     });
   });
+
+  it.each([
+    {
+      reason: "DERIVATION_EXECUTION" as const,
+      retryable: false,
+      expectedStatus: "FAILED" as const,
+      expectedCode: "CAT_OPERATION_FAILED",
+      expectedBlocker: "recall_derivation_failed",
+    },
+    {
+      reason: "TOKENIZER" as const,
+      retryable: false,
+      expectedStatus: "BLOCKED" as const,
+      expectedCode: "CAT_OPERATION_DEPENDENCY_UNAVAILABLE",
+      expectedBlocker: "recall_derivation_blocked",
+    },
+    {
+      reason: "LANGUAGE_ANALYSIS" as const,
+      retryable: false,
+      expectedStatus: "BLOCKED" as const,
+      expectedCode: "CAT_OPERATION_DEPENDENCY_UNAVAILABLE",
+      expectedBlocker: "recall_derivation_blocked",
+    },
+  ])(
+    "classifies $reason into a $expectedStatus Task failure",
+    async ({
+      reason,
+      retryable,
+      expectedStatus,
+      expectedCode,
+      expectedBlocker,
+    }) => {
+      await seedDemands();
+      const resources = [
+        { type: "PROJECT" as const, id: projectId },
+        { type: "MEMORY" as const, id: "memory-1" },
+      ];
+      const recallTask = await startRecallDerivationTask(db.client, {
+        projectId,
+        actorId,
+        references: references(),
+        resources: [{ type: "MEMORY", id: "memory-1" }],
+      });
+      const message = `${reason} projection detail`;
+      await db.client.update(recallDerivationState).set({
+        status: "BLOCKED",
+        blocker: { reason, retryable, message },
+        taskProjectionRevision: 2,
+      });
+
+      const projected = await refreshRecallDerivationTask(
+        db.client,
+        recallTask.id,
+      );
+      expect(projected?.state).toMatchObject({
+        status: expectedStatus,
+        progressCurrent: 0,
+        progressTotal: 2,
+      });
+      const [failure] = await db.client
+        .select({
+          code: operationFailure.code,
+          message: operationFailure.message,
+          severity: operationFailure.severity,
+          retryable: operationFailure.retryable,
+          blocker: operationFailure.blocker,
+          capability: operationFailure.capability,
+          affectedResources: operationFailure.affectedResources,
+          redactionBoundary: operationFailure.redactionBoundary,
+          taskId: operationFailure.taskId,
+        })
+        .from(operationFailure)
+        .where(
+          eq(operationFailure.id, projected?.state.currentFailureId ?? ""),
+        );
+      expect(failure).toEqual({
+        code: expectedCode,
+        message,
+        severity: "ERROR",
+        retryable,
+        blocker: expectedBlocker,
+        capability: "RECALL_DERIVATION",
+        affectedResources: resources,
+        redactionBoundary: "INTERNAL",
+        taskId: recallTask.id,
+      });
+    },
+  );
 
   it("discovers a pending dependency-version revision without comparing clocks", async () => {
     await seedDemands();

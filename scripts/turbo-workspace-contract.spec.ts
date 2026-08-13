@@ -18,6 +18,7 @@ import { loadWorkspacePackages } from "./workspace-boundaries.ts";
 const root = resolve(import.meta.dirname, "..");
 
 type TypecheckManifest = {
+  dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   scripts?: Record<string, string>;
 };
@@ -40,6 +41,7 @@ const typecheckManifests = (): Array<{
 type TurboDryTask = {
   taskId: string;
   command: string;
+  dependencies: string[];
   hash: string;
   hashOfExternalDependencies: string;
   outputs: string[] | null;
@@ -48,6 +50,7 @@ type TurboDryTask = {
     dependsOn: string[];
     env: string[];
     inputs: string[];
+    outputs: string[];
     persistent: boolean;
   };
 };
@@ -255,6 +258,45 @@ describe("Turbo workspace contract", () => {
       ({ taskId }) => taskId === "@cat/shared#lint",
     );
     expect(lint?.hashOfExternalDependencies).toMatch(/^[0-9a-f]+$/);
+  });
+
+  it("builds every application plugin artifact before the seed lifecycle integration", () => {
+    const appManifest = JSON.parse(
+      readFileSync(resolve(root, "apps/app/package.json"), "utf8"),
+    ) as TypecheckManifest;
+    const applicationPluginBuilds = Object.keys(appManifest.dependencies ?? {})
+      .filter((name) => name.startsWith("@cat-plugin/"))
+      .map((name) => `${name}#build`)
+      .sort((left, right) => left.localeCompare(right));
+    const tasks = dryTasks("test:integration", "--filter=@cat/seed");
+    const seedIntegration = tasks.find(
+      ({ taskId }) => taskId === "@cat/seed#test:integration",
+    );
+    const appBuild = tasks.find(({ taskId }) => taskId === "@cat/app#build");
+
+    expect(seedIntegration?.dependencies).toContain("@cat/app#build");
+    expect(seedIntegration?.resolvedTaskDefinition).toMatchObject({
+      cache: false,
+      dependsOn: expect.arrayContaining(["^typecheck", "@cat/app#build"]),
+      env: [
+        "DATABASE_URL",
+        "REDIS_URL",
+        "SPACY_SERVER_URL",
+        "TEST_DATABASE_URL",
+      ],
+    });
+    expect(seedIntegration?.resolvedTaskDefinition.outputs).toEqual([]);
+    expect(appBuild?.dependencies).toContain("@cat/plugin-core#build");
+    expect(
+      appBuild?.dependencies
+        .slice()
+        .sort((left, right) => left.localeCompare(right)),
+    ).toEqual(expect.arrayContaining(applicationPluginBuilds));
+    for (const taskId of applicationPluginBuilds) {
+      const pluginBuild = tasks.find((task) => task.taskId === taskId);
+      expect(pluginBuild?.command, taskId).not.toBe("<NONEXISTENT>");
+      expect(pluginBuild?.outputs, taskId).toContain("dist/**");
+    }
   });
 
   it("runs root quality tasks directly through explicit root task definitions", () => {

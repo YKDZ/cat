@@ -15,7 +15,6 @@ export const FetchBestTranslationCandidateInputSchema = z.object({
   advisor: ServiceImplementationReferenceSchema.optional(),
   memoryIds: z.array(z.uuid()).default([]),
   glossaryIds: z.array(z.uuid()).default([]),
-  chunkIds: z.array(z.int()).default([]),
   minMemorySimilarity: z.number().min(0).max(1).default(0.72),
   maxMemoryAmount: z.int().min(0).default(3),
   memoryVectorStorage: ServiceImplementationReferenceSchema.optional(),
@@ -59,7 +58,6 @@ export const fetchBestTranslationCandidateOp = async (
     collectMemoryRecallOp(
       {
         text: data.text,
-        chunkIds: data.chunkIds,
         memoryIds: data.memoryIds,
         sourceLanguageId: data.sourceLanguageId,
         translationLanguageId: data.translationLanguageId,
