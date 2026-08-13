@@ -478,7 +478,9 @@ describe("PostgresCheckpointer owner fencing", () => {
   it("rejects a live-owner takeover and fences every stale persistence write after expiry", async () => {
     const run = await createRun();
     const ownerA = new PostgresCheckpointer(db.client, { ownerLeaseMs: 100 });
-    const ownerB = new PostgresCheckpointer(db.client, { ownerLeaseMs: 100 });
+    const ownerB = new PostgresCheckpointer(db.client, {
+      ownerLeaseMs: 30_000,
+    });
     expect(await ownerA.claimRunOwnership(run.runId)).toBe(true);
     expect(await ownerB.claimRunOwnership(run.runId)).toBe(false);
 
