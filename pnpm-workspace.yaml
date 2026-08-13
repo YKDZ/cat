@@ -150,7 +150,7 @@ catalog:
   vike: ^0.4.259
   vike-vue: ^0.9.11
   vite: ^8.2.1
-  vite-plugin-vue-devtools: ^8.1.2
+  vite-plugin-vue-devtools: ^8.2.1
   vitepress: 2.0.0-alpha.17
   vitest: ^4.1.8
   vitest-mock-extended: ^4.0.0
