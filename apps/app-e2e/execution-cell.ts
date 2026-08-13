@@ -1921,6 +1921,13 @@ export const playwrightChildEnvironment = (
   environment: NodeJS.ProcessEnv,
 ): NodeJS.ProcessEnv => {
   const childEnvironment = { ...environment };
+  const outputDirectory = childEnvironment.CAT_E2E_OUTPUT_DIR;
+  if (outputDirectory !== undefined && outputDirectory !== "") {
+    childEnvironment.PWTEST_CACHE_DIR = join(
+      outputDirectory,
+      "transform-cache",
+    );
+  }
   if ("NO_COLOR" in childEnvironment) {
     delete childEnvironment.NO_COLOR;
     childEnvironment.FORCE_COLOR = "0";
