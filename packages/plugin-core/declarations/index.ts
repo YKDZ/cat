@@ -17,7 +17,7 @@ export type PluginServiceType =
   | "FILE_EXPORTER"
   | "FILE_IMPORTER"
   | "LLM_PROVIDER"
-  | "NLP_WORD_SEGMENTER"
+  | "LANGUAGE_ANALYZER"
   | "QA_CHECKER"
   | "RERANK_PROVIDER"
   | "STORAGE_PROVIDER"
@@ -26,7 +26,16 @@ export type PluginServiceType =
   | "TRANSLATION_ADVISOR"
   | "VECTOR_STORAGE";
 
-export type ScopeType = "GLOBAL" | "PROJECT";
+export type ScopeType = "GLOBAL" | "PROJECT" | "USER";
+export type PluginIdentifier = string & {
+  readonly __pluginIdentifier: unique symbol;
+};
+export type ServiceIdentifier = string & {
+  readonly __serviceIdentifier: unique symbol;
+};
+export type ScopedInstallationIdentifier = string & {
+  readonly __scopedInstallationIdentifier: unique symbol;
+};
 
 export interface IPluginService {
   getId(): string;
@@ -87,7 +96,7 @@ export type PluginCapabilities = {
       providerIssuer: string;
     }): Promise<unknown>;
     getMfaPayloadForUser(input: {
-      factorId: string;
+      mfaService: ServiceImplementationReference;
       userId: string;
     }): Promise<unknown>;
   };
@@ -98,7 +107,15 @@ export type RegisteredService = {
   dbId: number;
   id: string;
   pluginId: string;
+  scopeId: string;
+  scopeType: ScopeType;
   service: IPluginService;
+  type: PluginServiceType;
+};
+
+type PluginServiceRecord = {
+  dbId: number;
+  id: string;
   type: PluginServiceType;
 };
 
@@ -129,7 +146,7 @@ export type PluginContext = {
   config: JsonValue;
   scopeType: string;
   scopeId: string;
-  registeredServices: Omit<RegisteredService, "pluginId" | "service">[];
+  registeredServices: PluginServiceRecord[];
   capabilities: PluginCapabilities;
   logger: PluginLogger;
   cacheStore: CacheStore;
@@ -161,6 +178,7 @@ export type AuthFactorResult =
 export type AuthFactorExecutionContext = {
   identifier?: string;
   userId?: string;
+  serviceReference?: ServiceImplementationReference;
   input: AuthFactorInput;
   httpContext: { ip: string; userAgent: string };
 };
@@ -520,36 +538,98 @@ export declare abstract class VectorStorage implements IPluginService {
   abstract init(ctx: InitContext): Promise<void>;
 }
 
-export type NlpToken = {
+export type LanguageAnalysisToken = {
+  text: string;
+  lemma: string;
+  pos: string;
+  start: number;
+  end: number;
+  isStop: boolean;
+  isPunct: boolean;
+};
+export type NormalizedLanguageId = string & {
+  readonly __normalizedLanguageId: unique symbol;
+};
+export type LanguageAnalysisVersion = string & {
+  readonly __languageAnalysisVersion: unique symbol;
+};
+export declare const NormalizedLanguageIdSchema: ZodType<NormalizedLanguageId>;
+export declare const LanguageAnalysisVersionSchema: ZodType<LanguageAnalysisVersion>;
+export declare const normalizeLanguageId: (
+  value: string,
+) => NormalizedLanguageId;
+export type LanguageAnalysisSentence = {
   text: string;
   start: number;
   end: number;
-  [key: string]: unknown;
+  tokens: LanguageAnalysisToken[];
 };
-export type NlpSentence = { text: string; tokens: NlpToken[] };
-export type NlpSegmentResult = {
-  tokens: NlpToken[];
-  sentences?: NlpSentence[];
+export type LanguageAnalysisAttestation = {
+  contract: "cat.language-analysis/v1";
+  languageId: NormalizedLanguageId;
+  implementation: {
+    reference: ServiceImplementationReference;
+    packageName: string;
+    packageVersion: string;
+  };
+  generation: {
+    id: string;
+    planDigest: string;
+    schemaVersion: string;
+    provisionerVersion: string;
+    serverProtocolVersion: string;
+    pythonAbi: string;
+    pythonImplementation: string;
+    pythonVersion: string;
+    platform: string;
+    spacyVersion: string;
+    sitePackagesDigest: string;
+  };
+  semanticConfig: Record<string, JsonValue>;
+  engine: { name: string; version: string };
+  pipeline: { id: string; version: string };
+  model: { id: string; version: string };
+  assets: Array<{ id: string; version: string; sha256: string }>;
 };
-export type NlpBatchSegmentResult = {
-  results: Array<{ id: string; result: NlpSegmentResult }>;
+export type LanguageAnalysisResult = {
+  tokens: LanguageAnalysisToken[];
+  sentences: LanguageAnalysisSentence[];
+  attestation: LanguageAnalysisAttestation;
 };
-export type NlpSegmentContext = {
+export type LanguageAnalysisBatchResult = {
+  attestation: LanguageAnalysisAttestation;
+  results: Array<{ id: string; result: LanguageAnalysisResult }>;
+};
+export type LanguageAnalysisContext = {
   text: string;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   signal?: AbortSignal;
+  timeoutMs?: number;
 };
-export type NlpBatchSegmentContext = {
+export type LanguageAnalysisBatchContext = {
   items: Array<{ id: string; text: string }>;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   signal?: AbortSignal;
+  timeoutMs?: number;
 };
-export declare abstract class NlpWordSegmenter implements IPluginService {
+export type LanguageAnalyzerConfigurationAssessment =
+  | {
+      status: "VALID";
+      supportedLanguages: NormalizedLanguageId[];
+      semanticConfiguration: Record<string, JsonValue>;
+    }
+  | { status: "INVALID"; reason: "INVALID_CONFIGURATION" };
+export declare const LanguageAnalyzerConfigurationAssessmentSchema: ZodType<LanguageAnalyzerConfigurationAssessment>;
+export declare abstract class LanguageAnalyzer implements IPluginService {
   abstract getId(): string;
   getType(): PluginServiceType;
-  abstract getSupportedLanguages(signal?: AbortSignal): Promise<string[]>;
-  abstract segment(ctx: NlpSegmentContext): Promise<NlpSegmentResult>;
-  batchSegment(ctx: NlpBatchSegmentContext): Promise<NlpBatchSegmentResult>;
+  abstract getLanguageAnalysisConfigurationAssessment(): LanguageAnalyzerConfigurationAssessment;
+  abstract analyze(
+    ctx: LanguageAnalysisContext,
+  ): Promise<LanguageAnalysisResult>;
+  batchAnalyze(
+    ctx: LanguageAnalysisBatchContext,
+  ): Promise<LanguageAnalysisBatchResult>;
 }
 
 export type AgentToolConfirmationPolicy =
@@ -695,6 +775,14 @@ export declare class ServiceRegistry {
     pluginId: string,
     services: IPluginService[],
   ): Promise<void>;
+  prepare(
+    drizzle: unknown,
+    scopeType: ScopeType,
+    scopeId: string,
+    pluginId: string,
+    services: IPluginService[],
+  ): Promise<RegisteredService[]>;
+  replaceByPlugin(pluginId: string, services: RegisteredService[]): void;
   removeByPlugin(pluginId: string): void;
   clear(): void;
 }
@@ -718,6 +806,83 @@ export type PluginRuntimeSnapshot = {
   components: ComponentRecord[];
   hasRoute: boolean;
 };
+export type PluginRuntimeConfigurationSnapshot = Readonly<{
+  semanticConfig: JsonValue;
+  configurationDigest: string;
+  appliedVersion: string | null;
+  schemaVersion: string | null;
+  schemaDigest: string | null;
+}>;
+export type PluginServiceMap = {
+  AGENT_CONTEXT_PROVIDER: AgentContextProvider;
+  AGENT_TOOL_PROVIDER: AgentToolProvider;
+  AUTH_FACTOR: AuthFactor;
+  EMAIL_PROVIDER: EmailProviderService;
+  FILE_EXPORTER: FileExporter;
+  FILE_IMPORTER: FileImporter;
+  LLM_PROVIDER: LLMProvider;
+  LANGUAGE_ANALYZER: LanguageAnalyzer;
+  QA_CHECKER: QAChecker;
+  RERANK_PROVIDER: RerankProvider;
+  STORAGE_PROVIDER: StorageProvider;
+  TEXT_VECTORIZER: TextVectorizer;
+  TOKENIZER: Tokenizer;
+  TRANSLATION_ADVISOR: TranslationAdvisor;
+  VECTOR_STORAGE: VectorStorage;
+};
+export type ServiceImplementationReference =
+  | {
+      pluginId: PluginIdentifier;
+      serviceId: ServiceIdentifier;
+      serviceType: PluginServiceType;
+      scopeType: "GLOBAL";
+      scopeId: "";
+    }
+  | {
+      pluginId: PluginIdentifier;
+      serviceId: ServiceIdentifier;
+      serviceType: PluginServiceType;
+      scopeType: "PROJECT" | "USER";
+      scopeId: ScopedInstallationIdentifier;
+    };
+export type ServiceRuntimeSnapshot = {
+  registeredService: RegisteredService;
+  reference: ServiceImplementationReference;
+  package: Readonly<{ name: string; version: string }>;
+  configuration: PluginRuntimeConfigurationSnapshot;
+  activationGeneration: number;
+};
+export type ServiceImplementationResolution<T extends PluginServiceType> =
+  | {
+      kind: "RESOLVED";
+      reference: ServiceImplementationReference;
+      service: RegisteredService & { service: PluginServiceMap[T]; type: T };
+    }
+  | {
+      kind: "INSTALLATION_SCOPE_MISMATCH";
+      reference: ServiceImplementationReference;
+      installationScope: { scopeType: ScopeType; scopeId: string };
+    }
+  | {
+      kind: "SERVICE_TYPE_MISMATCH";
+      reference: ServiceImplementationReference;
+      expectedServiceType: T;
+      actualServiceType: PluginServiceType;
+    }
+  | {
+      kind: "MISSING_IMPLEMENTATION" | "PACKAGE_NOT_LOADED";
+      reference: ServiceImplementationReference;
+      expectedServiceType: T;
+    }
+  | {
+      kind: "DUPLICATE_IMPLEMENTATION";
+      reference: ServiceImplementationReference;
+      expectedServiceType: T;
+      matches: readonly (RegisteredService & {
+        service: PluginServiceMap[T];
+        type: T;
+      })[];
+    };
 export declare class PluginManager {
   readonly scopeType: ScopeType;
   readonly scopeId: string;
@@ -750,6 +915,19 @@ export declare class PluginManager {
   reloadPlugin(drizzle: unknown, pluginId: string): Promise<void>;
   isActive(pluginId: string): boolean;
   getRuntimeSnapshot(pluginId: string): PluginRuntimeSnapshot;
+  captureServiceRuntimeSnapshots<T extends PluginServiceType>(
+    type: T,
+  ): Promise<
+    Array<
+      ServiceRuntimeSnapshot & {
+        registeredService: RegisteredService & {
+          type: T;
+          service: PluginServiceMap[T];
+        };
+        reference: ServiceImplementationReference & { serviceType: T };
+      }
+    >
+  >;
   createTransientServices(
     drizzle: unknown,
     pluginId: string,
@@ -761,6 +939,16 @@ export declare class PluginManager {
     type: T,
     id: string,
   ): RegisteredService | null;
+  resolveServiceImplementationReference<T extends PluginServiceType>(
+    reference: ServiceImplementationReference,
+    expectedServiceType: T,
+  ): ServiceImplementationResolution<T>;
+  createServiceImplementationReference(
+    service: Pick<
+      RegisteredService,
+      "pluginId" | "id" | "type" | "scopeType" | "scopeId"
+    >,
+  ): ServiceImplementationReference;
   getAllServices(): RegisteredService[];
   getServices<T extends PluginServiceType>(type: T): RegisteredService[];
   getComponents(pluginId: string): ComponentRecord[];

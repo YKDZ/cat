@@ -1,50 +1,72 @@
 import {
   createGlossary,
   createUser,
+  domainEventBus,
   ensureLanguages,
   executeCommand,
   executeQuery,
   getDbHandle,
   listAllTerms,
-  listMorphologicalTermSuggestions,
+  writeValidatedLanguageAnalysisSelection,
 } from "@cat/domain";
-import { registerDomainEventHandlers } from "@cat/operations";
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+  startRecallDerivationWorker,
+  validateLanguageAnalyzerConfiguration,
+  waitForRecallDerivationFresh,
+} from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  LanguageAnalysisWildcardSelectionKey,
+} from "@cat/shared";
 import {
   installTestVectorizationQueue,
+  sql,
   setupTestDB,
   TestPluginLoader,
+  type TestDB,
 } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { createTermGraph } from "../create-term.ts";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
+let testDb: TestDB;
 let pluginManager: PluginManager;
 let glossaryId: string;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
   const db = await setupTestDB();
+  testDb = db;
   cleanup = db.cleanup;
 
   PluginManager.clear();
   pluginManager = PluginManager.get(
-    "PROJECT",
-    "create-term-test",
-    new TestPluginLoader({ includeNlpSegmenter: true }),
+    "GLOBAL",
+    "",
+    new TestPluginLoader({ includeLanguageAnalyzer: true }),
   );
 
   await pluginManager.getDiscovery().syncDefinitions(db.client);
   await pluginManager.install(db.client, "mock");
-  await pluginManager.install(db.client, "mock-nlp-segmenter");
+  await pluginManager.install(db.client, "mock-language-analyzer");
   await db.client.transaction(async (tx) => {
     await pluginManager.restore(
       tx,
@@ -52,6 +74,25 @@ beforeAll(async () => {
       {},
     );
   });
+  const languageAnalyzer = assertSingleNonNullish(
+    pluginManager.getServices("LANGUAGE_ANALYZER"),
+  );
+  const languageAnalyzerReference =
+    pluginManager.createServiceImplementationReference(languageAnalyzer);
+  const validated = await validateLanguageAnalyzerConfiguration(
+    languageAnalyzerReference,
+    { traceId: "create-term-language-analysis", pluginManager },
+  );
+  await executeCommand(
+    { db: db.client },
+    writeValidatedLanguageAnalysisSelection,
+    {
+      key: LanguageAnalysisWildcardSelectionKey,
+      implementation: languageAnalyzerReference,
+      configurationFingerprint: validated.fingerprint,
+      expectedRevision: 0,
+    },
+  );
 
   await executeCommand({ db: db.client }, ensureLanguages, {
     // mul = ISO 639-2 multilingual, used by revectorizeConceptOp for concept definitions
@@ -71,8 +112,7 @@ beforeAll(async () => {
   });
   glossaryId = glossary.id;
 
-  createDefaultGraphRuntime(db.client, pluginManager);
-  registerDomainEventHandlers(db.client, { pluginManager });
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("create-term should insert terms to db", async () => {
@@ -106,8 +146,10 @@ test("create-term should insert terms to db", async () => {
     {
       glossaryId,
       data: termData,
-      vectorizerId: vectorizer.dbId,
-      vectorStorageId: vectorStorage.dbId,
+      vectorizer:
+        pluginManager.createServiceImplementationReference(vectorizer),
+      vectorStorage:
+        pluginManager.createServiceImplementationReference(vectorStorage),
     },
     { pluginManager },
   );
@@ -132,15 +174,133 @@ test("create-term with empty data should return empty termIds", async () => {
     {
       glossaryId,
       data: [],
-      vectorizerId: vectorizer.dbId,
-      vectorStorageId: vectorStorage.dbId,
+      vectorizer:
+        pluginManager.createServiceImplementationReference(vectorizer),
+      vectorStorage:
+        pluginManager.createServiceImplementationReference(vectorStorage),
     },
     { pluginManager },
   );
   expect(termIds).toEqual([]);
 });
 
-test("create-term rebuilds morphological recall variants via domain events", async () => {
+test("create-term publishes events after the outer transaction commits", async () => {
+  const observer = await testDb.openConcurrentClient();
+  const eventVisibility: boolean[] = [];
+  const unsubscribe = domainEventBus.subscribe(
+    "term:created",
+    async (event) => {
+      if (event.payload.glossaryId !== glossaryId) return;
+
+      const visibleTerms = await executeQuery(
+        { db: observer.client },
+        listAllTerms,
+        {},
+      );
+      const visibleTermIds = new Set(
+        visibleTerms.map((entry) => entry.term.id),
+      );
+      eventVisibility.push(
+        event.payload.termIds.every((termId) => visibleTermIds.has(termId)),
+      );
+    },
+  );
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
+
+  try {
+    await runGraph(
+      createTermGraph,
+      {
+        glossaryId,
+        data: [
+          {
+            term: "post-commit event",
+            termLanguageId: "en",
+            translation: "提交后事件",
+            translationLanguageId: "zh-Hans",
+            definition: "A term used to verify post-commit event visibility",
+          },
+        ],
+        vectorizer:
+          pluginManager.createServiceImplementationReference(vectorizer),
+        vectorStorage:
+          pluginManager.createServiceImplementationReference(vectorStorage),
+      },
+      { pluginManager },
+    );
+
+    expect(eventVisibility).toEqual([true]);
+  } finally {
+    unsubscribe();
+    await observer.cleanup();
+  }
+});
+
+test("create-term does not publish events when the outer transaction rolls back", async () => {
+  const observedTermIds: number[] = [];
+  const unsubscribe = domainEventBus.subscribe("term:created", (event) => {
+    if (event.payload.glossaryId === glossaryId) {
+      observedTermIds.push(...event.payload.termIds);
+    }
+  });
+  await testDb.client.execute(sql`
+    CREATE FUNCTION reject_create_term_commit() RETURNS trigger AS $$
+    BEGIN
+      RAISE EXCEPTION 'create term commit rejected';
+    END;
+    $$ LANGUAGE plpgsql;
+    CREATE CONSTRAINT TRIGGER reject_create_term_commit
+    AFTER INSERT ON "Term"
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION reject_create_term_commit();
+  `);
+
+  const vectorStorage = assertSingleNonNullish(
+    pluginManager.getServices("VECTOR_STORAGE"),
+  );
+  const vectorizer = assertSingleNonNullish(
+    pluginManager.getServices("TEXT_VECTORIZER"),
+  );
+
+  try {
+    await expect(
+      runGraph(
+        createTermGraph,
+        {
+          glossaryId,
+          data: [
+            {
+              term: "rolled-back event",
+              termLanguageId: "en",
+              translation: "回滚事件",
+              translationLanguageId: "zh-Hans",
+            },
+          ],
+          vectorizer:
+            pluginManager.createServiceImplementationReference(vectorizer),
+          vectorStorage:
+            pluginManager.createServiceImplementationReference(vectorStorage),
+        },
+        { pluginManager },
+      ),
+    ).rejects.toThrow();
+    expect(observedTermIds).toEqual([]);
+  } finally {
+    unsubscribe();
+    await testDb.client.execute(sql`
+      DROP TRIGGER reject_create_term_commit ON "Term";
+      DROP FUNCTION reject_create_term_commit();
+    `);
+  }
+});
+
+test("create-term publishes morphological recall variants through derivation demand", async () => {
   const { client: drizzle } = await getDbHandle();
 
   const vectorStorage = assertSingleNonNullish(
@@ -150,7 +310,7 @@ test("create-term rebuilds morphological recall variants via domain events", asy
     pluginManager.getServices("TEXT_VECTORIZER"),
   );
 
-  await runGraph(
+  const created = await runGraph(
     createTermGraph,
     {
       glossaryId,
@@ -163,24 +323,37 @@ test("create-term rebuilds morphological recall variants via domain events", asy
           definition: "A structured HTTP error term",
         },
       ],
-      vectorizerId: vectorizer.dbId,
-      vectorStorageId: vectorStorage.dbId,
+      vectorizer:
+        pluginManager.createServiceImplementationReference(vectorizer),
+      vectorStorage:
+        pluginManager.createServiceImplementationReference(vectorStorage),
     },
     { pluginManager },
   );
-
-  const matches = await executeQuery(
-    { db: drizzle },
-    listMorphologicalTermSuggestions,
+  const recallDerivationWorker = await startRecallDerivationWorker({
+    db: drizzle,
+    pluginManager,
+  });
+  try {
+    await waitForRecallDerivationFresh(created.derivations, {
+      db: drizzle,
+    });
+  } finally {
+    await recallDerivationWorker.stop();
+  }
+  const result = await collectTermRecallOp(
     {
       glossaryIds: [glossaryId],
-      normalizedText: "404 error",
+      text: "404 error",
       sourceLanguageId: "en",
       translationLanguageId: "zh-Hans",
-      minSimilarity: 0.99,
+      minMorphologySimilarity: 0.99,
       maxAmount: 5,
+      channels: ["VARIANT"],
     },
+    { pluginManager, traceId: "create-term-morphological-recall" },
   );
+  const matches = getTermRecallCandidates(result);
 
   expect(matches.some((match) => match.term === "HTTP 404 error")).toBe(true);
   expect(

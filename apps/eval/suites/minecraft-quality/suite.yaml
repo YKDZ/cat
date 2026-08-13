@@ -1,15 +1,17 @@
 name: minecraft-quality
-description: Quality evaluation for memory recall and term recall with Hard-Negative Filter, Confidence Calibrator, Template Matcher, Trigram Guard, Self-Exclusion, and Quality Sorter
+description: Quality evaluation for memory recall and term recall with Hard-Negative Filter, Template Matcher, Trigram Guard, Self-Exclusion, and Quality Sorter
 
 seed:
   project: seed/project.json
   glossary: seed/glossary.json
   memory: seed/memory.json
 
+vectorization: required
+
 plugins:
   loader: real
   overrides:
-    - plugin: spacy-segmenter
+    - plugin: spacy-language-analyzer
       scope: GLOBAL
       config:
         serverUrl: "${SPACY_SERVER_URL:-http://172.17.0.1:8000}"
@@ -19,9 +21,6 @@ plugins:
         model-id: "${VECTORIZER_MODEL_ID:-qwen3-embedding:4b}"
         baseURL: "${VECTORIZER_BASE_URL:-http://172.17.0.1:11435/v1}"
         apiKey: "${VECTORIZER_API_KEY:-dummy-key}"
-    - plugin: pgvector-storage
-      scope: GLOBAL
-      config: {}
     - plugin: basic-tokenizer
       scope: GLOBAL
       config: {}
@@ -45,9 +44,9 @@ scenarios:
       timeoutMs: 60000
 
   - type: memory-recall
-    name: bm25-confidence
-    test-set: test-sets/bm25-confidence.yaml
-    scorers: [bm25-confidence, hit-rate, confidence, latency]
+    name: keyword-recall
+    test-set: test-sets/keyword-recall.yaml
+    scorers: [channel-coverage, hit-rate, confidence, latency]
     params:
       maxAmount: 5
       minSimilarity: 0.72
@@ -83,6 +82,6 @@ scenarios:
 
 thresholds:
   noise-rate: "<= 0.10"
-  bm25-confidence: ">= 0.20"
+  channel-coverage: ">= 1.0"
   template-match-rate: ">= 0.0"
   self-exclusion-rate: ">= 1.0"

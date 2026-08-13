@@ -192,6 +192,47 @@ describe("channelCoverageScorer", () => {
     });
     expect(firstScore(result).value).toBeCloseTo(0.5);
   });
+
+  it("uses the typed keyword outcome instead of a flattened candidate projection", () => {
+    const refs = makeRefs([["memory:keyword", 1]]);
+    const caseResult: CaseResult = {
+      ...okCase([
+        {
+          id: 1,
+          evidences: [{ channel: "keyword", confidence: 0.9 }],
+        },
+      ]),
+      recallResult: {
+        requestedChannels: ["KEYWORD"],
+        outcomes: {
+          EXACT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+          FUZZY: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+          KEYWORD: {
+            status: "BLOCKED",
+            blocker: {
+              reason: "CHANNEL_EXECUTION_FAILED",
+              message: "Keyword Recall failed.",
+              retryable: true,
+              capability: "DATABASE",
+            },
+          },
+          VARIANT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+          SEMANTIC: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        },
+      },
+    };
+
+    const result = channelCoverageScorer.score({
+      caseResult,
+      expectedItems: [
+        { memoryItemRef: "memory:keyword", requiredChannels: ["keyword"] },
+      ],
+      negativeItems: [],
+      refs,
+    });
+
+    expect(firstScore(result).value).toBe(0);
+  });
 });
 
 // ── Agent-translate scorer helpers ──────────────────────────────────────────

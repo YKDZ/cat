@@ -447,20 +447,48 @@ describe("package artifact matrix", () => {
 
     await writeFile(
       join(consumer, "consumer.ts"),
-      `import type { CatPlugin, ComponentData, PluginContext, PluginLogger, Token } from "@cat/plugin-core";
-import { AuthFactor, FileImporter, PluginManager, QAChecker, ServiceRegistry } from "@cat/plugin-core";
+      `import type { CatPlugin, ComponentData, LanguageAnalysisContext, PluginContext, PluginLogger, Token } from "@cat/plugin-core";
+import { AuthFactor, FileImporter, LanguageAnalyzer, PluginManager, QAChecker, ServiceRegistry, normalizeLanguageId } from "@cat/plugin-core";
 import { createSandbox, safeCustomElements } from "@cat/plugin-core/client";
+
+class ConsumerLanguageAnalyzer extends LanguageAnalyzer {
+  getId() { return "consumer-language-analyzer"; }
+  getLanguageAnalysisConfigurationAssessment() {
+    return { status: "VALID" as const, supportedLanguages: [normalizeLanguageId("en-US")], semanticConfiguration: {} };
+  }
+  async analyze(ctx: LanguageAnalysisContext): Promise<never> { throw new Error(ctx.text); }
+}
 
 declare const plugin: CatPlugin;
 const component: ComponentData = { name: "example", slot: "example", url: "example.js" };
 const token: Token = { type: "text", value: "x", start: 0, end: 1 };
 declare const pluginContext: PluginContext;
 pluginContext.logger.error("plugin diagnostic", { code: "PLUGIN_DIAGNOSTIC" });
+const registeredService = pluginContext.registeredServices[0]!;
+void [registeredService.type, registeredService.id, registeredService.dbId];
+// @ts-expect-error Plugin contexts expose service records, not persisted scope identity.
+registeredService.scopeType;
+// @ts-expect-error Plugin contexts expose service records, not persisted scope identity.
+registeredService.scopeId;
 declare const pluginLogger: PluginLogger;
 const pluginManager = PluginManager.get("GLOBAL", "", undefined, pluginLogger);
 pluginManager.getDiagnosticLogger().info("host diagnostic");
+pluginManager.createServiceImplementationReference({
+  pluginId: "consumer-plugin",
+  id: "consumer-language-analyzer",
+  type: "LANGUAGE_ANALYZER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+// @ts-expect-error Published service references require their persisted scope identity.
+pluginManager.createServiceImplementationReference({
+  pluginId: "consumer-plugin",
+  id: "consumer-language-analyzer",
+  type: "LANGUAGE_ANALYZER",
+});
 const serviceRegistry = new ServiceRegistry([], pluginLogger);
-void [plugin, component, token, serviceRegistry, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];
+const consumerAnalyzer = new ConsumerLanguageAnalyzer();
+void [plugin, component, token, consumerAnalyzer, serviceRegistry, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];
 `,
     );
     await writeFile(
@@ -515,7 +543,7 @@ const serviceConstructors = [
   "FileExporter",
   "FileImporter",
   "LLMProvider",
-  "NlpWordSegmenter",
+  "LanguageAnalyzer",
   "QAChecker",
   "RerankProvider",
   "StorageProvider",
@@ -593,13 +621,13 @@ const serviceRegistry = new core.ServiceRegistry([], pluginLogger);
 if (!(serviceRegistry instanceof core.ServiceRegistry)) {
   throw new Error("plugin service registry did not cross the packaged boundary");
 }
-const spacy = (await plugins.get("@cat-plugin/spacy-segmenter").default.services({
+const spacy = (await plugins.get("@cat-plugin/spacy-language-analyzer").default.services({
   config: { serverUrl: "http://127.0.0.1:1" },
   logger: pluginLogger,
 }))[0];
-await spacy.getSupportedLanguages();
-if (diagnostics[0]?.fields?.code !== "SPACY_LANGUAGES_UNAVAILABLE") {
-  throw new Error("plugin diagnostics did not cross the packaged plugin boundary");
+const availability = await spacy.getAvailability();
+if (availability.available || availability.reason !== "remote-unreachable") {
+  throw new Error("spaCy availability did not cross the packaged plugin boundary");
 }
 console.log("isolated runtime ok");
 `,

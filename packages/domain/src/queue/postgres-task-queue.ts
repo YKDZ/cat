@@ -1,4 +1,4 @@
-import type { QueueTask, TaskQueue } from "@cat/core";
+import type { EnqueueOptions, QueueTask, TaskQueue } from "@cat/core";
 import type { DrizzleClient } from "@cat/db";
 import { and, eq, runtimeQueueTask, sql } from "@cat/db";
 import type { NonNullJSONType } from "@cat/shared";
@@ -52,20 +52,33 @@ export class PostgresTaskQueue<
    * @param payloads - List of task payloads to enqueue
    * @returns - Newly generated task IDs
    */
-  public async enqueue(payloads: T[]): Promise<string[]> {
+  public async enqueue(
+    payloads: T[],
+    options?: EnqueueOptions,
+  ): Promise<string[]> {
     if (payloads.length === 0) return [];
+    if (
+      options?.taskIds !== undefined &&
+      options.taskIds.length !== payloads.length
+    ) {
+      throw new Error("taskIds length must match payloads length");
+    }
 
     const now = new Date();
-    const rows = payloads.map((payload) => ({
+    const rows = payloads.map((payload, index) => ({
       queueName: this.queueName,
-      taskId: crypto.randomUUID(),
+      taskId: options?.taskIds?.[index] ?? crypto.randomUUID(),
       payload,
       status: "PENDING" as const,
       enqueuedAt: now,
     }));
 
-    await this.db.insert(runtimeQueueTask).values(rows);
-    return rows.map((row) => row.taskId);
+    const inserted = await this.db
+      .insert(runtimeQueueTask)
+      .values(rows)
+      .onConflictDoNothing()
+      .returning({ taskId: runtimeQueueTask.taskId });
+    return inserted.map((row) => row.taskId);
   }
 
   /**

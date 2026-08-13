@@ -6,7 +6,11 @@ import {
   type DrizzleClient,
   type SessionStore,
 } from "@cat/domain";
-import type { HTTPHelpers } from "@cat/shared";
+import {
+  ServiceImplementationReferenceSchema,
+  type HTTPHelpers,
+  type ServiceImplementationReference,
+} from "@cat/shared";
 import * as z from "zod";
 
 // ====== Session Key 工厂 ======
@@ -24,7 +28,7 @@ export const PreAuthSessionPayloadSchema = z
   .object({
     // userId 可能为空（OIDC 自动注册场景：首次登录时用户尚不存在）
     userId: z.string().optional(),
-    authProviderId: z.coerce.number().int(),
+    authProvider: ServiceImplementationReferenceSchema,
     identifier: z.string(),
     meta: z.string(),
   })
@@ -49,7 +53,7 @@ export const SuccessMFAPayloadSchema = z
 export const WaitingMFAPayloadSchema = z
   .object({
     userId: z.uuidv4(),
-    authProviderId: z.coerce.number().int(),
+    authProvider: ServiceImplementationReferenceSchema,
     mfaProviderIds: z.string(),
   })
   .catchall(z.string());
@@ -65,15 +69,26 @@ export const finishLogin = async (
   sessionStore: SessionStore,
   db: DrizzleClient,
   userId: string,
-  meta: Record<string, string | number> & {
-    authProviderId: number;
+  meta: Record<string, string | number | ServiceImplementationReference> & {
+    authProvider: ServiceImplementationReference;
   },
   helpers: HTTPHelpers,
 ): Promise<string> => {
   const sessionId = randomBytes(32).toString("hex");
   const sessionKey = sessionKeys.userSession(sessionId);
 
-  await sessionStore.create(sessionKey, { userId, ...meta }, 24 * 60 * 60);
+  const { authProvider: _authProvider, ...sessionMeta } = meta;
+  await sessionStore.create(
+    sessionKey,
+    {
+      userId,
+      ...sessionMeta,
+      // This is display/audit metadata only; runtime resolution always uses
+      // the JSONB reference persisted in SessionRecord.
+      authProviderReference: JSON.stringify(meta.authProvider),
+    },
+    24 * 60 * 60,
+  );
 
   helpers.setCookie("sessionId", sessionId);
 
@@ -90,7 +105,7 @@ export const finishLogin = async (
     userId,
     ip,
     userAgent,
-    authProviderId: meta.authProviderId ?? null,
+    authProvider: meta.authProvider,
     expiresAt,
   }).catch((_err: unknown) => {
     // ignore: fire-and-forget, session record persistence failure should not block login

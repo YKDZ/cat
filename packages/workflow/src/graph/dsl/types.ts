@@ -1,8 +1,10 @@
+import type { DbHandle } from "@cat/domain";
 import type { PluginManager } from "@cat/plugin-core";
 import type { NonNullJSONType } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 import type * as z from "zod";
 
+import type { RunOwnershipFence } from "#/graph/checkpointer/types.ts";
 import type { EventEnvelopeInput } from "#/graph/events.ts";
 import type {
   BlackboardSnapshot,
@@ -16,6 +18,7 @@ import type {
 
 /** Step handler 执行时注入的上下文 */
 export type TypedNodeContext = {
+  db?: DbHandle | undefined;
   runId: string;
   nodeId: string;
   signal?: AbortSignal | undefined;
@@ -23,6 +26,8 @@ export type TypedNodeContext = {
   traceId: string;
   /** Plugin manager instance from the graph runtime */
   pluginManager: PluginManager;
+  assertRunOwnership: () => Promise<void>;
+  ownershipFence?: RunOwnershipFence | null | undefined;
   emit: (event: EventEnvelopeInput) => Promise<void>;
   /** Buffer an event to be published after node execution */
   addEvent: (event: EventEnvelopeInput) => void;

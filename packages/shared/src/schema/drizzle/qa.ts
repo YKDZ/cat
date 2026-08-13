@@ -2,6 +2,7 @@
 import * as z from "zod";
 import { DrizzleDateTimeSchema } from "#/schema/misc.ts";
 import { QaReviewProfileConfigSchema, QaReviewRunMetaSchema, QaReviewSpanSchema, QaReviewTextRangeSchema } from "#/schema/qa-review.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 import { nonNullSafeZDotJson, safeZDotJson } from "#/schema/json.ts";
 
 export const QaResultSchema = z.object({
@@ -18,7 +19,7 @@ export const QaResultItemSchema = z.object({
   meta: nonNullSafeZDotJson,
   isPassed: z.boolean(),
   resultId: z.int(),
-  checkerId: z.int(),
+  checker: ServiceImplementationReferenceSchema,
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
@@ -52,8 +53,8 @@ export const QaReviewRunSchema = z.object({
   pullRequestId: z.int().nullable(),
   layer: z.enum(["DETERMINISTIC", "SEMANTIC"]),
   status: z.enum(["COMPLETED", "PARTIAL", "FAILED", "SKIPPED"]),
-  checkerServiceId: z.int().nullable(),
-  modelServiceId: z.int().nullable(),
+  checkerService: ServiceImplementationReferenceSchema.nullable(),
+  modelService: ServiceImplementationReferenceSchema.nullable(),
   riskScore: z.int(),
   summary: z.string().nullable(),
   errorMessage: z.string().nullable(),
@@ -71,7 +72,7 @@ export const QaReviewFindingSchema = z.object({
   elementId: z.int(),
   translationId: z.int().nullable(),
   qaResultItemId: z.int().nullable(),
-  checkerServiceId: z.int().nullable(),
+  checkerService: ServiceImplementationReferenceSchema.nullable(),
   layer: z.enum(["DETERMINISTIC", "SEMANTIC"]),
   ruleId: z.string(),
   ruleFamily: z.string(),

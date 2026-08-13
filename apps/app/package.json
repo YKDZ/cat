@@ -20,7 +20,7 @@
   "scripts": {
     "bootstrap-only": "node dist/bootstrap-only/bootstrap-only-cli.js",
     "bootstrap:local": "pnpm --filter @cat/db drizzle:push && pnpm build && node scripts/bootstrap-local.mjs",
-    "build": "vike build && vite build --config vite.bootstrap.config.ts",
+    "build": "vike build && vite build --config vite.bootstrap.config.ts && vite build --config vite.database-preparation.config.ts",
     "build:bootstrap-only": "vite build --config vite.bootstrap.config.ts",
     "copy-drizzle": "node scripts/copy-drizzle.ts",
     "dev": "node scripts/dev.ts",
@@ -43,7 +43,7 @@
     "@cat-plugin/openai-llm-provider": "link:../../@cat-plugin/openai-llm-provider",
     "@cat-plugin/openai-vectorizer": "link:../../@cat-plugin/openai-vectorizer",
     "@cat-plugin/password-auth-provider": "link:../../@cat-plugin/password-auth-provider",
-    "@cat-plugin/spacy-segmenter": "link:../../@cat-plugin/spacy-segmenter",
+    "@cat-plugin/spacy-language-analyzer": "link:../../@cat-plugin/spacy-language-analyzer",
     "@cat-plugin/tei-rerank-provider": "link:../../@cat-plugin/tei-rerank-provider",
     "@cat-plugin/tiny-widget": "link:../../@cat-plugin/tiny-widget",
     "@cat-plugin/yaml-file-handler": "link:../../@cat-plugin/yaml-file-handler",

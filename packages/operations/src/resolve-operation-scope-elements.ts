@@ -10,6 +10,7 @@ import {
 import type { EditorElement } from "@cat/shared";
 import {
   EditorTranslationStatusFilterSchema,
+  MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS,
   OperationScopeSchema,
 } from "@cat/shared";
 import * as z from "zod";
@@ -21,15 +22,19 @@ type DbClient = Awaited<ReturnType<typeof getDbHandle>>["client"];
  */
 export const ResolveOperationScopeElementsInputSchema =
   OperationScopeSchema.extend({
+    elementIds: z
+      .array(z.int().positive())
+      .max(MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS),
     languageToId: z.string().min(1),
     statusFilter: EditorTranslationStatusFilterSchema.default("all"),
     sourceLanguageId: z.string().optional(),
+    exactElementIds: z.boolean().default(false),
   });
 
 /**
  * Input type for resolving elements inside an operation scope.
  */
-export type ResolveOperationScopeElementsInput = z.infer<
+export type ResolveOperationScopeElementsInput = z.input<
   typeof ResolveOperationScopeElementsInputSchema
 >;
 
@@ -47,7 +52,7 @@ export type OperationScopeElement = {
 
 const collectPagedScopeElements = async (
   db: DbClient,
-  input: ResolveOperationScopeElementsInput,
+  input: z.infer<typeof ResolveOperationScopeElementsInputSchema>,
 ): Promise<EditorElement[]> => {
   const elements: EditorElement[] = [];
   const pageSize = 100;
@@ -77,7 +82,7 @@ const collectPagedScopeElements = async (
 
 const assertOperationScopeContext = async (
   db: DbClient,
-  input: ResolveOperationScopeElementsInput,
+  input: z.infer<typeof ResolveOperationScopeElementsInputSchema>,
 ): Promise<void> => {
   if (input.branchId !== undefined) {
     const branch = await executeQuery({ db }, getBranchById, {
@@ -125,15 +130,32 @@ export const resolveOperationScopeElementsOp = async (
   await assertOperationScopeContext(db, input);
 
   const requestedDirectElementIds = new Set<number>(input.elementIds);
-  const scopeElements = await collectPagedScopeElements(db, input);
+  const collectedScopeElements = await collectPagedScopeElements(db, input);
+  const scopeElements = input.exactElementIds
+    ? collectedScopeElements.filter((element) =>
+        requestedDirectElementIds.has(element.id),
+      )
+    : collectedScopeElements;
   const elementIds = new Set<number>([
     ...input.elementIds,
     ...scopeElements.map((element) => element.id),
   ]);
 
-  const details = await executeQuery({ db }, listElementsWithChunkIdsByIds, {
-    elementIds: [...elementIds],
-  });
+  const detailIds = [...elementIds];
+  const detailIdBatches = Array.from(
+    { length: Math.ceil(detailIds.length / 5_000) },
+    (_, index) => detailIds.slice(index * 5_000, (index + 1) * 5_000),
+  );
+  const details = (
+    await Promise.all(
+      detailIdBatches.map(
+        async (elementIds) =>
+          await executeQuery({ db }, listElementsWithChunkIdsByIds, {
+            elementIds,
+          }),
+      ),
+    )
+  ).flat();
   const detailById = new Map(details.map((element) => [element.id, element]));
 
   for (const requestedId of requestedDirectElementIds) {
@@ -163,13 +185,21 @@ export const resolveOperationScopeElementsOp = async (
     });
   }
 
-  for (const requestedId of input.elementIds) {
-    const detail = detailById.get(requestedId);
-    if (!detail || !requestedDirectElementIds.has(detail.id)) continue;
-    elementsById.set(detail.id, detail);
+  if (!input.exactElementIds) {
+    for (const requestedId of input.elementIds) {
+      const detail = detailById.get(requestedId);
+      if (!detail || !requestedDirectElementIds.has(detail.id)) continue;
+      elementsById.set(detail.id, detail);
+    }
   }
 
-  const elements = [...elementsById.values()].filter((element) => {
+  const resolvedElements = input.exactElementIds
+    ? input.elementIds.flatMap((elementId) => {
+        const element = elementsById.get(elementId);
+        return element ? [element] : [];
+      })
+    : [...elementsById.values()];
+  const elements = resolvedElements.filter((element) => {
     if (element.projectId !== input.projectId) return false;
     if (input.sourceLanguageId === undefined) return true;
     return element.languageId === input.sourceLanguageId;

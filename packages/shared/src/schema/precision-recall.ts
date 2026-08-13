@@ -13,7 +13,7 @@ export const EvidenceLaneValues = [
   "sparse",
   "template",
   "fragment",
-  "bm25",
+  "keyword",
   "semantic",
 ] as const;
 export const EvidenceLaneSchema = z.enum(EvidenceLaneValues);

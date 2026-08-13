@@ -1,11 +1,14 @@
 import {
   llmTermAlignOp,
   mergeAlignmentOp,
+  StatisticalTermAlignInputSchema,
   statisticalTermAlignOp,
   vectorTermAlignOp,
 } from "@cat/operations";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
+import { requireWorkflowDatabase } from "#/graph/dsl/database-context.ts";
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 
 // ─── Input Schema ────────────────────────────────────────────────────────────
@@ -42,18 +45,16 @@ export const TermAlignmentInputSchema = z.object({
     .min(2),
   /** Optional glossary to include existing terms in alignment */
   glossaryId: z.uuidv4().optional(),
-  /** Optional NLP_WORD_SEGMENTER plugin service ID */
-  nlpSegmenterId: z.int().optional(),
 
   config: z
     .object({
       vector: z
         .object({
           enabled: z.boolean().default(true),
-          /** TEXT_VECTORIZER plugin service ID */
-          vectorizerId: z.int().optional(),
-          /** VECTOR_STORAGE plugin service ID */
-          vectorStorageId: z.int().optional(),
+          /** TEXT_VECTORIZER implementation. */
+          vectorizer: ServiceImplementationReferenceSchema.optional(),
+          /** VECTOR_STORAGE implementation. */
+          vectorStorage: ServiceImplementationReferenceSchema.optional(),
           /** Minimum cosine similarity for a match */
           minSimilarity: z.number().min(0).max(1).default(0.75),
         })
@@ -68,8 +69,8 @@ export const TermAlignmentInputSchema = z.object({
       llm: z
         .object({
           enabled: z.boolean().default(true),
-          /** LLM provider service ID. Omit to use default. */
-          llmProviderId: z.int().optional(),
+          /** LLM provider implementation. Omit to use default. */
+          llmProvider: ServiceImplementationReferenceSchema.optional(),
           /** Maximum pairs per LLM batch */
           batchSize: z.int().min(1).max(50).default(30),
         })
@@ -271,8 +272,8 @@ export const termAlignmentGraph = defineGraph({
 
         if (
           vectorCfg?.enabled === false ||
-          vectorCfg?.vectorizerId === undefined ||
-          vectorCfg?.vectorStorageId === undefined
+          vectorCfg?.vectorizer === undefined ||
+          vectorCfg?.vectorStorage === undefined
         ) {
           return { alignedPairs: [], stringIds: [] };
         }
@@ -288,8 +289,8 @@ export const termAlignmentGraph = defineGraph({
               })),
             })),
             config: {
-              vectorizerId: vectorCfg.vectorizerId,
-              vectorStorageId: vectorCfg.vectorStorageId,
+              vectorizer: vectorCfg.vectorizer,
+              vectorStorage: vectorCfg.vectorStorage,
               minSimilarity: vectorCfg.minSimilarity ?? 0.75,
             },
           },
@@ -302,16 +303,19 @@ export const termAlignmentGraph = defineGraph({
       input: z.object({
         termGroups: StartOutputSchema.shape.termGroups,
         config: TermAlignmentInputSchema.shape.config,
-        nlpSegmenterId: TermAlignmentInputSchema.shape.nlpSegmenterId,
       }),
       output: StatAlignOutputSchema,
       inputMapping: {
         termGroups: "start.termGroups",
         config: "config",
-        nlpSegmenterId: "nlpSegmenterId",
       },
       handler: async (input, ctx) => {
-        const opCtx = { traceId: ctx.runId, signal: ctx.signal };
+        const opCtx = {
+          db: requireWorkflowDatabase(ctx),
+          pluginManager: ctx.pluginManager,
+          traceId: ctx.runId,
+          signal: ctx.signal,
+        };
         const statCfg = input.config?.statistical;
 
         if (statCfg?.enabled === false) {
@@ -319,7 +323,7 @@ export const termAlignmentGraph = defineGraph({
         }
 
         return statisticalTermAlignOp(
-          {
+          StatisticalTermAlignInputSchema.parse({
             termGroups: input.termGroups.map((g) => ({
               languageId: g.languageId,
               candidates: g.candidates.map((c) => ({
@@ -331,8 +335,7 @@ export const termAlignmentGraph = defineGraph({
             config: {
               minCoOccurrence: statCfg?.minCoOccurrence ?? 0.3,
             },
-            nlpSegmenterId: input.nlpSegmenterId,
-          },
+          }),
           opCtx,
         );
       },
@@ -427,7 +430,7 @@ export const termAlignmentGraph = defineGraph({
             })),
             unalignedGroupPairs: unalignedPairs,
             config: {
-              llmProviderId: llmCfg?.llmProviderId,
+              llmProvider: llmCfg?.llmProvider,
               batchSize: llmCfg?.batchSize ?? 30,
             },
           },

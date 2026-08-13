@@ -1,10 +1,12 @@
 import type { OperationContext } from "@cat/domain";
 import {
   collectLLMResponse,
-  firstOrGivenService,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 // ─── Types ───
@@ -54,12 +56,12 @@ export const LlmTermEnhanceInputSchema = z.object({
   ),
   sourceLanguageId: z.string().min(1),
   config: z.object({
-    llmProviderId: z.int().optional(),
+    llmProvider: ServiceImplementationReferenceSchema.optional(),
     confidenceThreshold: z.number().min(0).max(1).default(0.3),
     batchSize: z.int().min(1).max(100).default(20),
     inferDefinition: z.boolean().default(true),
     inferSubject: z.boolean().default(true),
-    /** When true (Intl.Segmenter fallback), lower the threshold to validate more candidates */
+    /** When true, lower the validation threshold for this configured workflow. */
     useRelaxedThreshold: z.boolean().default(false),
   }),
 });
@@ -200,11 +202,16 @@ export const llmTermEnhanceOp = async (
   ctx?: OperationContext,
 ): Promise<LlmTermEnhanceOutput> => {
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const llmService = firstOrGivenService(
-    pluginManager,
-    "LLM_PROVIDER",
-    data.config.llmProviderId,
-  );
+  const llmService = data.config.llmProvider
+    ? {
+        reference: data.config.llmProvider,
+        service: resolveServiceImplementation(
+          pluginManager,
+          data.config.llmProvider,
+          "LLM_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "LLM_PROVIDER");
 
   if (!llmService) {
     // No LLM available — pass through with null definition/subjects

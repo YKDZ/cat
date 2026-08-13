@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1",
+  "models": [
+    {
+      "languageId": "en",
+      "distribution": "en_core_web_sm",
+      "importModule": "en_core_web_sm",
+      "version": "3.8.0",
+      "source": {
+        "kind": "https",
+        "url": "https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl"
+      },
+      "sha256": "1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85",
+      "maxBytes": 20971520,
+      "validationText": "CAT validates this English model. Second sentence.",
+      "pipeline": {
+        "disabledPipes": ["ner", "parser"],
+        "sentenceBoundary": "sentencizer"
+      }
+    },
+    {
+      "languageId": "zh-Hans",
+      "distribution": "zh_core_web_sm",
+      "importModule": "zh_core_web_sm",
+      "version": "3.8.0",
+      "source": {
+        "kind": "https",
+        "url": "https://github.com/explosion/spacy-models/releases/download/zh_core_web_sm-3.8.0/zh_core_web_sm-3.8.0-py3-none-any.whl"
+      },
+      "sha256": "7de3bd267176b9b2a8defb6997c1cd296da16c57b5e712f72ea44a51755421c8",
+      "maxBytes": 62914560,
+      "validationText": "CAT 验证这个中文模型。第二句。",
+      "pipeline": {
+        "disabledPipes": ["ner", "parser"],
+        "sentenceBoundary": "sentencizer"
+      }
+    }
+  ]
+}

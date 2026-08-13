@@ -131,3 +131,11 @@ test-results.json
 **/CONTEXT*.md
 
 .turbo
+
+# Python environments and tool caches
+**/.venv/
+**/__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

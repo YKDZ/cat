@@ -1,4 +1,7 @@
-import type { AmbiguityEnvelope } from "@cat/shared";
+import type {
+  AmbiguityEnvelope,
+  ServiceImplementationReference,
+} from "@cat/shared";
 
 import { applyBandOrder } from "../rerank/apply-band-order.ts";
 import { normalizePrecisionCandidates } from "../rerank/normalize.ts";
@@ -12,7 +15,7 @@ type ApplyModelRerankerInput = {
   pluginManager?: unknown;
   signal?: AbortSignal | undefined;
   rerankMode?: "baseline" | "reranked" | undefined;
-  rerankProviderId?: number | undefined;
+  rerankProvider?: ServiceImplementationReference | undefined;
   rerankTimeoutMs?: number | undefined;
 };
 
@@ -80,7 +83,7 @@ export async function applyModelReranker(
       queryText: input.queryText,
       band: envelope.eligibleBand,
       candidates: normalizedCandidates,
-      rerankProviderId: input.rerankProviderId,
+      rerankProvider: input.rerankProvider,
       timeoutMs: input.rerankTimeoutMs,
     },
     pluginManager: input.pluginManager,

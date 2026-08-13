@@ -1,5 +1,6 @@
 import type { DrizzleDB, RedisConnection } from "@cat/db";
 import type { MessageGateway } from "@cat/message";
+import type { RecallDerivationWorker } from "@cat/operations";
 import type { PluginManager } from "@cat/plugin-core";
 import type { Hono } from "hono";
 
@@ -18,4 +19,5 @@ declare global {
   var serverName: string;
   var serverBaseURL: string;
   var runtimeCleanup: RuntimeCleanupHandle | null | undefined;
+  var recallDerivationWorker: RecallDerivationWorker | undefined;
 }

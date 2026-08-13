@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const serverMocks = vi.hoisted(() => ({
   collectLLMResponse: vi.fn(),
-  firstOrGivenService: vi.fn(),
+  resolveServiceImplementation: vi.fn(),
+  selectFirstServiceImplementation: vi.fn(),
 }));
 
 vi.mock("@cat/server-shared", async () => {
@@ -13,7 +14,9 @@ vi.mock("@cat/server-shared", async () => {
   return {
     ...actual,
     collectLLMResponse: serverMocks.collectLLMResponse,
-    firstOrGivenService: serverMocks.firstOrGivenService,
+    resolveServiceImplementation: serverMocks.resolveServiceImplementation,
+    selectFirstServiceImplementation:
+      serverMocks.selectFirstServiceImplementation,
   };
 });
 
@@ -22,8 +25,16 @@ import { QaReviewProfileConfigSchema } from "@cat/shared";
 
 import { runSemanticQaReview } from "./semantic-review.ts";
 
+const mockLlmReference = {
+  pluginId: "test-plugin",
+  serviceId: "mock-llm",
+  serviceType: "LLM_PROVIDER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+};
+
 const mockLlmService = {
-  id: 7,
+  reference: mockLlmReference,
   service: {
     chat: vi.fn().mockReturnValue({
       [Symbol.asyncIterator]: async function* () {
@@ -36,7 +47,7 @@ const mockLlmService = {
 const baseProfile = QaReviewProfileConfigSchema.parse({
   enabledLayers: { deterministic: true, semantic: true },
   llm: {
-    providerServiceId: 7,
+    provider: mockLlmReference,
     maxTokens: 800,
     temperature: 0,
     minRiskScoreForQueue: 40,
@@ -65,11 +76,12 @@ describe("runSemanticQaReview", () => {
 
     expect(result.status).toBe("SKIPPED");
     expect(result.summary).toBe("Semantic review disabled");
-    expect(serverMocks.firstOrGivenService).not.toHaveBeenCalled();
+    expect(serverMocks.resolveServiceImplementation).not.toHaveBeenCalled();
+    expect(serverMocks.selectFirstServiceImplementation).not.toHaveBeenCalled();
   });
 
   it("skips when no provider is available", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(null);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(null);
 
     const result = await runSemanticQaReview({
       projectId: "11111111-1111-4111-8111-111111111111",
@@ -77,7 +89,9 @@ describe("runSemanticQaReview", () => {
       translationId: 2,
       sourceText: "Click to confirm",
       translationText: "点击确认",
-      profile: baseProfile,
+      profile: QaReviewProfileConfigSchema.parse({
+        enabledLayers: { deterministic: true, semantic: true },
+      }),
       pluginManager: mockPluginManager,
     });
 
@@ -87,7 +101,9 @@ describe("runSemanticQaReview", () => {
   });
 
   it("parses valid semantic findings and never escalates them to BLOCK_APPROVAL", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.resolveServiceImplementation.mockReturnValue(
+      mockLlmService.service,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({
       content: JSON.stringify({
         summary: "Potential meaning drift detected",
@@ -121,7 +137,7 @@ describe("runSemanticQaReview", () => {
     });
 
     expect(result.status).toBe("COMPLETED");
-    expect(result.modelServiceId).toBe(7);
+    expect(result.modelService?.serviceId).toBe("mock-llm");
     expect(result.summary).toBe("Potential meaning drift detected");
     expect(result.findings).toHaveLength(1);
     expect(result.findings[0]?.layer).toBe("SEMANTIC");
@@ -130,7 +146,9 @@ describe("runSemanticQaReview", () => {
   });
 
   it("fails gracefully when provider output is invalid JSON", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.resolveServiceImplementation.mockReturnValue(
+      mockLlmService.service,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({
       content: "definitely not valid json",
     });

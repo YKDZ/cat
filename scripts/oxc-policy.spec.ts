@@ -93,7 +93,7 @@ describe("root OXC policy", () => {
       { cwd: root },
     );
 
-    expect(manifests).toHaveLength(45);
+    expect(manifests).toHaveLength(44);
     for (const manifest of manifests) {
       const packageJson = JSON.parse(
         readFileSync(resolve(root, manifest), "utf8"),

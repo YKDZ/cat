@@ -2,6 +2,7 @@ import type { DbHandle } from "@cat/domain";
 import { executeQuery, listInstalledServicesByType } from "@cat/domain";
 import {
   PluginServiceTypeSchema,
+  ScopeTypeSchema,
   type PluginServiceType,
   type ScopeType,
 } from "@cat/shared";
@@ -11,13 +12,30 @@ import * as z from "zod";
 import type { PluginLogger } from "#/entities/plugin.ts";
 import type { IPluginService } from "#/services/service.ts";
 
-export const ReigsteredServiceSchema = z.object({
-  pluginId: z.string(),
-  type: PluginServiceTypeSchema,
-  id: z.string(),
-  dbId: z.int(),
-  service: z.custom<IPluginService>(),
-});
+export const ReigsteredServiceSchema = z
+  .object({
+    scopeType: ScopeTypeSchema,
+    scopeId: z.string(),
+    pluginId: z.string(),
+    type: PluginServiceTypeSchema,
+    id: z.string(),
+    dbId: z.int(),
+    service: z.custom<IPluginService>(),
+  })
+  .superRefine((service, context) => {
+    const validScopeId =
+      service.scopeType === "GLOBAL"
+        ? service.scopeId === ""
+        : service.scopeId.trim() === service.scopeId &&
+          service.scopeId.length > 0;
+    if (!validScopeId) {
+      context.addIssue({
+        code: "custom",
+        path: ["scopeId"],
+        message: "Registered service scope is not canonical",
+      });
+    }
+  });
 export type RegisteredService = z.infer<typeof ReigsteredServiceSchema>;
 
 export class ServiceRegistry {
@@ -62,8 +80,25 @@ export class ServiceRegistry {
     pluginId: string,
     services: IPluginService[],
   ): Promise<void> {
-    // 支持 reload：先移除旧的
-    this.removeByPlugin(pluginId);
+    const registered = await this.prepare(
+      drizzle,
+      scopeType,
+      scopeId,
+      pluginId,
+      services,
+    );
+    this.replaceByPlugin(pluginId, registered);
+  }
+
+  /** Resolve runtime services to persisted identities without publishing them. */
+  public async prepare(
+    drizzle: DbHandle,
+    scopeType: ScopeType,
+    scopeId: string,
+    pluginId: string,
+    services: IPluginService[],
+  ): Promise<RegisteredService[]> {
+    const registered: RegisteredService[] = [];
 
     for (const service of services) {
       const id = service.getId();
@@ -91,14 +126,31 @@ export class ServiceRegistry {
         continue;
       }
 
-      this.services.push({
-        dbId,
-        pluginId,
-        type,
-        id,
-        service,
-      });
+      registered.push(
+        ReigsteredServiceSchema.parse({
+          dbId,
+          pluginId,
+          type,
+          id,
+          service,
+          scopeType,
+          scopeId,
+        }),
+      );
     }
+
+    return registered;
+  }
+
+  /** Atomically replace one plugin's prepared service records. */
+  public replaceByPlugin(
+    pluginId: string,
+    services: RegisteredService[],
+  ): void {
+    this.services = [
+      ...this.services.filter((service) => service.pluginId !== pluginId),
+      ...services,
+    ];
   }
 
   /**

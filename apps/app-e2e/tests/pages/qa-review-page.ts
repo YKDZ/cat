@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { gotoHydrated } from "./app-navigation.ts";
+
 export class QaReviewPage {
   private readonly page: Page;
 
@@ -8,7 +10,8 @@ export class QaReviewPage {
   }
 
   async navigateToQa(projectId: string, languageToId: string): Promise<void> {
-    await this.page.goto(
+    await gotoHydrated(
+      this.page,
       `/qa-review/project/${projectId}/${languageToId}/auto`,
     );
     await this.page.waitForURL(

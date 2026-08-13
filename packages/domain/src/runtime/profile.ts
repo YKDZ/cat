@@ -2,7 +2,6 @@ import type {
   RuntimeBackend,
   RuntimeProfile,
   RuntimeProfileName,
-  SearchRuntimeLevel,
 } from "./types.ts";
 
 const backendPolicy = (backend: RuntimeBackend) => ({
@@ -29,21 +28,6 @@ const parseBackend = (
   fallback: RuntimeBackend,
 ): RuntimeBackend => {
   if (value === "memory" || value === "postgres" || value === "redis") {
-    return value;
-  }
-
-  return fallback;
-};
-
-const parseSearchRequirement = (
-  value: string | undefined,
-  fallback: SearchRuntimeLevel,
-): SearchRuntimeLevel => {
-  if (
-    value === "full-search-runtime" ||
-    value === "partial-search-runtime" ||
-    value === "basic-db-runtime"
-  ) {
     return value;
   }
 
@@ -88,11 +72,6 @@ export const resolveRuntimeProfile = (
   const cache = parseBackend(env.CAT_CACHE_BACKEND, defaults[name]);
   const session = parseBackend(env.CAT_SESSION_BACKEND, defaults[name]);
   const queue = parseBackend(env.CAT_QUEUE_BACKEND, defaults[name]);
-  const requiredSearchLevel = parseSearchRequirement(
-    env.CAT_SEARCH_REQUIREMENT,
-    "full-search-runtime",
-  );
-
   assertSafeProductionBackends(name, cache, session, queue);
 
   const warnings: string[] = [];
@@ -109,7 +88,6 @@ export const resolveRuntimeProfile = (
     queue: backendPolicy(queue),
     allowNonPersistentBackends: name === "lite",
     requireRedis: cache === "redis" || session === "redis" || queue === "redis",
-    requiredSearchLevel,
     externalServicesOptional: true,
     warnings,
   };

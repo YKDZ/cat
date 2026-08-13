@@ -32,7 +32,7 @@ describe("official deployment bootstrap", () => {
       operations: [
         {
           type: "install-if-absent",
-          pluginId: "spacy-segmenter",
+          pluginId: "spacy-language-analyzer",
           scopeType: "GLOBAL",
           scopeId: "",
           value: { serverUrl: "http://spacy:8000" },

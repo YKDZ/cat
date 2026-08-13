@@ -1,4 +1,7 @@
-import type { ProviderStatus } from "@cat/shared";
+import type {
+  ProviderStatus,
+  ServiceImplementationReference,
+} from "@cat/shared";
 
 import { evaluateAmbiguity } from "./ambiguity-gate.ts";
 import { applyBudgetGate } from "./budget-gate.ts";
@@ -28,7 +31,7 @@ export type PrecisionPipelineOptions = {
   pluginManager?: unknown;
   signal?: AbortSignal | undefined;
   rerankMode?: "baseline" | "reranked" | undefined;
-  rerankProviderId?: number | undefined;
+  rerankProvider?: ServiceImplementationReference | undefined;
   rerankTimeoutMs?: number | undefined;
 };
 
@@ -71,7 +74,7 @@ export async function runPrecisionPipeline(
     pluginManager,
     signal,
     rerankMode,
-    rerankProviderId,
+    rerankProvider,
     rerankTimeoutMs,
   } = opts;
 
@@ -123,7 +126,7 @@ export async function runPrecisionPipeline(
       pluginManager,
       signal,
       rerankMode,
-      rerankProviderId,
+      rerankProvider,
       rerankTimeoutMs,
     });
     return suppressTier3IfClearTier1Winner(reranked);
@@ -149,7 +152,7 @@ export async function runPrecisionPipeline(
     pluginManager,
     signal,
     rerankMode,
-    rerankProviderId,
+    rerankProvider,
     rerankTimeoutMs,
   });
   return suppressTier3IfClearTier1Winner(reranked);

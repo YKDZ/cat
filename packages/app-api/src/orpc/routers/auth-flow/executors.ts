@@ -7,6 +7,8 @@ import {
   executeQuery,
   findUserByIdentifier,
   countRecentAttempts,
+  getAuthProviderByUserAndIssuer,
+  getMfaServiceByFactorAndUser,
   type DbHandle,
 } from "@cat/domain";
 import type {
@@ -131,9 +133,24 @@ export const passwordFactorExecutor: AuthNodeExecutor = async (
   }
 
   const pluginManager = ctx.services.pluginManager;
-  const passwordService = pluginManager
-    .getServices("AUTH_FACTOR")
-    .find(({ service }) => service.getId() === "PASSWORD");
+  const userId = ctx.blackboard.identity.userId;
+  const passwordReference =
+    userId === undefined
+      ? null
+      : await executeQuery(
+          { db: dbFrom(ctx.services) },
+          getAuthProviderByUserAndIssuer,
+          { userId, providerIssuer: "PASSWORD" },
+        );
+  const passwordResolution =
+    passwordReference === null
+      ? null
+      : pluginManager.resolveServiceImplementationReference(
+          passwordReference,
+          "AUTH_FACTOR",
+        );
+  const passwordService =
+    passwordResolution?.kind === "RESOLVED" ? passwordResolution.service : null;
 
   if (!passwordService) {
     return {
@@ -178,7 +195,7 @@ export const passwordFactorExecutor: AuthNodeExecutor = async (
             aal: result.aal,
           },
         ],
-        authFactorDbId: passwordService.dbId,
+        "identity.authProvider": passwordReference,
       },
       status: "advance",
     };
@@ -259,9 +276,24 @@ export const totpFactorExecutor: AuthNodeExecutor = async (ctx, nodeDef) => {
   }
 
   const pluginManager = ctx.services.pluginManager;
-  const totpService = pluginManager
-    .getServices("AUTH_FACTOR")
-    .find(({ service }) => service.getId() === "TOTP");
+  const userId = ctx.blackboard.identity.userId;
+  const totpReference =
+    userId === undefined
+      ? null
+      : await executeQuery(
+          { db: dbFrom(ctx.services) },
+          getMfaServiceByFactorAndUser,
+          { userId, factorId: "TOTP" },
+        );
+  const totpResolution =
+    totpReference === null
+      ? null
+      : pluginManager.resolveServiceImplementationReference(
+          totpReference,
+          "AUTH_FACTOR",
+        );
+  const totpService =
+    totpResolution?.kind === "RESOLVED" ? totpResolution.service : null;
 
   if (!totpService) {
     return {
@@ -283,6 +315,7 @@ export const totpFactorExecutor: AuthNodeExecutor = async (ctx, nodeDef) => {
     ...(ctx.blackboard.identity.userId === undefined
       ? {}
       : { userId: ctx.blackboard.identity.userId }),
+    ...(totpReference === null ? {} : { serviceReference: totpReference }),
     input: ctx.input,
     httpContext: {
       ip: ctx.httpContext.ip,

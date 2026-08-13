@@ -31,6 +31,7 @@ import { useI18n } from "vue-i18n";
 import JsonViewer from "#/components/JsonViewer.vue";
 import { orpc } from "#/rpc/orpc.ts";
 import { useWorkflowStore } from "#/stores/workflow.ts";
+import { formatTime } from "#/utils/format.ts";
 
 const props = defineProps<{
   runId: string;
@@ -41,7 +42,7 @@ const emit = defineEmits<{
   close: [];
 }>();
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const workflowStore = useWorkflowStore();
 
 const nodeDetail = ref<{
@@ -197,7 +198,7 @@ const handleRetry = async (): Promise<void> => {
                       {{ event.type }}
                     </Badge>
                     <span class="ml-auto shrink-0 text-muted-foreground">
-                      {{ new Date(event.timestamp).toLocaleTimeString() }}
+                      {{ formatTime(event.timestamp, locale) }}
                     </span>
                     <ChevronDown
                       class="size-3 shrink-0 transition-transform"

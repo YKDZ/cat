@@ -34,8 +34,12 @@ import {
   type UpdateDimensionContext,
   type InitContext,
 } from "@cat/plugin-core";
-import type { VectorizedTextData } from "@cat/shared";
-import type { PluginData, PluginManifest } from "@cat/shared";
+import { RequiredVectorDimension, type VectorizedTextData } from "@cat/shared";
+import {
+  type PluginData,
+  type PluginManifest,
+  PluginManifestSchema,
+} from "@cat/shared";
 import type { TranslationAdvise } from "@cat/shared";
 import {
   snakeCase,
@@ -47,15 +51,15 @@ import {
 } from "drizzle-orm/pg-core";
 
 import {
-  testNlpSegmenterManifest,
-  testNlpSegmenterPlugin,
-} from "./test-nlp-segmenter.ts";
+  testLanguageAnalyzerManifest,
+  testLanguageAnalyzerPlugin,
+} from "./test-language-analyzer.ts";
 
 const vector = snakeCase.table(
   "Vector",
   {
     id: serial().primaryKey(),
-    vector: dbVector({ dimensions: 1024 }).notNull(),
+    vector: dbVector({ dimensions: RequiredVectorDimension }).notNull(),
     chunkId: integer()
       .notNull()
       .references(() => chunk.id, { onDelete: "cascade", onUpdate: "cascade" }),
@@ -171,8 +175,8 @@ export class TestTextVectorizer extends TextVectorizer {
     elements,
   }: VectorizeContext): Promise<VectorizedTextData[]> => {
     return elements.map((element) => {
-      // 1. 初始化 1024 维零向量
-      const vector = Array.from({ length: 1024 }, () => 0);
+      // 1. 初始化固定维度零向量
+      const vector = Array.from({ length: RequiredVectorDimension }, () => 0);
       const text = element.text || ""; // 假设 element 有 content 字段
 
       // 2. 简单的分词 (按空格和标点分割)
@@ -182,7 +186,7 @@ export class TestTextVectorizer extends TextVectorizer {
       tokens.forEach((token) => {
         if (!token) return;
         const hash = this.simpleHash(token);
-        const index = Math.abs(hash) % 1024;
+        const index = Math.abs(hash) % RequiredVectorDimension;
         vector[index] = (vector[index] ?? 0) + 1;
       });
 
@@ -366,7 +370,7 @@ type RegisteredPlugin = {
 };
 
 export type TestPluginLoaderOptions = {
-  includeNlpSegmenter?: boolean;
+  includeLanguageAnalyzer?: boolean;
 };
 
 const plugin = {
@@ -382,7 +386,7 @@ const plugin = {
   },
 } satisfies CatPlugin;
 
-const manifest = {
+const manifest = PluginManifestSchema.parse({
   id: "mock",
   version: "0.0.1",
   entry: "index.js",
@@ -423,7 +427,7 @@ const manifest = {
       dynamic: false,
     },
   ],
-} satisfies PluginManifest;
+});
 
 /**
  * 默认包含一个 id 为 mock，实现所有服务的插件
@@ -433,8 +437,8 @@ export class TestPluginLoader implements PluginLoader {
 
   constructor(options: TestPluginLoaderOptions = {}) {
     this.registerPlugin(manifest, plugin);
-    if (options.includeNlpSegmenter) {
-      this.registerMockNlpSegmenter();
+    if (options.includeLanguageAnalyzer) {
+      this.registerMockLanguageAnalyzer();
     }
   }
 
@@ -458,14 +462,15 @@ export class TestPluginLoader implements PluginLoader {
   };
 
   /**
-   * Register a mock NLP_WORD_SEGMENTER service as a separate plugin.
+   * Register a mock LANGUAGE_ANALYZER service as a separate plugin.
    *
-   * By default, `TestPluginLoader` does **not** include an NLP segmenter,
-   * so that existing tests relying on the `intl-fallback` path are not
-   * accidentally changed. Call this method explicitly to opt in.
+   * Tests opt in explicitly because Language Analysis is loop-critical.
    */
-  public registerMockNlpSegmenter = (): void => {
-    this.registerPlugin(testNlpSegmenterManifest, testNlpSegmenterPlugin);
+  public registerMockLanguageAnalyzer = (): void => {
+    this.registerPlugin(
+      testLanguageAnalyzerManifest,
+      testLanguageAnalyzerPlugin,
+    );
   };
 
   public getManifest = async (pluginId: string): Promise<PluginManifest> => {

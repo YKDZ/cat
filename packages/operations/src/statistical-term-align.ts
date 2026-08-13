@@ -1,17 +1,20 @@
-import type { OperationContext } from "@cat/domain";
-import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTranslationsByElement } from "@cat/domain";
-import { serverLogger as logger } from "@cat/server-shared";
+import {
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
-import { nlpBatchSegmentOp } from "./nlp-batch-segment.ts";
+import { joinLemmas } from "./language-analysis-normalization.ts";
+import type { LanguageAnalysisOperationContext } from "./language-analysis-requirement.ts";
+import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 
 // ─── Input / Output Schemas ───
 
 export const StatisticalTermAlignInputSchema = z.object({
   termGroups: z.array(
     z.object({
-      languageId: z.string().min(1),
+      languageId: NormalizedLanguageIdSchema,
       candidates: z.array(
         z.object({
           text: z.string(),
@@ -32,7 +35,6 @@ export const StatisticalTermAlignInputSchema = z.object({
   config: z.object({
     minCoOccurrence: z.number().min(0).max(1).default(0.3),
   }),
-  nlpSegmenterId: z.int().optional(),
 });
 
 export const StatisticalTermAlignOutputSchema = z.object({
@@ -82,61 +84,49 @@ const computeCoOccurrence = (
 
 /**
  * 尝试在翻译文本中定位候选术语，以获取 translationId 级别的共现信息
- * 通过 NLP segmentation 匹配 lemma 序列，处理词形变化
+ * 通过 Language Analysis 匹配 lemma 序列，处理词形变化
  */
 const enrichFromTranslation = async (
   elementId: number,
   candidateText: string,
-  languageId: string,
-  nlpSegmenterId: number | undefined,
-  ctx?: OperationContext,
+  languageId: NormalizedLanguageId,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<number[]> => {
-  try {
-    const { client: drizzle } = await getDbHandle();
-    const translations = await executeQuery(
-      { db: drizzle },
-      listTranslationsByElement,
-      { elementId, languageId },
-    );
+  const translations = await executeQuery(ctx, listTranslationsByElement, {
+    elementId,
+    languageId,
+  });
 
-    if (translations.length === 0) return [];
+  if (translations.length === 0) return [];
 
-    // Use NLP to find the candidate lemma sequence in the translation
-    const segResult = await nlpBatchSegmentOp(
-      {
-        items: translations.map((t) => ({
-          id: String(t.id),
-          text: t.text,
-        })),
-        languageId,
-        nlpSegmenterId,
-      },
-      ctx,
-    );
+  // Use Language Analysis to find the candidate lemma sequence.
+  const analysis = await languageAnalyzeBatchOp(
+    {
+      items: translations.map((t) => ({
+        id: String(t.id),
+        text: t.text,
+      })),
+      languageId,
+    },
+    ctx,
+  );
 
-    const candidateLemma = candidateText.toLowerCase();
-    const matchingTranslationIds: number[] = [];
+  const candidateLemma = candidateText.toLowerCase();
+  const matchingTranslationIds: number[] = [];
 
-    for (const { id, result } of segResult.results) {
-      const translationId = parseInt(id, 10);
-      if (Number.isNaN(translationId)) continue;
+  for (const { id, result } of analysis.results) {
+    const translationId = parseInt(id, 10);
+    if (Number.isNaN(translationId)) continue;
 
-      // Build lemma string from non-stop non-punct tokens
-      const contentTokens = result.tokens.filter((t) => !t.isPunct);
-      const lemmaString = contentTokens.map((t) => t.lemma).join(" ");
+    const contentTokens = result.tokens.filter((t) => !t.isPunct);
+    const lemmaString = joinLemmas(contentTokens, languageId);
 
-      if (lemmaString.includes(candidateLemma)) {
-        matchingTranslationIds.push(translationId);
-      }
+    if (lemmaString.includes(candidateLemma)) {
+      matchingTranslationIds.push(translationId);
     }
-
-    return matchingTranslationIds;
-  } catch (err: unknown) {
-    logger
-      .child({ component: "operation" })
-      .error("enrichFromTranslation failed", { error: err });
-    return [];
   }
+
+  return matchingTranslationIds;
 };
 
 /**
@@ -158,7 +148,7 @@ const enrichFromTranslation = async (
  */
 export const statisticalTermAlignOp = async (
   data: StatisticalTermAlignInput,
-  ctx?: OperationContext,
+  ctx: LanguageAnalysisOperationContext,
 ): Promise<StatisticalTermAlignOutput> => {
   if (data.termGroups.length < 2) {
     return { alignedPairs: [] };
@@ -168,7 +158,7 @@ export const statisticalTermAlignOp = async (
   type PendingItem = {
     gi: number;
     ci: number;
-    languageId: string;
+    languageId: NormalizedLanguageId;
     candidateText: string;
     rawOccurrences: Array<{
       elementId: number;
@@ -210,7 +200,6 @@ export const statisticalTermAlignOp = async (
             occ.elementId,
             item.candidateText,
             item.languageId,
-            data.nlpSegmenterId,
             ctx,
           );
           if (translationIds.length > 0) {

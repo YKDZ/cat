@@ -5,7 +5,7 @@ import type { RefResolver } from "./ref-resolver.ts";
 
 export type SeededContext = {
   db: DrizzleDB;
-  redis: RedisConnection;
+  redis?: RedisConnection;
   pluginManager: PluginManager;
   refs: RefResolver;
   projectId: string;

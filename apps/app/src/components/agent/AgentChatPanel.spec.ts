@@ -209,9 +209,15 @@ describe("AgentChatPanel", () => {
 
     mocks.listLLMProviders.mockResolvedValue([
       {
-        id: 7,
         serviceId: "openai",
         name: "GPT",
+        reference: {
+          pluginId: "test-plugin",
+          serviceId: "openai",
+          serviceType: "LLM_PROVIDER",
+          scopeType: "GLOBAL",
+          scopeId: "",
+        },
       },
     ]);
     mocks.fetchDefinitions.mockResolvedValue(undefined);
@@ -279,7 +285,13 @@ describe("AgentChatPanel", () => {
     expect(mocks.createSession).toHaveBeenCalledWith("agent-definition-1", {
       projectId: "11111111-1111-4111-8111-111111111111",
       projectName: "CAT Project",
-      providerId: 7,
+      provider: {
+        pluginId: "test-plugin",
+        serviceId: "openai",
+        serviceType: "LLM_PROVIDER",
+        scopeType: "GLOBAL",
+        scopeId: "",
+      },
       languageId: "zh-Hans",
       branchId: 42,
       contentNodeIds: [

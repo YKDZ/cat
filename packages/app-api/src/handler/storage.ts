@@ -1,10 +1,9 @@
 import { Readable } from "node:stream";
 
-import { type StorageProvider } from "@cat/plugin-core";
 import {
   FileDownloadPayloadSchema,
-  getServiceFromDBId,
   PresignedPutFileSessionPayloadSchema,
+  resolveServiceImplementation,
 } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import { Hono } from "hono";
@@ -19,13 +18,14 @@ app.put("/upload/:sessionId", async (c) => {
   const { pluginManager, sessionStore } = getRuntimeCapabilities();
 
   const redisKey = `file:client:put:${sessionId}`;
-  const { key, storageProviderId } = PresignedPutFileSessionPayloadSchema.parse(
+  const { key, storageProvider } = PresignedPutFileSessionPayloadSchema.parse(
     await sessionStore.getAll(redisKey),
   );
 
-  const provider = getServiceFromDBId<StorageProvider>(
+  const provider = resolveServiceImplementation(
     pluginManager,
-    storageProviderId,
+    storageProvider,
+    "STORAGE_PROVIDER",
   );
 
   const bodyStream = c.req.raw.body;
@@ -52,13 +52,14 @@ app.get("/download/:token", async (c) => {
 
   const redisKey = `file:download:${token}`;
 
-  const { key, storageProviderId, filename } = FileDownloadPayloadSchema.parse(
+  const { key, storageProvider, filename } = FileDownloadPayloadSchema.parse(
     await sessionStore.getAll(redisKey),
   );
 
-  const provider = getServiceFromDBId<StorageProvider>(
+  const provider = resolveServiceImplementation(
     pluginManager,
-    storageProviderId,
+    storageProvider,
+    "STORAGE_PROVIDER",
   );
 
   try {

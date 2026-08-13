@@ -4,16 +4,19 @@ import {
   pluginConfig,
   pluginConfigInstance,
   pluginInstallation,
+  pluginService,
   sql,
 } from "@cat/db";
 import {
   ScopeTypeSchema,
   nonNullSafeZDotJson,
+  stableSerializeLanguageAnalysis,
   type NonNullJSONType,
   type ScopeType,
 } from "@cat/shared";
 import * as z from "zod";
 
+import { invalidateRecallDerivationDemands } from "#/commands/recall-derivation/invalidate-recall-derivation-demands.ts";
 import type { Command, DbHandle } from "#/types.ts";
 
 import {
@@ -59,6 +62,7 @@ export const writePluginConfigInstanceInTransaction = async (
     .from(pluginConfig)
     .where(eq(pluginConfig.pluginId, command.pluginId))
     .limit(1);
+  let previousValue: NonNullJSONType | undefined;
   if (
     !definition ||
     !definition.isAvailable ||
@@ -98,27 +102,80 @@ export const writePluginConfigInstanceInTransaction = async (
       })
       .onConflictDoNothing()
       .returning();
-    return created[0] ?? null;
+    const result = created[0] ?? null;
+    if (!result) return null;
+  } else {
+    const [previous] = await tx
+      .select({ value: pluginConfigInstance.value })
+      .from(pluginConfigInstance)
+      .where(
+        and(
+          eq(pluginConfigInstance.configId, definition.id),
+          eq(pluginConfigInstance.pluginInstallationId, installation.id),
+          eq(pluginConfigInstance.appliedVersion, definition.schemaVersion),
+          eq(pluginConfigInstance.revision, command.expectedRevision),
+        ),
+      )
+      .limit(1);
+    previousValue = previous?.value;
   }
 
-  const updated = await tx
-    .update(pluginConfigInstance)
-    .set({
-      value: command.value,
-      revision: sql`${pluginConfigInstance.revision} + 1`,
-      updatedAt: new Date(),
-    })
+  const result =
+    command.expectedRevision === null || command.expectedRevision === undefined
+      ? ((
+          await tx
+            .select()
+            .from(pluginConfigInstance)
+            .where(
+              and(
+                eq(pluginConfigInstance.configId, definition.id),
+                eq(pluginConfigInstance.pluginInstallationId, installation.id),
+              ),
+            )
+            .limit(1)
+        )[0] ?? null)
+      : ((
+          await tx
+            .update(pluginConfigInstance)
+            .set({
+              value: command.value,
+              revision: sql`${pluginConfigInstance.revision} + 1`,
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                eq(pluginConfigInstance.configId, definition.id),
+                eq(pluginConfigInstance.pluginInstallationId, installation.id),
+                eq(
+                  pluginConfigInstance.appliedVersion,
+                  definition.schemaVersion,
+                ),
+                eq(pluginConfigInstance.revision, command.expectedRevision),
+              ),
+            )
+            .returning()
+        )[0] ?? null);
+  if (!result) return null;
+
+  const [tokenizer] = await tx
+    .select({ id: pluginService.id })
+    .from(pluginService)
     .where(
       and(
-        eq(pluginConfigInstance.configId, definition.id),
-        eq(pluginConfigInstance.pluginInstallationId, installation.id),
-        eq(pluginConfigInstance.appliedVersion, definition.schemaVersion),
-        eq(pluginConfigInstance.revision, command.expectedRevision),
+        eq(pluginService.pluginInstallationId, installation.id),
+        eq(pluginService.serviceType, "TOKENIZER"),
       ),
     )
-    .returning();
-
-  return updated[0] ?? null;
+    .limit(1);
+  if (
+    tokenizer &&
+    (previousValue === undefined ||
+      stableSerializeLanguageAnalysis(previousValue) !==
+        stableSerializeLanguageAnalysis(command.value))
+  ) {
+    await invalidateRecallDerivationDemands(tx);
+  }
+  return result;
 };
 
 export const writePluginConfigInstance: Command<

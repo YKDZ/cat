@@ -14,7 +14,7 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UserAvatar from "#/components/UserAvatar.vue";
-import { i18nUseTimeAgoMessages } from "#/utils/i18n.ts";
+import { createTimeAgoMessages } from "#/utils/i18n.ts";
 
 import InlineEdit from "./InlineEdit.vue";
 
@@ -31,6 +31,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const timeAgoMessages = createTimeAgoMessages(t);
 
 const editingCommentId = ref<number | null>(null);
 
@@ -60,7 +61,7 @@ const handleSaveEdit = (commentId: number, newBody: string) => {
           <span class="text-muted-foreground">
             {{
               useTimeAgo(comment.createdAt, {
-                messages: i18nUseTimeAgoMessages,
+                messages: timeAgoMessages,
               }).value
             }}
           </span>

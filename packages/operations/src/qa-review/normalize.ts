@@ -3,16 +3,20 @@ import type { NormalizedQaFinding } from "@cat/shared";
 
 export const normalizeQaResultItems = (input: {
   qaResultItemIds: number[];
-  items: Array<{ isPassed: boolean; checkerId: number; meta: unknown }>;
+  items: Array<{
+    isPassed: boolean;
+    checker: NormalizedQaFinding["checkerService"];
+    meta: unknown;
+  }>;
 }): NormalizedQaFinding[] =>
   input.items.flatMap((item, index) => {
     if (item.isPassed) {
       return [
         {
           layer: "DETERMINISTIC",
-          checkerServiceId: item.checkerId,
+          checkerService: item.checker,
           qaResultItemId: input.qaResultItemIds[index] ?? null,
-          ruleId: `checker:${item.checkerId}:pass`,
+          ruleId: `checker:${item.checker?.serviceId ?? "unknown"}:pass`,
           ruleFamily: "coverage",
           severity: "info",
           action: "PASS",
@@ -41,9 +45,10 @@ export const normalizeQaResultItems = (input: {
     return [
       {
         layer: "DETERMINISTIC",
-        checkerServiceId: item.checkerId,
+        checkerService: item.checker,
         qaResultItemId: input.qaResultItemIds[index] ?? null,
-        ruleId: issue.ruleId ?? `checker:${item.checkerId}`,
+        ruleId:
+          issue.ruleId ?? `checker:${item.checker?.serviceId ?? "unknown"}`,
         ruleFamily: issue.ruleFamily ?? "generic",
         severity: issue.severity,
         action: issue.defaultAction ?? "NEEDS_REVIEW",

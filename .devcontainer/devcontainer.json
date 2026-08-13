@@ -49,6 +49,6 @@
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
   "remoteUser": "root",
-  "postCreateCommand": "docker version --format '{{.Client.Version}}' && docker buildx version && docker compose version && pnpm install --frozen-lockfile",
+  "postCreateCommand": "docker version --format '{{.Client.Version}}' && docker buildx version && docker compose version && pnpm ci:install",
   "forwardPorts": []
 }

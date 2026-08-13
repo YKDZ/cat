@@ -35,6 +35,7 @@ export const listContentNodesTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = listContentNodesArgs.parse(args);
     const projectId = parsed.projectId ?? ctx.session.projectId;
 
@@ -45,9 +46,11 @@ export const listContentNodesTool: AgentToolDefinition = {
     assertProjectInSession(projectId, ctx);
 
     const { client: db } = await getDbHandle();
+    ctx.signal.throwIfAborted();
     const allRows = await executeQuery({ db }, listProjectContentNodes, {
       projectId,
     });
+    ctx.signal.throwIfAborted();
     const start = parsed.page * parsed.pageSize;
     const end = start + parsed.pageSize;
     const contentNodes = allRows.slice(start, end).map((row) => ({
@@ -58,7 +61,7 @@ export const listContentNodesTool: AgentToolDefinition = {
       kind: row.kind,
       exportRole: row.exportRole,
       boundaryType: row.boundaryType,
-      fileHandlerId: row.fileHandlerId,
+      fileHandler: row.fileHandler,
       fileId: row.fileId,
       isContainer: row.kind === "DIRECTORY" || row.kind === "PROJECT_ROOT",
       createdAt: row.createdAt,

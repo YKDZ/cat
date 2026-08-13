@@ -5,11 +5,16 @@ import {
 } from "@cat/app-api/readiness";
 import type { RedisConnection } from "@cat/db";
 import type {
-  DatabaseRuntimeSummary,
+  DatabaseRequirementAssessment,
   RuntimeProfile,
   RuntimeState,
 } from "@cat/domain";
-import type { NlpWordSegmenter } from "@cat/plugin-core";
+import { LanguageAnalysisReadinessError } from "@cat/operations";
+import {
+  databaseReadinessCode,
+  DatabaseRequirementAssessmentSchema,
+  type DatabaseRequirement,
+} from "@cat/shared";
 
 type ApplicationReadinessDependencies = {
   backends: {
@@ -21,12 +26,10 @@ type ApplicationReadinessDependencies = {
   getRuntimeState: () => RuntimeState | undefined;
   profile: RuntimeProfile;
   redis: RedisConnection | undefined;
-  detectSearchRuntime: () => Promise<DatabaseRuntimeSummary>;
-  spaCyServices: () => Array<{
-    id: string;
-    pluginId: string;
-    service: Pick<NlpWordSegmenter, "getSupportedLanguages" | "segment">;
-  }>;
+  assessDatabaseRequirements: (
+    signal: AbortSignal,
+  ) => Promise<DatabaseRequirementAssessment>;
+  assessLanguageAnalysis: (signal: AbortSignal) => Promise<void>;
   storageServices: () => Array<{ ping: () => Promise<void> }>;
 };
 
@@ -86,44 +89,24 @@ const requireAvailableStorage = async (
   }
 };
 
-const requireAvailableSpacy = async (
-  getServices: () => Array<{
-    id: string;
-    pluginId: string;
-    service: Pick<NlpWordSegmenter, "getSupportedLanguages" | "segment">;
-  }>,
+const requireAvailableLanguageAnalysis = async (
+  assess: (signal: AbortSignal) => Promise<void>,
   signal: AbortSignal,
 ): Promise<void> => {
-  const service = getServices().find(
-    ({ id, pluginId }) =>
-      pluginId === "spacy-segmenter" && id === "spacy-word-segmenter",
-  );
-  if (!service) {
-    throw new ReadinessProbeFailure("SPACY_NOT_CONFIGURED");
-  }
-
   try {
-    const languages = await service.service.getSupportedLanguages(signal);
-    const languageId = languages[0];
-    if (languageId === undefined) {
-      throw new Error("No supported spaCy languages");
+    await assess(signal);
+  } catch (error) {
+    if (error instanceof ReadinessProbeFailure) throw error;
+    if (error instanceof LanguageAnalysisReadinessError) {
+      throw new ReadinessProbeFailure(`LANGUAGE_ANALYSIS_${error.reason}`);
     }
-    const result = await service.service.segment({
-      languageId,
-      signal,
-      text: "CAT readiness segment probe.",
-    });
-    if (result.tokens.length === 0) {
-      throw new Error("spaCy did not tokenize the readiness probe");
-    }
-  } catch {
-    throw new ReadinessProbeFailure("SPACY_UNAVAILABLE");
+    throw new ReadinessProbeFailure("LANGUAGE_ANALYSIS_UNAVAILABLE");
   }
 };
 
 /**
  * Build the application-specific readiness aggregate after runtime bootstrap
- * has created its database, backend, storage and NLP service dependencies.
+ * has created its database, backend, storage and Language Analysis dependencies.
  */
 export const createApplicationReadinessReporter = (
   dependencies: ApplicationReadinessDependencies,
@@ -165,17 +148,27 @@ export const createApplicationReadinessReporter = (
     },
     {
       cost: "expensive" as const,
-      id: "search",
+      id: "database-requirements",
       required: true,
-      run: async (): Promise<void> => {
+      run: async (signal: AbortSignal): Promise<void> => {
         try {
-          const database = await dependencies.detectSearchRuntime();
-          if (database.searchLevel !== "full-search-runtime") {
-            throw new ReadinessProbeFailure("DATABASE_SEARCH_INSUFFICIENT");
+          const assessment = DatabaseRequirementAssessmentSchema.parse(
+            await dependencies.assessDatabaseRequirements(signal),
+          );
+          const unsatisfied = assessment.requirements.find(
+            (
+              requirement,
+            ): requirement is Exclude<
+              DatabaseRequirement,
+              { status: "SATISFIED" }
+            > => requirement.status !== "SATISFIED",
+          );
+          if (unsatisfied !== undefined) {
+            throw new ReadinessProbeFailure(databaseReadinessCode(unsatisfied));
           }
         } catch (error) {
           if (error instanceof ReadinessProbeFailure) throw error;
-          throw new ReadinessProbeFailure("DATABASE_SEARCH_UNAVAILABLE");
+          throw new ReadinessProbeFailure("DATABASE_REQUIREMENTS_UNAVAILABLE");
         }
       },
     },
@@ -224,10 +217,13 @@ export const createApplicationReadinessReporter = (
     },
     {
       cost: "expensive" as const,
-      id: "spacy",
+      id: "language-analysis",
       required: true,
       run: async (signal: AbortSignal): Promise<void> =>
-        requireAvailableSpacy(dependencies.spaCyServices, signal),
+        requireAvailableLanguageAnalysis(
+          dependencies.assessLanguageAnalysis,
+          signal,
+        ),
     },
     ...(dependencies.profile.name === "production"
       ? [
@@ -254,7 +250,6 @@ export const createApplicationReadinessReporter = (
     runtime: {
       cacheBackend: backendKind(dependencies.backends.cacheStore),
       queueBackend: backendKind(dependencies.backends.vectorizationQueue),
-      requiredSearchLevel: dependencies.profile.requiredSearchLevel,
       sessionBackend: backendKind(dependencies.backends.sessionStore),
     },
   });

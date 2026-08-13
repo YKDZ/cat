@@ -5,6 +5,7 @@ import {
   resolveRuntimeProfile,
   type RuntimeState,
 } from "@cat/domain";
+import { LanguageAnalysisReadinessError } from "@cat/operations";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createApplicationReadinessReporter } from "./readiness.ts";
@@ -12,13 +13,11 @@ import { createApplicationReadinessReporter } from "./readiness.ts";
 const profile = resolveRuntimeProfile({ CAT_RUNTIME_PROFILE: "lite" });
 const runtimeState: RuntimeState = {
   database: {
-    backend: "postgres-server",
-    disabledFeatures: [],
-    extensions: { pg_trgm: true, rum: true, vector: true, zhparser: true },
-    functions: { rum_ts_score: true },
-    searchLevel: "full-search-runtime",
-    textSearchConfigs: { cat_zh_hans: true },
-    warnings: [],
+    requirements: [
+      { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+      { id: "POSTGRESQL_TRIGRAM_MATCHING", status: "SATISFIED" },
+      { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+    ],
   },
   initializedAt: "2026-07-13T00:00:00.000Z",
   profile,
@@ -33,33 +32,12 @@ const createDependencies = (profileOverride = profile) => ({
   database: {
     ping: async () => {},
   },
-  detectSearchRuntime: async () => runtimeState.database,
+  assessDatabaseRequirements: async (_signal: AbortSignal) =>
+    runtimeState.database,
   getRuntimeState: () => ({ ...runtimeState, profile: profileOverride }),
   profile: profileOverride,
   redis: undefined,
-  spaCyServices: () => [
-    {
-      id: "spacy-word-segmenter",
-      pluginId: "spacy-segmenter",
-      service: {
-        getSupportedLanguages: async () => ["en"],
-        segment: async () => ({
-          sentences: [],
-          tokens: [
-            {
-              end: 3,
-              isPunct: false,
-              isStop: false,
-              lemma: "cat",
-              pos: "NOUN",
-              start: 0,
-              text: "CAT",
-            },
-          ],
-        }),
-      },
-    },
-  ],
+  assessLanguageAnalysis: vi.fn(async () => {}),
   storageServices: () => [{ ping: async () => {} }],
 });
 
@@ -68,7 +46,7 @@ afterEach(() => {
 });
 
 describe("application readiness", () => {
-  it("requires initialized Lite memory backends, storage, spaCy, and full PostgreSQL search without Redis", async () => {
+  it("requires initialized Lite memory backends, storage, Language Analysis, and database requirements without Redis", async () => {
     Reflect.set(globalThis, "inited", true);
     const report =
       await createApplicationReadinessReporter(createDependencies()).report();
@@ -80,7 +58,7 @@ describe("application readiness", () => {
         cache: expect.objectContaining({ status: "ready" }),
         queue: expect.objectContaining({ status: "ready" }),
         session: expect.objectContaining({ status: "ready" }),
-        spacy: expect.objectContaining({ status: "ready" }),
+        "language-analysis": expect.objectContaining({ status: "ready" }),
         storage: expect.objectContaining({ status: "ready" }),
       }),
     );
@@ -122,52 +100,154 @@ describe("application readiness", () => {
     });
   });
 
-  it("does not treat another word segmenter as the official spaCy service", async () => {
+  it("accepts a live assessment from a selected non-spaCy Language Analyzer", async () => {
     Reflect.set(globalThis, "inited", true);
     const dependencies = createDependencies();
-    dependencies.spaCyServices = () => [
-      {
-        id: "intl-segmenter",
-        pluginId: "basic-tokenizer",
-        service: {
-          getSupportedLanguages: async () => ["en"],
-          segment: async () => ({ sentences: [], tokens: [] }),
-        },
-      },
-    ];
 
     const report =
       await createApplicationReadinessReporter(dependencies).report();
 
-    expect(report.components.spacy).toMatchObject({
-      code: "SPACY_NOT_CONFIGURED",
-      status: "failed",
+    expect(dependencies.assessLanguageAnalysis).toHaveBeenCalledWith(
+      expect.any(AbortSignal),
+    );
+    expect(report.components["language-analysis"]).toMatchObject({
+      code: "OK",
+      status: "ready",
     });
   });
 
-  it("requires the selected official spaCy segmenter to tokenize a stable probe", async () => {
+  it("surfaces invalid runtime attestation as a typed readiness blocker", async () => {
     Reflect.set(globalThis, "inited", true);
     const dependencies = createDependencies();
-    const segment = vi.fn(async () => ({ sentences: [], tokens: [] }));
-    dependencies.spaCyServices = () => [
-      {
-        id: "spacy-word-segmenter",
-        pluginId: "spacy-segmenter",
-        service: { getSupportedLanguages: async () => ["en"], segment },
-      },
-    ];
+    dependencies.assessLanguageAnalysis = vi.fn(async () => {
+      throw new LanguageAnalysisReadinessError("INVALID_ATTESTATION");
+    });
 
     await expect(
       createApplicationReadinessReporter(dependencies).report(),
     ).resolves.toMatchObject({
-      components: { spacy: { code: "SPACY_UNAVAILABLE", status: "failed" } },
+      components: {
+        "language-analysis": {
+          code: "LANGUAGE_ANALYSIS_INVALID_ATTESTATION",
+          status: "failed",
+        },
+      },
       status: "not-ready",
     });
-    expect(segment).toHaveBeenCalledWith({
-      languageId: "en",
-      signal: expect.any(AbortSignal),
-      text: "CAT readiness segment probe.",
+  });
+
+  it("recovers after the expensive probe cache expires without restarting", async () => {
+    vi.useFakeTimers();
+    Reflect.set(globalThis, "inited", true);
+    const dependencies = createDependencies();
+    let available = false;
+    dependencies.assessLanguageAnalysis = vi.fn(async () => {
+      if (!available) throw new LanguageAnalysisReadinessError("UNAVAILABLE");
     });
+    const reporter = createApplicationReadinessReporter(dependencies);
+
+    await expect(reporter.report()).resolves.toMatchObject({
+      status: "not-ready",
+    });
+    available = true;
+    await expect(reporter.report()).resolves.toMatchObject({
+      status: "not-ready",
+    });
+    await vi.advanceTimersByTimeAsync(1_001);
+    await expect(reporter.report()).resolves.toMatchObject({ status: "ready" });
+    vi.useRealTimers();
+  });
+
+  it("reports an exact database requirement blocker", async () => {
+    Reflect.set(globalThis, "inited", true);
+    const dependencies = createDependencies();
+    dependencies.assessDatabaseRequirements = async () => ({
+      requirements: [
+        { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+        {
+          blocker: { reason: "EXTENSION_MISSING" },
+          id: "POSTGRESQL_TRIGRAM_MATCHING",
+          status: "BLOCKED",
+        },
+        { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+      ],
+    });
+
+    await expect(
+      createApplicationReadinessReporter(dependencies).report(),
+    ).resolves.toMatchObject({
+      components: {
+        "database-requirements": {
+          code: "DATABASE_POSTGRESQL_TRIGRAM_MATCHING_BLOCKED",
+          status: "failed",
+        },
+      },
+      status: "not-ready",
+    });
+  });
+
+  it("rejects malformed database assessments instead of treating them as ready", async () => {
+    Reflect.set(globalThis, "inited", true);
+    const dependencies = createDependencies();
+    Reflect.set(dependencies, "assessDatabaseRequirements", async () => ({
+      requirements: [
+        { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+        { id: "POSTGRESQL_CORE", status: "SATISFIED" },
+        { id: "POSTGRESQL_VECTOR_STORAGE", status: "SATISFIED" },
+      ],
+    }));
+
+    await expect(
+      createApplicationReadinessReporter(dependencies).report(),
+    ).resolves.toMatchObject({
+      components: {
+        "database-requirements": {
+          code: "DATABASE_REQUIREMENTS_UNAVAILABLE",
+          status: "failed",
+        },
+      },
+      status: "not-ready",
+    });
+  });
+
+  it("aborts a pending database assessment and retries it after the cache TTL", async () => {
+    vi.useFakeTimers();
+    try {
+      Reflect.set(globalThis, "inited", true);
+      const dependencies = createDependencies();
+      let available = false;
+      const assessor = vi.fn(async (signal: AbortSignal) => {
+        if (available) return runtimeState.database;
+        await new Promise<void>((_, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason), {
+            once: true,
+          });
+        });
+        return runtimeState.database;
+      });
+      dependencies.assessDatabaseRequirements = assessor;
+      const reporter = createApplicationReadinessReporter(dependencies);
+
+      const first = reporter.report();
+      await vi.advanceTimersByTimeAsync(2_001);
+      await expect(first).resolves.toMatchObject({
+        components: {
+          "database-requirements": { code: "TIMEOUT", status: "failed" },
+        },
+        status: "not-ready",
+      });
+      expect(assessor).toHaveBeenCalledOnce();
+      expect(assessor.mock.calls[0]?.[0].aborted).toBe(true);
+
+      available = true;
+      await vi.advanceTimersByTimeAsync(1_001);
+      await expect(reporter.report()).resolves.toMatchObject({
+        status: "ready",
+      });
+      expect(assessor).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("attests the instantiated backend kind instead of accepting the profile declaration", async () => {

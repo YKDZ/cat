@@ -24,6 +24,7 @@ export const readPrecheckTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = readPrecheckArgs.parse(args);
     const runId = parsed.runId ?? ctx.session.runId;
@@ -32,9 +33,11 @@ export const readPrecheckTool: AgentToolDefinition = {
       throw new Error("read_precheck requires runId");
     }
 
+    ctx.signal.throwIfAborted();
     const snapshot = await executeQuery({ db }, loadAgentRunSnapshot, {
       externalId: runId,
     });
+    ctx.signal.throwIfAborted();
 
     const boardData = isRecord(snapshot) ? snapshot : {};
 

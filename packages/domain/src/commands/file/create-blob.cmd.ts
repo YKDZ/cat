@@ -1,12 +1,15 @@
 import { blob } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const CreateBlobCommandSchema = z.object({
   key: z.string(),
-  storageProviderId: z.int(),
+  storageProvider: ServiceImplementationReferenceSchema,
   hash: z.instanceof(Buffer).optional(),
 });
 
@@ -21,7 +24,7 @@ export const createBlob: Command<
       .insert(blob)
       .values({
         key: command.key,
-        storageProviderId: command.storageProviderId,
+        storageProvider: command.storageProvider,
         hash: command.hash ?? Buffer.alloc(32),
       })
       .returning(),

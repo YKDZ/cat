@@ -22,6 +22,7 @@ import { promoteApprovedTranslationMemoryOp } from "@cat/operations";
 import { serverLogger as logger } from "@cat/server-shared";
 import {
   QaReviewActionResultSchema,
+  RecallDerivationReferenceSchema,
   SubmitQaReviewActionInputSchema,
   assertSingleNonNullish,
 } from "@cat/shared";
@@ -55,6 +56,10 @@ const loadTranslationOverlayPayload = async (
     createdAt: row.createdAt.toISOString(),
   };
 };
+
+const SubmitQaReviewActionOutputSchema = QaReviewActionResultSchema.and(
+  z.object({ derivations: z.array(RecallDerivationReferenceSchema) }),
+);
 
 export const listQueue = authed
   .input(ListQaReviewQueueItemsQuerySchema)
@@ -161,7 +166,7 @@ export const submitAction = authed
     branchId: input.branchId ?? undefined,
     projectId: input.projectId,
   }))
-  .output(QaReviewActionResultSchema)
+  .output(SubmitQaReviewActionOutputSchema)
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -256,15 +261,17 @@ export const submitAction = authed
       };
     });
 
+    let derivations: z.infer<typeof RecallDerivationReferenceSchema>[] = [];
     if (
       (input.branchId === null || input.branchId === undefined) &&
       result.approvedTranslationId !== null
     ) {
       try {
-        await promoteApprovedTranslationMemoryOp({
+        const promotion = await promoteApprovedTranslationMemoryOp({
           translationId: result.approvedTranslationId,
           approvedById: user.id,
         });
+        derivations = promotion.derivations;
       } catch (error) {
         logger
           .child({ component: "rpc" })
@@ -275,5 +282,5 @@ export const submitAction = authed
       }
     }
 
-    return result;
+    return { ...result, derivations };
   });

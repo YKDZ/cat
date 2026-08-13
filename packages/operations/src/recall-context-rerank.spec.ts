@@ -51,16 +51,29 @@ class StubRerankProvider extends RerankProvider {
     vi.fn<(input: { request: RerankRequest }) => Promise<RerankResponse>>();
 }
 
+type RegisteredRerankProvider = ReturnType<
+  PluginManager["getServices"]
+>[number] & {
+  type: "RERANK_PROVIDER";
+  service: StubRerankProvider;
+};
+
+const globalRerankProvider = (
+  provider: StubRerankProvider,
+): RegisteredRerankProvider => ({
+  pluginId: "stub-plugin",
+  type: "RERANK_PROVIDER",
+  id: "stub",
+  dbId: 1,
+  service: provider,
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+
 const makePluginManager = (provider: StubRerankProvider): PluginManager => {
   const manager = new PluginManager("GLOBAL", "");
   vi.spyOn(manager, "getServices").mockReturnValue([
-    {
-      pluginId: "stub-plugin",
-      type: "RERANK_PROVIDER" as const,
-      id: "stub",
-      dbId: 1,
-      service: provider,
-    },
+    globalRerankProvider(provider),
   ]);
   return manager;
 };

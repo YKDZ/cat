@@ -1,2 +1,2 @@
 include:
-  - ../../../app/compose.local.yaml
+  - ../../compose.services.yaml

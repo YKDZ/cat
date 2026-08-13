@@ -1,3 +1,8 @@
+import {
+  GlossaryListByCreatorCapabilityInputSchema,
+  MemoryListByCreatorCapabilityInputSchema,
+  ProjectListByCreatorCapabilityInputSchema,
+} from "#/capabilities/resource-list-contracts.ts";
 import type { PluginCapabilities } from "#/capabilities/types.ts";
 import {
   createAgentDefinition,
@@ -8,7 +13,6 @@ import {
   createGlossaryConceptSubject,
   createGlossary,
   createMemory,
-  addProjectTargetLanguages,
   approveTranslation,
   countGlossaryConcepts,
   countMemoryItems,
@@ -69,6 +73,7 @@ import {
   upsertChunkVectors,
   getChunkVectors,
   searchChunkCosineSimilarity,
+  EnsureVectorStorageSchemaCommandSchema,
   ensureVectorStorageSchema,
 } from "#/index.ts";
 import { getAccountMetaByIdentity } from "#/queries/auth/get-account-meta-by-identity.query.ts";
@@ -103,7 +108,11 @@ export const createPluginCapabilities = (
   project: {
     get: async (input) => executeQuery(execCtx, getProject, input),
     listByCreator: async (input) =>
-      executeQuery(execCtx, listProjectsByCreator, input),
+      executeQuery(
+        execCtx,
+        listProjectsByCreator,
+        ProjectListByCreatorCapabilityInputSchema.parse(input),
+      ),
     listOwned: async (input) => executeQuery(execCtx, listOwnedProjects, input),
     getTargetLanguages: async (input) =>
       executeQuery(execCtx, getProjectTargetLanguages, input),
@@ -162,15 +171,6 @@ export const createPluginCapabilities = (
       );
       await executeCommand(execCtx, unlinkProjectMemories, input);
     },
-    addTargetLanguages: async (input) => {
-      await assertPermission(
-        checkPermission,
-        "project",
-        "editor",
-        input.projectId,
-      );
-      await executeCommand(execCtx, addProjectTargetLanguages, input);
-    },
   },
   translation: {
     listByElement: async (input) =>
@@ -222,10 +222,10 @@ export const createPluginCapabilities = (
         providedAccountId,
         providerIssuer,
       }),
-    getMfaPayloadForUser: async ({ userId, factorId }) =>
+    getMfaPayloadForUser: async ({ userId, mfaService }) =>
       executeQuery(execCtx, getMfaPayloadByFactorAndUser, {
         userId,
-        factorId,
+        mfaService,
       }),
   },
   vector: {
@@ -250,7 +250,11 @@ export const createPluginCapabilities = (
       await executeCommand(execCtx, updateVectorDimension, { dimension });
     },
     ensureSchema: async (dimension) => {
-      await executeCommand(execCtx, ensureVectorStorageSchema, { dimension });
+      await executeCommand(
+        execCtx,
+        ensureVectorStorageSchema,
+        EnsureVectorStorageSchemaCommandSchema.parse({ dimension }),
+      );
     },
   },
   language: {
@@ -303,7 +307,11 @@ export const createPluginCapabilities = (
     listTermPairs: async (input) =>
       executeQuery(execCtx, listGlossaryTermPairs, input),
     listByCreator: async (input) =>
-      executeQuery(execCtx, listGlossariesByCreator, input),
+      executeQuery(
+        execCtx,
+        listGlossariesByCreator,
+        GlossaryListByCreatorCapabilityInputSchema.parse(input),
+      ),
     listOwned: async (input) =>
       executeQuery(execCtx, listOwnedGlossaries, input),
     listProjectOwned: async (input) =>
@@ -327,7 +335,11 @@ export const createPluginCapabilities = (
   memory: {
     get: async (input) => executeQuery(execCtx, getMemory, input),
     listByCreator: async (input) =>
-      executeQuery(execCtx, listMemoriesByCreator, input),
+      executeQuery(
+        execCtx,
+        listMemoriesByCreator,
+        MemoryListByCreatorCapabilityInputSchema.parse(input),
+      ),
     listOwned: async (input) => executeQuery(execCtx, listOwnedMemories, input),
     listProjectOwned: async (input) =>
       executeQuery(execCtx, listProjectMemories, input),

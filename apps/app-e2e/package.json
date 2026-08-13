@@ -12,6 +12,7 @@
     "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test:e2e": "node test-e2e.ts",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --config vitest.integration.config.ts --no-file-parallelism --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --passWithNoTests",
     "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p apps/app-e2e/tsconfig.json"
   },

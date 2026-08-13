@@ -9,9 +9,14 @@ import {
   qaResultItem,
   vectorizedString,
 } from "@cat/db";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  claimAgentRunOwner,
+  createAgentDefinition,
+  createAgentRun,
+  createAgentSession,
   createContentNodeUnderParent,
   createElements,
   createProject,
@@ -28,7 +33,20 @@ import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 let testDb: TestDB;
 let creatorId: string;
-let checkerIds: [number, number];
+const checkerReferenceA = ServiceImplementationReferenceSchema.parse({
+  pluginId: "qa-result-checker",
+  serviceId: "checker-a",
+  serviceType: "QA_CHECKER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+const checkerReferenceB = ServiceImplementationReferenceSchema.parse({
+  pluginId: "qa-result-checker",
+  serviceId: "checker-b",
+  serviceType: "QA_CHECKER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
 
 const insertString = async (value: string, languageId: string) => {
   const [row] = await testDb.client
@@ -40,6 +58,7 @@ const insertString = async (value: string, languageId: string) => {
 };
 
 const seedTranslation = async () => {
+  const fixtureId = randomUUID();
   const project = await executeCommand({ db: testDb.client }, createProject, {
     name: `qa-result-${randomUUID()}`,
     description: null,
@@ -70,7 +89,7 @@ const seedTranslation = async () => {
       localOrder: 0,
     },
   );
-  const sourceStringId = await insertString("Hello", "en");
+  const sourceStringId = await insertString(`Hello ${fixtureId}`, "en");
   const [elementId] = await executeCommand(
     { db: testDb.client },
     createElements,
@@ -89,7 +108,10 @@ const seedTranslation = async () => {
       ],
     },
   );
-  const translationStringId = await insertString("你好", "zh-Hans");
+  const translationStringId = await insertString(
+    `你好 ${fixtureId}`,
+    "zh-Hans",
+  );
   const [translationId] = await executeCommand(
     { db: testDb.client },
     createTranslations,
@@ -133,7 +155,7 @@ beforeAll(async () => {
     .insert(pluginInstallation)
     .values({ pluginId, scopeType: "GLOBAL", scopeId: "" })
     .returning({ id: pluginInstallation.id });
-  const services = await testDb.client
+  await testDb.client
     .insert(pluginService)
     .values([
       {
@@ -148,10 +170,6 @@ beforeAll(async () => {
       },
     ])
     .returning({ id: pluginService.id });
-  checkerIds = [
-    requireFixtureValue(services[0]).id,
-    requireFixtureValue(services[1]).id,
-  ];
 });
 
 afterAll(async () => {
@@ -159,6 +177,100 @@ afterAll(async () => {
 });
 
 describe("createQaResultWithItems", () => {
+  it("reuses an owned QA phase after a crash between downstream phases", async () => {
+    const { translationId } = await seedTranslation();
+    const persistedTranslationId = requireFixtureValue(translationId);
+    const definition = await executeCommand(
+      { db: testDb.client },
+      createAgentDefinition,
+      {
+        name: `qa-owner-${randomUUID()}`,
+        description: "",
+        scopeType: "GLOBAL",
+        scopeId: "",
+        definitionId: `qa-owner-${randomUUID()}`,
+        version: "1.0.0",
+        type: "WORKFLOW",
+        tools: [],
+        content: "",
+        isBuiltin: false,
+      },
+    );
+    const session = await executeCommand(
+      { db: testDb.client },
+      createAgentSession,
+      { agentDefinitionId: definition.id, userId: creatorId },
+    );
+    const run = await executeCommand({ db: testDb.client }, createAgentRun, {
+      sessionId: session.sessionId,
+      graphDefinition: {
+        id: "qa-owner",
+        version: "1.0.0",
+        nodes: { main: { id: "main", type: "transform", config: {} } },
+        edges: [],
+        entry: "main",
+      },
+    });
+    const ownerId = randomUUID();
+    const lease = await executeCommand(
+      { db: testDb.client },
+      claimAgentRunOwner,
+      { externalId: run.runId, ownerId, leaseDurationMs: 30_000 },
+    );
+    if (!lease) throw new Error("Expected workflow ownership lease.");
+    const workflowOutput = {
+      nodeId: "main",
+      outputKey: `qa-translation:${persistedTranslationId}`,
+      idempotencyKey: `${run.runId}:qa-translation:${persistedTranslationId}`,
+    };
+    const ownershipFence = {
+      runId: run.runId,
+      ownerId,
+      epoch: lease.epoch,
+    };
+
+    const first = await executeCommand(
+      { db: testDb.client },
+      createQaResultWithItems,
+      {
+        translationId: persistedTranslationId,
+        items: [{ isPassed: true, checker: checkerReferenceA, meta: {} }],
+        ownershipFence,
+        workflowOutput,
+      },
+    );
+    const recovered = await executeCommand(
+      { db: testDb.client },
+      createQaResultWithItems,
+      {
+        translationId: persistedTranslationId,
+        items: [
+          {
+            isPassed: false,
+            checker: checkerReferenceB,
+            meta: { secondPass: true },
+          },
+        ],
+        ownershipFence,
+        workflowOutput,
+      },
+    );
+
+    expect(recovered).toEqual(first);
+    expect(
+      await testDb.client
+        .select({ id: qaResult.id })
+        .from(qaResult)
+        .where(eq(qaResult.translationId, persistedTranslationId)),
+    ).toEqual([{ id: first.qaResultId }]);
+    expect(
+      await testDb.client
+        .select({ id: qaResultItem.id })
+        .from(qaResultItem)
+        .where(eq(qaResultItem.resultId, first.qaResultId)),
+    ).toHaveLength(1);
+  });
+
   it("returns qaResultId and inserted item ids", async () => {
     const { translationId } = await seedTranslation();
 
@@ -170,12 +282,12 @@ describe("createQaResultWithItems", () => {
         items: [
           {
             isPassed: false,
-            checkerId: checkerIds[0],
+            checker: checkerReferenceA,
             meta: { severity: "warning", message: "Check numbers" },
           },
           {
             isPassed: true,
-            checkerId: checkerIds[1],
+            checker: checkerReferenceB,
             meta: {},
           },
         ],
@@ -192,7 +304,11 @@ describe("createQaResultWithItems", () => {
       .where(eq(qaResult.id, result.qaResultId))
       .limit(1);
     const storedItems = await testDb.client
-      .select({ id: qaResultItem.id, resultId: qaResultItem.resultId })
+      .select({
+        id: qaResultItem.id,
+        resultId: qaResultItem.resultId,
+        checker: qaResultItem.checker,
+      })
       .from(qaResultItem)
       .where(eq(qaResultItem.resultId, result.qaResultId));
 
@@ -202,5 +318,9 @@ describe("createQaResultWithItems", () => {
     expect(storedItems.map((item) => item.id).sort((a, b) => a - b)).toEqual(
       [...result.itemIds].sort((a, b) => a - b),
     );
+    expect(storedItems.map((item) => item.checker)).toEqual([
+      checkerReferenceA,
+      checkerReferenceB,
+    ]);
   });
 });

@@ -7,24 +7,12 @@ import {
 } from "@cat/domain";
 import type { TermData } from "@cat/shared";
 
-import { collectTermRecallOp } from "./collect-term-recall.ts";
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+} from "./collect-term-recall.ts";
 
-/**
- *
- * 复用 glossary.findTerm 路由中的查询链：
- * element → document → project → glossaryIds → lexical term query。
- * 使用 ILIKE + word_similarity 进行术语匹配（不含语义搜索）。
- * Look up relevant terms for a translatable element from the backend.
- *
- * Reuses the query chain from the glossary.findTerm route:
- * element → document → project → glossaryIds → lexical term query.
- * Uses ILIKE + word_similarity for term matching (no semantic search).
- *
- * @param elementId - Translatable element ID
- * @param translationLanguageId - Target language ID
- * @param _ctx - Operation context (unused)
- * @returns - List of matched term data entries
- */
+/** Look up relevant project glossary terms for a translatable element. */
 export const lookupTermsForElementOp = async (
   elementId: number,
   translationLanguageId: string,
@@ -32,7 +20,6 @@ export const lookupTermsForElementOp = async (
 ): Promise<TermData[]> => {
   const { client: drizzle } = await getDbHandle();
 
-  // 1. 查询 element 获取原文文本和源语言 ID
   const element = await executeQuery({ db: drizzle }, getElementWithChunkIds, {
     elementId,
   });
@@ -41,7 +28,6 @@ export const lookupTermsForElementOp = async (
     return [];
   }
 
-  // 2. 查询 glossaryIds
   const glossaryIds = await executeQuery(
     { db: drizzle },
     listProjectGlossaryIds,
@@ -61,8 +47,7 @@ export const lookupTermsForElementOp = async (
     _ctx,
   );
 
-  // 5. 转换为 TermData[]
-  return results.map((r) => ({
+  return getTermRecallCandidates(results).map((r) => ({
     term: r.term,
     termLanguageId: element.languageId,
     translation: r.translation,

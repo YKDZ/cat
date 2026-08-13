@@ -1,11 +1,14 @@
-import { collectTermRecallOp } from "@cat/operations";
+import { collectTermRecallOp, getTermRecallCandidates } from "@cat/operations";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 // oxlint-disable no-await-in-loop -- test cases are intentionally sequential to avoid overwhelming the system
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- params from unknown config require casting
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 import type { ScenarioConfig, TermRecallTestSet } from "#/config/schemas.ts";
 
+import { throwIfEvaluationAborted } from "../../cancellation.ts";
 import type { CaseResult, HarnessContext, ScenarioResult } from "../types.ts";
+import { DEFAULT_RECALL_OPERATION_TIMEOUT_MS } from "./recall-timeout.ts";
 
 const tracer = trace.getTracer("cat-eval", "0.0.1");
 
@@ -20,6 +23,7 @@ export const termRecallStrategy = {
     const params = scenario.params ?? {};
 
     for (const tc of testSet.cases) {
+      throwIfEvaluationAborted(ctx.signal);
       await tracer.startActiveSpan(
         "eval.case",
         {
@@ -33,11 +37,14 @@ export const termRecallStrategy = {
         },
         async (caseSpan) => {
           const start = performance.now();
+          let timer: ReturnType<typeof setTimeout> | undefined;
           try {
             const traceId = `eval-term-${tc.id}-${Date.now()}`;
             const controller = new AbortController();
-            const timeoutMs = (params.timeoutMs as number) ?? 30_000;
-            const timer = setTimeout(() => {
+            const timeoutMs =
+              (params.timeoutMs as number) ??
+              DEFAULT_RECALL_OPERATION_TIMEOUT_MS;
+            timer = setTimeout(() => {
               controller.abort();
             }, timeoutMs);
 
@@ -56,32 +63,39 @@ export const termRecallStrategy = {
                 maxAmount: (params.maxAmount as number) ?? 10,
                 rerankMode:
                   (params.rerankMode as "baseline" | "reranked") ?? "reranked",
-                rerankProviderId: params.rerankProviderId as number | undefined,
+                rerankProvider:
+                  params.rerankProvider === undefined
+                    ? undefined
+                    : ServiceImplementationReferenceSchema.parse(
+                        params.rerankProvider,
+                      ),
                 rerankTimeoutMs: (params.rerankTimeoutMs as number) ?? 3000,
               },
               {
                 traceId,
-                signal: controller.signal,
+                signal:
+                  ctx.signal === undefined
+                    ? controller.signal
+                    : AbortSignal.any([ctx.signal, controller.signal]),
                 pluginManager: ctx.pluginManager,
               },
             );
 
-            clearTimeout(timer);
+            const candidates = getTermRecallCandidates(result);
             const durationMs = performance.now() - start;
             caseSpan.setAttribute("eval.duration_ms", durationMs);
             caseSpan.setAttribute("eval.status", "ok");
-            caseSpan.setAttribute(
-              "eval.result_count",
-              Array.isArray(result) ? result.length : 0,
-            );
+            caseSpan.setAttribute("eval.result_count", candidates.length);
             caseSpan.setStatus({ code: SpanStatusCode.OK });
             cases.push({
               caseId: tc.id,
-              rawOutput: result,
+              rawOutput: candidates,
+              recallResult: result,
               durationMs,
               status: "ok",
             });
           } catch (err) {
+            throwIfEvaluationAborted(ctx.signal);
             const durationMs = performance.now() - start;
             const isAbort =
               err instanceof DOMException && err.name === "AbortError";
@@ -100,6 +114,7 @@ export const termRecallStrategy = {
               error: String(err),
             });
           } finally {
+            if (timer !== undefined) clearTimeout(timer);
             caseSpan.end();
           }
         },

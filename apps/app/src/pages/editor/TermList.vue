@@ -12,7 +12,7 @@ import TermListItem from "./TermListItem.vue";
 const { t } = useI18n();
 
 const { elementId } = storeToRefs(useEditorTableStore());
-const { terms, error } = storeToRefs(useEditorTermStore());
+const { terms, recallResult, error } = storeToRefs(useEditorTermStore());
 const { unsubscribe, updateTerms } = useEditorTermStore();
 
 watchClient(elementId, updateTerms, { immediate: true });
@@ -24,6 +24,17 @@ onBeforeUnmount(unsubscribe);
   <div class="flex flex-col gap-1">
     <div v-if="error" class="px-3 py-2 text-sm text-destructive">
       {{ t("辅助信息加载失败") }}
+    </div>
+    <div
+      v-else-if="
+        recallResult &&
+        Object.values(recallResult.outcomes).some(
+          (outcome) => outcome.status === 'BLOCKED',
+        )
+      "
+      class="px-3 py-2 text-sm text-muted-foreground"
+    >
+      {{ t("部分术语召回不可用") }}
     </div>
     <TermListItem
       v-for="(term, index) in terms"

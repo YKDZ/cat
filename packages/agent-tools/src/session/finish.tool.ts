@@ -30,6 +30,7 @@ export const finishTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = finishArgs.parse(args);
     const sessionId = parsed.sessionId ?? ctx.session.sessionId;
@@ -38,7 +39,7 @@ export const finishTool: AgentToolDefinition = {
       throw new Error("finish requires sessionId");
     }
 
-    // Mark the session as COMPLETED via domain command
+    ctx.signal.throwIfAborted();
     await executeCommand({ db }, completeAgentSession, {
       sessionId,
       finalStatus: "COMPLETED",

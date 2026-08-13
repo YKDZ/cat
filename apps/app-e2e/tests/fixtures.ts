@@ -11,6 +11,7 @@ import { EditorPage } from "#/pages/editor-page.ts";
 import { LoginPage } from "#/pages/login-page.ts";
 import { QaReviewPage } from "#/pages/qa-review-page.ts";
 
+import { parseE2ERefsJson, type E2ERefs } from "../e2e-refs.ts";
 import {
   cancelMainFrameNavigationIntent,
   commitMainFrameDocumentNavigation,
@@ -28,11 +29,7 @@ import {
 
 // ── Types ────────────────────────────────────────────────────────────
 
-export type E2ERefs = Record<string, string | undefined> & {
-  project: string;
-  "user:admin": string;
-  "content-node:elements": string;
-};
+export type { E2ERefs } from "../e2e-refs.ts";
 
 interface E2EFixtures {
   /** Ref→ID mapping from seeded data (e.g., refs["project"], refs["el:001"]) */
@@ -521,27 +518,16 @@ let _cachedRefs: E2ERefs | undefined;
 
 const loadRefs = (): E2ERefs => {
   if (_cachedRefs) return _cachedRefs;
+  let raw: string;
   try {
-    const raw = readFileSync(REFS_PATH, "utf-8");
-    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-    _cachedRefs = JSON.parse(raw) as E2ERefs;
+    raw = readFileSync(REFS_PATH, "utf-8");
   } catch {
     throw new Error(
       `[e2e fixtures] Failed to load refs from ${REFS_PATH}. ` +
         "Did the execution cell finish fixture hydration?",
     );
   }
-
-  // Validate required refs
-  const required = ["project", "user:admin", "content-node:elements"];
-  for (const ref of required) {
-    if (!_cachedRefs[ref]) {
-      throw new Error(
-        `[e2e fixtures] Required ref "${ref}" not found in ${REFS_PATH}.`,
-      );
-    }
-  }
-
+  _cachedRefs = parseE2ERefsJson(raw, REFS_PATH);
   return _cachedRefs;
 };
 

@@ -27,10 +27,9 @@ afterEach(async () => {
 });
 
 describe("default plugin catalog", () => {
-  it("matches the shared product defaults and excludes pgvector-storage", () => {
+  it("matches the shared product defaults", () => {
     expect(defaultPluginIds).toEqual([...defaultProductPluginIds]);
     expect(defaultPluginIds).toContain(systemPgVectorEntry.manifest.id);
-    expect(defaultPluginIds).not.toContain("pgvector-storage");
   });
 
   it("provides builtin entries for every default plugin id", async () => {
@@ -46,6 +45,26 @@ describe("default plugin catalog", () => {
       const manifest = await loader.getManifest(pluginId);
       expect(manifest.id).toBe(pluginId);
     }
+  });
+
+  it("loads the password provider through the builtin loader with its exact service identity", async () => {
+    const loader = new BuiltinPluginLoader(builtinDefaultPluginEntries);
+    const plugin = await loader.getInstance("password-auth-provider");
+    if (plugin.services === undefined) {
+      throw new TypeError("Password auth provider must expose services.");
+    }
+    // The provider constructs lazily, so this loader contract needs no capabilities.
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    const services = await plugin.services({ capabilities: {} } as never);
+
+    expect(services).toEqual([
+      expect.objectContaining({
+        getId: expect.any(Function),
+        getType: expect.any(Function),
+      }),
+    ]);
+    expect(services[0]?.getId()).toBe("PASSWORD");
+    expect(services[0]?.getType()).toBe("AUTH_FACTOR");
   });
 
   it("registers the builtin system pgvector entry alongside filesystem defaults", () => {

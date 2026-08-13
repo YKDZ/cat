@@ -11,5 +11,5 @@ export * from "#/services/tokenizer.ts";
 export * from "#/services/llm-provider.ts";
 export * from "#/services/rerank-provider.ts";
 export * from "#/services/agent-context-provider.ts";
-export * from "#/services/nlp-word-segmenter.ts";
+export * from "#/services/language-analyzer.ts";
 export * from "#/services/email-provider.ts";

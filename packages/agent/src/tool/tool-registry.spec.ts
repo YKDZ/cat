@@ -8,6 +8,7 @@ import type {
 } from "./tool-types.ts";
 
 const mockCtx: ToolExecutionContext = {
+  signal: new AbortController().signal,
   session: { sessionId: "s1", agentId: "a1", projectId: "p1", runId: "r1" },
   permissions: {
     checkPermission: vi.fn().mockResolvedValue(true),
@@ -19,11 +20,12 @@ const mockCtx: ToolExecutionContext = {
 const makeTool = (
   name: string,
   execute?: AgentToolDefinition["execute"],
+  sideEffectType: AgentToolDefinition["sideEffectType"] = "none",
 ): AgentToolDefinition => ({
   name,
   description: `Tool ${name}`,
   parameters: z.object({ input: z.string() }),
-  sideEffectType: "none",
+  sideEffectType,
   toolSecurityLevel: "standard",
   execute: execute ?? vi.fn().mockResolvedValue({ ok: true }),
 });
@@ -99,6 +101,109 @@ describe("ToolRegistry", () => {
       registry.execute("tool", { input: 123 }, mockCtx),
     ).rejects.toThrow();
     expect(execute).not.toHaveBeenCalled();
+  });
+
+  it("stops waiting for a non-cooperative read-only tool on abort", async () => {
+    const controller = new AbortController();
+    const cause = new Error("read cancelled");
+    let markStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    const registry = new ToolRegistry();
+    registry.register(
+      makeTool("read", async () => {
+        markStarted?.();
+        return await new Promise<never>(() => undefined);
+      }),
+    );
+
+    const operation = registry.execute(
+      "read",
+      { input: "value" },
+      { ...mockCtx, signal: controller.signal },
+    );
+    await started;
+    controller.abort(cause);
+
+    await expect(operation).rejects.toBe(cause);
+  });
+
+  it("waits for a mutating tool to settle after abort", async () => {
+    const controller = new AbortController();
+    let markStarted: (() => void) | undefined;
+    let settleMutation: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    const mutation = new Promise<void>((resolve) => {
+      settleMutation = resolve;
+    });
+    const registry = new ToolRegistry();
+    registry.register(
+      makeTool(
+        "write",
+        async () => {
+          markStarted?.();
+          await mutation;
+          return { committed: true };
+        },
+        "internal",
+      ),
+    );
+
+    let settled = false;
+    const operation = registry
+      .execute(
+        "write",
+        { input: "value" },
+        { ...mockCtx, signal: controller.signal },
+      )
+      .finally(() => {
+        settled = true;
+      });
+    await started;
+    controller.abort(new Error("write cancellation requested"));
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    settleMutation?.();
+    await expect(operation).resolves.toEqual({ committed: true });
+  });
+
+  it("returns a mutating tool's actual failure after abort", async () => {
+    const controller = new AbortController();
+    const writeFailure = new Error("database rejected write");
+    let markStarted: (() => void) | undefined;
+    let rejectMutation: ((error: Error) => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    const mutation = new Promise<never>((_resolve, reject) => {
+      rejectMutation = reject;
+    });
+    const registry = new ToolRegistry();
+    registry.register(
+      makeTool(
+        "write",
+        async () => {
+          markStarted?.();
+          return await mutation;
+        },
+        "internal",
+      ),
+    );
+
+    const operation = registry.execute(
+      "write",
+      { input: "value" },
+      { ...mockCtx, signal: controller.signal },
+    );
+    await started;
+    controller.abort(new Error("write cancellation requested"));
+    rejectMutation?.(writeFailure);
+
+    await expect(operation).rejects.toBe(writeFailure);
   });
 
   it("converts tools to LLM JSON Schema format via toLLMTools()", () => {

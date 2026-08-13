@@ -7,8 +7,6 @@ import * as z from "zod";
 
 import type { DbHandle } from "#/types.ts";
 
-export const LegacyUnverifiedPluginConfigVersion = "legacy-unverified";
-
 const canonicalize = (value: unknown): string => {
   if (Array.isArray(value)) {
     return `[${value.map((item) => canonicalize(item)).join(",")}]`;

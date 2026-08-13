@@ -6,6 +6,8 @@ import * as z from "zod";
 import type { Command } from "#/types.ts";
 
 export const CreateAgentRunCommandSchema = z.object({
+  /** Optional externally allocated run identity for an owning workflow binding. */
+  externalId: z.uuidv4().optional(),
   /**
    * Corresponding agentSession external UUID
    */
@@ -50,6 +52,9 @@ export const createAgentRun: Command<
     await ctx.db
       .insert(agentRun)
       .values({
+        ...(command.externalId === undefined
+          ? {}
+          : { externalId: command.externalId }),
         sessionId: session.id,
         status: "running",
         graphDefinition: command.graphDefinition,

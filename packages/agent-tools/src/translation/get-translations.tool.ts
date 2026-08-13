@@ -29,6 +29,7 @@ export const getTranslationsTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = getTranslationsArgs.parse(args);
     const languageId = parsed.languageId ?? ctx.session.languageId;
 
@@ -37,12 +38,14 @@ export const getTranslationsTool: AgentToolDefinition = {
     }
 
     await assertElementInSession(parsed.elementId, ctx);
+    ctx.signal.throwIfAborted();
 
     const { client: db } = await getDbHandle();
     const translations = await executeQuery({ db }, listTranslationsByElement, {
       elementId: parsed.elementId,
       languageId,
     });
+    ctx.signal.throwIfAborted();
 
     const result: {
       translations: Array<{
@@ -64,10 +67,12 @@ export const getTranslationsTool: AgentToolDefinition = {
     };
 
     if (parsed.includeContext) {
+      ctx.signal.throwIfAborted();
       const evidence = await executeQuery({ db }, assembleContextEvidence, {
         elementId: parsed.elementId,
         purpose: "AGENT",
       });
+      ctx.signal.throwIfAborted();
       result.contexts = evidence;
     }
 

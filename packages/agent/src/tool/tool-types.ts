@@ -1,4 +1,5 @@
 import type { PluginManager } from "@cat/plugin-core";
+import type { ServiceImplementationReference } from "@cat/shared";
 import type { ZodObject } from "zod";
 
 /**
@@ -15,13 +16,15 @@ export type ToolSecurityLevel = "standard" | "privileged" | "administrative";
  * Tool execution context: provides session, permission checks, cost status, and VCS mode.
  */
 export interface ToolExecutionContext {
+  /** Cancellation signal for this agent run. */
+  signal: AbortSignal;
   /** Current agent session identifiers */
   session: {
     sessionId: string;
     agentId: string;
     projectId: string;
     runId: string;
-    providerId?: number | undefined;
+    provider?: ServiceImplementationReference | undefined;
     branchId?: number | undefined;
     contentNodeIds?: string[] | undefined;
     currentElementContentNodeId?: string | undefined;

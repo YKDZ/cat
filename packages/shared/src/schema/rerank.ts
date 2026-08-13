@@ -1,6 +1,7 @@
 import * as z from "zod";
 
 import { FlattenedContextEvidenceSchema } from "#/schema/content.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const RerankTriggerSchema = z.enum([
   "precision-ambiguity",
@@ -44,7 +45,7 @@ export const RerankRequestSchema = z.object({
   band: RerankBandSchema,
   candidates: z.array(RerankCandidateItemSchema).min(1),
   contextHints: RerankContextHintsSchema.optional(),
-  rerankProviderId: z.int().optional(),
+  rerankProvider: ServiceImplementationReferenceSchema.optional(),
   timeoutMs: z.int().positive().optional(),
 });
 

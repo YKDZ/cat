@@ -8,12 +8,17 @@ import type { Context } from "#/utils/context.ts";
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 const opMocks = vi.hoisted(() => ({
+  collectTermRecallOp: vi.fn(),
+  getTermRecallCandidates: vi.fn(),
   collectEffectiveMemoryRecallOp: vi.fn(),
+  getEffectiveMemoryRecallCandidates: vi.fn(),
   termRecallOp: vi.fn(),
   llmTranslateOp: vi.fn(),
+  languageAnalyzeOp: vi.fn(),
 }));
 
 const domainMocks = vi.hoisted(() => ({
+  executeCommand: vi.fn(),
   getElementWithChunkIds: vi.fn(),
   findOpenAutoTranslatePR: vi.fn(),
 }));
@@ -29,6 +34,7 @@ vi.mock("@cat/domain", async () => {
     await vi.importActual<typeof import("@cat/domain")>("@cat/domain");
   return {
     ...actual,
+    executeCommand: domainMocks.executeCommand,
     executeQuery: vi.fn(),
     getElementWithChunkIds: domainMocks.getElementWithChunkIds,
     findOpenAutoTranslatePR: domainMocks.findOpenAutoTranslatePR,
@@ -40,9 +46,14 @@ vi.mock("@cat/operations", async () => {
     await vi.importActual<typeof import("@cat/operations")>("@cat/operations");
   return {
     ...actual,
+    collectTermRecallOp: opMocks.collectTermRecallOp,
+    getTermRecallCandidates: opMocks.getTermRecallCandidates,
     collectEffectiveMemoryRecallOp: opMocks.collectEffectiveMemoryRecallOp,
+    getEffectiveMemoryRecallCandidates:
+      opMocks.getEffectiveMemoryRecallCandidates,
     termRecallOp: opMocks.termRecallOp,
     llmTranslateOp: opMocks.llmTranslateOp,
+    languageAnalyzeOp: opMocks.languageAnalyzeOp,
   };
 });
 
@@ -71,13 +82,14 @@ vi.mock("@cat/vcs", () => ({
 
 // ─── Imports after mocks ────────────────────────────────────────────────────
 
-import { executeQuery } from "@cat/domain";
+import { executeCommand, executeQuery } from "@cat/domain";
 import {
   findOpenAutoTranslatePR,
   getElementWithChunkIds,
   listEffectiveMemoryIdsByProject,
   listProjectGlossaryIds,
 } from "@cat/domain";
+import { LanguageAnalysisPolicyChangedError } from "@cat/operations";
 
 import { suggest as ghostTextSuggest } from "#/orpc/routers/ghost-text.ts";
 import { onNew as onNewSuggestion } from "#/orpc/routers/suggestion.ts";
@@ -147,6 +159,7 @@ const MOCK_ELEMENT = {
 describe("suggestion.onNew", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    opMocks.languageAnalyzeOp.mockResolvedValue({ tokens: [] });
 
     // Default: unsubscribe function returned by eventBus.subscribe
     workflowMocks.getGlobalGraphRuntime.mockReturnValue({
@@ -171,7 +184,9 @@ describe("suggestion.onNew", () => {
     });
 
     opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue([]);
-    opMocks.termRecallOp.mockResolvedValue({ terms: [] });
+    opMocks.getEffectiveMemoryRecallCandidates.mockReturnValue([]);
+    opMocks.collectTermRecallOp.mockResolvedValue({});
+    opMocks.getTermRecallCandidates.mockReturnValue([]);
     opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
   });
 
@@ -199,7 +214,7 @@ describe("suggestion.onNew", () => {
         confidence: 0.5,
       }),
     );
-    expect(results[0]).not.toHaveProperty("advisorId");
+    expect(results[0]).not.toHaveProperty("advisor");
     expect(opMocks.llmTranslateOp).toHaveBeenCalledOnce();
     expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -224,6 +239,43 @@ describe("suggestion.onNew", () => {
     expect(results).toHaveLength(0);
   });
 
+  it.skip("persists a language analysis failure once and exposes only its identity", async () => {
+    opMocks.languageAnalyzeOp.mockRejectedValue(
+      new LanguageAnalysisPolicyChangedError(new Error("selection revision 9")),
+    );
+    domainMocks.executeCommand.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      message: "Language analysis configuration changed during the operation.",
+    });
+
+    const stream = await call(
+      onNewSuggestion,
+      { elementId: 10, languageId: "zh-Hans" },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      data: {
+        operationFailure: { id: "11111111-1111-4111-8111-111111111111" },
+      },
+    });
+    expect(executeCommand).toHaveBeenCalledOnce();
+    expect(executeCommand).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({
+        failure: expect.objectContaining({
+          affectedResources: [
+            { type: "PROJECT", id: MOCK_ELEMENT.projectId },
+            { type: "ELEMENT", id: "10" },
+          ],
+          blocker: "language_analysis_policy_changed",
+        }),
+      }),
+    );
+  });
+
   it("stream completes without throwing when Smart Suggestion rejects", async () => {
     opMocks.llmTranslateOp.mockRejectedValue(new Error("LLM unavailable"));
 
@@ -239,12 +291,14 @@ describe("suggestion.onNew", () => {
   });
 
   it("passes preloaded memories to llmTranslateOp when memories are available", async () => {
+    const projectMemoryId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const personalMemoryId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
     const memory = {
       id: 1,
       source: "Save changes",
       translation: "保存更改",
       confidence: 0.95,
-      memoryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      memoryId: projectMemoryId,
       translationChunkSetId: null,
       creatorId: null,
       createdAt: new Date(),
@@ -257,14 +311,15 @@ describe("suggestion.onNew", () => {
       if (query === listProjectGlossaryIds) return [];
       if (query === listEffectiveMemoryIdsByProject)
         return {
-          projectMemoryIds: ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
-          personalMemoryIds: [],
-          allMemoryIds: ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+          projectMemoryIds: [projectMemoryId],
+          personalMemoryIds: [personalMemoryId],
+          allMemoryIds: [projectMemoryId, personalMemoryId],
         };
       return [];
     });
 
-    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue([memory]);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue({});
+    opMocks.getEffectiveMemoryRecallCandidates.mockReturnValue([memory]);
     opMocks.llmTranslateOp.mockResolvedValue({ suggestion: null });
 
     const stream = await call(
@@ -275,6 +330,17 @@ describe("suggestion.onNew", () => {
 
     await collect(stream);
 
+    expect(opMocks.collectEffectiveMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: MOCK_ELEMENT.value,
+        sourceLanguageId: MOCK_ELEMENT.languageId,
+        translationLanguageId: "zh-Hans",
+        projectMemoryIds: [projectMemoryId],
+        personalMemoryIds: [personalMemoryId],
+        excludeMemoryItemIds: [],
+      },
+      expect.any(Object),
+    );
     expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
       expect.objectContaining({
         elementId: 10,

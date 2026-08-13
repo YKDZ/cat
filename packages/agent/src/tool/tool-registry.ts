@@ -6,6 +6,30 @@ import type {
   ToolExecutionContext,
 } from "./tool-types.ts";
 
+const waitForAbortableRead = async <T>(
+  operation: Promise<T>,
+  signal: AbortSignal,
+): Promise<T> => {
+  signal.throwIfAborted();
+  return await new Promise<T>((resolve, reject) => {
+    const abort = (): void => {
+      signal.removeEventListener("abort", abort);
+      reject(signal.reason);
+    };
+    signal.addEventListener("abort", abort, { once: true });
+    void operation.then(
+      (value) => {
+        signal.removeEventListener("abort", abort);
+        resolve(value);
+      },
+      (error: unknown) => {
+        signal.removeEventListener("abort", abort);
+        reject(error);
+      },
+    );
+  });
+};
+
 /**
  * Tool registry: centrally manages registration, resolution, and execution of agent tools.
  */
@@ -52,8 +76,17 @@ export class ToolRegistry {
     if (!tool) {
       throw new Error(`Tool "${name}" is not registered`);
     }
+    ctx.signal.throwIfAborted();
     const parsed = tool.parameters.parse(args);
-    return tool.execute(parsed, ctx);
+    ctx.signal.throwIfAborted();
+    const operation = tool.execute(parsed, ctx);
+
+    // Read-only tools may safely stop waiting when an implementation ignores
+    // cancellation. Mutating tools must settle so cancellation cannot hide an
+    // in-flight side effect with an unknown outcome.
+    return tool.sideEffectType === "none"
+      ? await waitForAbortableRead(operation, ctx.signal)
+      : await operation;
   }
 
   /**

@@ -1,9 +1,15 @@
+import openAiVectorizer from "@cat-plugin/openai-vectorizer";
+import openAiVectorizerManifest from "@cat-plugin/openai-vectorizer/manifest.json" with { type: "json" };
+import openAiVectorizerPackage from "@cat-plugin/openai-vectorizer/package.json" with { type: "json" };
+import spacyLanguageAnalyzer from "@cat-plugin/spacy-language-analyzer";
+import spacyLanguageAnalyzerManifest from "@cat-plugin/spacy-language-analyzer/manifest.json" with { type: "json" };
+import spacyLanguageAnalyzerPackage from "@cat-plugin/spacy-language-analyzer/package.json" with { type: "json" };
 import { RedisConnection, sql } from "@cat/db";
 // oxlint-disable no-console -- intentional diagnostic logging in eval harness
 // oxlint-disable no-await-in-loop -- seeder is intentionally sequential
 // oxlint-disable typescript-eslint/no-unsafe-type-assertion -- raw SQL results require casting
 // oxlint-disable typescript-eslint/no-unsafe-return -- vectorize result requires cast
-import type { ExecutorContext } from "@cat/domain";
+import type { ExecutorContext, OperationContext } from "@cat/domain";
 import {
   attachChunkSetToString,
   createAgentDefinition,
@@ -21,31 +27,67 @@ import {
   ensureCoreRelationTypes,
   ensureLanguages,
   ensurePersonalProjectMemory,
+  EnsureVectorStorageSchemaCommandSchema,
   ensureVectorStorageSchema,
   executeCommand,
   executeQuery,
+  getLanguageAnalysisSelection,
   getPluginConfigInstance,
   getPluginConfigSchemaDigest,
   findAgentDefinitionByDefinitionIdAndScope,
   installPlugin,
+  LanguageAnalysisSelectionConflictError,
   MemoryCacheStore,
   registerPluginDefinition,
   writePluginConfigInstance,
+  writeValidatedLanguageAnalysisSelection,
 } from "@cat/domain";
 import {
-  buildMemoryRecallVariantsOp,
-  buildTermRecallVariantsOp,
+  processVectorizationBatch,
+  revectorizeConceptOp,
+  startRecallDerivationWorker,
+  validateLanguageAnalyzerConfiguration,
+  waitForRecallDerivationFresh,
 } from "@cat/operations";
-import { initPermissionEngine, getPermissionEngine } from "@cat/permissions";
-import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
+import {
+  getPermissionEngine,
+  initPermissionEngine,
+  type PermissionEngine,
+} from "@cat/permissions";
+import {
+  BuiltinPluginLoader,
+  CompositePluginLoader,
+  FileSystemPluginLoader,
+  PluginManager,
+  type BuiltinPluginEntry,
+  type CatPlugin,
+  type PluginLoader,
+  type ScopedPluginManagerInstallation,
+} from "@cat/plugin-core";
 import { normalizeMemorySeed } from "@cat/seed";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
-import type { JSONObject, JSONType } from "@cat/shared";
+import {
+  resolvePluginManager,
+  selectFirstServiceImplementation,
+  systemPgVectorEntry,
+} from "@cat/server-shared";
+import {
+  LanguageAnalysisWildcardSelectionKey,
+  PluginManifestSchema,
+  RequiredVectorDimension,
+  serviceImplementationReferenceKey,
+} from "@cat/shared";
+import type {
+  JSONObject,
+  JSONType,
+  RecallDerivationReference,
+} from "@cat/shared";
 import { setupTestDB, installTestVectorizationQueue } from "@cat/test-utils";
 
 import type { LoadedSuite } from "#/config/index.ts";
 import type { PluginOverride } from "#/config/schemas.ts";
 
+import { throwIfEvaluationAborted } from "../cancellation.ts";
+import { runCleanupSteps } from "../cleanup.ts";
 import { RefResolver } from "./ref-resolver.ts";
 import type { SeededContext } from "./types.ts";
 import { VectorCache } from "./vector-cache.ts";
@@ -54,7 +96,10 @@ export type SeedOptions = {
   suite: LoadedSuite;
   cacheDir: string;
   pluginsDir: string;
+  signal?: AbortSignal | undefined;
 };
+
+const EVAL_REDIS_CONNECT_TIMEOUT_MS = 1_000;
 
 const requireFirst = <T>(values: readonly T[], operation: string): T => {
   const value = values[0];
@@ -64,44 +109,409 @@ const requireFirst = <T>(values: readonly T[], operation: string): T => {
   return value;
 };
 
+type SeedCleanupResources = {
+  deactivatePlugins: () => Promise<void>;
+  restorePermissionEngine: () => void;
+  restoreVectorizationQueue: () => void;
+  disconnectRedis: () => void;
+  cleanupDatabase: () => Promise<void>;
+};
+
+export const createSeedCleanup = (
+  resources: SeedCleanupResources,
+): (() => Promise<void>) => {
+  const steps = [
+    { complete: false, action: resources.deactivatePlugins },
+    {
+      complete: false,
+      action: async () => {
+        resources.restorePermissionEngine();
+      },
+    },
+    {
+      complete: false,
+      action: async () => {
+        resources.restoreVectorizationQueue();
+      },
+    },
+    {
+      complete: false,
+      action: async () => {
+        resources.disconnectRedis();
+      },
+    },
+    { complete: false, action: resources.cleanupDatabase },
+  ];
+  let cleanupAttempt: Promise<void> | undefined;
+
+  return async () => {
+    if (cleanupAttempt) return await cleanupAttempt;
+
+    const attempt = runCleanupSteps(
+      steps
+        .filter((step) => !step.complete)
+        .map((step) => async (): Promise<void> => {
+          await step.action();
+          step.complete = true;
+        }),
+    );
+    cleanupAttempt = attempt;
+    void attempt.then(
+      () => {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      },
+      () => {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      },
+    );
+    return await attempt;
+  };
+};
+
+export const createRedisCleanup = (
+  redis: RedisConnection,
+  previousRedis: RedisConnection | undefined,
+): (() => void) => {
+  return () => {
+    try {
+      redis.disconnect();
+    } finally {
+      if (globalThis["__REDIS__"] === redis) {
+        if (previousRedis === undefined)
+          Reflect.deleteProperty(globalThis, "__REDIS__");
+        else globalThis["__REDIS__"] = previousRedis;
+      }
+    }
+  };
+};
+
+type SeedPluginRuntime = {
+  activatedPluginIds: Set<string>;
+  pluginManagerInstallation: ScopedPluginManagerInstallation | undefined;
+};
+
+export const createEvalPluginLoader = (
+  externalLoader: PluginLoader,
+): CompositePluginLoader =>
+  new CompositePluginLoader([
+    new BuiltinPluginLoader([systemPgVectorEntry, ...evalBuiltinPluginEntries]),
+    externalLoader,
+  ]);
+
+const createBuiltinPluginEntry = (
+  manifest: unknown,
+  pkg: { name: string; version: string },
+  plugin: CatPlugin,
+): BuiltinPluginEntry => {
+  const parsedManifest = PluginManifestSchema.parse(manifest);
+  return {
+    manifest: parsedManifest,
+    data: {
+      id: parsedManifest.id,
+      name: pkg.name,
+      version: parsedManifest.version ?? pkg.version,
+      overview: parsedManifest.id,
+      entry: parsedManifest.entry,
+      config: parsedManifest.config,
+      configVersion: parsedManifest.configVersion,
+    },
+    load: () => plugin,
+  };
+};
+
+const evalBuiltinPluginEntries = [
+  createBuiltinPluginEntry(
+    openAiVectorizerManifest,
+    openAiVectorizerPackage,
+    openAiVectorizer,
+  ),
+  createBuiltinPluginEntry(
+    spacyLanguageAnalyzerManifest,
+    spacyLanguageAnalyzerPackage,
+    spacyLanguageAnalyzer,
+  ),
+];
+
+export const createSeedPluginCleanup = (
+  runtime: SeedPluginRuntime,
+  db: ExecutorContext["db"],
+): (() => Promise<void>) => {
+  return async () => {
+    const installation = runtime.pluginManagerInstallation;
+    if (installation === undefined) return;
+
+    const errors: unknown[] = [];
+    try {
+      for (const pluginId of runtime.activatedPluginIds) {
+        if (!installation.manager.isActive(pluginId)) continue;
+        try {
+          await installation.manager.deactivate(db, pluginId);
+        } catch (error) {
+          errors.push(error);
+        }
+      }
+    } finally {
+      installation.restore();
+      runtime.pluginManagerInstallation = undefined;
+    }
+    if (errors.length > 0) {
+      throw new AggregateError(errors, "Eval plugin deactivation failed.");
+    }
+  };
+};
+
+const EvalLanguageAnalysisSelectionErrorCodes = [
+  "AMBIGUOUS_CONFIGURED_SERVICE",
+  "CONFIGURED_SERVICE_UNAVAILABLE",
+  "SELECTION_WRITE_CONFLICT",
+] as const;
+type EvalLanguageAnalysisSelectionErrorCode =
+  (typeof EvalLanguageAnalysisSelectionErrorCodes)[number];
+
+export class EvalLanguageAnalysisSelectionError extends Error {
+  public readonly code: EvalLanguageAnalysisSelectionErrorCode;
+
+  public constructor(code: EvalLanguageAnalysisSelectionErrorCode) {
+    super(`Eval language analysis selection failed: ${code}.`);
+    this.name = "EvalLanguageAnalysisSelectionError";
+    this.code = code;
+  }
+}
+
+const selectionMatches = (
+  selection: Awaited<ReturnType<typeof getLanguageAnalysisSelection>>,
+  implementation: ReturnType<
+    PluginManager["createServiceImplementationReference"]
+  >,
+  fingerprint: string,
+): boolean =>
+  selection !== null &&
+  selection.implementation !== null &&
+  selection.configurationFingerprint === fingerprint &&
+  serviceImplementationReferenceKey(selection.implementation) ===
+    serviceImplementationReferenceKey(implementation);
+
+export const ensureEvalLanguageAnalysisSelection = async (
+  db: ExecutorContext["db"],
+  pluginManager: PluginManager,
+  overrides: readonly PluginOverride[],
+): Promise<void> => {
+  const configuredPluginIds: string[] = [];
+  for (const { plugin } of overrides) {
+    const manifest = await pluginManager.getLoader().getManifest(plugin);
+    if (
+      manifest.services?.some(({ type }) => type === "LANGUAGE_ANALYZER") ??
+      false
+    ) {
+      configuredPluginIds.push(plugin);
+    }
+  }
+  if (configuredPluginIds.length === 0) return;
+  if (configuredPluginIds.length !== 1) {
+    throw new EvalLanguageAnalysisSelectionError(
+      "AMBIGUOUS_CONFIGURED_SERVICE",
+    );
+  }
+
+  const configuredPluginId = configuredPluginIds[0];
+  if (configuredPluginId === undefined) {
+    throw new EvalLanguageAnalysisSelectionError(
+      "CONFIGURED_SERVICE_UNAVAILABLE",
+    );
+  }
+  const services = pluginManager
+    .getServices("LANGUAGE_ANALYZER")
+    .filter(({ pluginId }) => pluginId === configuredPluginId);
+  if (services.length !== 1) {
+    throw new EvalLanguageAnalysisSelectionError(
+      "CONFIGURED_SERVICE_UNAVAILABLE",
+    );
+  }
+  const service = services[0];
+  if (service === undefined) {
+    throw new EvalLanguageAnalysisSelectionError(
+      "CONFIGURED_SERVICE_UNAVAILABLE",
+    );
+  }
+
+  const implementation =
+    pluginManager.createServiceImplementationReference(service);
+  const configuration = await validateLanguageAnalyzerConfiguration(
+    implementation,
+    { pluginManager, traceId: "eval-language-analysis-selection" },
+  );
+  const existing = await executeQuery({ db }, getLanguageAnalysisSelection, {
+    key: LanguageAnalysisWildcardSelectionKey,
+  });
+  if (selectionMatches(existing, implementation, configuration.fingerprint))
+    return;
+
+  const write = async (expectedRevision: number) =>
+    await executeCommand({ db }, writeValidatedLanguageAnalysisSelection, {
+      key: LanguageAnalysisWildcardSelectionKey,
+      expectedRevision,
+      implementation,
+      configurationFingerprint: configuration.fingerprint,
+    });
+  try {
+    await write(existing?.revision ?? 0);
+  } catch (error) {
+    if (!(error instanceof LanguageAnalysisSelectionConflictError)) throw error;
+    const winner = await executeQuery({ db }, getLanguageAnalysisSelection, {
+      key: LanguageAnalysisWildcardSelectionKey,
+    });
+    if (selectionMatches(winner, implementation, configuration.fingerprint))
+      return;
+    try {
+      await write(winner?.revision ?? 0);
+    } catch (retryError) {
+      if (retryError instanceof LanguageAnalysisSelectionConflictError) {
+        const retryWinner = await executeQuery(
+          { db },
+          getLanguageAnalysisSelection,
+          { key: LanguageAnalysisWildcardSelectionKey },
+        );
+        if (
+          selectionMatches(
+            retryWinner,
+            implementation,
+            configuration.fingerprint,
+          )
+        )
+          return;
+        throw new EvalLanguageAnalysisSelectionError(
+          "SELECTION_WRITE_CONFLICT",
+        );
+      }
+      throw retryError;
+    }
+  }
+};
+
 export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
+  const testDb = await setupTestDB();
+  const previousRedis = globalThis["__REDIS__"];
+  const previousPermissionEngine = globalThis.__PERMISSION_ENGINE__;
+  const runtime: SeedRuntime = {
+    activatedPluginIds: new Set<string>(),
+    pluginManagerInstallation: undefined,
+    permissionEngine: undefined,
+    restoreVectorizationQueue: (): void => {},
+  };
+  let cleanupRedis = (): void => {};
+  const cleanup = createSeedCleanup({
+    deactivatePlugins: createSeedPluginCleanup(runtime, testDb.client),
+    restorePermissionEngine: () => {
+      if (globalThis.__PERMISSION_ENGINE__ === runtime.permissionEngine) {
+        globalThis.__PERMISSION_ENGINE__ = previousPermissionEngine;
+      }
+    },
+    restoreVectorizationQueue: () => runtime.restoreVectorizationQueue(),
+    disconnectRedis: () => cleanupRedis(),
+    cleanupDatabase: async () => await testDb.cleanup(),
+  });
+
+  try {
+    const requiresRedis =
+      !Array.isArray(opts.suite.config.scenarios) ||
+      opts.suite.config.scenarios.some(
+        ({ type }) => type === "agent-translate",
+      );
+    let redis: RedisConnection | undefined;
+    if (requiresRedis) {
+      redis = new RedisConnection({
+        mode: "fail-fast",
+        connectTimeoutMs: EVAL_REDIS_CONNECT_TIMEOUT_MS,
+        onError: () => {},
+      });
+      cleanupRedis = createRedisCleanup(redis, previousRedis);
+      await redis.connect();
+      globalThis["__REDIS__"] = redis;
+    }
+    return await hydrateSeed(opts, { cleanup, runtime, testDb, redis });
+  } catch (error) {
+    try {
+      await cleanup();
+    } catch (cleanupError) {
+      throw new AggregateError(
+        [error, cleanupError],
+        "Eval seed failed and cleanup failed.",
+      );
+    }
+    throw error;
+  }
+};
+
+type SeedResources = {
+  cleanup: () => Promise<void>;
+  redis: RedisConnection | undefined;
+  runtime: SeedRuntime;
+  testDb: Awaited<ReturnType<typeof setupTestDB>>;
+};
+
+type SeedRuntime = SeedPluginRuntime & {
+  permissionEngine: PermissionEngine | undefined;
+  restoreVectorizationQueue: () => void;
+};
+
+export const completeEvalConceptVectorization = async (
+  queue: Parameters<typeof processVectorizationBatch>[0],
+  batchSize: number,
+  context: OperationContext,
+  processBatch: typeof processVectorizationBatch = processVectorizationBatch,
+): Promise<void> => {
+  await processBatch(queue, batchSize, context);
+  if ((await queue.pendingCount()) > 0) {
+    throw new Error(
+      "Eval concept vectorization did not complete through the configured vector storage.",
+    );
+  }
+};
+
+const hydrateSeed = async (
+  opts: SeedOptions,
+  { cleanup, redis, runtime, testDb }: SeedResources,
+): Promise<SeededContext> => {
   const { suite, cacheDir, pluginsDir } = opts;
   const { config, projectSeed, glossarySeed, memorySeed, elementsSeed } = suite;
   const refs = new RefResolver();
   const memoryContainers = memorySeed ? normalizeMemorySeed(memorySeed) : [];
 
-  // ── 1. Database setup ──────────────────────────────────────────────
-  const testDb = await setupTestDB();
+  throwIfEvaluationAborted(opts.signal);
 
   // ── 1a. Vectorization queue setup ─────────────────────────────────
   // Install an in-memory queue so submit_translation can enqueue
   // vectorization tasks without needing the full app bootstrap.
-  installTestVectorizationQueue();
+  const vectorizationQueue = installTestVectorizationQueue();
+  runtime.restoreVectorizationQueue = vectorizationQueue.restore;
 
-  // ── 2. Redis setup ─────────────────────────────────────────────────
-  const redis = new RedisConnection();
-  await redis.connect();
-  globalThis["__REDIS__"] = redis;
+  throwIfEvaluationAborted(opts.signal);
 
   // ── 2a. Permission engine setup ────────────────────────────────────
   // Agent tools call getPermissionEngine() during translation; initialize
   // a permissive in-memory-backed engine so eval runs without a full server.
-  initPermissionEngine({
+  runtime.permissionEngine = initPermissionEngine({
     db: testDb.client,
     cache: new MemoryCacheStore("eval-perm"),
     auditEnabled: false,
   });
 
   // ── 3. Plugin manager setup ────────────────────────────────────────
-  PluginManager.clear();
-  let loader;
+  let externalLoader: PluginLoader;
   if (config.plugins.loader === "test") {
     const { TestPluginLoader } = await import("@cat/test-utils");
-    loader = new TestPluginLoader();
+    externalLoader = new TestPluginLoader({ includeLanguageAnalyzer: true });
   } else {
-    loader = new FileSystemPluginLoader({ pluginsDir });
+    externalLoader = new FileSystemPluginLoader({ pluginsDir });
   }
-  const pluginManager = PluginManager.get("GLOBAL", "", loader);
+  const loader = createEvalPluginLoader(externalLoader);
+  const pluginManagerInstallation = PluginManager.installScoped(
+    "GLOBAL",
+    "",
+    loader,
+  );
+  runtime.pluginManagerInstallation = pluginManagerInstallation;
+  const pluginManager = pluginManagerInstallation.manager;
 
   const execCtx: ExecutorContext = { db: testDb.client };
 
@@ -113,7 +523,27 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   const userId = testUser.id;
   refs.set("user:eval", userId);
 
+  const systemVectorStorage = await loader.getData("system-pgvector-storage");
+  await executeCommand(execCtx, registerPluginDefinition, {
+    pluginId: systemVectorStorage.id,
+    version: systemVectorStorage.version,
+    name: systemVectorStorage.name,
+    entry: systemVectorStorage.entry,
+    overview: systemVectorStorage.overview ?? "",
+    iconUrl: systemVectorStorage.iconURL ?? null,
+    configSchema: systemVectorStorage.config,
+    configVersion: systemVectorStorage.configVersion,
+  });
+  await executeCommand(execCtx, installPlugin, {
+    pluginId: systemVectorStorage.id,
+    scopeType: "GLOBAL",
+    scopeId: "",
+  });
+  await pluginManager.activate(testDb.client, systemVectorStorage.id);
+  runtime.activatedPluginIds.add(systemVectorStorage.id);
+
   for (const override of config.plugins.overrides) {
+    throwIfEvaluationAborted(opts.signal);
     const data = await loader.getData(override.plugin);
     await executeCommand(execCtx, registerPluginDefinition, {
       pluginId: data.id,
@@ -157,15 +587,41 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
       });
     }
     await pluginManager.activate(testDb.client, data.id);
+    runtime.activatedPluginIds.add(data.id);
   }
 
-  // ── 5. Dimension reconciliation ────────────────────────────────────
+  const vectorStorage = pluginManager.getServices("VECTOR_STORAGE");
+  const selectedVectorStorage = selectFirstServiceImplementation(
+    pluginManager,
+    "VECTOR_STORAGE",
+  );
+  if (
+    vectorStorage.length !== 1 ||
+    selectedVectorStorage?.reference.pluginId !== "system-pgvector-storage" ||
+    selectedVectorStorage.reference.serviceId !== "native-pgvector"
+  ) {
+    throw new Error(
+      "Eval requires exactly system-pgvector-storage:native-pgvector as vector storage.",
+    );
+  }
+
+  await ensureEvalLanguageAnalysisSelection(
+    testDb.client,
+    pluginManager,
+    config.plugins.overrides,
+  );
+
+  // ── 5. Vector schema attestation ───────────────────────────────────
   const vectorizerOverride = config.plugins.overrides.find(
     (o) => o.plugin === "openai-vectorizer" || o.plugin.includes("vectorizer"),
   );
-  const dimension = getDimensionFromConfig(vectorizerOverride) ?? 1024;
-  await execCtx.db.execute(sql`DROP TABLE IF EXISTS "Vector" CASCADE`);
-  await executeCommand(execCtx, ensureVectorStorageSchema, { dimension });
+  await executeCommand(
+    execCtx,
+    ensureVectorStorageSchema,
+    EnsureVectorStorageSchemaCommandSchema.parse({
+      dimension: RequiredVectorDimension,
+    }),
+  );
 
   // ── 6. Languages ───────────────────────────────────────────────────
   const allLanguages = new Set<string>();
@@ -174,8 +630,10 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   if (glossarySeed) {
     allLanguages.add(glossarySeed.glossary.sourceLanguage);
     allLanguages.add(glossarySeed.glossary.translationLanguage);
+    if (config.vectorization === "required") allLanguages.add("mul");
   }
   for (const memoryContainer of memoryContainers) {
+    throwIfEvaluationAborted(opts.signal);
     for (const item of memoryContainer.items) {
       allLanguages.add(item.sourceLanguage);
       allLanguages.add(item.translationLanguage);
@@ -200,6 +658,8 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   refs.set("content-node:root", rootNode.id);
 
   // ── 8. Glossary seeding ────────────────────────────────────────────
+  const recallDerivations: RecallDerivationReference[] = [];
+  const glossaryConceptIds: number[] = [];
   let glossaryId: string | undefined;
   if (glossarySeed) {
     const g = glossarySeed.glossary;
@@ -212,6 +672,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     refs.set("glossary", glossaryId);
 
     for (const conceptSeed of g.concepts) {
+      throwIfEvaluationAborted(opts.signal);
       await executeCommand(execCtx, createVectorizedStrings, {
         data: [{ text: conceptSeed.definition, languageId: g.sourceLanguage }],
       });
@@ -221,8 +682,9 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
         definition: conceptSeed.definition,
       });
       refs.set(conceptSeed.ref, concept.id);
+      glossaryConceptIds.push(concept.id);
 
-      await executeCommand(execCtx, createGlossaryTerms, {
+      const created = await executeCommand(execCtx, createGlossaryTerms, {
         glossaryId,
         creatorId: userId,
         data: conceptSeed.terms.map(
@@ -236,8 +698,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
           }),
         ),
       });
-
-      await buildTermRecallVariantsOp({ conceptId: concept.id });
+      recallDerivations.push(...created.derivations);
     }
   }
 
@@ -290,6 +751,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     }
 
     for (const itemSeed of memoryContainer.items) {
+      throwIfEvaluationAborted(opts.signal);
       const sourceStringIds = await executeCommand(
         execCtx,
         createVectorizedStrings,
@@ -320,7 +782,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
         translationStringIds,
         "create translation vectorized string",
       );
-      const items = await executeCommand(execCtx, createMemoryItems, {
+      const created = await executeCommand(execCtx, createMemoryItems, {
         memoryId: containerMemoryId,
         items: [
           {
@@ -328,26 +790,26 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
             translationStringId,
             sourceStringId,
             creatorId: userId,
-            sourceTemplate: null,
-            translationTemplate: null,
-            slotMapping: null,
           },
         ],
       });
-      const memoryItem = requireFirst(items, "create memory item");
+      const memoryItem = requireFirst(created.items, "create memory item");
       refs.set(itemSeed.ref, memoryItem.id);
-
-      await buildMemoryRecallVariantsOp(
-        {
-          memoryItemId: memoryItem.id,
-          memoryId: containerMemoryId,
-          sourceText: itemSeed.source,
-          translationText: itemSeed.translation,
-          sourceLanguageId: itemSeed.sourceLanguage,
-          translationLanguageId: itemSeed.translationLanguage,
-        },
-        { pluginManager, traceId: crypto.randomUUID() },
-      );
+      recallDerivations.push(...created.derivations);
+    }
+  }
+  if (recallDerivations.length > 0) {
+    const recallDerivationWorker = await startRecallDerivationWorker({
+      db: testDb.client,
+      pluginManager,
+    });
+    try {
+      await waitForRecallDerivationFresh(recallDerivations, {
+        db: testDb.client,
+        signal: opts.signal,
+      });
+    } finally {
+      await recallDerivationWorker.stop();
     }
   }
 
@@ -359,6 +821,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
   let contentNodeId: string | undefined = rootNode.id;
   if (elementsSeed) {
     for (const elSeed of elementsSeed.elements) {
+      throwIfEvaluationAborted(opts.signal);
       const stringIds = await executeCommand(execCtx, createVectorizedStrings, {
         data: [{ text: elSeed.text, languageId: projectSeed.sourceLanguage }],
       });
@@ -388,8 +851,44 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     pluginManager,
     cache: new VectorCache(cacheDir),
     vectorizerOverride,
-    dimension,
+    mode: config.vectorization,
+    signal: opts.signal,
   });
+  if (config.vectorization === "required") {
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
+    const vectorStorage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    if (!vectorizer || !vectorStorage) {
+      throw new Error(
+        "Eval suite requires vectorization but no vectorizer or storage service is available.",
+      );
+    }
+    const vectorizationContext: OperationContext = {
+      traceId: `eval-vectorization-${crypto.randomUUID()}`,
+      pluginManager,
+    };
+    for (const conceptId of glossaryConceptIds) {
+      throwIfEvaluationAborted(opts.signal);
+      await revectorizeConceptOp(
+        {
+          conceptId,
+          vectorizer: vectorizer.reference,
+          vectorStorage: vectorStorage.reference,
+        },
+        vectorizationContext,
+      );
+    }
+    await completeEvalConceptVectorization(
+      vectorizationQueue,
+      glossaryConceptIds.length,
+      vectorizationContext,
+    );
+  }
 
   // ── 12. Agent definition registration ────────────────────────────
   let agentDefinitionId: string | undefined;
@@ -490,7 +989,7 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
 
   return {
     db: testDb,
-    redis,
+    ...(redis === undefined ? {} : { redis }),
     pluginManager,
     refs,
     projectId: project.id,
@@ -500,28 +999,9 @@ export const seed = async (opts: SeedOptions): Promise<SeededContext> => {
     agentDefinitionId,
     userId,
     cleanup: async () => {
-      await testDb.cleanup();
-      redis.disconnect();
+      await cleanup();
     },
   };
-};
-
-const getDimensionFromConfig = (
-  override: PluginOverride | undefined,
-): number | undefined => {
-  if (!override) return undefined;
-  if (!isRecordConfig(override.config)) return undefined;
-  const model = override.config["model-id"] ?? override.config.model;
-  if (typeof model !== "string") return undefined;
-  const dimensionMap: Record<string, number> = {
-    "text-embedding-3-small": 1536,
-    "text-embedding-3-large": 3072,
-    "text-embedding-ada-002": 1536,
-  };
-  // The openai-vectorizer plugin hardcodes dimensions: 1024 in the API call,
-  // so any model accessed via it produces 1024-dimensional vectors unless
-  // explicitly mapped to a different known dimension.
-  return dimensionMap[model] ?? 1024;
 };
 
 const isRecordConfig = (
@@ -540,126 +1020,172 @@ const getVectorizerModelName = (
   return typeof model === "string" ? model : "unknown";
 };
 
-const vectorizeWithCache = async (opts: {
+const EvalVectorizationErrorCodes = [
+  "CONFIGURED_SERVICE_UNAVAILABLE",
+  "VECTORIZATION_FAILED",
+  "VECTOR_DIMENSION_MISMATCH",
+  "VECTOR_STORAGE_FAILED",
+] as const;
+type EvalVectorizationErrorCode = (typeof EvalVectorizationErrorCodes)[number];
+
+export class EvalVectorizationError extends Error {
+  public readonly code: EvalVectorizationErrorCode;
+
+  public constructor(
+    code: EvalVectorizationErrorCode,
+    message: string,
+    options?: ErrorOptions,
+  ) {
+    super(message, options);
+    this.name = "EvalVectorizationError";
+    this.code = code;
+  }
+}
+
+export type EvalVectorizationResult =
+  | { status: "VECTORIZED" }
+  | { status: "SKIPPED"; reason: "EXPLICIT_SUITE_POLICY" };
+
+export const vectorizeWithCache = async (opts: {
   execCtx: ExecutorContext;
   pluginManager: PluginManager;
   cache: VectorCache;
   vectorizerOverride: PluginOverride | undefined;
-  dimension: number;
-}): Promise<void> => {
-  const { execCtx, pluginManager, cache, vectorizerOverride, dimension } = opts;
+  mode: LoadedSuite["config"]["vectorization"];
+  signal?: AbortSignal | undefined;
+}): Promise<EvalVectorizationResult> => {
+  const { execCtx, pluginManager, cache, vectorizerOverride, mode, signal } =
+    opts;
   const modelName = getVectorizerModelName(vectorizerOverride);
 
-  const pm = resolvePluginManager(pluginManager);
-  const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");
-  const storageEntry = firstOrGivenService(pm, "VECTOR_STORAGE");
-  if (!vectorizerEntry || !storageEntry) {
-    console.warn(
-      "[eval] No vectorizer or storage service available — skipping vectorization",
+  try {
+    throwIfEvaluationAborted(signal);
+    if (mode === "skip") {
+      return { status: "SKIPPED", reason: "EXPLICIT_SUITE_POLICY" };
+    }
+    const pm = resolvePluginManager(pluginManager);
+    const vectorizerEntry = selectFirstServiceImplementation(
+      pm,
+      "TEXT_VECTORIZER",
     );
-    return;
-  }
-  const vectorizer = vectorizerEntry.service;
-  const storage = storageEntry.service;
+    const storageEntry = selectFirstServiceImplementation(pm, "VECTOR_STORAGE");
+    if (!vectorizerEntry || !storageEntry) {
+      throw new EvalVectorizationError(
+        "CONFIGURED_SERVICE_UNAVAILABLE",
+        "Eval suite requires vectorization but no vectorizer or storage service is available.",
+      );
+    }
+    const vectorizer = vectorizerEntry.service;
+    const storage = storageEntry.service;
+    const db = execCtx.db;
+    const pendingRows = await db.execute(
+      sql`SELECT id, value, language_id FROM "VectorizedString" WHERE status = 'PENDING_VECTORIZE'`,
+    );
 
-  const db = execCtx.db;
-  const pendingRows = await db.execute(
-    sql`SELECT id, value, language_id FROM "VectorizedString" WHERE status = 'PENDING_VECTORIZE'`,
-  );
+    if (!pendingRows.rows || pendingRows.rows.length === 0)
+      return { status: "VECTORIZED" };
 
-  if (!pendingRows.rows || pendingRows.rows.length === 0) return;
+    for (const row of pendingRows.rows) {
+      throwIfEvaluationAborted(signal);
+      const stringId = row.id as number;
+      const text = row.value as string;
+      const languageId = row.language_id as string;
 
-  for (const row of pendingRows.rows) {
-    const stringId = row.id as number;
-    const text = row.value as string;
-    const languageId = row.language_id as string;
+      const cached = cache.get(modelName, text, languageId);
+      let chunkDataArrays: Array<
+        Array<{ meta: Record<string, unknown> | null; vector: number[] }>
+      >;
 
-    const cached = cache.get(modelName, text, languageId);
-    let chunkDataArrays: Array<
-      Array<{ meta: Record<string, unknown> | null; vector: number[] }>
-    >;
-
-    if (cached) {
-      chunkDataArrays = cached;
-    } else {
-      try {
-        const result = await vectorizer.vectorize({
-          elements: [{ text, languageId }],
-        });
-        chunkDataArrays = result.map((r: unknown) =>
-          Array.isArray(r) ? r : [r],
-        ) as typeof chunkDataArrays;
-        cache.set(modelName, text, languageId, chunkDataArrays, dimension);
-      } catch (err) {
-        const msg = String(err);
-        if (msg.includes("dimension") || msg.includes("expected")) {
-          console.warn(
-            `[eval] Dimension mismatch for model "${modelName}" — invalidating cache`,
+      if (cached) {
+        chunkDataArrays = cached;
+      } else {
+        try {
+          const result = await vectorizer.vectorize({
+            elements: [{ text, languageId }],
+            ...(signal === undefined ? {} : { signal }),
+          });
+          chunkDataArrays = result.map((r: unknown) =>
+            Array.isArray(r) ? r : [r],
+          ) as typeof chunkDataArrays;
+        } catch (err) {
+          throwIfEvaluationAborted(signal);
+          throw new EvalVectorizationError(
+            "VECTORIZATION_FAILED",
+            `Failed to vectorize string ${stringId} with model "${modelName}".`,
+            { cause: err },
           );
-          cache.invalidateModel(modelName);
         }
-        console.error(`[eval] Failed to vectorize string ${stringId}:`, err);
-        continue;
+      }
+
+      if (
+        chunkDataArrays.some((chunks) =>
+          chunks.some(
+            (chunk) => chunk.vector.length !== RequiredVectorDimension,
+          ),
+        )
+      ) {
+        const dimensions = chunkDataArrays.flatMap((chunks) =>
+          chunks.map((chunk) => chunk.vector.length),
+        );
+        cache.invalidateModel(modelName);
+        throw new EvalVectorizationError(
+          "VECTOR_DIMENSION_MISMATCH",
+          `Vectorizer model "${modelName}" returned vector dimensions [${dimensions.join(", ")}], expected ${RequiredVectorDimension}.`,
+        );
+      }
+      if (!cached) cache.set(modelName, text, languageId, chunkDataArrays);
+
+      try {
+        const flatChunks = chunkDataArrays.flatMap((chunks, textIdx) =>
+          chunks.map((chunk) => ({
+            textIndex: textIdx,
+            meta: chunk.meta as JSONType | undefined,
+          })),
+        );
+
+        const { chunkSetIds, chunkIds } = await executeCommand(
+          execCtx,
+          createVectorizedChunks,
+          {
+            vectorizer: vectorizerEntry.reference,
+            vectorStorage: storageEntry.reference,
+            chunkSetCount: chunkDataArrays.length,
+            chunks: flatChunks,
+          },
+        );
+
+        const vectorPairs = chunkDataArrays.flatMap((chunks) =>
+          chunks.map((chunk, i) => ({
+            chunkId: requireFirst(
+              chunkIds.slice(i, i + 1),
+              "create vectorized chunk",
+            ),
+            vector: chunk.vector,
+          })),
+        );
+        await storage.store({ chunks: vectorPairs });
+
+        await executeCommand(execCtx, attachChunkSetToString, {
+          updates: [
+            {
+              stringId,
+              chunkSetId: requireFirst(
+                chunkSetIds,
+                "create vectorized chunk set",
+              ),
+            },
+          ],
+        });
+      } catch (err) {
+        throw new EvalVectorizationError(
+          "VECTOR_STORAGE_FAILED",
+          `Failed to store vectors for string ${stringId}.`,
+          { cause: err },
+        );
       }
     }
-
-    try {
-      const vectorizerPlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'TEXT_VECTORIZER' LIMIT 1`,
-      );
-      const storagePlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'VECTOR_STORAGE' LIMIT 1`,
-      );
-      const vectorizerId = (vectorizerPlugin.rows?.[0]?.id as number) ?? 1;
-      const vectorStorageId = (storagePlugin.rows?.[0]?.id as number) ?? 1;
-
-      const flatChunks = chunkDataArrays.flatMap((chunks, textIdx) =>
-        chunks.map((chunk) => ({
-          textIndex: textIdx,
-          meta: chunk.meta as JSONType | undefined,
-        })),
-      );
-
-      const { chunkSetIds, chunkIds } = await executeCommand(
-        execCtx,
-        createVectorizedChunks,
-        {
-          vectorizerId,
-          vectorStorageId,
-          chunkSetCount: chunkDataArrays.length,
-          chunks: flatChunks,
-        },
-      );
-
-      const vectorPairs = chunkDataArrays.flatMap((chunks) =>
-        chunks.map((chunk, i) => ({
-          chunkId: requireFirst(
-            chunkIds.slice(i, i + 1),
-            "create vectorized chunk",
-          ),
-          vector: chunk.vector,
-        })),
-      );
-      await storage.store({ chunks: vectorPairs });
-
-      await executeCommand(execCtx, attachChunkSetToString, {
-        updates: [
-          {
-            stringId,
-            chunkSetId: requireFirst(
-              chunkSetIds,
-              "create vectorized chunk set",
-            ),
-          },
-        ],
-      });
-    } catch (err) {
-      console.error(
-        `[eval] Failed to store vectors for string ${stringId}:`,
-        err,
-      );
-    }
+    return { status: "VECTORIZED" };
+  } finally {
+    cache.close();
   }
-
-  cache.close();
 };

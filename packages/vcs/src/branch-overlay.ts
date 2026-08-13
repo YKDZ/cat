@@ -130,6 +130,32 @@ export async function listWithOverlay<T extends Record<string, unknown>>(
 }
 
 /**
+ * Returns the current branch-owned state for every changed entity of one type.
+ * Entries are already newest-first, so each entity is folded exactly once.
+ */
+export async function listOverlayStates<T extends Record<string, unknown>>(
+  db: DbHandle,
+  branchId: number,
+  entityType: EntityType,
+): Promise<T[]> {
+  const entries = await executeQuery({ db }, listBranchChangesetEntries, {
+    branchId,
+    entityType,
+  });
+  const states = new Map<string, T>();
+  const seen = new Set<string>();
+  for (const entry of entries) {
+    if (seen.has(entry.entityId)) continue;
+    seen.add(entry.entityId);
+    if (entry.after === null) continue;
+    // Overlay payloads are JSON at rest and become a caller-owned typed state here.
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    states.set(entry.entityId, entry.after as unknown as T);
+  }
+  return [...states.values()];
+}
+
+/**
  * Gets the latest changeset ID associated with the given branch.
  */
 export async function getBranchChangesetId(
