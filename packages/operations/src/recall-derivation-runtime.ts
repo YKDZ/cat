@@ -300,8 +300,8 @@ const assessPersistedRecallDerivationFreshness = async (
     (reference) => !byKey.has(referenceKey(reference)),
   );
   if (missing.length > 0) return { status: "MISSING", references: missing };
-  const current = references.map(
-    (reference) => byKey.get(referenceKey(reference))!,
+  const current = references.map((reference) =>
+    byKey.get(referenceKey(reference))!,
   );
   const terminal = current.flatMap((state) => {
     if (state.status !== "BLOCKED" && state.status !== "FAILED") return [];

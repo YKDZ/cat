@@ -114,18 +114,16 @@ export const applyMemoryHnfPost = (
       (r): r is RecallCandidate & { surface: "memory" } =>
         r.surface === "memory" && r.tier === "3",
     )
-    .map(
-      (r): HnfCandidate => ({
-        surface: "memory",
-        candidateKey: `memory:${r.id}`,
-        candidateTextLower: r.source.toLowerCase(),
-        evidences: r.evidences,
-        confidence: r.evidences.reduce(
-          (max, e) => Math.max(max, e.confidence),
-          0,
-        ),
-      }),
-    )
+    .map((r): HnfCandidate => ({
+      surface: "memory",
+      candidateKey: `memory:${r.id}`,
+      candidateTextLower: r.source.toLowerCase(),
+      evidences: r.evidences,
+      confidence: r.evidences.reduce(
+        (max, e) => Math.max(max, e.confidence),
+        0,
+      ),
+    }))
     .map((c) => ({ ...c, tier: "3" as const }));
 
   const { removals } = applyHnfPostRules(

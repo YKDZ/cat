@@ -168,8 +168,7 @@ watch(highlightedHtml, async () => {
       <ScrollArea class="h-full w-full">
         <pre
           class="min-w-max p-2 font-mono text-xs leading-[1.4] whitespace-pre"
-          >{{ windowContent }}</pre
-        >
+          >{{ windowContent }}</pre>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
