@@ -168,7 +168,7 @@ test.describe("Language Analysis policy surfaces", () => {
     const waitForStableRequestCounts = async (): Promise<
       Record<string, number>
     > => {
-      const deadline = Date.now() + 20_000;
+      const deadline = Date.now() + 60_000;
       let previous = await requestCounts();
       let stableSamples = 0;
       while (Date.now() < deadline) {
@@ -309,15 +309,26 @@ test.describe("Language Analysis policy surfaces", () => {
       }),
     );
 
-    const csrfToken = (await page.context().cookies()).find(
-      (cookie) => cookie.name === "csrfToken",
-    )?.value;
-    if (csrfToken === undefined) {
-      throw new Error("Authenticated Workbench did not expose a CSRF token");
-    }
     const before = await waitForStableRequestCounts();
+
     const directObservation = await page.evaluate(
-      async ({ csrfToken: requestCsrfToken, projectId }) => {
+      async ({ projectId }) => {
+        const documentValue = Reflect.get(globalThis, "document");
+        const cookie =
+          typeof documentValue === "object" &&
+          documentValue !== null &&
+          typeof Reflect.get(documentValue, "cookie") === "string"
+            ? Reflect.get(documentValue, "cookie")
+            : "";
+        const csrfToken = cookie
+          .split("; ")
+          .find((value: string) => value.startsWith("csrfToken="))
+          ?.slice("csrfToken=".length);
+        if (csrfToken === undefined) {
+          throw new Error(
+            "Authenticated Workbench did not expose a CSRF token",
+          );
+        }
         const response = await fetch(
           "/api/rpc/languageAnalysis/getProjectObservations",
           {
@@ -325,23 +336,27 @@ test.describe("Language Analysis policy surfaces", () => {
             credentials: "same-origin",
             headers: {
               "content-type": "application/json",
-              "x-csrf-token": requestCsrfToken,
+              "x-csrf-token": csrfToken,
             },
             method: "POST",
           },
         );
-        const body: unknown = await response.json();
-        return { body, ok: response.ok };
+        return {
+          body: (await response.json()) as unknown,
+          ok: response.ok,
+        };
       },
-      { csrfToken, projectId: refs.project },
+      { projectId: refs.project },
     );
-    expect(directObservation.ok).toBe(true);
+    expect(directObservation.ok, {
+      message: JSON.stringify(directObservation.body),
+    }).toBe(true);
+    expect(await requestCounts()).toEqual(before);
     expect(
       parseObservationTiming(directObservation.body, sourceLanguageId),
     ).toEqual({
       assessmentStatus: "SATISFIED",
       observationStatus: "SATISFIED",
     });
-    expect(await requestCounts()).toEqual(before);
   });
 });

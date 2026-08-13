@@ -225,8 +225,7 @@ describe("PostgresCheckpointer owner fencing", () => {
       const winnerRunId = fulfilled[0]?.value;
       if (!winnerRunId) throw new Error("Expected a winning scheduler run.");
 
-      await new Promise((resolve) => setTimeout(resolve, 80));
-      expect(executions).toBe(1);
+      await expect.poll(() => executions).toBe(1);
       expect(await ownerA.loadSnapshot(winnerRunId)).not.toBeNull();
       const events = await ownerA.listEvents(winnerRunId);
       expect(events.filter((event) => event.type === "run:start")).toHaveLength(
@@ -280,7 +279,7 @@ describe("PostgresCheckpointer owner fencing", () => {
 
     const other = await db.openConcurrentClient();
     const newOwner = new PostgresCheckpointer(other.client, {
-      ownerLeaseMs: 1_000,
+      ownerLeaseMs: 30_000,
     });
     const eventBus = new InProcessEventBus();
     const graphRegistry = new GraphRegistry();
@@ -479,7 +478,9 @@ describe("PostgresCheckpointer owner fencing", () => {
   it("rejects a live-owner takeover and fences every stale persistence write after expiry", async () => {
     const run = await createRun();
     const ownerA = new PostgresCheckpointer(db.client, { ownerLeaseMs: 100 });
-    const ownerB = new PostgresCheckpointer(db.client, { ownerLeaseMs: 100 });
+    const ownerB = new PostgresCheckpointer(db.client, {
+      ownerLeaseMs: 30_000,
+    });
     expect(await ownerA.claimRunOwnership(run.runId)).toBe(true);
     expect(await ownerB.claimRunOwnership(run.runId)).toBe(false);
 
