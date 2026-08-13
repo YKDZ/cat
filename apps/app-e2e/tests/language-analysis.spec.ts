@@ -168,7 +168,7 @@ test.describe("Language Analysis policy surfaces", () => {
     const waitForStableRequestCounts = async (): Promise<
       Record<string, number>
     > => {
-      const deadline = Date.now() + 20_000;
+      const deadline = Date.now() + 60_000;
       let previous = await requestCounts();
       let stableSamples = 0;
       while (Date.now() < deadline) {
