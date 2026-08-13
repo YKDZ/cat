@@ -3,7 +3,6 @@ import * as z from "zod";
 import { authed } from "#/orpc/server.ts";
 
 const FactorInfoSchema = z.object({
-  dbId: z.int(),
   id: z.string(),
   name: z.string(),
   icon: z.string(),
@@ -20,16 +19,13 @@ export const listFactors = authed
   .handler(async ({ context }) => {
     const { pluginManager } = context;
 
-    return pluginManager
-      .getServices("AUTH_FACTOR")
-      .map(({ dbId, id, service }) => {
-        return {
-          dbId,
-          id,
-          name: service.getName(),
-          icon: service.getIcon(),
-          aal: service.getAal(),
-          componentType: service.getClientComponentType(),
-        };
-      });
+    return pluginManager.getServices("AUTH_FACTOR").map(({ id, service }) => {
+      return {
+        id,
+        name: service.getName(),
+        icon: service.getIcon(),
+        aal: service.getAal(),
+        componentType: service.getClientComponentType(),
+      };
+    });
   });

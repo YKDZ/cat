@@ -9,6 +9,7 @@ import {
   LanguageAnalysisSelectionSchema,
   LanguageAnalysisSelectionWriteSchema,
   LanguageAnalysisWildcardSelectionKey,
+  NormalizedLanguageIdSchema,
   stableSerializeLanguageAnalysis,
   type LanguageAnalysisSelection,
 } from "@cat/shared";
@@ -142,7 +143,7 @@ export const writeValidatedLanguageAnalysisSelection: Command<
         tx,
         command.key === LanguageAnalysisWildcardSelectionKey
           ? undefined
-          : command.key,
+          : NormalizedLanguageIdSchema.parse(command.key),
       );
     }
 

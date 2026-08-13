@@ -12,6 +12,7 @@ import {
 import type { MemoryRecallVariantMeta, SlotMappingEntry } from "@cat/shared";
 import {
   MemoryRecallVariantMetaSchema,
+  NormalizedLanguageIdSchema,
   RecallDerivationVersionSchema,
 } from "@cat/shared";
 import * as z from "zod";
@@ -22,8 +23,8 @@ import type { Query } from "#/types.ts";
 export const ListVariantMemorySuggestionsQuerySchema = z.object({
   text: z.string(),
   normalizedText: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   requiredDerivationVersion: RecallDerivationVersionSchema,
   memoryIds: z.array(z.uuidv4()),
   minSimilarity: z.number().min(0).max(1).default(0.7),
@@ -31,6 +32,9 @@ export const ListVariantMemorySuggestionsQuerySchema = z.object({
 });
 
 export type ListVariantMemorySuggestionsQuery = z.infer<
+  typeof ListVariantMemorySuggestionsQuerySchema
+>;
+type ListVariantMemorySuggestionsQueryInput = z.input<
   typeof ListVariantMemorySuggestionsQuerySchema
 >;
 
@@ -73,9 +77,10 @@ const toEvidenceLane = (variantType: string) => {
  * compatible with the existing `streamSearchMemoryOp` dedup pipeline.
  */
 export const listVariantMemorySuggestions: Query<
-  ListVariantMemorySuggestionsQuery,
+  ListVariantMemorySuggestionsQueryInput,
   RawMemorySuggestion[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = ListVariantMemorySuggestionsQuerySchema.parse(input);
   if (query.memoryIds.length === 0) return [];
 
   const normalizedText = query.normalizedText.trim();

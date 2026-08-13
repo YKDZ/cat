@@ -10,7 +10,17 @@ import { runCleanupSteps } from "#/cleanup.ts";
 import { loadSuite } from "#/config/index.ts";
 import { evaluate } from "#/eval/index.ts";
 import { runHarness } from "#/harness/index.ts";
+import { DEFAULT_RECALL_OPERATION_TIMEOUT_MS } from "#/harness/strategies/recall-timeout.ts";
 import { generateReport } from "#/report/index.ts";
+
+// The harness deadline includes cold suite setup plus a full operation budget.
+// Vitest and afterEach keep independent framework ceilings around that cleanup.
+const RELEASE_RECALL_SETUP_BUDGET_MS = 20_000;
+const RELEASE_RECALL_HARNESS_TIMEOUT_MS =
+  RELEASE_RECALL_SETUP_BUDGET_MS + DEFAULT_RECALL_OPERATION_TIMEOUT_MS;
+const RELEASE_RECALL_CLEANUP_BUDGET_MS = 10_000;
+const RELEASE_RECALL_TEST_TIMEOUT_MS =
+  RELEASE_RECALL_HARNESS_TIMEOUT_MS + RELEASE_RECALL_CLEANUP_BUDGET_MS;
 
 const releaseSuiteDirectory = resolve(
   import.meta.dirname,
@@ -126,82 +136,94 @@ describe("release recall evaluation", () => {
         process.env = { ...originalEnvironment };
       },
     ]);
-  });
+  }, RELEASE_RECALL_CLEANUP_BUDGET_MS);
 
-  it("runs one fresh, fully prepared native-pgvector recall case and cleans its schema", async () => {
-    server = await startEmbeddingServer();
-    cacheDirectory = await mkdtemp(join(tmpdir(), "cat-eval-release-"));
-    process.env.VECTORIZER_BASE_URL = server.baseUrl;
-    process.env.SPACY_SERVER_URL ??= "http://127.0.0.1:8000";
+  it(
+    "runs one fresh, fully prepared native-pgvector recall case and cleans its schema",
+    async () => {
+      server = await startEmbeddingServer();
+      cacheDirectory = await mkdtemp(join(tmpdir(), "cat-eval-release-"));
+      process.env.VECTORIZER_BASE_URL = server.baseUrl;
+      process.env.SPACY_SERVER_URL ??= "http://127.0.0.1:8000";
 
-    const suite = loadSuite(releaseSuiteDirectory);
-    let runResult: Awaited<ReturnType<typeof runHarness>> | undefined;
-    let failure: unknown;
-    try {
-      runResult = await runHarness({
-        suite,
-        cacheDir: cacheDirectory,
-        pluginsDir: resolve(import.meta.dirname, "../../../@cat-plugin"),
-      });
-    } catch (error) {
-      failure = error;
-    }
-    if (failure !== undefined) throw failure;
-    if (runResult === undefined) throw new Error("Eval did not return a run.");
-    expect(server.responseDimensions).not.toEqual([]);
-    expect(server.requestDimensions).toEqual(
-      expect.arrayContaining([RequiredVectorDimension]),
-    );
-    expect(server.requestEncodingFormats).toEqual(
-      expect.arrayContaining(["base64"]),
-    );
-    expect(server.responseDimensions).toEqual(
-      expect.arrayContaining([RequiredVectorDimension]),
-    );
-    expect(runResult.scenarioResults).toEqual([
-      expect.objectContaining({
-        cases: [expect.objectContaining({ status: "ok" })],
-      }),
-    ]);
-    const caseResult = runResult.scenarioResults[0]?.cases[0];
-    const recallResult = caseResult?.recallResult;
-    if (recallResult === undefined) {
-      throw new Error(
-        "Release evaluation did not expose typed recall outcomes.",
+      const suite = loadSuite(releaseSuiteDirectory);
+      const controller = new AbortController();
+      const timer = setTimeout(() => {
+        controller.abort(
+          new Error(
+            `Release recall harness exceeded ${RELEASE_RECALL_HARNESS_TIMEOUT_MS}ms.`,
+          ),
+        );
+      }, RELEASE_RECALL_HARNESS_TIMEOUT_MS);
+      let runResult: Awaited<ReturnType<typeof runHarness>> | undefined;
+      try {
+        runResult = await runHarness({
+          suite,
+          cacheDir: cacheDirectory,
+          pluginsDir: resolve(import.meta.dirname, "../../../@cat-plugin"),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
+      if (runResult === undefined)
+        throw new Error("Eval did not return a run.");
+      expect(server.responseDimensions).not.toEqual([]);
+      expect(server.requestDimensions).toEqual(
+        expect.arrayContaining([RequiredVectorDimension]),
       );
-    }
-    if (
-      recallResult.outcomes.KEYWORD.status !== "SUCCEEDED" ||
-      recallResult.outcomes.SEMANTIC.status !== "SUCCEEDED"
-    ) {
-      throw new Error(
-        "Release keyword and semantic channels must both succeed.",
+      expect(server.requestEncodingFormats).toEqual(
+        expect.arrayContaining(["base64"]),
       );
-    }
-    const expectedConceptId = runResult.refs.getId("concept:release-gate");
-    expect(
-      recallResult.outcomes.KEYWORD.candidates.some(
-        ({ conceptId }) => conceptId === expectedConceptId,
-      ),
-    ).toBe(true);
-    expect(
-      recallResult.outcomes.SEMANTIC.candidates.some(
-        ({ conceptId, evidences }) =>
-          conceptId === expectedConceptId &&
-          evidences.some(({ channel }) => channel === "semantic"),
-      ),
-    ).toBe(true);
-    const report = generateReport(
-      runResult,
-      evaluate(
-        runResult.scenarioResults,
-        suite.testSets,
-        suite.config.scenarios.map(({ scorers }) => scorers),
-        runResult.refs,
-      ),
-      suite.config.thresholds,
-    );
-    expect(report.allPassed).toBe(true);
-    expect(globalThis.__DRIZZLE_DB__).toBeUndefined();
-  });
+      expect(server.responseDimensions).toEqual(
+        expect.arrayContaining([RequiredVectorDimension]),
+      );
+      expect(runResult.scenarioResults).toEqual([
+        expect.objectContaining({
+          cases: [expect.objectContaining({ status: "ok" })],
+        }),
+      ]);
+      const caseResult = runResult.scenarioResults[0]?.cases[0];
+      const recallResult = caseResult?.recallResult;
+      if (recallResult === undefined) {
+        throw new Error(
+          "Release evaluation did not expose typed recall outcomes.",
+        );
+      }
+      if (
+        recallResult.outcomes.KEYWORD.status !== "SUCCEEDED" ||
+        recallResult.outcomes.SEMANTIC.status !== "SUCCEEDED"
+      ) {
+        throw new Error(
+          "Release keyword and semantic channels must both succeed.",
+        );
+      }
+      const expectedConceptId = runResult.refs.getId("concept:release-gate");
+      expect(
+        recallResult.outcomes.KEYWORD.candidates.some(
+          ({ conceptId }) => conceptId === expectedConceptId,
+        ),
+      ).toBe(true);
+      expect(
+        recallResult.outcomes.SEMANTIC.candidates.some(
+          ({ conceptId, evidences }) =>
+            conceptId === expectedConceptId &&
+            evidences.some(({ channel }) => channel === "semantic"),
+        ),
+      ).toBe(true);
+      const report = generateReport(
+        runResult,
+        evaluate(
+          runResult.scenarioResults,
+          suite.testSets,
+          suite.config.scenarios.map(({ scorers }) => scorers),
+          runResult.refs,
+        ),
+        suite.config.thresholds,
+      );
+      expect(report.allPassed).toBe(true);
+      expect(globalThis.__DRIZZLE_DB__).toBeUndefined();
+    },
+    RELEASE_RECALL_TEST_TIMEOUT_MS,
+  );
 });

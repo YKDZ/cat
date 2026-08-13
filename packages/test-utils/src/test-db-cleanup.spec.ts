@@ -14,6 +14,13 @@ const state = vi.hoisted(() => ({
     | "success"
     | "sync-snapshot",
   queries: [] as string[],
+  poolConfigs: [] as unknown[],
+  poolCount: 0,
+  poolEndCalls: 0,
+  cleanupOrder: [] as string[],
+  clientEndErrors: {} as Record<number, Error[]>,
+  poolEndErrors: {} as Record<number, Error[]>,
+  dropErrors: [] as Error[],
 }));
 
 vi.mock("@cat/db", () => ({ relations: {} }));
@@ -34,6 +41,9 @@ vi.mock("pg", () => ({
     async end(): Promise<void> {
       state.endCalls += 1;
       state.endAttempts += 1;
+      state.cleanupOrder.push(`client:${this.id}`);
+      const configuredError = state.clientEndErrors[this.id]?.shift();
+      if (configuredError) throw configuredError;
       if (
         state.mode === "end-retry" &&
         this.id === 1 &&
@@ -62,10 +72,27 @@ vi.mock("pg", () => ({
       }
       if (statement.startsWith("DROP SCHEMA")) {
         state.dropAttempts += 1;
+        state.cleanupOrder.push("schema");
+        const configuredError = state.dropErrors.shift();
+        if (configuredError) throw configuredError;
         if (state.mode === "drop-retry" && state.dropAttempts === 1)
           throw state.error;
       }
       return undefined;
+    }
+  },
+  Pool: class {
+    private readonly id = ++state.poolCount;
+
+    constructor(config: unknown) {
+      state.poolConfigs.push(config);
+    }
+
+    async end(): Promise<void> {
+      state.poolEndCalls += 1;
+      state.cleanupOrder.push(`pool:${this.id}`);
+      const configuredError = state.poolEndErrors[this.id]?.shift();
+      if (configuredError) throw configuredError;
     }
   },
 }));
@@ -82,6 +109,13 @@ describe("setupTestDB failed setup cleanup", () => {
     state.error = new Error("setup failed");
     state.mode = "sync-snapshot";
     state.queries = [];
+    state.poolConfigs = [];
+    state.poolCount = 0;
+    state.poolEndCalls = 0;
+    state.cleanupOrder = [];
+    state.clientEndErrors = {};
+    state.poolEndErrors = {};
+    state.dropErrors = [];
     vi.resetModules();
   });
 
@@ -136,6 +170,127 @@ describe("setupTestDB failed setup cleanup", () => {
 
     await db.cleanup();
     expect(state.endCalls).toBe(2);
+  });
+
+  it("preserves setup and cleanup errors and lets root cleanup retry the client", async () => {
+    state.mode = "concurrent-search-path";
+    const cleanupError = new Error("concurrent cleanup failed once");
+    state.clientEndErrors[2] = [cleanupError];
+    const db = await setupTestDatabase();
+
+    const opening = db.openConcurrentClient();
+    await expect(opening).rejects.toMatchObject({
+      errors: [state.error, cleanupError],
+    });
+
+    await expect(db.cleanup()).resolves.toBeUndefined();
+    expect(state.cleanupOrder).toEqual([
+      "client:2",
+      "client:2",
+      "schema",
+      "client:1",
+    ]);
+  });
+
+  it("opens a pool whose every connection uses the isolated schema", async () => {
+    state.mode = "success";
+    const db = await setupTestDatabase();
+
+    const pooled = db.openPooledClient();
+
+    expect(state.poolConfigs).toEqual([
+      expect.objectContaining({
+        connectionString: "postgres://user:pass@localhost:5432/cat",
+        options: expect.stringMatching(
+          /^-c search_path=test_[a-f0-9_]+,public$/,
+        ),
+      }),
+    ]);
+    await pooled.cleanup();
+    await pooled.cleanup();
+    expect(state.poolEndCalls).toBe(1);
+
+    await db.cleanup();
+  });
+
+  it("makes explicit concurrent client cleanup idempotent", async () => {
+    state.mode = "success";
+    const db = await setupTestDatabase();
+    const concurrent = await db.openConcurrentClient();
+
+    await concurrent.cleanup();
+    await concurrent.cleanup();
+
+    expect(state.cleanupOrder).toEqual(["client:2"]);
+    await db.cleanup();
+  });
+
+  it("closes registered concurrent clients and pools during root cleanup", async () => {
+    state.mode = "success";
+    const db = await setupTestDatabase();
+    await db.openConcurrentClient();
+    db.openPooledClient();
+
+    await db.cleanup();
+
+    expect(state.cleanupOrder).toEqual([
+      "client:2",
+      "pool:1",
+      "schema",
+      "client:1",
+    ]);
+  });
+
+  it("retries failed explicit child cleanup from root cleanup", async () => {
+    state.mode = "success";
+    const childError = new Error("pool close failed once");
+    state.poolEndErrors[1] = [childError];
+    const db = await setupTestDatabase();
+    const pooled = db.openPooledClient();
+
+    await expect(pooled.cleanup()).rejects.toBe(childError);
+    await expect(db.cleanup()).resolves.toBeUndefined();
+
+    expect(state.poolEndCalls).toBe(2);
+  });
+
+  it("attempts every child and schema cleanup when one child fails", async () => {
+    state.mode = "success";
+    const childError = new Error("first child failed");
+    state.poolEndErrors[1] = [childError];
+    const db = await setupTestDatabase();
+    db.openPooledClient();
+    db.openPooledClient();
+
+    await expect(db.cleanup()).rejects.toBe(childError);
+
+    expect(state.cleanupOrder).toEqual([
+      "pool:1",
+      "pool:2",
+      "schema",
+      "client:1",
+    ]);
+    await expect(db.cleanup()).resolves.toBeUndefined();
+    expect(state.cleanupOrder.at(-1)).toBe("pool:1");
+  });
+
+  it("aggregates child and schema cleanup errors in attempt order", async () => {
+    state.mode = "success";
+    const concurrentError = new Error("concurrent close failed");
+    const poolError = new Error("pool close failed");
+    const schemaError = new Error("schema drop failed");
+    state.clientEndErrors[2] = [concurrentError];
+    state.poolEndErrors[1] = [poolError];
+    state.dropErrors = [schemaError];
+    const db = await setupTestDatabase();
+    await db.openConcurrentClient();
+    db.openPooledClient();
+
+    const cleanup = db.cleanup();
+    await expect(cleanup).rejects.toBeInstanceOf(AggregateError);
+    await expect(cleanup).rejects.toMatchObject({
+      errors: [concurrentError, poolError, schemaError],
+    });
   });
 
   it("retries client shutdown after the schema has already dropped", async () => {

@@ -30,7 +30,6 @@ export const reconcileRecallDerivationDependency: Command<
       .update(recallDerivationState)
       .set({
         status: "PENDING",
-        demandRevision: sql`${recallDerivationState.demandRevision} + 1`,
         leaseOwnerId: null,
         leaseToken: null,
         leaseExpiresAt: null,
@@ -52,7 +51,6 @@ export const reconcileRecallDerivationDependency: Command<
     const pending = await tx
       .update(recallDerivationState)
       .set({
-        demandRevision: sql`${recallDerivationState.demandRevision} + 1`,
         requiredDerivationVersion: command.requiredDerivationVersion,
         taskProjectionRevision: sql`${recallDerivationState.taskProjectionRevision} + 1`,
         updatedAt: sql`clock_timestamp()`,

@@ -18,13 +18,14 @@ import type {
   CandidateChannel,
   CandidateChannelBlocker,
   CandidateChannelOutcome,
+  LanguageAnalysisToken,
   RecallDerivationVersion,
   SlotMappingEntry,
 } from "@cat/shared";
 import {
   CandidateChannelRequestSchema,
   CandidateChannelValues,
-  LanguageAnalysisVersionSchema,
+  NormalizedLanguageIdSchema,
   MemoryRecallCandidateSchema,
   MemoryRecallResultSchema,
   type MemorySuggestion,
@@ -61,6 +62,7 @@ import type {
   RawMemoryResult,
   RecallCandidate,
 } from "./precision/types.ts";
+import { RecallDerivationAdapterError } from "./recall-derivation-adapter.ts";
 import { assessScopedRecallDerivation } from "./recall-derivation-channel.ts";
 import { searchMemoryOp } from "./search-memory.ts";
 import { applySelfExclusion } from "./self-exclusion-filter.ts";
@@ -74,34 +76,16 @@ export {
   type MemoryRecallResult,
 };
 
-export const CollectMemoryRecallInputBaseSchema = z.object({
+export const CollectMemoryRecallInputBaseSchema = z.strictObject({
   text: z.string(),
-  normalizedText: z.string().optional(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   memoryIds: z.array(z.uuid()),
   memoryScope: z.enum(["PROJECT", "PERSONAL"]).default("PROJECT"),
   minSimilarity: z.number().min(0).max(1).default(0.72),
   minVariantSimilarity: z.number().min(0).max(1).default(0.7),
   maxAmount: z.int().min(1).default(5),
-  chunkIds: z.array(z.int()).default([]),
-  queryVectors: z.array(z.array(z.number())).optional(),
   vectorStorage: ServiceImplementationReferenceSchema.optional(),
-  /** Pre-tokenized Language Analysis tokens for the source text. */
-  sourceLanguageAnalysisTokens: z
-    .array(
-      z.object({
-        text: z.string(),
-        lemma: z.string(),
-        pos: z.string(),
-        start: z.int(),
-        end: z.int(),
-        isStop: z.boolean(),
-        isPunct: z.boolean(),
-      }),
-    )
-    .optional(),
-  sourceLanguageAnalysisVersion: LanguageAnalysisVersionSchema.optional(),
   /** Memory item UUIDs to exclude from results (self-exclusion). */
   excludeMemoryItemIds: z.array(z.string()).optional(),
   rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
@@ -111,19 +95,7 @@ export const CollectMemoryRecallInputBaseSchema = z.object({
 });
 
 export const CollectMemoryRecallInputSchema =
-  CollectMemoryRecallInputBaseSchema.superRefine((input, context) => {
-    if (
-      (input.sourceLanguageAnalysisTokens === undefined) !==
-      (input.sourceLanguageAnalysisVersion === undefined)
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["sourceLanguageAnalysisTokens"],
-        message:
-          "Language Analysis tokens and version must be supplied together.",
-      });
-    }
-  });
+  CollectMemoryRecallInputBaseSchema;
 
 export type CollectMemoryRecallInput = z.input<
   typeof CollectMemoryRecallInputSchema
@@ -190,7 +162,57 @@ export const collectMemoryRecallOp = async (
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
 
   const text = input.text;
-  let sourceLanguageAnalysisTokens = input.sourceLanguageAnalysisTokens;
+  let sourceLanguageAnalysisTokens: LanguageAnalysisToken[] | undefined;
+  let recallDependency:
+    | Awaited<ReturnType<typeof probeMemoryRecallDependency>>
+    | undefined;
+
+  const languageAnalysisBlocker = (error: unknown): CandidateChannelBlocker =>
+    error instanceof LanguageAnalysisRequirementError ||
+    (error instanceof RecallDerivationAdapterError &&
+      error.blockers.some((blocker) => blocker.reason === "LANGUAGE_ANALYSIS"))
+      ? {
+          reason: "LANGUAGE_ANALYSIS_UNAVAILABLE",
+          message: error.message,
+          retryable:
+            error instanceof LanguageAnalysisRequirementError
+              ? (error.assessment.blocker?.retryable ?? false)
+              : error.blockers.every((blocker) => blocker.retryable),
+          capability: "LANGUAGE_ANALYSIS",
+        }
+      : {
+          reason: "CHANNEL_EXECUTION_FAILED",
+          message: error instanceof Error ? error.message : String(error),
+          retryable: true,
+          capability: "LANGUAGE_ANALYSIS",
+        };
+
+  if (requestedChannels.has("KEYWORD") || requestedChannels.has("VARIANT")) {
+    try {
+      recallDependency = await probeMemoryRecallDependency({
+        db: drizzle,
+        pluginManager,
+        languageId: input.sourceLanguageId,
+        text,
+        timeoutMs: 5_000,
+        ctx,
+      });
+      if (!recallDependency.tokens) {
+        throw new TypeError(
+          "Current Language Analysis did not return tokens for recall.",
+        );
+      }
+      sourceLanguageAnalysisTokens = recallDependency.tokens;
+    } catch (error) {
+      const blocker = languageAnalysisBlocker(error);
+      if (requestedChannels.has("KEYWORD")) {
+        channelBlockers.set("KEYWORD", blocker);
+      }
+      if (requestedChannels.has("VARIANT")) {
+        channelBlockers.set("VARIANT", blocker);
+      }
+    }
+  }
 
   const commonInput = {
     text,
@@ -200,23 +222,23 @@ export const collectMemoryRecallOp = async (
     maxAmount: input.maxAmount,
   };
 
-  // Lazy-compute current source template
-  let currentSourceTemplate: string | null = null;
-  let currentSourceSlotsPromise:
-    | Promise<ReturnType<typeof placeholderize>["slots"] | null>
+  let currentSourceTemplatePromise:
+    | Promise<{
+        template: string;
+        slots: ReturnType<typeof placeholderize>["slots"];
+      }>
     | undefined;
 
-  const ensureCurrentSourceTemplate = async () => {
-    if (!currentSourceSlotsPromise) {
-      currentSourceSlotsPromise = tokenizeOp({ text }, ctx)
-        .then(({ tokens }) => {
+  const getCurrentSourceTemplate = async () => {
+    if (!currentSourceTemplatePromise) {
+      currentSourceTemplatePromise = tokenizeOp({ text }, ctx).then(
+        ({ tokens }) => {
           const result = placeholderize(tokens, text);
-          currentSourceTemplate = result.template;
-          return result.slots;
-        })
-        .catch(() => null);
+          return { template: result.template, slots: result.slots };
+        },
+      );
     }
-    return currentSourceSlotsPromise;
+    return currentSourceTemplatePromise;
   };
 
   const tryAdapt = async (
@@ -229,8 +251,8 @@ export const collectMemoryRecallOp = async (
       return suggestion;
     }
 
-    const currentSlots = await ensureCurrentSourceTemplate();
-    if (!currentSlots || currentSourceTemplate !== sourceTemplate) {
+    const currentSourceTemplate = await getCurrentSourceTemplate();
+    if (currentSourceTemplate.template !== sourceTemplate) {
       return suggestion;
     }
 
@@ -243,7 +265,7 @@ export const collectMemoryRecallOp = async (
     const adapted = fillTemplate(
       translationTemplate,
       storedTranslationSlots,
-      currentSlots,
+      currentSourceTemplate.slots,
     );
 
     if (adapted !== null) {
@@ -417,9 +439,11 @@ export const collectMemoryRecallOp = async (
     requiredDerivationVersion: RecallDerivationVersion,
     normalizedText: string,
   ) => {
-    // Channel 3: Variant-based (morphological / template / fragment)
+    // The query template is a required input to every variant lookup. Compute
+    // it once so a tokenizer failure cannot degrade into a silent empty match.
     if (requestedChannels.has("VARIANT"))
       try {
+        const currentSourceTemplate = await getCurrentSourceTemplate();
         const variantResults = await executeQuery(
           { db: derivationDb },
           listVariantMemorySuggestions,
@@ -440,12 +464,7 @@ export const collectMemoryRecallOp = async (
               const match = await matchTemplateStructure(
                 text,
                 r.sourceTemplate,
-                currentSourceTemplate
-                  ? {
-                      template: currentSourceTemplate,
-                      slots: (await ensureCurrentSourceTemplate()) ?? [],
-                    }
-                  : undefined,
+                currentSourceTemplate,
               );
 
               if (match) {
@@ -471,23 +490,14 @@ export const collectMemoryRecallOp = async (
             return pushResult("VARIANT", r.id, r);
           }),
         );
-      } catch (err) {
-        setExecutionBlocker("VARIANT", err);
-      }
-
-    // Channel 4: Template equality match
-    // Bypasses pg_trgm similarity by doing direct sourceTemplate equality.
-    // Catches version-number / placeholder variants that fail trgm similarity.
-    if (requestedChannels.has("VARIANT"))
-      try {
-        const { tokens } = await tokenizeOp({ text }, ctx);
-        const result = placeholderize(tokens, text);
-        if (result.template) {
+        // Template equality bypasses pg_trgm similarity for placeholder-only
+        // changes, but shares the same query template as structural matching.
+        if (currentSourceTemplate.template) {
           const templateResults = await executeQuery(
             { db: derivationDb },
             listTemplateMemorySuggestions,
             {
-              sourceTemplate: result.template,
+              sourceTemplate: currentSourceTemplate.template,
               sourceLanguageId: input.sourceLanguageId,
               translationLanguageId: input.translationLanguageId,
               memoryIds: input.memoryIds,
@@ -518,7 +528,7 @@ export const collectMemoryRecallOp = async (
           }
         }
       } catch (err) {
-        setExecutionBlocker("VARIANT", err);
+        setExecutionBlocker("VARIANT", err, "RECALL_DERIVATION");
       }
 
     // Channel 5: analyzer-backed keyword overlap on fresh Recall Variants.
@@ -557,35 +567,21 @@ export const collectMemoryRecallOp = async (
     }
   };
 
-  if (requestedChannels.has("KEYWORD") || requestedChannels.has("VARIANT")) {
+  if (
+    (requestedChannels.has("KEYWORD") || requestedChannels.has("VARIANT")) &&
+    recallDependency !== undefined
+  ) {
     try {
-      const dependency = await probeMemoryRecallDependency({
-        db: drizzle,
-        pluginManager,
-        languageId: input.sourceLanguageId,
-        text,
-        languageAnalysisVersion: input.sourceLanguageAnalysisVersion,
-        timeoutMs: 5_000,
-        ctx,
-      });
-      const dependencyTokens =
-        input.sourceLanguageAnalysisTokens ?? dependency.tokens;
-      if (!dependencyTokens) {
-        throw new TypeError(
-          "Current Language Analysis did not return tokens for Keyword Recall.",
-        );
-      }
-      sourceLanguageAnalysisTokens = dependencyTokens;
       const normalizedText =
-        input.normalizedText ??
-        (sourceLanguageAnalysisTokens.length > 0
+        sourceLanguageAnalysisTokens !== undefined &&
+        sourceLanguageAnalysisTokens.length > 0
           ? joinLemmas(
               sourceLanguageAnalysisTokens.filter(
                 (token) => !token.isStop && !token.isPunct,
               ),
               input.sourceLanguageId,
             )
-          : text.toLowerCase());
+          : text.toLowerCase();
 
       await drizzle.transaction(
         async (tx) => {
@@ -601,7 +597,7 @@ export const collectMemoryRecallOp = async (
           const assessment = assessScopedRecallDerivation(
             scopedStates,
             "MEMORY_ITEM",
-            dependency.requiredDerivationVersion,
+            recallDependency.requiredDerivationVersion,
           );
           if (assessment.status === "BLOCKED") {
             if (requestedChannels.has("KEYWORD")) {
@@ -624,7 +620,7 @@ export const collectMemoryRecallOp = async (
           if (assessment.status === "FRESH") {
             await collectDerivationChannels(
               tx,
-              dependency.requiredDerivationVersion,
+              recallDependency.requiredDerivationVersion,
               normalizedText,
             );
           }
@@ -665,64 +661,53 @@ export const collectMemoryRecallOp = async (
   );
 
   if (requestedChannels.has("SEMANTIC") && vectorStorage) {
-    const suppliedQueryVectors =
-      input.queryVectors && input.queryVectors.length > 0
-        ? input.queryVectors
-        : undefined;
-    const suppliedChunkIds =
-      input.chunkIds.length > 0 ? input.chunkIds : undefined;
-    let queryVectors = suppliedQueryVectors;
-    let semanticInputAvailable =
-      suppliedQueryVectors !== undefined || suppliedChunkIds !== undefined;
+    let queryVectors: number[][] | undefined;
+    let semanticInputAvailable = false;
 
-    if (!semanticInputAvailable) {
-      if (!vectorizer) {
-        channelBlockers.set("SEMANTIC", {
-          reason: "CAPABILITY_UNAVAILABLE",
-          message: "Text vectorization is unavailable for semantic recall.",
-          retryable: false,
-          capability: "TEXT_VECTORIZER",
+    if (!vectorizer) {
+      channelBlockers.set("SEMANTIC", {
+        reason: "CAPABILITY_UNAVAILABLE",
+        message: "Text vectorization is unavailable for semantic recall.",
+        retryable: false,
+        capability: "TEXT_VECTORIZER",
+      });
+    } else if (
+      !vectorizer.service.canVectorize({
+        languageId: input.sourceLanguageId,
+      })
+    ) {
+      channelBlockers.set("SEMANTIC", {
+        reason: "CAPABILITY_UNAVAILABLE",
+        message: "Text vectorization is unavailable for semantic recall.",
+        retryable: false,
+        capability: "TEXT_VECTORIZER",
+      });
+    } else {
+      try {
+        ctx?.signal?.throwIfAborted();
+        const vectorized = await vectorizer.service.vectorize({
+          elements: [{ text: input.text, languageId: input.sourceLanguageId }],
+          ...(ctx?.signal === undefined ? {} : { signal: ctx.signal }),
         });
-      } else if (
-        !vectorizer.service.canVectorize({
-          languageId: input.sourceLanguageId,
-        })
-      ) {
-        channelBlockers.set("SEMANTIC", {
-          reason: "CAPABILITY_UNAVAILABLE",
-          message: "Text vectorization is unavailable for semantic recall.",
-          retryable: false,
-          capability: "TEXT_VECTORIZER",
-        });
-      } else {
-        try {
-          ctx?.signal?.throwIfAborted();
-          const vectorized = await vectorizer.service.vectorize({
-            elements: [
-              { text: input.text, languageId: input.sourceLanguageId },
-            ],
-            ...(ctx?.signal === undefined ? {} : { signal: ctx.signal }),
-          });
-          ctx?.signal?.throwIfAborted();
-          const vectorizedChunks = vectorized[0] ?? [];
-          if (vectorizedChunks.length === 0) {
-            semanticInputAvailable = false;
-          } else if (
-            vectorizedChunks.some((chunk) => chunk.vector.length === 0)
-          ) {
-            setExecutionBlocker(
-              "SEMANTIC",
-              new Error("Text vectorizer returned an empty vector."),
-              "TEXT_VECTORIZER",
-            );
-          } else {
-            queryVectors = vectorizedChunks.map((chunk) => chunk.vector);
-            semanticInputAvailable = true;
-          }
-        } catch (error) {
-          ctx?.signal?.throwIfAborted();
-          setExecutionBlocker("SEMANTIC", error, "TEXT_VECTORIZER");
+        ctx?.signal?.throwIfAborted();
+        const vectorizedChunks = vectorized[0] ?? [];
+        if (vectorizedChunks.length === 0) {
+          semanticInputAvailable = false;
+        } else if (
+          vectorizedChunks.some((chunk) => chunk.vector.length === 0)
+        ) {
+          setExecutionBlocker(
+            "SEMANTIC",
+            new Error("Text vectorizer returned an empty vector."),
+            "TEXT_VECTORIZER",
+          );
+        } else {
+          queryVectors = vectorizedChunks.map((chunk) => chunk.vector);
+          semanticInputAvailable = true;
         }
+      } catch (error) {
+        ctx?.signal?.throwIfAborted();
+        setExecutionBlocker("SEMANTIC", error, "TEXT_VECTORIZER");
       }
     }
     if (!channelBlockers.has("SEMANTIC") && semanticInputAvailable) {
@@ -730,8 +715,8 @@ export const collectMemoryRecallOp = async (
         ctx?.signal?.throwIfAborted();
         const vectorResults = await searchMemoryOp(
           {
-            chunkIds: queryVectors ? [] : (suppliedChunkIds ?? []),
-            ...(queryVectors ? { queryVectors } : {}),
+            chunkIds: [],
+            queryVectors,
             memoryIds: input.memoryIds,
             sourceLanguageId: input.sourceLanguageId,
             translationLanguageId: input.translationLanguageId,
@@ -804,13 +789,14 @@ export const collectMemoryRecallOp = async (
     }),
   );
 
-  // Sparse lexical evidence augmentation.
   const sparseContentWords = sourceLanguageAnalysisTokens
     ? sourceLanguageAnalysisTokens
-        .filter((t) => !t.isStop && !t.isPunct)
-        .map((t) => normalizeTokenLemma(t).toLowerCase())
-    : text.toLowerCase().split(/\s+/).filter(Boolean);
-  augmentWithSparseLane(rawMemoryResults, sparseContentWords);
+        .filter((token) => !token.isStop && !token.isPunct)
+        .map((token) => normalizeTokenLemma(token).toLowerCase())
+    : [];
+  if (sparseContentWords.length > 0) {
+    augmentWithSparseLane(rawMemoryResults, sparseContentWords);
+  }
 
   // Pre-pipeline hard-negative filtering.
   const hnfPreRemovals: Array<{
