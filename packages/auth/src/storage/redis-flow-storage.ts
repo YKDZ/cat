@@ -17,7 +17,9 @@ export class RedisFlowStorage implements FlowStorage {
     ttlSeconds: number,
   ): Promise<void> {
     const key = `${KEY_PREFIX}:${flowId}`;
-    await this.redis.set(key, JSON.stringify(snapshot), { EX: ttlSeconds });
+    await this.redis.set(key, JSON.stringify(snapshot), {
+      expiration: { type: "EX", value: ttlSeconds },
+    });
   }
 
   async load(flowId: string): Promise<AuthBlackboardSnapshot | null> {
