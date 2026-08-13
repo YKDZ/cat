@@ -2,7 +2,7 @@ import { expect, type Page, type Response } from "@playwright/test";
 
 export const waitForAppHydration = async (page: Page): Promise<void> => {
   await expect(page.locator("body")).toHaveClass(/hydrated/, {
-    timeout: 60_000,
+    timeout: 30_000,
   });
 };
 
