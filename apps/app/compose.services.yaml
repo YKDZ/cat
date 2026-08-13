@@ -2,13 +2,11 @@
 # persistence, and lifecycle policy through Compose extends.
 services:
   postgresql:
-    image: cat-postgres-search-runtime:local
-    build:
-      context: ../postgres-search-runtime
+    image: pgvector/pgvector:0.8.6-pg18
     healthcheck:
       test:
         - CMD-SHELL
-        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER} && psql -d $${POSTGRES_DB} -U $${POSTGRES_USER} -v ON_ERROR_STOP=1 -f /usr/local/share/search-runtime/healthcheck/search-runtime.sql
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
       interval: 10s
       retries: 12
       start_period: 20s
@@ -26,16 +24,23 @@ services:
       timeout: 3s
 
   spacy:
-    image: cat-spacy-server:local
+    image: ${CAT_SPACY_IMAGE_ID:-cat-spacy-server:local}
     build:
       context: ../spacy-server
-      args:
-        SPACY_MODELS: en_core_web_sm zh_core_web_sm ja_core_news_sm de_core_news_sm
+    command: ["provision-and-serve"]
+    environment:
+      SPACY_MODELS_ROOT: /models
     healthcheck:
       test:
-        - CMD-SHELL
-        - curl -f http://localhost:8000/health
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).read()
       interval: 10s
       retries: 18
-      start_period: 60s
+      start_period: 510s
       timeout: 5s
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777
+    user: "10001:10001"

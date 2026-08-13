@@ -29,6 +29,7 @@ const runId = "22222222-2222-4222-8222-222222222222";
 const createCtx = (
   overrides?: Partial<ToolExecutionContext["session"]>,
 ): ToolExecutionContext => ({
+  signal: new AbortController().signal,
   session: {
     sessionId,
     agentId: "agent-1",

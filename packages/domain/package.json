@@ -11,7 +11,8 @@
     ".": "./src/index.ts",
     "./events": "./src/events/index.ts",
     "./capabilities": "./src/capabilities/index.ts",
-    "./cache": "./src/cache/index.ts"
+    "./cache": "./src/cache/index.ts",
+    "./runtime/database-requirements": "./src/runtime/database-requirements.ts"
   },
   "scripts": {
     "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",

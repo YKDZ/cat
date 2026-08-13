@@ -1,7 +1,12 @@
+// oxlint-disable no-underscore-dangle
 import { randomUUID } from "node:crypto";
 
 import * as dbExports from "@cat/db";
 import { relations, type DrizzleClient, type DrizzleDB } from "@cat/db";
+import {
+  prepareDatabaseCapabilities,
+  prepareVectorRuntimeSchema,
+} from "@cat/db/database-capabilities";
 import {
   generateDrizzleJson,
   generateMigration,
@@ -10,7 +15,6 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Client } from "pg";
 
 declare global {
-  // oxlint-disable-next-line no-var
   var __DRIZZLE_DB__: DrizzleDB | undefined;
 }
 
@@ -24,12 +28,6 @@ export type TestDB = DrizzleDB & {
   openConcurrentClient: () => Promise<ConcurrentTestDbClient>;
 };
 
-const getPgErrorCode = (error: unknown): string | undefined => {
-  if (typeof error !== "object" || error === null) return undefined;
-  const code = Reflect.get(error, "code");
-  return typeof code === "string" ? code : undefined;
-};
-
 export const setupTestDB = async (): Promise<TestDB> => {
   const connectionString =
     process.env.TEST_DATABASE_URL ||
@@ -40,108 +38,86 @@ export const setupTestDB = async (): Promise<TestDB> => {
   await client.connect();
 
   try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
-  } catch (err: unknown) {
-    const code = getPgErrorCode(err);
-    if (code !== "23505" && code !== "42710") throw err;
-  }
-  try {
-    await client.query("ALTER EXTENSION vector SET SCHEMA public");
-  } catch {
-    // already set
-  }
-
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public");
-  } catch (err: unknown) {
-    const code = getPgErrorCode(err);
-    if (code !== "23505" && code !== "42710") throw err;
-  }
-  try {
-    await client.query("ALTER EXTENSION pg_trgm SET SCHEMA public");
-  } catch {
-    // already set
-  }
-
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS rum SCHEMA public");
-  } catch (err: unknown) {
-    const code = getPgErrorCode(err);
-    if (code !== "23505" && code !== "42710") throw err;
-  }
-  try {
-    await client.query("ALTER EXTENSION rum SET SCHEMA public");
-  } catch {
-    // already set
-  }
-
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS zhparser SCHEMA public");
-  } catch (err: unknown) {
-    const code = getPgErrorCode(err);
-    if (code !== "23505" && code !== "42710") throw err;
-  }
-  try {
-    await client.query("ALTER EXTENSION zhparser SET SCHEMA public");
-  } catch {
-    // already set
+    await prepareDatabaseCapabilities(client);
+  } catch (error) {
+    await client.end();
+    throw error;
   }
 
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
-  await client.query(`CREATE SCHEMA "${schemaName}"`);
-  await client.query(`SET search_path TO "${schemaName}", public`);
-  await client.query(`
-    DO $$
-    DECLARE
-      current_schema_name text := current_schema();
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1
-        FROM pg_ts_config cfg
-        JOIN pg_namespace ns ON ns.oid = cfg.cfgnamespace
-        WHERE cfg.cfgname = 'cat_zh_hans'
-          AND ns.nspname = current_schema_name
-      ) THEN
-        EXECUTE format(
-          'CREATE TEXT SEARCH CONFIGURATION %I.cat_zh_hans (PARSER = zhparser)',
-          current_schema_name
-        );
-        EXECUTE format(
-          'ALTER TEXT SEARCH CONFIGURATION %I.cat_zh_hans ADD MAPPING FOR n, v, a, i, e, l WITH simple',
-          current_schema_name
-        );
-      END IF;
-    END
-    $$;
-  `);
+  try {
+    await client.query(`CREATE SCHEMA "${schemaName}"`);
+  } catch (error) {
+    await client.end();
+    throw error;
+  }
+  let cleanupAttempt: Promise<void> | undefined;
+  let clientClosed = false;
+  let schemaDropped = false;
+  const cleanupSchema = async (): Promise<void> => {
+    if (clientClosed) return;
+    if (cleanupAttempt) return await cleanupAttempt;
 
-  const db = drizzle({
-    client,
-    relations,
-  });
-  const emptySnapshot = await generateDrizzleJson({});
-  const curSnapshot = await generateDrizzleJson(
-    dbExports as Record<string, unknown>,
-  );
-  const sqlStatements = await generateMigration(emptySnapshot, curSnapshot);
-  await client.query(sqlStatements.join("\n"));
+    const attempt = (async () => {
+      if (!schemaDropped) {
+        await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
+        schemaDropped = true;
+      }
+      await client.end();
+      clientClosed = true;
+    })();
+    cleanupAttempt = attempt;
+    void attempt.then(
+      () => {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+        return;
+      },
+      () => {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      },
+    );
+    return await attempt;
+  };
 
-  // oxlint-disable-next-line no-unsafe-type-assertion
-  const drizzleDB = {
-    client: db,
-    connect: async () => Promise.resolve(),
-    disconnect: async () => Promise.resolve(),
-    migrate: async () => Promise.resolve(),
-    ping: async () => {
-      await client.query("SELECT 1");
-    },
-  } as unknown as DrizzleDB;
+  let drizzleDB: DrizzleDB;
+  try {
+    await client.query(`SET search_path TO "${schemaName}", public`);
+    const db = drizzle({ client, relations });
+    const emptySnapshot = await generateDrizzleJson({});
+    const curSnapshot = await generateDrizzleJson(
+      dbExports as Record<string, unknown>,
+    );
+    const sqlStatements = await generateMigration(emptySnapshot, curSnapshot);
+    await client.query(sqlStatements.join("\n"));
+    await prepareVectorRuntimeSchema(client);
+
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    drizzleDB = {
+      client: db,
+      connect: async () => Promise.resolve(),
+      disconnect: async () => Promise.resolve(),
+      migrate: async () => Promise.resolve(),
+      ping: async () => {
+        await client.query("SELECT 1");
+      },
+    } as unknown as DrizzleDB;
+  } catch (error) {
+    await cleanupSchema();
+    throw error;
+  }
   globalThis.__DRIZZLE_DB__ = drizzleDB;
 
   const openConcurrentClient = async (): Promise<ConcurrentTestDbClient> => {
     const concurrentClient = new Client({ connectionString });
-    await concurrentClient.connect();
-    await concurrentClient.query(`SET search_path TO "${schemaName}", public`);
+    try {
+      await concurrentClient.connect();
+      await concurrentClient.query(
+        `SET search_path TO "${schemaName}", public`,
+      );
+    } catch (error) {
+      await concurrentClient.end();
+      throw error;
+    }
     return {
       // DrizzleDB's public client deliberately hides the raw driver client.
       // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion
@@ -154,11 +130,7 @@ export const setupTestDB = async (): Promise<TestDB> => {
     if (globalThis.__DRIZZLE_DB__ === drizzleDB) {
       globalThis.__DRIZZLE_DB__ = undefined;
     }
-    try {
-      await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
-    } finally {
-      await client.end();
-    }
+    await cleanupSchema();
   };
 
   return Object.assign(drizzleDB, { cleanup, openConcurrentClient });

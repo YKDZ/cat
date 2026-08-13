@@ -1,5 +1,6 @@
 import { getCurrentRedisHandle, getDbHandle } from "@cat/domain";
 import { serverLogger as logger } from "@cat/server-shared";
+import { getGlobalGraphRuntimeOrNull } from "@cat/workflow";
 
 import type { RuntimeCleanupHandle } from "./runtime-cleanup.ts";
 
@@ -19,8 +20,18 @@ const getRuntimeCleanupHandle = (): RuntimeCleanupHandle | null | undefined => {
   return globalThis.runtimeCleanup;
 };
 
+const stopRecallDerivationWorker = async (): Promise<void> => {
+  const worker = globalThis.recallDerivationWorker;
+  globalThis.recallDerivationWorker = undefined;
+  await worker?.stop();
+};
+
 /** Hard deadline (ms) after which the process exits regardless of cleanup state. */
 const SHUTDOWN_TIMEOUT_MS = 3_000;
+
+const exitProcess = (code: number): void => {
+  process.exit(code);
+};
 
 /**
  *
@@ -51,7 +62,8 @@ export const createShutdownHandler = (
 
     // Crash-only escape hatch: second signal exits immediately.
     if (invocations > 1) {
-      process.exit(1);
+      exitProcess(1);
+      return;
     }
 
     const handler = async () => {
@@ -72,6 +84,9 @@ export const createShutdownHandler = (
 
       getRuntimeCleanupHandle()?.stop();
       await Promise.resolve(server.close());
+
+      await stopRecallDerivationWorker();
+      await getGlobalGraphRuntimeOrNull()?.dispose();
 
       const redis = getCurrentRedisHandle();
       if (redis) {

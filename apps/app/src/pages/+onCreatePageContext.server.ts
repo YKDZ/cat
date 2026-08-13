@@ -1,22 +1,16 @@
 import { executeQuery, getSetting, type DbHandle } from "@cat/domain";
 import { loadUserSystemRoles } from "@cat/permissions";
 import { detectMobileFromRequest, userFromSessionId } from "@cat/server-shared";
-import {
-  createHTTPHelpers,
-  parsePreferredLanguage,
-  shouldUseSecureCookies,
-} from "@cat/shared";
+import { createHTTPHelpers, shouldUseSecureCookies } from "@cat/shared";
 import { createPinia } from "pinia";
 import type { PageContextServer } from "vike/types";
 
-const getStringSetting = async (
+import { resolveDisplayLanguage } from "#/utils/display-language.ts";
+
+const getSettingValue = async (
   drizzle: DbHandle,
   key: string,
-  fallback: string,
-): Promise<string> => {
-  const value = await executeQuery({ db: drizzle }, getSetting, { key });
-  return typeof value === "string" ? value : fallback;
-};
+): Promise<unknown> => await executeQuery({ db: drizzle }, getSetting, { key });
 
 export const onCreatePageContext = async (ctx: PageContextServer) => {
   ctx.pinia = createPinia();
@@ -34,16 +28,15 @@ export const onCreatePageContext = async (ctx: PageContextServer) => {
 
   ctx.isMobile = detectMobileFromRequest(req);
   ctx.sessionId = helpers.getCookie("sessionId");
-  ctx.displayLanguage =
-    helpers.getCookie("displayLanguage") ??
-    parsePreferredLanguage(helpers.getReqHeader("Accept-Language") ?? "")
-      ?.toLocaleLowerCase()
-      .replace("-", "_") ??
-    (await getStringSetting(
-      ctx.globalContext.drizzleDB.client,
-      "server.default-language",
-      "zh_cn",
-    ));
+  ctx.displayLanguage = await resolveDisplayLanguage({
+    cookie: helpers.getCookie("displayLanguage"),
+    acceptLanguage: helpers.getReqHeader("Accept-Language"),
+    readDeploymentDefault: async (): Promise<unknown> =>
+      await getSettingValue(
+        ctx.globalContext.drizzleDB.client,
+        "server.default-language",
+      ),
+  });
   ctx.user = await userFromSessionId(
     ctx.globalContext.drizzleDB.client,
     ctx.sessionId ?? "",

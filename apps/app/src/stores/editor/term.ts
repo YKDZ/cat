@@ -1,4 +1,10 @@
-import type { RecallEvidence } from "@cat/shared";
+import {
+  TermMatchSchema,
+  TermRecallResultSchema,
+  TermRecallStreamEventSchema,
+  type TermRecallResult,
+  type RecallEvidence,
+} from "@cat/shared";
 import { defineStore, storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
@@ -36,34 +42,56 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
   const searchQuery = ref("");
   const terms = ref<TermRelationWithDetails[]>([]);
+  const recallResult = ref<TermRecallResult | null>(null);
   const error = ref<string | null>(null);
   let activeRequest: TrackedRequest | null = null;
 
   const updateTerms = async () => {
     error.value = null;
 
-    if (!elementId.value || !languageToId.value) return;
+    const requestedElementId = elementId.value;
+    const requestedLanguageId = languageToId.value;
+    const requestedElementLanguageId = elementLanguageId.value;
+    if (
+      !requestedElementId ||
+      !requestedLanguageId ||
+      !requestedElementLanguageId
+    )
+      return;
 
     activeRequest?.cancel();
     const request = createTrackedRequest();
     activeRequest = request;
+    recallResult.value = null;
 
     try {
       const result = await orpc.glossary.findTerm(
         {
-          elementId: elementId.value,
-          translationLanguageId: languageToId.value,
+          elementId: requestedElementId,
+          translationLanguageId: requestedLanguageId,
           minConfidence: editorTermMinConfidence.value[0],
         },
         { signal: request.signal },
       );
 
+      if (activeRequest !== request) return;
       terms.value = [];
 
-      for await (const term of result) {
-        if (term) terms.value.push(term);
+      for await (const rawEvent of result) {
+        if (activeRequest !== request) return;
+        const event = TermRecallStreamEventSchema.parse(rawEvent);
+        if (event.type === "COMPLETED") {
+          recallResult.value = TermRecallResultSchema.parse(event.result);
+          continue;
+        }
+        terms.value.push({
+          ...TermMatchSchema.parse(event.candidate),
+          termLanguageId: requestedElementLanguageId,
+          translationLanguageId: requestedLanguageId,
+        });
       }
     } catch (err) {
+      if (activeRequest !== request) return;
       if (
         request.signal.aborted ||
         (err instanceof Error && err.name === "AbortError")
@@ -84,6 +112,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
     if (searchQuery.value.length === 0) return 0;
 
     let count = 0;
+    recallResult.value = null;
 
     const stream = await orpc.glossary.searchTerm({
       text: searchQuery.value,
@@ -92,11 +121,19 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
       projectId: projectId.value,
     });
 
-    for await (const t of stream) {
-      if (t) {
-        addTerms(t);
-        count += 1;
+    for await (const rawEvent of stream) {
+      const event = TermRecallStreamEventSchema.parse(rawEvent);
+      if (event.type === "COMPLETED") {
+        recallResult.value = TermRecallResultSchema.parse(event.result);
+        continue;
       }
+      const term = TermMatchSchema.parse(event.candidate);
+      addTerms({
+        ...term,
+        termLanguageId: elementLanguageId.value,
+        translationLanguageId: languageToId.value,
+      });
+      count += 1;
     }
 
     return count;
@@ -149,6 +186,7 @@ export const useEditorTermStore = defineStore("editorTerm", () => {
 
   return {
     terms,
+    recallResult,
     error,
     searchQuery,
     termDataList,

@@ -12,7 +12,7 @@ import MemoryListItem from "./MemoryListItem.vue";
 
 const { t } = useI18n();
 
-const { memories, error } = storeToRefs(useEditorMemoryStore());
+const { memories, recallResult, error } = storeToRefs(useEditorMemoryStore());
 const { elementId } = storeToRefs(useEditorTableStore());
 const { subMemories, unsubscribe } = useEditorMemoryStore();
 const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
@@ -36,6 +36,16 @@ onBeforeUnmount(unsubscribe);
 <template>
   <div v-if="error" class="px-3 py-2 text-sm text-destructive">
     {{ t("辅助信息加载失败") }}
+  </div>
+  <div
+    v-else-if="
+      recallResult &&
+      (recallResult.scopes.PROJECT.status === 'BLOCKED' ||
+        recallResult.scopes.PERSONAL.status === 'BLOCKED')
+    "
+    class="px-3 py-2 text-sm text-muted-foreground"
+  >
+    {{ t("部分记忆召回不可用") }}
   </div>
   <MemoryListItem
     v-for="(memory, index) in memories"

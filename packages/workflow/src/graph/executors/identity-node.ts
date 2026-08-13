@@ -59,21 +59,27 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
   }
 
   const result = await handler(input, {
+    db: ctx.runtime.db,
     runId: ctx.runId,
     nodeId: ctx.nodeId,
     signal: ctx.signal,
     emit: ctx.emit,
     traceId: ctx.runId,
     pluginManager: ctx.runtime.pluginManager ?? PluginManager.get("GLOBAL", ""),
+    assertRunOwnership: async () => {
+      await ctx.runtime.assertRunOwnership?.();
+    },
+    ownershipFence: ctx.runtime.ownershipFence,
     addEvent: ctx.addEvent,
     vcsContext: ctx.runtime.vcsContext,
     vcsMiddleware: ctx.runtime.vcsMiddleware,
     checkSideEffect: async <T extends NonNullJSONType>(
       key: string,
     ): Promise<T | null> => {
-      const fullKey = `${ctx.nodeId}:${ctx.runId}:${key}`;
+      const sideEffectRunId = ctx.runtime.ownershipFence?.runId ?? ctx.runId;
+      const fullKey = `${ctx.nodeId}:${sideEffectRunId}:${key}`;
       const existing = await ctx.checkpointer.loadExternalOutputByIdempotency(
-        ctx.runId,
+        sideEffectRunId,
         fullKey,
       );
       // oxlint-disable-next-line typescript-eslint/no-unsafe-type-assertion -- side-effect payloads are caller-defined generic
@@ -84,9 +90,10 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
       outputType: "db_write" | "api_call" | "event_publish",
       payload: T,
     ): Promise<T | null> => {
-      const fullKey = `${ctx.nodeId}:${ctx.runId}:${key}`;
+      const sideEffectRunId = ctx.runtime.ownershipFence?.runId ?? ctx.runId;
+      const fullKey = `${ctx.nodeId}:${sideEffectRunId}:${key}`;
       const existing = await ctx.checkpointer.loadExternalOutputByIdempotency(
-        ctx.runId,
+        sideEffectRunId,
         fullKey,
       );
       if (existing !== null) {
@@ -94,7 +101,7 @@ export const TransformNodeExecutor: NodeExecutor = async (ctx, config) => {
         return (existing.payload as T | undefined) ?? null;
       }
       await ctx.checkpointer.saveExternalOutput({
-        runId: ctx.runId,
+        runId: sideEffectRunId,
         nodeId: ctx.nodeId,
         outputType,
         outputKey: key,

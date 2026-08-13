@@ -1,7 +1,86 @@
 // ─── Hand-written schema modules ───
 
+export {
+  DatabaseRequirementIdSchema,
+  DatabaseRequirementIdValues,
+  type DatabaseRequirementId,
+  DatabaseRequirementStatusSchema,
+  DatabaseRequirementStatusValues,
+  type DatabaseRequirementStatus,
+} from "#/schema/enum.ts";
+
+export {
+  DefaultDisplayLanguage,
+  type DisplayLanguage,
+  DisplayLanguageSchema,
+  DisplayLanguageValues,
+} from "#/schema/display-language.ts";
+
+export {
+  databaseReadinessCode,
+  DatabaseReadinessCodeSchema,
+  DatabaseReadinessCodeValues,
+  type DatabaseReadinessCode,
+  DatabaseRequirementAssessmentSchema,
+  DatabaseRequirementBlockedReasonSchema,
+  DatabaseRequirementBlockerReasonSchema,
+  DatabaseRequirementBlockerReasonValues,
+  type DatabaseRequirementBlockerReason,
+  type DatabaseRequirementBlockedReason,
+  DatabaseRequirementSchema,
+  DatabaseRequirementSetSchema,
+  type DatabaseRequirement,
+  type DatabaseRequirementAssessment,
+  type DatabaseRequirementSet,
+  DatabaseRequirementUnknownReasonSchema,
+  type DatabaseRequirementUnknownReason,
+} from "#/schema/database-requirements.ts";
+
+export {
+  RequiredVectorDimension,
+  RequiredVectorDimensionSchema,
+} from "#/schema/vector-runtime.ts";
+
 // Custom element schema
 export { CustomElementNameSchema } from "#/schema/ce.ts";
+export {
+  type OperationFailure,
+  type OperationFailureInput,
+  type OperationFailureClientProjection,
+  type OperationFailurePublicProjection,
+  type OperationFailureRedactedProjection,
+  OperationFailureClientProjectionSchema,
+  OperationFailureInputSchema,
+  OperationFailurePublicProjectionSchema,
+  OperationFailureRedactedProjectionSchema,
+  OperationFailureSchema,
+  toOperationFailureClientProjection,
+  type TaskActor,
+  TaskActorSchema,
+  type TaskAffectedResource,
+  TaskAffectedResourceSchema,
+  type TaskKind,
+  TaskKindSchema,
+  type TaskPayload,
+  TaskPayloadSchema,
+  BatchAutoTranslationTaskPayloadSchema,
+  RecallDerivationTaskPayloadSchema,
+  BatchAutoTranslationInvocationSchema,
+  MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS,
+  type BatchAutoTranslationInvocation,
+  AutoTranslateConfigSchema,
+  type AutoTranslateConfig,
+  type BatchAutoTranslationTaskResult,
+  BatchAutoTranslationTaskResultSchema,
+  type RecallDerivationTaskResult,
+  RecallDerivationTaskResultSchema,
+  type TaskScope,
+  TaskScopeSchema,
+  type TaskState,
+  TaskStateSchema,
+  type TaskRuntime,
+  TaskRuntimeSchema,
+} from "#/schema/localization-task.ts";
 
 // Extraction schema
 export {
@@ -80,17 +159,120 @@ export {
   TranslationSuggestionSchema,
 } from "#/schema/plugin.ts";
 
-// NLP schema
 export {
-  type NlpBatchSegmentResult,
-  NlpBatchSegmentResultSchema,
-  type NlpSegmentResult,
-  NlpSegmentResultSchema,
-  type NlpSentence,
-  NlpSentenceSchema,
-  type NlpToken,
-  NlpTokenSchema,
-} from "#/schema/nlp.ts";
+  type ServiceImplementationReference,
+  ServiceImplementationReferenceSchema,
+  serviceImplementationReferenceKey,
+} from "#/schema/service-implementation-reference.ts";
+
+// Language Analysis schema
+export {
+  computeLanguageAnalysisVersion,
+  type LanguageAnalyzerConfigurationAssessment,
+  LanguageAnalyzerConfigurationAssessmentSchema,
+  type LanguageAnalysisAttestation,
+  LanguageAnalysisAttestationSchema,
+  type LanguageAnalysisBatchResult,
+  LanguageAnalysisBatchResultSchema,
+  type LanguageAnalysisResult,
+  LanguageAnalysisResultSchema,
+  type LanguageAnalysisSentence,
+  LanguageAnalysisSentenceSchema,
+  type LanguageAnalysisToken,
+  LanguageAnalysisTokenSchema,
+  type LanguageAnalysisVersion,
+  LanguageAnalysisVersionSchema,
+  LanguageAnalysisValidationError,
+  type LanguageAnalysisValidationCode,
+  LanguageAnalysisValidationCodeValues,
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
+  normalizeLanguageId,
+  stableSerializeLanguageAnalysis,
+  validateLanguageAnalysisBatchResult,
+  validateLanguageAnalysisResult,
+} from "#/schema/language-analysis.ts";
+
+export {
+  type CanonicalInputVersion,
+  CanonicalInputVersionSchema,
+  classifyRecallDerivationBlocker,
+  compareRecallDerivationTokenizerPipelineEntries,
+  computeCanonicalInputVersion,
+  computeRecallDerivationVersion,
+  type RecallDerivationBlocker,
+  type RecallDerivationBlockerLifecycle,
+  RecallDerivationBlockerSchema,
+  type RecallDerivationReference,
+  MemoryItemRecallDerivationReferenceSchema,
+  RecallDerivationReferenceSchema,
+  RecallDerivationTargetIdSchema,
+  type RecallDerivationTokenizerPipelineEntry,
+  type RecallDerivationVersion,
+  RecallDerivationVersionInputSchema,
+  RecallDerivationVersionSchema,
+  TermConceptRecallDerivationReferenceSchema,
+} from "#/schema/recall-derivation.ts";
+
+export {
+  computeMemoryCanonicalInputVersion,
+  computeMemoryDeletionCanonicalInputVersion,
+  type MemoryCanonicalSnapshot,
+  MemoryCanonicalSnapshotSchema,
+  type MemoryRecallVariantDraft,
+  MemoryRecallVariantDraftSchema,
+  type MemoryRecallVariantMeta,
+  MemoryRecallVariantMetaSchema,
+} from "#/schema/memory-recall-derivation.ts";
+
+export {
+  computeTermConceptCanonicalInputVersion,
+  computeTermConceptDeletionCanonicalInputVersion,
+  type TermConceptCanonicalSnapshot,
+  TermConceptCanonicalSnapshotSchema,
+  type GlossaryConceptMaterialization,
+  GlossaryConceptMaterializationSchema,
+  GlossaryTermMaterializationSchema,
+  type TermRecallVariantDraft,
+  TermRecallVariantDraftSchema,
+  type TermRecallVariantMeta,
+  TermRecallVariantMetaSchema,
+} from "#/schema/glossary-recall-derivation.ts";
+
+export {
+  type LanguageAnalysisBlocker,
+  LanguageAnalysisBlockerPolicy,
+  LanguageAnalysisOperationFailureBlocker,
+  LanguageAnalysisBlockerReasonSchema,
+  LanguageAnalysisBlockerReasonValues,
+  type LanguageAnalysisPolicySnapshot,
+  LanguageAnalysisPolicySnapshotSchema,
+  type LanguageAnalysisBlockerReason,
+  LanguageAnalysisBlockerSchema,
+  type LanguageAnalysisObservation,
+  LanguageAnalysisObservationSchema,
+  type LanguageAnalysisObservationView,
+  LanguageAnalysisObservationViewSchema,
+  type LanguageAnalysisRemediation,
+  LanguageAnalysisRemediationSchema,
+  type LanguageAnalysisRequirementAssessment,
+  LanguageAnalysisRequirementAssessmentSchema,
+  type LanguageAnalysisRequirementStatus,
+  LanguageAnalysisRequirementStatusSchema,
+  LanguageAnalysisRequirementStatusValues,
+  type LanguageAnalysisSelection,
+  type LanguageAnalysisSelectionFingerprint,
+  LanguageAnalysisSelectionFingerprintSchema,
+  type LanguageAnalysisSelectionKey,
+  LanguageAnalysisSelectionKeySchema,
+  type LanguageAnalysisSelectionSource,
+  LanguageAnalysisSelectionSourceSchema,
+  LanguageAnalysisWildcardSelectionKey,
+  LanguageAnalysisSelectionSchema,
+  type LanguageAnalysisSelectionWrite,
+  LanguageAnalysisSelectionWriteSchema,
+  toLanguageAnalysisSelectionKey,
+} from "#/schema/language-analysis-requirement.ts";
 
 // Term recall schema
 export {
@@ -98,20 +280,66 @@ export {
   ConceptContextSchema,
   type EnrichedTermMatch,
   EnrichedTermMatchSchema,
+  type TermRecallCandidate,
+  TermRecallCandidateSchema,
+  type TermRecallResult,
+  TermRecallResultSchema,
+  type TermRecallStreamEvent,
+  TermRecallStreamEventSchema,
   type TermMatch,
   TermMatchSchema,
 } from "#/schema/term-recall.ts";
 
 // Recall schema
 export {
-  type RecallChannel,
-  RecallChannelSchema,
-  RecallChannelValues,
+  type CandidateChannel,
+  CandidateChannelSchema,
+  CandidateChannelValues,
+  type CandidateChannelCapability,
+  CandidateChannelCapabilitySchema,
+  CandidateChannelCapabilityValues,
+  type CandidateChannelOutcome,
+  type CandidateChannelOutcomes,
+  type CandidateChannelBlocker,
+  CandidateChannelBlockerSchema,
+  CandidateChannelBlockerReasonSchema,
+  CandidateChannelBlockerReasonValues,
+  type CandidateChannelOutcomeStatus,
+  CandidateChannelOutcomeStatusSchema,
+  CandidateChannelOutcomeStatusValues,
+  type CandidateChannelRequest,
+  CandidateChannelRequestSchema,
+  type CandidateRecallResult,
+  type CandidateChannelSkipReason,
+  CandidateChannelSkipReasonSchema,
+  CandidateChannelSkipReasonValues,
+  createCandidateChannelOutcomeSchema,
+  createCandidateRecallResultSchema,
+  createCandidateRecallStreamEventSchema,
+  createCandidateStreamEventSchema,
+  type EvidencedRecallCandidate,
+  type NonEmptyRecallCandidates,
   type RecallDebugContext,
   RecallDebugContextSchema,
   type RecallEvidence,
   RecallEvidenceSchema,
+  type RecallDerivationAffectedTarget,
+  RecallDerivationAffectedTargetSchema,
 } from "#/schema/recall.ts";
+export {
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
+  MemoryRecallStreamEventSchema,
+  type MemoryRecallCandidate,
+  type MemoryRecallResult,
+  type MemoryRecallStreamEvent,
+} from "#/schema/memory-recall.ts";
+export {
+  EffectiveMemoryRecallResultSchema,
+  EffectiveMemoryRecallStreamEventSchema,
+  type EffectiveMemoryRecallResult,
+  type EffectiveMemoryRecallStreamEvent,
+} from "#/schema/effective-memory-recall.ts";
 
 // Precision-recall schema
 export {
@@ -150,18 +378,6 @@ export {
   type ProjectSettingPayload,
   ProjectSettingPayloadSchema,
 } from "#/schema/project-setting.ts";
-
-// Memory-recall schema
-export {
-  type MemoryRecallBm25CapabilityDirectory,
-  MemoryRecallBm25CapabilityDirectorySchema,
-  type MemoryRecallBm25CapabilityEntry,
-  MemoryRecallBm25CapabilityEntrySchema,
-  type MemoryRecallBm25CapabilityQuery,
-  MemoryRecallBm25CapabilityQuerySchema,
-  type MemoryRecallBm25CompressionProfile,
-  MemoryRecallBm25CompressionProfileSchema,
-} from "#/schema/memory-recall.ts";
 
 // Rerank schema
 export {
@@ -306,6 +522,14 @@ export {
   ToolExecuteResponseSchema,
   serializeAgentDefinition,
 } from "#/schema/agent.ts";
+export {
+  PluginIdentifierSchema,
+  ServiceIdentifierSchema,
+  ScopedInstallationIdentifierSchema,
+  type PluginIdentifier,
+  type ServiceIdentifier,
+  type ScopedInstallationIdentifier,
+} from "#/schema/plugin-identifier.ts";
 
 // Enum schemas (all values; these are canonical here)
 export {
@@ -315,6 +539,48 @@ export {
   TaskStatusValues,
   TaskStatusSchema,
   type TaskStatus,
+  TaskScopeTypeValues,
+  TaskScopeTypeSchema,
+  type TaskScopeType,
+  TaskKindValues,
+  TaskKindNameSchema,
+  type TaskKindName,
+  GlossaryTermWriteOperationValues,
+  GlossaryTermWriteOperationSchema,
+  type GlossaryTermWriteOperation,
+  WorkflowTaskDispatchStatusValues,
+  WorkflowTaskDispatchStatusSchema,
+  type WorkflowTaskDispatchStatus,
+  BatchAutoTranslationTaskPhaseValues,
+  BatchAutoTranslationTaskPhaseSchema,
+  type BatchAutoTranslationTaskPhase,
+  RecallDerivationTaskPhaseValues,
+  RecallDerivationTaskPhaseSchema,
+  type RecallDerivationTaskPhase,
+  TaskActorTypeValues,
+  TaskActorTypeSchema,
+  type TaskActorType,
+  TaskAffectedResourceTypeValues,
+  TaskAffectedResourceTypeSchema,
+  type TaskAffectedResourceType,
+  OperationFailureCodeValues,
+  OperationFailureCodeSchema,
+  type OperationFailureCode,
+  OperationFailureSeverityValues,
+  OperationFailureSeveritySchema,
+  type OperationFailureSeverity,
+  OperationFailureBlockerValues,
+  OperationFailureBlockerSchema,
+  type OperationFailureBlocker,
+  OperationFailureCapabilityValues,
+  OperationFailureCapabilitySchema,
+  type OperationFailureCapability,
+  OperationFailureAuthorizationDecisionValues,
+  OperationFailureAuthorizationDecisionSchema,
+  type OperationFailureAuthorizationDecision,
+  OperationFailureRedactionBoundaryValues,
+  OperationFailureRedactionBoundarySchema,
+  type OperationFailureRedactionBoundary,
   QueueTaskStatusValues,
   QueueTaskStatusSchema,
   type QueueTaskStatus,
@@ -459,6 +725,12 @@ export {
   RecallQuerySideValues,
   RecallQuerySideSchema,
   type RecallQuerySide,
+  RecallDerivationStatusValues,
+  RecallDerivationStatusSchema,
+  type RecallDerivationStatus,
+  RecallDerivationTargetKindValues,
+  RecallDerivationTargetKindSchema,
+  type RecallDerivationTargetKind,
   MemoryScopeValues,
   MemoryScopeSchema,
   type MemoryScope,
@@ -527,6 +799,13 @@ export {
 } from "#/schema/permission.ts";
 
 // ─── Generated Drizzle schema modules ───
+
+export {
+  type LanguageAnalysisObservationRecord,
+  LanguageAnalysisObservationRecordSchema,
+  type LanguageAnalysisSelectionRecord,
+  LanguageAnalysisSelectionRecordSchema,
+} from "#/schema/drizzle/language-analysis.ts";
 
 // API key / session schemas
 export {
@@ -819,6 +1098,10 @@ export { resolveRouteTemplate } from "#/utils/resolve-route-template.ts";
 
 export { useStringTemplate } from "#/utils/string-template.ts";
 
-export { parsePreferredLanguage, toShortFixed } from "#/utils/string.ts";
+export {
+  compareCodeUnitStrings,
+  parsePreferredLanguage,
+  toShortFixed,
+} from "#/utils/string.ts";
 
 export { safeJoinURL } from "#/utils/url.ts";

@@ -1,4 +1,5 @@
 import { test, expect } from "#/fixtures.ts";
+import { gotoHydrated, reloadHydrated } from "#/pages/app-navigation.ts";
 
 test.describe("Branch workspace", () => {
   test("keeps seeded pull-request content in SSR HTML and hydrates without warnings", async ({
@@ -6,7 +7,10 @@ test.describe("Branch workspace", () => {
     refs,
   }) => {
     const projectId = refs.project;
-    const response = await page.goto(`/project/${projectId}/pull-requests`);
+    const response = await gotoHydrated(
+      page,
+      `/project/${projectId}/pull-requests`,
+    );
     if (!response)
       throw new Error("Pull-request page did not return an SSR response");
     const html = await response.text();
@@ -44,7 +48,7 @@ test.describe("Branch workspace", () => {
       .click();
     await expect(page).toHaveURL(/branchId=/);
 
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await reloadHydrated(page, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(new RegExp(`branchId=${branchId}`));
     await expect(branchTrigger()).toBeVisible({ timeout: 15_000 });
     await expect(branchTrigger()).toContainText(
@@ -57,7 +61,7 @@ test.describe("Branch workspace", () => {
     await editorPage.submitTranslation();
     await editorPage.expectTranslationVisible(translationText);
 
-    await page.goto(`/project/${projectId}/pull-requests/${prNumber}`);
+    await gotoHydrated(page, `/project/${projectId}/pull-requests/${prNumber}`);
     await page.getByRole("tab", { name: "变更" }).click();
     await expect(page.getByText(translationText)).toBeVisible({
       timeout: 15_000,

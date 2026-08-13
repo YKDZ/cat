@@ -52,7 +52,7 @@ RUN --mount=type=secret,id=turbo_team,required=false \
     export TURBO_TEAM="$(cat /run/secrets/turbo_team 2>/dev/null || true)" && \
     export TURBO_TOKEN="$(cat /run/secrets/turbo_token 2>/dev/null || true)" && \
     export TURBO_REMOTE_CACHE_SIGNATURE_KEY="$(cat /run/secrets/turbo_remote_cache_signature_key 2>/dev/null || true)" && \
-    pnpm exec turbo run build --filter=@cat/app && \
+    pnpm build:app && \
     pnpm --filter @cat/app copy-drizzle && \
     pnpm --filter @cat/app deploy --prod /application-release && \
     install -d /standalone-deployment && \
@@ -66,6 +66,7 @@ RUN --mount=type=secret,id=turbo_team,required=false \
       /application-release/Dockerfile.dockerignore
 RUN install -d /database-preparation && \
     cp apps/app/scripts/prepare-database.mjs /database-preparation/prepare-database.mjs && \
+    cp apps/app/dist/database-preparation/database-requirements.mjs /database-preparation/database-requirements.mjs && \
     cp -r apps/app/drizzle /database-preparation/drizzle
 
 # Both final targets inherit this exact root-owned application runtime.

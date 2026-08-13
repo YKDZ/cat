@@ -1,5 +1,9 @@
 import type { AgentToolDefinition } from "@cat/agent";
-import { termRecallOp } from "@cat/operations";
+import {
+  collectTermRecallOp,
+  getTermRecallCandidates,
+  RecallOperationFailureError,
+} from "@cat/operations";
 import * as z from "zod";
 
 const searchTermbaseArgs = z.object({
@@ -50,6 +54,7 @@ export const searchTermbaseTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = searchTermbaseArgs.parse(args);
     const sourceLanguageId =
       parsed.sourceLanguageId ?? ctx.session.sourceLanguageId;
@@ -62,13 +67,29 @@ export const searchTermbaseTool: AgentToolDefinition = {
       );
     }
 
-    const result = await termRecallOp({
-      text: parsed.text,
-      sourceLanguageId,
-      translationLanguageId,
-      glossaryIds: parsed.glossaryIds,
-      wordSimilarityThreshold: parsed.wordSimilarityThreshold,
-    });
-    return { terms: result.terms };
+    try {
+      const result = await collectTermRecallOp(
+        {
+          text: parsed.text,
+          sourceLanguageId,
+          translationLanguageId,
+          glossaryIds: parsed.glossaryIds,
+          wordSimilarityThreshold: parsed.wordSimilarityThreshold,
+        },
+        {
+          traceId: `agent-tool:${ctx.session.runId}:search-termbase`,
+          signal: ctx.signal,
+          pluginManager: ctx.pluginManager,
+        },
+      );
+      ctx.signal.throwIfAborted();
+      return { terms: getTermRecallCandidates(result) };
+    } catch (error) {
+      ctx.signal.throwIfAborted();
+      if (error instanceof RecallOperationFailureError) {
+        return { terms: [], operationFailure: error.failure };
+      }
+      throw error;
+    }
   },
 };

@@ -6,7 +6,10 @@ import {
   ensureLanguages,
   executeCommand,
 } from "@cat/domain";
-import type { StructuredContentPayload } from "@cat/shared";
+import {
+  normalizeLanguageId,
+  type StructuredContentPayload,
+} from "@cat/shared";
 import {
   and,
   contentNode,
@@ -53,7 +56,7 @@ const buildPayload = (
 ): StructuredContentPayload => ({
   payloadVersion: "content-graph/v1",
   projectId,
-  sourceLanguageId: "zh-Hans",
+  sourceLanguageId: normalizeLanguageId("zh-Hans"),
   importerId: "test-importer",
   sourceRootRef: "test-root",
   relationTypes: [],
@@ -86,7 +89,7 @@ const buildPayload = (
       sourceNodeRef: "node:a",
       localOrder: options.localOrder,
       text: "同一文本",
-      languageId: "zh-Hans",
+      languageId: normalizeLanguageId("zh-Hans"),
       meta: { key: ["hello"] },
       location: {
         startLine: options.startLine,
@@ -159,7 +162,7 @@ describe("semantic structured content diff", () => {
     expect(diff.vectorInvalidationReason).toBe("NOT_REQUIRED");
   });
 
-  it("allows diff input without vector service IDs", () => {
+  it("allows diff input without vector service references", () => {
     const parsed = DiffStructuredContentInputSchema.parse({
       payload: {
         payloadVersion: "content-graph/v1",
@@ -186,7 +189,7 @@ describe("semantic structured content diff", () => {
       },
     });
 
-    expect(parsed.vectorizerId).toBeUndefined();
+    expect(parsed.vectorizer).toBeUndefined();
   });
 
   it("classifies source location changes as evidence updates", () => {

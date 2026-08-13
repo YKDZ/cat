@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { gotoHydrated } from "./app-navigation.ts";
+
 export class LoginPage {
   private readonly page: Page;
 
@@ -8,7 +10,7 @@ export class LoginPage {
   }
 
   async goto(): Promise<void> {
-    await this.page.goto("/auth");
+    await gotoHydrated(this.page, "/auth");
   }
 
   /**

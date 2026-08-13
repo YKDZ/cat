@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 import type { CatPlugin, ComponentRecord } from "@cat/plugin-core";
 import { BuiltinPluginLoader, PluginManager } from "@cat/plugin-core";
+import { PluginDataSchema, PluginManifestSchema } from "@cat/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import rootApp from "#/app.ts";
@@ -33,19 +34,19 @@ const createManager = async (componentUrl: string): Promise<PluginManager> => {
 
   const loader = new BuiltinPluginLoader([
     {
-      manifest: {
+      manifest: PluginManifestSchema.parse({
         id: PLUGIN_ID,
         version: "1.0.0",
         entry: "builtin:tiny-widget",
         services: [],
-      },
-      data: {
+      }),
+      data: PluginDataSchema.parse({
         id: PLUGIN_ID,
-        name: "Tiny Widget",
+        name: "tiny widget",
         version: "1.0.0",
         overview: "builtin tiny widget",
         entry: "builtin:tiny-widget",
-      },
+      }),
       load: () => plugin,
       assetRoot: tempDir,
     },

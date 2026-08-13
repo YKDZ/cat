@@ -32,6 +32,7 @@ export const updateScratchpadTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = updateScratchpadArgs.parse(args);
     const runId = parsed.runId ?? ctx.session.runId;
@@ -40,10 +41,11 @@ export const updateScratchpadTool: AgentToolDefinition = {
       throw new Error("update_scratchpad requires runId");
     }
 
-    // Load current blackboard snapshot
+    ctx.signal.throwIfAborted();
     const snapshot = await executeQuery({ db }, loadAgentRunSnapshot, {
       externalId: runId,
     });
+    ctx.signal.throwIfAborted();
     const currentData =
       typeof snapshot === "object" &&
       snapshot !== null &&
@@ -56,6 +58,7 @@ export const updateScratchpadTool: AgentToolDefinition = {
       scratchpad: parsed.scratchpad,
     };
 
+    ctx.signal.throwIfAborted();
     await executeCommand({ db }, saveAgentRunSnapshot, {
       externalId: runId,
       snapshot: updatedSnapshot,

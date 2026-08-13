@@ -2,6 +2,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { PluginDataSchema, PluginManifestSchema } from "@cat/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { CatPlugin } from "#/entities/plugin.ts";
@@ -16,35 +17,35 @@ const plugin = {
   services: vi.fn().mockResolvedValue([]),
 } satisfies CatPlugin;
 
-const manifest = {
+const manifest = PluginManifestSchema.parse({
   id: "builtin-plugin",
   version: "1.0.0",
   entry: "builtin:index.js",
   services: [],
-};
+});
 
-const data = {
+const data = PluginDataSchema.parse({
   id: "builtin-plugin",
-  name: "Builtin Plugin",
+  name: "builtin plugin",
   version: "1.0.0",
   overview: "builtin overview",
   entry: "builtin:index.js",
-};
+});
 
-const extraManifest = {
+const extraManifest = PluginManifestSchema.parse({
   id: "extra-plugin",
   version: "1.0.0",
   entry: "builtin:extra.js",
   services: [],
-};
+});
 
-const extraData = {
+const extraData = PluginDataSchema.parse({
   id: "extra-plugin",
-  name: "Extra Plugin",
+  name: "extra plugin",
   version: "1.0.0",
   overview: "extra overview",
   entry: "builtin:extra.js",
-};
+});
 
 const makeLoader = (manifests: Array<typeof manifest>): PluginLoader => ({
   getManifest: vi.fn(async (pluginId: string) => {

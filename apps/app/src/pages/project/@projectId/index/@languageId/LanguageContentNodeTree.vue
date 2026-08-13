@@ -33,9 +33,9 @@ const handleEdit = async (node: Pick<ContentNode, "id">) => {
 };
 
 const handleExportTranslated = async (
-  node: Pick<ContentNode, "id" | "fileId" | "fileHandlerId">,
+  node: Pick<ContentNode, "id" | "fileId" | "fileHandler">,
 ) => {
-  if (node.fileId === null || node.fileHandlerId === null) {
+  if (node.fileId === null || node.fileHandler === null) {
     return;
   }
 
@@ -58,7 +58,7 @@ const handleExportTranslated = async (
       <LanguageContentNodeAutoApproveBtn :content-node="node" :language />
       <LanguageContentNodeAutoTranslateBtn :content-node="node" :language />
       <Button
-        v-if="node.fileId !== null && node.fileHandlerId !== null"
+        v-if="node.fileId !== null && node.fileHandler !== null"
         variant="outline"
         size="icon"
         :aria-label="t('导出翻译后文件')"

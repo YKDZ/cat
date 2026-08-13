@@ -2,14 +2,11 @@ import * as z from "zod";
 
 import { PluginServiceTypeSchema } from "#/schema/enum.ts";
 import { JSONSchemaSchema, nonNullSafeZDotJson } from "#/schema/json.ts";
+import { PluginIdentifierSchema } from "#/schema/plugin-identifier.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 const PluginManifestBaseSchema = z.object({
-  id: z
-    .string()
-    .regex(
-      /^(?:[A-Za-z0-9\-_.!~*'()]+|%[0-9A-Fa-f]{2})+$/,
-      "The plugin ID does not meet the requirements. It needs to be a string that can be used for URL fragments",
-    ),
+  id: PluginIdentifierSchema,
   version: z.string(),
   entry: z.string(),
   iconURL: z.url().optional(),
@@ -38,11 +35,7 @@ const PluginManifestBaseSchema = z.object({
     )
     .optional(),
   config: JSONSchemaSchema.optional(),
-  configVersion: z
-    .string()
-    .min(1)
-    .refine((version) => version !== "legacy-unverified")
-    .optional(),
+  configVersion: z.string().min(1).optional(),
 });
 
 const requireConfigVersion = (
@@ -74,7 +67,7 @@ export const TranslationAdviseSchema = z.object({
 });
 
 export const TranslationSuggestionSchema = TranslationAdviseSchema.extend({
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
 });
 
 export type TranslationAdvise = z.infer<typeof TranslationAdviseSchema>;

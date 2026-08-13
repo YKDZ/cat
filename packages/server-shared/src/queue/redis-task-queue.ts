@@ -1,4 +1,8 @@
-import type { LeaseRecoverableTaskQueue, QueueTask } from "@cat/core";
+import type {
+  EnqueueOptions,
+  LeaseRecoverableTaskQueue,
+  QueueTask,
+} from "@cat/core";
 
 import { serverLogger } from "../utils/logger.ts";
 
@@ -21,6 +25,21 @@ export type RedisTaskQueueOptions = {
 };
 
 const DEFAULT_LEASE_MS = 60_000;
+
+const ENQUEUE_IF_ABSENT_SCRIPT = `
+local taskId = ARGV[1]
+for _, key in ipairs(KEYS) do
+  local items = redis.call('LRANGE', key, 0, -1)
+  for _, raw in ipairs(items) do
+    local ok, task = pcall(cjson.decode, raw)
+    if ok and task['id'] == taskId then
+      return 0
+    end
+  end
+end
+redis.call('RPUSH', KEYS[1], ARGV[2])
+return 1
+`;
 
 const DEQUEUE_WITH_LEASE_SCRIPT = `
 local raw = redis.call('LPOP', KEYS[1])
@@ -99,25 +118,52 @@ export class RedisTaskQueue<T> implements LeaseRecoverableTaskQueue<T> {
    * @param payloads - List of task payloads to enqueue
    * @returns - Newly generated task IDs
    */
-  public async enqueue(payloads: T[]): Promise<string[]> {
+  public async enqueue(
+    payloads: T[],
+    options?: EnqueueOptions,
+  ): Promise<string[]> {
     if (payloads.length === 0) return [];
+    if (
+      options?.taskIds !== undefined &&
+      options.taskIds.length !== payloads.length
+    ) {
+      throw new Error("taskIds length must match payloads length");
+    }
 
     const ids: string[] = [];
     const serialized: string[] = [];
 
-    for (const payload of payloads) {
-      const id = crypto.randomUUID();
+    for (const [index, payload] of payloads.entries()) {
+      const id = options?.taskIds?.[index] ?? crypto.randomUUID();
       const task: QueueTask<T> = {
         id,
         payload,
         retryCount: 0,
         enqueuedAt: new Date().toISOString(),
       };
-      serialized.push(JSON.stringify(task));
-      ids.push(id);
+      const raw = JSON.stringify(task);
+      if (options?.taskIds === undefined) {
+        serialized.push(raw);
+        ids.push(id);
+        continue;
+      }
+
+      // oxlint-disable-next-line no-await-in-loop -- each stable identity must be checked and inserted atomically
+      const inserted = await this.redis.sendCommand([
+        "EVAL",
+        ENQUEUE_IF_ABSENT_SCRIPT,
+        "2",
+        this.pendingKey,
+        this.processingKey,
+        id,
+        raw,
+      ]);
+      if (this.isRedisIntegerReply(inserted, 1)) ids.push(id);
     }
 
-    await this.redis.rPush(this.pendingKey, serialized);
+    if (serialized.length > 0) {
+      await this.redis.rPush(this.pendingKey, serialized);
+    }
     return ids;
   }
 

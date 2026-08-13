@@ -5,6 +5,16 @@ export {
 export type { CreateBranchCommand } from "./create-branch.cmd.ts";
 
 export {
+  getOrCreateActiveBranchChangeset,
+  GetOrCreateActiveBranchChangesetCommandSchema,
+} from "./get-or-create-active-branch-changeset.cmd.ts";
+
+export {
+  lockActiveBranchChangesets,
+  LockActiveBranchChangesetsCommandSchema,
+} from "./lock-active-branch-changesets.cmd.ts";
+
+export {
   updateBranchStatus,
   UpdateBranchStatusCommandSchema,
 } from "./update-branch-status.cmd.ts";

@@ -86,6 +86,7 @@ describe("direct Oxc commands", () => {
     const fixtureRoot = await createFixture();
     for (const [path, source] of [
       ["apps/app/src/probe.client.ts", 'import "hono";\n'],
+      ["apps/app/src/pages/probe/+guard.ts", 'import "#/server/ssc.ts";\n'],
       ["@cat-plugin/tiny-widget/src/probe.ts", 'import "hono";\n'],
       ["packages/plugin-core/src/client/probe.ts", 'import "hono";\n'],
       [

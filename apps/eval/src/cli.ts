@@ -6,12 +6,17 @@ import { resolve } from "node:path";
 // oxlint-disable typescript-eslint/no-unsafe-argument -- Commander opts are typed as any
 import { Command } from "commander";
 
+import {
+  EvalInterruptedError,
+  installEvaluationInterruptHandler,
+} from "#/cancellation.ts";
 import { resolveComposeConfig } from "#/compose-config.ts";
 import { loadSuite } from "#/config/index.ts";
 import { evaluate } from "#/eval/index.ts";
 import { runHarness } from "#/harness/index.ts";
 import { initObservability } from "#/observability/index.ts";
 import { generateReport } from "#/report/index.ts";
+import { runSeedSession } from "#/seed-session.ts";
 
 const program = new Command();
 
@@ -54,6 +59,7 @@ program
       otlpEndpoint: opts.otlp,
       ...(otlpHeaders === undefined ? {} : { otlpHeaders }),
     });
+    const interrupt = installEvaluationInterruptHandler();
 
     try {
       const suite = loadSuite(absoluteSuiteDir);
@@ -66,6 +72,7 @@ program
         cacheDir,
         pluginsDir: resolve(process.cwd(), opts.pluginsDir),
         scenarioFilter: opts.scenario,
+        signal: interrupt.signal,
       });
 
       const scorerNames = suite.config.scenarios.map((s) => s.scorers);
@@ -91,10 +98,17 @@ program
       }
 
       await otel.shutdown();
-      process.exit(report.allPassed ? 0 : 1);
+      process.exitCode = report.allPassed ? 0 : 1;
     } catch (err) {
       await otel.shutdown();
+      if (err instanceof EvalInterruptedError) {
+        process.exitCode = err.exitCode;
+        console.error("[eval] Interrupted after cleanup.");
+        return;
+      }
       throw err;
+    } finally {
+      interrupt.dispose();
     }
   });
 
@@ -116,32 +130,43 @@ program
       /* ignored */
     }
 
-    const suite = loadSuite(absoluteSuiteDir);
-    const { seed } = await import("#/seeder/index.ts");
-    const ctx = await seed({
-      suite,
-      cacheDir,
-      pluginsDir: resolve(process.cwd(), opts.pluginsDir),
-    });
-
-    console.log(`[eval] Seeded suite "${suite.config.name}".`);
-    console.log(`[eval] Project ID: ${ctx.projectId}`);
-    console.log(`[eval] Refs:`);
-    for (const [ref, id] of ctx.refs.entries()) {
-      console.log(`  ${ref} → ${id}`);
-    }
-    console.log("\n[eval] DB is live — press Ctrl+C to cleanup and exit.");
-
-    await new Promise<void>((_, reject) => {
-      process.on("SIGINT", () => {
-        reject(new Error("interrupted"));
+    const interrupt = installEvaluationInterruptHandler();
+    let interrupted = false;
+    try {
+      const suite = loadSuite(absoluteSuiteDir);
+      const { seed } = await import("#/seeder/index.ts");
+      await runSeedSession({
+        signal: interrupt.signal,
+        seed: async (signal) =>
+          await seed({
+            suite,
+            cacheDir,
+            pluginsDir: resolve(process.cwd(), opts.pluginsDir),
+            signal,
+          }),
+        onReady: (ctx) => {
+          console.log(`[eval] Seeded suite "${suite.config.name}".`);
+          console.log(`[eval] Project ID: ${ctx.projectId}`);
+          console.log(`[eval] Refs:`);
+          for (const [ref, id] of ctx.refs.entries()) {
+            console.log(`  ${ref} → ${id}`);
+          }
+          console.log(
+            "\n[eval] DB is live — press Ctrl+C to cleanup and exit.",
+          );
+        },
       });
-    }).catch(() => {
-      // cleanup on SIGINT — error already handled above
-    });
-
-    await ctx.cleanup();
-    console.log("[eval] Cleanup complete.");
+    } catch (error) {
+      if (error instanceof EvalInterruptedError) {
+        process.exitCode = error.exitCode;
+        interrupted = true;
+      } else {
+        throw error;
+      }
+    } finally {
+      interrupt.dispose();
+    }
+    if (interrupted) console.error("[eval] Interrupted after cleanup.");
   });
 
 program

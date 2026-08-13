@@ -1,4 +1,4 @@
-import type { DrizzleClient } from "@cat/db";
+import type { DrizzleClient, RedisConnectionOptions } from "@cat/db";
 import {
   MemoryCacheStore,
   MemorySessionStore,
@@ -9,9 +9,14 @@ import {
 import { RedisCacheStore, RedisSessionStore } from "@cat/server-shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockGetRedisHandle } = vi.hoisted(() => ({
-  mockGetRedisHandle: vi.fn(),
-}));
+const { mockGetRedisHandle, mockServerChild, mockServerError } = vi.hoisted(
+  () => ({
+    mockGetRedisHandle:
+      vi.fn<(options: RedisConnectionOptions) => Promise<unknown>>(),
+    mockServerChild: vi.fn(),
+    mockServerError: vi.fn(),
+  }),
+);
 
 vi.mock("@cat/domain", async () => {
   const actual =
@@ -23,11 +28,26 @@ vi.mock("@cat/domain", async () => {
   };
 });
 
+vi.mock("@cat/server-shared", async () => {
+  const actual =
+    await vi.importActual<typeof import("@cat/server-shared")>(
+      "@cat/server-shared",
+    );
+  return {
+    ...actual,
+    serverLogger: {
+      child: mockServerChild,
+    },
+  };
+});
+
 import { createRuntimeBackends } from "./runtime-backends.ts";
 
 describe("createRuntimeBackends", () => {
   beforeEach(() => {
     mockGetRedisHandle.mockReset();
+    mockServerError.mockReset();
+    mockServerChild.mockReset().mockReturnValue({ error: mockServerError });
   });
 
   it("uses in-memory backends for the lite profile without touching Redis", async () => {
@@ -81,6 +101,18 @@ describe("createRuntimeBackends", () => {
     expect(backends.vectorizationQueue.constructor.name).toBe("RedisTaskQueue");
     expect(backends.redis).toBe(redisHandle);
     expect(mockGetRedisHandle).toHaveBeenCalledOnce();
+    expect(mockGetRedisHandle).toHaveBeenCalledWith({
+      mode: "runtime",
+      onError: expect.any(Function),
+    });
+    const connectionOptions = mockGetRedisHandle.mock.calls[0]?.[0];
+    const redisError = new Error("connection reset");
+    connectionOptions?.onError(redisError);
+    expect(mockServerChild).toHaveBeenCalledWith({ component: "redis" });
+    expect(mockServerError).toHaveBeenCalledWith("Redis client error", {
+      code: "REDIS_CLIENT_ERROR",
+      error: redisError,
+    });
     expect(ping).toHaveBeenCalledOnce();
   });
 });

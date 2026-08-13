@@ -14,22 +14,50 @@ const PiniaColadaDevtools =
       )
     : null;
 
+import { isExpectedNavigationCancellation } from "#/rpc/request-cancellation.ts";
 import { connectWs } from "#/rpc/ws.ts";
 import { useNotificationStore } from "#/stores/notification.ts";
 import { useCookieBooleanRef } from "#/utils/cookie.ts";
+import { clientLogger } from "#/utils/logger.ts";
 
 const ctx = usePageContext();
 const notificationStore = useNotificationStore();
+const logger = clientLogger.child({ component: "root-layout" });
+
+const initializeNotifications = async (): Promise<void> => {
+  if (!ctx.user) return;
+  connectWs();
+  try {
+    await notificationStore.loadInitial();
+  } catch (error) {
+    if (isExpectedNavigationCancellation(error)) return;
+    throw error;
+  }
+  notificationStore.startStreaming();
+};
+
+const resumeNotifications = (event: PageTransitionEvent): void => {
+  if (!event.persisted) return;
+  void initializeNotifications().catch((error: unknown) => {
+    logger.error("Failed to initialize notifications after BFCache restore", {
+      error,
+    });
+  });
+};
+
+const suspendNotifications = (): void => {
+  notificationStore.stopStreaming();
+};
 
 onMounted(async () => {
-  if (ctx.user) {
-    connectWs();
-    await notificationStore.loadInitial();
-    notificationStore.startStreaming();
-  }
+  window.addEventListener("pagehide", suspendNotifications);
+  window.addEventListener("pageshow", resumeNotifications);
+  await initializeNotifications();
 });
 
 onUnmounted(() => {
+  window.removeEventListener("pagehide", suspendNotifications);
+  window.removeEventListener("pageshow", resumeNotifications);
   notificationStore.stopStreaming();
 });
 

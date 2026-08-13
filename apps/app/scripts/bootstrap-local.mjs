@@ -15,7 +15,7 @@ process.env.CAT_BOOTSTRAP_PLAN = JSON.stringify({
   idempotencyKey: "local-services-v1",
   operations: [
     {
-      pluginId: "spacy-segmenter",
+      pluginId: "spacy-language-analyzer",
       scopeId: "",
       scopeType: "GLOBAL",
       type: "install-if-absent",

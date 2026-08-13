@@ -18,127 +18,470 @@ env:
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   COREPACK_HOME: /tmp/cat-corepack
   TURBO_TELEMETRY_DISABLED: "1"
+  CAT_CANDIDATE_RUN_ID: ${{ github.run_id }}
+  CAT_CANDIDATE_COMMIT_IDENTITY: ${{ github.sha }}
+  CAT_CANDIDATE_RELEASE_IDENTITY: cat-validated-${{ github.sha }}
+  CAT_IMAGE_CANDIDATE_OWNER_TOKEN: candidate-${{ github.run_id }}-${{ github.sha }}
 
 jobs:
-  check:
-    name: Quality (check)
+  plan:
+    name: Verification plan
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
+    outputs:
+      e2e: ${{ steps.plan.outputs.e2e }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - id: plan
+        name: Emit typed verification matrices
+        run: pnpm ci:verification:plan
 
-      - name: Bootstrap integrity-pinned pnpm for dependency caching
-        run: node scripts/package-manager-pin.ts
-
-      - name: Setup exact Node.js patch
-        uses: actions/setup-node@v7
-        with:
-          node-version-file: package.json
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Activate integrity-pinned pnpm for the exact Node runtime
-        run: node scripts/package-manager-pin.ts
-
-      - name: Install dependencies
-        run: pnpm ci:install
-
-      - name: Run repository quality contract
-        env:
-          TURBO_TEAM: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && vars.TURBO_TEAM || '' }}
-          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_TOKEN || '' }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
-        run: pnpm check
-
-  check-all:
-    name: Full Graph (check:all)
+  quality:
+    name: Quality
+    needs: [plan]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-
-      - name: Bootstrap integrity-pinned pnpm for dependency caching
-        run: node scripts/package-manager-pin.ts
-
-      - name: Setup exact Node.js patch
-        uses: actions/setup-node@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Setup exact Python and uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          node-version-file: package.json
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          version: "0.8.3"
+          python-version: "3.12.11"
+          enable-cache: true
+          cache-dependency-glob: apps/spacy-server/uv.lock
+          cache-python: true
+      - name: Synchronize spaCy tooling
+        run: pnpm ci:setup:spacy
+      - name: Run verification node
+        env:
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/quality.json
+          TURBO_TEAM: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && vars.TURBO_TEAM || '' }}
+          TURBO_TOKEN: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
+        run: pnpm ci:verification:run quality
+      - name: Upload verification record
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-quality-${{ github.run_id }}
+          path: /tmp/verification-record/quality.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
 
-      - name: Activate integrity-pinned pnpm for the exact Node runtime
-        run: node scripts/package-manager-pin.ts
+  source-artifacts:
+    name: Source artifacts
+    needs: [plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 110
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Run verification node
+        env:
+          CAT_VERIFICATION_RECORD_DIR: /tmp/verification-record
+          TURBO_TEAM: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && vars.TURBO_TEAM || '' }}
+          TURBO_TOKEN: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
+        run: pnpm ci:verification:run --lane source
+      - name: Upload verification records
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-source-artifacts-${{ github.run_id }}
+          path: /tmp/verification-record/*.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
 
-      - name: Install dependencies
-        run: pnpm ci:install
-
+  spacy-image:
+    name: spaCy image
+    needs: [plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v4
-
-      - name: Restore trusted Buildx cache
-        id: buildx-cache
+      - name: Restore trusted spaCy Buildx cache
         continue-on-error: true
         uses: actions/cache/restore@v6
         with:
-          path: .cache/buildx
-          key: buildx-${{ runner.os }}-main-${{ github.sha }}
+          path: .cache/buildx/spacy
+          key: buildx-${{ runner.os }}-spacy-${{ github.sha }}
           restore-keys: |
-            buildx-${{ runner.os }}-main-
-
-      - name: Install workspace Playwright browsers and system dependencies
-        run: pnpm test:e2e:install-browsers
-
-      - name: Verify the pinned official Node image manifest
-        run: pnpm container:verify-base-image
-
-      - name: Run complete repository contract and export validated images
+            buildx-${{ runner.os }}-spacy-
+      - name: Initialize candidate artifact root
         env:
-          CAT_CHECK_ALL_EXPORT_IMAGES_DIR: validated-images
-          CAT_CHECK_ALL_PROJECT_NAME: cat-validated-${{ github.sha }}
-          TURBO_TEAM: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && vars.TURBO_TEAM || '' }}
-          TURBO_TOKEN: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_TOKEN || '' }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ ((github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
-          CAT_BUILDX_CACHE_SOURCE: .cache/buildx
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-spacy-${{ github.run_id }}
+        run: pnpm container:init-image-artifacts
+      - name: Run verification node
+        env:
           CAT_BUILDX_CACHE_OUTPUT: .cache/buildx-next
-        run: pnpm check:all:ci
+          CAT_BUILDX_CACHE_SOURCE: .cache/buildx
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-spacy-${{ github.run_id }}
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/spacy-image.json
+        run: pnpm ci:verification:run spacy-image
+      - id: finalize-buildx-cache
+        name: Finalize spaCy Buildx cache
+        continue-on-error: true
+        run: pnpm ci:buildx-cache:finalize spacy
+      - name: Upload spaCy candidate
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: candidate-spacy-${{ github.run_id }}
+          path: /tmp/cat-spacy-${{ github.run_id }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+      - name: Clean candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-spacy-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
+      - name: Upload verification record
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-spacy-image-${{ github.run_id }}
+          path: /tmp/verification-record/spacy-image.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+      - name: Save trusted spaCy Buildx cache
+        if: success() && steps.finalize-buildx-cache.outcome == 'success' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/buildx/spacy
+          key: buildx-${{ runner.os }}-spacy-${{ github.sha }}
 
+  application-images:
+    name: Application images
+    needs: [plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Restore trusted application Buildx cache
+        continue-on-error: true
+        uses: actions/cache/restore@v6
+        with:
+          path: .cache/buildx/application
+          key: buildx-${{ runner.os }}-application-${{ github.sha }}
+          restore-keys: |
+            buildx-${{ runner.os }}-application-
+      - name: Initialize candidate artifact root
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-application-${{ github.run_id }}
+        run: pnpm container:init-image-artifacts
+      - name: Run verification node
+        env:
+          CAT_BUILDX_CACHE_OUTPUT: .cache/buildx-next
+          CAT_BUILDX_CACHE_SOURCE: .cache/buildx
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-application-${{ github.run_id }}
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/application-images.json
+          TURBO_TEAM: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && vars.TURBO_TEAM || '' }}
+          TURBO_TOKEN: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
+        run: pnpm ci:verification:run application-images
+      - id: finalize-buildx-cache
+        name: Finalize application Buildx cache
+        continue-on-error: true
+        run: pnpm ci:buildx-cache:finalize application
+      - name: Upload application candidates
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: candidate-application-${{ github.run_id }}
+          path: /tmp/cat-application-${{ github.run_id }}
+          compression-level: 0
+          include-hidden-files: true
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+      - name: Clean candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-application-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
+      - name: Upload verification record
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-application-images-${{ github.run_id }}
+          path: /tmp/verification-record/application-images.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+      - name: Save trusted application Buildx cache
+        if: success() && steps.finalize-buildx-cache.outcome == 'success' && ((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+        continue-on-error: true
+        uses: actions/cache/save@v6
+        with:
+          path: .cache/buildx/application
+          key: buildx-${{ runner.os }}-application-${{ github.sha }}
+
+  integration:
+    name: Integration
+    needs: [spacy-image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Download spaCy candidate
+        uses: actions/download-artifact@v8
+        with:
+          name: candidate-spacy-${{ github.run_id }}
+          path: /tmp/cat-candidates-${{ github.run_id }}
+      - name: Run verification node
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/integration.json
+          TURBO_TEAM: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && vars.TURBO_TEAM || '' }}
+          TURBO_TOKEN: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_TOKEN || '' }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}
+        run: pnpm ci:verification:run integration
+      - name: Clean consumed candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
+      - name: Upload verification record
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-integration-${{ github.run_id }}
+          path: /tmp/verification-record/integration.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+
+  e2e-dev:
+    name: Development E2E
+    needs: [spacy-image]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Install Chromium
+        run: pnpm ci:install:playwright:chromium
+      - name: Download spaCy candidate
+        uses: actions/download-artifact@v8
+        with:
+          name: candidate-spacy-${{ github.run_id }}
+          path: /tmp/cat-candidates-${{ github.run_id }}
+      - name: Run verification node
+        env:
+          CAT_E2E_ARTIFACT_ROOT: /tmp/cat-e2e-${{ github.run_id }}
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/e2e-dev.json
+        run: pnpm ci:verification:run e2e-dev
+      - name: Clean consumed candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
+      - name: Upload verification record
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-e2e-dev-${{ github.run_id }}
+          path: /tmp/verification-record/e2e-dev.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
       - name: Upload failed E2E diagnostics
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: e2e-diagnostics-${{ github.sha }}
+          name: e2e-diagnostics-dev-${{ github.run_id }}
           path: |
-            .tmp/e2e
-            !.tmp/e2e/**/playwright/.auth/**
+            /tmp/cat-e2e-${{ github.run_id }}/**/playwright/**
+            /tmp/cat-e2e-${{ github.run_id }}/**/playwright-report/**
+            !/tmp/cat-e2e-${{ github.run_id }}/**/playwright/.auth/**
           include-hidden-files: true
           if-no-files-found: ignore
+          overwrite: true
           retention-days: 7
 
-      - name: Save Buildx cache from trusted builds
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
-        continue-on-error: true
-        uses: actions/cache/save@v6
+  release-e2e:
+    name: ${{ matrix.target }} E2E
+    needs: [plan, spacy-image, application-images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.e2e) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Install release browsers
+        run: pnpm ci:install:playwright:release
+      - name: Download candidate image families
+        uses: actions/download-artifact@v8
         with:
-          path: .cache/buildx
-          key: buildx-${{ runner.os }}-main-${{ github.sha }}
-
-      - name: Upload validated container images
+          pattern: candidate-*-${{ github.run_id }}
+          path: /tmp/cat-candidates-${{ github.run_id }}
+          merge-multiple: true
+      - name: Run verification node
+        env:
+          CAT_E2E_ARTIFACT_ROOT: /tmp/cat-e2e-${{ github.run_id }}
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/e2e-${{ matrix.target }}.json
+        run: pnpm ci:verification:run e2e-${{ matrix.target }}
+      - name: Clean consumed candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
+      - name: Upload verification record
+        if: success()
         uses: actions/upload-artifact@v7
         with:
-          name: validated-images-${{ github.sha }}
-          path: validated-images
-          compression-level: 0
+          name: verification-record-e2e-${{ matrix.target }}-${{ github.run_id }}
+          path: /tmp/verification-record/e2e-${{ matrix.target }}.json
           if-no-files-found: error
+          overwrite: true
           retention-days: 1
+      - name: Upload failed E2E diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-diagnostics-${{ matrix.target }}-${{ github.run_id }}
+          path: |
+            /tmp/cat-e2e-${{ github.run_id }}/**/playwright/**
+            /tmp/cat-e2e-${{ github.run_id }}/**/playwright-report/**
+            !/tmp/cat-e2e-${{ github.run_id }}/**/playwright/.auth/**
+          include-hidden-files: true
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 7
+
+  container-lifecycle:
+    name: Container lifecycle
+    needs: [spacy-image, application-images]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Download candidate image families
+        uses: actions/download-artifact@v8
+        with:
+          pattern: candidate-*-${{ github.run_id }}
+          path: /tmp/cat-candidates-${{ github.run_id }}
+          merge-multiple: true
+      - name: Run verification node
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+          CAT_VERIFICATION_RECORD_PATH: /tmp/verification-record/container-lifecycle.json
+        run: pnpm ci:verification:run container-lifecycle
+      - name: Clean consumed candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
+      - name: Upload verification record
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-record-container-lifecycle-${{ github.run_id }}
+          path: /tmp/verification-record/container-lifecycle.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+
+  aggregate:
+    name: Complete Verification
+    if: always()
+    needs:
+      [
+        quality,
+        source-artifacts,
+        spacy-image,
+        application-images,
+        integration,
+        e2e-dev,
+        release-e2e,
+        container-lifecycle,
+      ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Download verification records
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          pattern: verification-record-*-${{ github.run_id }}
+          path: /tmp/verification-records
+          merge-multiple: true
+      - name: Download candidate image families
+        continue-on-error: true
+        uses: actions/download-artifact@v8
+        with:
+          pattern: candidate-*-${{ github.run_id }}
+          path: /tmp/cat-candidates-${{ github.run_id }}
+          merge-multiple: true
+      - name: Aggregate typed verification records
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+          CAT_VERIFICATION_JOB_RESULTS: ${{ toJSON(needs) }}
+          CAT_VALIDATED_RELEASE_MANIFEST_PATH: /tmp/validated-release/manifest.json
+        run: pnpm ci:verification:aggregate /tmp/verification-records
+      - name: Upload validated release manifest
+        uses: actions/upload-artifact@v7
+        with:
+          name: validated-release-${{ github.run_id }}
+          path: /tmp/validated-release/manifest.json
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+      - name: Clean candidate artifact root
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts
 
   release-images:
     name: Publish validated container images
-    needs:
-      - check
-      - check-all
+    needs: [aggregate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -147,37 +490,33 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
-
-      - name: Bootstrap integrity-pinned pnpm for dependency caching
-        run: node scripts/package-manager-pin.ts
-
-      - name: Setup exact Node.js patch
-        uses: actions/setup-node@v7
-        with:
-          node-version-file: package.json
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Activate integrity-pinned pnpm for the exact Node runtime
-        run: node scripts/package-manager-pin.ts
-
-      - name: Download validated container images
+      - name: Setup Node.js and pnpm workspace
+        uses: ./.github/actions/setup-node-pnpm
+      - name: Download candidate image families
         uses: actions/download-artifact@v8
         with:
-          name: validated-images-${{ github.sha }}
-          path: validated-images
-
-      - name: Verify and load validated container images
-        run: pnpm container:verify-artifacts
-
+          pattern: candidate-*-${{ github.run_id }}
+          path: /tmp/cat-candidates-${{ github.run_id }}
+          merge-multiple: true
+      - name: Download validated release manifest
+        uses: actions/download-artifact@v8
+        with:
+          name: validated-release-${{ github.run_id }}
+          path: /tmp/validated-release
       - name: Log in to GHCR
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish without rebuilding
+      - name: Publish validated candidates without rebuilding
         env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+          CAT_VALIDATED_RELEASE_MANIFEST_PATH: /tmp/validated-release/manifest.json
           IMAGE: ghcr.io/${{ github.repository }}
-        run: pnpm release:images
+        run: pnpm ci:verification:release
+      - name: Clean consumed candidate bundles
+        if: always()
+        env:
+          CAT_IMAGE_CANDIDATE_DIR: /tmp/cat-candidates-${{ github.run_id }}
+        run: pnpm container:cleanup-image-artifacts

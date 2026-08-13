@@ -1,4 +1,5 @@
 import type { EdgeCondition } from "@cat/graph";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 // ====== Auth 节点类型 ======
@@ -104,7 +105,7 @@ export const AuthBlackboardDataSchema = z.object({
     email: z.string().optional(),
     name: z.string().optional(),
     identifier: z.string().optional(),
-    authProviderId: z.int().optional(),
+    authProvider: ServiceImplementationReferenceSchema.optional(),
     providerIssuer: z.string().optional(),
     providedAccountId: z.string().optional(),
   }),

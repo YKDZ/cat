@@ -15,6 +15,7 @@ import {
   RedisCacheStore,
   RedisSessionStore,
   RedisTaskQueue,
+  serverLogger,
 } from "@cat/server-shared";
 
 /**
@@ -50,7 +51,19 @@ export const createRuntimeBackends = async (
   profile: RuntimeProfile,
   db: DrizzleClient,
 ): Promise<RuntimeBackends> => {
-  const redis = profile.requireRedis ? await getRedisHandle() : undefined;
+  const redis = profile.requireRedis
+    ? await getRedisHandle({
+        mode: "runtime",
+        onError: (error) => {
+          serverLogger
+            .child({ component: "redis" })
+            .error("Redis client error", {
+              code: "REDIS_CLIENT_ERROR",
+              error,
+            });
+        },
+      })
+    : undefined;
   if (redis) {
     await redis.ping();
   }

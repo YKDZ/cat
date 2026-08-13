@@ -1,4 +1,5 @@
-import type { MemorySuggestion } from "@cat/shared";
+import { EffectiveMemoryRecallStreamEventSchema } from "@cat/shared";
+import { MemorySuggestionSchema, type MemorySuggestion } from "@cat/shared";
 import { defineStore, storeToRefs } from "pinia";
 import { ref, shallowRef } from "vue";
 
@@ -11,14 +12,25 @@ import {
   type TrackedRequest,
 } from "#/utils/request-cancellation.ts";
 
+type MemoryRecallScopeState = {
+  status: "SUCCEEDED" | "BLOCKED" | "SKIPPED";
+};
+type MemoryRecallState = {
+  scopes: {
+    PROJECT: MemoryRecallScopeState;
+    PERSONAL: MemoryRecallScopeState;
+  };
+};
+
 export const useEditorMemoryStore = defineStore("editorMemory", () => {
   const { elementId } = storeToRefs(useEditorTableStore());
   const { languageToId } = storeToRefs(useEditorContextStore());
   const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
-  const onNew = shallowRef<AsyncGenerator<MemorySuggestion>>();
+  const onNew = shallowRef<AsyncGenerator<unknown>>();
   let activeRequest: TrackedRequest | null = null;
 
   const memories = ref<MemorySuggestion[]>([]);
+  const recallResult = ref<MemoryRecallState | null>(null);
   const error = ref<string | null>(null);
 
   const subMemories = async () => {
@@ -31,6 +43,7 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
     activeRequest = request;
 
     memories.value = [];
+    recallResult.value = null;
 
     try {
       onNew.value = await orpc.memory.onNew(
@@ -42,7 +55,20 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
         { signal: request.signal },
       );
 
-      for await (const memory of onNew.value) {
+      for await (const rawEvent of onNew.value) {
+        if (activeRequest !== request) return;
+        const event = EffectiveMemoryRecallStreamEventSchema.parse(rawEvent);
+        if (event.type === "COMPLETED") {
+          recallResult.value = {
+            scopes: {
+              PROJECT: { status: event.result.scopes.PROJECT.status },
+              PERSONAL: { status: event.result.scopes.PERSONAL.status },
+            },
+          };
+          continue;
+        }
+
+        const memory = MemorySuggestionSchema.parse(event.candidate);
         const existingIndex = memories.value.findIndex(
           (item) => item.id === memory.id,
         );
@@ -80,5 +106,5 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
     window.addEventListener("beforeunload", dispose, { once: true });
   }
 
-  return { memories, error, subMemories, unsubscribe };
+  return { memories, recallResult, error, subMemories, unsubscribe };
 });

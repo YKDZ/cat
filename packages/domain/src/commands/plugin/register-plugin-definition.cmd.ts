@@ -6,7 +6,6 @@ import type { Command } from "#/types.ts";
 
 import {
   getPluginConfigSchemaDigest,
-  LegacyUnverifiedPluginConfigVersion,
   lockPluginConfigDefinition,
 } from "./plugin-config-contract.ts";
 
@@ -19,11 +18,7 @@ export const RegisterPluginDefinitionCommandSchema = z
     overview: z.string(),
     iconUrl: z.string().nullable(),
     configSchema: JSONSchemaSchema.optional(),
-    configVersion: z
-      .string()
-      .min(1)
-      .refine((version) => version !== LegacyUnverifiedPluginConfigVersion)
-      .optional(),
+    configVersion: z.string().min(1).optional(),
   })
   .superRefine((command, context) => {
     if (
@@ -108,17 +103,7 @@ export const registerPluginDefinition: Command<
           isAvailable: true,
         });
       } else if (definition.schemaVersion === configVersion) {
-        if (definition.schemaDigest === "") {
-          if (getPluginConfigSchemaDigest(definition.schema) !== schemaDigest) {
-            throw new Error(
-              `Plugin ${command.pluginId} changed configuration schema digest without a version change`,
-            );
-          }
-          await tx
-            .update(pluginConfig)
-            .set({ schemaDigest, isAvailable: true, updatedAt: new Date() })
-            .where(eq(pluginConfig.id, definition.id));
-        } else if (definition.schemaDigest !== schemaDigest) {
+        if (definition.schemaDigest !== schemaDigest) {
           throw new Error(
             `Plugin ${command.pluginId} changed configuration schema digest without a version change`,
           );

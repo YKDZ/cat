@@ -1,13 +1,16 @@
-import { and, eq, mfaProvider, pluginService } from "@cat/db";
-import type { NonNullJSONType } from "@cat/shared";
-import { assertSingleOrNull } from "@cat/shared";
+import { and, eq, mfaProvider } from "@cat/db";
+import {
+  assertSingleOrNull,
+  type NonNullJSONType,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
 
 export const GetMfaPayloadByFactorAndUserSchema = z.object({
   userId: z.uuidv4(),
-  factorId: z.string(),
+  mfaService: ServiceImplementationReferenceSchema,
 });
 
 export type GetMfaPayloadByFactorAndUserQuery = z.infer<
@@ -22,11 +25,10 @@ export const getMfaPayloadByFactorAndUser: Query<
     await ctx.db
       .select({ payload: mfaProvider.payload })
       .from(mfaProvider)
-      .innerJoin(pluginService, eq(mfaProvider.mfaServiceId, pluginService.id))
       .where(
         and(
           eq(mfaProvider.userId, query.userId),
-          eq(pluginService.serviceId, query.factorId),
+          eq(mfaProvider.mfaService, query.mfaService),
         ),
       )
       .limit(1),

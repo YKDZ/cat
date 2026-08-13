@@ -1,7 +1,4 @@
 import { randomUUID } from "node:crypto";
-import { copyFile, mkdir, mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
 
 import {
   bootstrapReceipt,
@@ -10,7 +7,6 @@ import {
   sql,
 } from "@cat/db";
 import { and, eq } from "drizzle-orm";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
@@ -441,34 +437,5 @@ describe("bootstrap plans", () => {
         .from(pluginInstallation)
         .where(eq(pluginInstallation.pluginId, id)),
     ).resolves.toEqual([]);
-  });
-
-  test("applies the bootstrap receipt migration to an existing schema", async () => {
-    const migrationsFolder = await mkdtemp(
-      join(tmpdir(), "cat-bootstrap-migration-"),
-    );
-    const migrationName = "20260713041213_fluffy_plazm";
-    const targetDirectory = join(migrationsFolder, migrationName);
-    try {
-      await mkdir(targetDirectory);
-      await copyFile(
-        resolve(
-          import.meta.dirname,
-          "../../../../db/drizzle",
-          migrationName,
-          "migration.sql",
-        ),
-        join(targetDirectory, "migration.sql"),
-      );
-      await testDb.client.execute(sql`DROP TABLE "BootstrapReceipt"`);
-
-      await migrate(testDb.client, { migrationsFolder });
-
-      await expect(
-        testDb.client.select().from(bootstrapReceipt),
-      ).resolves.toEqual([]);
-    } finally {
-      await rm(migrationsFolder, { force: true, recursive: true });
-    }
   });
 });

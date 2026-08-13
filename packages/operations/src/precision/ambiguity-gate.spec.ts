@@ -1,4 +1,4 @@
-import type { RecallChannel } from "@cat/shared";
+import type { EvidenceLane } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import { evaluateAmbiguity } from "./ambiguity-gate.ts";
@@ -10,7 +10,7 @@ const make = (
   id: number,
   conf: number,
   tier: "1" | "2" | "3",
-  channels: RecallChannel[],
+  channels: EvidenceLane[],
 ): RecallCandidate => ({
   surface: "term",
   conceptId: id,

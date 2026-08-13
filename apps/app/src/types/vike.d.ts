@@ -3,6 +3,7 @@ import type { AuthContext } from "@cat/permissions";
 import type { ComponentRecord, PluginManager } from "@cat/plugin-core";
 import type { User } from "@cat/shared";
 import type { HTTPHelpers } from "@cat/shared";
+import type { DisplayLanguage } from "@cat/shared";
 import type { Pinia, StateTree } from "pinia";
 import type { Component } from "vue";
 import type {
@@ -24,12 +25,12 @@ declare global {
       auth: AuthContext | null;
       _piniaInitState?: string;
       abortReason: string | undefined;
+      displayLanguage: DisplayLanguage;
+      isMobile: boolean;
     }
     interface PageContextServer {
       pinia?: Pinia;
       helpers: HTTPHelpers;
-      displayLanguage: string;
-      isMobile: boolean;
       i18n?: I18n;
     }
     interface GlobalContext {

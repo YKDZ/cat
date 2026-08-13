@@ -60,6 +60,9 @@ export const AgentRunSchema = z.object({
   startedAt: DrizzleDateTimeSchema,
   completedAt: DrizzleDateTimeSchema.nullable(),
   metadata: safeZDotJson.nullable(),
+  ownerId: z.string().nullable(),
+  ownerEpoch: z.int(),
+  ownerLeaseExpiresAt: DrizzleDateTimeSchema.nullable(),
 });
 
 export type AgentRun = z.infer<typeof AgentRunSchema>;

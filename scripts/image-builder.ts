@@ -5,12 +5,21 @@ import { fileURLToPath } from "node:url";
 
 import {
   validateBuildxCachePaths,
-  type BuildxCacheTarget,
+  type BuildxCacheFamily,
 } from "./buildx-cache.ts";
 
-export const releaseImageTargets = ["standalone", "runtime"] as const;
+export const releaseImageTargets = ["standalone", "runtime", "spacy"] as const;
 
 export type ReleaseImageTarget = (typeof releaseImageTargets)[number];
+
+export const imageBuildFamilies = ["application", "spacy"] as const;
+
+export type ImageBuildFamily = (typeof imageBuildFamilies)[number];
+
+export const imageBuildFamilyTargets = (
+  family: ImageBuildFamily,
+): ReleaseImageTarget[] =>
+  family === "application" ? ["standalone", "runtime"] : ["spacy"];
 
 export type ImageBuildCommandOptions = {
   cwd: string;
@@ -37,17 +46,6 @@ export type ReleaseImageBuildResult = {
 export type ReleaseImageCapability = {
   command: string;
   description: string;
-};
-
-export type ValidatedImageArtifact = ReleaseImage & {
-  identity: ReleaseImageCapability & {
-    versionLabel: string;
-  };
-};
-
-export type ValidatedImageManifest = {
-  images: Record<ReleaseImageTarget, ValidatedImageArtifact>;
-  schemaVersion: 1;
 };
 
 export type BuildReleaseImagesOptions = {
@@ -82,14 +80,10 @@ type BuildxCache = {
 };
 
 const workspaceRoot = resolve(import.meta.dirname, "..");
-const dockerfile = "apps/app/Dockerfile";
 const immutableImageId = /^sha256:[a-f0-9]{64}$/;
 const writeProcessStderr = (value: string): void => {
   process.stderr.write(value);
 };
-
-const isReleaseImageTarget = (value: string): value is ReleaseImageTarget =>
-  value === "standalone" || value === "runtime";
 
 export const releaseImageCapability = (
   target: ReleaseImageTarget,
@@ -99,49 +93,29 @@ export const releaseImageCapability = (
         command: "prepare-and-start",
         description: "CAT standalone application with database preparation",
       }
-    : {
-        command: "start-only",
-        description: "CAT start-only application runtime",
-      };
-
-export const createValidatedImageManifest = (
-  images: ReleaseImageBuildResult,
-  versionLabel: string,
-): ValidatedImageManifest => {
-  const artifact = (target: ReleaseImageTarget): ValidatedImageArtifact => {
-    const image = images.images.find(
-      (candidate) => candidate.target === target,
-    );
-    if (image === undefined) {
-      throw new Error(`Missing immutable ${target} image for artifact export`);
-    }
-    return {
-      ...image,
-      identity: { ...releaseImageCapability(target), versionLabel },
-    };
-  };
-  return {
-    images: {
-      runtime: artifact("runtime"),
-      standalone: artifact("standalone"),
-    },
-    schemaVersion: 1,
-  };
-};
+    : target === "runtime"
+      ? {
+          command: "start-only",
+          description: "CAT start-only application runtime",
+        }
+      : {
+          command: "provision-and-serve",
+          description: "CAT spaCy language analysis runtime",
+        };
 
 export const parseImageBuildArguments = (
   args: string[],
 ): ReleaseImageTarget[] => {
   const commandArgs = args[0] === "--" ? args.slice(1) : args;
-  if (commandArgs.length === 0) return [...releaseImageTargets];
-  if (commandArgs.length !== 2 || commandArgs[0] !== "--target") {
-    throw new Error("Usage: image-builder.ts [--target <standalone|runtime>]");
+  if (commandArgs.length === 0) return imageBuildFamilyTargets("application");
+  if (commandArgs.length !== 2 || commandArgs[0] !== "--family") {
+    throw new Error("Usage: image-builder.ts [--family <application|spacy>]");
   }
-  const target = commandArgs[1];
-  if (target === undefined || !isReleaseImageTarget(target)) {
-    throw new Error(`Unknown image target ${JSON.stringify(target)}`);
+  const family = commandArgs[1];
+  if (family !== "application" && family !== "spacy") {
+    throw new Error("Unknown image build family " + JSON.stringify(family));
   }
-  return [target];
+  return imageBuildFamilyTargets(family);
 };
 
 const readImageId = (value: string, target: ReleaseImageTarget): string => {
@@ -161,23 +135,27 @@ const preexistingImageIds = (value: string): Set<string> =>
 
 const optionalBuildxCache = (
   paths: { output?: string; source?: string },
-  sourceScopes: Record<BuildxCacheTarget, boolean>,
-  target: BuildxCacheTarget,
+  sourceScopes: Record<BuildxCacheFamily, boolean>,
+  family: BuildxCacheFamily,
+  exportFamily: boolean,
 ): BuildxCache => {
   const sourceScope =
-    paths.source === undefined ? undefined : join(paths.source, target);
+    paths.source === undefined ? undefined : join(paths.source, family);
   const outputScope =
-    paths.output === undefined ? undefined : join(paths.output, target);
-  const inputAvailable = sourceScope !== undefined && sourceScopes[target];
+    paths.output === undefined ? undefined : join(paths.output, family);
+  const inputAvailable = sourceScope !== undefined && sourceScopes[family];
   return {
     ...(inputAvailable ? { from: `type=local,src=${sourceScope}` } : {}),
     inputAvailable,
-    outputConfigured: outputScope !== undefined,
-    ...(outputScope === undefined
+    outputConfigured: outputScope !== undefined && exportFamily,
+    ...(outputScope === undefined || !exportFamily
       ? {}
       : { to: `type=local,dest=${outputScope},mode=max,ignore-error=true` }),
   };
 };
+
+const buildFamilyForTarget = (target: ReleaseImageTarget): ImageBuildFamily =>
+  target === "spacy" ? "spacy" : "application";
 
 const buildxSecrets = (env: NodeJS.ProcessEnv): string[] => {
   const entries = [
@@ -247,26 +225,29 @@ const buildxArguments = (
   metadataFile: string,
   cache: BuildxCache,
   env: NodeJS.ProcessEnv,
-): string[] => [
-  "buildx",
-  "build",
-  "--file",
-  dockerfile,
-  "--target",
-  target,
-  "--load",
-  "--progress=quiet",
-  "--iidfile",
-  iidfile,
-  "--metadata-file",
-  metadataFile,
-  "--build-arg",
-  `DEPLOYMENT_BUILD_ID=${buildId}`,
-  ...(cache.from === undefined ? [] : ["--cache-from", cache.from]),
-  ...(cache.to === undefined ? [] : ["--cache-to", cache.to]),
-  ...buildxSecrets(env),
-  ".",
-];
+): string[] => {
+  const spacy = target === "spacy";
+  return [
+    "buildx",
+    "build",
+    "--file",
+    spacy ? "apps/spacy-server/Dockerfile" : "apps/app/Dockerfile",
+    "--target",
+    target,
+    "--load",
+    "--progress=quiet",
+    "--iidfile",
+    iidfile,
+    "--metadata-file",
+    metadataFile,
+    "--build-arg",
+    `DEPLOYMENT_BUILD_ID=${buildId}`,
+    ...(cache.from === undefined ? [] : ["--cache-from", cache.from]),
+    ...(cache.to === undefined ? [] : ["--cache-to", cache.to]),
+    ...buildxSecrets(env),
+    spacy ? "apps/spacy-server" : ".",
+  ];
+};
 
 export const buildReleaseImages = async (
   options: BuildReleaseImagesOptions,
@@ -300,6 +281,10 @@ export const buildReleaseImages = async (
     );
   }
   const images: ReleaseImage[] = [];
+  const finalTargetByFamily = new Map<ImageBuildFamily, ReleaseImageTarget>();
+  for (const target of targets) {
+    finalTargetByFamily.set(buildFamilyForTarget(target), target);
+  }
   const temporaryDirectory = await mkdtemp(join(tmpdir(), "cat-image-build-"));
   let preexisting = new Set<string>();
   try {
@@ -310,12 +295,14 @@ export const buildReleaseImages = async (
     );
     preexisting = preexistingImageIds(existing.stdout);
     for (const target of targets) {
+      const family = buildFamilyForTarget(target);
       const cache = optionalBuildxCache(
         cachePaths.paths,
         cachePaths.valid
           ? cachePaths.sourceScopes
-          : { runtime: false, standalone: false },
-        target,
+          : { application: false, spacy: false },
+        family,
+        finalTargetByFamily.get(family) === target,
       );
       const iidfile = join(temporaryDirectory, `${target}.iid`);
       const metadataFile = join(temporaryDirectory, `${target}.metadata.json`);

@@ -1,4 +1,5 @@
 import { sessionRecord as sessionRecordTable } from "@cat/db";
+import type { ServiceImplementationReference } from "@cat/shared";
 
 import type { Command } from "#/types.ts";
 
@@ -7,7 +8,7 @@ export interface CreateSessionRecordCommand {
   userId: string;
   ip: string | null;
   userAgent: string | null;
-  authProviderId: number | null;
+  authProvider: ServiceImplementationReference;
   expiresAt: Date;
 }
 
@@ -20,7 +21,7 @@ export const createSessionRecord: Command<CreateSessionRecordCommand> = async (
     userId: command.userId,
     ip: command.ip,
     userAgent: command.userAgent,
-    authProviderId: command.authProviderId,
+    authProvider: command.authProvider,
     expiresAt: command.expiresAt,
   });
 

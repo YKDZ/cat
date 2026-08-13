@@ -1,11 +1,12 @@
 import { expect, test } from "#/fixtures.ts";
+import { gotoHydrated } from "#/pages/app-navigation.ts";
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test("development login reaches the home page without client errors", async ({
   page,
 }) => {
-  await page.goto("/auth");
+  await gotoHydrated(page, "/auth");
 
   const email = page.locator('input[type="email"]');
   await expect(email).toBeVisible();

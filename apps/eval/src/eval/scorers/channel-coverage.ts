@@ -13,9 +13,24 @@ type ResultWithEvidences = {
   evidences?: RecallEvidence[];
 };
 
+const outcomeForEvidenceChannel = (channel: string) => {
+  if (channel === "exact") return "EXACT" as const;
+  if (channel === "trgm" || channel === "lexical") return "FUZZY" as const;
+  if (channel === "keyword") return "KEYWORD" as const;
+  if (
+    channel === "morphological" ||
+    channel === "template" ||
+    channel === "fragment"
+  ) {
+    return "VARIANT" as const;
+  }
+  if (channel === "semantic") return "SEMANTIC" as const;
+  return undefined;
+};
+
 /**
  * Evidence channel coverage scorer.
- * 验证预期的召回通道是否实际参与了匹配。
+ * Verifies that the expected recall channels participated in matching.
  */
 export const channelCoverageScorer: Scorer = {
   name: "channel-coverage",
@@ -55,7 +70,27 @@ export const channelCoverageScorer: Scorer = {
 
       for (const ch of channels) {
         totalRequired += 1;
-        if (presentChannels.has(ch)) totalCovered += 1;
+        const outcomeChannel = outcomeForEvidenceChannel(ch);
+        const outcome = outcomeChannel
+          ? caseResult.recallResult?.outcomes[outcomeChannel]
+          : undefined;
+        const outcomeCandidate =
+          outcome?.status === "SUCCEEDED"
+            ? outcome.candidates.find(
+                (candidate) =>
+                  (candidate.id ?? candidate.conceptId) === expectedId,
+              )
+            : undefined;
+        const outcomeHasEvidence = outcomeCandidate?.evidences.some(
+          (evidence) => evidence.channel === ch,
+        );
+        if (
+          caseResult.recallResult === undefined
+            ? presentChannels.has(ch)
+            : outcomeHasEvidence
+        ) {
+          totalCovered += 1;
+        }
       }
     }
 

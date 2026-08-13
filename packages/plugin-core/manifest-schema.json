@@ -65,7 +65,7 @@
               "RERANK_PROVIDER",
               "AGENT_TOOL_PROVIDER",
               "AGENT_CONTEXT_PROVIDER",
-              "NLP_WORD_SEGMENTER",
+              "LANGUAGE_ANALYZER",
               "EMAIL_PROVIDER"
             ]
           },
@@ -98,7 +98,6 @@
     "configVersion": {
       "type": "string",
       "minLength": 1,
-      "not": { "const": "legacy-unverified" },
       "description": "Version of the configuration schema, independent from the plugin package version"
     },
     "components": {

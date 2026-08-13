@@ -1,13 +1,10 @@
 import {
   approveTranslation,
   autoApproveOperationScopeTranslations,
-  createAgentDefinition,
-  createAgentSession,
+  createOperationFailure,
   deleteTranslation,
   executeCommand,
   executeQuery,
-  findAgentDefinitionByNameAndScope,
-  getAgentSessionByExternalId,
   getBranchById,
   getEditorScopeElementPageIndex,
   getElementWithChunkIds,
@@ -23,23 +20,30 @@ import {
   listTranslationsByElement,
   unapproveTranslation,
   upsertTranslationVote,
-  type OperationFailure,
+  type DbHandle,
 } from "@cat/domain";
 import {
+  PromoteApprovedTranslationMemoryOutputSchema,
   promoteApprovedTranslationMemoryOp,
   resolveOperationScopeElementsOp,
 } from "@cat/operations";
 import { getPermissionEngine } from "@cat/permissions";
-import { AsyncMessageQueue, firstOrGivenService } from "@cat/server-shared";
+import {
+  AsyncMessageQueue,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
 import {
   EditorScopeSchema,
+  MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS,
   OperationScopeSchema,
   QaResultItemSchema,
   QaResultSchema,
+  RecallDerivationReferenceSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { TranslationSchema, TranslationVoteSchema } from "@cat/shared";
-import { JSONObjectSchema } from "@cat/shared";
+import type { OperationFailure } from "@cat/shared";
 import { EditorOverlayTranslationStateSchema } from "@cat/vcs";
 import { getBranchChangesetId } from "@cat/vcs";
 import {
@@ -124,33 +128,43 @@ const buildBranchTranslationOperationFailure = (input: {
   id: crypto.randomUUID(),
   code: "CAT_OPERATION_FAILED",
   message: input.message,
-  severity: "error",
+  severity: "ERROR",
   retryable: true,
   affectedResources: [
     {
-      type: "project",
+      type: "PROJECT",
       id: input.projectId,
     },
     {
-      type: "translatable_element",
+      type: "ELEMENT",
       id: String(input.elementId),
     },
   ],
   remediationHint:
     "Review the task context and retry after the underlying issue is resolved.",
-  redactionBoundary: "internal",
-  reviewBlocker: input.reviewBlocker,
+  redactionBoundary: "INTERNAL",
+  blocker: input.reviewBlocker,
 });
 
-const throwBranchTranslationOperationFailure = (input: {
+const throwBranchTranslationOperationFailure = async (input: {
+  db: DbHandle;
   message: string;
   projectId: string;
   elementId: number;
   reviewBlocker:
     | "branch_translation_write_failed"
     | "branch_write_context_unavailable";
-}): never => {
-  const operationFailure = buildBranchTranslationOperationFailure(input);
+}): Promise<never> => {
+  const proposed = buildBranchTranslationOperationFailure(input);
+  const { id, taskId: _taskId, traceId: _traceId, ...failure } = proposed;
+  const operationFailure = await executeCommand(
+    { db: input.db },
+    createOperationFailure,
+    {
+      id,
+      failure,
+    },
+  );
   throw new ORPCError("INTERNAL_SERVER_ERROR", {
     message: input.message,
     data: {
@@ -360,7 +374,8 @@ export const create = authed
         branchProjectId: branchContext.branchProjectId,
       });
     } catch {
-      return throwBranchTranslationOperationFailure({
+      return await throwBranchTranslationOperationFailure({
+        db: drizzle,
         message: "Branch translation write failed",
         projectId: element.projectId,
         elementId,
@@ -391,7 +406,8 @@ export const create = authed
           async () => undefined,
         );
       } catch {
-        return throwBranchTranslationOperationFailure({
+        return await throwBranchTranslationOperationFailure({
+          db: drizzle,
           message: "Branch translation write failed",
           projectId: element.projectId,
           elementId,
@@ -401,7 +417,8 @@ export const create = authed
       return undefined;
     }
 
-    return throwBranchTranslationOperationFailure({
+    return await throwBranchTranslationOperationFailure({
+      db: drizzle,
       message: "Branch translation write failed",
       projectId: element.projectId,
       elementId,
@@ -695,7 +712,12 @@ export const autoApprove = authed
     }),
   )
   .use(checkPermission("project", "editor"), (i) => i.scope.projectId)
-  .output(z.int())
+  .output(
+    z.object({
+      count: z.int().nonnegative(),
+      derivations: z.array(RecallDerivationReferenceSchema),
+    }),
+  )
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -708,7 +730,7 @@ export const autoApprove = authed
       statusFilter: "translated",
     });
 
-    if (elements.length === 0) return 0;
+    if (elements.length === 0) return { count: 0, derivations: [] };
 
     const result = await executeCommand(
       { db: drizzle },
@@ -719,10 +741,10 @@ export const autoApprove = authed
       },
     );
 
-    await Promise.allSettled(
+    const promotions = await Promise.allSettled(
       result.approvedTranslationIds.map(async (translationId) => {
         try {
-          await promoteApprovedTranslationMemoryOp({
+          return await promoteApprovedTranslationMemoryOp({
             translationId,
             approvedById: user.id,
           });
@@ -733,11 +755,19 @@ export const autoApprove = authed
               `approved translation memory promotion failed: ${translationId}`,
               { error: error },
             );
+          return null;
         }
       }),
     );
 
-    return result.count;
+    return {
+      count: result.count,
+      derivations: promotions.flatMap((promotion) =>
+        promotion.status === "fulfilled"
+          ? (promotion.value?.derivations ?? [])
+          : [],
+      ),
+    };
   });
 
 export const approve = authed
@@ -747,7 +777,7 @@ export const approve = authed
     }),
   )
   .use(checkTranslationPermission("editor"), (i) => i.translationId)
-  .output(z.void())
+  .output(PromoteApprovedTranslationMemoryOutputSchema.nullable())
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -756,7 +786,7 @@ export const approve = authed
     await executeCommand({ db: drizzle }, approveTranslation, input);
 
     try {
-      await promoteApprovedTranslationMemoryOp({
+      return await promoteApprovedTranslationMemoryOp({
         translationId: input.translationId,
         approvedById: user.id,
       });
@@ -767,6 +797,7 @@ export const approve = authed
           `approved translation memory promotion failed: ${input.translationId}`,
           { error: error },
         );
+      return null;
     }
   });
 
@@ -789,7 +820,7 @@ export const autoTranslate = authed
   .input(
     z.object({
       scope: OperationScopeSchema,
-      advisorId: z.int().optional(),
+      advisor: ServiceImplementationReferenceSchema.optional(),
       languageId: z.string(),
       minMemorySimilarity: z.number().min(0).max(1).default(0.72),
       maxMemoryAmount: z.int().min(0).default(3),
@@ -797,7 +828,7 @@ export const autoTranslate = authed
     }),
   )
   .use(checkPermission("project", "editor"), (i) => i.scope.projectId)
-  .output(z.object({ runId: z.uuidv4() }))
+  .output(z.object({ taskId: z.uuidv4() }))
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -806,15 +837,27 @@ export const autoTranslate = authed
     } = context;
     const {
       scope,
-      advisorId,
+      advisor,
       languageId,
       minMemorySimilarity,
       maxMemoryAmount,
       config,
     } = input;
 
-    const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    if (scope.branchId !== undefined) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: "Batch auto-translation does not support branch scopes.",
+      });
+    }
+
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
 
     if (!storage)
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -826,11 +869,19 @@ export const autoTranslate = authed
         message: `No TEXT_VECTORIZER service available`,
       });
 
-    await resolveOperationScopeElementsOp({
+    const resolvedScope = await resolveOperationScopeElementsOp({
       ...scope,
       languageToId: languageId,
       statusFilter: "untranslated",
     });
+    if (
+      resolvedScope.elements.length >
+      MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS
+    ) {
+      throw new ORPCError("BAD_REQUEST", {
+        message: `Batch auto-translation supports at most ${MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS} resolved elements.`,
+      });
+    }
 
     const targetLanguages = await executeQuery(
       { db: drizzle },
@@ -858,101 +909,35 @@ export const autoTranslate = authed
       ? effectiveMemoryIds
       : effectiveMemoryIds.allMemoryIds;
 
-    // 查找或创建 auto-translate AgentDefinition
-    let existingDef = await executeQuery(
-      { db: drizzle },
-      findAgentDefinitionByNameAndScope,
-      {
-        name: "auto-translate",
-        scopeType: "GLOBAL",
-        scopeId: "",
-        isBuiltin: true,
-      },
-    );
-
-    if (!existingDef) {
-      await executeCommand({ db: drizzle }, createAgentDefinition, {
-        name: "auto-translate",
-        description: "自动翻译工作流",
-        scopeType: "GLOBAL",
-        scopeId: "",
-        definitionId: "auto-translate",
-        version: "1.0.0",
-        type: "WORKFLOW",
-        tools: [],
-        content: "",
-        isBuiltin: true,
-      });
-      existingDef = await executeQuery(
-        { db: drizzle },
-        findAgentDefinitionByNameAndScope,
-        {
-          name: "auto-translate",
-          scopeType: "GLOBAL",
-          scopeId: "",
-          isBuiltin: true,
-        },
-      );
-    }
-
-    if (!existingDef) {
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Failed to obtain auto-translate agent definition",
-      });
-    }
-
-    const sessionResult = await executeCommand(
-      { db: drizzle },
-      createAgentSession,
-      {
-        agentDefinitionId: existingDef.externalId,
-        userId: user.id,
-        projectId: scope.projectId,
-        metadata: {
-          projectId: scope.projectId,
-          languageId,
-          contentNodeIds: scope.contentNodeIds,
-          sortMode: scope.sortMode,
-        },
-      },
-    );
-
-    const sessionRow = await executeQuery(
-      { db: drizzle },
-      getAgentSessionByExternalId,
-      { externalId: sessionResult.sessionId },
-    );
-
-    if (!sessionRow) {
-      throw new ORPCError("INTERNAL_SERVER_ERROR", {
-        message: "Failed to resolve agent session",
-      });
-    }
-
     const runtime = await getGraphRuntime(drizzle, pluginManager);
-
-    const graphInput = JSONObjectSchema.parse({
-      ...scope,
-      languageId,
-      advisorId,
-      minMemorySimilarity,
-      maxMemoryAmount,
-      memoryVectorStorageId: storage.id,
-      translationVectorStorageId: storage.id,
-      vectorizerId: vectorizer.id,
-      translatorId: user.id,
-      memoryIds,
-      glossaryIds,
-      config,
+    const task = await runtime.taskService.createAndSchedule({
+      actorId: user.id,
+      invocation: {
+        projectId: scope.projectId,
+        ...(scope.branchId === undefined ? {} : { branchId: scope.branchId }),
+        contentNodeIds: [],
+        elementIds: resolvedScope.elements.map((element) => element.id),
+        sortMode: scope.sortMode,
+        languageId,
+        advisor,
+        minMemorySimilarity,
+        maxMemoryAmount,
+        memoryVectorStorage: storage.reference,
+        translationVectorStorage: storage.reference,
+        vectorizer: vectorizer.reference,
+        translatorId: user.id,
+        memoryIds,
+        glossaryIds,
+        config,
+      },
     });
 
-    const runId = await runtime.scheduler.start(
-      "batch-auto-translate",
-      graphInput,
-      { sessionId: sessionRow.id, pluginManager },
-    );
-
-    return { runId };
+    if (!task.id) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: "Task creation did not return an identity.",
+      });
+    }
+    return { taskId: task.id };
   });
 
 export const getQAResults = authed

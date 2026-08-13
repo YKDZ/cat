@@ -1,0 +1,12 @@
+name: release-term-recall
+cases:
+  - id: release-term-recall
+    inputText: The release gate must remain deterministic.
+    sourceLanguage: en
+    targetLanguage: zh-Hans
+    expectedTerms:
+      - conceptRef: "concept:release-gate"
+        term: release gate
+        translation: 发布门禁
+        requiredChannels: [keyword, semantic]
+    negativeTerms: []

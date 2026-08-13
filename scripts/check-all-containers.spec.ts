@@ -1,54 +1,22 @@
-import { readFileSync, readdirSync, rmSync } from "node:fs";
-import { relative, resolve } from "node:path";
+import { readFileSync } from "node:fs";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { runApplicationLifecycle } from "./check-all-containers.ts";
 import {
-  exportValidatedImages,
-  runApplicationLifecycle,
-} from "./check-all-containers.ts";
-import { CommandExecutionError, type CommandRunner } from "./check-all.ts";
+  CommandExecutionError,
+  type VerificationCommandRunner as CommandRunner,
+} from "./verification-runtime.ts";
 
 const standaloneImageId = `sha256:${"a".repeat(64)}`;
 const runtimeImageId = `sha256:${"b".repeat(64)}`;
+const spacyImageId = `sha256:${"c".repeat(64)}`;
 const releaseImages = {
   images: [
     { imageId: standaloneImageId, target: "standalone" as const },
     { imageId: runtimeImageId, target: "runtime" as const },
+    { imageId: spacyImageId, target: "spacy" as const },
   ],
-};
-
-const searchRuntimeSqlPattern =
-  /\b(?:CREATE\s+EXTENSION|CREATE\s+TEXT\s+SEARCH\s+CONFIGURATION|ALTER\s+TEXT\s+SEARCH\s+CONFIGURATION)\b/i;
-const searchRuntimeSqlFixturePaths = new Set([
-  "packages/domain/src/testing/setup-test-db.ts",
-  "packages/test-utils/src/test-db.ts",
-  "scripts/pglite-compat-gate.ts",
-]);
-const searchableSourceExtensions = new Set([".js", ".mjs", ".sql", ".ts"]);
-
-const sourceFilesUnder = (directory: string): string[] => {
-  const files: string[] = [];
-  for (const entry of readdirSync(directory, { withFileTypes: true })) {
-    const path = resolve(directory, entry.name);
-    if (entry.isDirectory()) {
-      if (["declarations", "dist", "node_modules"].includes(entry.name))
-        continue;
-      files.push(...sourceFilesUnder(path));
-      continue;
-    }
-    if (
-      entry.isFile() &&
-      searchableSourceExtensions.has(
-        entry.name.slice(entry.name.lastIndexOf(".")),
-      ) &&
-      !entry.name.endsWith(".spec.ts") &&
-      !entry.name.endsWith(".test.ts")
-    ) {
-      files.push(path);
-    }
-  }
-  return files;
 };
 
 const runLifecycle = async (
@@ -58,7 +26,7 @@ const runLifecycle = async (
     {
       ...context,
       env: {
-        SPACY_SERVER_URL: "http://127.0.0.1:49155",
+        SPACY_SERVER_URL: "http://172.17.0.1:49155",
         ...context.env,
       },
     },
@@ -81,6 +49,24 @@ const lifecycleRunner = (
           ?.slice("DEPLOYMENT_BUILD_ID=".length) ?? "";
     }
     if (args.includes("{{json .Config}}")) {
+      if (args.includes(spacyImageId)) {
+        return {
+          stderr: "",
+          stdout: JSON.stringify({
+            Cmd: ["provision-and-serve"],
+            Entrypoint: ["python", "-m", "src.cli"],
+            Healthcheck: {
+              Test: ["CMD-SHELL", "python -c http://127.0.0.1:8000/ready"],
+            },
+            Labels: {
+              "org.opencontainers.image.version":
+                releaseImageBuildId ?? buildId,
+            },
+            User: "10001:10001",
+            Volumes: { "/models": {} },
+          }),
+        };
+      }
       const mode = args.includes(standaloneImageId) ? "standalone" : "runtime";
       return {
         stderr: "",
@@ -159,8 +145,8 @@ describe("application container lifecycle", () => {
     await runLifecycle({
       buildId: "release-identity",
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-explicit-build-id",
       reportError,
@@ -174,8 +160,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-contract",
       run,
@@ -216,8 +202,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat_integration",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat_integration",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-lifecycle-db",
       run,
@@ -247,17 +233,7 @@ describe("application container lifecycle", () => {
         args.includes("bootstrap-only") &&
         args.includes(standaloneImageId),
     );
-    const searchRuntimeSetupIndex = calls.findIndex(
-      (args) =>
-        args[0] === "exec" &&
-        args.some((arg) => arg.startsWith("cat_lifecycle_")) &&
-        args.some((arg) =>
-          arg.includes("CREATE EXTENSION IF NOT EXISTS pg_trgm"),
-        ),
-    );
-
     expect(createIndex).toBeGreaterThan(-1);
-    expect(searchRuntimeSetupIndex).toBeGreaterThan(createIndex);
     expect(standalonePreparations).toHaveLength(2);
     expect(standaloneBootstraps).toHaveLength(1);
     const secondPreparation = standalonePreparations.at(1);
@@ -268,9 +244,7 @@ describe("application container lifecycle", () => {
     if (standaloneBootstrap === undefined) {
       throw new Error("Expected one standalone bootstrap");
     }
-    expect(searchRuntimeSetupIndex).toBeLessThan(
-      calls.indexOf(secondPreparation),
-    );
+    expect(createIndex).toBeLessThan(calls.indexOf(secondPreparation));
     expect(calls.indexOf(secondPreparation)).toBeLessThan(
       calls.indexOf(standaloneBootstrap),
     );
@@ -289,9 +263,13 @@ describe("application container lifecycle", () => {
     expect(databaseUrl).not.toContain("cat_integration");
   });
 
-  it("uses the PostgreSQL image initialization file as the only search runtime SQL source", () => {
-    const canonicalSql = readFileSync(
-      "apps/postgres-search-runtime/init/01-init-extensions.sql",
+  it("leaves database capability mutation to the standalone preparation command", () => {
+    const capabilitySource = readFileSync(
+      "packages/db/src/database-capabilities.ts",
+      "utf8",
+    );
+    const preparationSource = readFileSync(
+      "apps/app/scripts/prepare-database.mjs",
       "utf8",
     );
     const lifecycleSource = readFileSync(
@@ -303,50 +281,23 @@ describe("application container lifecycle", () => {
       "utf8",
     );
 
-    expect(canonicalSql).toContain("CREATE EXTENSION IF NOT EXISTS pg_trgm");
-    expect(lifecycleSource).toContain("searchRuntimeInitializationPath");
-    expect(executionCellSource).toContain("searchRuntimeInitializationPath");
-    expect(lifecycleSource).not.toContain(
-      "const initializeSearchRuntimeCommand",
+    expect(capabilitySource).toContain("CREATE EXTENSION IF NOT EXISTS vector");
+    expect(capabilitySource).toContain(
+      "CREATE EXTENSION IF NOT EXISTS pg_trgm",
     );
-    expect(executionCellSource).not.toContain(
-      "CREATE EXTENSION IF NOT EXISTS ${extension}",
-    );
-  });
-
-  it("keeps production search runtime DDL in the image initialization file", () => {
-    const repositoryRoot = process.cwd();
-    const canonicalPath =
-      "apps/postgres-search-runtime/init/01-init-extensions.sql";
-    const declarations = ["apps", "packages", "scripts", "tools"]
-      .flatMap((directory) =>
-        sourceFilesUnder(resolve(repositoryRoot, directory)),
-      )
-      .map((path) => ({
-        path: relative(repositoryRoot, path),
-        source: readFileSync(path, "utf8"),
-      }))
-      .filter(
-        ({ path, source }) =>
-          searchRuntimeSqlPattern.test(source) &&
-          !searchRuntimeSqlFixturePaths.has(path),
-      )
-      .map(({ path }) => path);
-
-    expect(declarations).toEqual([canonicalPath]);
-    for (const path of searchRuntimeSqlFixturePaths) {
-      expect(readFileSync(resolve(repositoryRoot, path), "utf8")).toMatch(
-        searchRuntimeSqlPattern,
-      );
-    }
+    expect(preparationSource).toContain("prepareDatabaseCapabilities");
+    expect(preparationSource).not.toContain("CREATE EXTENSION");
+    expect(preparationSource).toContain("assertDatabaseRequirements");
+    expect(lifecycleSource).not.toContain("CREATE EXTENSION");
+    expect(executionCellSource).not.toContain("CREATE EXTENSION");
   });
 
   it("shares lifecycle storage and supplies the production service bootstrap plan", async () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-lifecycle-storage",
       run,
@@ -415,7 +366,7 @@ describe("application container lifecycle", () => {
             value: { "root-path": "/data/storage" },
           },
           {
-            pluginId: "spacy-segmenter",
+            pluginId: "spacy-language-analyzer",
             scopeId: "",
             scopeType: "GLOBAL",
             type: "install-if-absent",
@@ -433,9 +384,9 @@ describe("application container lifecycle", () => {
       env: {
         CAT_TEST_SERVICE_LEASE: JSON.stringify({
           coordinates: {
-            databaseUrl: "postgresql://user:pass@127.0.0.1:49152/postgres",
-            redisUrl: "redis://127.0.0.1:49153",
-            spacyUrl: "http://127.0.0.1:49155",
+            databaseUrl: "postgresql://user:pass@172.17.0.1:49152/postgres",
+            redisUrl: "redis://172.17.0.1:49153",
+            spacyUrl: "http://172.17.0.1:49155",
           },
           ownership: {
             projectName: "cat-e2e-leased-services",
@@ -443,8 +394,8 @@ describe("application container lifecycle", () => {
           },
           version: 1,
         }),
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/postgres",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/postgres",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-check-all-build-id",
       run,
@@ -477,8 +428,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-command-rejections",
       run,
@@ -524,8 +475,8 @@ describe("application container lifecycle", () => {
     const run = lifecycleRunner();
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-direct-node",
       run,
@@ -568,8 +519,8 @@ describe("application container lifecycle", () => {
 
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-terminate-clients",
       run,
@@ -612,8 +563,8 @@ describe("application container lifecycle", () => {
 
     await runLifecycle({
       env: {
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
+        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+        REDIS_URL: "redis://172.17.0.1:49153",
       },
       projectName: "cat-container-retry-drop",
       run,
@@ -635,8 +586,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-drop-error",
         run,
@@ -676,8 +627,8 @@ describe("application container lifecycle", () => {
       await expect(
         runLifecycle({
           env: {
-            DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-            REDIS_URL: "redis://127.0.0.1:49153",
+            DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+            REDIS_URL: "redis://172.17.0.1:49153",
           },
           projectName: "cat-container-diagnostics",
           run,
@@ -744,8 +695,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-aggregate-cleanup",
         run,
@@ -784,8 +735,8 @@ describe("application container lifecycle", () => {
       runLifecycle({
         env: {
           DATABASE_URL:
-            "postgresql://user:pass@127.0.0.1:49152/cat_integration",
-          REDIS_URL: "redis://127.0.0.1:49153",
+            "postgresql://user:pass@172.17.0.1:49152/cat_integration",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-cleanup-db",
         run,
@@ -807,79 +758,6 @@ describe("application container lifecycle", () => {
       "--force",
       "cat-container-cleanup-db-lifecycle-storage",
     ]);
-  });
-
-  it("exports both images only after the separate lifecycle stage passes", async () => {
-    const exportDirectory = `/tmp/cat-validated-images-${process.pid}`;
-    const run = lifecycleRunner();
-    const context = {
-      env: {
-        CAT_CHECK_ALL_EXPORT_IMAGES_DIR: exportDirectory,
-        DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-        REDIS_URL: "redis://127.0.0.1:49153",
-      },
-      projectName: "cat-container-export",
-      run,
-      signal: new AbortController().signal,
-    };
-    await runLifecycle(context);
-    await exportValidatedImages(context, releaseImages);
-
-    try {
-      const calls = vi.mocked(run).mock.calls.map(([, args]) => args);
-      const saves = calls.filter(
-        (args) => args[0] === "image" && args[1] === "save",
-      );
-      expect(saves).toEqual([
-        [
-          "image",
-          "save",
-          "--output",
-          `${exportDirectory}/standalone.tar`,
-          standaloneImageId,
-        ],
-        [
-          "image",
-          "save",
-          "--output",
-          `${exportDirectory}/runtime.tar`,
-          runtimeImageId,
-        ],
-      ]);
-      expect(
-        JSON.parse(readFileSync(`${exportDirectory}/manifest.json`, "utf8")),
-      ).toMatchObject({
-        images: {
-          runtime: {
-            identity: {
-              command: "start-only",
-              description: "CAT start-only application runtime",
-              versionLabel: "cat-container-export",
-            },
-            imageId: runtimeImageId,
-          },
-          standalone: {
-            identity: {
-              command: "prepare-and-start",
-              versionLabel: "cat-container-export",
-            },
-            imageId: standaloneImageId,
-          },
-        },
-        schemaVersion: 1,
-      });
-      const firstSave = saves.at(0);
-      if (firstSave === undefined)
-        throw new Error("Expected standalone export");
-      expect(calls.indexOf(firstSave)).toBeGreaterThan(
-        calls.findIndex(
-          (args) =>
-            args.includes("prepare-only") && args.includes(runtimeImageId),
-        ),
-      );
-    } finally {
-      rmSync(exportDirectory, { force: true, recursive: true });
-    }
   });
 
   it("uses a fresh bounded signal to remove a server after the lifecycle is aborted", async () => {
@@ -905,8 +783,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-abort",
         reportError: (message) => errors.push(message),
@@ -947,8 +825,8 @@ describe("application container lifecycle", () => {
     await expect(
       runLifecycle({
         env: {
-          DATABASE_URL: "postgresql://user:pass@127.0.0.1:49152/cat",
-          REDIS_URL: "redis://127.0.0.1:49153",
+          DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
+          REDIS_URL: "redis://172.17.0.1:49153",
         },
         projectName: "cat-container-wrong-exit",
         run,

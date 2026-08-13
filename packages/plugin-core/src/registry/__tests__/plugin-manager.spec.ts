@@ -14,10 +14,16 @@ import {
   type DiagnosticEvent,
   type PluginData,
   type PluginManifest,
+  PluginDataSchema,
+  PluginManifestSchema,
 } from "@cat/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { CatPlugin, PluginLogger } from "#/entities/plugin.ts";
+import type {
+  CatPlugin,
+  PluginContext,
+  PluginLogger,
+} from "#/entities/plugin.ts";
 import type { PluginLoader } from "#/registry/loader.ts";
 
 /* ─── Module mocks (hoisted) ───────────────────────────────────────────────── */
@@ -26,7 +32,12 @@ import type { PluginLoader } from "#/registry/loader.ts";
 vi.mock("@cat/domain");
 
 /* ─── Imports that follow mocks ────────────────────────────────────────────── */
-import { executeCommand, executeQuery } from "@cat/domain";
+import {
+  deletePluginServices,
+  executeCommand,
+  executeQuery,
+  syncPluginServices,
+} from "@cat/domain";
 
 import { ComponentRegistry } from "#/registry/component-registry.ts";
 import { PluginDiscoveryService } from "#/registry/plugin-discovery.ts";
@@ -35,20 +46,20 @@ import { ServiceRegistry } from "#/registry/service-registry.ts";
 
 /* ─── Test helpers ──────────────────────────────────────────────────────────── */
 
-const MINIMAL_MANIFEST: PluginManifest = {
+const MINIMAL_MANIFEST: PluginManifest = PluginManifestSchema.parse({
   id: "test-plugin",
   version: "1.0.0",
   entry: "index.js",
   services: [],
-};
+});
 
-const MINIMAL_DATA: PluginData = {
+const MINIMAL_DATA: PluginData = PluginDataSchema.parse({
   id: "test-plugin",
-  name: "Test Plugin",
+  name: "test plugin",
   version: "1.0.0",
   overview: "A minimal plugin for testing",
   entry: "index.js",
-};
+});
 
 function makePlugin(overrides?: Partial<CatPlugin>): CatPlugin {
   return {
@@ -89,9 +100,12 @@ function createManager(
 }
 
 // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-const FAKE_DB = {} as DrizzleClient;
+const FAKE_DB = {
+  transaction: async <T>(fn: (tx: DrizzleClient) => Promise<T>) =>
+    await fn(FAKE_DB as DrizzleClient),
+} as DrizzleClient;
 const SCOPE_TYPE = "GLOBAL" as const;
-const SCOPE_ID = "test-scope";
+const SCOPE_ID = "";
 const PLUGIN_ID = "test-plugin";
 
 /** Set up the default executeQuery sequence for a single activate() call. */
@@ -122,6 +136,48 @@ function setupActivateMocks(overrides?: {
 
   vi.mocked(executeCommand).mockResolvedValue(undefined);
 }
+
+const setupConfiguredActivationMocks = (
+  endpoint: string,
+  revision: number,
+  dbId = 1,
+): void => {
+  const mc = vi.mocked(executeQuery);
+  mc.mockReset();
+  mc.mockResolvedValueOnce({
+    schemaVersion: "1",
+    schemaDigest: "a".repeat(64),
+    isAvailable: true,
+    schema: {
+      type: "object",
+      properties: { endpoint: { type: "string" } },
+      required: ["endpoint"],
+    },
+  });
+  mc.mockResolvedValueOnce({
+    appliedVersion: "1",
+    revision,
+    value: { endpoint },
+  });
+  mc.mockResolvedValueOnce([]);
+  mc.mockResolvedValueOnce({ id: dbId });
+  mc.mockResolvedValueOnce([]);
+  mc.mockResolvedValueOnce([{ dbId, pluginId: PLUGIN_ID, serviceId: "svc-1" }]);
+  vi.mocked(executeCommand).mockResolvedValue(undefined);
+};
+
+const getEndpoint = (context: PluginContext): string => {
+  const config = context.config;
+  if (
+    config === null ||
+    typeof config !== "object" ||
+    Array.isArray(config) ||
+    typeof config["endpoint"] !== "string"
+  ) {
+    throw new Error("Expected endpoint config");
+  }
+  return config["endpoint"];
+};
 
 /* ─── Discovery mock setup ─────────────────────────────────────────────────── */
 
@@ -216,6 +272,85 @@ describe("PluginManager — static instance management", () => {
 
     expect(recreated.getLoader()).toBe(secondLoader);
   });
+
+  it("installScoped() restores the previous manager without changing other scopes", () => {
+    const previousLoader = makeLoader(makePlugin());
+    const installedLoader = makeLoader(makePlugin());
+    const otherLoader = makeLoader(makePlugin());
+    const previous = PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader);
+    const other = PluginManager.get(SCOPE_TYPE, "other-scope", otherLoader);
+
+    const installation = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      installedLoader,
+    );
+
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID)).toBe(installation.manager);
+    expect(PluginManager.get(SCOPE_TYPE, "other-scope", otherLoader)).toBe(
+      other,
+    );
+
+    installation.restore();
+    installation.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader)).toBe(
+      previous,
+    );
+  });
+
+  it("installScoped() restores nested owners in LIFO order", () => {
+    const previousLoader = makeLoader(makePlugin());
+    const previous = PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader);
+    const first = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      makeLoader(makePlugin()),
+    );
+    const replacementLoader = makeLoader(makePlugin());
+    const replacement = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      replacementLoader,
+    );
+
+    replacement.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID)).toBe(first.manager);
+    first.restore();
+    replacement.restore();
+    first.restore();
+
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader)).toBe(
+      previous,
+    );
+  });
+
+  it("installScoped() skips an earlier owner restored out of order", () => {
+    const previousLoader = makeLoader(makePlugin());
+    const previous = PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader);
+    const first = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      makeLoader(makePlugin()),
+    );
+    const replacementLoader = makeLoader(makePlugin());
+    const replacement = PluginManager.installScoped(
+      SCOPE_TYPE,
+      SCOPE_ID,
+      replacementLoader,
+    );
+
+    first.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, replacementLoader)).toBe(
+      replacement.manager,
+    );
+
+    replacement.restore();
+    first.restore();
+    replacement.restore();
+    expect(PluginManager.get(SCOPE_TYPE, SCOPE_ID, previousLoader)).toBe(
+      previous,
+    );
+  });
 });
 
 describe("PluginManager — install()", () => {
@@ -288,6 +423,41 @@ describe("PluginManager — activate() → deactivate()", () => {
     const found = manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1");
     expect(found).not.toBeNull();
     expect(found?.service).toBe(svc);
+  });
+
+  it("resolves an activated implementation from its stable reference", async () => {
+    const svc = {
+      getId: () => "svc-1",
+      getType: () => "TOKENIZER" as const,
+    };
+    const loader = makeLoader(
+      makePlugin({ services: vi.fn().mockResolvedValue([svc]) }),
+    );
+    setupActivateMocks({ withService: true });
+
+    const manager = createManager(loader);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+    const registered = manager.getServices("TOKENIZER")[0];
+    expect(registered).toBeDefined();
+    if (!registered) return;
+
+    const reference = manager.createServiceImplementationReference(registered);
+    expect(reference).toEqual({
+      pluginId: PLUGIN_ID,
+      serviceId: "svc-1",
+      serviceType: "TOKENIZER",
+      scopeType: "GLOBAL",
+      scopeId: "",
+    });
+    const resolved = manager.resolveServiceImplementationReference(
+      reference,
+      "TOKENIZER",
+    );
+
+    expect(resolved).toMatchObject({
+      kind: "RESOLVED",
+      service: { service: svc },
+    });
   });
 
   it("activate() registers components in the component registry", async () => {
@@ -418,10 +588,31 @@ describe("PluginManager — activate() → deactivate()", () => {
     await manager.deactivate(FAKE_DB, PLUGIN_ID);
     expect(manager.getComponentOfSlot("toolbar")).toHaveLength(0);
   });
+
+  it("keeps the plugin active when deactivation fails so cleanup can retry", async () => {
+    const cause = new Error("temporary deactivation failure");
+    const onDeactivate = vi
+      .fn()
+      .mockRejectedValueOnce(cause)
+      .mockResolvedValueOnce(undefined);
+    const loader = makeLoader(makePlugin({ onDeactivate }));
+    setupActivateMocks();
+    const manager = createManager(loader);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+
+    await expect(manager.deactivate(FAKE_DB, PLUGIN_ID)).rejects.toBe(cause);
+    expect(manager.isActive(PLUGIN_ID)).toBe(true);
+
+    await expect(
+      manager.deactivate(FAKE_DB, PLUGIN_ID),
+    ).resolves.toBeUndefined();
+    expect(manager.isActive(PLUGIN_ID)).toBe(false);
+    expect(onDeactivate).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("PluginManager — reloadPlugin()", () => {
-  it("reloadPlugin() deactivates then re-activates the plugin", async () => {
+  it("reloadPlugin() replaces the plugin's registered services", async () => {
     const svc = {
       getId: () => "svc-1",
       getType: () => "TOKENIZER" as const,
@@ -443,6 +634,325 @@ describe("PluginManager — reloadPlugin()", () => {
 
     // Service should still be present after reload
     expect(manager.getService(PLUGIN_ID, "TOKENIZER", "svc-1")).not.toBeNull();
+  });
+
+  it("captures only complete old or new activation provenance during reload", async () => {
+    const clients = new WeakMap<PluginContext, { closed: boolean }>();
+    let manager: PluginManager | null = null;
+    let publishedServiceAtOldCleanup: unknown;
+    const getClient = (context: PluginContext): { closed: boolean } => {
+      const client = clients.get(context);
+      if (!client) throw new Error("Activation client not initialized");
+      return client;
+    };
+    const createService = (context: PluginContext) => {
+      const client = getClient(context);
+      return {
+        getId: () => "svc-1",
+        getType: () => "TOKENIZER" as const,
+        getPriority: () => 0,
+        parse: () => {
+          if (client.closed) throw new Error("Activation client is closed");
+          return undefined;
+        },
+      };
+    };
+    let oldService: ReturnType<typeof createService> | undefined;
+    let newService: ReturnType<typeof createService> | undefined;
+    let releaseReload = (): void => undefined;
+    let markReloadEntered = (): void => undefined;
+    const reloadGate = new Promise<void>((resolve) => {
+      releaseReload = resolve;
+    });
+    const reloadEntered = new Promise<void>((resolve) => {
+      markReloadEntered = resolve;
+    });
+    const plugin = makePlugin({
+      onActivate: (context) => {
+        clients.set(context, { closed: false });
+      },
+      onDeactivate: (context) => {
+        if (getEndpoint(context) === "old") {
+          publishedServiceAtOldCleanup = manager?.getService(
+            PLUGIN_ID,
+            "TOKENIZER",
+            "svc-1",
+          )?.service;
+        }
+        getClient(context).closed = true;
+      },
+      services: vi.fn(async (context: PluginContext) => {
+        const service = createService(context);
+        if (getEndpoint(context) === "old") {
+          oldService = service;
+          return [service];
+        }
+        newService = service;
+        markReloadEntered();
+        await reloadGate;
+        return [service];
+      }),
+    });
+    const loader = makeLoader(plugin);
+    vi.mocked(loader.getData)
+      .mockResolvedValueOnce(MINIMAL_DATA)
+      .mockResolvedValueOnce(
+        PluginDataSchema.parse({ ...MINIMAL_DATA, version: "2.0.0" }),
+      );
+    manager = createManager(loader);
+    setupConfiguredActivationMocks("old", 1);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+
+    const [oldSnapshot] =
+      await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(oldSnapshot).toMatchObject({
+      activationGeneration: 1,
+      configuration: { semanticConfig: { endpoint: "old" } },
+      package: { name: "test plugin", version: "1.0.0" },
+      reference: {
+        pluginId: PLUGIN_ID,
+        serviceId: "svc-1",
+        serviceType: "TOKENIZER",
+      },
+    });
+    expect(oldSnapshot?.registeredService.service).toBe(oldService);
+    expect(() =>
+      oldSnapshot?.registeredService.service.parse({
+        source: "still live",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+    expect(Object.isFrozen(oldSnapshot?.configuration.semanticConfig)).toBe(
+      true,
+    );
+
+    setupConfiguredActivationMocks("new", 2, 42);
+    const reload = manager.reloadPlugin(FAKE_DB, PLUGIN_ID);
+    await reloadEntered;
+    expect(() =>
+      oldSnapshot?.registeredService.service.parse({
+        source: "live during candidate preparation",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+    let captureSettled = false;
+    const capture = manager
+      .captureServiceRuntimeSnapshots("TOKENIZER")
+      .then((snapshots) => {
+        captureSettled = true;
+        return snapshots;
+      });
+    await Promise.resolve();
+    expect(captureSettled).toBe(false);
+
+    releaseReload();
+    await reload;
+    const [newSnapshot] = await capture;
+    expect(newSnapshot).toMatchObject({
+      activationGeneration: 2,
+      configuration: { semanticConfig: { endpoint: "new" } },
+      package: { name: "test plugin", version: "2.0.0" },
+    });
+    expect(newSnapshot?.registeredService.service).toBe(newService);
+    if (!oldSnapshot) throw new Error("Expected an old activation snapshot.");
+    expect(
+      manager.resolveServiceImplementationReference(
+        oldSnapshot.reference,
+        "TOKENIZER",
+      ),
+    ).toMatchObject({
+      kind: "RESOLVED",
+      service: { dbId: 42, pluginId: PLUGIN_ID, id: "svc-1" },
+    });
+    expect(publishedServiceAtOldCleanup).toBe(newService);
+    expect(() => oldService?.parse()).toThrow("Activation client is closed");
+    expect(() =>
+      newSnapshot?.registeredService.service.parse({
+        source: "new generation",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+    expect(newSnapshot?.configuration.configurationDigest).not.toBe(
+      oldSnapshot?.configuration.configurationDigest,
+    );
+  });
+
+  it("keeps the prior activation snapshot when reload preparation fails", async () => {
+    const clients = new WeakMap<PluginContext, { closed: boolean }>();
+    const getClient = (context: PluginContext): { closed: boolean } => {
+      const client = clients.get(context);
+      if (!client) throw new Error("Activation client not initialized");
+      return client;
+    };
+    const createService = (context: PluginContext) => {
+      const client = getClient(context);
+      return {
+        getId: () => (getEndpoint(context) === "new" ? "svc-2" : "svc-1"),
+        getType: () => "TOKENIZER" as const,
+        getPriority: () => 0,
+        parse: () => {
+          if (client.closed) throw new Error("Activation client is closed");
+          return undefined;
+        },
+      };
+    };
+    let oldService: ReturnType<typeof createService> | undefined;
+    let rolledBackService: ReturnType<typeof createService> | undefined;
+    let oldConfigActivationCount = 0;
+    const plugin = makePlugin({
+      onActivate: (context) => {
+        clients.set(context, { closed: false });
+      },
+      onDeactivate: (context) => {
+        getClient(context).closed = true;
+      },
+      services: vi.fn(async (context: PluginContext) => {
+        const service = createService(context);
+        if (getEndpoint(context) === "old") {
+          oldConfigActivationCount += 1;
+          if (oldConfigActivationCount === 1) oldService = service;
+          else rolledBackService = service;
+        }
+        return [service];
+      }),
+      components: vi.fn(async (context: PluginContext) => {
+        if (getEndpoint(context) === "new") {
+          throw new Error("new runtime rejected config");
+        }
+        return [];
+      }),
+    });
+    const manager = createManager(makeLoader(plugin));
+    setupConfiguredActivationMocks("old", 1);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+    const [before] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+
+    setupConfiguredActivationMocks("new", 2);
+    vi.mocked(executeCommand).mockClear();
+    await expect(manager.reloadPlugin(FAKE_DB, PLUGIN_ID)).rejects.toThrow(
+      "new runtime rejected config",
+    );
+    expect(executeCommand).not.toHaveBeenCalledWith(
+      expect.anything(),
+      syncPluginServices,
+      expect.anything(),
+    );
+
+    const [after] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(after?.registeredService.service).toBe(oldService);
+    expect(after?.activationGeneration).toBe(1);
+    expect(after?.configuration).toBe(before?.configuration);
+    expect(() =>
+      after?.registeredService.service.parse({
+        source: "old generation after failed candidate",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+
+    setupConfiguredActivationMocks("old", 3);
+    await manager.reloadPlugin(FAKE_DB, PLUGIN_ID);
+    const [rolledBack] =
+      await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(rolledBack?.registeredService.service).toBe(rolledBackService);
+    expect(rolledBack?.activationGeneration).toBe(2);
+    expect(rolledBack?.configuration.semanticConfig).toEqual({
+      endpoint: "old",
+    });
+    expect(rolledBack?.configuration.configurationDigest).toBe(
+      before?.configuration.configurationDigest,
+    );
+    expect(() => oldService?.parse()).toThrow("Activation client is closed");
+    expect(() =>
+      rolledBack?.registeredService.service.parse({
+        source: "rolled back generation",
+        cursor: 0,
+      }),
+    ).not.toThrow();
+  });
+
+  it("rolls back dynamic service changes when service registration fails", async () => {
+    const plugin = makePlugin({
+      services: vi.fn(async (context: PluginContext) => [
+        {
+          getId: () => (getEndpoint(context) === "new" ? "svc-2" : "svc-1"),
+          getType: () => "TOKENIZER" as const,
+        },
+      ]),
+    });
+    const serviceRegistry = new ServiceRegistry();
+    const manager = createManager(makeLoader(plugin), serviceRegistry);
+    setupConfiguredActivationMocks("old", 1);
+    await manager.activate(FAKE_DB, PLUGIN_ID);
+    const [before] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+
+    const durableServices = [{ id: 1, serviceId: "svc-1" }];
+    let stagedServices: typeof durableServices | undefined;
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    const transactionDb = {} as DrizzleClient;
+    const transactionalDb = {
+      transaction: async <T>(run: (tx: DrizzleClient) => Promise<T>) => {
+        stagedServices = durableServices.map((service) => ({ ...service }));
+        try {
+          const result = await run(transactionDb);
+          durableServices.splice(0, durableServices.length, ...stagedServices);
+          return result;
+        } finally {
+          stagedServices = undefined;
+        }
+      },
+      // oxlint-disable-next-line typescript/no-unsafe-type-assertion
+    } as DrizzleClient;
+
+    setupConfiguredActivationMocks("new", 2);
+    vi.mocked(executeCommand).mockClear();
+    vi.spyOn(serviceRegistry, "prepare").mockRejectedValueOnce(
+      new Error("registration failed"),
+    );
+    vi.mocked(executeCommand).mockImplementation(
+      async ({ db }, command, args) => {
+        if (db !== transactionDb || stagedServices === undefined) return;
+        if (command === syncPluginServices) {
+          const services = (args as { services: { serviceId: string }[] })
+            .services;
+          stagedServices.push(
+            ...services.map((service, index) => ({
+              id: durableServices.length + index + 1,
+              serviceId: service.serviceId,
+            })),
+          );
+        }
+        if (command === deletePluginServices) {
+          const serviceDbIds = (args as { serviceDbIds: number[] })
+            .serviceDbIds;
+          stagedServices = stagedServices.filter(
+            (service) => !serviceDbIds.includes(service.id),
+          );
+        }
+      },
+    );
+
+    await expect(
+      manager.reloadPlugin(transactionalDb, PLUGIN_ID),
+    ).rejects.toThrow("registration failed");
+
+    expect(executeCommand).toHaveBeenCalledWith(
+      { db: transactionDb },
+      syncPluginServices,
+      expect.objectContaining({
+        services: [
+          expect.objectContaining({
+            serviceId: "svc-2",
+            serviceType: "TOKENIZER",
+          }),
+        ],
+      }),
+    );
+    expect(durableServices).toEqual([{ id: 1, serviceId: "svc-1" }]);
+    const [after] = await manager.captureServiceRuntimeSnapshots("TOKENIZER");
+    expect(after?.registeredService.service).toBe(
+      before?.registeredService.service,
+    );
+    expect(after?.activationGeneration).toBe(before?.activationGeneration);
   });
 });
 
@@ -472,6 +982,8 @@ describe("PluginManager — service & component getters", () => {
       pluginId: PLUGIN_ID,
       type: "TOKENIZER" as const,
       id: "svc-1",
+      scopeType: "GLOBAL" as const,
+      scopeId: "",
     };
     const registry = new ServiceRegistry([svc]);
     const manager = createManager(makeLoader(makePlugin()), registry);
@@ -488,6 +1000,8 @@ describe("PluginManager — service & component getters", () => {
       pluginId: PLUGIN_ID,
       type: "TOKENIZER" as const,
       id: "svc-2",
+      scopeType: "GLOBAL" as const,
+      scopeId: "",
     };
     const registry = new ServiceRegistry([svc]);
     const manager = createManager(makeLoader(makePlugin()), registry);

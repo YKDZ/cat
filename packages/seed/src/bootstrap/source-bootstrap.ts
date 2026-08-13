@@ -8,11 +8,15 @@ import {
   executeCommand,
 } from "@cat/domain";
 import {
-  buildMemoryRecallVariantsOp,
   diffStructuredContentOp,
+  startRecallDerivationWorker,
+  waitForRecallDerivationFresh,
 } from "@cat/operations";
 import type { PluginManager } from "@cat/plugin-core";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import {
   extract,
   toCollectionPayload,
@@ -122,10 +126,10 @@ export const runBootstrapSourceGraph = async (
   const pm = resolvePluginManager(input.pluginManager);
   const vectorizer = input.skipVectorization
     ? undefined
-    : firstOrGivenService(pm, "TEXT_VECTORIZER");
+    : selectFirstServiceImplementation(pm, "TEXT_VECTORIZER");
   const vectorStorage = input.skipVectorization
     ? undefined
-    : firstOrGivenService(pm, "VECTOR_STORAGE");
+    : selectFirstServiceImplementation(pm, "VECTOR_STORAGE");
   const vectorizationStatus = input.skipVectorization
     ? "skipped"
     : vectorizer && vectorStorage
@@ -141,8 +145,8 @@ export const runBootstrapSourceGraph = async (
 
   const diff = await diffStructuredContentOp({
     payload,
-    vectorizerId: vectorizer?.id,
-    vectorStorageId: vectorStorage?.id,
+    vectorizer: vectorizer?.reference,
+    vectorStorage: vectorStorage?.reference,
   });
 
   let memoryId: string | undefined;
@@ -155,57 +159,68 @@ export const runBootstrapSourceGraph = async (
     const createdMemoryId = memory.id;
     memoryId = createdMemoryId;
 
-    await Promise.all(
-      locale.memoryItems.map(async (item) => {
-        const [sourceStringIds, translationStringIds] = await Promise.all([
-          executeCommand(input.execCtx, createVectorizedStrings, {
-            data: [{ text: item.source, languageId: item.sourceLanguageId }],
-          }),
-          executeCommand(input.execCtx, createVectorizedStrings, {
-            data: [
-              {
-                text: item.translation,
-                languageId: item.translationLanguageId,
-              },
-            ],
-          }),
-        ]);
+    const derivations = (
+      await Promise.all(
+        locale.memoryItems.map(async (item) => {
+          const [sourceStringIds, translationStringIds] = await Promise.all([
+            executeCommand(input.execCtx, createVectorizedStrings, {
+              data: [{ text: item.source, languageId: item.sourceLanguageId }],
+            }),
+            executeCommand(input.execCtx, createVectorizedStrings, {
+              data: [
+                {
+                  text: item.translation,
+                  languageId: item.translationLanguageId,
+                },
+              ],
+            }),
+          ]);
 
-        const sourceStringId = sourceStringIds[0];
-        const translationStringId = translationStringIds[0];
-        if (sourceStringId === undefined || translationStringId === undefined) {
-          throw new Error("Failed to create bootstrap locale strings");
-        }
+          const sourceStringId = sourceStringIds[0];
+          const translationStringId = translationStringIds[0];
+          if (
+            sourceStringId === undefined ||
+            translationStringId === undefined
+          ) {
+            throw new Error("Failed to create bootstrap locale strings");
+          }
 
-        const created = await executeCommand(input.execCtx, createMemoryItems, {
-          memoryId: createdMemoryId,
-          items: [
+          const created = await executeCommand(
+            input.execCtx,
+            createMemoryItems,
             {
-              translationId: null,
-              translationStringId,
-              sourceStringId,
-              creatorId: input.creatorId,
-              sourceTemplate: null,
-              translationTemplate: null,
-              slotMapping: null,
+              memoryId: createdMemoryId,
+              items: [
+                {
+                  translationId: null,
+                  translationStringId,
+                  sourceStringId,
+                  creatorId: input.creatorId,
+                },
+              ],
             },
-          ],
+          );
+          const createdItem = created.items[0];
+          if (!createdItem) {
+            throw new Error("Failed to create bootstrap locale memory item");
+          }
+          return created.derivations;
+        }),
+      )
+    ).flat();
+    if (derivations.length > 0) {
+      const worker = await startRecallDerivationWorker({
+        db: input.execCtx.db,
+        pluginManager: input.pluginManager,
+      });
+      try {
+        await waitForRecallDerivationFresh(derivations, {
+          db: input.execCtx.db,
         });
-        const createdItem = created[0];
-        if (!createdItem) {
-          throw new Error("Failed to create bootstrap locale memory item");
-        }
-
-        await buildMemoryRecallVariantsOp({
-          memoryItemId: createdItem.id,
-          memoryId: createdMemoryId,
-          sourceText: item.source,
-          translationText: item.translation,
-          sourceLanguageId: item.sourceLanguageId,
-          translationLanguageId: item.translationLanguageId,
-        });
-      }),
-    );
+      } finally {
+        await worker.stop();
+      }
+    }
   }
 
   const report: BootstrapRunReport = {

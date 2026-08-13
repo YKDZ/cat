@@ -1,18 +1,22 @@
 import type { OperationContext } from "@cat/domain";
-import { AsyncMessageQueue } from "@cat/server-shared";
-import { serverLogger as logger } from "@cat/server-shared";
-import type { MemorySuggestion } from "@cat/shared";
+import {
+  MemoryRecallStreamEventSchema,
+  NormalizedLanguageIdSchema,
+  type MemoryRecallStreamEvent,
+} from "@cat/shared";
 import * as z from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import {
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+  MemoryRecallResultSchema,
+} from "./collect-memory-recall.ts";
 
-export const StreamSearchMemoryInputSchema = z.object({
+export const StreamSearchMemoryInputSchema = z.strictObject({
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   memoryIds: z.array(z.uuidv4()),
-  /** Chunk IDs for the source element (used by the semantic channel). */
-  chunkIds: z.array(z.int()),
   minSimilarity: z.number().min(0).max(1).optional().default(0.72),
   maxAmount: z.int().min(1).optional().default(3),
 });
@@ -21,42 +25,28 @@ export type StreamSearchMemoryInput = z.input<
   typeof StreamSearchMemoryInputSchema
 >;
 
-/**
- *
- * 底层统一走 aggregated helper，合并 exact / trgm / variant / semantic
- * 通道与 template adaptation，再按排序后的结果顺序流式产出。
- * Streaming memory search backed by the aggregated recall helper.
- */
-export const streamSearchMemoryOp = (
+export const StreamSearchMemoryEventSchema = MemoryRecallStreamEventSchema;
+export type StreamSearchMemoryEvent = MemoryRecallStreamEvent;
+
+/** Stream ranked candidates followed by the complete typed recall result. */
+export const streamSearchMemoryOp = async function* (
   data: StreamSearchMemoryInput,
   ctx?: OperationContext,
-): AsyncIterable<MemorySuggestion> => {
-  const queue = new AsyncMessageQueue<MemorySuggestion>();
-
-  const run = async () => {
-    const memories = await collectMemoryRecallOp(
+): AsyncGenerator<StreamSearchMemoryEvent, void, unknown> {
+  const input = StreamSearchMemoryInputSchema.parse(data);
+  const result = MemoryRecallResultSchema.parse(
+    await collectMemoryRecallOp(
       {
-        ...data,
-        minSimilarity: data.minSimilarity ?? 0.72,
-        maxAmount: data.maxAmount ?? 3,
+        ...input,
       },
       ctx,
-    );
-
-    for (const memory of memories) {
-      queue.push(memory);
-    }
-  };
-
-  void run()
-    .catch((err: unknown) => {
-      logger
-        .child({ component: "operation" })
-        .error("streamSearchMemoryOp failed", { error: err });
-    })
-    .finally(() => {
-      queue.close();
+    ),
+  );
+  for (const candidate of getMemoryRecallCandidates(result)) {
+    yield StreamSearchMemoryEventSchema.parse({
+      type: "CANDIDATE",
+      candidate,
     });
-
-  return queue.consume();
+  }
+  yield StreamSearchMemoryEventSchema.parse({ type: "COMPLETED", result });
 };

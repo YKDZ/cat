@@ -1,33 +1,26 @@
-import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 
 import { redactDiagnosticText } from "@cat/shared";
 
 import { parseTestServiceLease } from "../apps/app-e2e/test-service-lease.ts";
 import {
-  CommandExecutionError,
-  type ApplicationLifecycleContext,
-  type CommandExecutionResult,
-} from "./check-all.ts";
-import {
-  createValidatedImageManifest,
   type ReleaseImage,
   type ReleaseImageBuildResult,
   type ReleaseImageTarget,
 } from "./image-builder.ts";
+import {
+  CommandExecutionError,
+  type ApplicationLifecycleContext,
+  type VerificationCommandResult as CommandExecutionResult,
+} from "./verification-runtime.ts";
 
 const dockerfile = "apps/app/Dockerfile";
 const cleanupTimeoutMs = 30_000;
 const lifecycleDatabaseCleanupTimeoutMs = 60_000;
 const lifecycleDatabaseCleanupAttempts = 3;
-const searchRuntimeInitializationPath = new URL(
-  "../apps/postgres-search-runtime/init/01-init-extensions.sql",
-  import.meta.url,
-);
 
-type ImageMode = ReleaseImageTarget;
+type ImageMode = Exclude<ReleaseImageTarget, "spacy">;
 
 type ContainerServiceUrls = {
   databaseUrl: string;
@@ -36,7 +29,6 @@ type ContainerServiceUrls = {
 };
 
 type LifecycleDatabase = {
-  initializeSearchRuntime: () => Promise<void>;
   serviceUrls: ContainerServiceUrls;
   remove: () => Promise<void>;
 };
@@ -44,11 +36,6 @@ type LifecycleDatabase = {
 type LifecycleStorage = {
   mountArgs: string[];
   remove: () => Promise<void>;
-};
-
-export type ValidatedImageExport = {
-  manifestDigest: string;
-  manifestPath: string;
 };
 
 export type ApplicationLifecycleReport = {
@@ -164,7 +151,7 @@ const serviceProjectName = (context: ApplicationLifecycleContext): string => {
 
 const releaseImage = (
   images: ReleaseImageBuildResult,
-  target: ImageMode,
+  target: ReleaseImageTarget,
 ): ReleaseImage => {
   const image = images.images.find((candidate) => candidate.target === target);
   if (image === undefined) {
@@ -173,6 +160,52 @@ const releaseImage = (
     );
   }
   return image;
+};
+
+const assertSpacyImageConfig = async (
+  context: ApplicationLifecycleContext,
+  image: string,
+): Promise<void> => {
+  const config = parseImageConfig(
+    await docker(
+      context,
+      ["image", "inspect", "--format", "{{json .Config}}", image],
+      "pipe",
+    ),
+    image,
+  );
+  if (
+    config.User !== "10001:10001" ||
+    JSON.stringify(config.Cmd) !== JSON.stringify(["provision-and-serve"]) ||
+    JSON.stringify(config.Entrypoint) !==
+      JSON.stringify(["python", "-m", "src.cli"]) ||
+    config.Labels?.["org.opencontainers.image.version"] !==
+      (context.buildId ?? context.projectName) ||
+    !("/models" in (config.Volumes ?? {})) ||
+    !Array.isArray(config.Healthcheck?.Test) ||
+    !config.Healthcheck.Test.join(" ").includes("/ready")
+  ) {
+    throw new Error(`Image ${image} does not satisfy its config contract`);
+  }
+
+  await docker(context, [
+    "run",
+    "--rm",
+    "--read-only",
+    "--tmpfs",
+    "/tmp:rw,nosuid,nodev,noexec,mode=1777",
+    "--mount",
+    "type=volume,dst=/models",
+    "--entrypoint",
+    "/bin/sh",
+    image,
+    "-ec",
+    `test "$(id -u):$(id -g)" = "10001:10001"
+test "$(stat -c '%u:%g' /app)" = "0:0"
+test ! -w /app
+test -w /models
+test -w /tmp`,
+  ]);
 };
 
 const buildContextContract = async (
@@ -235,7 +268,7 @@ const lifecycleBootstrapPlan = (context: ApplicationLifecycleContext): string =>
         value: { "root-path": "/data/storage" },
       },
       {
-        pluginId: "spacy-segmenter",
+        pluginId: "spacy-language-analyzer",
         scopeId: "",
         scopeType: "GLOBAL",
         type: "install-if-absent",
@@ -265,7 +298,9 @@ const createLifecycleDatabase = async (
   const redisUrl = context.env.REDIS_URL;
   const spacyUrl = context.env.SPACY_SERVER_URL;
   if (!databaseUrl || !redisUrl || !spacyUrl) {
-    throw new Error("check:all container lifecycle requires database URLs");
+    throw new Error(
+      "Complete verification container lifecycle requires database URLs",
+    );
   }
 
   const connection = new URL(databaseUrl);
@@ -273,7 +308,7 @@ const createLifecycleDatabase = async (
   const password = decodeURIComponent(connection.password);
   if (username === "" || password === "") {
     throw new Error(
-      "check:all container lifecycle requires database credentials",
+      "Complete verification container lifecycle requires database credentials",
     );
   }
   const databaseName = `cat_lifecycle_${randomUUID().replaceAll("-", "")}`;
@@ -305,23 +340,6 @@ WHERE datname = '${databaseName}'
   connection.port = "5432";
   connection.pathname = `/${databaseName}`;
   return {
-    initializeSearchRuntime: async (): Promise<void> => {
-      await docker(context, [
-        "exec",
-        "--env",
-        `PGPASSWORD=${password}`,
-        postgresContainer,
-        "psql",
-        "--username",
-        username,
-        "--dbname",
-        databaseName,
-        "--set",
-        "ON_ERROR_STOP=1",
-        "--command",
-        await readFile(searchRuntimeInitializationPath, "utf8"),
-      ]);
-    },
     serviceUrls: { databaseUrl: connection.toString(), redisUrl, spacyUrl },
     remove: async (): Promise<void> => {
       let lastError: unknown;
@@ -415,7 +433,7 @@ const assertImageConfig = async (
 
   const lifecycleArtifactsAssertion =
     mode === "standalone"
-      ? "test -f /app/.preparation/prepare-database.mjs && test -d /app/.preparation/drizzle && test -f /app/dist/bootstrap-only/bootstrap-only-cli.js"
+      ? "test -f /app/.preparation/prepare-database.mjs && test -f /app/.preparation/database-requirements.mjs && test -d /app/.preparation/drizzle && test -f /app/dist/bootstrap-only/bootstrap-only-cli.js"
       : "test ! -e /app/.preparation && test ! -e /app/drizzle && test ! -e /app/scripts && test ! -e /app/dist/bootstrap-only && test ! -e /app/compose.yaml && test ! -e /app/compose.local.yaml && test ! -e /app/compose.services.yaml && test ! -e /app/Dockerfile";
   await docker(context, [
     "run",
@@ -635,40 +653,6 @@ const assertRuntimeRejectsCapabilityOverride = async (
   throw new Error("Runtime image accepted an overridden lifecycle capability");
 };
 
-export const exportValidatedImages = async (
-  context: ApplicationLifecycleContext,
-  images: ReleaseImageBuildResult,
-): Promise<ValidatedImageExport | undefined> => {
-  const directory = context.env.CAT_CHECK_ALL_EXPORT_IMAGES_DIR;
-  if (directory === undefined || directory === "") return undefined;
-  await mkdir(directory, { recursive: true });
-  for (const target of ["standalone", "runtime"] as const) {
-    await docker(context, [
-      "image",
-      "save",
-      "--output",
-      join(directory, `${target}.tar`),
-      releaseImage(images, target).imageId,
-    ]);
-  }
-  const manifestPath = join(directory, "manifest.json");
-  await writeFile(
-    manifestPath,
-    `${JSON.stringify(
-      createValidatedImageManifest(
-        images,
-        context.buildId ?? context.projectName,
-      ),
-    )}\n`,
-  );
-  return {
-    manifestDigest: createHash("sha256")
-      .update(await readFile(manifestPath))
-      .digest("hex"),
-    manifestPath,
-  };
-};
-
 export const runApplicationLifecycle = async (
   context: ApplicationLifecycleContext,
   images: ReleaseImageBuildResult,
@@ -683,13 +667,14 @@ export const runApplicationLifecycle = async (
     temporaryImages.push(contextContractImage);
     const standaloneImage = releaseImage(images, "standalone").imageId;
     const runtimeImage = releaseImage(images, "runtime").imageId;
+    const spacyImage = releaseImage(images, "spacy").imageId;
     await assertImageConfig(context, "standalone", standaloneImage);
     await assertImageConfig(context, "runtime", runtimeImage);
+    await assertSpacyImageConfig(context, spacyImage);
     await assertRuntimeCannotBypassLifecycle(context, runtimeImage);
 
     lifecycleDatabase = await createLifecycleDatabase(context);
     lifecycleStorage = await createLifecycleStorage(context);
-    await lifecycleDatabase.initializeSearchRuntime();
     await runOneShot(
       context,
       standaloneImage,
@@ -811,6 +796,7 @@ export const runApplicationLifecycle = async (
   return {
     validatedImageIds: {
       runtime: releaseImage(images, "runtime").imageId,
+      spacy: releaseImage(images, "spacy").imageId,
       standalone: releaseImage(images, "standalone").imageId,
     },
   };

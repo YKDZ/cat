@@ -1,4 +1,8 @@
-import type { MemorySuggestion, TranslationSuggestion } from "@cat/shared";
+import {
+  type MemorySuggestion,
+  ServiceImplementationReferenceSchema,
+  type TranslationSuggestion,
+} from "@cat/shared";
 import { flushPromises, mount } from "@vue/test-utils";
 import { createPinia } from "pinia";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -99,7 +103,17 @@ vi.mock("#/rpc/orpc.ts", async () => {
           await mocks.getMemory(input),
       },
       plugin: {
-        getTranslationAdvisor: vi.fn(async () => ({ id: 1, name: "Advisor" })),
+        getTranslationAdvisor: vi.fn(async () => ({
+          id: 1,
+          name: "Advisor",
+          reference: {
+            pluginId: "test-plugin",
+            serviceId: "advisor",
+            serviceType: "TRANSLATION_ADVISOR",
+            scopeType: "GLOBAL",
+            scopeId: "",
+          },
+        })),
       },
     },
   };
@@ -112,7 +126,16 @@ vi.mock("@pinia/colada", async () => {
     useQuery: vi.fn(() => ({
       state: ref({
         status: "success",
-        data: { id: 1, name: "Advisor" },
+        data: {
+          name: "Advisor",
+          reference: {
+            pluginId: "test-plugin",
+            serviceId: "advisor",
+            serviceType: "TRANSLATION_ADVISOR",
+            scopeType: "GLOBAL",
+            scopeId: "",
+          },
+        },
       }),
     })),
   };
@@ -128,7 +151,13 @@ import TermListItem from "./TermListItem.vue";
 
 describe("write-disabled editor interactions", () => {
   const suggestion = {
-    advisorId: 1,
+    advisor: ServiceImplementationReferenceSchema.parse({
+      pluginId: "test-plugin",
+      serviceId: "advisor",
+      serviceType: "TRANSLATION_ADVISOR",
+      scopeType: "GLOBAL",
+      scopeId: "",
+    }),
     translation: "建议译文",
     createdAt: new Date(),
     confidence: 0.9,

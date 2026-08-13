@@ -13,6 +13,7 @@ describe("SuiteConfigSchema", () => {
     const result = SuiteConfigSchema.parse({
       name: "test-suite",
       seed: { project: "seed/project.json" },
+      vectorization: "skip",
       plugins: { loader: "test" },
       scenarios: [
         {
@@ -24,6 +25,7 @@ describe("SuiteConfigSchema", () => {
     });
     expect(result.name).toBe("test-suite");
     expect(result.plugins.overrides).toEqual([]);
+    expect(result.vectorization).toBe("skip");
   });
 
   it("rejects empty scenarios", () => {
@@ -33,6 +35,23 @@ describe("SuiteConfigSchema", () => {
         seed: { project: "x" },
         plugins: { loader: "test" },
         scenarios: [],
+      }),
+    ).toThrow();
+  });
+
+  it("rejects unregistered scorers", () => {
+    expect(() =>
+      SuiteConfigSchema.parse({
+        name: "retired-scorer",
+        seed: { project: "seed/project.json" },
+        plugins: { loader: "test" },
+        scenarios: [
+          {
+            type: "memory-recall",
+            "test-set": "test-sets/memory.yaml",
+            scorers: ["retired-confidence"],
+          },
+        ],
       }),
     ).toThrow();
   });

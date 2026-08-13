@@ -15,7 +15,10 @@
  */
 
 import type { LLMChunk } from "@cat/plugin-core";
-import type { ParsedAgentDefinition } from "@cat/shared";
+import {
+  type ParsedAgentDefinition,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import type { LLMGateway } from "#/llm/llm-gateway.ts";
@@ -40,13 +43,28 @@ vi.mock("@cat/permissions", () => ({
 const MOCK_SESSION_ID = "00000000-0000-4000-8000-000000000001";
 const MOCK_RUN_ID = "00000000-0000-4000-8000-000000000002";
 
+const sessionManagerSpies = vi.hoisted(() => ({
+  completeSession: vi.fn().mockResolvedValue(undefined),
+  saveSnapshot: vi.fn().mockResolvedValue(undefined),
+}));
+
 const MOCK_DEFINITION: ParsedAgentDefinition = {
   metadata: {
     id: "translator-zh-en",
     name: "中英翻译专家",
     version: "1.0.0",
     type: "GENERAL",
-    llm: { providerId: 1, temperature: 0.3, maxTokens: 512 },
+    llm: {
+      provider: ServiceImplementationReferenceSchema.parse({
+        pluginId: "test-plugin",
+        serviceId: "llm",
+        serviceType: "LLM_PROVIDER",
+        scopeType: "GLOBAL",
+        scopeId: "",
+      }),
+      temperature: 0.3,
+      maxTokens: 512,
+    },
     tools: ["translate_segment", "finish"],
     constraints: {
       maxSteps: 3,
@@ -82,8 +100,8 @@ vi.mock("#/runtime/session-manager.ts", () => {
           sessionId: MOCK_SESSION_ID,
           runId: MOCK_RUN_ID,
         }),
-        saveSnapshot: vi.fn().mockResolvedValue(undefined),
-        completeSession: vi.fn().mockResolvedValue(undefined),
+        saveSnapshot: sessionManagerSpies.saveSnapshot,
+        completeSession: sessionManagerSpies.completeSession,
       });
     });
 
@@ -159,7 +177,11 @@ function makeMockPromptEngine(): PromptEngine {
 
 async function collectEvents(runtime: AgentRuntime): Promise<string[]> {
   const events: string[] = [];
-  for await (const event of runtime.runLoop(MOCK_SESSION_ID, MOCK_RUN_ID)) {
+  for await (const event of runtime.runLoop(
+    MOCK_SESSION_ID,
+    MOCK_RUN_ID,
+    new AbortController().signal,
+  )) {
     events.push(event.type);
   }
   return events;
@@ -211,6 +233,153 @@ describe("AgentRuntime E2E — Phase 0a", () => {
     expect(events).not.toContain("failed");
     expect(events).toContain("tool_call");
     expect(events).toContain("tool_result");
+  });
+
+  it("cancels a blocking LLM request through runLoop", async () => {
+    const controller = new AbortController();
+    const interruption = new Error("evaluation interrupted");
+    let markStarted: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    const blockingGateway = {
+      chat: ({ request }: { request: { signal: AbortSignal } }) =>
+        ({
+          // oxlint-disable-next-line require-yield
+          async *[Symbol.asyncIterator](): AsyncIterableIterator<LLMChunk> {
+            // The fake stream blocks until the runtime aborts its provider request.
+            markStarted?.();
+            await new Promise<never>((_, reject) => {
+              request.signal.addEventListener(
+                "abort",
+                () => reject(request.signal.reason),
+                { once: true },
+              );
+            });
+          },
+        }) as AsyncIterable<LLMChunk>,
+    } as unknown as LLMGateway;
+    const runtime = new AgentRuntime({
+      llmGateway: blockingGateway,
+      toolRegistry: makeMockToolRegistry({}),
+      promptEngine: makeMockPromptEngine(),
+      logger: createNoopAgentLogger(),
+    });
+    const consume = async () => {
+      for await (const _event of runtime.runLoop(
+        MOCK_SESSION_ID,
+        MOCK_RUN_ID,
+        controller.signal,
+      )) {
+        // Consume until the blocked LLM rejects on abort.
+      }
+    };
+
+    const result = consume();
+    await started;
+    controller.abort(interruption);
+
+    await expect(result).rejects.toBe(interruption);
+    expect(sessionManagerSpies.saveSnapshot).toHaveBeenCalledWith(
+      MOCK_RUN_ID,
+      expect.any(Object),
+    );
+    expect(sessionManagerSpies.completeSession).toHaveBeenCalledWith(
+      MOCK_SESSION_ID,
+      MOCK_RUN_ID,
+      "CANCELLED",
+    );
+    expect(
+      sessionManagerSpies.saveSnapshot.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      sessionManagerSpies.completeSession.mock.invocationCallOrder[0] ?? 0,
+    );
+  });
+
+  it("checkpoints a committed tool outcome before cancelling the run", async () => {
+    const controller = new AbortController();
+    const interruption = new Error("write cancellation requested");
+    const committedOutcome = { translationIds: [88], committed: true };
+    let markStarted: (() => void) | undefined;
+    let settleMutation: (() => void) | undefined;
+    const started = new Promise<void>((resolve) => {
+      markStarted = resolve;
+    });
+    const mutation = new Promise<void>((resolve) => {
+      settleMutation = resolve;
+    });
+    const toolRegistry = {
+      execute: vi.fn(async () => {
+        markStarted?.();
+        await mutation;
+        return committedOutcome;
+      }),
+      toLLMTools: () => [],
+    } as unknown as ToolRegistry;
+    const runtime = new AgentRuntime({
+      llmGateway: makeMockGateway([
+        makeLLMStream("Writing the translation.", [
+          {
+            id: "tc-write",
+            name: "submit_translation",
+            args: JSON.stringify({ elementId: 5, text: "translation" }),
+          },
+        ]),
+      ]),
+      toolRegistry,
+      promptEngine: makeMockPromptEngine(),
+      logger: createNoopAgentLogger(),
+    });
+    let settled = false;
+    const consume = async () => {
+      for await (const _event of runtime.runLoop(
+        MOCK_SESSION_ID,
+        MOCK_RUN_ID,
+        controller.signal,
+      )) {
+        // Consume until the runtime has durably handled cancellation.
+      }
+    };
+    const operation = consume().finally(() => {
+      settled = true;
+    });
+
+    await started;
+    sessionManagerSpies.saveSnapshot.mockClear();
+    sessionManagerSpies.completeSession.mockClear();
+    controller.abort(interruption);
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    settleMutation?.();
+    await expect(operation).rejects.toBe(interruption);
+
+    const committedContent = JSON.stringify(committedOutcome);
+    expect(sessionManagerSpies.saveSnapshot).toHaveBeenCalledOnce();
+    expect(sessionManagerSpies.saveSnapshot).toHaveBeenCalledWith(
+      MOCK_RUN_ID,
+      expect.objectContaining({
+        tool_results: [{ toolCallId: "tc-write", content: committedContent }],
+        messages: expect.arrayContaining([
+          {
+            role: "tool",
+            toolCallId: "tc-write",
+            content: committedContent,
+          },
+        ]),
+      }),
+    );
+    expect(sessionManagerSpies.completeSession).toHaveBeenCalledOnce();
+    expect(sessionManagerSpies.completeSession).toHaveBeenCalledWith(
+      MOCK_SESSION_ID,
+      MOCK_RUN_ID,
+      "CANCELLED",
+    );
+    expect(
+      sessionManagerSpies.saveSnapshot.mock.invocationCallOrder[0],
+    ).toBeLessThan(
+      sessionManagerSpies.completeSession.mock.invocationCallOrder[0] ?? 0,
+    );
   });
 
   it("exits with finished(maxTurns) when agent never calls finish", async () => {

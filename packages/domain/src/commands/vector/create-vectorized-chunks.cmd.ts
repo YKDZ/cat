@@ -1,12 +1,15 @@
 import { chunk, chunkSet } from "@cat/db";
-import type { JSONType } from "@cat/shared";
+import {
+  type JSONType,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const CreateVectorizedChunksCommandSchema = z.object({
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
   chunkSetCount: z.int().min(1),
   chunks: z.array(
     z.object({
@@ -56,8 +59,8 @@ export const createVectorizedChunks: Command<
 
     return {
       chunkSetId: mappedChunkSetId,
-      vectorizerId: command.vectorizerId,
-      vectorStorageId: command.vectorStorageId,
+      vectorizer: command.vectorizer,
+      vectorStorage: command.vectorStorage,
       meta: (item.meta ?? {}) as JSONType,
     };
   });

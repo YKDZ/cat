@@ -1,7 +1,8 @@
 // oxlint-disable no-await-in-loop
-import type { OperationContext } from "@cat/domain";
+import type { DbHandle, OperationContext } from "@cat/domain";
 import {
   applyContentGraphEnvelope,
+  assertLanguageAnalysisPolicySnapshot,
   bulkUpdateElementsForDiff,
   createElements,
   deleteElementsByIds,
@@ -18,6 +19,8 @@ import {
   StructuredContentPayloadSchema,
   type JSONType,
   type SemanticDiffEntryPayload,
+  LanguageAnalysisPolicySnapshotSchema,
+  ServiceImplementationReferenceSchema,
   type StableElementIdentity,
 } from "@cat/shared";
 import * as z from "zod";
@@ -26,8 +29,10 @@ import { createVectorizedStringOp } from "./create-vectorized-string.ts";
 
 export const DiffStructuredContentInputSchema = z.object({
   payload: StructuredContentPayloadSchema,
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  languageAnalysisPolicySnapshot:
+    LanguageAnalysisPolicySnapshotSchema.optional(),
+  vectorizer: ServiceImplementationReferenceSchema.optional(),
+  vectorStorage: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const DiffStructuredContentOutputSchema = z.object({
@@ -157,15 +162,28 @@ export const classifySemanticElementDiffForTest = (
 export const diffStructuredContentOp = async (
   data: DiffStructuredContentInput,
   ctx?: OperationContext,
+  db?: DbHandle,
 ): Promise<DiffStructuredContentOutput> => {
-  const { client: drizzle } = await getDbHandle();
+  const drizzle = db ?? (await getDbHandle()).client;
 
-  // 1. Persist graph envelope (relation types + nodes)
-  const envelope = await executeCommand(
-    { db: drizzle },
-    applyContentGraphEnvelope,
-    { payload: data.payload },
-  );
+  // The policy row is locked with the first canonical graph write. No external
+  // probe runs in this transaction, and a stale admission cannot publish nodes.
+  const persistEnvelope = async (tx: DbHandle) => {
+    if (data.languageAnalysisPolicySnapshot !== undefined) {
+      await executeCommand(
+        { db: tx },
+        assertLanguageAnalysisPolicySnapshot,
+        data.languageAnalysisPolicySnapshot,
+      );
+    }
+    return await executeCommand({ db: tx }, applyContentGraphEnvelope, {
+      payload: data.payload,
+    });
+  };
+  const envelope =
+    data.languageAnalysisPolicySnapshot === undefined
+      ? await persistEnvelope(drizzle)
+      : await drizzle.transaction(persistEnvelope);
 
   const semanticDiffIds: number[] = [];
 
@@ -359,8 +377,8 @@ export const diffStructuredContentOp = async (
         const stringResult = await createVectorizedStringOp(
           {
             data: [{ text: newEl.text, languageId: newEl.languageId }],
-            vectorizerId: data.vectorizerId,
-            vectorStorageId: data.vectorStorageId,
+            vectorizer: data.vectorizer,
+            vectorStorage: data.vectorStorage,
           },
           ctx,
         );
@@ -511,8 +529,8 @@ export const diffStructuredContentOp = async (
             text: el.text,
             languageId: el.languageId,
           })),
-          vectorizerId: data.vectorizerId,
-          vectorStorageId: data.vectorStorageId,
+          vectorizer: data.vectorizer,
+          vectorStorage: data.vectorStorage,
         },
         ctx,
       );

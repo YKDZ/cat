@@ -49,20 +49,29 @@ import {
   writePluginConfigInstance,
 } from "@cat/domain";
 import {
-  buildMemoryRecallVariantsOp,
-  buildTermRecallVariantsOp,
+  startRecallDerivationWorker,
+  waitForRecallDerivationFresh,
 } from "@cat/operations";
 import type { PluginLoader } from "@cat/plugin-core";
-import { FileSystemPluginLoader, PluginManager } from "@cat/plugin-core";
+import {
+  BuiltinPluginLoader,
+  CompositePluginLoader,
+  FileSystemPluginLoader,
+  PluginManager,
+} from "@cat/plugin-core";
 import {
   defaultProductPluginIds,
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   resolvePluginManager,
+  systemPgVectorEntry,
 } from "@cat/server-shared";
 import {
   CoreRelationTypeDefinitions,
   type JSONObject,
   type JSONType,
+  type RecallDerivationReference,
+  RequiredVectorDimension,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 
 import { runBootstrapSourceGraph } from "./bootstrap/source-bootstrap.ts";
@@ -109,74 +118,62 @@ const assertFixtureHydrationPrerequisites = async (
   execCtx: ExecutorContext,
   requiredLanguageIds: readonly string[],
 ): Promise<void> => {
-  const [
-    languages,
-    systemRoles,
-    passwordService,
-    relationTypes,
-    rootAccount,
-    requiredSetting,
-    defaultPluginDefinitions,
-    defaultPluginInstallations,
-    builtinAgent,
-  ] = await Promise.all([
-    execCtx.db
-      .select({ id: language.id })
-      .from(language)
-      .where(inArray(language.id, [...requiredLanguageIds])),
-    execCtx.db
-      .select({ name: role.name })
-      .from(role)
-      .where(inArray(role.name, ["superadmin", "admin", "user", "viewer"])),
-    execCtx.db
-      .select({ id: pluginService.id })
-      .from(pluginService)
-      .where(eq(pluginService.serviceId, "PASSWORD"))
-      .limit(1),
-    execCtx.db
-      .select({
-        name: contentRelationType.name,
-        namespace: contentRelationType.namespace,
-        version: contentRelationType.version,
-      })
-      .from(contentRelationType),
-    execCtx.db
-      .select({ id: user.id })
-      .from(user)
-      .where(eq(user.email, "admin@encmys.cn"))
-      .limit(1),
-    execCtx.db
-      .select({ key: setting.key })
-      .from(setting)
-      .where(eq(setting.key, "server.url"))
-      .limit(1),
-    execCtx.db
-      .select({ id: plugin.id })
-      .from(plugin)
-      .where(inArray(plugin.id, defaultProductPluginIds)),
-    execCtx.db
-      .select({ id: pluginInstallation.id })
-      .from(pluginInstallation)
-      .where(
-        and(
-          eq(pluginInstallation.scopeType, "GLOBAL"),
-          eq(pluginInstallation.scopeId, ""),
-          inArray(pluginInstallation.pluginId, defaultProductPluginIds),
-        ),
+  const languages = await execCtx.db
+    .select({ id: language.id })
+    .from(language)
+    .where(inArray(language.id, [...requiredLanguageIds]));
+  const systemRoles = await execCtx.db
+    .select({ name: role.name })
+    .from(role)
+    .where(inArray(role.name, ["superadmin", "admin", "user", "viewer"]));
+  const passwordService = await execCtx.db
+    .select({ id: pluginService.id })
+    .from(pluginService)
+    .where(eq(pluginService.serviceId, "PASSWORD"))
+    .limit(1);
+  const relationTypes = await execCtx.db
+    .select({
+      name: contentRelationType.name,
+      namespace: contentRelationType.namespace,
+      version: contentRelationType.version,
+    })
+    .from(contentRelationType);
+  const rootAccount = await execCtx.db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, "admin@encmys.cn"))
+    .limit(1);
+  const requiredSetting = await execCtx.db
+    .select({ key: setting.key })
+    .from(setting)
+    .where(eq(setting.key, "server.url"))
+    .limit(1);
+  const defaultPluginDefinitions = await execCtx.db
+    .select({ id: plugin.id })
+    .from(plugin)
+    .where(inArray(plugin.id, defaultProductPluginIds));
+  const defaultPluginInstallations = await execCtx.db
+    .select({ id: pluginInstallation.id })
+    .from(pluginInstallation)
+    .where(
+      and(
+        eq(pluginInstallation.scopeType, "GLOBAL"),
+        eq(pluginInstallation.scopeId, ""),
+        inArray(pluginInstallation.pluginId, defaultProductPluginIds),
       ),
-    execCtx.db
-      .select({ id: agentDefinition.id })
-      .from(agentDefinition)
-      .where(
-        and(
-          eq(agentDefinition.definitionId, "translator"),
-          eq(agentDefinition.scopeType, "GLOBAL"),
-          eq(agentDefinition.scopeId, ""),
-          eq(agentDefinition.isBuiltin, true),
-        ),
-      )
-      .limit(1),
-  ]);
+    );
+  const builtinAgent = await execCtx.db
+    .select({ id: agentDefinition.id })
+    .from(agentDefinition)
+    .where(
+      and(
+        eq(agentDefinition.definitionId, "translator"),
+        eq(agentDefinition.scopeType, "GLOBAL"),
+        eq(agentDefinition.scopeId, ""),
+        eq(agentDefinition.isBuiltin, true),
+      ),
+    )
+    .limit(1);
 
   const missingLanguages = requiredLanguageIds.filter(
     (id) => !languages.some((languageRow) => languageRow.id === id),
@@ -280,7 +277,10 @@ export const runSeedPipeline = async (
   } else {
     loader =
       opts.pluginLoader ??
-      new FileSystemPluginLoader({ pluginsDir: opts.pluginsDir });
+      new CompositePluginLoader([
+        new BuiltinPluginLoader([systemPgVectorEntry]),
+        new FileSystemPluginLoader({ pluginsDir: opts.pluginsDir }),
+      ]);
   }
   const pluginManager = PluginManager.get("GLOBAL", "", loader);
 
@@ -304,8 +304,6 @@ export const runSeedPipeline = async (
     console.log(
       "[seed] Plugin defaults installed (syncDefinitions + installDefaults).",
     );
-  } else {
-    console.log("[fixture] Reusing application-bootstrap plugin state.");
   }
 
   // ── 3. GLOBAL plugin config overrides ──────────────────────────────
@@ -411,23 +409,19 @@ export const runSeedPipeline = async (
     console.log("[seed] Plugin restore complete.");
   }
 
-  // ── 4. Dimension reconciliation ────────────────────────────────────
+  // ── 4. Vector storage selection ────────────────────────────────────
   if (
     !skipPluginBootstrap &&
     opts.defaultPluginIds?.includes("system-pgvector-storage")
   ) {
-    const vectorStorageEntry = firstOrGivenService(
+    const vectorStorageEntry = selectFirstServiceImplementation(
       pluginManager,
       "VECTOR_STORAGE",
     );
-    const vectorStorageRecord = pluginManager
-      .getServices("VECTOR_STORAGE")
-      .find((service) => service.dbId === vectorStorageEntry?.id);
-
     if (
       !vectorStorageEntry ||
-      vectorStorageRecord?.pluginId !== "system-pgvector-storage" ||
-      vectorStorageRecord.id !== "native-pgvector"
+      vectorStorageEntry.reference.pluginId !== "system-pgvector-storage" ||
+      vectorStorageEntry.reference.serviceId !== "native-pgvector"
     ) {
       throw new Error(
         "[seed] Expected system-pgvector-storage:native-pgvector to be the active vector storage service.",
@@ -438,7 +432,6 @@ export const runSeedPipeline = async (
   const vectorizerOverride = config.plugins.overrides.find(
     (o) => o.plugin === "openai-vectorizer" || o.plugin.includes("vectorizer"),
   );
-  const dimension = getDimensionFromConfig(vectorizerOverride) ?? 1024;
   // ── 5. Languages ───────────────────────────────────────────────────
   const allLanguages = new Set<string>();
   allLanguages.add(projectSeed.sourceLanguage);
@@ -466,6 +459,9 @@ export const runSeedPipeline = async (
   }
   if (skipPluginBootstrap) {
     await assertFixtureHydrationPrerequisites(execCtx, [...allLanguages]);
+    // Rehydrate the persisted application service configuration for fixture work.
+    await pluginManager.restore(execCtx.db);
+    console.log("[fixture] Restored installed application plugin state.");
     await createBootstrapUser();
   } else {
     await executeCommand(execCtx, ensureLanguages, {
@@ -478,12 +474,23 @@ export const runSeedPipeline = async (
 
   const userIds: string[] = [];
   if (userSeed) {
-    // Find PASSWORD auth provider ID
-    const passwordServiceRow = await execCtx.db.execute(
-      sql`SELECT id FROM "PluginService" WHERE service_id = 'PASSWORD' LIMIT 1`,
-    );
-    const authProviderId = passwordServiceRow.rows?.[0]?.id as number;
-    if (!authProviderId) {
+    const authProvider = await execCtx.db
+      .select({
+        pluginId: pluginInstallation.pluginId,
+        serviceId: pluginService.serviceId,
+        serviceType: pluginService.serviceType,
+        scopeType: pluginInstallation.scopeType,
+        scopeId: pluginInstallation.scopeId,
+      })
+      .from(pluginService)
+      .innerJoin(
+        pluginInstallation,
+        eq(pluginService.pluginInstallationId, pluginInstallation.id),
+      )
+      .where(eq(pluginService.serviceId, "PASSWORD"))
+      .limit(1)
+      .then((rows) => rows[0]);
+    if (!authProvider) {
       throw new Error(
         "PASSWORD auth provider not found. Ensure password-auth-provider plugin is installed.",
       );
@@ -497,7 +504,8 @@ export const runSeedPipeline = async (
           email: u.email,
           name: u.name,
           password: u.password,
-          authProviderId,
+          authProvider:
+            ServiceImplementationReferenceSchema.parse(authProvider),
         },
       );
       refs.set(u.ref, result.userId);
@@ -606,6 +614,7 @@ export const runSeedPipeline = async (
       projectId: project.id,
       creatorId,
       parentContentNodeId: rootNode.id,
+      languageId: projectSeed.sourceLanguage,
       kind: "FILE",
       displayLabel: elementsContentNodeLabel,
       importerId: "seed",
@@ -670,6 +679,7 @@ export const runSeedPipeline = async (
   }
 
   // ── 9. Glossary seeding ────────────────────────────────────────────
+  const recallDerivations: RecallDerivationReference[] = [];
   let glossaryId: string | undefined;
   if (glossarySeed) {
     const g = glossarySeed.glossary;
@@ -700,7 +710,7 @@ export const runSeedPipeline = async (
       refs.set(conceptSeed.ref, concept.id);
       summary.glossaryConcepts += 1;
 
-      await executeCommand(execCtx, createGlossaryTerms, {
+      const created = await executeCommand(execCtx, createGlossaryTerms, {
         glossaryId,
         creatorId,
         data: conceptSeed.terms.map((t) => ({
@@ -712,8 +722,7 @@ export const runSeedPipeline = async (
           definition: conceptSeed.definition,
         })),
       });
-
-      await buildTermRecallVariantsOp({ conceptId: concept.id });
+      recallDerivations.push(...created.derivations);
     }
   }
 
@@ -811,7 +820,7 @@ export const runSeedPipeline = async (
           translationStringIds,
           "create translation vectorized string",
         );
-        const items = await executeCommand(execCtx, createMemoryItems, {
+        const created = await executeCommand(execCtx, createMemoryItems, {
           memoryId: containerMemoryId,
           items: [
             {
@@ -819,13 +828,10 @@ export const runSeedPipeline = async (
               translationStringId,
               sourceStringId,
               creatorId,
-              sourceTemplate: null,
-              translationTemplate: null,
-              slotMapping: null,
             },
           ],
         });
-        const memoryItem = requireFirst(items, "create memory item");
+        const memoryItem = requireFirst(created.items, "create memory item");
         refs.set(itemSeed.ref, memoryItem.id);
         summary.memoryItems += 1;
         if (containerScope === "PROJECT") {
@@ -834,15 +840,21 @@ export const runSeedPipeline = async (
           summary.personalMemoryItems += 1;
         }
 
-        await buildMemoryRecallVariantsOp({
-          memoryItemId: memoryItem.id,
-          memoryId: containerMemoryId,
-          sourceText: itemSeed.source,
-          translationText: itemSeed.translation,
-          sourceLanguageId: itemSeed.sourceLanguage,
-          translationLanguageId: itemSeed.translationLanguage,
-        });
+        recallDerivations.push(...created.derivations);
       }
+    }
+  }
+  if (recallDerivations.length > 0) {
+    const recallDerivationWorker = await startRecallDerivationWorker({
+      db: execCtx.db,
+      pluginManager,
+    });
+    try {
+      await waitForRecallDerivationFresh(recallDerivations, {
+        db: execCtx.db,
+      });
+    } finally {
+      await recallDerivationWorker.stop();
     }
   }
 
@@ -909,7 +921,6 @@ export const runSeedPipeline = async (
       pluginManager,
       cache: new VectorCache(opts.cacheDir),
       vectorizerOverride,
-      dimension,
     });
   } else {
     console.log("[seed] Vectorization skipped (--skip-vectorization).");
@@ -951,21 +962,6 @@ export const runFixtureHydration = async (
   });
 };
 
-const getDimensionFromConfig = (
-  override: PluginOverride | undefined,
-): number | undefined => {
-  if (!override) return undefined;
-  if (!isRecordConfig(override.config)) return undefined;
-  const model = override.config["model-id"] ?? override.config.model;
-  if (typeof model !== "string") return undefined;
-  const dimensionMap: Record<string, number> = {
-    "text-embedding-3-small": 1536,
-    "text-embedding-3-large": 3072,
-    "text-embedding-ada-002": 1536,
-  };
-  return dimensionMap[model] ?? 1024;
-};
-
 const isRecordConfig = (
   config: PluginOverride["config"] | undefined,
 ): config is JSONObject => {
@@ -998,19 +994,21 @@ const getVectorizerModelName = (
   return typeof model === "string" ? model : "unknown";
 };
 
-const vectorizeWithCache = async (opts: {
+export const vectorizeWithCache = async (opts: {
   execCtx: ExecutorContext;
   pluginManager: PluginManager;
   cache: VectorCache;
   vectorizerOverride: PluginOverride | undefined;
-  dimension: number;
 }): Promise<void> => {
-  const { execCtx, pluginManager, cache, vectorizerOverride, dimension } = opts;
+  const { execCtx, pluginManager, cache, vectorizerOverride } = opts;
   const modelName = getVectorizerModelName(vectorizerOverride);
 
   const pm = resolvePluginManager(pluginManager);
-  const vectorizerEntry = firstOrGivenService(pm, "TEXT_VECTORIZER");
-  const storageEntry = firstOrGivenService(pm, "VECTOR_STORAGE");
+  const vectorizerEntry = selectFirstServiceImplementation(
+    pm,
+    "TEXT_VECTORIZER",
+  );
+  const storageEntry = selectFirstServiceImplementation(pm, "VECTOR_STORAGE");
   if (!vectorizerEntry || !storageEntry) {
     throw new Error(
       "[seed] No vectorizer or storage service available. " +
@@ -1047,19 +1045,21 @@ const vectorizeWithCache = async (opts: {
         // oxlint-disable-next-line typescript/no-unsafe-return
         Array.isArray(r) ? r : [r],
       ) as typeof chunkDataArrays;
-      cache.set(modelName, text, languageId, chunkDataArrays, dimension);
     }
 
-    {
-      const vectorizerPlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'TEXT_VECTORIZER' LIMIT 1`,
+    if (
+      chunkDataArrays.some((chunks) =>
+        chunks.some((chunk) => chunk.vector.length !== RequiredVectorDimension),
+      )
+    ) {
+      cache.invalidateModel(modelName);
+      throw new Error(
+        `[seed] Vectorizer model "${modelName}" returned vectors that do not match CAT's fixed ${RequiredVectorDimension}-dimension contract.`,
       );
-      const storagePlugin = await db.execute(
-        sql`SELECT id FROM "PluginService" WHERE service_type = 'VECTOR_STORAGE' LIMIT 1`,
-      );
-      const vectorizerId = (vectorizerPlugin.rows?.[0]?.id as number) ?? 1;
-      const vectorStorageId = (storagePlugin.rows?.[0]?.id as number) ?? 1;
+    }
+    if (!cached) cache.set(modelName, text, languageId, chunkDataArrays);
 
+    {
       const flatChunks = chunkDataArrays.flatMap((chunks, textIdx) =>
         chunks.map((chunk) => ({
           textIndex: textIdx,
@@ -1071,8 +1071,8 @@ const vectorizeWithCache = async (opts: {
         execCtx,
         createVectorizedChunks,
         {
-          vectorizerId,
-          vectorStorageId,
+          vectorizer: vectorizerEntry.reference,
+          vectorStorage: storageEntry.reference,
           chunkSetCount: chunkDataArrays.length,
           chunks: flatChunks,
         },

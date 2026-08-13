@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MemoryCheckpointer } from "#/graph/checkpointer/index.ts";
 import { QueuedExecutorPool } from "#/graph/executor-pool.ts";
+import type { LeaseManager } from "#/graph/lease.ts";
 import type { NodeExecutor } from "#/graph/node-registry.ts";
 
 const createDeferred = <T>() => {
@@ -17,14 +18,22 @@ const createDeferred = <T>() => {
   };
 };
 
-const createTask = (args: { nodeId: string; executor: NodeExecutor }) => {
+const createTask = (args: {
+  nodeId: string;
+  executor: NodeExecutor;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+  retry?: { maxAttempts: number; backoffMs: number; backoffMultiplier: number };
+  publishToStream?: () => Promise<void>;
+  emitProxy?: (event: { type: string }) => Promise<void>;
+}) => {
   return {
     runId: "11111111-1111-4111-8111-111111111111",
     nodeId: args.nodeId,
     nodeDef: {
       id: args.nodeId,
       type: "transform" as const,
-      timeoutMs: 5_000,
+      timeoutMs: args.timeoutMs ?? 5_000,
     },
     snapshot: {
       runId: "11111111-1111-4111-8111-111111111111",
@@ -37,8 +46,10 @@ const createTask = (args: { nodeId: string; executor: NodeExecutor }) => {
     executor: args.executor,
     config: {},
     runtime: {},
-    emitProxy: async () => undefined,
-    publishToStream: async () => undefined,
+    emitProxy: args.emitProxy ?? (async () => undefined),
+    publishToStream: args.publishToStream ?? (async () => undefined),
+    signal: args.signal,
+    retry: args.retry,
   };
 };
 
@@ -121,6 +132,7 @@ describe("QueuedExecutorPool", () => {
     let shutdownFinished = false;
     void shutdownPromise.then(() => {
       shutdownFinished = true;
+      return undefined;
     });
 
     await vi.waitFor(() => {
@@ -131,5 +143,142 @@ describe("QueuedExecutorPool", () => {
     await Promise.all([submitPromise, shutdownPromise]);
 
     expect(shutdownFinished).toBe(true);
+  });
+
+  it("settles queued work when shutdown starts", async () => {
+    const pool = new QueuedExecutorPool({ maxConcurrency: 1 });
+    const gate = createDeferred<void>();
+    const active = pool.submit(
+      createTask({
+        nodeId: "active",
+        executor: async () => {
+          await gate.promise;
+          return { status: "completed" };
+        },
+      }),
+    );
+    const queued = pool.submit(
+      createTask({
+        nodeId: "queued",
+        executor: async () => ({ status: "completed" }),
+      }),
+    );
+
+    const shutdown = pool.shutdown();
+    await expect(queued).rejects.toThrow("shutting down");
+    gate.resolve();
+    await Promise.all([active, shutdown]);
+  });
+
+  it("does not publish after the combined timeout signal aborts", async () => {
+    const publishToStream = vi.fn(async () => undefined);
+    const pool = new QueuedExecutorPool({ maxConcurrency: 1 });
+
+    await pool.submit(
+      createTask({
+        nodeId: "timed-out",
+        timeoutMs: 10,
+        executor: async () => {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+          return { status: "completed" };
+        },
+        publishToStream,
+      }),
+    );
+
+    expect(publishToStream).not.toHaveBeenCalled();
+  });
+
+  it("fences publication when the lease can no longer be renewed", async () => {
+    const publishToStream = vi.fn(async () => undefined);
+    const leaseManager: LeaseManager = {
+      acquire: vi.fn(async () => ({
+        runId: "11111111-1111-4111-8111-111111111111",
+        nodeId: "lease-lost",
+        leaseId: "lease-1",
+        acquiredAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 5_000).toISOString(),
+        lastHeartbeatAt: new Date().toISOString(),
+        heartbeatIntervalMs: 1_000,
+        status: "active" as const,
+      })),
+      renew: vi.fn(async () => false),
+      release: vi.fn(async () => undefined),
+      findExpired: vi.fn(async () => []),
+    };
+    const pool = new QueuedExecutorPool({ maxConcurrency: 1, leaseManager });
+
+    await pool.submit(
+      createTask({
+        nodeId: "lease-lost",
+        executor: async () => ({ status: "completed" }),
+        publishToStream,
+      }),
+    );
+
+    expect(publishToStream).not.toHaveBeenCalled();
+  });
+
+  it("aborts retry backoff without running another attempt", async () => {
+    const controller = new AbortController();
+    const retries = createDeferred<void>();
+    const emitProxy = vi.fn(async (event: { type: string }) => {
+      if (event.type === "node:retry") retries.resolve();
+    });
+    const executor = vi.fn(async () => {
+      throw new Error("retry me");
+    });
+    const pool = new QueuedExecutorPool({ maxConcurrency: 1 });
+    const submitted = pool.submit(
+      createTask({
+        nodeId: "retry-abort",
+        executor,
+        signal: controller.signal,
+        retry: { maxAttempts: 3, backoffMs: 10_000, backoffMultiplier: 1 },
+        emitProxy,
+      }),
+    );
+
+    await retries.promise;
+    controller.abort();
+    await submitted;
+
+    expect(executor).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves a typed operation failure after retry exhaustion", async () => {
+    const operationFailure = {
+      code: "CAT_OPERATION_DEPENDENCY_UNAVAILABLE" as const,
+      message: "Language analysis is unavailable.",
+      severity: "ERROR" as const,
+      retryable: true,
+      capability: "LANGUAGE_ANALYSIS" as const,
+      affectedResources: [{ type: "ELEMENT" as const, id: "42" }],
+      redactionBoundary: "PUBLIC" as const,
+    };
+    const error = Object.assign(new Error(operationFailure.message), {
+      operationFailure,
+    });
+    const emitProxy = vi.fn(async () => undefined);
+    const pool = new QueuedExecutorPool({ maxConcurrency: 1 });
+
+    await pool.submit(
+      createTask({
+        nodeId: "typed-failure",
+        executor: async () => {
+          throw error;
+        },
+        retry: { maxAttempts: 1, backoffMs: 0, backoffMultiplier: 1 },
+        emitProxy,
+      }),
+    );
+
+    expect(emitProxy).toHaveBeenCalledWith({
+      type: "node:error",
+      payload: {
+        error: operationFailure.message,
+        operationFailure,
+      },
+    });
   });
 });

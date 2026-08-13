@@ -4,14 +4,21 @@ import {
   pluginConfig,
   pluginConfigInstance,
   pluginInstallation,
+  pluginService,
+  recallDerivationState,
   user,
 } from "@cat/db";
-import type { _JSONSchema } from "@cat/shared";
+import {
+  CanonicalInputVersionSchema,
+  RecallDerivationVersionSchema,
+  type _JSONSchema,
+} from "@cat/shared";
 import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import {
   installPlugin,
+  ensureLanguages,
   migratePluginConfigInstance,
   registerPluginDefinition,
   writePluginConfigInstance,
@@ -50,6 +57,9 @@ beforeAll(async () => {
     id: CREATOR_ID,
     name: "Plugin Config Tester",
     email: `plugin-config-${CREATOR_ID}@test.local`,
+  });
+  await executeCommand({ db: testDb.client }, ensureLanguages, {
+    languageIds: ["en"],
   });
 });
 
@@ -252,6 +262,84 @@ describe("plugin config lifecycle commands", () => {
       },
     );
     expect(rollback).toMatchObject({ revision: instance.revision + 2 });
+  });
+
+  test("invalidates all recall generations only when tokenizer config changes", async () => {
+    const { pluginId, definition, installation, instance } =
+      await seedInstalledPlugin();
+    await testDb.client.insert(pluginService).values({
+      pluginInstallationId: installation.id,
+      serviceId: "tokenizer",
+      serviceType: "TOKENIZER",
+    });
+    const canonicalInputVersion = CanonicalInputVersionSchema.parse(
+      `sha256:${"a".repeat(64)}`,
+    );
+    const recallDerivationVersion = RecallDerivationVersionSchema.parse(
+      `sha256:${"b".repeat(64)}`,
+    );
+    const [state] = await testDb.client
+      .insert(recallDerivationState)
+      .values({
+        targetKind: "MEMORY_ITEM",
+        targetId: String(crypto.getRandomValues(new Uint32Array(1))[0]),
+        languageId: "en",
+        status: "FRESH",
+        canonicalInputVersion,
+        requiredDerivationVersion: recallDerivationVersion,
+        currentCanonicalInputVersion: canonicalInputVersion,
+        currentDerivationVersion: recallDerivationVersion,
+      })
+      .returning();
+
+    const changed = await executeCommand(
+      { db: testDb.client },
+      writePluginConfigInstance,
+      {
+        pluginId,
+        scopeType: "GLOBAL",
+        scopeId: "",
+        creatorId: CREATOR_ID,
+        value: { endpoint: "http://tokenizer-changed" },
+        expectedSchemaVersion: "1",
+        expectedSchemaDigest: definition.schemaDigest,
+        expectedRevision: instance.revision,
+      },
+    );
+    const [invalidated] = await testDb.client
+      .select()
+      .from(recallDerivationState)
+      .where(eq(recallDerivationState.id, requireFixtureValue(state).id));
+    expect(invalidated).toMatchObject({
+      status: "PENDING",
+      demandRevision: 2,
+      requiredDerivationVersion: null,
+    });
+
+    await testDb.client
+      .update(recallDerivationState)
+      .set({
+        status: "FRESH",
+        requiredDerivationVersion: recallDerivationVersion,
+        currentCanonicalInputVersion: canonicalInputVersion,
+        currentDerivationVersion: recallDerivationVersion,
+      })
+      .where(eq(recallDerivationState.id, requireFixtureValue(state).id));
+    await executeCommand({ db: testDb.client }, writePluginConfigInstance, {
+      pluginId,
+      scopeType: "GLOBAL",
+      scopeId: "",
+      creatorId: CREATOR_ID,
+      value: { endpoint: "http://tokenizer-changed" },
+      expectedSchemaVersion: "1",
+      expectedSchemaDigest: definition.schemaDigest,
+      expectedRevision: requireFixtureValue(changed).revision,
+    });
+    const [unchanged] = await testDb.client
+      .select()
+      .from(recallDerivationState)
+      .where(eq(recallDerivationState.id, requireFixtureValue(state).id));
+    expect(unchanged).toMatchObject({ status: "FRESH", demandRevision: 2 });
   });
 
   test("allows exactly one concurrent writer and rejects the losing rollback", async () => {

@@ -1,11 +1,21 @@
-import type { ToolExecutionContext } from "@cat/agent";
+import { ToolRegistry, type ToolExecutionContext } from "@cat/agent";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocked = vi.hoisted(() => ({
   qaOp: vi.fn(),
-  termRecallOp: vi.fn(),
+  collectTermRecallOp: vi.fn(),
+  getTermRecallCandidates: vi.fn(),
+  RecallOperationFailureError: class RecallOperationFailureError extends Error {
+    public readonly failure: unknown;
+
+    public constructor(failure: unknown) {
+      super("recall blocked");
+      this.failure = failure;
+    }
+  },
   tokenizeOp: vi.fn(),
   collectMemoryRecallOp: vi.fn(),
+  getMemoryRecallCandidates: vi.fn(),
   createTranslationOp: vi.fn(),
   getContentNode: Symbol("getContentNode"),
   getLanguage: Symbol("getLanguage"),
@@ -20,8 +30,8 @@ const mocked = vi.hoisted(() => ({
   listTranslationsByElement: Symbol("listTranslationsByElement"),
   executeQuery: vi.fn(),
   getDbHandle: vi.fn().mockResolvedValue({ client: { tag: "db" } }),
-  firstOrGivenService: vi.fn(),
   resolvePluginManager: vi.fn(),
+  selectFirstServiceImplementation: vi.fn(),
 }));
 
 vi.mock("@cat/domain", () => ({
@@ -42,15 +52,18 @@ vi.mock("@cat/domain", () => ({
 
 vi.mock("@cat/operations", () => ({
   qaOp: mocked.qaOp,
-  termRecallOp: mocked.termRecallOp,
+  collectTermRecallOp: mocked.collectTermRecallOp,
+  getTermRecallCandidates: mocked.getTermRecallCandidates,
+  RecallOperationFailureError: mocked.RecallOperationFailureError,
   tokenizeOp: mocked.tokenizeOp,
   collectMemoryRecallOp: mocked.collectMemoryRecallOp,
+  getMemoryRecallCandidates: mocked.getMemoryRecallCandidates,
   createTranslationOp: mocked.createTranslationOp,
 }));
 
 vi.mock("@cat/server-shared/plugin", () => ({
-  firstOrGivenService: mocked.firstOrGivenService,
   resolvePluginManager: mocked.resolvePluginManager,
+  selectFirstServiceImplementation: mocked.selectFirstServiceImplementation,
 }));
 
 import { getNeighborsTool } from "./get-neighbors.tool.ts";
@@ -64,7 +77,9 @@ import { submitTranslationTool } from "./submit-translation.tool.ts";
 
 const createCtx = (
   overrides?: Partial<ToolExecutionContext["session"]>,
+  signal: AbortSignal = new AbortController().signal,
 ): ToolExecutionContext => ({
+  signal,
   session: {
     sessionId: "11111111-1111-4111-8111-111111111111",
     agentId: "agent-1",
@@ -85,42 +100,81 @@ describe("translation tools", () => {
   const createdAt = new Date("2025-01-01T00:00:00.000Z");
   const updatedAt = new Date("2025-01-02T00:00:00.000Z");
   const legacyScopeKey = ["document", "Id"].join("");
+  const fileHandler = {
+    pluginId: "test-plugin",
+    serviceId: "file-handler",
+    serviceType: "FILE_HANDLER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  };
+  const vectorizer = {
+    pluginId: "test-plugin",
+    serviceId: "vectorizer",
+    serviceType: "TEXT_VECTORIZER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  };
+  const vectorStorage = {
+    pluginId: "test-plugin",
+    serviceId: "vector-storage",
+    serviceType: "VECTOR_STORAGE",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  };
 
   beforeEach(() => {
     mocked.qaOp.mockReset();
-    mocked.termRecallOp.mockReset();
+    mocked.collectTermRecallOp.mockReset();
+    mocked.getTermRecallCandidates.mockReset();
     mocked.tokenizeOp.mockReset();
     mocked.collectMemoryRecallOp.mockReset();
+    mocked.getMemoryRecallCandidates.mockReset();
     mocked.createTranslationOp.mockReset();
     mocked.executeQuery.mockReset();
     mocked.getDbHandle.mockClear();
-    mocked.firstOrGivenService.mockReset();
+    mocked.selectFirstServiceImplementation.mockReset();
     mocked.resolvePluginManager.mockReset();
   });
 
   it("uses session language fallback when searching translation memory", async () => {
-    mocked.collectMemoryRecallOp.mockResolvedValue([
-      {
-        source: "hello",
-        translation: "你好",
-        adaptedTranslation: null,
-        confidence: 0.91,
-        memoryId: "33333333-3333-4333-8333-333333333333",
-        evidences: [],
+    const candidate = {
+      source: "hello",
+      translation: "你好",
+      adaptedTranslation: null,
+      confidence: 0.91,
+      memoryId: "33333333-3333-4333-8333-333333333333",
+      evidences: [],
+    };
+    mocked.collectMemoryRecallOp.mockResolvedValue({
+      requestedChannels: ["EXACT"],
+      outcomes: {
+        EXACT: { status: "SUCCEEDED", candidates: [candidate] },
+        FUZZY: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        KEYWORD: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        VARIANT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+        SEMANTIC: { status: "SKIPPED", reason: "NOT_REQUESTED" },
       },
-    ]);
-
-    const result = await searchTmTool.execute({ text: "hello" }, createCtx());
-
-    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith({
-      text: "hello",
-      sourceLanguageId: "en-US",
-      translationLanguageId: "zh-CN",
-      memoryIds: [],
-      chunkIds: [],
-      minSimilarity: 0.72,
-      maxAmount: 5,
     });
+    mocked.getMemoryRecallCandidates.mockReturnValue([candidate]);
+
+    const context = createCtx();
+    const result = await searchTmTool.execute({ text: "hello" }, context);
+
+    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: "hello",
+        sourceLanguageId: "en-US",
+        translationLanguageId: "zh-CN",
+        memoryIds: [],
+        minSimilarity: 0.72,
+        maxAmount: 5,
+      },
+      expect.objectContaining({
+        signal: context.signal,
+        traceId: "agent-tool:22222222-2222-4222-8222-222222222222:search-tm",
+      }),
+    );
+    expect(mocked.getMemoryRecallCandidates).toHaveBeenCalledOnce();
     expect(result).toEqual({
       memories: [
         {
@@ -137,10 +191,55 @@ describe("translation tools", () => {
     });
   });
 
-  it("prefers explicit language arguments over session fallback for termbase lookup", async () => {
-    mocked.termRecallOp.mockResolvedValue({
-      terms: [{ source: "cat", target: "猫" }],
+  it("projects a typed translation-memory recall failure", async () => {
+    const failure = {
+      code: "CAT_OPERATION_DEPENDENCY_UNAVAILABLE",
+      blocker: "recall_derivation_pending",
+      capability: "RECALL_DERIVATION",
+      retryable: true,
+      affectedResources: [{ type: "PROJECT", id: "project-1" }],
+    };
+    mocked.collectMemoryRecallOp.mockRejectedValue(
+      new mocked.RecallOperationFailureError(failure),
+    );
+
+    await expect(
+      searchTmTool.execute({ text: "hello" }, createCtx()),
+    ).resolves.toEqual({
+      memories: [],
+      operationFailure: failure,
     });
+  });
+
+  it("cancels a non-cooperative built-in translation-memory read", async () => {
+    const controller = new AbortController();
+    const cause = new Error("read cancelled");
+    mocked.collectMemoryRecallOp.mockImplementationOnce(
+      async () => await new Promise<never>(() => undefined),
+    );
+    const registry = new ToolRegistry();
+    registry.register(searchTmTool);
+
+    const operation = registry.execute(
+      "search_tm",
+      { text: "hello" },
+      createCtx(undefined, controller.signal),
+    );
+    await vi.waitFor(() => {
+      expect(mocked.collectMemoryRecallOp).toHaveBeenCalledOnce();
+    });
+    controller.abort(cause);
+
+    await expect(operation).rejects.toBe(cause);
+    expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  it("prefers explicit language arguments over session fallback for termbase lookup", async () => {
+    mocked.collectTermRecallOp.mockResolvedValue({});
+    mocked.getTermRecallCandidates.mockReturnValue([]);
 
     await searchTermbaseTool.execute(
       {
@@ -151,13 +250,19 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.termRecallOp).toHaveBeenCalledWith({
-      text: "cat",
-      sourceLanguageId: "fr-FR",
-      translationLanguageId: "de-DE",
-      glossaryIds: [],
-      wordSimilarityThreshold: 0.3,
-    });
+    expect(mocked.collectTermRecallOp).toHaveBeenCalledWith(
+      {
+        text: "cat",
+        sourceLanguageId: "fr-FR",
+        translationLanguageId: "de-DE",
+        glossaryIds: [],
+        wordSimilarityThreshold: 0.3,
+      },
+      expect.objectContaining({
+        traceId:
+          "agent-tool:22222222-2222-4222-8222-222222222222:search-termbase",
+      }),
+    );
   });
 
   it("uses session language fallback for qa_check", async () => {
@@ -174,19 +279,24 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.qaOp).toHaveBeenCalledWith({
-      source: {
-        languageId: "en-US",
-        text: "hello",
-        tokens: ["hello"],
+    expect(mocked.qaOp).toHaveBeenCalledWith(
+      {
+        source: {
+          languageId: "en-US",
+          text: "hello",
+          tokens: ["hello"],
+        },
+        translation: {
+          languageId: "zh-CN",
+          text: "你好",
+          tokens: ["你好"],
+        },
+        glossaryIds: [],
       },
-      translation: {
-        languageId: "zh-CN",
-        text: "你好",
-        tokens: ["你好"],
-      },
-      glossaryIds: [],
-    });
+      expect.objectContaining({
+        traceId: "agent-tool:22222222-2222-4222-8222-222222222222:qa-check",
+      }),
+    );
     expect(result).toEqual({ passed: true, issues: [] });
   });
 
@@ -197,7 +307,7 @@ describe("translation tools", () => {
         displayLabel: "docs",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -212,7 +322,7 @@ describe("translation tools", () => {
         displayLabel: "README.md",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
-        fileHandlerId: 9,
+        fileHandler,
         fileId: 10,
         kind: "FILE",
         exportRole: "FILE",
@@ -227,7 +337,7 @@ describe("translation tools", () => {
         displayLabel: "guide.md",
         projectId: "project-1",
         creatorId: "55555555-5555-4555-8555-555555555555",
-        fileHandlerId: 9,
+        fileHandler,
         fileId: 11,
         kind: "FILE",
         exportRole: "FILE",
@@ -261,7 +371,7 @@ describe("translation tools", () => {
           kind: "DIRECTORY",
           exportRole: "DIRECTORY",
           boundaryType: "SOFT",
-          fileHandlerId: null,
+          fileHandler: null,
           fileId: null,
           isContainer: true,
           createdAt,
@@ -277,7 +387,7 @@ describe("translation tools", () => {
           kind: "FILE",
           exportRole: "FILE",
           boundaryType: "HARD",
-          fileHandlerId: 9,
+          fileHandler,
           fileId: 10,
           isContainer: false,
           createdAt,
@@ -380,7 +490,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "docs",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -395,7 +505,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "README.md",
-        fileHandlerId: 1,
+        fileHandler,
         fileId: 2,
         kind: "FILE",
         exportRole: "FILE",
@@ -466,7 +576,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "docs",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -481,7 +591,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "other.md",
-        fileHandlerId: 1,
+        fileHandler,
         fileId: 2,
         kind: "FILE",
         exportRole: "FILE",
@@ -512,7 +622,7 @@ describe("translation tools", () => {
         projectId: "project-1",
         creatorId: "creator-1",
         displayLabel: "docs",
-        fileHandlerId: null,
+        fileHandler: null,
         fileId: null,
         kind: "DIRECTORY",
         exportRole: "DIRECTORY",
@@ -665,9 +775,15 @@ describe("translation tools", () => {
         id: "zh-CN",
       });
     mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
-    mocked.firstOrGivenService
-      .mockReturnValueOnce({ id: 101, service: { tag: "vectorizer" } })
-      .mockReturnValueOnce({ id: 202, service: { tag: "vector-storage" } });
+    mocked.selectFirstServiceImplementation
+      .mockReturnValueOnce({
+        reference: vectorizer,
+        service: { tag: "vectorizer" },
+      })
+      .mockReturnValueOnce({
+        reference: vectorStorage,
+        service: { tag: "vector-storage" },
+      });
     mocked.createTranslationOp.mockResolvedValue({
       translationIds: [88],
       memoryItemIds: [99],
@@ -692,33 +808,92 @@ describe("translation tools", () => {
     );
     expect(mocked.executeQuery).toHaveBeenCalledTimes(2);
     expect(mocked.resolvePluginManager).toHaveBeenCalledWith(undefined); // ctx.pluginManager is undefined in createCtx()
-    expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
+    expect(mocked.selectFirstServiceImplementation).toHaveBeenNthCalledWith(
       1,
       { tag: "plugin-manager" },
       "TEXT_VECTORIZER",
     );
-    expect(mocked.firstOrGivenService).toHaveBeenNthCalledWith(
+    expect(mocked.selectFirstServiceImplementation).toHaveBeenNthCalledWith(
       2,
       { tag: "plugin-manager" },
       "VECTOR_STORAGE",
     );
-    expect(mocked.createTranslationOp).toHaveBeenCalledWith({
-      data: [
-        {
-          translatableElementId: 5,
-          text: "你好",
-          languageId: "zh-CN",
-        },
-      ],
-      translatorId: null,
-      memoryIds: [],
-      vectorizerId: 101,
-      vectorStorageId: 202,
-    });
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith(
+      {
+        data: [
+          {
+            translatableElementId: 5,
+            text: "你好",
+            languageId: "zh-CN",
+          },
+        ],
+        translatorId: null,
+        memoryIds: [],
+        vectorizer,
+        vectorStorage,
+      },
+      expect.objectContaining({
+        traceId:
+          "agent-tool:22222222-2222-4222-8222-222222222222:submit-translation",
+      }),
+    );
     expect(result).toEqual({
       translationIds: [88],
       memoryItemIds: [99],
     });
+  });
+
+  it("returns the committed built-in translation outcome after abort", async () => {
+    const controller = new AbortController();
+    const cause = new Error("write cancellation requested");
+    let settleWrite: (() => void) | undefined;
+    const write = new Promise<void>((resolve) => {
+      settleWrite = resolve;
+    });
+    mocked.executeQuery
+      .mockResolvedValueOnce({
+        value: "Hello",
+        languageId: "en-US",
+        projectId: "project-1",
+        primaryContentNodeId: "33333333-3333-4333-8333-333333333333",
+        chunkIds: [1],
+      })
+      .mockResolvedValueOnce({ id: "zh-CN" });
+    mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
+    mocked.selectFirstServiceImplementation.mockReturnValue(undefined);
+    mocked.createTranslationOp.mockImplementationOnce(async () => {
+      await write;
+      return { translationIds: [88], memoryItemIds: [] };
+    });
+    const registry = new ToolRegistry();
+    registry.register(submitTranslationTool);
+
+    let settled = false;
+    const operation = registry
+      .execute(
+        "submit_translation",
+        { elementId: 5, text: "你好" },
+        createCtx(undefined, controller.signal),
+      )
+      .finally(() => {
+        settled = true;
+      });
+    await vi.waitFor(() => {
+      expect(mocked.createTranslationOp).toHaveBeenCalledOnce();
+    });
+    controller.abort(cause);
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    settleWrite?.();
+    await expect(operation).resolves.toEqual({
+      translationIds: [88],
+      memoryItemIds: [],
+    });
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ signal: controller.signal }),
+    );
   });
 
   it("submits translations even when vector services are unavailable", async () => {
@@ -734,7 +909,7 @@ describe("translation tools", () => {
         id: "zh-CN",
       });
     mocked.resolvePluginManager.mockReturnValue({ tag: "plugin-manager" });
-    mocked.firstOrGivenService.mockReturnValue(undefined);
+    mocked.selectFirstServiceImplementation.mockReturnValue(undefined);
     mocked.createTranslationOp.mockResolvedValue({
       translationIds: [108],
       memoryItemIds: [209],
@@ -745,19 +920,25 @@ describe("translation tools", () => {
       createCtx(),
     );
 
-    expect(mocked.createTranslationOp).toHaveBeenCalledWith({
-      data: [
-        {
-          translatableElementId: 10,
-          text: "提示",
-          languageId: "zh-CN",
-        },
-      ],
-      translatorId: null,
-      memoryIds: [],
-      vectorizerId: undefined,
-      vectorStorageId: undefined,
-    });
+    expect(mocked.createTranslationOp).toHaveBeenCalledWith(
+      {
+        data: [
+          {
+            translatableElementId: 10,
+            text: "提示",
+            languageId: "zh-CN",
+          },
+        ],
+        translatorId: null,
+        memoryIds: [],
+        vectorizer: undefined,
+        vectorStorage: undefined,
+      },
+      expect.objectContaining({
+        traceId:
+          "agent-tool:22222222-2222-4222-8222-222222222222:submit-translation",
+      }),
+    );
     expect(result).toEqual({
       translationIds: [108],
       memoryItemIds: [209],

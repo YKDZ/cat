@@ -29,7 +29,7 @@ describe("parseAgentDefinition", () => {
     expect(result.metadata.name).toBe("Chinese to English Translator");
     expect(result.metadata.version).toBe("1.0.5");
     expect(result.metadata.type).toBe("GENERAL");
-    expect(result.metadata.llm?.providerId).toBeUndefined();
+    expect(result.metadata.llm?.provider).toBeUndefined();
     expect(result.metadata.llm?.temperature).toBe(0.3);
     expect(result.metadata.tools).toEqual(["translate_segment", "finish"]);
     expect(result.content).toContain("professional Chinese to English");
@@ -40,7 +40,12 @@ describe("parseAgentDefinition", () => {
 id: translator-with-provider
 name: Translator With Provider
 llm:
-  providerId: 7
+  provider:
+    pluginId: test-plugin
+    serviceId: llm
+    serviceType: LLM_PROVIDER
+    scopeType: GLOBAL
+    scopeId: ""
   temperature: 0.2
 ---
 
@@ -49,7 +54,7 @@ Body text.
 
     const result = parseAgentDefinition(withProvider);
 
-    expect(result.metadata.llm?.providerId).toBe(7);
+    expect(result.metadata.llm?.provider).toMatchObject({ serviceId: "llm" });
     expect(result.metadata.llm?.temperature).toBe(0.2);
   });
 

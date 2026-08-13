@@ -128,7 +128,7 @@ export const persistContentGraphAttachments: Command<
         textData: ev.textData ?? null,
         jsonData: ev.jsonData ?? null,
         fileId: ev.fileId ?? null,
-        storageProviderId: ev.storageProviderId ?? null,
+        storageProvider: ev.storageProvider ?? null,
         displayLabel: ev.displayLabel ?? null,
         trustLevel: ev.trustLevel ?? "COLLECTED",
         freshnessAt: ev.freshness ? new Date(ev.freshness) : null,

@@ -8,7 +8,6 @@ import {
 import { randomUUID } from "node:crypto";
 import { createWriteStream } from "node:fs";
 import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { readFile } from "node:fs/promises";
 import {
   createConnection,
   createServer,
@@ -17,21 +16,29 @@ import {
 } from "node:net";
 import { join, resolve } from "node:path";
 
-import { DrizzleDB, vectorizedString } from "@cat/db";
+import { DrizzleDB, task, vectorizedString } from "@cat/db";
 import {
   createContentNodeUnderParent,
   createElements,
+  createGlossary,
+  createMemory,
   createPR,
   createProject,
   createQaReviewRunWithFindings,
   createRootContentNode,
   createTranslations,
   executeCommand,
+  grantPermissionTuple,
   materializeQaReviewQueueItem,
   updatePRStatus,
 } from "@cat/domain";
 import { loadDevSeed, runFixtureHydration, type RefResolver } from "@cat/seed";
-import { formatDiagnosticErrorTree, redactDiagnosticText } from "@cat/shared";
+import {
+  BatchAutoTranslationTaskPayloadSchema,
+  formatDiagnosticErrorTree,
+  redactDiagnosticText,
+  TaskRuntimeSchema,
+} from "@cat/shared";
 import { Client } from "pg";
 import { createClient } from "redis";
 
@@ -40,24 +47,32 @@ import {
   removeDevProbeWorkspace,
   type DevProbeWorkspace,
 } from "./dev-probe-workspace.ts";
-import type { TestServiceLease } from "./test-service-lease.ts";
+import { parseE2ERefs } from "./e2e-refs.ts";
+import {
+  paginationFixtureCount,
+  taskPaginationFixtureCount,
+} from "./pagination-fixture.ts";
+import type {
+  TestServiceDatabaseCleanup,
+  TestServiceLease,
+} from "./test-service-lease.ts";
 
 const root = resolve(import.meta.dirname, "../..");
-const e2eArtifactRoot = join(root, ".tmp", "e2e");
-const searchRuntimeInitializationPath = join(
-  root,
-  "apps",
-  "postgres-search-runtime",
-  "init",
-  "01-init-extensions.sql",
-);
+export const e2eArtifactRootFrom = (env: NodeJS.ProcessEnv): string =>
+  resolve(
+    env.CAT_E2E_ARTIFACT_ROOT === undefined || env.CAT_E2E_ARTIFACT_ROOT === ""
+      ? join(root, ".tmp", "e2e")
+      : env.CAT_E2E_ARTIFACT_ROOT,
+  );
 const startupTimeoutMs = 300_000;
-const cleanupTimeoutMs = 60_000;
-const cleanupSettlementTimeoutMs = 10_000;
+export const executionCellCleanupTimeoutMs = 60_000;
+const cleanupTimeoutMs = executionCellCleanupTimeoutMs;
+export const executionCellCleanupSettlementTimeoutMs = 10_000;
+const cleanupSettlementTimeoutMs = executionCellCleanupSettlementTimeoutMs;
 const processTerminationGraceMs = 5_000;
 const forcedProcessExitTimeoutMs = 5_000;
 const logDrainTimeoutMs = 5_000;
-const playwrightTimeoutMs = 480_000;
+export const playwrightTimeoutMs = 10 * 60_000;
 
 export type ExecutionTarget = "dev" | "standalone" | "runtime";
 export type ExecutionBrowser = "chromium" | "firefox";
@@ -89,7 +104,7 @@ export type CellRuntime = {
   applicationUrl: string;
   artifactDirectory: string;
   baseUrl: string;
-  databaseName: string;
+  databaseName: CellDatabaseName;
   databaseUrl: string;
   environment: NodeJS.ProcessEnv;
   port: number;
@@ -131,16 +146,22 @@ export type TargetAdapter = {
 };
 
 type Disposer = (signal: AbortSignal) => Promise<void>;
+type DisposerDiagnostic = () => string;
 
 type RegisteredDisposer = {
   active: boolean;
+  diagnostic?: DisposerDiagnostic;
   dispose: Disposer;
   label: string;
 };
 
 export type ExecutionCellDependencies = {
   createRuntime?: (
-    register: (label: string, disposer: Disposer) => () => void,
+    register: (
+      label: string,
+      disposer: Disposer,
+      diagnostic?: DisposerDiagnostic,
+    ) => () => void,
   ) => Promise<CellRuntime>;
   cleanupSettlementTimeoutMs?: number;
   cleanupTimeoutMs?: number;
@@ -731,7 +752,363 @@ const reservePort = async (): Promise<number> => {
 const quoteIdentifier = (value: string): string =>
   `"${value.replaceAll('"', '""')}"`;
 
-const databaseUrlFor = (adminUrl: string, databaseName: string): string => {
+export type CellDatabaseName = string & {
+  readonly __cellDatabaseName: unique symbol;
+};
+
+export type CellDatabaseCleanupPhase =
+  | "connect"
+  | "connection-gate"
+  | "terminate"
+  | "drain"
+  | "retire"
+  | "drop"
+  | "close"
+  | "complete";
+
+type CellDatabaseCleanupClient = Pick<Client, "connect" | "end" | "query">;
+
+type CellDatabaseDropLock = {
+  classId: number | null;
+  databaseOid: number | null;
+  granted: boolean;
+  locktype: string;
+  mode: string;
+  objectId: number | null;
+  relationOid: number | null;
+};
+
+type CellDatabaseDropDiagnosticUnavailableCategory =
+  | "connection"
+  | "invalid-result"
+  | "query";
+
+export type CellDatabaseDropDiagnostic =
+  | { status: "pending" }
+  | {
+      category: CellDatabaseDropDiagnosticUnavailableCategory;
+      code?: string;
+      status: "unavailable";
+    }
+  | {
+      blockingPids: readonly number[];
+      locks: readonly CellDatabaseDropLock[];
+      preparedTransactionCount: number;
+      replicationSlotCount: number;
+      status: "captured";
+      waitEvent: string | null;
+      waitEventType: string | null;
+    };
+
+export type CellDatabaseCleanupState = {
+  dropDiagnostic?: CellDatabaseDropDiagnostic;
+  phase: CellDatabaseCleanupPhase;
+  primaryFailurePhase?: Exclude<CellDatabaseCleanupPhase, "complete">;
+};
+
+export type CellDatabaseCleanupProgress = (
+  state: CellDatabaseCleanupState,
+) => void;
+
+export const formatCellDatabaseCleanupDiagnostic = (
+  state: CellDatabaseCleanupState,
+): string =>
+  `phase=${state.phase}${
+    state.primaryFailurePhase === undefined
+      ? ""
+      : ` primaryPhase=${state.primaryFailurePhase}`
+  }${
+    state.dropDiagnostic === undefined
+      ? ""
+      : ` dropDiagnostic=${JSON.stringify(state.dropDiagnostic)}`
+  }`;
+
+const cellDatabaseNamePattern = /^cat_e2e_cell_[a-f0-9]{32}$/;
+const cellDatabaseConnectionDrainPollIntervalMs = 50;
+const cellDatabaseDropDiagnosticDelayMs = 5_000;
+const cellDatabaseDropDiagnosticOperationTimeoutMs = 1_000;
+const cellDatabaseConnectionCountQuery =
+  'SELECT pg_backend_pid()::integer AS "cleanupBackendPid", count(*)::integer AS "activeConnections" FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()';
+const cellDatabaseDropDiagnosticSetupQuery =
+  'SELECT oid::text AS "databaseOid" FROM pg_database WHERE datname = $1';
+const cellDatabaseDropDiagnosticQuery = `SELECT
+  activity.wait_event_type AS "waitEventType",
+  activity.wait_event AS "waitEvent",
+  pg_blocking_pids($1) AS "blockingPids",
+  COALESCE((
+    SELECT json_agg(json_build_object(
+      'locktype', lock.locktype,
+      'mode', lock.mode,
+      'granted', lock.granted,
+      'databaseOid', lock.database::text,
+      'relationOid', lock.relation::text,
+      'classId', lock.classid::text,
+      'objectId', lock.objid::text
+    ) ORDER BY lock.locktype, lock.mode, lock.granted)
+    FROM pg_locks AS lock
+    WHERE lock.pid = $1
+  ), '[]'::json) AS locks,
+  (SELECT count(*)::integer FROM pg_prepared_xacts WHERE database = $3) AS "preparedTransactionCount",
+  (SELECT count(*)::integer FROM pg_replication_slots WHERE datoid = $2::oid) AS "replicationSlotCount"
+FROM pg_stat_activity AS activity
+WHERE activity.pid = $1`;
+
+const assertCellDatabaseName: (
+  value: string,
+) => asserts value is CellDatabaseName = (value) => {
+  if (!cellDatabaseNamePattern.test(value)) {
+    throw new Error(
+      "Refusing to drop a database that is not owned by an E2E cell",
+    );
+  }
+};
+
+export const parseCellDatabaseName = (value: string): CellDatabaseName => {
+  assertCellDatabaseName(value);
+  return value;
+};
+
+const isMissingDatabaseError = (error: unknown): boolean =>
+  typeof error === "object" &&
+  error !== null &&
+  Reflect.get(error, "code") === "3D000";
+
+const readOptionalString = (value: unknown): string | null => {
+  if (value === null) return null;
+  if (typeof value !== "string") {
+    return invalidCellDatabaseDropDiagnostic(
+      "Database drop diagnostic returned an invalid string",
+    );
+  }
+  return value;
+};
+
+const readNonNegativeSafeInteger = (value: unknown): number => {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+    return invalidCellDatabaseDropDiagnostic(
+      "Database drop diagnostic returned an invalid integer",
+    );
+  }
+  return value;
+};
+
+const maximumPostgreSqlObjectId = 4_294_967_295;
+const postgreSqlObjectIdPattern = /^(?:0|[1-9][0-9]*)$/;
+
+const readPostgreSqlObjectId = (value: unknown): number => {
+  if (
+    typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value >= 0 &&
+    value <= maximumPostgreSqlObjectId
+  ) {
+    return value;
+  }
+  if (typeof value === "string" && postgreSqlObjectIdPattern.test(value)) {
+    const parsed = Number(value);
+    if (Number.isSafeInteger(parsed) && parsed <= maximumPostgreSqlObjectId) {
+      return parsed;
+    }
+  }
+  return invalidCellDatabaseDropDiagnostic(
+    "Database drop diagnostic returned an invalid PostgreSQL object ID",
+  );
+};
+
+const readOptionalPostgreSqlObjectId = (value: unknown): number | null =>
+  value === null ? null : readPostgreSqlObjectId(value);
+
+class InvalidCellDatabaseDropDiagnosticError extends Error {}
+
+const invalidCellDatabaseDropDiagnostic = (message: string): never => {
+  throw new InvalidCellDatabaseDropDiagnosticError(message);
+};
+
+const readSafeSqlState = (error: unknown): string | undefined => {
+  const code =
+    typeof error === "object" && error !== null
+      ? Reflect.get(error, "code")
+      : undefined;
+  return typeof code === "string" && /^[0-9A-Z]{5}$/.test(code)
+    ? code
+    : undefined;
+};
+
+const unavailableCellDatabaseDropDiagnostic = (
+  category: Exclude<
+    CellDatabaseDropDiagnosticUnavailableCategory,
+    "invalid-result"
+  >,
+  error: unknown,
+): Extract<CellDatabaseDropDiagnostic, { status: "unavailable" }> => {
+  if (error instanceof InvalidCellDatabaseDropDiagnosticError) {
+    return { category: "invalid-result", status: "unavailable" };
+  }
+  const code = readSafeSqlState(error);
+  return {
+    category,
+    ...(code === undefined ? {} : { code }),
+    status: "unavailable",
+  };
+};
+
+type BestEffortDiagnosticAttempt<Result> =
+  | { status: "completed"; value: Result }
+  | { error: unknown; status: "failed" }
+  | { status: "timed-out" };
+
+const runBestEffortDiagnosticAttempt = async <Result>(
+  operation: () => Promise<Result>,
+  timeoutMs: number,
+  cancel: () => void,
+): Promise<BestEffortDiagnosticAttempt<Result>> => {
+  let complete:
+    | ((result: BestEffortDiagnosticAttempt<Result>) => void)
+    | undefined;
+  const outcome = new Promise<BestEffortDiagnosticAttempt<Result>>(
+    (resolveOutcome) => {
+      complete = resolveOutcome;
+    },
+  );
+  let settled = false;
+  const settle = (result: BestEffortDiagnosticAttempt<Result>): void => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(timeout);
+    complete?.(result);
+  };
+  const operationPromise = Promise.resolve().then(operation);
+  void operationPromise
+    .then((value) => settle({ status: "completed", value }))
+    .catch((error: unknown) => settle({ error, status: "failed" }));
+  const timeout = setTimeout(() => {
+    // The cancellation promise is always observed; it cannot become an
+    // unhandled rejection after the diagnostic budget has elapsed.
+    void Promise.resolve()
+      .then(cancel)
+      .catch(() => undefined);
+    settle({ status: "timed-out" });
+  }, timeoutMs);
+  return await outcome;
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
+const readCellDatabaseDropLocks = (
+  value: unknown,
+): readonly CellDatabaseDropLock[] => {
+  if (!Array.isArray(value)) {
+    return invalidCellDatabaseDropDiagnostic(
+      "Database drop diagnostic returned invalid locks",
+    );
+  }
+  return value.map((lock) => {
+    if (!isRecord(lock)) {
+      return invalidCellDatabaseDropDiagnostic(
+        "Database drop diagnostic returned an invalid lock",
+      );
+    }
+    const locktype = lock.locktype;
+    const mode = lock.mode;
+    const granted = lock.granted;
+    if (
+      typeof locktype !== "string" ||
+      typeof mode !== "string" ||
+      typeof granted !== "boolean"
+    ) {
+      return invalidCellDatabaseDropDiagnostic(
+        "Database drop diagnostic returned an invalid lock",
+      );
+    }
+    return {
+      classId: readOptionalPostgreSqlObjectId(lock.classId),
+      databaseOid: readOptionalPostgreSqlObjectId(lock.databaseOid),
+      granted,
+      locktype,
+      mode,
+      objectId: readOptionalPostgreSqlObjectId(lock.objectId),
+      relationOid: readOptionalPostgreSqlObjectId(lock.relationOid),
+    };
+  });
+};
+
+export const captureCellDatabaseDropDiagnostic = async (
+  inspector: CellDatabaseCleanupClient,
+  databaseName: CellDatabaseName,
+  dropBackendPid: number,
+  databaseOid: number,
+): Promise<CellDatabaseDropDiagnostic> => {
+  const result = await inspector.query<{
+    blockingPids: unknown;
+    locks: unknown;
+    preparedTransactionCount: unknown;
+    replicationSlotCount: unknown;
+    waitEvent: unknown;
+    waitEventType: unknown;
+  }>(cellDatabaseDropDiagnosticQuery, [
+    dropBackendPid,
+    databaseOid,
+    databaseName,
+  ]);
+  const row = result.rows[0];
+  if (row === undefined) {
+    return invalidCellDatabaseDropDiagnostic(
+      "Database drop diagnostic could not find its backend",
+    );
+  }
+  if (!Array.isArray(row.blockingPids)) {
+    return invalidCellDatabaseDropDiagnostic(
+      "Database drop diagnostic returned invalid blocking PIDs",
+    );
+  }
+  return {
+    blockingPids: row.blockingPids.map(readNonNegativeSafeInteger),
+    locks: readCellDatabaseDropLocks(row.locks),
+    preparedTransactionCount: readNonNegativeSafeInteger(
+      row.preparedTransactionCount,
+    ),
+    replicationSlotCount: readNonNegativeSafeInteger(row.replicationSlotCount),
+    status: "captured",
+    waitEvent: readOptionalString(row.waitEvent),
+    waitEventType: readOptionalString(row.waitEventType),
+  };
+};
+
+const readActiveCellDatabaseConnections = async (
+  client: Pick<CellDatabaseCleanupClient, "query">,
+  databaseName: CellDatabaseName,
+): Promise<{ activeConnections: number; cleanupBackendPid?: number }> => {
+  const result = await client.query<{
+    activeConnections: number;
+    cleanupBackendPid: number;
+  }>(cellDatabaseConnectionCountQuery, [databaseName]);
+  const row = result.rows[0];
+  const activeConnections = row?.activeConnections;
+  if (
+    activeConnections === undefined ||
+    !Number.isSafeInteger(activeConnections) ||
+    activeConnections < 0
+  ) {
+    throw new Error(
+      "Database cleanup received an invalid active connection count",
+    );
+  }
+  const cleanupBackendPid = row?.cleanupBackendPid;
+  return {
+    activeConnections,
+    ...(cleanupBackendPid === undefined ||
+    !Number.isSafeInteger(cleanupBackendPid) ||
+    cleanupBackendPid < 0
+      ? {}
+      : { cleanupBackendPid }),
+  };
+};
+
+const databaseUrlFor = (
+  adminUrl: string,
+  databaseName: CellDatabaseName,
+): string => {
   const url = new URL(adminUrl);
   url.pathname = `/${databaseName}`;
   return url.toString();
@@ -742,8 +1119,10 @@ const formatUrlHost = (host: string): string =>
 
 const createCellDatabase = async (
   adminUrl: string,
-): Promise<{ databaseName: string; databaseUrl: string }> => {
-  const databaseName = `cat_e2e_cell_${randomUUID().replaceAll("-", "")}`;
+): Promise<{ databaseName: CellDatabaseName; databaseUrl: string }> => {
+  const databaseName = parseCellDatabaseName(
+    `cat_e2e_cell_${randomUUID().replaceAll("-", "")}`,
+  );
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
@@ -752,51 +1131,246 @@ const createCellDatabase = async (
     await client.end();
   }
   const databaseUrl = databaseUrlFor(adminUrl, databaseName);
-  const databaseClient = new Client({ connectionString: databaseUrl });
-  await databaseClient.connect();
-  try {
-    await databaseClient.query(
-      await readFile(searchRuntimeInitializationPath, "utf8"),
-    );
-  } finally {
-    await databaseClient.end();
-  }
   return { databaseName, databaseUrl };
 };
 
-export const dropCellDatabase = async (
+export const cleanupCellDatabase = async (
   adminUrl: string,
-  databaseName: string,
+  databaseName: CellDatabaseName,
   signal: AbortSignal,
-  client: Pick<Client, "connect" | "end" | "query"> = new Client({
+  client: CellDatabaseCleanupClient = new Client({
     connectionString: adminUrl,
   }),
+  onProgress: CellDatabaseCleanupProgress = () => undefined,
+  inspector: CellDatabaseCleanupClient | undefined = client instanceof Client
+    ? new Client({ connectionString: adminUrl })
+    : undefined,
+  dropDiagnosticDelayMs = cellDatabaseDropDiagnosticDelayMs,
+  databaseCleanup: TestServiceDatabaseCleanup = "cell-drop",
+  diagnosticOperationTimeoutMs = cellDatabaseDropDiagnosticOperationTimeoutMs,
 ): Promise<void> => {
+  assertCellDatabaseName(databaseName);
   let ending: Promise<void> | undefined;
   const closeClient = (): Promise<void> => {
     ending ??= Promise.resolve().then(async () => await client.end());
     return ending;
   };
+  let inspectorStarted = false;
+  let inspectorEnding: Promise<void> | undefined;
+  const closeInspector = (): Promise<void> => {
+    if (!inspectorStarted || inspector === undefined) return Promise.resolve();
+    inspectorEnding ??= Promise.resolve().then(
+      async () => await inspector.end(),
+    );
+    return inspectorEnding;
+  };
+  const releaseInspectorBestEffort = (): void => {
+    void closeInspector().catch(() => undefined);
+  };
   const abort = (): void => {
     void closeClient().catch(() => undefined);
+    releaseInspectorBestEffort();
   };
   if (signal.aborted) throw abortReason(signal, "Database cleanup");
   signal.addEventListener("abort", abort, { once: true });
+  let missingDatabase = false;
+  let primaryFailure: unknown;
+  let dropDiagnostic: CellDatabaseDropDiagnostic | undefined;
+  let dropDiagnosticTimer: NodeJS.Timeout | undefined;
+  let dropDiagnosticCaptureActive = false;
+  let dropQueryPending = false;
+  let phase: Exclude<CellDatabaseCleanupPhase, "close" | "complete"> =
+    "connect";
   try {
+    onProgress({ phase });
     await client.connect();
     if (signal.aborted) throw abortReason(signal, "Database cleanup");
+    phase = "connection-gate";
+    onProgress({ phase });
+    await client.query(
+      `ALTER DATABASE ${quoteIdentifier(databaseName)} WITH ALLOW_CONNECTIONS false`,
+    );
+    if (signal.aborted) throw abortReason(signal, "Database cleanup");
+    phase = "terminate";
+    onProgress({ phase });
     await client.query(
       "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = $1 AND pid <> pg_backend_pid()",
       [databaseName],
     );
     if (signal.aborted) throw abortReason(signal, "Database cleanup");
-    await client.query(
-      `DROP DATABASE IF EXISTS ${quoteIdentifier(databaseName)}`,
-    );
-  } finally {
-    signal.removeEventListener("abort", abort);
-    await closeClient();
+    phase = "drain";
+    onProgress({ phase });
+    let cleanupBackendPid: number | undefined;
+    while (true) {
+      const connectionState = await readActiveCellDatabaseConnections(
+        client,
+        databaseName,
+      );
+      cleanupBackendPid = connectionState.cleanupBackendPid;
+      if (connectionState.activeConnections === 0) break;
+      await waitForAbortableDelay(
+        cellDatabaseConnectionDrainPollIntervalMs,
+        signal,
+      );
+    }
+    if (signal.aborted) throw abortReason(signal, "Database cleanup");
+    if (databaseCleanup === "lease-volume") {
+      phase = "retire";
+      onProgress({ phase });
+    } else {
+      phase = "drop";
+      if (inspector !== undefined && cleanupBackendPid !== undefined) {
+        inspectorStarted = true;
+        const connectionAttempt = await runBestEffortDiagnosticAttempt(
+          async () => await inspector.connect(),
+          diagnosticOperationTimeoutMs,
+          releaseInspectorBestEffort,
+        );
+        if (connectionAttempt.status === "completed") {
+          const setupAttempt = await runBestEffortDiagnosticAttempt(
+            async () =>
+              await inspector.query<{ databaseOid: unknown }>(
+                cellDatabaseDropDiagnosticSetupQuery,
+                [databaseName],
+              ),
+            diagnosticOperationTimeoutMs,
+            releaseInspectorBestEffort,
+          );
+          if (setupAttempt.status === "completed") {
+            try {
+              const databaseOid = readPostgreSqlObjectId(
+                setupAttempt.value.rows[0]?.databaseOid,
+              );
+              dropDiagnostic = { status: "pending" };
+              onProgress({ dropDiagnostic, phase });
+              dropQueryPending = true;
+              dropDiagnosticTimer = setTimeout(() => {
+                if (!dropQueryPending || inspector === undefined) return;
+                dropDiagnosticCaptureActive = true;
+                void runBestEffortDiagnosticAttempt(
+                  async () =>
+                    await captureCellDatabaseDropDiagnostic(
+                      inspector,
+                      databaseName,
+                      cleanupBackendPid,
+                      databaseOid,
+                    ),
+                  diagnosticOperationTimeoutMs,
+                  releaseInspectorBestEffort,
+                )
+                  .then((captureAttempt) => {
+                    if (!dropDiagnosticCaptureActive) return;
+                    dropDiagnostic =
+                      captureAttempt.status === "completed"
+                        ? captureAttempt.value
+                        : unavailableCellDatabaseDropDiagnostic(
+                            "query",
+                            captureAttempt.status === "failed"
+                              ? captureAttempt.error
+                              : undefined,
+                          );
+                    onProgress({ dropDiagnostic, phase: "drop" });
+                  })
+                  .catch(() => undefined);
+              }, dropDiagnosticDelayMs);
+            } catch (error) {
+              dropDiagnostic = unavailableCellDatabaseDropDiagnostic(
+                "query",
+                error,
+              );
+              onProgress({ dropDiagnostic, phase });
+            }
+          } else {
+            dropDiagnostic = unavailableCellDatabaseDropDiagnostic(
+              "query",
+              setupAttempt.status === "failed" ? setupAttempt.error : undefined,
+            );
+            onProgress({ dropDiagnostic, phase });
+          }
+        } else {
+          dropDiagnostic = unavailableCellDatabaseDropDiagnostic(
+            "connection",
+            connectionAttempt.status === "failed"
+              ? connectionAttempt.error
+              : undefined,
+          );
+          onProgress({ dropDiagnostic, phase });
+        }
+      } else {
+        onProgress({ phase });
+      }
+      try {
+        await client.query(
+          `DROP DATABASE IF EXISTS ${quoteIdentifier(databaseName)}`,
+        );
+      } finally {
+        dropQueryPending = false;
+        dropDiagnosticCaptureActive = false;
+        if (dropDiagnosticTimer !== undefined) {
+          clearTimeout(dropDiagnosticTimer);
+          dropDiagnosticTimer = undefined;
+        }
+        releaseInspectorBestEffort();
+      }
+    }
+    if (signal.aborted) throw abortReason(signal, "Database cleanup");
+  } catch (error) {
+    if (
+      !signal.aborted &&
+      phase === "connection-gate" &&
+      isMissingDatabaseError(error)
+    ) {
+      missingDatabase = true;
+    } else {
+      primaryFailure = signal.aborted
+        ? abortReason(signal, "Database cleanup")
+        : error;
+      onProgress({
+        ...(dropDiagnostic === undefined ? {} : { dropDiagnostic }),
+        phase,
+        primaryFailurePhase: phase,
+      });
+    }
   }
+  let closeFailure: unknown;
+  signal.removeEventListener("abort", abort);
+  try {
+    onProgress({
+      ...(dropDiagnostic === undefined ? {} : { dropDiagnostic }),
+      phase: "close",
+      ...(primaryFailure === undefined ? {} : { primaryFailurePhase: phase }),
+    });
+    await closeClient();
+  } catch (error) {
+    closeFailure = error;
+  }
+  await runBestEffortDiagnosticAttempt(
+    closeInspector,
+    diagnosticOperationTimeoutMs,
+    releaseInspectorBestEffort,
+  );
+  const closeFailures = [closeFailure].filter(
+    (error): error is NonNullable<typeof error> => error !== undefined,
+  );
+  if (closeFailures.length > 0) {
+    if (primaryFailure !== undefined) {
+      throw new AggregateError(
+        [primaryFailure, ...closeFailures],
+        "Database cleanup and client close both failed",
+      );
+    }
+    if (closeFailures.length === 1) throw closeFailures[0];
+    throw new AggregateError(
+      closeFailures,
+      "Database cleanup clients failed to close",
+    );
+  }
+  if (missingDatabase) {
+    onProgress({ phase: "complete" });
+    return;
+  }
+  if (primaryFailure !== undefined) throw primaryFailure;
+  onProgress({ phase: "complete" });
 };
 
 const readProcessIdentity = async (
@@ -1193,7 +1767,7 @@ const createServiceBootstrapPlan = (
         value: { "root-path": storageDirectory },
       },
       {
-        pluginId: "spacy-segmenter",
+        pluginId: "spacy-language-analyzer",
         scopeId: "",
         scopeType: "GLOBAL",
         type: "install-if-absent",
@@ -1268,7 +1842,7 @@ const createLoopbackProxy = async (runtime: CellRuntime): Promise<Disposer> => {
   };
 };
 
-const assertReadiness = (
+export const assertReadiness = (
   report: unknown,
   expectedProfile: "lite" | "production",
 ): void => {
@@ -1294,7 +1868,6 @@ const assertReadiness = (
   const expectedRuntime = {
     cacheBackend: expectedProfile === "lite" ? "memory" : "redis",
     queueBackend: expectedProfile === "lite" ? "memory" : "redis",
-    requiredSearchLevel: "full-search-runtime",
     sessionBackend: expectedProfile === "lite" ? "memory" : "redis",
   };
   for (const [key, value] of Object.entries(expectedRuntime)) {
@@ -1313,12 +1886,12 @@ const assertReadiness = (
     "bootstrap",
     "runtime",
     "postgres",
-    "search",
+    "database-requirements",
     "cache",
     "session",
     "queue",
     "storage",
-    "spacy",
+    "language-analysis",
     ...(expectedProfile === "production" ? ["redis"] : []),
   ];
   for (const id of requiredComponents) {
@@ -1328,7 +1901,9 @@ const assertReadiness = (
       component === null ||
       Reflect.get(component, "status") !== "ready"
     ) {
-      throw new Error(`Readiness component ${id} is not ready`);
+      throw new Error(
+        `Readiness component ${id} is not ready, received ${JSON.stringify(component)}`,
+      );
     }
   }
 };
@@ -1943,11 +2518,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
     const existing = this.plans.get(runtime.databaseName);
     if (existing !== undefined) return existing;
     const plan = createServiceBootstrapPlan(
-      containerServiceUrl(
-        runtime.environment.SPACY_SERVER_URL ?? "",
-        "spacy",
-        8000,
-      ),
+      runtime.environment.SPACY_SERVER_URL ?? "",
       "/data/storage",
     );
     this.plans.set(runtime.databaseName, plan);
@@ -2006,11 +2577,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
         "redis",
         6379,
       ),
-      SPACY_SERVER_URL: containerServiceUrl(
-        runtime.environment.SPACY_SERVER_URL ?? "",
-        "spacy",
-        8000,
-      ),
+      SPACY_SERVER_URL: runtime.environment.SPACY_SERVER_URL ?? "",
       ...(plan === undefined ? {} : { CAT_BOOTSTRAP_PLAN: plan }),
     } satisfies Record<string, string>;
   }
@@ -2351,7 +2918,7 @@ const seedQaReviewWorkbench = async (
       findings: [
         {
           action: item.action,
-          checkerServiceId: null,
+          checkerService: null,
           confidenceBasisPoints: 10_000,
           disposition: "OPEN",
           explanation: null,
@@ -2459,7 +3026,7 @@ const seedQaReviewDeferTarget = async (
     findings: [
       {
         action: "NEEDS_REVIEW",
-        checkerServiceId: null,
+        checkerService: null,
         confidenceBasisPoints: 10_000,
         disposition: "OPEN",
         explanation: null,
@@ -2515,6 +3082,126 @@ const seedBranchWorkspace = async (
   refs.set("branch:workspace", opened.branchId);
 };
 
+const seedPaginationFixtures = async (
+  db: DrizzleDB["client"],
+  refs: RefResolver,
+): Promise<void> => {
+  const creatorId = refs.getStringId("user:admin");
+  const projectId = refs.getStringId("project");
+
+  for (const index of Array.from(
+    { length: paginationFixtureCount },
+    (_, value) => value + 1,
+  )) {
+    const project = await executeCommand({ db }, createProject, {
+      name: `E2E pagination project ${index}`,
+      description: null,
+      creatorId,
+    });
+    await executeCommand({ db }, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "project",
+      objectId: project.id,
+    });
+
+    const glossary = await executeCommand({ db }, createGlossary, {
+      name: `E2E pagination glossary ${index}`,
+      creatorId,
+      projectIds: [projectId],
+    });
+    await executeCommand({ db }, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "glossary",
+      objectId: glossary.id,
+    });
+
+    const memory = await executeCommand({ db }, createMemory, {
+      name: `E2E pagination memory ${index}`,
+      creatorId,
+      scope: "PROJECT",
+      projectIds: [projectId],
+    });
+    await executeCommand({ db }, grantPermissionTuple, {
+      subjectType: "user",
+      subjectId: creatorId,
+      relation: "owner",
+      objectType: "memory",
+      objectId: memory.id,
+    });
+  }
+};
+
+const seedTaskPaginationFixtures = async (
+  db: DrizzleDB["client"],
+  refs: RefResolver,
+): Promise<void> => {
+  const actorId = refs.getStringId("user:admin");
+  const projectId = refs.getStringId("project");
+  const vectorStorage = {
+    pluginId: "e2e.vector-storage",
+    serviceId: "default",
+    serviceType: "VECTOR_STORAGE" as const,
+    scopeType: "GLOBAL" as const,
+    scopeId: "" as const,
+  };
+  const vectorizer = {
+    pluginId: "e2e.vectorizer",
+    serviceId: "default",
+    serviceType: "TEXT_VECTORIZER" as const,
+    scopeType: "GLOBAL" as const,
+    scopeId: "" as const,
+  };
+  const batchPayload = BatchAutoTranslationTaskPayloadSchema.parse({
+    invocation: {
+      projectId,
+      contentNodeIds: [],
+      elementIds: [],
+      sortMode: "structure",
+      languageId: "zh-Hans",
+      minMemorySimilarity: 0.72,
+      maxMemoryAmount: 3,
+      memoryVectorStorage: vectorStorage,
+      translationVectorStorage: vectorStorage,
+      vectorizer,
+      translatorId: actorId,
+      memoryIds: [],
+      glossaryIds: [],
+    },
+    cancelable: true,
+  });
+  const batchRuntime = TaskRuntimeSchema.parse({
+    kind: "BATCH_AUTO_TRANSLATION",
+    phase: null,
+    result: {
+      translationIds: [],
+      translatedElementIds: [],
+      skippedElementIds: [],
+    },
+  });
+  await db.insert(task).values(
+    Array.from({ length: taskPaginationFixtureCount }, (_, index) => ({
+      id: randomUUID(),
+      kind: "BATCH_AUTO_TRANSLATION" as const,
+      payload: batchPayload,
+      status: "COMPLETED" as const,
+      scopeType: "PROJECT" as const,
+      scopeId: projectId,
+      actorType: "USER" as const,
+      actorId,
+      resources: [{ type: "PROJECT" as const, id: projectId }],
+      progressCurrent: 1,
+      progressTotal: 1,
+      runtime: batchRuntime,
+      createdAt: new Date(Date.UTC(2024, 0, 1, 0, 0, index)),
+      updatedAt: new Date(Date.UTC(2024, 0, 1, 0, 0, index)),
+    })),
+  );
+};
+
 const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
   const database = new DrizzleDB(runtime.databaseUrl);
   await database.connect();
@@ -2532,8 +3219,13 @@ const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
     await seedQaReviewWorkbench(database.client, result.refs);
     await seedQaReviewDeferTarget(database.client, result.refs);
     await seedBranchWorkspace(database.client, result.refs);
-    const refs = Object.fromEntries(
-      [...result.refs.entries()].map(([key, value]) => [key, String(value)]),
+    await seedPaginationFixtures(database.client, result.refs);
+    await seedTaskPaginationFixtures(database.client, result.refs);
+    const refs = parseE2ERefs(
+      Object.fromEntries(
+        [...result.refs.entries()].map(([key, value]) => [key, String(value)]),
+      ),
+      runtime.refsPath,
     );
     await writeFile(runtime.refsPath, JSON.stringify(refs, null, 2));
   } finally {
@@ -2774,6 +3466,7 @@ export class ExecutionCell {
 
   private async createRuntime(): Promise<CellRuntime> {
     const cellId = randomUUID();
+    const e2eArtifactRoot = e2eArtifactRootFrom(process.env);
     await mkdir(e2eArtifactRoot, { recursive: true });
     const artifactDirectory = await mkdtemp(
       join(
@@ -2795,14 +3488,25 @@ export class ExecutionCell {
     const database = await createCellDatabase(
       this.input.lease.coordinates.databaseUrl,
     );
+    let databaseCleanupState: CellDatabaseCleanupState = { phase: "connect" };
     this.register(
       "cell database",
       async (signal) =>
-        await dropCellDatabase(
+        await cleanupCellDatabase(
           this.input.lease.coordinates.databaseUrl,
           database.databaseName,
           signal,
+          undefined,
+          (state) => {
+            databaseCleanupState = state;
+          },
+          undefined,
+          undefined,
+          this.input.lease.databaseCleanup === "lease-volume"
+            ? "lease-volume"
+            : "cell-drop",
         ),
+      () => formatCellDatabaseCleanupDiagnostic(databaseCleanupState),
     );
     const redisNamespace = `cat-e2e:${this.input.target}:${this.input.browser}:${cellId}`;
     this.register(
@@ -2914,9 +3618,14 @@ export class ExecutionCell {
     );
   }
 
-  private register(label: string, disposer: Disposer): () => void {
+  private register(
+    label: string,
+    disposer: Disposer,
+    diagnostic?: DisposerDiagnostic,
+  ): () => void {
     const registered: RegisteredDisposer = {
       active: true,
+      ...(diagnostic === undefined ? {} : { diagnostic }),
       dispose: disposer,
       label,
     };
@@ -2950,6 +3659,12 @@ export class ExecutionCell {
       const controller = new AbortController();
       const startedAt = performance.now();
       const label = redactDiagnosticText(disposer.label);
+      const diagnostic = (): string => {
+        const value = disposer.diagnostic?.();
+        return value === undefined || value === ""
+          ? ""
+          : ` ${redactDiagnosticText(value)}`;
+      };
       let softFailure: Error | undefined;
       let hardTimeout: NodeJS.Timeout | undefined;
       let resolveHardTimeout: (() => void) | undefined;
@@ -2962,7 +3677,7 @@ export class ExecutionCell {
         );
         controller.abort(softFailure);
         writeError(
-          `e2e cleanup label=${label} status=timed-out duration=${cellDuration(startedAt)} waiting=resource-settlement`,
+          `e2e cleanup label=${label} status=timed-out duration=${cellDuration(startedAt)}${diagnostic()} waiting=resource-settlement`,
         );
         hardTimeout = setTimeout(
           () => resolveHardTimeout?.(),
@@ -2984,7 +3699,7 @@ export class ExecutionCell {
           `Execution cell cleanup hard timeout label=${label} duration=${cellDuration(startedAt)}`,
         );
         writeError(
-          `e2e cleanup label=${label} status=hard-timeout duration=${cellDuration(startedAt)}`,
+          `e2e cleanup label=${label} status=hard-timeout duration=${cellDuration(startedAt)}${diagnostic()}`,
         );
         this.reportFatalFailure(hardFailure);
         failures.push(hardFailure);
@@ -3000,7 +3715,7 @@ export class ExecutionCell {
         const failure = toError(outcome.error);
         failures.push(
           new Error(
-            `Execution cell cleanup failed label=${label} duration=${cellDuration(startedAt)}: ${failure.message}`,
+            `Execution cell cleanup failed label=${label} duration=${cellDuration(startedAt)}${diagnostic()}: ${failure.message}`,
             { cause: failure },
           ),
         );

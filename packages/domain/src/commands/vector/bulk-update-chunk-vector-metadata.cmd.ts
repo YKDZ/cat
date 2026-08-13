@@ -1,12 +1,13 @@
 import { chunk, inArray } from "@cat/db";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const BulkUpdateChunkVectorMetadataCommandSchema = z.object({
   chunkIds: z.array(z.int()),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export type BulkUpdateChunkVectorMetadataCommand = z.infer<
@@ -31,8 +32,8 @@ export const bulkUpdateChunkVectorMetadata: Command<
   const updated = await ctx.db
     .update(chunk)
     .set({
-      vectorizerId: command.vectorizerId,
-      vectorStorageId: command.vectorStorageId,
+      vectorizer: command.vectorizer,
+      vectorStorage: command.vectorStorage,
     })
     .where(inArray(chunk.id, command.chunkIds))
     .returning({ id: chunk.id });

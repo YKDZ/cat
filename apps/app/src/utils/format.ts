@@ -1,29 +1,81 @@
-/**
- * 格式化日期为本地字符串
- * @param date - 日期对象或 ISO 字符串
- * @returns 格式化的日期字符串 (YYYY-MM-DD HH:mm:ss)
- */
-export function formatDate(date: Date | string | number): string {
+const DEFAULT_DATE_LOCALE = "zh-CN";
+
+type DateInput = Date | string | number;
+
+const canonicalizeLocale = (locale: string): string => {
+  try {
+    return (
+      Intl.getCanonicalLocales(locale.replaceAll("_", "-"))[0] ??
+      DEFAULT_DATE_LOCALE
+    );
+  } catch {
+    return DEFAULT_DATE_LOCALE;
+  }
+};
+
+const formatUtc = (
+  date: DateInput,
+  locale: string,
+  options: Intl.DateTimeFormatOptions,
+): string => {
   const d = new Date(date);
   if (isNaN(d.getTime())) {
     return "—";
   }
 
-  return d.toLocaleString("zh-CN", {
+  return new Intl.DateTimeFormat(canonicalizeLocale(locale), {
+    ...options,
+    timeZone: "UTC",
+  }).format(d);
+};
+
+const formatUtcDateTime = (
+  date: DateInput,
+  locale: string,
+  includeSeconds: boolean,
+): string =>
+  formatUtc(date, locale, {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
+    ...(includeSeconds ? { second: "2-digit" } : {}),
+    timeZoneName: "short",
   });
-}
 
-/**
- * 格式化日期为相对时间
- * @param date - 日期对象或 ISO 字符串
- * @returns 相对时间字符串（如：刚刚、5 分钟前、1 小时前等）
- */
-export function formatRelativeTime(date: Date | string | number): string {
+export const formatDate = (
+  date: DateInput,
+  locale = DEFAULT_DATE_LOCALE,
+): string => formatUtcDateTime(date, locale, false);
+
+export const formatTimestamp = (
+  date: DateInput,
+  locale = DEFAULT_DATE_LOCALE,
+): string => formatUtcDateTime(date, locale, true);
+
+export const formatCalendarDate = (
+  date: DateInput,
+  locale = DEFAULT_DATE_LOCALE,
+): string => formatUtc(date, locale, { dateStyle: "short" });
+
+export const formatTime = (
+  date: DateInput,
+  locale = DEFAULT_DATE_LOCALE,
+): string => formatUtc(date, locale, { timeStyle: "medium" });
+
+export const formatShortDateTime = (
+  date: DateInput,
+  locale = DEFAULT_DATE_LOCALE,
+): string =>
+  formatUtc(date, locale, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+export function formatRelativeTime(date: DateInput): string {
   const d = new Date(date);
   const now = new Date();
   const diff = now.getTime() - d.getTime();

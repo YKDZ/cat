@@ -29,14 +29,17 @@ export const getNeighborsTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = getNeighborsArgs.parse(args);
     await assertElementInSession(parsed.elementId, ctx);
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const evidence = await executeQuery({ db }, assembleContextEvidence, {
       elementId: parsed.elementId,
       purpose: "AGENT",
       maxItems: parsed.maxItems,
     });
+    ctx.signal.throwIfAborted();
 
     return { evidence };
   },

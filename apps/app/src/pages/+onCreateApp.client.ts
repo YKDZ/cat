@@ -9,9 +9,19 @@ export const onCreateApp = async (ctx: PageContextClient): Promise<void> => {
   const { app } = ctx;
 
   if (!app) return;
+  const appI18n = ctx.globalContext.i18n;
+  if (appI18n === undefined) {
+    throw new Error("Client i18n was not initialized");
+  }
+  const locale = appI18n.global.locale;
+  if (typeof locale === "string") {
+    appI18n.global.locale = ctx.displayLanguage;
+  } else {
+    locale.value = ctx.displayLanguage;
+  }
 
   app.use(ctx.globalContext.pinia!);
-  app.use(ctx.globalContext.i18n!);
+  app.use(appI18n);
   app.use(PiniaColada, {
     queryOptions: {
       gcTime: 300_000,

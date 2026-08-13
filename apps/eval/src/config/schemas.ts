@@ -39,7 +39,6 @@ export const ScorerNameSchema = z.enum([
   "token-cost",
   "agent-latency",
   "noise-rate",
-  "bm25-confidence",
   "template-match-rate",
   "self-exclusion-rate",
   "preserve-rate",
@@ -72,6 +71,7 @@ export const SuiteConfigSchema = z.object({
     loader: z.enum(["real", "test"]).default("real"),
     overrides: z.array(PluginOverrideSchema).default([]),
   }),
+  vectorization: z.enum(["required", "skip"]),
   scenarios: z.array(ScenarioConfigSchema).min(1),
   thresholds: ThresholdSchema.optional(),
 });

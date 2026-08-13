@@ -172,6 +172,7 @@ export const runReasoningNode = async (
       ...(definition.metadata.llm?.maxTokens === undefined
         ? {}
         : { maxTokens: definition.metadata.llm.maxTokens }),
+      signal: ctx.signal,
     },
   });
 

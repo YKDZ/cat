@@ -17,6 +17,25 @@ class StubRerankProvider extends RerankProvider {
     vi.fn<(input: { request: RerankRequest }) => Promise<RerankResponse>>();
 }
 
+type RegisteredRerankProvider = ReturnType<
+  PluginManager["getServices"]
+>[number] & {
+  type: "RERANK_PROVIDER";
+  service: StubRerankProvider;
+};
+
+const globalRerankProvider = (
+  provider: StubRerankProvider,
+): RegisteredRerankProvider => ({
+  pluginId: "stub-plugin",
+  type: "RERANK_PROVIDER",
+  id: "stub",
+  dbId: 1,
+  service: provider,
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+
 const makeRequest = (candidateIds: string[]): RerankRequest => ({
   trigger: "precision-ambiguity",
   surface: "term",
@@ -54,13 +73,7 @@ describe("orchestrateRerank", () => {
     const pluginManager = new PluginManager("GLOBAL", "");
     // Inject service manually
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
 
     const request = makeRequest(["a", "b"]);
@@ -77,13 +90,7 @@ describe("orchestrateRerank", () => {
     });
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const request = makeRequest(["a", "b"]);
     const result = await orchestrateRerank({ request, pluginManager });
@@ -101,13 +108,7 @@ describe("orchestrateRerank", () => {
     });
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const request = makeRequest(["a", "b"]);
     const result = await orchestrateRerank({ request, pluginManager });
@@ -124,13 +125,7 @@ describe("orchestrateRerank", () => {
     });
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const request = makeRequest(["a", "b"]);
     const result = await orchestrateRerank({ request, pluginManager });
@@ -147,13 +142,7 @@ describe("orchestrateRerank", () => {
     });
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const request = makeRequest(["a", "b"]);
     const result = await orchestrateRerank({ request, pluginManager });
@@ -167,13 +156,7 @@ describe("orchestrateRerank", () => {
     );
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const request = makeRequest(["a", "b"]);
     const result = await orchestrateRerank({ request, pluginManager });
@@ -186,13 +169,7 @@ describe("orchestrateRerank", () => {
     provider.rerank.mockRejectedValue(new Error("TEI rerank cancelled"));
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const controller = new AbortController();
     controller.abort();
@@ -211,13 +188,7 @@ describe("orchestrateRerank", () => {
     provider.rerank.mockRejectedValue(new Error("network error"));
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
     const request = makeRequest(["a", "b"]);
     const result = await orchestrateRerank({ request, pluginManager });

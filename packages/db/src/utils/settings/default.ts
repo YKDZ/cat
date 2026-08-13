@@ -1,5 +1,9 @@
 /* eslint-disable @cspell/spellchecker */
-import { nonNullSafeZDotJson } from "@cat/shared";
+import {
+  DefaultDisplayLanguage,
+  DisplayLanguageSchema,
+  nonNullSafeZDotJson,
+} from "@cat/shared";
 import * as z from "zod";
 
 export const DefaultSettingDataSchema = z.object({
@@ -8,6 +12,11 @@ export const DefaultSettingDataSchema = z.object({
 });
 
 export type DefaultSettingData = z.infer<typeof DefaultSettingDataSchema>;
+
+export const resolveDefaultDisplayLanguage = (value: unknown) => {
+  const parsed = DisplayLanguageSchema.safeParse(value);
+  return parsed.success ? parsed.data : DefaultDisplayLanguage;
+};
 
 export const DEFAULT_SETTINGS = z.array(DefaultSettingDataSchema).parse([
   {
@@ -20,7 +29,7 @@ export const DEFAULT_SETTINGS = z.array(DefaultSettingDataSchema).parse([
   },
   {
     key: "server.default-language",
-    value: process.env.DEFAULT_LANGUAGE ?? "zh_cn",
+    value: resolveDefaultDisplayLanguage(process.env.DEFAULT_LANGUAGE),
   },
   {
     key: "file-system.mime-mapping",

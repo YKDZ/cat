@@ -54,7 +54,7 @@ const onSubmit = handleSubmit(async (values) => {
       <div class="flex w-full items-center justify-between">
         <CardTitle>{{ t("关于") }}</CardTitle>
         <Dialog>
-          <DialogTrigger>
+          <DialogTrigger as-child>
             <Button variant="ghost" size="icon-sm">
               <Settings />
             </Button>

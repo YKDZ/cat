@@ -5,7 +5,6 @@ import {
 } from "@cat/app-api/app";
 import app from "@cat/app-api/app";
 import {
-  executeCommand,
   executeQuery,
   getSetting,
   getDbHandle,
@@ -13,8 +12,9 @@ import {
   getCacheStore,
   getSessionStore,
   getRuntimeState,
+  assertDatabaseRequirements,
+  assessDatabaseRequirements,
   initRuntimeState,
-  recoverCrashedAgentRuns,
   resolveRuntimeProfile,
   type DrizzleClient,
   initCacheStore,
@@ -22,8 +22,12 @@ import {
 } from "@cat/domain";
 import { MessageGateway } from "@cat/message";
 import {
+  executeLanguageAnalysisReadinessAssessment,
+  createRecallDerivationTaskProjectionObserver,
   registerDomainEventHandlers,
   registerVectorizationConsumer,
+  startRecallDerivationWorker,
+  type RecallDerivationWorker,
 } from "@cat/operations";
 import { initPermissionEngine, registerAuditHandler } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
@@ -34,6 +38,7 @@ import {
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import {
   createDefaultGraphRuntime,
+  type DefaultGraphRuntime,
   getGlobalGraphRuntimeOrNull,
 } from "@cat/workflow";
 
@@ -46,11 +51,10 @@ import {
   hasRuntimeCapabilities,
   publishRuntimeCapabilities,
 } from "./runtime-capabilities.ts";
-import { startPostgresRuntimeCleanup } from "./runtime-cleanup.ts";
 import {
-  assertSearchRuntimeHealth,
-  detectSearchRuntimeHealth,
-} from "./search-runtime-health.ts";
+  startPostgresRuntimeCleanup,
+  type RuntimeCleanupHandle,
+} from "./runtime-cleanup.ts";
 
 const getStringSetting = async (
   drizzle: DrizzleClient,
@@ -61,8 +65,39 @@ const getStringSetting = async (
   return typeof value === "string" ? value : fallback;
 };
 
+const awaitAbortableQuery = async <T>(
+  query: Promise<T>,
+  signal: AbortSignal | undefined,
+): Promise<T> => {
+  if (signal === undefined) return await query;
+
+  let removeAbortListener = (): void => {};
+  const aborted = new Promise<never>((_, reject) => {
+    const abort = (): void => reject(signal.reason);
+    if (signal.aborted) {
+      abort();
+      return;
+    }
+    signal.addEventListener("abort", abort, { once: true });
+    removeAbortListener = (): void =>
+      signal.removeEventListener("abort", abort);
+  });
+
+  try {
+    return await Promise.race([query, aborted]);
+  } finally {
+    removeAbortListener();
+    // node-postgres has no AbortSignal query API; query_timeout bounds this query.
+    void query.catch(() => {});
+  }
+};
+
 const initializeAppOnce = async (): Promise<void> => {
   const profile = resolveRuntimeProfile();
+  let graphRuntime: DefaultGraphRuntime | null = null;
+  let messageGateway: MessageGateway | null = null;
+  let recallDerivationWorker: RecallDerivationWorker | null = null;
+  let runtimeCleanup: RuntimeCleanupHandle | null = null;
   configureReadinessReporter(
     createReadinessReporter({
       profile: profile.name,
@@ -86,7 +121,27 @@ const initializeAppOnce = async (): Promise<void> => {
     const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
-    const database = await assertSearchRuntimeHealth(drizzleDB.client, profile);
+    const requirementDb = {
+      execute: async (
+        statement: string,
+        options: { signal?: AbortSignal; timeoutMs?: number } = {},
+      ) => {
+        options.signal?.throwIfAborted();
+        const query = {
+          text: statement,
+          ...(options.timeoutMs === undefined
+            ? {}
+            : { query_timeout: options.timeoutMs }),
+        };
+        const result = await awaitAbortableQuery(
+          drizzleDB.client.$client.query(query),
+          options.signal,
+        );
+        options.signal?.throwIfAborted();
+        return { rows: result.rows };
+      },
+    };
+    const database = await assertDatabaseRequirements(requirementDb);
     initRuntimeState({
       profile,
       database,
@@ -104,10 +159,11 @@ const initializeAppOnce = async (): Promise<void> => {
     initSessionStore(backends.sessionStore);
     setVectorizationQueue(backends.vectorizationQueue);
     globalThis.runtimeCleanup?.stop();
-    globalThis.runtimeCleanup = startPostgresRuntimeCleanup([
+    runtimeCleanup = startPostgresRuntimeCleanup([
       backends.cacheStore,
       backends.sessionStore,
     ]);
+    globalThis.runtimeCleanup = runtimeCleanup;
 
     // Clear stale PluginManager instances before re-initialization.
     // In Vite dev mode, HMR re-evaluates +server.ts and calls initializeApp()
@@ -120,36 +176,24 @@ const initializeAppOnce = async (): Promise<void> => {
 
     await bootstrapApplicationData({ database: drizzleDB, pluginManager });
 
-    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
-
-    const existingRuntime = getGlobalGraphRuntimeOrNull();
-    const activeRunIds = existingRuntime?.scheduler.getActiveRunIds() ?? [];
-    const crashRecovery = await executeCommand(
-      { db: drizzleDB.client },
-      recoverCrashedAgentRuns,
-      { activeRunIds },
-    );
-    if (crashRecovery.recoveredRunIds.length > 0) {
-      logger
-        .child({ component: "server" })
-        .warn("Recovered crashed workflow runs", {
-          recoveredRunIds: crashRecovery.recoveredRunIds,
-        });
+    const previousRecallDerivationWorker = globalThis.recallDerivationWorker;
+    if (previousRecallDerivationWorker) {
+      globalThis.recallDerivationWorker = undefined;
+      await previousRecallDerivationWorker.stop();
     }
-
-    await registerVectorizationConsumer(backends.vectorizationQueue);
-
-    const messageGateway = new MessageGateway({
+    recallDerivationWorker = await startRecallDerivationWorker({
       db: drizzleDB.client,
-      getEmailProvider: () => {
-        const services = pluginManager.getServices("EMAIL_PROVIDER");
-        return services[0]?.service;
-      },
+      pluginManager,
+      onStateCommitted: createRecallDerivationTaskProjectionObserver({
+        db: drizzleDB.client,
+      }),
     });
-    messageGateway.start();
-    globalThis.messageGateway = messageGateway;
+    globalThis.recallDerivationWorker = recallDerivationWorker;
 
-    createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+    graphRuntime =
+      getGlobalGraphRuntimeOrNull() ??
+      createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+    await graphRuntime.ensureTaskRecovery();
 
     initPermissionEngine({
       db: drizzleDB.client,
@@ -183,18 +227,34 @@ const initializeAppOnce = async (): Promise<void> => {
         getRuntimeState,
         profile,
         redis: backends.redis,
-        detectSearchRuntime: async () =>
-          detectSearchRuntimeHealth(drizzleDB.client),
-        spaCyServices: () =>
-          pluginManager
-            .getServices("NLP_WORD_SEGMENTER")
-            .map(({ id, pluginId, service }) => ({ id, pluginId, service })),
+        assessDatabaseRequirements: async (signal) =>
+          await assessDatabaseRequirements(requirementDb, { signal }),
+        assessLanguageAnalysis: async (signal) =>
+          await executeLanguageAnalysisReadinessAssessment({
+            db: drizzleDB.client,
+            pluginManager,
+            signal,
+            traceId: "readiness-language-analysis",
+          }),
         storageServices: () =>
           pluginManager
             .getServices("STORAGE_PROVIDER")
             .map(({ service }) => service),
       }),
     );
+
+    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
+    await registerVectorizationConsumer(backends.vectorizationQueue);
+
+    messageGateway = new MessageGateway({
+      db: drizzleDB.client,
+      getEmailProvider: () => {
+        const services = pluginManager.getServices("EMAIL_PROVIDER");
+        return services[0]?.service;
+      },
+    });
+    messageGateway.start();
+    globalThis.messageGateway = messageGateway;
 
     publishRuntimeCapabilities({
       baseURL: globalThis.serverBaseURL,
@@ -212,6 +272,33 @@ const initializeAppOnce = async (): Promise<void> => {
       .error("Failed to initialize server. Readiness will remain failed.", {
         error: err,
       });
+
+    const cleanupResults = await Promise.allSettled([
+      Promise.resolve().then(() => messageGateway?.stop()),
+      graphRuntime?.dispose() ?? Promise.resolve(),
+      Promise.resolve().then(async () => {
+        if (globalThis.recallDerivationWorker === recallDerivationWorker) {
+          globalThis.recallDerivationWorker = undefined;
+        }
+        await recallDerivationWorker?.stop();
+      }),
+      Promise.resolve().then(() => runtimeCleanup?.stop()),
+    ]);
+    for (const result of cleanupResults) {
+      if (result.status === "fulfilled") continue;
+      logger
+        .child({ component: "server" })
+        .error("Failed to clean up incomplete server initialization.", {
+          error: result.reason,
+        });
+    }
+    if (globalThis.messageGateway === messageGateway) {
+      globalThis.messageGateway = undefined;
+    }
+    if (globalThis.runtimeCleanup === runtimeCleanup) {
+      globalThis.runtimeCleanup = undefined;
+    }
+
     configureReadinessReporter(
       createReadinessReporter({
         profile: profile.name,

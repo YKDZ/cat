@@ -6,6 +6,7 @@ import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useAgentStore } from "#/stores/agent.ts";
+import { formatShortDateTime } from "#/utils/format.ts";
 
 const props = defineProps<{
   projectId: string;
@@ -18,16 +19,6 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const agentStore = useAgentStore();
 const { sessions, activeSessionId } = storeToRefs(agentStore);
-
-const formatDate = (date: Date) => {
-  const d = date instanceof Date ? date : new Date(date);
-  return d.toLocaleDateString("zh-CN", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
 
 const statusLabel = (status: string) => {
   const map: Record<string, string> = {
@@ -108,7 +99,7 @@ watch(
           <div class="flex items-center gap-1 text-muted-foreground">
             <Clock class="size-2.5 shrink-0" />
             <span class="truncate text-[10px]">{{
-              formatDate(session.createdAt)
+              formatShortDateTime(session.createdAt)
             }}</span>
           </div>
         </button>

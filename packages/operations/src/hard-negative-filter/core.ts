@@ -1,21 +1,22 @@
+import type { LanguageAnalysisToken } from "@cat/shared";
+
+import { normalizeTokenLemma } from "../language-analysis-normalization.ts";
 import type { HnfCandidate, HardNegativeRemoval } from "./types.ts";
 
 /**
- * Extract content words from source NLP tokens (non-stop, non-punct lemmas, lowercased).
+ * Extract content words from source Language Analysis tokens (non-stop,
+ * non-punct canonical forms, lowercased).
  */
 export const extractContentWordsFromTokens = (
-  tokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  tokens: Array<
+    Pick<LanguageAnalysisToken, "text" | "lemma" | "isStop" | "isPunct" | "pos">
+  >,
 ): { contentWords: string[]; keyNouns: string[] } => {
   const contentWords: string[] = [];
   const keyNouns: string[] = [];
   for (const t of tokens) {
     if (!t.isStop && !t.isPunct) {
-      const word = t.lemma.toLowerCase();
+      const word = normalizeTokenLemma(t).toLowerCase();
       contentWords.push(word);
       if (t.pos === "NOUN" || t.pos === "PROPN") {
         keyNouns.push(word);
@@ -73,13 +74,7 @@ export const applyHnfPreRules = (
     // Check evidence channels
     const evidenceChannels = new Set(c.evidences.map((e) => e.channel));
     const hasOnlySemantic =
-      evidenceChannels.has("semantic") &&
-      !evidenceChannels.has("exact") &&
-      !evidenceChannels.has("bm25") &&
-      !evidenceChannels.has("trgm") &&
-      !evidenceChannels.has("template") &&
-      !evidenceChannels.has("fragment") &&
-      !evidenceChannels.has("sparse");
+      evidenceChannels.size === 1 && evidenceChannels.has("semantic");
 
     const candidateTextLen = c.candidateTextLower.length;
     const lengthRatio =

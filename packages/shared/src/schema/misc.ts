@@ -2,17 +2,17 @@ import * as z from "zod";
 
 import { safeZDotJson } from "#/schema/json.ts";
 import { RecallEvidenceSchema } from "#/schema/recall.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const DrizzleDateTimeSchema = z.coerce.date();
 
 export const TranslationAdvisorDataSchema = z.object({
-  id: z.int(),
+  reference: ServiceImplementationReferenceSchema,
   name: z.string(),
 });
 
 export const AuthMethodSchema = z.object({
   providerId: z.string(),
-  providerDBId: z.int(),
   name: z.string(),
   icon: z.string(),
   flowType: z.enum(["CREDENTIAL", "PASSKEY"]),
@@ -61,7 +61,7 @@ export const MemorySuggestionSchema = z.object({
   matchedVariantText: z.string().optional(),
   /** Variant type of the matched entry (e.g. SURFACE, TOKEN_TEMPLATE, FRAGMENT). */
   matchedVariantType: z.string().optional(),
-  /** Recall evidence entries from exact/trgm/variant/bm25/semantic lanes. Backward-compatible default: []. */
+  /** Evidence from the fine-grained retrieval lanes that recalled this candidate. */
   evidences: z.array(RecallEvidenceSchema).default([]),
 });
 

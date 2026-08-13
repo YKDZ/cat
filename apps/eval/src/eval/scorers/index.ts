@@ -1,6 +1,5 @@
 import type { Scorer } from "../types.ts";
 import { agentLatencyScorer } from "./agent-latency.ts";
-import { bm25ConfidenceScorer } from "./bm25-confidence.ts";
 import { channelCoverageScorer } from "./channel-coverage.ts";
 import { chrfScorer } from "./chrf.ts";
 import { confidenceScorer } from "./confidence.ts";
@@ -37,7 +36,6 @@ const scorerRegistry = new Map<string, Scorer>([
   ["token-cost", tokenCostScorer],
   ["agent-latency", agentLatencyScorer],
   ["noise-rate", noiseRateScorer],
-  ["bm25-confidence", bm25ConfidenceScorer],
   ["template-match-rate", templateMatchRateScorer],
   ["self-exclusion-rate", selfExclusionRateScorer],
   ["preserve-rate", preserveRateScorer],

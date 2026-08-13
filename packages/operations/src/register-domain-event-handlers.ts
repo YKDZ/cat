@@ -14,21 +14,17 @@ import { serverLogger as logger } from "@cat/server-shared";
 
 import { runAutoTranslatePipeline } from "./run-auto-translate-pipeline.ts";
 import { triggerConceptRevectorize } from "./trigger-revectorize.ts";
-import { triggerTermRecallReindex } from "./trigger-term-recall-reindex.ts";
 
 let registered = false;
 
-const onConceptUpdated = async (
+const onConceptUpdated = (
   payload: DomainEventMap["concept:updated"],
   pluginManager?: PluginManager,
-): Promise<void> => {
-  const ctx = {
+): void => {
+  triggerConceptRevectorize(payload.conceptId, {
     traceId: `domain-event:concept-updated:${payload.conceptId}`,
     pluginManager,
-  };
-
-  triggerConceptRevectorize(payload.conceptId, ctx);
-  triggerTermRecallReindex(payload.conceptId, ctx);
+  });
 };
 
 const onProjectCreated = async (
@@ -92,14 +88,8 @@ export const registerDomainEventHandlers = (
     return;
   }
 
-  domainEventBus.subscribe("concept:updated", async (event) => {
-    try {
-      await onConceptUpdated(event.payload, options?.pluginManager);
-    } catch (error) {
-      logger
-        .child({ component: "server" })
-        .error("Failed to handle concept:updated event", { error: error });
-    }
+  domainEventBus.subscribe("concept:updated", (event) => {
+    onConceptUpdated(event.payload, options?.pluginManager);
   });
 
   domainEventBus.subscribe("project:created", async (event) => {

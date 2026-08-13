@@ -3,6 +3,8 @@ import type { DbContext, DrizzleClient } from "@cat/domain";
 import {
   executeCommand,
   executeQuery,
+  createInProcessCollector,
+  domainEventBus,
   getBranchById,
   getPR,
   markBranchConflicted,
@@ -66,7 +68,8 @@ export const mergePRFull = async (
   }
 
   // 2. 在事务内执行完整合并
-  return await db
+  const collector = createInProcessCollector(domainEventBus);
+  const result = await db
     .transaction(async (tx) => {
       // 2a. mergeBranch: 冲突检测 + entry 复制到 main changeset
       const mergeResult: MergeResult = await mergeBranch(
@@ -91,6 +94,7 @@ export const mergePRFull = async (
         try {
           await csService.applyChangeSet(mergeResult.mainChangesetId, {
             projectId: branch.projectId,
+            collector,
           });
         } catch (error) {
           throw new MergePRApplyError(
@@ -101,7 +105,7 @@ export const mergePRFull = async (
       }
 
       // 2c. 调用 mergePR 域命令更新 PR 和 branch 状态
-      await executeCommand({ db: tx }, mergePR, {
+      await executeCommand({ db: tx, collector }, mergePR, {
         prId: pr.id,
         mergedBy: input.mergedBy,
       });
@@ -136,6 +140,8 @@ export const mergePRFull = async (
       }
       throw error;
     });
+  if (result.success) await collector.flush();
+  return result;
 };
 
 // ─── Error Types ────────────────────────────────────────────────────────────

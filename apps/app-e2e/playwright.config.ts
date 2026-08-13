@@ -34,6 +34,7 @@ export default defineConfig({
   use: {
     baseURL,
     locale: "zh-CN",
+    timezoneId: "Asia/Shanghai",
     trace: "retain-on-failure",
   },
   projects: [
