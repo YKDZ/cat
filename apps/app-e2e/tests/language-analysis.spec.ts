@@ -316,7 +316,7 @@ test.describe("Language Analysis policy surfaces", () => {
       throw new Error("Authenticated Workbench did not expose a CSRF token");
     }
     const apiContext = page.request;
-    await page.close();
+    await page.goto("about:blank");
     const before = await waitForStableRequestCounts();
 
     const directObservationResponse = await apiContext.post(
