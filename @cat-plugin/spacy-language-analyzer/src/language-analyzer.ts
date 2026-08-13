@@ -352,13 +352,14 @@ export class SpacyLanguageAnalyzer extends LanguageAnalyzer {
     });
   }
 
-  private getMissingConfigAvailability = (): PluginServiceAvailability | null =>
-    PLACEHOLDER_SERVER_URLS.has(normalizeServerUrl(this.config.serverUrl))
-      ? {
-          available: false,
-          reason: "missing-config",
-          message:
-            "spaCy Language Analyzer requires a non-placeholder serverUrl.",
-        }
-      : null;
+  private getMissingConfigAvailability =
+    (): PluginServiceAvailability | null =>
+      PLACEHOLDER_SERVER_URLS.has(normalizeServerUrl(this.config.serverUrl))
+        ? {
+            available: false,
+            reason: "missing-config",
+            message:
+              "spaCy Language Analyzer requires a non-placeholder serverUrl.",
+          }
+        : null;
 }
