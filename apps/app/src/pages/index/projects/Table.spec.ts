@@ -49,6 +49,37 @@ describe("Project table", () => {
     expect(mocks.request).toHaveBeenLastCalledWith(0, 20);
 
     await wrapper
+      .get('input[aria-label="搜索名称或描述"]')
+      .setValue("Project one");
+    await vi.waitFor(() =>
+      expect(mocks.request).toHaveBeenLastCalledWith(0, 20, "Project one"),
+    );
+
+    await wrapper.get('button[aria-label="名称"]').trigger("click");
+    await vi.waitFor(() =>
+      expect(mocks.request).toHaveBeenLastCalledWith(0, 20, "Project one", {
+        desc: false,
+        id: "name",
+      }),
+    );
+
+    await wrapper.get('input[aria-label="搜索名称或描述"]').setValue("");
+    await vi.waitFor(() =>
+      expect(mocks.request).toHaveBeenLastCalledWith(0, 20, null, {
+        desc: false,
+        id: "name",
+      }),
+    );
+
+    await wrapper.get('button[aria-label="名称"]').trigger("click");
+    await vi.waitFor(() =>
+      expect(mocks.request).toHaveBeenLastCalledWith(0, 20, null, {
+        desc: true,
+        id: "name",
+      }),
+    );
+
+    await wrapper
       .get('tr[data-row-id="project-1"] button[data-row-action]')
       .trigger("click");
     expect(mocks.navigate).toHaveBeenCalledWith("/project/project-1");

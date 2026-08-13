@@ -7,6 +7,8 @@ import {
 } from "@cat/domain";
 import {
   MemorySuggestionSchema,
+  NormalizedLanguageIdSchema,
+  type NormalizedLanguageId,
   type MemorySuggestion,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
@@ -40,8 +42,8 @@ export const SearchMemoryInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()).meta({
     description: "UUIDs of the translation memory banks to search in.",
   }),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   vectorStorage: ServiceImplementationReferenceSchema.meta({
     description: "Stable vector storage implementation to query.",
   }),
@@ -51,7 +53,7 @@ export const SearchMemoryOutputSchema = z.object({
   memories: z.array(MemorySuggestionSchema),
 });
 
-export type SearchMemoryInput = z.infer<typeof SearchMemoryInputSchema>;
+export type SearchMemoryInput = z.input<typeof SearchMemoryInputSchema>;
 export type SearchMemoryOutput = z.infer<typeof SearchMemoryOutputSchema>;
 
 /**
@@ -72,8 +74,9 @@ export const searchMemoryOp = async (
   data: SearchMemoryInput,
   ctx?: OperationContext,
 ): Promise<SearchMemoryOutput> => {
-  const hasVectors = data.queryVectors && data.queryVectors.length > 0;
-  if (!hasVectors && data.chunkIds.length === 0) {
+  const input = SearchMemoryInputSchema.parse(data);
+  const hasVectors = input.queryVectors && input.queryVectors.length > 0;
+  if (!hasVectors && input.chunkIds.length === 0) {
     return { memories: [] };
   }
 
@@ -84,9 +87,9 @@ export const searchMemoryOp = async (
     { db: drizzle },
     getSearchMemoryChunkRange,
     {
-      memoryIds: data.memoryIds,
-      sourceLanguageId: data.sourceLanguageId,
-      translationLanguageId: data.translationLanguageId,
+      memoryIds: input.memoryIds,
+      sourceLanguageId: input.sourceLanguageId,
+      translationLanguageId: input.translationLanguageId,
     },
   );
 
@@ -97,12 +100,12 @@ export const searchMemoryOp = async (
   // 2. 调用 searchChunkOp
   const searchChunkResult = await searchChunkOp(
     {
-      minSimilarity: data.minSimilarity,
-      maxAmount: data.maxAmount,
+      minSimilarity: input.minSimilarity,
+      maxAmount: input.maxAmount,
       searchRange,
-      queryChunkIds: data.chunkIds,
-      ...(hasVectors ? { queryVectors: data.queryVectors } : {}),
-      vectorStorage: data.vectorStorage,
+      queryChunkIds: input.chunkIds,
+      ...(hasVectors ? { queryVectors: input.queryVectors } : {}),
+      vectorStorage: input.vectorStorage,
     },
     ctx,
   );
@@ -113,10 +116,10 @@ export const searchMemoryOp = async (
   const memories = await searchMemory(
     drizzle,
     chunks,
-    data.memoryIds,
-    data.sourceLanguageId,
-    data.translationLanguageId,
-    data.maxAmount,
+    input.memoryIds,
+    input.sourceLanguageId,
+    input.translationLanguageId,
+    input.maxAmount,
   );
 
   return { memories };
@@ -126,8 +129,8 @@ const searchMemory = async (
   drizzle: Awaited<ReturnType<typeof getDbHandle>>["client"],
   chunks: { chunkId: number; similarity: number }[],
   memoryIds: string[],
-  sourceLanguageId: string,
-  translationLanguageId: string,
+  sourceLanguageId: NormalizedLanguageId,
+  translationLanguageId: NormalizedLanguageId,
   maxAmount: number = 3,
 ): Promise<MemorySuggestion[]> => {
   const searchResult = new Map(chunks.map((it) => [it.chunkId, it.similarity]));

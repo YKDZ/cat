@@ -179,7 +179,7 @@ describe("TypeScript configuration contracts", () => {
     expect(files).toEqual(
       expect.arrayContaining([
         "./oxlint.config.ts",
-        "./scripts/check-all.ts",
+        "./scripts/verification-local.ts",
         "./scripts/typescript-config-contract.spec.ts",
       ]),
     );

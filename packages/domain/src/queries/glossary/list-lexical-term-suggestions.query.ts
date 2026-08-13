@@ -11,7 +11,7 @@ import {
   termConceptSubject,
   termConceptToSubject,
 } from "@cat/db";
-import type { TermMatch } from "@cat/shared";
+import { NormalizedLanguageIdSchema, type TermMatch } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -19,21 +19,25 @@ import type { Query } from "#/types.ts";
 export const ListLexicalTermSuggestionsQuerySchema = z.object({
   glossaryIds: z.array(z.uuidv4()),
   text: z.string(),
-  sourceLanguageId: z.string().min(1),
-  translationLanguageId: z.string().min(1),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   wordSimilarityThreshold: z.number().min(0).max(1).default(0.3),
 });
 
 export type ListLexicalTermSuggestionsQuery = z.infer<
   typeof ListLexicalTermSuggestionsQuerySchema
 >;
+type ListLexicalTermSuggestionsQueryInput = z.input<
+  typeof ListLexicalTermSuggestionsQuerySchema
+>;
 
 export type LexicalTermSuggestion = TermMatch;
 
 export const listLexicalTermSuggestions: Query<
-  ListLexicalTermSuggestionsQuery,
+  ListLexicalTermSuggestionsQueryInput,
   LexicalTermSuggestion[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = ListLexicalTermSuggestionsQuerySchema.parse(input);
   if (query.glossaryIds.length === 0) return [];
 
   const trimmedText = query.text.trim();

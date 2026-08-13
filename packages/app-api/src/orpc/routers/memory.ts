@@ -197,7 +197,7 @@ export const onNew = authed
     const { elementId, translationLanguageId, minConfidence, maxAmount } =
       input;
 
-    // Fetch element details — text, language, project, and chunk IDs
+    // Fetch the source text and project used to resolve effective memories.
     const element = await executeQuery(
       { db: drizzle },
       getElementWithChunkIds,
@@ -237,7 +237,6 @@ export const onNew = authed
             translationLanguageId,
             projectMemoryIds,
             personalMemoryIds,
-            chunkIds: element.chunkIds,
             minSimilarity: minConfidence,
             maxAmount,
             excludeMemoryItemIds,
@@ -709,7 +708,6 @@ export const searchByText = authed
             translationLanguageId,
             projectMemoryIds,
             personalMemoryIds,
-            chunkIds: [],
             minSimilarity: minConfidence,
             maxAmount,
           },

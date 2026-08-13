@@ -1,12 +1,12 @@
-import { readFileSync, rmSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 import { describe, expect, it, vi } from "vitest";
 
+import { runApplicationLifecycle } from "./check-all-containers.ts";
 import {
-  exportValidatedImages,
-  runApplicationLifecycle,
-} from "./check-all-containers.ts";
-import { CommandExecutionError, type CommandRunner } from "./check-all.ts";
+  CommandExecutionError,
+  type VerificationCommandRunner as CommandRunner,
+} from "./verification-runtime.ts";
 
 const standaloneImageId = `sha256:${"a".repeat(64)}`;
 const runtimeImageId = `sha256:${"b".repeat(64)}`;
@@ -758,94 +758,6 @@ describe("application container lifecycle", () => {
       "--force",
       "cat-container-cleanup-db-lifecycle-storage",
     ]);
-  });
-
-  it("exports all images only after the separate lifecycle stage passes", async () => {
-    const exportDirectory = `/tmp/cat-validated-images-${process.pid}`;
-    const run = lifecycleRunner();
-    const context = {
-      env: {
-        CAT_CHECK_ALL_EXPORT_IMAGES_DIR: exportDirectory,
-        DATABASE_URL: "postgresql://user:pass@172.17.0.1:49152/cat",
-        REDIS_URL: "redis://172.17.0.1:49153",
-      },
-      projectName: "cat-container-export",
-      run,
-      signal: new AbortController().signal,
-    };
-    await runLifecycle(context);
-    await exportValidatedImages(context, releaseImages);
-
-    try {
-      const calls = vi.mocked(run).mock.calls.map(([, args]) => args);
-      const saves = calls.filter(
-        (args) => args[0] === "image" && args[1] === "save",
-      );
-      expect(saves).toEqual([
-        [
-          "image",
-          "save",
-          "--output",
-          `${exportDirectory}/standalone.tar`,
-          standaloneImageId,
-        ],
-        [
-          "image",
-          "save",
-          "--output",
-          `${exportDirectory}/runtime.tar`,
-          runtimeImageId,
-        ],
-        [
-          "image",
-          "save",
-          "--output",
-          `${exportDirectory}/spacy.tar`,
-          spacyImageId,
-        ],
-      ]);
-      expect(
-        JSON.parse(readFileSync(`${exportDirectory}/manifest.json`, "utf8")),
-      ).toMatchObject({
-        images: {
-          runtime: {
-            identity: {
-              command: "start-only",
-              description: "CAT start-only application runtime",
-              versionLabel: "cat-container-export",
-            },
-            imageId: runtimeImageId,
-          },
-          spacy: {
-            identity: {
-              command: "provision-and-serve",
-              description: "CAT spaCy language analysis runtime",
-              versionLabel: "cat-container-export",
-            },
-            imageId: spacyImageId,
-          },
-          standalone: {
-            identity: {
-              command: "prepare-and-start",
-              versionLabel: "cat-container-export",
-            },
-            imageId: standaloneImageId,
-          },
-        },
-        schemaVersion: 1,
-      });
-      const firstSave = saves.at(0);
-      if (firstSave === undefined)
-        throw new Error("Expected standalone export");
-      expect(calls.indexOf(firstSave)).toBeGreaterThan(
-        calls.findIndex(
-          (args) =>
-            args.includes("prepare-only") && args.includes(runtimeImageId),
-        ),
-      );
-    } finally {
-      rmSync(exportDirectory, { force: true, recursive: true });
-    }
   });
 
   it("uses a fresh bounded signal to remove a server after the lifecycle is aborted", async () => {

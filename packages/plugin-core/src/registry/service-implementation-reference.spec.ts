@@ -31,6 +31,8 @@ const service = (
   id: "primary",
   type: "TEXT_VECTORIZER",
   dbId: 1,
+  scopeType: "GLOBAL",
+  scopeId: "",
   service: {
     getId: () => "primary",
     getType: () => "TEXT_VECTORIZER",
@@ -42,8 +44,11 @@ describe("resolveServiceImplementationReference", () => {
   it("creates a database-independent reference from the logical service identity", () => {
     expect(
       createServiceImplementationReference(
-        { scopeType: "PROJECT", scopeId: "project-1" },
-        service({ dbId: 99 }),
+        service({
+          dbId: 99,
+          scopeType: "PROJECT",
+          scopeId: "project-1",
+        }),
       ),
     ).toEqual({
       pluginId: "vectors",
@@ -75,6 +80,70 @@ describe("resolveServiceImplementationReference", () => {
     });
   });
 
+  it("reports an installation scope mismatch before package loading", () => {
+    const manager = new PluginManager(
+      "PROJECT",
+      "project-1",
+      undefined,
+      undefined,
+      new ServiceRegistry(),
+    );
+
+    expect(
+      manager.resolveServiceImplementationReference(
+        reference(),
+        "TEXT_VECTORIZER",
+      ),
+    ).toEqual({
+      kind: "INSTALLATION_SCOPE_MISMATCH",
+      reference: reference(),
+      installationScope: { scopeType: "PROJECT", scopeId: "project-1" },
+    });
+  });
+
+  it("prioritizes scope when scope, type, and package loading all mismatch", () => {
+    const manager = new PluginManager(
+      "PROJECT",
+      "project-1",
+      undefined,
+      undefined,
+      new ServiceRegistry(),
+    );
+
+    expect(
+      manager.resolveServiceImplementationReference(
+        reference("VECTOR_STORAGE"),
+        "TEXT_VECTORIZER",
+      ),
+    ).toEqual({
+      kind: "INSTALLATION_SCOPE_MISMATCH",
+      reference: reference("VECTOR_STORAGE"),
+      installationScope: { scopeType: "PROJECT", scopeId: "project-1" },
+    });
+  });
+
+  it("reports a service type mismatch before package loading", () => {
+    const manager = new PluginManager(
+      "GLOBAL",
+      "",
+      undefined,
+      undefined,
+      new ServiceRegistry(),
+    );
+
+    expect(
+      manager.resolveServiceImplementationReference(
+        reference("VECTOR_STORAGE"),
+        "TEXT_VECTORIZER",
+      ),
+    ).toEqual({
+      kind: "SERVICE_TYPE_MISMATCH",
+      reference: reference("VECTOR_STORAGE"),
+      expectedServiceType: "TEXT_VECTORIZER",
+      actualServiceType: "VECTOR_STORAGE",
+    });
+  });
+
   it("resolves only the referenced implementation regardless of registration order", () => {
     const registry = new ServiceRegistry([
       service({ pluginId: "other", id: "other", dbId: 2 }),
@@ -91,6 +160,25 @@ describe("resolveServiceImplementationReference", () => {
     expect(result).toMatchObject({
       kind: "RESOLVED",
       service: { pluginId: "vectors", id: "primary" },
+    });
+  });
+
+  it("resolves a persisted logical reference after a service database id changes", () => {
+    const persisted = createServiceImplementationReference(
+      service({ dbId: 1 }),
+    );
+    const replacement = service({ dbId: 42 });
+
+    const result = resolveRegisteredServiceImplementationReference(
+      new ServiceRegistry([replacement]),
+      { scopeType: "GLOBAL", scopeId: "" },
+      persisted,
+      "TEXT_VECTORIZER",
+    );
+
+    expect(result).toMatchObject({
+      kind: "RESOLVED",
+      service: { dbId: 42, pluginId: "vectors", id: "primary" },
     });
   });
 

@@ -291,12 +291,14 @@ describe("suggestion.onNew", () => {
   });
 
   it("passes preloaded memories to llmTranslateOp when memories are available", async () => {
+    const projectMemoryId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const personalMemoryId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
     const memory = {
       id: 1,
       source: "Save changes",
       translation: "保存更改",
       confidence: 0.95,
-      memoryId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      memoryId: projectMemoryId,
       translationChunkSetId: null,
       creatorId: null,
       createdAt: new Date(),
@@ -309,9 +311,9 @@ describe("suggestion.onNew", () => {
       if (query === listProjectGlossaryIds) return [];
       if (query === listEffectiveMemoryIdsByProject)
         return {
-          projectMemoryIds: ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
-          personalMemoryIds: [],
-          allMemoryIds: ["aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"],
+          projectMemoryIds: [projectMemoryId],
+          personalMemoryIds: [personalMemoryId],
+          allMemoryIds: [projectMemoryId, personalMemoryId],
         };
       return [];
     });
@@ -328,6 +330,17 @@ describe("suggestion.onNew", () => {
 
     await collect(stream);
 
+    expect(opMocks.collectEffectiveMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: MOCK_ELEMENT.value,
+        sourceLanguageId: MOCK_ELEMENT.languageId,
+        translationLanguageId: "zh-Hans",
+        projectMemoryIds: [projectMemoryId],
+        personalMemoryIds: [personalMemoryId],
+        excludeMemoryItemIds: [],
+      },
+      expect.any(Object),
+    );
     expect(opMocks.llmTranslateOp).toHaveBeenCalledWith(
       expect.objectContaining({
         elementId: 10,

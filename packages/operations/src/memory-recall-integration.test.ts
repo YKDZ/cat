@@ -1,6 +1,7 @@
 import {
   createElements,
   createMemory,
+  createRecallDerivationTask,
   createRootContentNode,
   createTranslations,
   createUser,
@@ -29,6 +30,7 @@ import {
   assertSingleNonNullish,
   LanguageAnalysisResultSchema,
   LanguageAnalysisWildcardSelectionKey,
+  NormalizedLanguageIdSchema,
   PluginManifestSchema,
   type RecallDerivationReference,
 } from "@cat/shared";
@@ -58,15 +60,15 @@ import {
   getMemoryRecallCandidates,
 } from "./collect-memory-recall.ts";
 import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requirement.ts";
+import { probeCurrentMemoryRecallDependencies } from "./memory-recall-derivation.ts";
+import { insertMemory } from "./memory.ts";
 import {
   assessRecallDerivationFreshness,
-  probeCurrentMemoryRecallDependencies,
-  processRecallDerivationBatch,
-  startRecallDerivationWorker,
-  waitForRecallDerivationFresh,
-} from "./memory-recall-derivation.ts";
-import { insertMemory } from "./memory.ts";
-import { startRecallDerivationTask } from "./recall-derivation-task.ts";
+  processRecallDerivationBatch as processRecallDerivationBatchRuntime,
+  startRecallDerivationWorker as startRecallDerivationWorkerRuntime,
+  waitForRecallDerivationFresh as waitForRecallDerivationFreshRuntime,
+} from "./recall-derivation-runtime.ts";
+import { createRecallDerivationTaskProjectionObserver } from "./recall-derivation-task-projection.ts";
 
 class TestNumberTokenizer extends Tokenizer {
   public override getId = (): string => "test-number-tokenizer";
@@ -154,6 +156,52 @@ describe("memory recall integration", () => {
   let userId: string;
   let projectId: string;
   let rootContentNodeId: string;
+
+  const createProductionTaskProjectionObserver = () =>
+    createRecallDerivationTaskProjectionObserver({ db: db.client });
+
+  const processRecallDerivationBatch = async (
+    input: Parameters<typeof processRecallDerivationBatchRuntime>[0],
+  ) =>
+    await processRecallDerivationBatchRuntime({
+      ...input,
+      onStateCommitted: createProductionTaskProjectionObserver(),
+    });
+
+  const waitForRecallDerivationFresh = async (
+    references: Parameters<typeof waitForRecallDerivationFreshRuntime>[0],
+    input: Parameters<typeof waitForRecallDerivationFreshRuntime>[1],
+  ) =>
+    await waitForRecallDerivationFreshRuntime(references, {
+      ...input,
+    });
+
+  const startRecallDerivationWorker = async (
+    input: Parameters<typeof startRecallDerivationWorkerRuntime>[0],
+  ) =>
+    await startRecallDerivationWorkerRuntime({
+      ...input,
+      onStateCommitted: createProductionTaskProjectionObserver(),
+    });
+
+  const startRecallDerivationTask = async (
+    handle: TestDB["client"],
+    input: {
+      projectId: string;
+      actorId: string;
+      references: RecallDerivationReference[];
+      resources?: Array<{ type: "MEMORY"; id: string }>;
+    },
+  ) =>
+    await executeCommand({ db: handle }, createRecallDerivationTask, {
+      references: input.references,
+      scope: { type: "PROJECT", id: input.projectId },
+      actor: { type: "USER", id: input.actorId },
+      resources: [
+        { type: "PROJECT", id: input.projectId },
+        ...(input.resources ?? []),
+      ],
+    });
 
   const createTranslationRecord = async ({
     creatorId,
@@ -395,9 +443,9 @@ describe("memory recall integration", () => {
       );
     });
     derivations = inserted.derivations;
+    await drainRecallDerivations();
     await waitForRecallDerivationFresh(derivations, {
       db: db.client,
-      pluginManager,
       timeoutMs: 30_000,
     });
   });
@@ -435,7 +483,6 @@ describe("memory recall integration", () => {
       await collectMemoryRecallOp(
         {
           text: "Order 43 is completed",
-          normalizedText: "Order {NUM_0} is completed",
           sourceLanguageId: "en",
           translationLanguageId: "zh-Hans",
           memoryIds: [memoryId],
@@ -482,7 +529,6 @@ describe("memory recall integration", () => {
       await collectMemoryRecallOp(
         {
           text: "invoice 42 completed",
-          normalizedText: "invoice 42 completed",
           sourceLanguageId: "en",
           translationLanguageId: "zh-Hans",
           memoryIds: [memoryId],
@@ -526,6 +572,21 @@ describe("memory recall integration", () => {
     );
     expect(results[0]?.confidence).toBeGreaterThan(0);
     expect(results[0]?.confidence).toBeLessThanOrEqual(1);
+  });
+
+  it("uses registered semantic services through the public recall input", async () => {
+    const result = await collectMemoryRecallOp(
+      {
+        text: "Order 42 is completed",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        memoryIds: [memoryId],
+        channels: ["SEMANTIC"],
+      },
+      { traceId: "memory-recall-semantic-public-input", pluginManager },
+    );
+
+    expect(result.outcomes.SEMANTIC.status).toMatch(/SUCCEEDED|EMPTY/);
   });
 
   it("returns caller-oriented Keyword results for zh-Hans to en queries", async () => {
@@ -696,7 +757,7 @@ describe("memory recall integration", () => {
     const pendingB = await getEnglishState();
     expect(pendingB).toMatchObject({
       status: "PENDING",
-      demandRevision: generationA.demandRevision + 1,
+      demandRevision: generationA.demandRevision,
       currentDerivationVersion: generationA.currentDerivationVersion,
     });
     expect(pendingB.requiredDerivationVersion).not.toBe(
@@ -717,9 +778,9 @@ describe("memory recall integration", () => {
       pendingB.demandRevision,
     );
 
+    await drainRecallDerivations();
     await waitForRecallDerivationFresh(derivations, {
       db: db.client,
-      pluginManager,
       timeoutMs: 30_000,
     });
     const freshB = await getEnglishState();
@@ -743,7 +804,7 @@ describe("memory recall integration", () => {
       { traceId: "memory-recall-generation-c", pluginManager },
     );
     const pendingC = await getEnglishState();
-    expect(pendingC.demandRevision).toBe(freshB.demandRevision + 1);
+    expect(pendingC.demandRevision).toBe(freshB.demandRevision);
 
     MutableGenerationLanguageAnalyzer.generation = "a";
     await collectMemoryRecallOp(
@@ -759,14 +820,14 @@ describe("memory recall integration", () => {
     const switchedBackA = await getEnglishState();
     expect(switchedBackA).toMatchObject({
       status: "PENDING",
-      demandRevision: pendingC.demandRevision + 1,
+      demandRevision: pendingC.demandRevision,
       requiredDerivationVersion: generationA.currentDerivationVersion,
       currentDerivationVersion: freshB.currentDerivationVersion,
     });
 
+    await drainRecallDerivations();
     await waitForRecallDerivationFresh(derivations, {
       db: db.client,
-      pluginManager,
       timeoutMs: 30_000,
     });
   });
@@ -846,7 +907,7 @@ describe("memory recall integration", () => {
     await probeCurrentMemoryRecallDependencies({
       db: db.client,
       pluginManager,
-      languageIds: ["ja"],
+      languageIds: [NormalizedLanguageIdSchema.parse("ja")],
     });
     const beforeBlock = assertSingleNonNullish(
       await db.client
@@ -863,7 +924,7 @@ describe("memory recall integration", () => {
     expect(beforeBlock.requiredDerivationVersion).not.toBeNull();
     expect(beforeBlock).toMatchObject({
       status: "PENDING",
-      demandRevision: createdReference.demandRevision + 1,
+      demandRevision: createdReference.demandRevision,
     });
     const reference = {
       ...createdReference,
@@ -956,9 +1017,11 @@ describe("memory recall integration", () => {
       const remediation = await probeCurrentMemoryRecallDependencies({
         db: db.client,
         pluginManager,
-        languageIds: ["en", "ja", "zh-Hans"],
+        languageIds: ["en", "ja", "zh-Hans"].map((languageId) =>
+          NormalizedLanguageIdSchema.parse(languageId),
+        ),
       });
-      expect(remediation).toBeUndefined();
+      expect(remediation).toMatchObject({ committed: true });
       const resumedState = assertSingleNonNullish(
         await db.client
           .select()
@@ -1037,7 +1100,7 @@ describe("memory recall integration", () => {
     }
   });
 
-  it("projects a retryable tokenizer runtime failure to the owning Task", async () => {
+  it("projects an unknown adapter failure as derivation execution to the owning Task", async () => {
     await drainRecallDerivations();
     expect(
       await db.client
@@ -1085,7 +1148,7 @@ describe("memory recall integration", () => {
         status: "FAILED",
         retryCount: 1,
         blocker: {
-          reason: "TOKENIZER",
+          reason: "DERIVATION_EXECUTION",
           retryable: true,
           message: "retryable tokenizer runtime failure",
         },

@@ -63,7 +63,7 @@ const composeFile = resolve(import.meta.dirname, "compose.e2e.yaml");
 const cleanupTimeoutMs = 60_000;
 const composeShutdownSeconds = 15;
 // Matches the spaCy cold-start budget in apps/spacy-server/src/startup_budget.py.
-const spacyServiceStartupTimeoutSeconds = 480;
+const spacyServiceStartupTimeoutSeconds = 510;
 const spacyReachabilityTimeoutMs = 5_000;
 const ownershipLabel = "cat.test-service-lease.token";
 const composeProjectLabel = "com.docker.compose.project";
