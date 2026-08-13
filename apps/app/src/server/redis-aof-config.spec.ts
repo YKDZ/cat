@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
 const root = resolve(import.meta.dirname, "../../../..");
+const dockerComposeConfigTimeoutMs = 20_000;
 
 const applicationComposeFiles = [
   "apps/app/compose.yaml",
@@ -62,6 +63,7 @@ const renderComposeConfig = (relativePath: string): ComposeConfig => {
         CAT_REDIS_PASSWORD: "redis-password",
         CAT_SPACY_IMAGE_ID: "sha256:test-spacy-image",
       },
+      timeout: 15_000,
     },
   );
   return JSON.parse(output) as ComposeConfig;
@@ -85,6 +87,7 @@ describe("Redis AOF compose config", () => {
 
       expectAofCommand(compose.services?.redis);
     },
+    dockerComposeConfigTimeoutMs,
   );
 
   it.each(evalSuiteComposeFiles)(
@@ -107,11 +110,16 @@ describe("Redis AOF compose config", () => {
 
       expectAofCommand(compose.services?.redis);
     },
+    dockerComposeConfigTimeoutMs,
   );
 
-  it("keeps the application Redis capability on the official image", () => {
-    const compose = renderComposeConfig("apps/app/compose.services.yaml");
+  it(
+    "keeps the application Redis capability on the official image",
+    () => {
+      const compose = renderComposeConfig("apps/app/compose.services.yaml");
 
-    expect(compose.services?.redis?.image).toBe("redis:8-alpine");
-  });
+      expect(compose.services?.redis?.image).toBe("redis:8-alpine");
+    },
+    dockerComposeConfigTimeoutMs,
+  );
 });
