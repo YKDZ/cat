@@ -100,7 +100,7 @@ catalog:
   commander: ^15.0.0
   devalue: ^5.8.1
   diff: ^9.0.0
-  dompurify: ^3.4.10
+  dompurify: ^3.4.13
   dotenv: ^17.4.2
   drizzle-kit: 1.0.0-rc.4
   drizzle-orm: 1.0.0-rc.4
