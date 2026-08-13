@@ -1,11 +1,25 @@
 import { executeCommand, registerUserWithPasswordAccount } from "@cat/domain";
 import { grantFirstUserSuperadmin } from "@cat/permissions";
+import {
+  resolveServiceImplementation,
+  ServiceImplementationResolutionError,
+} from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 
 import { base } from "#/orpc/server.ts";
 
 import { finishLogin } from "./schemas.ts";
+
+const passwordAuthProviderReference =
+  ServiceImplementationReferenceSchema.parse({
+    pluginId: "password-auth-provider",
+    serviceId: "PASSWORD",
+    serviceType: "AUTH_FACTOR",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  });
 
 export const register = base
   .input(
@@ -25,17 +39,19 @@ export const register = base
     } = context;
     const { email, name, password } = input;
 
-    // TODO 就算是内部插件 ID 也有可能变
-    const authProvider = pluginManager.getService(
-      "password-auth-provider",
-      "AUTH_FACTOR",
-      "PASSWORD",
-    );
-
-    if (!authProvider) {
-      throw new ORPCError("BAD_REQUEST", {
-        message: "Auth Provider PASSWORD does not exists",
-      });
+    try {
+      resolveServiceImplementation(
+        pluginManager,
+        passwordAuthProviderReference,
+        "AUTH_FACTOR",
+      );
+    } catch (error) {
+      if (error instanceof ServiceImplementationResolutionError) {
+        throw new ORPCError("INTERNAL_SERVER_ERROR", {
+          message: "Password authentication provider is unavailable.",
+        });
+      }
+      throw error;
     }
 
     const result = await drizzle.transaction(async (tx) => {
@@ -43,8 +59,7 @@ export const register = base
         email,
         name,
         password,
-        authProvider:
-          pluginManager.createServiceImplementationReference(authProvider),
+        authProvider: passwordAuthProviderReference,
       });
     });
 
@@ -58,8 +73,7 @@ export const register = base
       {
         providerIssuer: result.providerIssuer,
         providedAccountId: result.providedAccountId,
-        authProvider:
-          pluginManager.createServiceImplementationReference(authProvider),
+        authProvider: passwordAuthProviderReference,
       },
       helpers,
     );

@@ -4,10 +4,10 @@ import type {
   BatchAutoTranslationTaskPhase,
   RecallDerivationTaskPhase,
   ElementSortMode,
-  OperationFailure,
   OperationFailureAuthorizationDecision,
   OperationFailureBlocker,
   OperationFailureCapability,
+  OperationFailureClientProjection,
   OperationFailureCode,
   OperationFailureSeverity,
   TaskActor,
@@ -63,10 +63,12 @@ type TaskRow = {
   finishedAt: Date | string | null;
 };
 type TaskColumnId = "actions" | "progress" | "status" | "task" | "updatedAt";
+const emptyTaskSorting =
+  [] as const satisfies readonly DataTableSort<TaskColumnId>[];
 type Cursor = { updatedAt: string; id: string };
 type TaskDetail = {
   task: TaskRow;
-  currentFailure: Partial<OperationFailure> | null;
+  currentFailure: OperationFailureClientProjection | null;
 };
 const selectedDetail = ref<TaskDetail | undefined>(data.selectedDetail);
 const detailAvailability = ref<"invalid" | "loading" | "unavailable" | null>(
@@ -76,7 +78,6 @@ const cursors = ref<Array<Cursor | undefined>>([undefined]);
 const tasks = ref(
   data.tasks ?? { items: [], hasMore: false, nextCursor: null, total: 0 },
 );
-const sorting = ref<readonly DataTableSort<TaskColumnId>[]>([]);
 const filters = ref<DataTableFilters>({});
 const columnVisibility = ref<DataTableColumnVisibility<TaskColumnId>>({});
 const labels = createDataTableLabels(t);
@@ -476,14 +477,10 @@ const resourceLabel = (value: TaskAffectedResource["type"]): string =>
   localizedEnum(value, resourceLabels, "未知资源类型");
 const sortModeLabel = (value: ElementSortMode): string =>
   localizedEnum(value, sortModeLabels, "未知排序方式");
-const failureCodeLabel = (value: OperationFailureCode | undefined): string =>
-  value === undefined
-    ? t("未知失败代码")
-    : localizedEnum(value, failureCodeLabels, "未知失败代码");
-const severityLabel = (value: OperationFailureSeverity | undefined): string =>
-  value === undefined
-    ? t("未知失败级别")
-    : localizedEnum(value, severityLabels, "未知失败级别");
+const failureCodeLabel = (value: OperationFailureCode): string =>
+  localizedEnum(value, failureCodeLabels, "未知失败代码");
+const severityLabel = (value: OperationFailureSeverity): string =>
+  localizedEnum(value, severityLabels, "未知失败级别");
 const blockerLabel = (value: OperationFailureBlocker): string =>
   localizedEnum(value, blockerLabels, "未知阻塞原因");
 const capabilityLabel = (value: OperationFailureCapability): string =>
@@ -562,12 +559,11 @@ const updateKind = (event: Event) => {
       "
       :row-key="(task) => task.id"
       :rows="tasks.items"
-      :sorting="sorting"
+      :sorting="emptyTaskSorting"
       @row-click="openDetail($event.id)"
       @update:column-visibility="columnVisibility = $event"
       @update:filters="filters = $event"
       @update:pagination="updateTaskPagination"
-      @update:sorting="sorting = $event"
     >
       <template #toolbar>
         <select
@@ -722,7 +718,7 @@ const updateKind = (event: Event) => {
               selectedDetail.task.state.progressTotal === null
             "
           >
-            {{ $t("无") }}
+            {{ $t("总量待定") }}
           </template>
           <template v-else>
             {{ selectedDetail.task.state.progressCurrent ?? $t("未确定") }} /
@@ -904,7 +900,12 @@ const updateKind = (event: Event) => {
             <p class="font-medium">
               {{ failureCodeLabel(selectedDetail.currentFailure.code) }}
             </p>
-            <p>{{ selectedDetail.currentFailure.message }}</p>
+            <template v-if="!selectedDetail.currentFailure.redacted">
+              <p>{{ selectedDetail.currentFailure.message }}</p>
+            </template>
+            <p v-else class="text-muted-foreground">
+              {{ $t("失败详情已隐藏") }}
+            </p>
             <p class="mt-2 text-muted-foreground">
               {{ severityLabel(selectedDetail.currentFailure.severity) }} ·
               {{
@@ -916,10 +917,20 @@ const updateKind = (event: Event) => {
             <p v-if="selectedDetail.currentFailure.blocker">
               {{ blockerLabel(selectedDetail.currentFailure.blocker) }}
             </p>
-            <p v-if="selectedDetail.currentFailure.capability">
+            <p
+              v-if="
+                !selectedDetail.currentFailure.redacted &&
+                selectedDetail.currentFailure.capability
+              "
+            >
               {{ capabilityLabel(selectedDetail.currentFailure.capability) }}
             </p>
-            <p v-if="selectedDetail.currentFailure.authorizationDecision">
+            <p
+              v-if="
+                !selectedDetail.currentFailure.redacted &&
+                selectedDetail.currentFailure.authorizationDecision
+              "
+            >
               {{
                 authorizationDecisionLabel(
                   selectedDetail.currentFailure.authorizationDecision,
@@ -927,7 +938,10 @@ const updateKind = (event: Event) => {
               }}
             </p>
             <p
-              v-if="selectedDetail.currentFailure.remediationHint"
+              v-if="
+                !selectedDetail.currentFailure.redacted &&
+                selectedDetail.currentFailure.remediationHint
+              "
               class="mt-2"
             >
               {{ selectedDetail.currentFailure.remediationHint }}

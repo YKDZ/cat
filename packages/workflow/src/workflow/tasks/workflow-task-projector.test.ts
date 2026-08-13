@@ -191,6 +191,50 @@ const bindRunningTask = async (
   return claimed.runId;
 };
 
+const expireDispatchWhileKeepingRunLive = async (
+  dispatchId: string,
+  runId: string,
+): Promise<void> => {
+  if (!db) throw new Error("Test database was not initialized.");
+  await db.client.transaction(async (tx) => {
+    await tx.execute(sql`
+      UPDATE "WorkflowTaskDispatch"
+      SET owner_lease_expires_at = clock_timestamp() - interval '1 second'
+      WHERE id = ${dispatchId}
+    `);
+    await tx.execute(sql`
+      UPDATE "AgentRun"
+      SET owner_lease_expires_at = clock_timestamp() + interval '1 minute'
+      WHERE external_id = ${runId}
+    `);
+  });
+};
+
+const expireAgentRunLease = async (runId: string): Promise<void> => {
+  if (!db) throw new Error("Test database was not initialized.");
+  await db.client.execute(sql`
+    UPDATE "AgentRun"
+    SET owner_lease_expires_at = clock_timestamp() - interval '1 second'
+    WHERE external_id = ${runId}
+  `);
+};
+
+const loadLeaseLiveness = async (dispatchId: string, runId: string) => {
+  if (!db) throw new Error("Test database was not initialized.");
+  const lease = await db.client.execute<{
+    dispatchLive: boolean;
+    runLive: boolean;
+  }>(sql`
+    SELECT
+      dispatch.owner_lease_expires_at > clock_timestamp() AS "dispatchLive",
+      run.owner_lease_expires_at > clock_timestamp() AS "runLive"
+    FROM "WorkflowTaskDispatch" dispatch
+    JOIN "AgentRun" run ON run.external_id = dispatch.run_id
+    WHERE dispatch.id = ${dispatchId} AND run.external_id = ${runId}
+  `);
+  return lease.rows[0];
+};
+
 const createTrackedTaskAdapter = async (
   input: Parameters<typeof BatchAutoTranslationTaskAdapter.create>[0],
 ) => {
@@ -1475,17 +1519,21 @@ describe("WorkflowTaskProjector", () => {
     );
     const source = createDefaultGraphRuntime(db.client, sourcePluginManager, {
       ownerId: ownerA,
-      ownerLeaseMs: 400,
+      ownerLeaseMs: 30_000,
       startReconciliationLoops: false,
     });
-    const runId = await bindRunningTask(adapter, 50, source);
+    const runId = await bindRunningTask(adapter, 30_000, source);
     const before = await executeQuery(
       { db: db.client },
       getLatestWorkflowTaskDispatch,
       { taskId: adapter.task.id },
     );
     if (!before) throw new Error("Workflow dispatch missing.");
-    await db.client.execute("SELECT pg_sleep(0.08)");
+    await expireDispatchWhileKeepingRunLive(before.id, runId);
+    expect(await loadLeaseLiveness(before.id, runId)).toEqual({
+      dispatchLive: false,
+      runLive: true,
+    });
 
     const other = await db.openConcurrentClient();
     const ownerB = randomUUID();
@@ -1519,7 +1567,11 @@ describe("WorkflowTaskProjector", () => {
         attemptCount: before.attemptCount + 1,
       });
 
-      await other.client.execute("SELECT pg_sleep(0.35)");
+      await expireAgentRunLease(runId);
+      expect(await loadLeaseLiveness(before.id, runId)).toEqual({
+        dispatchLive: true,
+        runLive: false,
+      });
       await restarted.taskService.reconcilePending();
 
       const recovered = await executeQuery(
@@ -1599,10 +1651,10 @@ describe("WorkflowTaskProjector", () => {
     );
     const source = createDefaultGraphRuntime(db.client, sourcePluginManager, {
       ownerId: ownerA,
-      ownerLeaseMs: 400,
+      ownerLeaseMs: 30_000,
       startReconciliationLoops: false,
     });
-    const runId = await bindRunningTask(adapter, 50, source);
+    const runId = await bindRunningTask(adapter, 30_000, source);
     const before = await executeQuery(
       { db: db.client },
       getLatestWorkflowTaskDispatch,
@@ -1613,7 +1665,11 @@ describe("WorkflowTaskProjector", () => {
       taskId: adapter.task.id,
       requestId: randomUUID(),
     });
-    await db.client.execute("SELECT pg_sleep(0.08)");
+    await expireDispatchWhileKeepingRunLive(before.id, runId);
+    expect(await loadLeaseLiveness(before.id, runId)).toEqual({
+      dispatchLive: false,
+      runLive: true,
+    });
 
     const other = await db.openConcurrentClient();
     const ownerB = randomUUID();
@@ -1653,7 +1709,11 @@ describe("WorkflowTaskProjector", () => {
           leaseDurationMs: 30_000,
         }),
       ).resolves.toBeNull();
-      await other.client.execute("SELECT pg_sleep(0.35)");
+      await expireAgentRunLease(runId);
+      expect(await loadLeaseLiveness(before.id, runId)).toEqual({
+        dispatchLive: true,
+        runLive: false,
+      });
       await restarted.taskService.reconcilePending();
 
       await expect(

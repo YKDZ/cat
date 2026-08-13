@@ -9,7 +9,10 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
-import { RecallDerivationVersionSchema } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  RecallDerivationVersionSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { RawMemorySuggestion } from "#/queries/memory/list-lexical-memory-suggestions.query.ts";
@@ -17,14 +20,17 @@ import type { Query } from "#/types.ts";
 
 export const ListKeywordMemorySuggestionsQuerySchema = z.strictObject({
   keywords: z.array(z.string().min(1)).min(1),
-  sourceLanguageId: z.string().min(1),
-  translationLanguageId: z.string().min(1),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   requiredDerivationVersion: RecallDerivationVersionSchema,
   memoryIds: z.array(z.uuidv4()),
   maxAmount: z.int().min(1),
 });
 
 export type ListKeywordMemorySuggestionsQuery = z.infer<
+  typeof ListKeywordMemorySuggestionsQuerySchema
+>;
+type ListKeywordMemorySuggestionsQueryInput = z.input<
   typeof ListKeywordMemorySuggestionsQuerySchema
 >;
 
@@ -98,7 +104,7 @@ const toSuggestions = (
 };
 
 export const listKeywordMemorySuggestions: Query<
-  ListKeywordMemorySuggestionsQuery,
+  ListKeywordMemorySuggestionsQueryInput,
   RawMemorySuggestion[]
 > = async (ctx, input) => {
   const query = ListKeywordMemorySuggestionsQuerySchema.parse(input);

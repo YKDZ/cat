@@ -5,7 +5,10 @@ import {
   RecallVariantTypeSchema,
   TokenTypeSchema,
 } from "#/schema/enum.ts";
-import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";
+import {
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
+} from "#/schema/language-analysis.ts";
 import {
   type CanonicalInputVersion,
   computeCanonicalInputVersion,
@@ -72,7 +75,7 @@ const MemoryDeletionCanonicalInputSchema = z.strictObject({
 export const computeMemoryDeletionCanonicalInputVersion = async (input: {
   targetId: string;
   memoryId: string;
-  languageIds: readonly string[];
+  languageIds: readonly NormalizedLanguageId[];
 }): Promise<CanonicalInputVersion> =>
   await computeCanonicalInputVersion(
     MemoryDeletionCanonicalInputSchema.parse({

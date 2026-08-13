@@ -6,6 +6,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   captureCellDatabaseDropDiagnostic,
   cleanupCellDatabase,
+  executionCellCleanupSettlementTimeoutMs,
+  executionCellCleanupTimeoutMs,
   parseCellDatabaseName,
 } from "./execution-cell.ts";
 
@@ -17,6 +19,18 @@ const diagnosticLockOidKeys = [
   "relationOid",
 ] as const;
 const recoveryOperationTimeoutMs = 5_000;
+const databaseRecoveryOperationCount = 5;
+const databaseRecoveryMaximumMs =
+  recoveryOperationTimeoutMs * databaseRecoveryOperationCount;
+const databaseCleanupIntegrationTestMarginMs = 5_000;
+const databaseCleanupIntegrationTestTimeoutMs =
+  executionCellCleanupTimeoutMs +
+  executionCellCleanupSettlementTimeoutMs +
+  recoveryOperationTimeoutMs +
+  databaseRecoveryMaximumMs +
+  recoveryOperationTimeoutMs +
+  databaseRecoveryMaximumMs +
+  databaseCleanupIntegrationTestMarginMs;
 
 type RecoveryClient = {
   connect: () => Promise<unknown>;
@@ -188,23 +202,62 @@ const recoverCellDatabase = async (
 };
 
 type CellDatabaseCleanupRecoveryActions = {
-  cleanup: () => Promise<void>;
+  cleanup: (signal: AbortSignal) => Promise<void>;
+  cleanupSettlementTimeoutMs?: number;
+  cleanupTimeoutMs?: number;
   closeActiveClient: () => Promise<void>;
   recover: () => Promise<void>;
 };
 
 const cleanupCellDatabaseWithRecovery = async ({
   cleanup,
+  cleanupSettlementTimeoutMs = executionCellCleanupSettlementTimeoutMs,
+  cleanupTimeoutMs = recoveryOperationTimeoutMs,
   closeActiveClient,
   recover,
 }: CellDatabaseCleanupRecoveryActions): Promise<void> => {
+  const cleanupController = new AbortController();
+  let cleanupAttempt: Promise<void> | undefined;
   let primaryFailure: unknown;
   let cleanupVerified = false;
   try {
-    await cleanup();
+    await runRecoveryOperation(
+      "cleanup",
+      async () => {
+        cleanupAttempt = cleanup(cleanupController.signal);
+        await cleanupAttempt;
+      },
+      () => cleanupController.abort(),
+      cleanupTimeoutMs,
+    );
     cleanupVerified = true;
   } catch (error) {
     primaryFailure = error;
+  }
+  if (
+    primaryFailure !== undefined &&
+    cleanupController.signal.aborted &&
+    cleanupAttempt !== undefined
+  ) {
+    const attemptToSettle = cleanupAttempt;
+    try {
+      await runRecoveryOperation(
+        "cleanup settlement",
+        async () => {
+          await attemptToSettle.then(
+            () => undefined,
+            () => undefined,
+          );
+        },
+        () => undefined,
+        cleanupSettlementTimeoutMs,
+      );
+    } catch (settlementError) {
+      primaryFailure = new AggregateError(
+        [primaryFailure, settlementError],
+        "Cell database cleanup timed out and did not settle after cancellation",
+      );
+    }
   }
 
   let closeFailure: unknown;
@@ -318,6 +371,92 @@ describe.skipIf(testDatabaseUrl === undefined)(
 );
 
 describe("Execution cell recovery failure handling", () => {
+  it("waits for cooperative cleanup settlement before closing and recovering", async () => {
+    const events: string[] = [];
+    const closeActiveClient = vi.fn(async (): Promise<void> => {
+      events.push("close");
+    });
+    const recover = vi.fn(async (): Promise<void> => {
+      events.push("recover");
+    });
+
+    const failure = await cleanupCellDatabaseWithRecovery({
+      cleanup: async (signal): Promise<void> =>
+        await new Promise<void>((_resolve, reject) => {
+          events.push("cleanup");
+          signal.addEventListener(
+            "abort",
+            () => {
+              events.push("abort");
+              setTimeout(() => {
+                events.push("settled");
+                reject(signal.reason);
+              }, 5);
+            },
+            { once: true },
+          );
+        }),
+      cleanupSettlementTimeoutMs: 50,
+      cleanupTimeoutMs: 10,
+      closeActiveClient,
+      recover,
+    }).catch((error: unknown) => error);
+
+    expect(events).toEqual(["cleanup", "abort", "settled", "close", "recover"]);
+    expect(closeActiveClient).toHaveBeenCalledOnce();
+    expect(recover).toHaveBeenCalledOnce();
+    expect(failure).toBeInstanceOf(Error);
+    expect((failure as Error).message).toBe(
+      "Cell database recovery cleanup timed out",
+    );
+  });
+
+  it("reports a hard timeout, performs recovery, and observes a late cleanup rejection", async () => {
+    let rejectCleanup: ((reason?: unknown) => void) | undefined;
+    const events: string[] = [];
+    const unhandledRejections: unknown[] = [];
+    const onUnhandledRejection = (reason: unknown): void => {
+      unhandledRejections.push(reason);
+    };
+    process.on("unhandledRejection", onUnhandledRejection);
+    try {
+      const failure = await cleanupCellDatabaseWithRecovery({
+        cleanup: async (signal): Promise<void> =>
+          await new Promise<void>((_resolve, reject) => {
+            rejectCleanup = reject;
+            signal.addEventListener("abort", () => events.push("abort"), {
+              once: true,
+            });
+          }),
+        cleanupSettlementTimeoutMs: 10,
+        cleanupTimeoutMs: 10,
+        closeActiveClient: async (): Promise<void> => {
+          events.push("close");
+        },
+        recover: async (): Promise<void> => {
+          events.push("recover");
+        },
+      }).catch((error: unknown) => error);
+
+      expect(events).toEqual(["abort", "close", "recover"]);
+      expect(failure).toBeInstanceOf(AggregateError);
+      expect((failure as AggregateError).errors).toEqual([
+        expect.objectContaining({
+          message: "Cell database recovery cleanup timed out",
+        }),
+        expect.objectContaining({
+          message: "Cell database recovery cleanup settlement timed out",
+        }),
+      ]);
+
+      rejectCleanup?.(new Error("late cleanup rejection"));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(unhandledRejections).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", onUnhandledRejection);
+    }
+  });
+
   it("runs recovery after an active-client close timeout and preserves failure order", async () => {
     const cleanupFailure = new Error("cleanup failed");
     const recoveryFailure = new Error("recovery failed");
@@ -436,37 +575,65 @@ describe("Execution cell recovery failure handling", () => {
 describe.skipIf(testDatabaseUrl === undefined)(
   "Execution cell database cleanup",
   () => {
-    it("uses default cell-drop cleanup to terminate an active connection and delete its database", async () => {
-      if (testDatabaseUrl === undefined) {
-        throw new Error(
-          "TEST_DATABASE_URL is required for this integration test",
-        );
-      }
-      const { databaseName, databaseUrl } =
-        await createCellDatabase(testDatabaseUrl);
-      let activeClient: Client | undefined;
-      await cleanupCellDatabaseWithRecovery({
-        cleanup: async (): Promise<void> => {
-          activeClient = new Client({ connectionString: databaseUrl });
-          activeClient.on("error", () => undefined);
-          await activeClient.connect();
-          await activeClient.query("SELECT 1");
-
-          await cleanupCellDatabase(
-            testDatabaseUrl,
-            databaseName,
-            new AbortController().signal,
+    it(
+      "uses default cell-drop cleanup to terminate an active connection and delete its database",
+      async () => {
+        if (testDatabaseUrl === undefined) {
+          throw new Error(
+            "TEST_DATABASE_URL is required for this integration test",
           );
+        }
+        const { databaseName, databaseUrl } =
+          await createCellDatabase(testDatabaseUrl);
+        let activeClient: Client | undefined;
+        let primaryFailure: unknown;
+        try {
+          await cleanupCellDatabaseWithRecovery({
+            cleanup: async (signal): Promise<void> => {
+              activeClient = new Client({ connectionString: databaseUrl });
+              activeClient.on("error", () => undefined);
+              await activeClient.connect();
+              await activeClient.query("SELECT 1");
 
-          expect(
-            await cellDatabaseConnectionAllowed(testDatabaseUrl, databaseName),
-          ).toBeUndefined();
-        },
-        closeActiveClient: async (): Promise<void> =>
-          await closeClient(activeClient),
-        recover: async (): Promise<void> =>
-          await recoverCellDatabase(testDatabaseUrl, databaseName),
-      });
-    });
+              await cleanupCellDatabase(testDatabaseUrl, databaseName, signal);
+
+              expect(
+                await cellDatabaseConnectionAllowed(
+                  testDatabaseUrl,
+                  databaseName,
+                ),
+              ).toBeUndefined();
+            },
+            cleanupTimeoutMs: executionCellCleanupTimeoutMs,
+            closeActiveClient: async (): Promise<void> => {
+              await closeClient(activeClient);
+              activeClient = undefined;
+            },
+            recover: async (): Promise<void> =>
+              await recoverCellDatabase(testDatabaseUrl, databaseName),
+          });
+        } catch (error) {
+          primaryFailure = error;
+        }
+
+        let finalizationFailure: unknown;
+        try {
+          await closeClient(activeClient);
+          activeClient = undefined;
+          await recoverCellDatabase(testDatabaseUrl, databaseName);
+        } catch (error) {
+          finalizationFailure = error;
+        }
+        if (primaryFailure !== undefined && finalizationFailure !== undefined) {
+          throw new AggregateError(
+            [primaryFailure, finalizationFailure],
+            "Cell database cleanup test and final recovery both failed",
+          );
+        }
+        if (primaryFailure !== undefined) throw primaryFailure;
+        if (finalizationFailure !== undefined) throw finalizationFailure;
+      },
+      databaseCleanupIntegrationTestTimeoutMs,
+    );
   },
 );

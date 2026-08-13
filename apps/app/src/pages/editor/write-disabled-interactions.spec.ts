@@ -127,7 +127,6 @@ vi.mock("@pinia/colada", async () => {
       state: ref({
         status: "success",
         data: {
-          id: 1,
           name: "Advisor",
           reference: {
             pluginId: "test-plugin",

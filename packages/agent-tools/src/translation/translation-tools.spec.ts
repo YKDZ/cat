@@ -157,7 +157,8 @@ describe("translation tools", () => {
     });
     mocked.getMemoryRecallCandidates.mockReturnValue([candidate]);
 
-    const result = await searchTmTool.execute({ text: "hello" }, createCtx());
+    const context = createCtx();
+    const result = await searchTmTool.execute({ text: "hello" }, context);
 
     expect(mocked.collectMemoryRecallOp).toHaveBeenCalledWith(
       {
@@ -165,11 +166,11 @@ describe("translation tools", () => {
         sourceLanguageId: "en-US",
         translationLanguageId: "zh-CN",
         memoryIds: [],
-        chunkIds: [],
         minSimilarity: 0.72,
         maxAmount: 5,
       },
       expect.objectContaining({
+        signal: context.signal,
         traceId: "agent-tool:22222222-2222-4222-8222-222222222222:search-tm",
       }),
     );

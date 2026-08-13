@@ -108,29 +108,34 @@ describe("Compose deployment contracts", () => {
       if (value === undefined) throw new Error(`Missing ${name}`);
       return Number(value);
     };
-    const serviceStartupSeconds =
+    const boundedPhaseSeconds =
       timeout("PROVISION_TIMEOUT_SECONDS") +
       timeout("RUNTIME_VALIDATION_TIMEOUT_SECONDS") +
       timeout("WORKER_START_TIMEOUT_SECONDS");
+    const serviceStartupSeconds =
+      boundedPhaseSeconds + timeout("SERVICE_STARTUP_MARGIN_SECONDS");
+    const composeDuration = `${Math.floor(serviceStartupSeconds / 60)}m${serviceStartupSeconds % 60}s`;
 
-    expect(serviceStartupSeconds).toBe(450);
+    expect(boundedPhaseSeconds).toBe(480);
+    expect(serviceStartupSeconds).toBe(510);
+    expect(budget).toContain("+ SERVICE_STARTUP_MARGIN_SECONDS");
     await expect(readFile(testServiceLease, "utf8")).resolves.toContain(
-      "const spacyServiceStartupTimeoutSeconds = 480;",
+      `const spacyServiceStartupTimeoutSeconds = ${serviceStartupSeconds};`,
     );
     const services = parse(
       await readFile(serviceCompose, "utf8"),
     ) as ComposeConfig;
     expect(services.services.spacy?.healthcheck).toMatchObject({
-      start_period: "480s",
+      start_period: `${serviceStartupSeconds}s`,
     });
     const production = JSON.parse(
       await runComposeConfig(productionCompose),
     ) as ComposeConfig;
     expect(production.services.spacy?.healthcheck).toMatchObject({
-      start_period: "8m0s",
+      start_period: composeDuration,
     });
     await expect(readFile(spacyDockerfile, "utf8")).resolves.toContain(
-      "--start-period=480s",
+      `--start-period=${serviceStartupSeconds}s`,
     );
   });
 

@@ -67,7 +67,6 @@ export const autoTranslateOp = async (
       advisor: data.advisor,
       memoryIds: data.memoryIds,
       glossaryIds: data.glossaryIds,
-      chunkIds: data.chunkIds,
       minMemorySimilarity: data.minMemorySimilarity,
       maxMemoryAmount: data.maxMemoryAmount,
       memoryVectorStorage: data.memoryVectorStorage,
