@@ -53,7 +53,6 @@ export const PluginCapabilityServiceSchema = z.object({
   serviceId: z.string(),
   source: z.enum(["MANIFEST", "DATABASE", "RUNTIME"]),
   dynamic: z.boolean().default(false),
-  dbId: z.int().optional(),
   supportsProbe: z.boolean(),
   probeBillable: z.boolean(),
   probeRequiresInstall: z.boolean(),

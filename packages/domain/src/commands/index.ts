@@ -54,6 +54,7 @@ export * from "#/commands/recall-derivation/register-term-concept-recall-derivat
 export * from "#/commands/recall-derivation/recall-derivation-attempt.cmd.ts";
 export * from "#/commands/recall-derivation/reconcile-recall-derivation-dependency.cmd.ts";
 export * from "#/commands/recall-derivation/recall-derivation-task.cmd.ts";
+export * from "#/commands/recall-derivation/request-glossary-recall-rebuild.cmd.ts";
 export * from "#/commands/qa/create-qa-result.cmd.ts";
 export * from "#/commands/qa/create-qa-result-items.cmd.ts";
 export * from "#/commands/qa/create-qa-result-with-items.cmd.ts";

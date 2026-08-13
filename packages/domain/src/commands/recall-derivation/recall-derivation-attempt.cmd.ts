@@ -1,6 +1,7 @@
 import { and, eq, gt, recallDerivationState, sql } from "@cat/db";
 import {
   CanonicalInputVersionSchema,
+  classifyRecallDerivationBlocker,
   RecallDerivationBlockerSchema,
 } from "@cat/shared";
 import * as z from "zod";
@@ -88,11 +89,11 @@ export const recordRecallDerivationFailure: Command<
   if (!current) return { result: { status: "STALE" }, events: [] };
 
   const nextRetryCount = current.retryCount + 1;
-  const status = !command.blocker.retryable
-    ? "BLOCKED"
-    : nextRetryCount >= command.maxAttempts
+  const lifecycle = classifyRecallDerivationBlocker(command.blocker);
+  const status =
+    lifecycle === "PENDING" && nextRetryCount >= command.maxAttempts
       ? "FAILED"
-      : "PENDING";
+      : lifecycle;
   const backoffMs = Math.min(
     command.maxBackoffMs,
     command.initialBackoffMs * 2 ** Math.max(0, nextRetryCount - 1),

@@ -1,4 +1,4 @@
-import type { DbHandle, LookedUpTerm, OperationContext } from "@cat/domain";
+import type { DbHandle, OperationContext } from "@cat/domain";
 import {
   executeQuery,
   getDbHandle,
@@ -20,12 +20,15 @@ import type {
 import {
   CandidateChannelRequestSchema,
   CandidateChannelValues,
-  LanguageAnalysisVersionSchema,
+  LanguageAnalysisTokenSchema,
+  type LanguageAnalysisToken,
+  NormalizedLanguageIdSchema,
   ServiceImplementationReferenceSchema,
   type TermRecallCandidate,
   TermRecallCandidateSchema,
   type TermRecallResult,
   TermRecallResultSchema,
+  type TermMatch,
 } from "@cat/shared";
 import * as z from "zod";
 
@@ -34,27 +37,20 @@ import {
   createSucceededCandidateChannelOutcome,
   getCandidateRecallCandidates,
 } from "./candidate-recall.ts";
-import { probeGlossaryRecallDependency } from "./glossary-recall-derivation.ts";
+import { reconcileGlossaryRecallDependency } from "./glossary-recall-derivation.ts";
 import { applyTermHnfPre } from "./hard-negative-filter/index.ts";
 import { joinLemmas } from "./language-analysis-normalization.ts";
-import { LanguageAnalysisRequirementError } from "./language-analysis-requirement.ts";
+import {
+  getRequiredLanguageAnalysisSnapshot,
+  LanguageAnalysisRequirementError,
+} from "./language-analysis-requirement.ts";
 import { runPrecisionPipeline } from "./precision/precision-pipeline.ts";
 import type {
-  LookedUpTermWithPrecision,
+  TermMatchWithPrecision,
   RawTermResult,
 } from "./precision/types.ts";
 import { assessScopedRecallDerivation } from "./recall-derivation-channel.ts";
 import { semanticSearchTermsOp } from "./semantic-search-terms.ts";
-
-const LanguageAnalysisTokenSchema = z.object({
-  text: z.string(),
-  lemma: z.string(),
-  pos: z.string(),
-  start: z.int(),
-  end: z.int(),
-  isStop: z.boolean(),
-  isPunct: z.boolean(),
-});
 
 export {
   TermRecallCandidateSchema,
@@ -66,79 +62,72 @@ export {
 const containsExactTermOccurrence = (
   sourceText: string,
   termText: string,
-  languageId: string,
+  languageId: z.output<typeof NormalizedLanguageIdSchema>,
+  analysisTokens: LanguageAnalysisToken[],
 ): boolean => {
-  const source = sourceText.toLocaleLowerCase(languageId);
-  const term = termText.trim().toLocaleLowerCase(languageId);
+  const term = termText.trim();
   if (term.length === 0) return false;
+  const normalizedTerm = term.toLocaleLowerCase(languageId);
 
-  // ICU word spans keep Exact independent of analyzer-backed derivation while supporting no-space languages.
-  const segmenter = new Intl.Segmenter(languageId, { granularity: "word" });
-  const termWords = [...segmenter.segment(term)].filter(
-    (segment) => segment.isWordLike,
-  );
-  if (termWords.length === 0) return source.includes(term);
-
-  const sourceWords = [...segmenter.segment(source)].filter(
-    (segment) => segment.isWordLike,
-  );
-  const sourceWordStarts = new Set(sourceWords.map((segment) => segment.index));
-  const sourceWordEnds = new Set(
-    sourceWords.map((segment) => segment.index + segment.segment.length),
-  );
-  const firstTermWord = termWords[0];
-  const lastTermWord = termWords.at(-1);
-  if (!firstTermWord || !lastTermWord) return false;
-
-  for (let occurrence = source.indexOf(term); occurrence >= 0; ) {
-    const firstWordStart = occurrence + firstTermWord.index;
-    const lastWordEnd =
-      occurrence + lastTermWord.index + lastTermWord.segment.length;
-    if (
-      sourceWordStarts.has(firstWordStart) &&
-      sourceWordEnds.has(lastWordEnd)
-    ) {
-      return true;
+  const starts = new Set(analysisTokens.map((token) => token.start));
+  const ends = new Set(analysisTokens.map((token) => token.end));
+  for (const start of starts) {
+    for (const end of ends) {
+      if (end <= start || end > sourceText.length) continue;
+      if (
+        sourceText.slice(start, end).toLocaleLowerCase(languageId) ===
+        normalizedTerm
+      ) {
+        return true;
+      }
     }
-    occurrence = source.indexOf(term, occurrence + term.length);
   }
   return false;
 };
 
-export const CollectTermRecallInputSchema = z
-  .object({
-    glossaryIds: z.array(z.uuidv4()),
-    text: z.string(),
-    sourceLanguageId: z.string(),
-    translationLanguageId: z.string(),
-    wordSimilarityThreshold: z.number().min(0).max(1).default(0.3),
-    minMorphologySimilarity: z.number().min(0).max(1).default(0.7),
-    minSemanticSimilarity: z.number().min(0).max(1).default(0.6),
-    maxAmount: z.int().min(1).default(20),
-    rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
-    rerankProvider: ServiceImplementationReferenceSchema.optional(),
-    rerankTimeoutMs: z.int().positive().default(3000),
-    sourceLanguageAnalysisTokens: z
-      .array(LanguageAnalysisTokenSchema)
-      .optional(),
-    sourceLanguageAnalysisVersion: LanguageAnalysisVersionSchema.optional(),
-    channels: CandidateChannelRequestSchema.default([
-      ...CandidateChannelValues,
-    ]),
-  })
-  .superRefine((input, context) => {
-    if (
-      (input.sourceLanguageAnalysisTokens === undefined) !==
-      (input.sourceLanguageAnalysisVersion === undefined)
-    ) {
-      context.addIssue({
-        code: "custom",
-        path: ["sourceLanguageAnalysisTokens"],
-        message:
-          "Language Analysis tokens and version must be supplied together.",
-      });
+const languageAnalysisTokenSequenceViolation = (
+  sourceText: string,
+  tokens: LanguageAnalysisToken[],
+): string | undefined => {
+  let previousEnd = 0;
+  for (const token of tokens) {
+    if (token.end > sourceText.length) {
+      return "Language Analysis token range exceeds source text in UTF-16 code units.";
     }
-  });
+    if (sourceText.slice(token.start, token.end) !== token.text)
+      return "Language Analysis token range does not match source text in UTF-16 code units.";
+    if (token.start < previousEnd) {
+      return "Language Analysis tokens must be source-ordered and non-overlapping.";
+    }
+    previousEnd = token.end;
+  }
+  return undefined;
+};
+
+const assertLiveLanguageAnalysisTokens = (
+  sourceText: string,
+  tokens: LanguageAnalysisToken[],
+): LanguageAnalysisToken[] => {
+  const parsed = z.array(LanguageAnalysisTokenSchema).parse(tokens);
+  const violation = languageAnalysisTokenSequenceViolation(sourceText, parsed);
+  if (violation !== undefined) throw new TypeError(violation);
+  return parsed;
+};
+
+export const CollectTermRecallInputSchema = z.strictObject({
+  glossaryIds: z.array(z.uuidv4()),
+  text: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
+  wordSimilarityThreshold: z.number().min(0).max(1).default(0.3),
+  minMorphologySimilarity: z.number().min(0).max(1).default(0.7),
+  minSemanticSimilarity: z.number().min(0).max(1).default(0.6),
+  maxAmount: z.int().min(1).default(20),
+  rerankMode: z.enum(["baseline", "reranked"]).default("reranked"),
+  rerankProvider: ServiceImplementationReferenceSchema.optional(),
+  rerankTimeoutMs: z.int().positive().default(3000),
+  channels: CandidateChannelRequestSchema.default([...CandidateChannelValues]),
+});
 
 export type CollectTermRecallInput = z.input<
   typeof CollectTermRecallInputSchema
@@ -159,7 +148,7 @@ export const collectTermRecallOp = async (
   const emptyResult = (): TermRecallResult => {
     const outcome = (
       channel: CandidateChannel,
-    ): CandidateChannelOutcome<LookedUpTermWithPrecision> =>
+    ): CandidateChannelOutcome<TermMatchWithPrecision> =>
       requested.has(channel)
         ? { status: "SKIPPED", reason: "NO_SCOPED_ASSETS" }
         : { status: "SKIPPED", reason: "NOT_REQUESTED" };
@@ -178,14 +167,14 @@ export const collectTermRecallOp = async (
 
   const { client: drizzle } = await getDbHandle();
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const staged: Record<CandidateChannel, LookedUpTerm[]> = {
+  const staged: Record<CandidateChannel, TermMatch[]> = {
     EXACT: [],
     FUZZY: [],
     KEYWORD: [],
     VARIANT: [],
     SEMANTIC: [],
   };
-  let analysisTokens = input.sourceLanguageAnalysisTokens;
+  let analysisTokens: LanguageAnalysisToken[] | undefined;
 
   const setExecutionBlocker = (
     channel: CandidateChannel,
@@ -200,8 +189,8 @@ export const collectTermRecallOp = async (
     });
   };
 
+  let lexical: TermMatch[] | undefined;
   if (requested.has("EXACT") || requested.has("FUZZY")) {
-    let lexical: LookedUpTerm[] | undefined;
     try {
       lexical = await executeQuery(
         { db: drizzle },
@@ -220,34 +209,6 @@ export const collectTermRecallOp = async (
     }
     if (lexical && requested.has("FUZZY")) {
       staged.FUZZY.push(...lexical);
-    }
-    if (lexical && requested.has("EXACT")) {
-      try {
-        staged.EXACT.push(
-          ...lexical
-            .filter((candidate) =>
-              containsExactTermOccurrence(
-                input.text,
-                candidate.term,
-                input.sourceLanguageId,
-              ),
-            )
-            .map((candidate) => ({
-              ...candidate,
-              confidence: 1,
-              evidences: [
-                {
-                  channel: "exact" as const,
-                  matchedText: candidate.term,
-                  confidence: 1,
-                  note: "exact term surface occurrence",
-                },
-              ],
-            })),
-        );
-      } catch (error) {
-        setExecutionBlocker("EXACT", error);
-      }
     }
   }
 
@@ -292,80 +253,142 @@ export const collectTermRecallOp = async (
     }
   };
 
-  if (requested.has("KEYWORD") || requested.has("VARIANT")) {
+  if (
+    requested.has("EXACT") ||
+    requested.has("KEYWORD") ||
+    requested.has("VARIANT")
+  ) {
     try {
-      const dependency = await probeGlossaryRecallDependency({
-        db: drizzle,
-        pluginManager,
-        languageId: input.sourceLanguageId,
-        text: input.text,
-        languageAnalysisVersion: input.sourceLanguageAnalysisVersion,
-        ctx,
-      });
-      analysisTokens = input.sourceLanguageAnalysisTokens ?? dependency.tokens;
-      if (!analysisTokens) {
-        throw new TypeError(
-          "Current Language Analysis did not return tokens for Keyword Recall.",
+      const snapshot = await getRequiredLanguageAnalysisSnapshot(
+        {
+          languageId: input.sourceLanguageId,
+          text: input.text,
+        },
+        {
+          ...ctx,
+          db: drizzle,
+          traceId: ctx?.traceId ?? "term-recall-analysis-snapshot",
+          pluginManager,
+        },
+      );
+      const currentAnalysisTokens = assertLiveLanguageAnalysisTokens(
+        input.text,
+        snapshot.tokens,
+      );
+      analysisTokens = currentAnalysisTokens;
+      if (requested.has("EXACT") && lexical) {
+        staged.EXACT.push(
+          ...lexical
+            .filter((candidate) =>
+              containsExactTermOccurrence(
+                input.text,
+                candidate.term,
+                input.sourceLanguageId,
+                currentAnalysisTokens,
+              ),
+            )
+            .map((candidate) => ({
+              ...candidate,
+              confidence: 1,
+              evidences: [
+                {
+                  channel: "exact" as const,
+                  matchedText: candidate.term,
+                  confidence: 1,
+                  note: "Language Analysis token-boundary exact occurrence",
+                },
+              ],
+            })),
         );
       }
-      const contentTokens = analysisTokens.filter(
-        (token) => !token.isStop && !token.isPunct,
-      );
-      const normalizedText =
-        contentTokens.length > 0
-          ? joinLemmas(contentTokens, input.sourceLanguageId).trim()
-          : input.text.trim().toLocaleLowerCase(input.sourceLanguageId);
-      const keywords = [
-        ...new Set(
-          contentTokens
-            .map((token) => joinLemmas([token], input.sourceLanguageId).trim())
-            .filter((keyword) => keyword.length > 0),
-        ),
-      ];
+      if (requested.has("KEYWORD") || requested.has("VARIANT")) {
+        try {
+          const dependency = await reconcileGlossaryRecallDependency({
+            db: drizzle,
+            pluginManager,
+            languageId: input.sourceLanguageId,
+            languageAnalysisVersion: snapshot.languageAnalysisVersion,
+          });
+          const contentTokens = currentAnalysisTokens.filter(
+            (token) => !token.isStop && !token.isPunct,
+          );
+          const normalizedText =
+            contentTokens.length > 0
+              ? joinLemmas(contentTokens, input.sourceLanguageId).trim()
+              : input.text.trim().toLocaleLowerCase(input.sourceLanguageId);
+          const keywords = [
+            ...new Set(
+              contentTokens
+                .map((token) =>
+                  joinLemmas([token], input.sourceLanguageId).trim(),
+                )
+                .filter((keyword) => keyword.length > 0),
+            ),
+          ];
 
-      await drizzle.transaction(
-        async (tx) => {
-          const states = await executeQuery(
-            { db: tx },
-            listScopedTermRecallDerivationStates,
-            {
-              glossaryIds: input.glossaryIds,
-              sourceLanguageId: input.sourceLanguageId,
-              translationLanguageId: input.translationLanguageId,
+          await drizzle.transaction(
+            async (tx) => {
+              const states = await executeQuery(
+                { db: tx },
+                listScopedTermRecallDerivationStates,
+                {
+                  glossaryIds: input.glossaryIds,
+                  sourceLanguageId: input.sourceLanguageId,
+                  translationLanguageId: input.translationLanguageId,
+                },
+              );
+              const assessment = assessScopedRecallDerivation(
+                states,
+                "TERM_CONCEPT",
+                dependency.requiredDerivationVersion,
+              );
+              if (assessment.status === "BLOCKED") {
+                if (requested.has("KEYWORD")) {
+                  blockers.set("KEYWORD", assessment.blocker);
+                }
+                if (requested.has("VARIANT")) {
+                  blockers.set("VARIANT", assessment.blocker);
+                }
+                return;
+              }
+              if (assessment.status === "NO_SCOPED_ASSETS") {
+                if (requested.has("KEYWORD")) {
+                  skips.set("KEYWORD", "NO_SCOPED_ASSETS");
+                }
+                if (requested.has("VARIANT")) {
+                  skips.set("VARIANT", "NO_SCOPED_ASSETS");
+                }
+                return;
+              }
+              await collectDerived(
+                tx,
+                dependency.requiredDerivationVersion,
+                normalizedText,
+                keywords,
+              );
             },
+            { isolationLevel: "repeatable read", accessMode: "read only" },
           );
-          const assessment = assessScopedRecallDerivation(
-            states,
-            "TERM_CONCEPT",
-            dependency.requiredDerivationVersion,
-          );
-          if (assessment.status === "BLOCKED") {
-            if (requested.has("KEYWORD")) {
-              blockers.set("KEYWORD", assessment.blocker);
-            }
-            if (requested.has("VARIANT")) {
-              blockers.set("VARIANT", assessment.blocker);
-            }
-            return;
-          }
-          if (assessment.status === "NO_SCOPED_ASSETS") {
-            if (requested.has("KEYWORD")) {
-              skips.set("KEYWORD", "NO_SCOPED_ASSETS");
-            }
-            if (requested.has("VARIANT")) {
-              skips.set("VARIANT", "NO_SCOPED_ASSETS");
-            }
-            return;
-          }
-          await collectDerived(
-            tx,
-            dependency.requiredDerivationVersion,
-            normalizedText,
-            keywords,
-          );
-        },
-        { isolationLevel: "repeatable read", accessMode: "read only" },
-      );
+        } catch (error) {
+          const blocker: CandidateChannelBlocker =
+            error instanceof LanguageAnalysisRequirementError
+              ? {
+                  reason: "LANGUAGE_ANALYSIS_UNAVAILABLE",
+                  message: error.message,
+                  retryable: error.assessment.blocker?.retryable ?? false,
+                  capability: "LANGUAGE_ANALYSIS",
+                }
+              : {
+                  reason: "CHANNEL_EXECUTION_FAILED",
+                  message:
+                    error instanceof Error ? error.message : String(error),
+                  retryable: true,
+                  capability: "DATABASE",
+                };
+          if (requested.has("KEYWORD")) blockers.set("KEYWORD", blocker);
+          if (requested.has("VARIANT")) blockers.set("VARIANT", blocker);
+        }
+      }
     } catch (error) {
       const blocker: CandidateChannelBlocker =
         error instanceof LanguageAnalysisRequirementError
@@ -381,6 +404,7 @@ export const collectTermRecallOp = async (
               retryable: true,
               capability: "DATABASE",
             };
+      if (requested.has("EXACT")) blockers.set("EXACT", blocker);
       if (requested.has("KEYWORD")) blockers.set("KEYWORD", blocker);
       if (requested.has("VARIANT")) blockers.set("VARIANT", blocker);
     }
@@ -427,7 +451,7 @@ export const collectTermRecallOp = async (
     }
   }
 
-  const collectedByKey = new Map<string, LookedUpTerm>();
+  const collectedByKey = new Map<string, TermMatch>();
   for (const channel of CandidateChannelValues) {
     if (
       !requested.has(channel) ||
@@ -487,7 +511,7 @@ export const collectTermRecallOp = async (
     rerankProvider: input.rerankProvider,
     rerankTimeoutMs: input.rerankTimeoutMs,
   });
-  const candidates = ranked.flatMap((candidate): LookedUpTermWithPrecision[] =>
+  const candidates = ranked.flatMap((candidate): TermMatchWithPrecision[] =>
     candidate.surface === "term"
       ? [
           {
@@ -514,7 +538,7 @@ export const collectTermRecallOp = async (
   };
   const outcome = (
     channel: CandidateChannel,
-  ): CandidateChannelOutcome<LookedUpTermWithPrecision> => {
+  ): CandidateChannelOutcome<TermMatchWithPrecision> => {
     if (!requested.has(channel)) {
       return { status: "SKIPPED", reason: "NOT_REQUESTED" };
     }

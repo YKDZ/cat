@@ -129,7 +129,6 @@ export const onNew = authed
                   translationLanguageId: languageId,
                   projectMemoryIds,
                   personalMemoryIds,
-                  chunkIds: element.chunkIds,
                   excludeMemoryItemIds,
                 },
                 {

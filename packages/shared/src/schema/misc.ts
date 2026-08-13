@@ -7,14 +7,12 @@ import { ServiceImplementationReferenceSchema } from "#/schema/service-implement
 export const DrizzleDateTimeSchema = z.coerce.date();
 
 export const TranslationAdvisorDataSchema = z.object({
-  id: z.int(),
   reference: ServiceImplementationReferenceSchema,
   name: z.string(),
 });
 
 export const AuthMethodSchema = z.object({
   providerId: z.string(),
-  providerDBId: z.int(),
   name: z.string(),
   icon: z.string(),
   flowType: z.enum(["CREDENTIAL", "PASSKEY"]),
