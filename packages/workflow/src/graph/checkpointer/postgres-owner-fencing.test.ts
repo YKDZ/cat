@@ -225,8 +225,7 @@ describe("PostgresCheckpointer owner fencing", () => {
       const winnerRunId = fulfilled[0]?.value;
       if (!winnerRunId) throw new Error("Expected a winning scheduler run.");
 
-      await new Promise((resolve) => setTimeout(resolve, 80));
-      expect(executions).toBe(1);
+      await expect.poll(() => executions).toBe(1);
       expect(await ownerA.loadSnapshot(winnerRunId)).not.toBeNull();
       const events = await ownerA.listEvents(winnerRunId);
       expect(events.filter((event) => event.type === "run:start")).toHaveLength(
