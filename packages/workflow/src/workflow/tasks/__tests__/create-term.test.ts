@@ -7,11 +7,12 @@ import {
   executeQuery,
   getDbHandle,
   listAllTerms,
-  listMorphologicalTermSuggestions,
   writeValidatedLanguageAnalysisSelection,
 } from "@cat/domain";
 import {
-  probeGlossaryRecallDependency,
+  collectTermRecallOp,
+  getTermRecallCandidates,
+  startRecallDerivationWorker,
   validateLanguageAnalyzerConfiguration,
   waitForRecallDerivationFresh,
 } from "@cat/operations";
@@ -30,17 +31,25 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { createTermGraph } from "../create-term.ts";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 let testDb: TestDB;
 let pluginManager: PluginManager;
 let glossaryId: string;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -103,7 +112,7 @@ beforeAll(async () => {
   });
   glossaryId = glossary.id;
 
-  createDefaultGraphRuntime(db.client, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("create-term should insert terms to db", async () => {
@@ -321,30 +330,30 @@ test("create-term publishes morphological recall variants through derivation dem
     },
     { pluginManager },
   );
-  await waitForRecallDerivationFresh(created.derivations, {
+  const recallDerivationWorker = await startRecallDerivationWorker({
     db: drizzle,
     pluginManager,
   });
-  const dependency = await probeGlossaryRecallDependency({
-    db: drizzle,
-    pluginManager,
-    languageId: "en",
-    text: "404 error",
-  });
-
-  const matches = await executeQuery(
-    { db: drizzle },
-    listMorphologicalTermSuggestions,
+  try {
+    await waitForRecallDerivationFresh(created.derivations, {
+      db: drizzle,
+    });
+  } finally {
+    await recallDerivationWorker.stop();
+  }
+  const result = await collectTermRecallOp(
     {
       glossaryIds: [glossaryId],
-      normalizedText: "404 error",
+      text: "404 error",
       sourceLanguageId: "en",
       translationLanguageId: "zh-Hans",
-      minSimilarity: 0.99,
+      minMorphologySimilarity: 0.99,
       maxAmount: 5,
-      requiredDerivationVersion: dependency.requiredDerivationVersion,
+      channels: ["VARIANT"],
     },
+    { pluginManager, traceId: "create-term-morphological-recall" },
   );
+  const matches = getTermRecallCandidates(result);
 
   expect(matches.some((match) => match.term === "HTTP 404 error")).toBe(true);
   expect(

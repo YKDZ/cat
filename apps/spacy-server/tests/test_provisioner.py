@@ -42,6 +42,7 @@ class ProvisionerTest(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
+        self.addCleanup(make_tree_owner_writable, self.root)
         self.artifact = self.root / "en_core_web_sm-3.8.0-py3-none-any.whl"
         self.artifact.write_bytes(b"official model wheel")
         self.plan_path = self.root / "plan.json"
@@ -475,7 +476,9 @@ class ProvisionerTest(unittest.TestCase):
     def test_tampered_manifest_is_not_reused(self) -> None:
         provisioner = self.provisioner()
         identifier = provisioner.provision(self.plan)
-        manifest = active_generation_path(provisioner) / "manifest.json"
+        generation = active_generation_path(provisioner)
+        make_tree_owner_writable(generation)
+        manifest = generation / "manifest.json"
         manifest.write_text(
             manifest.read_text().replace('"version":"3.8.0"', '"version":"0"', 1)
         )
@@ -487,7 +490,9 @@ class ProvisionerTest(unittest.TestCase):
     def test_manifest_with_duplicate_keys_is_not_reused(self) -> None:
         provisioner = self.provisioner()
         identifier = provisioner.provision(self.plan)
-        manifest = active_generation_path(provisioner) / "manifest.json"
+        generation = active_generation_path(provisioner)
+        make_tree_owner_writable(generation)
+        manifest = generation / "manifest.json"
         manifest.write_text(
             '{"schemaVersion":"1","schemaVersion":"1"}', encoding="utf-8"
         )
@@ -499,8 +504,9 @@ class ProvisionerTest(unittest.TestCase):
     def test_missing_site_packages_is_not_reused(self) -> None:
         provisioner = self.provisioner()
         identifier = provisioner.provision(self.plan)
-        site_packages = active_generation_path(provisioner) / "site-packages"
-        make_tree_owner_writable(site_packages)
+        generation = active_generation_path(provisioner)
+        make_tree_owner_writable(generation)
+        site_packages = generation / "site-packages"
         shutil.rmtree(site_packages)
 
         self.assertEqual(provisioner.provision(self.plan), identifier)
@@ -515,7 +521,7 @@ class ProvisionerTest(unittest.TestCase):
         installed = (
             active_generation_path(provisioner) / "site-packages" / "installed.py"
         )
-        os.chmod(installed, 0o600)
+        make_tree_owner_writable(installed.parent)
         installed.write_text("tampered = True\n", encoding="utf-8")
 
         self.assertEqual(provisioner.provision(self.plan), identifier)
@@ -575,7 +581,7 @@ class ProvisionerTest(unittest.TestCase):
             / "site-packages"
             / "installed.py"
         )
-        os.chmod(installed, 0o600)
+        make_tree_owner_writable(installed.parent)
         installed.write_text("corrupt = True\n")
 
         with (
@@ -698,10 +704,14 @@ class PipCommandTest(unittest.TestCase):
     def test_installs_only_the_already_copied_local_wheel_without_dependencies(
         self, run: mock.Mock
     ) -> None:
-        wheel = Path("/models/generations/.staging/artifacts/model.whl")
-        site = Path("/models/generations/.staging/site-packages")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            wheel = root / "artifacts" / "model.whl"
+            site = root / "site-packages"
+            wheel.parent.mkdir()
+            wheel.write_bytes(b"wheel")
 
-        pip_install_wheel(wheel, site, 42.0)
+            pip_install_wheel(wheel, site, 42.0)
 
         command = run.call_args.args[0]
         self.assertIn("--no-index", command)

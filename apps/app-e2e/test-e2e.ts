@@ -5,6 +5,13 @@ import { fileURLToPath } from "node:url";
 
 import { redactDiagnosticText } from "@cat/shared";
 
+import {
+  cellsForE2ESelection,
+  selectE2EExecutionCells,
+  type E2EAttestationCell as CatalogueE2EAttestationCell,
+  type E2EExecutionSelection,
+  type E2EReleaseImageIds,
+} from "./execution-cell-catalogue.ts";
 import { runExecutionCells, runManagedCommand } from "./execution-cell.ts";
 import type { ExecutionBrowser, ExecutionCellInput } from "./execution-cell.ts";
 import {
@@ -58,12 +65,7 @@ export const runDocker: ServiceLeaseCommandRunner = async (
   }
 };
 
-type RequestedTarget = "all" | "dev" | "standalone" | "runtime";
-
-export type E2ESelection = {
-  browser?: ExecutionBrowser;
-  target: RequestedTarget;
-};
+export type E2ESelection = E2EExecutionSelection;
 
 export type E2ECommand = {
   concurrency: 1 | 2;
@@ -71,18 +73,9 @@ export type E2ECommand = {
   selection: E2ESelection;
 };
 
-export type ReleaseE2EImageIds = {
-  releaseIdentity?: string;
-  runtimeImageId?: string;
-  standaloneImageId?: string;
-};
+export type ReleaseE2EImageIds = E2EReleaseImageIds;
 
-export type E2EAttestationCell = {
-  browser: ExecutionBrowser;
-  imageId?: string;
-  preparerImageId?: string;
-  target: Exclude<RequestedTarget, "all">;
-};
+export type E2EAttestationCell = CatalogueE2EAttestationCell;
 
 export type E2EAttestationReport = {
   cells: E2EAttestationCell[];
@@ -131,7 +124,7 @@ export const parseE2ESelection = (args: string[]): E2ESelection => {
   const commandArgs = args[0] === "--" ? args.slice(1) : args;
   if (commandArgs.length === 0) return { target: "all" };
   let browser: ExecutionBrowser | undefined;
-  let target: RequestedTarget | undefined;
+  let target: E2ESelection["target"] | undefined;
   for (let index = 0; index < commandArgs.length; index += 2) {
     const flag = commandArgs[index];
     const value = commandArgs[index + 1];
@@ -159,12 +152,12 @@ export const parseE2ESelection = (args: string[]): E2ESelection => {
       );
     }
   }
-  if (target === undefined || (target === "dev" && browser === "firefox")) {
-    throw new Error(
-      "Development E2E supports Chromium only; release targets require an explicit target.",
-    );
-  }
-  return { ...(browser === undefined ? {} : { browser }), target };
+  const selection = {
+    ...(browser === undefined ? {} : { browser }),
+    target: target ?? "all",
+  };
+  selectE2EExecutionCells(selection);
+  return selection;
 };
 
 export const parseE2ECommand = (args: string[]): E2ECommand => {
@@ -213,70 +206,8 @@ export const cellsForSelection = async (
   selection: E2ESelection,
   lease: Parameters<typeof runExecutionCells>[0][number]["lease"],
   images: ReleaseE2EImageIds = {},
-): Promise<ExecutionCellInput[]> => {
-  if (selection.target === "all") {
-    const cells: ExecutionCellInput[] = [];
-    if (selection.browser !== "firefox") {
-      cells.push(
-        ...(await cellsForSelection({ target: "dev" }, lease, images)),
-      );
-    }
-    for (const target of ["standalone", "runtime"] as const) {
-      cells.push(
-        ...(await cellsForSelection(
-          {
-            ...(selection.browser === undefined
-              ? {}
-              : { browser: selection.browser }),
-            target,
-          },
-          lease,
-          images,
-        )),
-      );
-    }
-    return cells;
-  }
-  if (selection.target === "dev") {
-    return [{ browser: "chromium", lease, target: "dev" }];
-  }
-  if (
-    selection.target === "standalone" &&
-    images.standaloneImageId === undefined
-  ) {
-    throw new Error(
-      "Standalone selection did not resolve an immutable image ID",
-    );
-  }
-  if (
-    selection.target === "runtime" &&
-    (images.runtimeImageId === undefined ||
-      images.standaloneImageId === undefined)
-  ) {
-    throw new Error(
-      "Runtime selection requires explicit runtime and standalone preparer image IDs",
-    );
-  }
-  const browsers =
-    selection.browser === undefined
-      ? (["chromium", "firefox"] as const)
-      : [selection.browser];
-  if (selection.target === "standalone") {
-    return browsers.map((browser) => ({
-      browser,
-      imageId: images.standaloneImageId!,
-      lease,
-      target: "standalone",
-    }));
-  }
-  return browsers.map((browser) => ({
-    browser,
-    imageId: images.runtimeImageId!,
-    lease,
-    preparerImageId: images.standaloneImageId!,
-    target: "runtime",
-  }));
-};
+): Promise<ExecutionCellInput[]> =>
+  cellsForE2ESelection(selection, lease, images);
 
 const assertReleaseImages = async (
   selection: E2ESelection,

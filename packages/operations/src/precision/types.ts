@@ -1,5 +1,5 @@
 // packages/operations/src/precision/types.ts
-import type { LookedUpTerm } from "@cat/domain";
+import type { TermMatch } from "@cat/shared";
 import type { MemorySuggestion } from "@cat/shared";
 import type {
   AmbiguityEnvelope,
@@ -77,8 +77,8 @@ export const candidateKey = (c: RawResult): string =>
   c.surface === "term" ? `term:${c.conceptId}` : `memory:${c.id}`;
 
 // ─── Precision-annotated caller-facing types ──────────────────────
-/** LookedUpTerm extended with optional pipeline decision trace (for regression testing). */
-export type LookedUpTermWithPrecision = LookedUpTerm & {
+/** Term match extended with optional pipeline decision trace (for regression testing). */
+export type TermMatchWithPrecision = TermMatch & {
   rankingDecisions?: RankingDecision[];
 };
 

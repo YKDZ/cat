@@ -9,18 +9,21 @@ import {
   termConcept,
   termRecallVariant,
 } from "@cat/db";
-import { RecallDerivationVersionSchema } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  RecallDerivationVersionSchema,
+  type TermMatch,
+} from "@cat/shared";
 import * as z from "zod";
 
-import type { LookedUpTerm } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
 import { fetchTermsByConceptIds } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
 import type { Query } from "#/types.ts";
 
 export const ListMorphologicalTermSuggestionsQuerySchema = z.object({
   glossaryIds: z.array(z.uuidv4()),
   normalizedText: z.string(),
-  sourceLanguageId: z.string().min(1),
-  translationLanguageId: z.string().min(1),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   minSimilarity: z.number().min(0).max(1).default(0.7),
   maxAmount: z.int().min(1).default(20),
   requiredDerivationVersion: RecallDerivationVersionSchema,
@@ -29,17 +32,21 @@ export const ListMorphologicalTermSuggestionsQuerySchema = z.object({
 export type ListMorphologicalTermSuggestionsQuery = z.infer<
   typeof ListMorphologicalTermSuggestionsQuerySchema
 >;
+type ListMorphologicalTermSuggestionsQueryInput = z.input<
+  typeof ListMorphologicalTermSuggestionsQuerySchema
+>;
 
 /**
  * Query `TermRecallVariant` by trigram similarity on `normalizedText`,
  * then assemble full term pairs via `fetchTermsByConceptIds`.
  *
- * Returns LookedUpTerm[] with confidence derived from trigram similarity.
+ * Returns term matches with confidence derived from trigram similarity.
  */
 export const listMorphologicalTermSuggestions: Query<
-  ListMorphologicalTermSuggestionsQuery,
-  LookedUpTerm[]
-> = async (ctx, query) => {
+  ListMorphologicalTermSuggestionsQueryInput,
+  TermMatch[]
+> = async (ctx, input) => {
+  const query = ListMorphologicalTermSuggestionsQuerySchema.parse(input);
   if (query.glossaryIds.length === 0) return [];
 
   const normalizedText = query.normalizedText.trim();

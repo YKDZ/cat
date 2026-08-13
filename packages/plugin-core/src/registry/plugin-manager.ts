@@ -41,8 +41,9 @@ import {
 import { PluginDiscoveryService } from "#/registry/plugin-discovery.ts";
 import { PluginRouteRegistry } from "#/registry/plugin-route-registry.ts";
 import {
-  resolveRegisteredServiceImplementationReference,
   createServiceImplementationReference,
+  resolveRegisteredServiceImplementationReference,
+  validateServiceImplementationReference,
   type ServiceImplementationReference,
   type ServiceImplementationResolution,
 } from "#/registry/service-implementation-reference.ts";
@@ -635,6 +636,13 @@ export class PluginManager {
     reference: ServiceImplementationReference,
     expectedServiceType: T,
   ): ServiceImplementationResolution<T> {
+    const mismatch = validateServiceImplementationReference(
+      { scopeType: this.scopeType, scopeId: this.scopeId },
+      reference,
+      expectedServiceType,
+    );
+    if (mismatch !== null) return mismatch;
+
     if (!this.isActive(reference.pluginId)) {
       return {
         kind: "PACKAGE_NOT_LOADED",
@@ -652,12 +660,12 @@ export class PluginManager {
   }
 
   public createServiceImplementationReference(
-    service: Pick<RegisteredService, "pluginId" | "id" | "type">,
+    service: Pick<
+      RegisteredService,
+      "pluginId" | "id" | "type" | "scopeType" | "scopeId"
+    >,
   ): ServiceImplementationReference {
-    return createServiceImplementationReference(
-      { scopeType: this.scopeType, scopeId: this.scopeId },
-      service,
-    );
+    return createServiceImplementationReference(service);
   }
 
   public getAllServices(): RegisteredService[] {
@@ -810,23 +818,21 @@ export class PluginManager {
     try {
       activationStarted = true;
       await this.invokeOnActivate(pluginObj, context);
-      const runtimeServices = await this.syncDynamicServices(
-        drizzle,
-        pluginId,
-        pluginObj,
-        context,
-      );
-      const [services, components, route] = await Promise.all([
-        this.serviceRegistry.prepare(
-          drizzle,
+      const [runtimeServices, components, route] = await Promise.all([
+        pluginObj.services ? pluginObj.services(context) : [],
+        this.prepareComponents(pluginId, pluginObj, context),
+        this.prepareRoute(pluginId, pluginObj, context),
+      ]);
+      const services = await drizzle.transaction(async (tx) => {
+        await this.syncDynamicServices(tx, pluginId, runtimeServices);
+        return await this.serviceRegistry.prepare(
+          tx,
           this.scopeType,
           this.scopeId,
           pluginId,
           runtimeServices,
-        ),
-        this.prepareComponents(pluginId, pluginObj, context),
-        this.prepareRoute(pluginId, pluginObj, context),
-      ]);
+        );
+      });
       return {
         plugin: pluginObj,
         context,
@@ -922,15 +928,14 @@ export class PluginManager {
   private async syncDynamicServices(
     drizzle: DbHandle,
     pluginId: string,
-    pluginObj: CatPlugin,
-    context: PluginContext,
-  ): Promise<IPluginService[]> {
+    runtimeServices: IPluginService[],
+  ): Promise<void> {
     const installation = await executeQuery(
       { db: drizzle },
       getPluginInstallation,
       { pluginId, scopeType: this.scopeType, scopeId: this.scopeId },
     );
-    if (!installation) return [];
+    if (!installation) return;
 
     const manifest = await this.loader.getManifest(pluginId);
 
@@ -948,12 +953,6 @@ export class PluginManager {
     // 静态服务集合（manifest 中非 dynamic 的服务）
     const staticServices = (manifest.services ?? []).filter((s) => !s.dynamic);
     const staticKeys = new Set(staticServices.map((s) => `${s.type}:${s.id}`));
-
-    // 收集运行时服务
-    let runtimeServices: IPluginService[] = [];
-    if (pluginObj.services) {
-      runtimeServices = await pluginObj.services(context);
-    }
 
     const runtimeKeys = new Set(
       runtimeServices.map((s) => `${s.getType()}:${s.getId()}`),
@@ -992,8 +991,6 @@ export class PluginManager {
         serviceDbIds: toDelete.map((service) => service.id),
       });
     }
-
-    return runtimeServices;
   }
 
   private async prepareComponents(

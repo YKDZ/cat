@@ -12,12 +12,14 @@ import {
   ExecutionCell,
   DevTargetAdapter,
   developmentRuntimeEnvironment,
+  e2eArtifactRootFrom,
   cleanupCellDatabase,
   formatCellDatabaseCleanupDiagnostic,
   formatDockerContainerPhaseFailure,
   isServerErrorDiagnostic,
   parseCellDatabaseName,
   playwrightChildEnvironment,
+  playwrightTimeoutMs,
   persistOneShotPreparerAttestation,
   processIdentityMatches,
   runAbortableCommand,
@@ -37,6 +39,11 @@ const input = {
 } satisfies ExecutionCellInput;
 
 const discardCellOutput = (_message: string): void => undefined;
+
+it("keeps the Playwright cell deadline below its verification node budget", () => {
+  expect(playwrightTimeoutMs).toBe(10 * 60_000);
+  expect(playwrightTimeoutMs).toBeLessThan(40 * 60_000);
+});
 
 const rejectedDeferred = <Value>(): {
   promise: Promise<Value>;
@@ -125,6 +132,14 @@ const readyReport = (profile: "lite" | "production") => ({
 });
 
 describe("ExecutionCell scheduler", () => {
+  it("places execution-cell diagnostics beneath the configured artifact root", () => {
+    expect(
+      e2eArtifactRootFrom({
+        CAT_E2E_ARTIFACT_ROOT: "/tmp/cat-e2e-run-123",
+      }),
+    ).toBe("/tmp/cat-e2e-run-123");
+  });
+
   it.each(["lite", "production"] as const)(
     "accepts the canonical %s readiness component identities",
     (profile) => {

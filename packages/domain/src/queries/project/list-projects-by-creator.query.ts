@@ -1,13 +1,29 @@
-import { asc, count, eq, project } from "@cat/db";
+import { asc, count, desc, eq, project } from "@cat/db";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
 
-export const ListProjectsByCreatorQuerySchema = z.object({
-  creatorId: z.uuidv4(),
-  pageIndex: z.int().min(0).optional(),
-  pageSize: z.int().min(1).optional(),
+const ProjectListSortSchema = z.strictObject({
+  id: z.enum(["name", "createdAt", "updatedAt"]),
+  desc: z.boolean(),
 });
+
+const listProjectsByCreatorBase = {
+  creatorId: z.uuidv4(),
+  sort: ProjectListSortSchema.optional(),
+};
+
+export const ListProjectsByCreatorQuerySchema = z.union([
+  z.strictObject({
+    ...listProjectsByCreatorBase,
+    pageIndex: z.int().min(0),
+    pageSize: z.int().min(1).max(100),
+  }),
+  z.strictObject({
+    ...listProjectsByCreatorBase,
+    pagination: z.literal("unpaged"),
+  }),
+]);
 
 export type ListProjectsByCreatorQuery = z.infer<
   typeof ListProjectsByCreatorQuerySchema
@@ -27,10 +43,11 @@ export const listProjectsByCreator: Query<
   ListProjectsByCreatorQuery,
   ListProjectsByCreatorResult
 > = async (ctx, query) => {
+  const parsed = ListProjectsByCreatorQuerySchema.parse(query);
   const totalResult = await ctx.db
     .select({ count: count() })
     .from(project)
-    .where(eq(project.creatorId, query.creatorId));
+    .where(eq(project.creatorId, parsed.creatorId));
 
   let dataQuery = ctx.db
     .select({
@@ -41,13 +58,35 @@ export const listProjectsByCreator: Query<
       updatedAt: project.updatedAt,
     })
     .from(project)
-    .where(eq(project.creatorId, query.creatorId))
-    .orderBy(asc(project.createdAt));
+    .where(eq(project.creatorId, parsed.creatorId))
+    .orderBy(
+      ...(parsed.sort?.desc
+        ? [
+            desc(
+              parsed.sort.id === "name"
+                ? project.name
+                : parsed.sort.id === "updatedAt"
+                  ? project.updatedAt
+                  : project.createdAt,
+            ),
+            desc(project.id),
+          ]
+        : [
+            asc(
+              parsed.sort?.id === "name"
+                ? project.name
+                : parsed.sort?.id === "updatedAt"
+                  ? project.updatedAt
+                  : project.createdAt,
+            ),
+            asc(project.id),
+          ]),
+    );
 
-  if (query.pageSize !== undefined && query.pageIndex !== undefined) {
+  if ("pageIndex" in parsed) {
     const queryWithLimit = dataQuery
-      .limit(query.pageSize)
-      .offset(query.pageIndex * query.pageSize);
+      .limit(parsed.pageSize)
+      .offset(parsed.pageIndex * parsed.pageSize);
 
     return {
       data: await queryWithLimit,

@@ -1,4 +1,4 @@
-import type { PluginCapabilities } from "@cat/domain";
+import type { PluginCapabilities, PluginServiceRecord } from "@cat/domain";
 import type { CacheStore, SessionStore } from "@cat/domain";
 import type { ScopeType } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
@@ -6,7 +6,6 @@ import type { ObjectType, Relation } from "@cat/shared";
 import type { Hono } from "hono";
 
 import type { ComponentData } from "#/registry/component-registry.ts";
-import type { RegisteredService } from "#/registry/service-registry.ts";
 import type { IPluginService } from "#/services/service.ts";
 
 export type DiagnosticContext = Readonly<Record<string, unknown>>;
@@ -49,7 +48,7 @@ export type PluginContext = {
   /** 当前作用域 ID */
   scopeId: string;
   /** 当前作用域下已注册的其他服务 */
-  registeredServices: Omit<RegisteredService, "service" | "pluginId">[];
+  registeredServices: PluginServiceRecord[];
   /** 插件能力边界：通过 capability 访问基础能力，不直接触达底层 command/query */
   capabilities: PluginCapabilities;
   /** Host-owned diagnostics logger shared with application observers. */

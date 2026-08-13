@@ -5,28 +5,63 @@ import {
   getTermConceptCanonicalSnapshots,
   listTermRecallDerivationLanguages,
   markRecallDerivationDependencyUnverified,
+  publishTermRecallDerivation,
   reconcileRecallDerivationDependency,
-  type RecallDerivationClaim,
 } from "@cat/domain";
 import { PluginManager, type Tokenizer } from "@cat/plugin-core";
 import {
   compareRecallDerivationTokenizerPipelineEntries,
   computeRecallDerivationVersion,
+  NormalizedLanguageIdSchema,
   serviceImplementationReferenceKey,
   type LanguageAnalysisToken,
   type LanguageAnalysisVersion,
+  type NormalizedLanguageId,
   type RecallDerivationTokenizerPipelineEntry,
   type TermRecallVariantDraft,
 } from "@cat/shared";
+import * as z from "zod";
 
 import {
   buildTokenWindows,
   joinLemmas,
 } from "./language-analysis-normalization.ts";
 import { executeRequiredLanguageAnalysisBatch } from "./language-analysis-requirement.ts";
+import { LanguageAnalysisRequirementError } from "./language-analysis-requirement.ts";
+import {
+  RecallDerivationAdapterError,
+  type RecallDerivationAdapter,
+  type RecallDerivationProbeResult,
+  type LeasedRecallDerivationClaim,
+} from "./recall-derivation-adapter.ts";
 
 const DERIVATION_CONTRACT = "cat.glossary-recall-derivation/v1";
 const MAX_WINDOW_SIZE = 6;
+
+const isAbortError = (error: unknown, signal?: AbortSignal) =>
+  signal?.aborted === true ||
+  (error instanceof DOMException && error.name === "AbortError");
+
+const glossaryAdapterError = (error: unknown, committed = false) => {
+  if (error instanceof RecallDerivationAdapterError) return error;
+  return new RecallDerivationAdapterError(
+    error instanceof LanguageAnalysisRequirementError
+      ? {
+          reason: "LANGUAGE_ANALYSIS",
+          retryable: error.assessment.blocker?.retryable ?? false,
+          message: error.message,
+        }
+      : error instanceof z.ZodError
+        ? { reason: "TOKENIZER", retryable: false, message: error.message }
+        : {
+            reason: "DERIVATION_EXECUTION",
+            retryable: !(error instanceof TypeError),
+            message: error instanceof Error ? error.message : String(error),
+          },
+    error,
+    committed,
+  );
+};
 
 type CapturedTokenizer = {
   descriptor: RecallDerivationTokenizerPipelineEntry;
@@ -86,7 +121,7 @@ const computeGlossaryRecallDerivationVersion = async (
 export const reconcileGlossaryRecallDependency = async (input: {
   db: DbHandle;
   pluginManager: PluginManager;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   languageAnalysisVersion: LanguageAnalysisVersion;
 }) => {
   const pipeline = await captureTokenizerPipeline(input.pluginManager);
@@ -110,111 +145,120 @@ export const reconcileGlossaryRecallDependency = async (input: {
 export const probeGlossaryRecallDependency = async (input: {
   db: DbHandle;
   pluginManager: PluginManager;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   text?: string | undefined;
-  languageAnalysisVersion?: LanguageAnalysisVersion | undefined;
   timeoutMs?: number | undefined;
   ctx?: OperationContext | undefined;
 }) => {
   try {
-    const analysis = input.languageAnalysisVersion
-      ? undefined
-      : await executeRequiredLanguageAnalysisBatch(
+    const analysis = await executeRequiredLanguageAnalysisBatch(
+      {
+        languageId: input.languageId,
+        items: [
           {
-            languageId: input.languageId,
-            items: [
-              {
-                id: "dependency-probe",
-                text: input.text ?? "Glossary recall dependency probe.",
-              },
-            ],
-            timeoutMs: input.timeoutMs ?? 5_000,
+            id: "dependency-probe",
+            text: input.text ?? "Glossary recall dependency probe.",
           },
-          {
-            ...input.ctx,
-            db: input.db,
-            traceId:
-              input.ctx?.traceId ??
-              `glossary-recall-dependency-probe:${input.languageId}`,
-            pluginManager: input.pluginManager,
-          },
-        );
-    const languageAnalysisVersion =
-      input.languageAnalysisVersion ?? analysis?.languageAnalysisVersion;
-    if (!languageAnalysisVersion) {
-      throw new TypeError("Language Analysis dependency probe has no version.");
-    }
+        ],
+        timeoutMs: input.timeoutMs ?? 5_000,
+      },
+      {
+        ...input.ctx,
+        db: input.db,
+        traceId:
+          input.ctx?.traceId ??
+          `glossary-recall-dependency-probe:${input.languageId}`,
+        pluginManager: input.pluginManager,
+      },
+    );
     const dependency = await reconcileGlossaryRecallDependency({
       db: input.db,
       pluginManager: input.pluginManager,
       languageId: input.languageId,
-      languageAnalysisVersion,
+      languageAnalysisVersion: analysis.languageAnalysisVersion,
     });
     return {
       ...dependency,
-      languageAnalysisVersion,
+      languageAnalysisVersion: analysis.languageAnalysisVersion,
       tokens: analysis?.results[0]?.result.tokens,
     };
   } catch (error) {
+    if (isAbortError(error, input.ctx?.signal)) throw error;
+    let committed = false;
     try {
       await executeCommand(
         { db: input.db },
         markRecallDerivationDependencyUnverified,
         { targetKind: "TERM_CONCEPT", languageId: input.languageId },
       );
+      committed = true;
     } catch {
       // Preserve the dependency failure that invalidated prior derivations.
     }
-    throw error;
+    throw glossaryAdapterError(error, committed);
   }
 };
 
 export const probeCurrentGlossaryRecallDependencies = async (input: {
   db: DbHandle;
   pluginManager: PluginManager;
-  languageIds?: string[] | undefined;
+  languageIds?: readonly NormalizedLanguageId[] | undefined;
   timeoutMs?: number | undefined;
   signal?: AbortSignal | undefined;
-}): Promise<void> => {
-  const languageIds =
-    input.languageIds ??
-    (await executeQuery(
-      { db: input.db },
-      listTermRecallDerivationLanguages,
-      {},
-    ));
-  const failures: unknown[] = [];
-  for (const languageId of new Set(languageIds)) {
-    input.signal?.throwIfAborted();
-    try {
-      await probeGlossaryRecallDependency({
-        db: input.db,
-        pluginManager: input.pluginManager,
-        languageId,
-        timeoutMs: input.timeoutMs ?? 5_000,
-        ctx: {
-          traceId: `glossary-recall-dependency-probe:${languageId}`,
-          pluginManager: input.pluginManager,
-          ...(input.signal ? { signal: input.signal } : {}),
-        },
-      });
-    } catch (error) {
+}): Promise<RecallDerivationProbeResult> => {
+  let committed = false;
+  try {
+    const languageIds =
+      input.languageIds ??
+      (await executeQuery(
+        { db: input.db },
+        listTermRecallDerivationLanguages,
+        {},
+      ));
+    const failures: RecallDerivationAdapterError[] = [];
+    for (const languageId of new Set(languageIds)) {
       input.signal?.throwIfAborted();
-      failures.push(error);
+      try {
+        await probeGlossaryRecallDependency({
+          db: input.db,
+          pluginManager: input.pluginManager,
+          languageId,
+          timeoutMs: input.timeoutMs ?? 5_000,
+          ctx: {
+            traceId: `glossary-recall-dependency-probe:${languageId}`,
+            pluginManager: input.pluginManager,
+            ...(input.signal ? { signal: input.signal } : {}),
+          },
+        });
+        committed = true;
+      } catch (error) {
+        if (isAbortError(error, input.signal)) throw error;
+        const failure = glossaryAdapterError(error);
+        committed ||= failure.committed;
+        failures.push(failure);
+      }
     }
-  }
-  if (failures.length > 0) {
-    throw new AggregateError(
-      failures,
-      "One or more Glossary recall runtime dependency probes failed.",
-    );
+    if (failures.length > 0) {
+      throw new RecallDerivationAdapterError(
+        failures.flatMap((failure) => failure.blockers),
+        new AggregateError(
+          failures,
+          "One or more Glossary recall runtime dependency probes failed.",
+        ),
+        committed,
+      );
+    }
+    return { committed };
+  } catch (error) {
+    if (isAbortError(error, input.signal)) throw error;
+    throw glossaryAdapterError(error, committed);
   }
 };
 
 const buildTermVariants = (input: {
   termId: number;
   text: string;
-  languageId: string;
+  languageId: NormalizedLanguageId;
   analysisTokens: LanguageAnalysisToken[];
 }): TermRecallVariantDraft[] => {
   const trimmed = input.text.trim();
@@ -277,7 +321,7 @@ const buildTermVariants = (input: {
 export const deriveGlossaryRecall = async (
   db: DbHandle,
   pluginManager: PluginManager,
-  claim: RecallDerivationClaim,
+  claim: LeasedRecallDerivationClaim,
   signal?: AbortSignal,
 ) => {
   const [snapshot] = await executeQuery(
@@ -314,9 +358,12 @@ export const deriveGlossaryRecall = async (
     };
   }
 
-  const terms = snapshot.terms.filter(
-    (entry) => entry.languageId === claim.languageId,
-  );
+  const terms = snapshot.terms
+    .map((entry) => ({
+      ...entry,
+      languageId: NormalizedLanguageIdSchema.parse(entry.languageId),
+    }))
+    .filter((entry) => entry.languageId === claim.languageId);
   if (terms.length === 0) {
     const pipeline = await captureTokenizerPipeline(pluginManager);
     const analysis = await executeRequiredLanguageAnalysisBatch(
@@ -383,3 +430,51 @@ export const deriveGlossaryRecall = async (
   );
   return { conceptId: snapshot.id, variants, recallDerivationVersion };
 };
+
+export const glossaryRecallDerivationAdapter = {
+  targetKind: "TERM_CONCEPT",
+  deriveAndPublish: async (input) => {
+    try {
+      const derived = await deriveGlossaryRecall(
+        input.db,
+        input.pluginManager,
+        input.claim,
+        input.signal,
+      );
+      const reconciled =
+        input.claim.requiredDerivationVersion !== null &&
+        input.claim.requiredDerivationVersion !==
+          derived.recallDerivationVersion;
+      if (reconciled) {
+        await executeCommand(
+          { db: input.db },
+          reconcileRecallDerivationDependency,
+          {
+            targetKind: "TERM_CONCEPT",
+            languageId: input.claim.languageId,
+            requiredDerivationVersion: derived.recallDerivationVersion,
+          },
+        );
+      }
+      const published = await executeCommand(
+        { db: input.db },
+        publishTermRecallDerivation,
+        {
+          targetId: input.claim.targetId,
+          conceptId: derived.conceptId,
+          languageId: input.claim.languageId,
+          demandRevision: input.claim.demandRevision,
+          executionEpoch: input.claim.executionEpoch,
+          leaseToken: input.claim.leaseToken,
+          canonicalInputVersion: input.claim.canonicalInputVersion,
+          recallDerivationVersion: derived.recallDerivationVersion,
+          variants: derived.variants,
+        },
+      );
+      return { ...published, reconciled };
+    } catch (error) {
+      throw glossaryAdapterError(error);
+    }
+  },
+  probeCurrentDependencies: probeCurrentGlossaryRecallDependencies,
+} satisfies RecallDerivationAdapter<"TERM_CONCEPT">;

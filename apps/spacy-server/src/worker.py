@@ -91,7 +91,14 @@ def analyze(runtime: GenerationRuntime, request: dict[str, Any]) -> dict[str, An
     ).model_dump(mode="json", by_alias=True)
 
 
+def warm_runtime_models(runtime: GenerationRuntime) -> None:
+    """Load and exercise every declared model before publishing readiness."""
+    for entry in runtime.manifest.effective_plan.models:
+        runtime.get_model(entry.language_id)(entry.validation_text)
+
+
 def serve(runtime: GenerationRuntime) -> None:
+    warm_runtime_models(runtime)
     write_frame(
         {
             "kind": "ready",
