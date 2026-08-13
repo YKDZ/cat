@@ -1,0 +1,7 @@
+*
+!Dockerfile
+!default-plan.json
+!pyproject.toml
+!uv.lock
+!src/
+!src/**

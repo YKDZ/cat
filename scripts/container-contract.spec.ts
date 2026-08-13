@@ -6,7 +6,6 @@ import { tmpdir } from "node:os";
 import { delimiter, resolve } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
-import { parse } from "yaml";
 
 const root = resolve(import.meta.dirname, "..");
 const temporaryDirectories: string[] = [];
@@ -70,6 +69,30 @@ describe("application container contract", () => {
     expect(dockerfile).not.toContain("--legacy");
     expect(dockerfile).not.toContain("m" + "oon");
     expect(dockerfile).not.toMatch(/COPY\s+--from=build\s+--chown=/);
+    expect(dockerfile.startsWith("# syntax=docker/dockerfile:1\n")).toBe(true);
+    expect(dockerfile).toContain("COPY --parents apps/*/package.json");
+    expect(dockerfile).toContain("packages/*/package.json");
+    expect(dockerfile).toContain("@cat-plugin/*/package.json");
+    expect(dockerfile).not.toContain("COPY packages packages");
+    expect(dockerfile).toContain("pnpm exec turbo prune @cat/app --docker");
+    expect(dockerfile).toContain("pnpm install --filter=cat-root");
+    expect(dockerfile).toContain("pnpm install --frozen-lockfile\n");
+    expect(dockerfile).not.toContain(
+      "pnpm install --frozen-lockfile --ignore-scripts\nCOPY --from=pruner /repo/out/full",
+    );
+    expect(dockerfile).toContain("COPY --from=pruner /repo/out/json/ ./");
+    expect(dockerfile).toContain("COPY --from=pruner /repo/out/full/ ./");
+    expect(dockerfile).toContain("pnpm build:app");
+    expect(dockerfile).not.toContain("pnpm exec turbo run build");
+    expect(dockerfile).not.toContain("pnpm build-plugins");
+    for (const secret of [
+      "turbo_team",
+      "turbo_token",
+      "turbo_remote_cache_signature_key",
+    ]) {
+      expect(dockerfile).toContain(`--mount=type=secret,id=${secret}`);
+    }
+    expect(dockerfile).not.toContain("--build-arg TURBO_");
   });
 
   it("filters credentials, persistent data, daemon state, and build caches before context transfer", async () => {
@@ -92,16 +115,53 @@ describe("application container contract", () => {
       "**/.pnpm-store",
       "**/.turbo",
       "**/node_modules",
+      "**/build",
+      "**/out",
     ]) {
       expect(rules.has(rule), `missing Docker context rule ${rule}`).toBe(true);
     }
+    expect(rules.has("tools/**")).toBe(true);
+    expect(rules.has("!tools/*/package.json")).toBe(true);
   });
 
-  it("checks the real application health route", async () => {
+  it("keeps immutable dependency inputs ahead of source layers in both build families", async () => {
+    const application = await readFile(
+      resolve(root, "apps/app/Dockerfile"),
+      "utf8",
+    );
+    const spacy = await readFile(
+      resolve(root, "apps/spacy-server/Dockerfile"),
+      "utf8",
+    );
+
+    expect(
+      application.indexOf("COPY --from=pruner /repo/out/json/ ./"),
+    ).toBeLessThan(
+      application.indexOf("COPY --from=pruner /repo/out/full/ ./"),
+    );
+    expect(application.indexOf("pnpm install --frozen-lockfile")).toBeLessThan(
+      application.indexOf("COPY --from=pruner /repo/out/full/ ./"),
+    );
+    expect(
+      application.indexOf("FROM application-runtime AS database-preparation"),
+    ).toBeLessThan(
+      application.indexOf("FROM database-preparation AS standalone"),
+    );
+    expect(application).toContain("FROM application-runtime AS runtime");
+
+    expect(spacy.indexOf("COPY pyproject.toml uv.lock ./")).toBeLessThan(
+      spacy.indexOf("COPY src ./src"),
+    );
+    expect(
+      spacy.indexOf("uv sync --frozen --no-dev --no-install-project"),
+    ).toBeLessThan(spacy.indexOf("COPY src ./src"));
+  });
+
+  it("checks the real application readiness route", async () => {
     let requestedPath: string | undefined;
     const server = createServer((request, response) => {
       requestedPath = request.url;
-      response.writeHead(request.url === "/_health" ? 200 : 404).end();
+      response.writeHead(request.url === "/_health/ready" ? 200 : 404).end();
     });
     server.listen(0, "127.0.0.1");
     await once(server, "listening");
@@ -118,69 +178,193 @@ describe("application container contract", () => {
         { env: { PORT: String(address.port) } },
       );
       expect(result.code).toBe(0);
-      expect(requestedPath).toBe("/_health");
+      expect(requestedPath).toBe("/_health/ready");
     } finally {
       server.close();
       await once(server, "close");
     }
   });
 
-  it("executes mode commands and rejects unsupported preparation with EX_USAGE", async () => {
+  it("exposes only each target's inherent lifecycle commands", async () => {
     const directory = await mkdtemp(resolve(tmpdir(), "cat-entrypoint-"));
     temporaryDirectories.push(directory);
     const node = resolve(directory, "node");
     await writeFile(node, "#!/bin/sh\nprintf '%s\\n' \"$*\"\n", "utf8");
     await chmod(node, 0o755);
-    const entrypoint = resolve(
+    const standaloneEntrypoint = resolve(
       root,
-      "apps/app/scripts/container-entrypoint.sh",
+      "apps/app/scripts/container-entrypoint-standalone.sh",
+    );
+    const runtimeEntrypoint = resolve(
+      root,
+      "apps/app/scripts/container-entrypoint-runtime.sh",
     );
     const env = {
       PATH: `${directory}${delimiter}${process.env.PATH ?? ""}`,
-      PREPARE_DATABASE_COMMAND: "/app/.preparation/prepare-database.mjs",
     };
 
-    const prepare = await run("sh", [entrypoint, "prepare-only"], {
-      env: { ...env, CONTAINER_CAPABILITY: "prepare-and-start" },
+    const prepare = await run("sh", [standaloneEntrypoint, "prepare-only"], {
+      env,
     });
     expect(prepare).toMatchObject({
       code: 0,
-      stdout: "/app/.preparation/prepare-database.mjs\n",
+      stdout:
+        "/usr/local/bin/container-runner.mjs node /app/.preparation/prepare-database.mjs\n",
     });
 
-    const rejected = await run("sh", [entrypoint, "prepare-only"], {
-      env: { ...env, CONTAINER_CAPABILITY: "start-only" },
+    const bootstrap = await run(
+      "sh",
+      [standaloneEntrypoint, "bootstrap-only"],
+      {
+        env,
+      },
+    );
+    expect(bootstrap).toMatchObject({
+      code: 0,
+      stdout:
+        "/usr/local/bin/container-runner.mjs node /app/dist/bootstrap-only/bootstrap-only-cli.js\n",
     });
-    expect(rejected.code).toBe(64);
-    expect(rejected.stderr).toContain("does not support 'prepare-only'");
+
+    const prepareAndStart = await run(
+      "sh",
+      [standaloneEntrypoint, "prepare-and-start"],
+      { env },
+    );
+    expect(prepareAndStart).toMatchObject({
+      code: 0,
+      stdout: [
+        "/usr/local/bin/container-runner.mjs node /app/.preparation/prepare-database.mjs",
+        "/usr/local/bin/container-runner.mjs node /app/dist/bootstrap-only/bootstrap-only-cli.js",
+        "/usr/local/bin/container-runner.mjs node /app/dist/server/index.mjs",
+        "",
+      ].join("\n"),
+    });
+
+    const start = await run("sh", [runtimeEntrypoint, "start-only"], { env });
+    expect(start).toMatchObject({
+      code: 0,
+      stdout:
+        "/usr/local/bin/container-runner.mjs node /app/dist/server/index.mjs\n",
+    });
+
+    for (const command of [
+      "prepare-only",
+      "bootstrap-only",
+      "prepare-and-start",
+    ]) {
+      const rejected = await run("sh", [runtimeEntrypoint, command], { env });
+      expect(rejected.code, command).toBe(64);
+      expect(rejected.stderr, command).toContain(
+        `does not support '${command}'`,
+      );
+    }
+
+    const standaloneRejected = await run(
+      "sh",
+      [standaloneEntrypoint, "start-only"],
+      { env },
+    );
+    expect(standaloneRejected.code).toBe(64);
+    expect(standaloneRejected.stderr).toContain(
+      "Expected prepare-only, bootstrap-only, or prepare-and-start.",
+    );
   });
 
-  it("publishes loopback services for socket clients and keeps Redis disposable", async () => {
-    const compose: unknown = parse(
-      await readFile(resolve(root, "scripts/check-all.compose.yml"), "utf8"),
-    );
-    expect(compose).toMatchObject({
-      services: {
-        postgresql: {
-          ports: ["${CAT_CHECK_ALL_BIND_HOST:-127.0.0.1}:0:5432"],
-        },
-        redis: {
-          cap_drop: ["ALL"],
-          command: expect.arrayContaining([
-            "redis-server",
-            "--appendonly",
-            "no",
-            "--save",
-            "",
-            "--requirepass",
-            "${CAT_CHECK_ALL_REDIS_PASSWORD:?required}",
-          ]),
-          ports: ["${CAT_CHECK_ALL_BIND_HOST:-127.0.0.1}:0:6379"],
-          read_only: true,
-          security_opt: ["no-new-privileges:true"],
-          tmpfs: ["/data"],
+  it("encodes connection component credentials before starting an application process", async () => {
+    const runner = resolve(root, "apps/app/scripts/container-runner.mjs");
+    const result = await run(
+      process.execPath,
+      [
+        runner,
+        process.execPath,
+        "-e",
+        "process.stdout.write(JSON.stringify({database:process.env.DATABASE_URL,redis:process.env.REDIS_URL}))",
+      ],
+      {
+        env: {
+          CAT_DATABASE_HOST: "postgresql",
+          CAT_DATABASE_NAME: "cat",
+          CAT_DATABASE_PASSWORD: "db /#@:",
+          CAT_DATABASE_USER: "cat",
+          CAT_REDIS_HOST: "redis",
+          CAT_REDIS_PASSWORD: "redis /#@:",
         },
       },
-    });
+    );
+    expect(result.code, result.stderr).toBe(0);
+    const urls = JSON.parse(result.stdout) as {
+      database: string;
+      redis: string;
+    };
+    const database = new URL(urls.database);
+    const redis = new URL(urls.redis);
+    expect(decodeURIComponent(database.password)).toBe("db /#@:");
+    expect(decodeURIComponent(redis.password)).toBe("redis /#@:");
+    expect(urls.database).not.toContain("db /#@:");
+    expect(urls.redis).not.toContain("redis /#@:");
+  });
+
+  it("keeps one full-suite dev E2E configuration without an app preview runner", async () => {
+    const manifest = JSON.parse(
+      await readFile(resolve(root, "apps/app/package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    expect(manifest.scripts?.preview).toBeUndefined();
+    expect(manifest.scripts?.["bootstrap:local"]).toContain(
+      "scripts/bootstrap-local.mjs",
+    );
+
+    const e2eManifest = JSON.parse(
+      await readFile(resolve(root, "apps/app-e2e/package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    expect(e2eManifest.scripts?.["test:e2e"]).toContain("test-e2e.ts");
+    expect(e2eManifest.scripts?.["test:e2e"]).not.toContain(
+      "playwright.dev.config.ts",
+    );
+    const playwrightConfig = await readFile(
+      resolve(root, "apps/app-e2e/playwright.config.ts"),
+      "utf8",
+    );
+    expect(playwrightConfig).toContain('testDir: "./tests"');
+    expect(playwrightConfig).not.toContain('CAT_DEV_DB_PUSH: "false"');
+    await expect(
+      readFile(resolve(root, "apps/app-e2e/playwright.dev.config.ts"), "utf8"),
+    ).rejects.toMatchObject({ code: "ENOENT" });
+
+    const executionCell = await readFile(
+      resolve(root, "apps/app-e2e/execution-cell.ts"),
+      "utf8",
+    );
+    expect(executionCell).toContain("class ExecutionCell");
+    expect(executionCell).toContain('"bootstrap-only"');
+    expect(executionCell).toContain("CAT_BOOTSTRAP_PLAN");
+    expect(executionCell).toContain("createCellDatabase");
+  });
+
+  it("keeps standalone, schema, and development artifacts outside the runtime release", async () => {
+    const dockerfile = await readFile(
+      resolve(root, "apps/app/Dockerfile"),
+      "utf8",
+    );
+
+    expect(dockerfile).toContain("/application-release");
+    expect(dockerfile).toContain("/standalone-deployment");
+    expect(dockerfile).not.toContain("CONTAINER_CAPABILITY");
+    expect(dockerfile).toContain("container-entrypoint-runtime.sh");
+    expect(dockerfile).toContain("container-entrypoint-standalone.sh");
+    expect(dockerfile).toContain("rm -rf /application-release/scripts");
+    expect(dockerfile).toContain("/application-release/compose.yaml");
+  });
+
+  it("keeps disposable E2E services in the canonical lease Compose entry", async () => {
+    const compose = await readFile(
+      resolve(root, "apps/app-e2e/compose.e2e.yaml"),
+      "utf8",
+    );
+    expect(compose).toContain("CAT_E2E_POSTGRES_HOST_PORT:-0");
+    expect(compose).toContain("CAT_E2E_REDIS_HOST_PORT:-0");
+    expect(compose).toContain("CAT_E2E_SPACY_HOST_PORT:-0");
+    await expect(
+      readFile(resolve(root, "scripts/check-all.compose.yml"), "utf8"),
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

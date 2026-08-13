@@ -33,13 +33,14 @@ export const issueClaimTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = issueClaimArgs.parse(args);
 
     const agentId =
       parsed.agentId ?? (parseInt(ctx.session.agentId, 10) || undefined);
 
-    // Claim the issue
+    ctx.signal.throwIfAborted();
     const claimedIssue = await executeCommand({ db }, claimIssue, {
       projectId: ctx.session.projectId,
       agentId,
@@ -51,6 +52,7 @@ export const issueClaimTool: AgentToolDefinition = {
 
     // In isolation mode: auto-create a linked PR
     if (ctx.vcsMode === "isolation") {
+      ctx.signal.throwIfAborted();
       const pr = await executeCommand({ db }, createPR, {
         projectId: ctx.session.projectId,
         title: `PR for: ${claimedIssue.title}`,

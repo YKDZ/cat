@@ -9,12 +9,11 @@ import {
   updateUser,
   updateUserAvatar,
 } from "@cat/domain";
-import { StorageProvider } from "@cat/plugin-core";
 import {
   finishPresignedPutFile,
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   getDownloadUrl,
-  getServiceFromDBId,
+  resolveServiceImplementation,
   preparePresignedPutFile,
 } from "@cat/server-shared";
 import { UserSchema } from "@cat/shared";
@@ -83,7 +82,10 @@ export const prepareUploadAvatar = authed
     const { meta } = input;
 
     // TODO 储存的配置
-    const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "STORAGE_PROVIDER",
+    );
 
     if (!storage) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -100,7 +102,7 @@ export const prepareUploadAvatar = authed
       drizzle,
       sessionStore,
       storage.service,
-      storage.id,
+      storage.reference,
       key,
       name,
       ctxHash,
@@ -162,17 +164,18 @@ export const getAvatarPresignedUrl = authed
 
     if (!avatarFile) return null;
 
-    const { key, storageProviderId } = avatarFile;
+    const { key, storageProvider } = avatarFile;
 
-    const provider = getServiceFromDBId<StorageProvider>(
+    const provider = resolveServiceImplementation(
       pluginManager,
-      storageProviderId,
+      storageProvider,
+      "STORAGE_PROVIDER",
     );
 
     return await getDownloadUrl(
       sessionStore,
       provider,
-      storageProviderId,
+      storageProvider,
       key,
       expiresIn,
     );

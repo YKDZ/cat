@@ -15,6 +15,7 @@ import {
   RedisCacheStore,
   RedisSessionStore,
   RedisTaskQueue,
+  serverLogger,
 } from "@cat/server-shared";
 
 /**
@@ -50,28 +51,49 @@ export const createRuntimeBackends = async (
   profile: RuntimeProfile,
   db: DrizzleClient,
 ): Promise<RuntimeBackends> => {
-  const redis = profile.requireRedis ? await getRedisHandle() : undefined;
+  const redis = profile.requireRedis
+    ? await getRedisHandle({
+        mode: "runtime",
+        onError: (error) => {
+          serverLogger
+            .child({ component: "redis" })
+            .error("Redis client error", {
+              code: "REDIS_CLIENT_ERROR",
+              error,
+            });
+        },
+      })
+    : undefined;
   if (redis) {
     await redis.ping();
   }
 
+  const redisNamespace = process.env.CAT_REDIS_NAMESPACE;
+  const namespacedRedisKey = (key: string): string =>
+    redisNamespace === undefined || redisNamespace === ""
+      ? key
+      : `${redisNamespace}:${key}`;
+
   const cacheStore =
     profile.cache.backend === "redis"
-      ? new RedisCacheStore(redis!.redis)
+      ? new RedisCacheStore(redis!.redis, namespacedRedisKey("cache"))
       : profile.cache.backend === "postgres"
         ? new PostgresCacheStore(db)
         : new MemoryCacheStore();
 
   const sessionStore =
     profile.session.backend === "redis"
-      ? new RedisSessionStore(redis!.redis)
+      ? new RedisSessionStore(redis!.redis, redisNamespace)
       : profile.session.backend === "postgres"
         ? new PostgresSessionStore(db)
         : new MemorySessionStore();
 
   const vectorizationQueue =
     profile.queue.backend === "redis"
-      ? new RedisTaskQueue<VectorizationTask>(redis!.redis, "vectorization")
+      ? new RedisTaskQueue<VectorizationTask>(
+          redis!.redis,
+          namespacedRedisKey("vectorization"),
+        )
       : profile.queue.backend === "postgres"
         ? new PostgresTaskQueue<VectorizationTask>(db, "vectorization")
         : new InMemoryTaskQueue<VectorizationTask>();

@@ -1,4 +1,5 @@
 import { createVectorizedStringOp } from "@cat/operations";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { generateCacheKey } from "#/graph/cache.ts";
@@ -11,8 +12,8 @@ export const CreateVectorizedStringInputSchema = z.object({
       languageId: z.string(),
     }),
   ),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const CreateVectorizedStringOutputSchema = z.object({
@@ -38,6 +39,8 @@ export const createVectorizedStringGraph = defineGraph({
           traceId: ctx.traceId,
           signal: ctx.signal,
           pluginManager: ctx.pluginManager,
+          ownershipFence: ctx.ownershipFence,
+          assertRunOwnership: ctx.assertRunOwnership,
         });
 
         await ctx.recordSideEffect(sideEffectKey, "db_write", result.stringIds);

@@ -88,7 +88,7 @@ export const listBranchChangesetIds: Query<
 
 export const ListMainEntriesSinceQuerySchema = z.object({
   projectId: z.uuid(),
-  baseChangesetId: z.int().positive(),
+  baseChangesetId: z.int().positive().nullable(),
 });
 
 export type ListMainEntriesSinceQuery = z.infer<
@@ -107,7 +107,9 @@ export const listMainEntriesSince: Query<
       and(
         eq(changeset.projectId, query.projectId),
         isNull(changeset.branchId),
-        gt(changeset.id, query.baseChangesetId),
+        ...(query.baseChangesetId === null
+          ? []
+          : [gt(changeset.id, query.baseChangesetId)]),
       ),
     );
 };

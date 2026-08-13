@@ -9,6 +9,7 @@ import {
   standardLoginFlow,
   registerFlow,
 } from "@cat/auth";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import {
@@ -154,17 +155,16 @@ export const advanceFlow = base
 
       const userId = snap?.data?.identity?.userId;
       if (userId) {
-        const authFactorDbId = (snap?.data as Record<string, unknown>)?.[
-          "authFactorDbId"
-        ];
         const snapData = snap?.data;
+        const authProvider = ServiceImplementationReferenceSchema.parse(
+          snapData?.identity?.authProvider,
+        );
         await finishLogin(
           context.sessionStore,
           context.drizzleDB.client,
           userId,
           {
-            authProviderId:
-              typeof authFactorDbId === "number" ? authFactorDbId : 0,
+            authProvider,
             ...(snapData?.aal !== undefined ? { aal: snapData.aal } : {}),
             ...(snapData?.completedFactors?.length
               ? { completedFactors: JSON.stringify(snapData.completedFactors) }

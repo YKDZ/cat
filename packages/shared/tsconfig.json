@@ -1,6 +1,7 @@
 {
-  "extends": "../../tsconfig.web.json",
+  "extends": "@cat/typescript-config/bundler.json",
   "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "noEmit": true,
     "types": []
   },

@@ -7,7 +7,7 @@ import {
   sql,
   translatableElement,
 } from "@cat/db";
-import type { JSONType } from "@cat/shared";
+import type { JSONType, ServiceImplementationReference } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -23,11 +23,11 @@ export type ElementSourceLocation = {
   fileName: string | null;
   blobId: number | null;
   blobKey: string | null;
-  storageProviderId: number | null;
+  storageProvider: ServiceImplementationReference | null;
   sourceStartLine: number | null;
   sourceEndLine: number | null;
   sourceLocationMeta: JSONType | null;
-  fileHandlerId: number | null;
+  fileHandler: ServiceImplementationReference | null;
 };
 
 /**
@@ -45,8 +45,8 @@ export const getElementSourceLocation: Query<
       fileName: file.name,
       blobId: blob.id,
       blobKey: blob.key,
-      storageProviderId: blob.storageProviderId,
-      fileHandlerId: contentNode.fileHandlerId,
+      storageProvider: blob.storageProvider,
+      fileHandler: contentNode.fileHandler,
     })
     .from(translatableElement)
     .leftJoin(
@@ -67,11 +67,11 @@ export const getElementSourceLocation: Query<
       fileName: null,
       blobId: null,
       blobKey: null,
-      storageProviderId: null,
+      storageProvider: null,
       sourceStartLine: null,
       sourceEndLine: null,
       sourceLocationMeta: null,
-      fileHandlerId: null,
+      fileHandler: null,
     };
   }
 
@@ -79,10 +79,10 @@ export const getElementSourceLocation: Query<
     fileName: row.fileName ?? null,
     blobId: row.blobId ?? null,
     blobKey: row.blobKey ?? null,
-    storageProviderId: row.storageProviderId ?? null,
+    storageProvider: row.storageProvider ?? null,
     sourceStartLine: row.sourceStartLine ?? null,
     sourceEndLine: row.sourceEndLine ?? null,
     sourceLocationMeta: row.sourceLocationMeta ?? null,
-    fileHandlerId: row.fileHandlerId ?? null,
+    fileHandler: row.fileHandler ?? null,
   };
 };

@@ -1,13 +1,14 @@
 import {
   countMemoryItems,
   createMemory as createMemoryCommand,
+  deleteMemory as deleteMemoryCommand,
   deleteMemoryItem,
   executeCommand,
   executeQuery,
   getElementWithChunkIds,
   getMemory,
   getMemoryAccessContext,
-  listAllLanguages,
+  getMemoryCanonicalSnapshots,
   listEffectiveMemoryIdsByProject,
   listMemoryItems,
   listMemoryItemIdsByElement,
@@ -15,16 +16,16 @@ import {
   listProjectMemories,
 } from "@cat/domain";
 import {
-  buildMemoryRecallBm25Capabilities,
   collectEffectiveMemoryRecallOp,
-  nlpSegmentOp,
+  getEffectiveMemoryRecallCandidates,
   recallContextRerankOp,
 } from "@cat/operations";
 import { getPermissionEngine } from "@cat/permissions";
-import { MemorySchema } from "@cat/shared";
 import {
-  MemoryRecallBm25CapabilityDirectorySchema,
-  MemoryRecallBm25CapabilityQuerySchema,
+  EffectiveMemoryRecallStreamEventSchema,
+  MemorySchema,
+  RecallDerivationReferenceSchema,
+  type EffectiveMemoryRecallStreamEvent,
 } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 import { ORPCError } from "@orpc/server";
@@ -33,10 +34,10 @@ import * as z from "zod";
 import { withBranchContext } from "#/orpc/middleware/with-branch-context.ts";
 import {
   authed,
-  base,
   checkElementPermission,
   checkPermission,
 } from "#/orpc/server.ts";
+import { throwRecallOperationFailure } from "#/services/recall-operation-failure.ts";
 import type { Context } from "#/utils/context.ts";
 import {
   createVCSRouteHelper,
@@ -162,92 +163,10 @@ export const create = authed
     } = context;
 
     if (context.branchId !== undefined) {
-      if (
-        input.projectIds === undefined ||
-        input.projectIds.length !== 1 ||
-        input.projectIds[0] !== context.branchProjectId
-      ) {
-        throw new ORPCError("BAD_REQUEST", {
-          message:
-            "Branch memory creation requires exactly one projectId matching the active branch project",
-        });
-      }
-
-      const branchWriteContext = await ensureBranchWriteContext({
-        drizzle,
-        branchId: context.branchId,
-        branchChangesetId: context.branchChangesetId,
-        branchProjectId: context.branchProjectId,
+      throw new ORPCError("BAD_REQUEST", {
+        message:
+          "Memory bank creation is unavailable in branch isolation until a governed Memory application method exists.",
       });
-
-      if (!branchWriteContext) {
-        throw new Error("branch write context missing for memory creation");
-      }
-
-      const { middleware } = createVCSRouteHelper(drizzle);
-      const entityId = crypto.randomUUID();
-
-      return await middleware.interceptWrite(
-        branchWriteContext,
-        "memory_item",
-        entityId,
-        "CREATE",
-        null,
-        {
-          name: input.name,
-          ...(input.description !== undefined
-            ? { description: input.description }
-            : {}),
-          ...(input.projectIds !== undefined
-            ? { projectIds: input.projectIds }
-            : {}),
-          creatorId: user.id,
-        },
-        async () => ({
-          id: "00000000-0000-0000-0000-000000000000",
-          name: input.name,
-          description: input.description ?? null,
-          scope: "PROJECT" as const,
-          creatorId: user.id,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }),
-      );
-    }
-
-    const projectId = input.projectIds?.[0];
-    if (projectId !== undefined) {
-      const { middleware } = createVCSRouteHelper(drizzle);
-      const entityId = crypto.randomUUID();
-      const vcsCtx: VCSContext = {
-        mode: "direct",
-        projectId,
-        createdBy: user.id,
-      };
-      return await middleware.interceptWrite(
-        vcsCtx,
-        "memory_item",
-        entityId,
-        "CREATE",
-        null,
-        {
-          name: input.name,
-          ...(input.description !== undefined
-            ? { description: input.description }
-            : {}),
-          ...(input.projectIds !== undefined
-            ? { projectIds: input.projectIds }
-            : {}),
-          creatorId: user.id,
-        },
-        async () =>
-          drizzle.transaction(async (tx) =>
-            executeCommand({ db: tx }, createMemoryCommand, {
-              ...input,
-              creatorId: user.id,
-            }),
-          ),
-      );
     }
 
     return await drizzle.transaction(async (tx) => {
@@ -268,14 +187,17 @@ export const onNew = authed
     }),
   )
   .use(checkElementPermission("viewer"), (i) => i.elementId)
-  .handler(async function* ({ context, input }) {
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<EffectiveMemoryRecallStreamEvent> {
     const {
       drizzleDB: { client: drizzle },
     } = context;
     const { elementId, translationLanguageId, minConfidence, maxAmount } =
       input;
 
-    // Fetch element details — text, language, project, and chunk IDs
+    // Fetch the source text and project used to resolve effective memories.
     const element = await executeQuery(
       { db: drizzle },
       getElementWithChunkIds,
@@ -301,56 +223,65 @@ export const onNew = authed
 
     const { projectMemoryIds, personalMemoryIds } = effectiveMemoryIds;
 
-    if (
-      !element ||
-      (projectMemoryIds.length === 0 && personalMemoryIds.length === 0)
-    ) {
-      return;
-    }
-
-    const [excludeMemoryItemIds, nlpResult] = await Promise.all([
-      executeQuery({ db: drizzle }, listMemoryItemIdsByElement, {
-        elementId,
-      }).catch(() => [] as string[]),
-      nlpSegmentOp(
-        { text: element.value, languageId: element.languageId },
-        { pluginManager: context.pluginManager, traceId: crypto.randomUUID() },
-      ).catch(() => null),
-    ]);
-    const sourceNlpTokens = nlpResult?.tokens;
-
-    const reranked = await recallContextRerankOp(
-      {
-        elementId,
-        queryText: element.value,
-        memories: await collectEffectiveMemoryRecallOp(
+    const excludeMemoryItemIds = await executeQuery(
+      { db: drizzle },
+      listMemoryItemIdsByElement,
+      { elementId },
+    );
+    const recallResult = await (async () => {
+      try {
+        return await collectEffectiveMemoryRecallOp(
           {
             text: element.value,
             sourceLanguageId: element.languageId,
             translationLanguageId,
             projectMemoryIds,
             personalMemoryIds,
-            chunkIds: element.chunkIds,
             minSimilarity: minConfidence,
             maxAmount,
             excludeMemoryItemIds,
-            sourceNlpTokens,
           },
           {
             pluginManager: context.pluginManager,
+            signal: context.requestSignal,
             traceId: crypto.randomUUID(),
           },
-        ),
+        );
+      } catch (error) {
+        return await throwRecallOperationFailure({
+          context,
+          error,
+          affectedResources: [
+            { type: "PROJECT", id: element.projectId },
+            { type: "ELEMENT", id: String(elementId) },
+          ],
+        });
+      }
+    })();
+
+    const reranked = await recallContextRerankOp(
+      {
+        elementId,
+        queryText: element.value,
+        memories: getEffectiveMemoryRecallCandidates(recallResult),
       },
       {
         pluginManager: context.pluginManager,
+        signal: context.requestSignal,
         traceId: crypto.randomUUID(),
       },
     );
 
     for (const memory of reranked) {
-      yield memory;
+      yield EffectiveMemoryRecallStreamEventSchema.parse({
+        type: "CANDIDATE",
+        candidate: memory,
+      });
     }
+    yield EffectiveMemoryRecallStreamEventSchema.parse({
+      type: "COMPLETED",
+      result: recallResult,
+    });
   });
 
 export const getUserOwned = authed
@@ -466,7 +397,12 @@ export const deleteItem = authed
     }),
   )
   .use(withBranchContext, (input) => ({ branchId: input.branchId }))
-  .output(z.object({ deleted: z.boolean() }))
+  .output(
+    z.object({
+      deleted: z.boolean(),
+      derivations: z.array(RecallDerivationReferenceSchema),
+    }),
+  )
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: drizzle },
@@ -481,12 +417,37 @@ export const deleteItem = authed
     );
 
     if (!accessContext) {
-      return { deleted: false };
+      return { deleted: false, derivations: [] };
     }
 
     if (!(await canDeleteMemoryItem({ auth, user }, accessContext))) {
       throw new ORPCError("FORBIDDEN");
     }
+
+    const [snapshot] = await executeQuery(
+      { db: drizzle },
+      getMemoryCanonicalSnapshots,
+      { memoryItemIds: [input.memoryItemId] },
+    );
+    if (!snapshot || snapshot.memoryId !== input.memoryId) {
+      return { deleted: false, derivations: [] };
+    }
+
+    const itemPayload = {
+      memoryItemId: snapshot.id,
+      memoryId: snapshot.memoryId,
+      translationId: snapshot.translationId,
+      translationStringId: snapshot.translation.id,
+      sourceStringId: snapshot.source.id,
+      creatorId: snapshot.creatorId,
+      deletedById: user.id,
+      scope: accessContext.scope,
+      projectId:
+        accessContext.scope === "PROJECT"
+          ? (accessContext.projectIds[0] ?? null)
+          : accessContext.personalProjectId,
+      ...(input.reason !== undefined ? { reason: input.reason } : {}),
+    };
 
     if (accessContext.scope === "PROJECT") {
       const projectId = accessContext.projectIds[0];
@@ -497,14 +458,7 @@ export const deleteItem = authed
       }
 
       const { middleware } = createVCSRouteHelper(drizzle);
-      const payload = {
-        memoryItemId: input.memoryItemId,
-        memoryId: input.memoryId,
-        deletedById: user.id,
-        scope: accessContext.scope,
-        projectId,
-        ...(input.reason !== undefined ? { reason: input.reason } : {}),
-      };
+      const payload = { ...itemPayload, projectId };
 
       if (context.branchId !== undefined) {
         if (context.branchProjectId === undefined) {
@@ -542,7 +496,7 @@ export const deleteItem = authed
           async () => undefined,
         );
 
-        return { deleted: true };
+        return { deleted: true, derivations: [] };
       }
 
       const vcsCtx: VCSContext = {
@@ -557,7 +511,7 @@ export const deleteItem = authed
         String(input.memoryItemId),
         "DELETE",
         payload,
-        { deleted: true },
+        { deleted: true, derivations: [] },
         async () =>
           await executeCommand({ db: drizzle }, deleteMemoryItem, {
             memoryItemId: input.memoryItemId,
@@ -568,7 +522,10 @@ export const deleteItem = authed
           }),
       );
 
-      return { deleted: result.deleted };
+      return {
+        deleted: result.deleted,
+        derivations: result.derivations,
+      };
     }
 
     const result = await executeCommand({ db: drizzle }, deleteMemoryItem, {
@@ -579,7 +536,58 @@ export const deleteItem = authed
       reason: input.reason,
     });
 
-    return { deleted: result.deleted };
+    return {
+      deleted: result.deleted,
+      derivations: result.derivations,
+    };
+  });
+
+export const deleteMemory = authed
+  .input(
+    z.object({
+      memoryId: z.uuidv4(),
+      reason: z.string().trim().max(500).optional(),
+    }),
+  )
+  .output(
+    z.object({
+      deleted: z.boolean(),
+      itemCount: z.int().nonnegative(),
+      derivations: z.array(RecallDerivationReferenceSchema),
+    }),
+  )
+  .handler(async ({ context, input }) => {
+    const {
+      drizzleDB: { client: drizzle },
+      auth,
+      user,
+    } = context;
+    const accessContext = await executeQuery(
+      { db: drizzle },
+      getMemoryAccessContext,
+      { memoryId: input.memoryId },
+    );
+    if (!accessContext) {
+      return { deleted: false, itemCount: 0, derivations: [] };
+    }
+    if (!(await canDeleteMemoryItem({ auth, user }, accessContext))) {
+      throw new ORPCError("FORBIDDEN");
+    }
+
+    const result = await executeCommand({ db: drizzle }, deleteMemoryCommand, {
+      memoryId: input.memoryId,
+      deletedById: user.id,
+      projectId:
+        accessContext.scope === "PROJECT"
+          ? (accessContext.projectIds[0] ?? null)
+          : accessContext.personalProjectId,
+      reason: input.reason,
+    });
+    return {
+      deleted: result.deleted,
+      itemCount: result.itemCount,
+      derivations: result.derivations,
+    };
   });
 
 export const getMyProjectMemory = authed
@@ -660,7 +668,10 @@ export const searchByText = authed
     }),
   )
   .use(checkPermission("project", "viewer"), (i) => i.projectId)
-  .handler(async function* ({ context, input }) {
+  .handler(async function* ({
+    context,
+    input,
+  }): AsyncGenerator<EffectiveMemoryRecallStreamEvent> {
     const {
       drizzleDB: { client: drizzle },
     } = context;
@@ -688,47 +699,41 @@ export const searchByText = authed
 
     const { projectMemoryIds, personalMemoryIds } = effectiveMemoryIds;
 
-    if (projectMemoryIds.length === 0 && personalMemoryIds.length === 0) {
-      return;
+    const recallResult = await (async () => {
+      try {
+        return await collectEffectiveMemoryRecallOp(
+          {
+            text,
+            sourceLanguageId,
+            translationLanguageId,
+            projectMemoryIds,
+            personalMemoryIds,
+            minSimilarity: minConfidence,
+            maxAmount,
+          },
+          {
+            pluginManager: context.pluginManager,
+            signal: context.requestSignal,
+            traceId: crypto.randomUUID(),
+          },
+        );
+      } catch (error) {
+        return await throwRecallOperationFailure({
+          context,
+          error,
+          affectedResources: [{ type: "PROJECT", id: projectId }],
+        });
+      }
+    })();
+
+    for (const memory of getEffectiveMemoryRecallCandidates(recallResult)) {
+      yield EffectiveMemoryRecallStreamEventSchema.parse({
+        type: "CANDIDATE",
+        candidate: memory,
+      });
     }
-
-    const memories = await collectEffectiveMemoryRecallOp(
-      {
-        text,
-        sourceLanguageId,
-        translationLanguageId,
-        projectMemoryIds,
-        personalMemoryIds,
-        chunkIds: [],
-        minSimilarity: minConfidence,
-        maxAmount,
-      },
-      {
-        pluginManager: context.pluginManager,
-        traceId: crypto.randomUUID(),
-      },
-    );
-
-    for (const memory of memories) {
-      yield memory;
-    }
-  });
-
-export const getRecallCapabilities = base
-  .input(MemoryRecallBm25CapabilityQuerySchema)
-  .output(MemoryRecallBm25CapabilityDirectorySchema)
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-
-    const languages = await executeQuery({ db: drizzle }, listAllLanguages, {});
-    const fullCatalog = languages.map((row) => row.id);
-
-    return {
-      capabilities: buildMemoryRecallBm25Capabilities(
-        fullCatalog,
-        input.languageIds,
-      ),
-    };
+    yield EffectiveMemoryRecallStreamEventSchema.parse({
+      type: "COMPLETED",
+      result: recallResult,
+    });
   });

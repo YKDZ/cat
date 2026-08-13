@@ -1,7 +1,7 @@
 import "dotenv/config";
 import http from "node:http";
 
-import app, { wsHelper } from "@cat/app-api/app";
+import app, { injectApplicationWebSocket } from "@cat/app-api/app";
 import { serverLogger as logger } from "@cat/server-shared";
 import vike from "@vikejs/hono";
 import type { Server as VikeServer } from "vike/types";
@@ -11,19 +11,19 @@ import { createShutdownHandler } from "#/server/shutdown.ts";
 
 vike(app);
 
-// Initialize the application before starting the HTTP server.
-// This ensures /_health returns 200 only after the server is fully ready,
-// decoupling initialization from Vike's onCreateGlobalContext hook (which has
-// a 30 s timeout that would fail on cold start).
-await initializeApp();
+// Start initialization without delaying HTTP liveness. The app middleware still
+// rejects business traffic until readiness reports a fully initialized runtime.
+void initializeApp();
 
-export default {
+const serverConfig: VikeServer = {
   prod: {
     port: process.env.PORT ? parseInt(process.env.PORT) : 3000,
     ...(process.env.HOST === undefined ? {} : { hostname: process.env.HOST }),
 
     onReady(server) {
-      logger.withSituation("SERVER").info(`Server is ready at ${server.url}`);
+      logger
+        .child({ component: "server" })
+        .info(`Server is ready at ${server.url}`);
     },
 
     onCreate(server) {
@@ -36,14 +36,14 @@ export default {
         rawServer instanceof http.Server ? rawServer : undefined;
       if (!nodeServer) {
         logger
-          .withSituation("SERVER")
+          .child({ component: "server" })
           .error(
             "No Node.js HTTP server found; WebSocket support is required. Process will exit with code 1.",
           );
         process.exit(1);
       }
 
-      wsHelper.injectWebSocket(nodeServer);
+      injectApplicationWebSocket(nodeServer);
       const shutdown = createShutdownHandler(server, nodeServer);
 
       process.on("SIGTERM", shutdown);
@@ -53,4 +53,6 @@ export default {
   },
 
   fetch: app.fetch,
-} satisfies VikeServer;
+};
+
+export default serverConfig;

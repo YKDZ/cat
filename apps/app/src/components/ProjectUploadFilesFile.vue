@@ -43,6 +43,8 @@ const upload = async () => {
   isProcessing.value = true;
 
   const { url, putSessionId } = await orpc.file.prepareCreateFromFile({
+    languageId: languageId.value,
+    projectId: props.projectId,
     meta: {
       name: props.file.name,
       size: props.file.size,

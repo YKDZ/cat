@@ -1,24 +1,19 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": [
+    "@vue/tsconfig/tsconfig.dom.json",
+    "@cat/typescript-config/bundler.json"
+  ],
   "compilerOptions": {
+    "composite": true,
     "rootDir": ".",
-    "outDir": "dist",
-    "forceConsistentCasingInFileNames": true,
-    "types": ["node", "vite/client"],
-    "lib": ["ES2022", "DOM"],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.app.tsbuildinfo",
+    "types": ["node", "vite/client"]
   },
-  "include": ["**/*.ts", "**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
   "exclude": [
-    "src/**/*.test.ts",
     "src/**/*.spec.ts",
-    "src/**/*.test.tsx",
     "src/**/*.spec.tsx",
-    "src/**/*.test.js",
-    "src/**/*.spec.js",
-    "src/**/*.test.jsx",
-    "src/**/*.spec.jsx"
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
   ]
 }

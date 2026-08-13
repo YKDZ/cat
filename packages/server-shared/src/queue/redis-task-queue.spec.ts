@@ -82,6 +82,18 @@ class FakeRedis {
     const secondKey = requireFixtureValue(args[4]);
     const arg = requireFixtureValue(args[5]);
 
+    if (script.includes("RPUSH', KEYS[1], ARGV[2]")) {
+      const raw = requireFixtureValue(args[6]);
+      const exists = [firstKey, secondKey].some((key) =>
+        (this.lists.get(key) ?? []).some(
+          (item) => parseJsonObject(item)["id"] === arg,
+        ),
+      );
+      if (exists) return 0;
+      await this.rPush(firstKey, raw);
+      return 1;
+    }
+
     if (script.includes("LPOP")) {
       const pending = this.lists.get(firstKey) ?? [];
       const raw = pending.shift();
@@ -151,6 +163,22 @@ describe("RedisTaskQueue", () => {
     queue = new RedisTaskQueue<Payload>(redis, "vectorization", {
       leaseMs: 60_000,
     });
+  });
+
+  it("deduplicates a stable task identity while pending or processing", async () => {
+    await expect(
+      queue.enqueue([{ value: "a" }], { taskIds: ["stable-a"] }),
+    ).resolves.toEqual(["stable-a"]);
+    await expect(
+      queue.enqueue([{ value: "a" }], { taskIds: ["stable-a"] }),
+    ).resolves.toEqual([]);
+
+    await expect(queue.dequeue(1)).resolves.toEqual([
+      expect.objectContaining({ id: "stable-a", payload: { value: "a" } }),
+    ]);
+    await expect(
+      queue.enqueue([{ value: "a" }], { taskIds: ["stable-a"] }),
+    ).resolves.toEqual([]);
   });
 
   it("dequeues tasks into processing with leasedUntil", async () => {

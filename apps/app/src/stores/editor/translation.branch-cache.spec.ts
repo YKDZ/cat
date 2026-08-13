@@ -333,4 +333,52 @@ describe("useEditorTranslationStore branch cache", () => {
       expect.any(Function),
     );
   });
+
+  it("restarts a cancelled subscription when the same scope subscribes again", async () => {
+    const store = useEditorTranslationStore();
+    await flushStore();
+
+    expect(mocks.onCreate).toHaveBeenCalledOnce();
+    const firstStream = mocks.streams[0];
+    if (!firstStream)
+      throw new Error("Expected the first stream to be created");
+
+    store.unsubscribe();
+    expect(firstStream.signal.aborted).toBe(true);
+
+    store.subscribe();
+    await flushStore();
+
+    expect(mocks.onCreate).toHaveBeenCalledTimes(2);
+    expect(mocks.onCreate.mock.lastCall?.[0]).toBe(mocks.scopeRef!.value);
+  });
+
+  it("keeps the replacement subscription active when an old stream resolves late", async () => {
+    let resolveOldStream:
+      | ((stream: AsyncIterable<unknown>) => void)
+      | undefined;
+    mocks.onCreate.mockImplementationOnce(
+      (_scope: MockScope, _options: { signal: AbortSignal }) =>
+        new Promise<AsyncIterable<unknown>>((resolve) => {
+          resolveOldStream = resolve;
+        }),
+    );
+    const store = useEditorTranslationStore();
+    await flushStore();
+
+    const { branchId: _branchId, ...mainScope } = mocks.scopeRef!.value!;
+    mocks.scopeRef!.value = mainScope;
+    await flushStore();
+    expect(mocks.onCreate).toHaveBeenCalledTimes(2);
+
+    resolveOldStream?.({
+      [Symbol.asyncIterator]: () => ({
+        next: async () => ({ value: undefined, done: true }),
+      }),
+    });
+    await flushStore();
+
+    store.subscribe();
+    expect(mocks.onCreate).toHaveBeenCalledTimes(2);
+  });
 });

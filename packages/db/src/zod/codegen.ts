@@ -112,7 +112,7 @@ const renderTableDeclaration = (
   return [
     `export const ${declaration.schemaExportName} = z.object({`,
     ...fieldLines,
-    `});`,
+    `})${declaration.refinement ? `.superRefine(${declaration.refinement})` : ""};`,
     "",
     `export type ${declaration.typeExportName} = z.infer<typeof ${declaration.schemaExportName}>;`,
   ].join("\n");
@@ -134,6 +134,12 @@ const collectImports = (
 
   if (body.includes("DrizzleDateTimeSchema")) {
     imports.add('import { DrizzleDateTimeSchema } from "#/schema/misc.ts";');
+  }
+
+  if (body.includes("ServiceImplementationReferenceSchema")) {
+    imports.add(
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    );
   }
 
   const jsonImports: string[] = [];

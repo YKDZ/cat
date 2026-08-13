@@ -35,7 +35,7 @@ export interface LLMGatewayOptions {
  */
 export interface LLMGatewayRequest {
   /** Request body passed to the LLM provider */
-  request: ChatCompletionRequest;
+  request: ChatCompletionRequest & { signal: AbortSignal };
   /** Request priority (default NORMAL) */
   priority?: LLMPriority;
 }
@@ -72,12 +72,12 @@ export class LLMGateway {
    */
   async *chat(req: LLMGatewayRequest): AsyncIterable<LLMChunk> {
     // 1. Wait for queue slot
-    await this.queue.enqueue(req, req.priority ?? "NORMAL");
+    await this.queue.enqueue(req, req.priority ?? "NORMAL", req.request.signal);
 
     try {
       // 2. Wait for token bucket
       if (this.tokenBucket) {
-        await this.tokenBucket.acquire();
+        await this.tokenBucket.acquire(req.request.signal);
       }
 
       // 3. Forward to provider

@@ -37,6 +37,8 @@ const entry = {
   riskLevel: "LOW" as const,
 };
 
+const laterEntry = { ...entry, id: 74, entityId: "17" };
+
 const applicationMethod = (
   status: "FAILED" | "BLOCKED",
 ): ApplicationMethod => ({
@@ -58,9 +60,13 @@ const applicationMethod = (
 const serviceWith = (method: ApplicationMethod): ChangeSetService => {
   const registry = new ApplicationMethodRegistry();
   registry.register("translation", method);
+  const db = {
+    transaction: async <T>(callback: (tx: never) => Promise<T>): Promise<T> =>
+      await callback({} as never),
+  };
   return new ChangeSetService(
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- behavior test uses the domain command boundary as its database seam
-    {} as never,
+    db as never,
     new DiffStrategyRegistry(),
     registry,
   );
@@ -72,6 +78,26 @@ beforeEach(() => {
 });
 
 describe("ChangeSetService application", () => {
+  it("serializes entries for the same aggregate by entry ID", async () => {
+    const order: number[] = [];
+    const method: ApplicationMethod = {
+      ...applicationMethod("FAILED"),
+      applyCreate: vi.fn(async (current) => {
+        order.push(current.id);
+        return { status: "APPLIED" as const };
+      }),
+    };
+    const service = serviceWith(method);
+    domain.getChangesetEntries.mockResolvedValue([
+      laterEntry,
+      { ...laterEntry, id: 73 },
+    ]);
+
+    await service.applyChangeSet(41, { projectId: "project-1" });
+
+    expect(order).toEqual([73, 74]);
+  });
+
   it.each(["FAILED", "BLOCKED"] as const)(
     "does not mark a changeset APPLIED when an entry is %s",
     async (status) => {

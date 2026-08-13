@@ -17,7 +17,11 @@ const activeMetadataFiles = [
   "apps/docs/package.json",
   "apps/docs/turbo.json",
   "scripts/vitest.config.ts",
-  "tsconfig.node.json",
+  "tsconfig.json",
+  "packages/typescript-config/base.json",
+  "packages/typescript-config/bundler.json",
+  "packages/typescript-config/declaration.json",
+  "packages/typescript-config/node.json",
   "oxlint.config.ts",
   "oxfmt.config.ts",
 ] as const;
@@ -223,7 +227,9 @@ describe("repository metadata validation gates", () => {
     const docsConfig = await readRepoFile("apps/docs/src/.vitepress/config.ts");
 
     expect(docsManifest).toContain('"build": "vitepress build src"');
-    expect(docsManifest).toContain("vue-tsc --noEmit -p tsconfig.app.json");
+    expect(docsManifest).toContain(
+      "vue-tsc --noEmit --pretty false -p tsconfig.app.json",
+    );
     expect(docsTasks).toContain('"application"');
     expect(docsTasks).not.toMatch(/autodoc/iu);
     expect(docsConfig).toContain("/developer/");

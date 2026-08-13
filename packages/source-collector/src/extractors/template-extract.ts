@@ -1,4 +1,7 @@
-import type { StructuredTranslatableElementInput } from "@cat/shared";
+import {
+  normalizeLanguageId,
+  type StructuredTranslatableElementInput,
+} from "@cat/shared";
 import type {
   DirectiveNode,
   ElementNode,
@@ -105,7 +108,7 @@ const pushTemplateElement = (input: {
     sourceNodeRef: `source-file:${input.context.filePath}`,
     localOrder: input.context.elements.length,
     text: input.text,
-    languageId: input.context.sourceLanguageId,
+    languageId: normalizeLanguageId(input.context.sourceLanguageId),
     meta: {
       framework: "vue-i18n",
       file: input.context.filePath,

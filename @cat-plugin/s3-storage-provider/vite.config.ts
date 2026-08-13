@@ -4,13 +4,13 @@ import { defineConfig } from "vite";
 
 export default defineConfig({
   ssr: {
-    noExternal: [
-      /^@cat\//,
+    external: [
+      "@cat/plugin-core",
+      "zod",
       "@aws-sdk/s3-request-presigner",
       "@aws-sdk/client-s3",
       "@aws-sdk/lib-storage",
     ],
-    external: ["@cat/plugin-core", "zod"],
   },
 
   resolve: {

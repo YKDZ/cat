@@ -1,5 +1,8 @@
 import { searchMemoryOp } from "@cat/operations";
-import { MemorySuggestionSchema } from "@cat/shared";
+import {
+  MemorySuggestionSchema,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -11,7 +14,7 @@ export const SearchMemoryInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const SearchMemoryOutputSchema = z.object({

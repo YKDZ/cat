@@ -1,5 +1,8 @@
 import { qaResultItem } from "@cat/db";
-import type { JSONType } from "@cat/shared";
+import {
+  type JSONType,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
@@ -9,7 +12,7 @@ export const CreateQaResultItemsCommandSchema = z.object({
   items: z.array(
     z.object({
       isPassed: z.boolean(),
-      checkerId: z.int(),
+      checker: ServiceImplementationReferenceSchema,
       meta: z.json().optional(),
     }),
   ),
@@ -27,7 +30,7 @@ export const createQaResultItems: Command<CreateQaResultItemsCommand> = async (
     await ctx.db.insert(qaResultItem).values(
       command.items.map((item) => ({
         isPassed: item.isPassed,
-        checkerId: item.checkerId,
+        checker: item.checker,
         resultId: command.resultId,
         meta: (item.meta ?? null) as JSONType | null,
       })),

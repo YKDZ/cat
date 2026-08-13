@@ -7,7 +7,13 @@ describe("BlobSchema", () => {
     const blob = {
       id: 1,
       key: "source.json",
-      storageProviderId: 1,
+      storageProvider: {
+        pluginId: "storage",
+        serviceId: "primary",
+        serviceType: "STORAGE_PROVIDER",
+        scopeType: "GLOBAL",
+        scopeId: "",
+      },
       referenceCount: 1,
       hash: new Uint8Array([1, 2, 3]),
       createdAt: new Date("2026-01-01T00:00:00.000Z"),

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import "@/components/DailyQuoteWidget.ts";
+import "../components/DailyQuoteWidget.ts";
 </script>
 
 <template>

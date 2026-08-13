@@ -2,8 +2,8 @@ import {
   retrieveEmbeddingsOp,
   RetrieveEmbeddingsInputSchema,
 } from "@cat/operations";
-import type { VectorStorage } from "@cat/plugin-core";
-import { getServiceFromDBId } from "@cat/server-shared";
+import { resolveServiceImplementation } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -13,7 +13,7 @@ const SearchChunkInputSchema = z.object({
   maxAmount: z.int().min(0),
   searchRange: z.array(z.int()),
   queryChunkIds: z.array(z.int()),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 const SearchChunkOutputSchema = z.object({
@@ -27,7 +27,7 @@ const SearchChunkOutputSchema = z.object({
 
 const RetrieveEmbeddingsOutputSchema = z.object({
   embeddings: z.array(z.array(z.number())),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 const CosineSearchInputSchema = z.object({
@@ -35,7 +35,7 @@ const CosineSearchInputSchema = z.object({
   minSimilarity: z.number().min(0).max(1),
   maxAmount: z.int().min(0),
   searchRange: z.array(z.int()),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export { SearchChunkInputSchema, SearchChunkOutputSchema };
@@ -65,12 +65,13 @@ export const searchChunkGraph = defineGraph({
         minSimilarity: "minSimilarity",
         maxAmount: "maxAmount",
         searchRange: "searchRange",
-        vectorStorageId: "vectorStorageId",
+        vectorStorage: "vectorStorage",
       },
       handler: async (input, ctx) => {
-        const vectorStorage = getServiceFromDBId<VectorStorage>(
+        const vectorStorage = resolveServiceImplementation(
           ctx.pluginManager,
-          input.vectorStorageId,
+          input.vectorStorage,
+          "VECTOR_STORAGE",
         );
         const chunks = await vectorStorage.cosineSimilarity({
           vectors: input.embeddings,

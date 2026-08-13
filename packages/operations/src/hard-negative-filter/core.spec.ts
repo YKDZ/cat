@@ -34,10 +34,28 @@ const makeEvidence = (
 describe("HNF core: extractContentWordsFromTokens", () => {
   it("extracts content words and key nouns", () => {
     const tokens = [
-      { lemma: "brown", isStop: false, isPunct: false, pos: "ADJ" },
-      { lemma: "glazed", isStop: false, isPunct: false, pos: "VERB" },
-      { lemma: "terracotta", isStop: false, isPunct: false, pos: "NOUN" },
-      { lemma: "the", isStop: true, isPunct: false, pos: "DET" },
+      {
+        text: "brown",
+        lemma: "brown",
+        isStop: false,
+        isPunct: false,
+        pos: "ADJ",
+      },
+      {
+        text: "glazed",
+        lemma: "glazed",
+        isStop: false,
+        isPunct: false,
+        pos: "VERB",
+      },
+      {
+        text: "terracotta",
+        lemma: "terracotta",
+        isStop: false,
+        isPunct: false,
+        pos: "NOUN",
+      },
+      { text: "the", lemma: "the", isStop: true, isPunct: false, pos: "DET" },
     ];
     const { contentWords, keyNouns } = extractContentWordsFromTokens(tokens);
     expect(contentWords).toEqual(["brown", "glazed", "terracotta"]);
@@ -48,6 +66,21 @@ describe("HNF core: extractContentWordsFromTokens", () => {
     const { contentWords, keyNouns } = extractContentWordsFromTokens([]);
     expect(contentWords).toEqual([]);
     expect(keyNouns).toEqual([]);
+  });
+
+  it("uses token text when an analyzer supplies an empty lemma", () => {
+    const { contentWords, keyNouns } = extractContentWordsFromTokens([
+      {
+        text: "传送门",
+        lemma: "",
+        isStop: false,
+        isPunct: false,
+        pos: "NOUN",
+      },
+    ]);
+
+    expect(contentWords).toEqual(["传送门"]);
+    expect(keyNouns).toEqual(["传送门"]);
   });
 });
 

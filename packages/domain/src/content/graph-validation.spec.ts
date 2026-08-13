@@ -1,5 +1,6 @@
 import {
   CoreRelationTypeDefinitions,
+  normalizeLanguageId,
   type StructuredContentPayload,
 } from "@cat/shared";
 import { describe, expect, it } from "vitest";
@@ -9,7 +10,7 @@ import { assertStructuredPayloadGraphValid } from "./graph-validation.ts";
 const basePayload = (): StructuredContentPayload => ({
   payloadVersion: "content-graph/v1",
   projectId: "00000000-0000-4000-8000-000000000001",
-  sourceLanguageId: "en",
+  sourceLanguageId: normalizeLanguageId("en"),
   importerId: "test-importer",
   sourceRootRef: "root",
   relationTypes: [],
@@ -41,7 +42,7 @@ const basePayload = (): StructuredContentPayload => ({
       stableSourceRef: "json:/hello",
       sourceNodeRef: "file",
       text: "Hello",
-      languageId: "en",
+      languageId: normalizeLanguageId("en"),
     },
   ],
   relations: [

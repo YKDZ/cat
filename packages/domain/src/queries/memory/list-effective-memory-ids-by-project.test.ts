@@ -1,15 +1,22 @@
 import { randomUUID } from "node:crypto";
 
+import { eq, glossary, memory, project } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
+  createGlossary,
   createMemory,
   createProject,
   createUser,
   ensurePersonalProjectMemory,
 } from "#/commands/index.ts";
 import { executeCommand, executeQuery } from "#/executor.ts";
-import { listEffectiveMemoryIdsByProject } from "#/queries/index.ts";
+import {
+  listAccessibleProjects,
+  listEffectiveMemoryIdsByProject,
+  listGlossariesByCreator,
+  listMemoriesByCreator,
+} from "#/queries/index.ts";
 import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
 
 let testDb: TestDB;
@@ -20,6 +27,321 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await testDb.cleanup();
+});
+
+describe("resource list query scopes", () => {
+  it("searches owned resources by name and description without widening creator or project scope", async () => {
+    const suffix = randomUUID();
+    const literal = `%_\\${suffix}`;
+    const owner = await executeCommand({ db: testDb.client }, createUser, {
+      email: `resource-owner-${suffix}@example.com`,
+      name: "Resource owner",
+    });
+    const other = await executeCommand({ db: testDb.client }, createUser, {
+      email: `resource-other-${suffix}@example.com`,
+      name: "Resource other",
+    });
+    const ownedProject = await executeCommand(
+      { db: testDb.client },
+      createProject,
+      {
+        name: `project-name-${suffix}`,
+        description: `project-description-${literal}`,
+        creatorId: owner.id,
+      },
+    );
+    const otherProject = await executeCommand(
+      { db: testDb.client },
+      createProject,
+      {
+        name: `project-name-${suffix}`,
+        description: `project-description-${literal}`,
+        creatorId: other.id,
+      },
+    );
+    const ownedMemory = await executeCommand(
+      { db: testDb.client },
+      createMemory,
+      {
+        name: `memory-name-${suffix}`,
+        description: `memory-description-${literal}`,
+        creatorId: owner.id,
+      },
+    );
+    await executeCommand({ db: testDb.client }, createMemory, {
+      name: `memory-name-${suffix}`,
+      description: `memory-description-${literal}`,
+      creatorId: other.id,
+    });
+    const ownedGlossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `glossary-name-${suffix}`,
+        description: `glossary-description-${literal}`,
+        creatorId: owner.id,
+      },
+    );
+    await executeCommand({ db: testDb.client }, createGlossary, {
+      name: `glossary-name-${suffix}`,
+      description: `glossary-description-${literal}`,
+      creatorId: other.id,
+    });
+
+    await expect(
+      executeQuery({ db: testDb.client }, listAccessibleProjects, {
+        pagination: "unpaged",
+        projectIds: [ownedProject.id],
+        search: literal,
+      }),
+    ).resolves.toMatchObject({
+      data: [{ id: ownedProject.id }],
+      total: 1,
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, listAccessibleProjects, {
+        pagination: "unpaged",
+        projectIds: [ownedProject.id],
+        search: `project-name-${suffix}`,
+      }),
+    ).resolves.toMatchObject({
+      data: [{ id: ownedProject.id }],
+      total: 1,
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, listAccessibleProjects, {
+        pagination: "unpaged",
+        projectIds: [otherProject.id],
+        search: literal,
+      }),
+    ).resolves.toMatchObject({ total: 1 });
+
+    await expect(
+      executeQuery({ db: testDb.client }, listMemoriesByCreator, {
+        creatorId: owner.id,
+        pagination: "unpaged",
+        search: literal,
+      }),
+    ).resolves.toMatchObject({
+      data: [{ id: ownedMemory.id }],
+      total: 1,
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, listMemoriesByCreator, {
+        creatorId: owner.id,
+        pagination: "unpaged",
+        search: `memory-name-${suffix}`,
+      }),
+    ).resolves.toMatchObject({ total: 1 });
+
+    await expect(
+      executeQuery({ db: testDb.client }, listGlossariesByCreator, {
+        creatorId: owner.id,
+        pagination: "unpaged",
+        search: literal,
+      }),
+    ).resolves.toMatchObject({
+      data: [{ id: ownedGlossary.id }],
+      total: 1,
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, listGlossariesByCreator, {
+        creatorId: owner.id,
+        pagination: "unpaged",
+        search: `glossary-name-${suffix}`,
+      }),
+    ).resolves.toMatchObject({ total: 1 });
+  });
+
+  it("treats percent, underscore, and backslash search text as literals", async () => {
+    const suffix = randomUUID();
+    const owner = await executeCommand({ db: testDb.client }, createUser, {
+      email: `literal-owner-${suffix}@example.com`,
+      name: "Literal owner",
+    });
+    const cases = [
+      { label: "percent", literal: "%", decoy: "x" },
+      { label: "underscore", literal: "_", decoy: "x" },
+      { label: "backslash", literal: "\\", decoy: "" },
+    ] as const;
+    const projects = (
+      await Promise.all(
+        cases.map(async ({ label, literal, decoy }) => [
+          await executeCommand({ db: testDb.client }, createProject, {
+            name: `project-${label}-${literal}${suffix}`,
+            description: null,
+            creatorId: owner.id,
+          }),
+          await executeCommand({ db: testDb.client }, createProject, {
+            name: `project-${label}-${decoy}${suffix}`,
+            description: null,
+            creatorId: owner.id,
+          }),
+        ]),
+      )
+    ).flat();
+    const memories = (
+      await Promise.all(
+        cases.map(async ({ label, literal, decoy }) => [
+          await executeCommand({ db: testDb.client }, createMemory, {
+            name: `memory-${label}-${literal}${suffix}`,
+            creatorId: owner.id,
+          }),
+          await executeCommand({ db: testDb.client }, createMemory, {
+            name: `memory-${label}-${decoy}${suffix}`,
+            creatorId: owner.id,
+          }),
+        ]),
+      )
+    ).flat();
+    const glossaries = (
+      await Promise.all(
+        cases.map(async ({ label, literal, decoy }) => [
+          await executeCommand({ db: testDb.client }, createGlossary, {
+            name: `glossary-${label}-${literal}${suffix}`,
+            creatorId: owner.id,
+          }),
+          await executeCommand({ db: testDb.client }, createGlossary, {
+            name: `glossary-${label}-${decoy}${suffix}`,
+            creatorId: owner.id,
+          }),
+        ]),
+      )
+    ).flat();
+
+    for (const [index, { label, literal }] of cases.entries()) {
+      const projectTarget = projects[index * 2]!;
+      const memoryTarget = memories[index * 2]!;
+      const glossaryTarget = glossaries[index * 2]!;
+      await expect(
+        executeQuery({ db: testDb.client }, listAccessibleProjects, {
+          pagination: "unpaged",
+          projectIds: projects.map((entry) => entry.id),
+          search: `project-${label}-${literal}${suffix}`,
+        }),
+      ).resolves.toMatchObject({ data: [{ id: projectTarget.id }], total: 1 });
+      await expect(
+        executeQuery({ db: testDb.client }, listMemoriesByCreator, {
+          creatorId: owner.id,
+          pagination: "unpaged",
+          search: `memory-${label}-${literal}${suffix}`,
+        }),
+      ).resolves.toMatchObject({ data: [{ id: memoryTarget.id }], total: 1 });
+      await expect(
+        executeQuery({ db: testDb.client }, listGlossariesByCreator, {
+          creatorId: owner.id,
+          pagination: "unpaged",
+          search: `glossary-${label}-${literal}${suffix}`,
+        }),
+      ).resolves.toMatchObject({
+        data: [{ id: glossaryTarget.id }],
+        total: 1,
+      });
+    }
+  });
+
+  it("keeps equal-timestamp resource pages stable with an id tie-breaker", async () => {
+    const suffix = randomUUID();
+    const owner = await executeCommand({ db: testDb.client }, createUser, {
+      email: `stable-page-owner-${suffix}@example.com`,
+      name: "Stable page owner",
+    });
+    const createdAt = new Date("2026-08-09T00:00:00.000Z");
+    const projects = await Promise.all(
+      ["c", "a", "b"].map((name) =>
+        executeCommand({ db: testDb.client }, createProject, {
+          description: null,
+          name: `stable-project-${name}-${suffix}`,
+          creatorId: owner.id,
+        }),
+      ),
+    );
+    const memories = await Promise.all(
+      ["c", "a", "b"].map((name) =>
+        executeCommand({ db: testDb.client }, createMemory, {
+          name: `stable-memory-${name}-${suffix}`,
+          creatorId: owner.id,
+        }),
+      ),
+    );
+    const glossaries = await Promise.all(
+      ["c", "a", "b"].map((name) =>
+        executeCommand({ db: testDb.client }, createGlossary, {
+          name: `stable-glossary-${name}-${suffix}`,
+          creatorId: owner.id,
+        }),
+      ),
+    );
+    await Promise.all([
+      testDb.client
+        .update(project)
+        .set({ createdAt })
+        .where(eq(project.creatorId, owner.id)),
+      testDb.client
+        .update(memory)
+        .set({ createdAt })
+        .where(eq(memory.creatorId, owner.id)),
+      testDb.client
+        .update(glossary)
+        .set({ createdAt })
+        .where(eq(glossary.creatorId, owner.id)),
+    ]);
+
+    const pageIds = async (
+      fetchPage: (
+        pageIndex: number,
+      ) => Promise<{ data: Array<{ id: string }> }>,
+    ) => {
+      const [first, second] = await Promise.all([fetchPage(0), fetchPage(1)]);
+      return [...first.data, ...second.data].map((entry) => entry.id);
+    };
+    const expectedProjectIds = projects.map((entry) => entry.id).sort();
+    const expectedMemoryIds = memories.map((entry) => entry.id).sort();
+    const expectedGlossaryIds = glossaries.map((entry) => entry.id).sort();
+
+    for (const desc of [false, true]) {
+      const projectOrder = desc
+        ? expectedProjectIds.toReversed()
+        : expectedProjectIds;
+      const memoryOrder = desc
+        ? expectedMemoryIds.toReversed()
+        : expectedMemoryIds;
+      const glossaryOrder = desc
+        ? expectedGlossaryIds.toReversed()
+        : expectedGlossaryIds;
+
+      await expect(
+        pageIds((pageIndex) =>
+          executeQuery({ db: testDb.client }, listAccessibleProjects, {
+            pageIndex,
+            pageSize: 2,
+            projectIds: expectedProjectIds,
+            sort: { id: "createdAt", desc },
+          }),
+        ),
+      ).resolves.toEqual(projectOrder);
+      await expect(
+        pageIds((pageIndex) =>
+          executeQuery({ db: testDb.client }, listMemoriesByCreator, {
+            creatorId: owner.id,
+            pageIndex,
+            pageSize: 2,
+            sort: { id: "createdAt", desc },
+          }),
+        ),
+      ).resolves.toEqual(memoryOrder);
+      await expect(
+        pageIds((pageIndex) =>
+          executeQuery({ db: testDb.client }, listGlossariesByCreator, {
+            creatorId: owner.id,
+            pageIndex,
+            pageSize: 2,
+            sort: { id: "createdAt", desc },
+          }),
+        ),
+      ).resolves.toEqual(glossaryOrder);
+    }
+  });
 });
 
 describe("listEffectiveMemoryIdsByProject", () => {

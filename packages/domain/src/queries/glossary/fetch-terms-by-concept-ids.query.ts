@@ -11,16 +11,13 @@ import {
   termConceptSubject,
   termConceptToSubject,
 } from "@cat/db";
-import type { TermMatch } from "@cat/shared";
-import { assertFirstNonNullish } from "@cat/shared";
+import {
+  assertFirstNonNullish,
+  type NormalizedLanguageId,
+  type TermMatch,
+} from "@cat/shared";
 
 import type { DbHandle } from "#/types.ts";
-
-/**
- * Represents a resolved term pair (source + translation) for a given concept.
- * Alias to TermMatch from @cat/shared for backward compatibility.
- */
-export type LookedUpTerm = TermMatch;
 
 /**
  * Fetch full term pair details for a list of concept IDs.
@@ -33,10 +30,10 @@ export type LookedUpTerm = TermMatch;
 export const fetchTermsByConceptIds = async (
   drizzle: DbHandle,
   conceptIds: number[],
-  sourceLanguageId: string,
-  translationLanguageId: string,
+  sourceLanguageId: NormalizedLanguageId,
+  translationLanguageId: NormalizedLanguageId,
   confidenceMap?: Map<number, number>,
-): Promise<LookedUpTerm[]> => {
+): Promise<TermMatch[]> => {
   if (conceptIds.length === 0) return [];
   return fetchTerms(
     drizzle,
@@ -50,10 +47,10 @@ export const fetchTermsByConceptIds = async (
 const fetchTerms = async (
   drizzle: DbHandle,
   termConceptIds: number[],
-  sourceLanguageId: string,
-  translationLanguageId: string,
+  sourceLanguageId: NormalizedLanguageId,
+  translationLanguageId: NormalizedLanguageId,
   confidenceMap?: Map<number, number>,
-): Promise<LookedUpTerm[]> => {
+): Promise<TermMatch[]> => {
   const sourceTerm = aliasedTable(term, "sourceTerm");
   const translationTerm = aliasedTable(term, "translationTerm");
 

@@ -9,19 +9,11 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.account.userId,
         to: r.user.id,
       }),
-      authProvider: r.one.pluginService({
-        from: r.account.authProviderId,
-        to: r.pluginService.id,
-      }),
     },
     mfaProvider: {
       user: r.one.user({
         from: r.mfaProvider.userId,
         to: r.user.id,
-      }),
-      mfaSerivce: r.one.pluginService({
-        from: r.mfaProvider.mfaServiceId,
-        to: r.pluginService.id,
       }),
     },
     user: {
@@ -76,10 +68,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       messagePreferences: r.many.userMessagePreference(),
     },
     blob: {
-      pluginService: r.one.pluginService({
-        from: r.blob.storageProviderId,
-        to: r.pluginService.id,
-      }),
       files: r.many.file(),
     },
     pluginService: {
@@ -87,10 +75,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.pluginService.pluginInstallationId,
         to: r.pluginInstallation.id,
       }),
-      blobs: r.many.blob(),
-      chunkSets: r.many.chunkSet(),
-      contextEvidences: r.many.contextEvidence(),
-      mfaProviders: r.many.mfaProvider(),
     },
     pluginComponent: {
       pluginInstallation: r.one.pluginInstallation({
@@ -99,10 +83,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       }),
     },
     chunkSet: {
-      pluginServices: r.many.pluginService({
-        from: r.chunkSet.id.through(r.chunk.chunkSetId),
-        to: r.pluginService.id.through(r.chunk.vectorizerId),
-      }),
       languages: r.many.language({
         from: r.chunkSet.id.through(r.vectorizedString.chunkSetId),
         to: r.language.id.through(r.vectorizedString.languageId),
@@ -143,6 +123,20 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       contentNodes: r.many.contentNode({
         from: r.task.id.through(r.contentNodeToTask.taskId),
         to: r.contentNode.id.through(r.contentNodeToTask.contentNodeId),
+      }),
+      recallDerivationDemands: r.many.recallDerivationTaskDemand(),
+    },
+    recallDerivationState: {
+      taskDemands: r.many.recallDerivationTaskDemand(),
+    },
+    recallDerivationTaskDemand: {
+      task: r.one.task({
+        from: r.recallDerivationTaskDemand.taskId,
+        to: r.task.id,
+      }),
+      derivationState: r.one.recallDerivationState({
+        from: r.recallDerivationTaskDemand.derivationStateId,
+        to: r.recallDerivationState.id,
       }),
     },
     glossary: {
@@ -361,10 +355,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.qaResultItem.resultId,
         to: r.qaResult.id,
       }),
-      checker: r.one.pluginService({
-        from: r.qaResultItem.checkerId,
-        to: r.pluginService.id,
-      }),
     },
     pluginConfig: {
       plugin: r.one.plugin({
@@ -507,10 +497,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
         from: r.contentNode.languageId,
         to: r.language.id,
       }),
-      fileHandler: r.one.pluginService({
-        from: r.contentNode.fileHandlerId,
-        to: r.pluginService.id,
-      }),
       file: r.one.file({
         from: r.contentNode.fileId,
         to: r.file.id,
@@ -585,10 +571,6 @@ export const relations: ReturnType<typeof defineRelations<typeof schema>> =
       file: r.one.file({
         from: r.contextEvidence.fileId,
         to: r.file.id,
-      }),
-      storageProvider: r.one.pluginService({
-        from: r.contextEvidence.storageProviderId,
-        to: r.pluginService.id,
       }),
     },
     contextProfile: {

@@ -1,6 +1,6 @@
 declare global {
   namespace Vike {
-    interface PageContextServer {
+    interface PageContext {
       isMobile: boolean;
     }
   }

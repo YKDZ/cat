@@ -2,20 +2,37 @@
 export type { OperationContext } from "./types.ts";
 export type {
   MemorySuggestionWithPrecision,
-  LookedUpTermWithPrecision,
+  TermMatchWithPrecision,
 } from "./precision/types.ts";
 
 // === Memory utilities ===
 export { insertMemory } from "./memory.ts";
 export {
+  processRecallDerivationBatch,
+  RecallDerivationFreshnessError,
+  assessRecallDerivationFreshness,
+  startRecallDerivationWorker,
+  waitForRecallDerivationFresh,
+  type ProcessRecallDerivationBatchOptions,
+  type RecallDerivationFreshnessAssessment,
+  type RecallDerivationWorker,
+  type RecallDerivationStateCommitObserver,
+} from "./recall-derivation-runtime.ts";
+export {
+  createRecallDerivationTaskProjectionObserver,
+  projectPendingRecallDerivationTasks,
+} from "./recall-derivation-task-projection.ts";
+export {
   writePersonalTranslationMemoryOp,
   WritePersonalTranslationMemoryInputSchema,
+  WritePersonalTranslationMemoryOutputSchema,
   type WritePersonalTranslationMemoryInput,
   type WritePersonalTranslationMemoryOutput,
 } from "./write-personal-translation-memory.ts";
 export {
   promoteApprovedTranslationMemoryOp,
   PromoteApprovedTranslationMemoryInputSchema,
+  PromoteApprovedTranslationMemoryOutputSchema,
   type PromoteApprovedTranslationMemoryInput,
   type PromoteApprovedTranslationMemoryOutput,
 } from "./promote-approved-translation-memory.ts";
@@ -130,6 +147,8 @@ export {
 export {
   streamSearchTermsOp,
   StreamSearchTermsInputSchema,
+  StreamSearchTermsEventSchema,
+  type StreamSearchTermsEvent,
   type StreamSearchTermsInput,
 } from "./stream-search-terms.ts";
 
@@ -190,25 +209,38 @@ export {
 export {
   streamSearchMemoryOp,
   StreamSearchMemoryInputSchema,
+  StreamSearchMemoryEventSchema,
+  type StreamSearchMemoryEvent,
   type StreamSearchMemoryInput,
 } from "./stream-search-memory.ts";
 
 export {
   collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+  CollectMemoryRecallInputBaseSchema,
   CollectMemoryRecallInputSchema,
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
   type CollectMemoryRecallInput,
+  type MemoryRecallCandidate,
+  type MemoryRecallResult,
 } from "./collect-memory-recall.ts";
 export {
+  assertRecallOperationAvailable,
+  getCandidateRecallCandidates,
+  mapRecallOperationFailure,
+  RecallOperationFailureError,
+} from "./candidate-recall.ts";
+export {
   collectEffectiveMemoryRecallOp,
+  getEffectiveMemoryRecallCandidates,
+  EffectiveMemoryRecallResultSchema,
+  EffectiveMemoryRecallStreamEventSchema,
   CollectEffectiveMemoryRecallInputSchema,
   type CollectEffectiveMemoryRecallInput,
+  type EffectiveMemoryRecallResult,
+  type EffectiveMemoryRecallStreamEvent,
 } from "./collect-effective-memory-recall.ts";
-export {
-  BM25_DISABLED_REASON,
-  buildMemoryRecallBm25Capabilities,
-  compressBm25Score,
-  MEMORY_RECALL_BM25_REGISTRY,
-} from "./memory-recall-bm25.ts";
 
 export {
   qaTranslationOp,
@@ -303,22 +335,40 @@ export {
   type AutoTranslateOutput,
 } from "./auto-translate.ts";
 
-// === NLP Operations ===
+// === Language Analysis Operations ===
 export {
-  nlpSegmentOp,
-  NlpSegmentInputSchema,
-  NlpSegmentOutputSchema,
-  type NlpSegmentInput,
-  type NlpSegmentOutput,
-} from "./nlp-segment.ts";
+  languageAnalyzeOp,
+  LanguageAnalysisInputSchema,
+  LanguageAnalysisOutputSchema,
+  type LanguageAnalysisInput,
+  type LanguageAnalysisOutput,
+} from "./language-analyze.ts";
 
 export {
-  nlpBatchSegmentOp,
-  NlpBatchSegmentInputSchema,
-  NlpBatchSegmentOutputSchema,
-  type NlpBatchSegmentInput,
-  type NlpBatchSegmentOutput,
-} from "./nlp-batch-segment.ts";
+  assessLanguageAnalysisConfiguration,
+  computeLanguageAnalysisConfigurationFingerprint,
+  executeRequiredLanguageAnalysis,
+  executeRequiredLanguageAnalysisBatch,
+  executeLanguageAnalysisReadinessAssessment,
+  LanguageAnalysisPolicyChangedError,
+  LanguageAnalysisReadinessError,
+  LanguageAnalysisRequirementError,
+  validateLanguageAnalyzerConfiguration,
+  type LanguageAnalysisOperationContext,
+} from "./language-analysis-requirement.ts";
+
+export {
+  LanguageAnalysisOperationFailureError,
+  mapLanguageAnalysisOperationFailure,
+} from "./language-analysis-operation-failure.ts";
+
+export {
+  languageAnalyzeBatchOp,
+  LanguageAnalysisBatchInputSchema,
+  LanguageAnalysisBatchOutputSchema,
+  type LanguageAnalysisBatchInput,
+  type LanguageAnalysisBatchOutput,
+} from "./language-analyze-batch.ts";
 
 // === Term Discovery Operations ===
 export {
@@ -354,13 +404,14 @@ export {
 
 export {
   collectTermRecallOp,
+  getTermRecallCandidates,
   CollectTermRecallInputSchema,
+  TermRecallCandidateSchema,
+  TermRecallResultSchema,
   type CollectTermRecallInput,
+  type TermRecallCandidate,
+  type TermRecallResult,
 } from "./collect-term-recall.ts";
-
-export { buildTermRecallVariantsOp } from "./build-term-recall-variants.ts";
-export { buildMemoryRecallVariantsOp } from "./build-memory-recall-variants.ts";
-export { triggerTermRecallReindex } from "./trigger-term-recall-reindex.ts";
 
 export {
   llmTermEnhanceOp,
@@ -435,17 +486,6 @@ export {
   runAutoTranslatePipeline,
   type RunAutoTranslatePipelineInput,
 } from "./run-auto-translate-pipeline.ts";
-
-// === Quality Components ===
-export {
-  calibrateBm25Confidence,
-  calibrateMemoryBm25,
-  calibrateTermBm25,
-} from "./confidence-calibrator/index.ts";
-export type {
-  CalibratedBm25Evidence,
-  CalibrationSummary,
-} from "./confidence-calibrator/index.ts";
 
 export {
   applyHnfPreRules,

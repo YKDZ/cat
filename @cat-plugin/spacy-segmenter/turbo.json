@@ -1,4 +1,0 @@
-{
-  "extends": ["//"],
-  "tags": ["database-path", "plugin"]
-}

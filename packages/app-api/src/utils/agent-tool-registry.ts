@@ -36,6 +36,7 @@ const adaptPluginTool = (
       return tool.execute?.(args, {
         traceId: `${ctx.session.sessionId}:${ctx.session.agentId}`,
         sessionId: ctx.session.sessionId,
+        signal: ctx.signal,
       });
     },
   };

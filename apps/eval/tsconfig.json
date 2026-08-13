@@ -1,6 +1,7 @@
 {
-  "extends": "../../tsconfig.node-base.json",
+  "extends": "@cat/typescript-config/node.json",
   "compilerOptions": {
+    "customConditions": ["source"],
     "noEmit": true,
     "types": ["node", "vitest/globals"]
   },

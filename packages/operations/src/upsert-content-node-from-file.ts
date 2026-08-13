@@ -1,4 +1,9 @@
 import type { OperationContext } from "@cat/domain";
+import {
+  LanguageAnalysisPolicySnapshotSchema,
+  NormalizedLanguageIdSchema,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { diffStructuredContentOp } from "./diff-structured-content.ts";
@@ -8,9 +13,11 @@ export const UpsertContentNodeFromFileInputSchema = z.object({
   projectId: z.uuidv4(),
   contentNodeId: z.uuidv4(),
   fileId: z.int(),
-  languageId: z.string(),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  languageId: NormalizedLanguageIdSchema,
+  languageAnalysisPolicySnapshot:
+    LanguageAnalysisPolicySnapshotSchema.optional(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const UpsertContentNodeFromFileOutputSchema = z.object({
@@ -59,8 +66,13 @@ export const upsertContentNodeFromFileOp = async (
   const result = await diffStructuredContentOp(
     {
       payload,
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.vectorStorageId,
+      vectorizer: data.vectorizer,
+      vectorStorage: data.vectorStorage,
+      ...(data.languageAnalysisPolicySnapshot === undefined
+        ? {}
+        : {
+            languageAnalysisPolicySnapshot: data.languageAnalysisPolicySnapshot,
+          }),
     },
     ctx,
   );

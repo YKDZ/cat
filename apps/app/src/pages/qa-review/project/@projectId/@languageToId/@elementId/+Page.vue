@@ -2,19 +2,21 @@
 import { storeToRefs } from "pinia";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { watch } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 
 import WorkbenchShell from "#/pages/editor/WorkbenchShell.vue";
+import { isExpectedNavigationCancellation } from "#/rpc/request-cancellation.ts";
 import { useBranchStore } from "#/stores/branch.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useQaReviewWorkbenchStore } from "#/stores/qa-review/workbench.ts";
-import { watchClient } from "#/utils/vue.ts";
 
 import QaReviewQueueFilter from "../../../../components/QaReviewQueueFilter.vue";
 import QaReviewSidebar from "../../../../components/QaReviewSidebar.vue";
 import QaReviewWorkbench from "../../../../components/QaReviewWorkbench.vue";
 import {
   buildQaReviewHref,
+  parseQaReviewElementTarget,
+  resolveQaReviewElementTarget,
   parseQaReviewScopeFromRoute,
 } from "../../../../scope-url.ts";
 
@@ -24,13 +26,39 @@ const branchStore = useBranchStore();
 const workbench = useQaReviewWorkbenchStore();
 const { scope } = storeToRefs(contextStore);
 const { currentBranchId } = storeToRefs(branchStore);
+const browserPathname = ref(ctx.urlPathname);
 
-const routeElementTarget = () => {
-  const value = ctx.routeParams.elementId;
-  if (value === "empty" || value === "auto") return value;
+const refreshBrowserPathname = () => {
+  if (import.meta.env.SSR) return;
+  browserPathname.value = globalThis.location.pathname;
+};
 
-  const parsed = Number.parseInt(String(value ?? "auto"), 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : "auto";
+const routeElementTarget = computed(() => {
+  const target = parseQaReviewElementTarget(ctx.routeParams.elementId);
+  if (target !== "auto") return target;
+
+  // Vike can briefly retain the pre-redirect "auto" route param while the
+  // browser URL already points at the resolved element during cold hydration.
+  return resolveQaReviewElementTarget({
+    browserPathname: browserPathname.value,
+    contextPathname: ctx.urlPathname,
+    routeParam: ctx.routeParams.elementId,
+  });
+});
+
+const syncConcreteRouteElement = async () => {
+  refreshBrowserPathname();
+  const value = routeElementTarget.value;
+  if (value === "auto" || value === "empty") return;
+
+  await workbench.syncRouteElement(value);
+};
+
+const primeConcreteRouteElement = () => {
+  const value = routeElementTarget.value;
+  if (value === "auto" || value === "empty") return;
+
+  workbench.primeRouteElement(value);
 };
 
 watch(
@@ -49,49 +77,64 @@ watch(
     });
 
     const routeBranchId = nextScope.branchId ?? null;
-    branchStore.restoreProjectBranch({
+    branchStore.restoreRouteBranch({
       projectId: nextScope.projectId,
       branchIdFromRoute: routeBranchId,
     });
 
     const restoredScope = {
       ...nextScope,
-      branchId: branchStore.currentBranchId ?? undefined,
+      branchId: routeBranchId ?? undefined,
     };
     contextStore.setScope(restoredScope);
   },
   { immediate: true },
 );
 
-watchClient(
-  () => routeElementTarget(),
-  async (value) => {
-    if (value === "auto" || value === "empty") return;
+if (import.meta.env.SSR) primeConcreteRouteElement();
 
-    await workbench.selectElement(value);
-  },
-  { immediate: true },
-);
-
-watchClient(
-  scope,
-  async (nextScope) => {
-    if (!nextScope) return;
-    await contextStore.refresh();
-    await workbench.refreshAll();
-  },
-  { deep: true, immediate: true },
-);
-
-watchClient(currentBranchId, async (value) => {
-  if (!scope.value) return;
-  if ((scope.value.branchId ?? null) === (value ?? null)) return;
-
-  const next = { ...scope.value, branchId: value ?? undefined };
-  contextStore.setScope(next);
-  await navigate(
-    buildQaReviewHref(next, workbench.selectedElementId ?? "auto"),
+onMounted(() => {
+  watch(
+    () => [ctx.urlPathname, ctx.routeParams.elementId],
+    async () => {
+      await syncConcreteRouteElement();
+      await nextTick();
+      await syncConcreteRouteElement();
+    },
+    { immediate: true },
   );
+
+  watch(
+    scope,
+    async (nextScope) => {
+      if (!nextScope) return;
+      try {
+        await contextStore.refresh();
+        await syncConcreteRouteElement();
+        await workbench.refreshAll();
+      } catch (error) {
+        if (isExpectedNavigationCancellation(error)) return;
+        throw error;
+      }
+    },
+    { deep: true, immediate: true },
+  );
+
+  watch(currentBranchId, async (value) => {
+    try {
+      if (!scope.value) return;
+      if ((scope.value.branchId ?? null) === (value ?? null)) return;
+
+      const next = { ...scope.value, branchId: value ?? undefined };
+      contextStore.setScope(next);
+      await navigate(
+        buildQaReviewHref(next, workbench.selectedElementId ?? "auto"),
+      );
+    } catch (error) {
+      if (isExpectedNavigationCancellation(error)) return;
+      throw error;
+    }
+  });
 });
 </script>
 

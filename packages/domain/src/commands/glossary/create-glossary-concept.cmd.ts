@@ -1,8 +1,13 @@
 import { termConcept, termConceptToSubject } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  type RecallDerivationReference,
+} from "@cat/shared";
 import * as z from "zod";
 
+import { registerTermConceptRecallDerivationDemands } from "#/commands/recall-derivation/register-term-concept-recall-derivation-demands.ts";
 import { domainEvent } from "#/events/domain-events.ts";
+import { inDatabaseTransaction } from "#/infrastructure/db-transaction.ts";
 import type { Command } from "#/types.ts";
 
 export const CreateGlossaryConceptCommandSchema = z.object({
@@ -17,30 +22,35 @@ export type CreateGlossaryConceptCommand = z.infer<
 
 export const createGlossaryConcept: Command<
   CreateGlossaryConceptCommand,
-  { id: number }
+  { id: number; derivations: RecallDerivationReference[] }
 > = async (ctx, command) => {
-  const inserted = assertSingleNonNullish(
-    await ctx.db
-      .insert(termConcept)
-      .values({
-        definition: command.definition,
-        glossaryId: command.glossaryId,
-      })
-      .returning({ id: termConcept.id }),
-  );
-
-  if ((command.subjectIds?.length ?? 0) > 0) {
-    await ctx.db.insert(termConceptToSubject).values(
-      command.subjectIds!.map((subjectId, idx) => ({
-        termConceptId: inserted.id,
-        subjectId,
-        isPrimary: idx === 0,
-      })),
+  return await inDatabaseTransaction(ctx.db, async (tx) => {
+    const inserted = assertSingleNonNullish(
+      await tx
+        .insert(termConcept)
+        .values({
+          definition: command.definition,
+          glossaryId: command.glossaryId,
+        })
+        .returning({ id: termConcept.id }),
     );
-  }
 
-  return {
-    result: inserted,
-    events: [domainEvent("concept:updated", { conceptId: inserted.id })],
-  };
+    if ((command.subjectIds?.length ?? 0) > 0) {
+      await tx.insert(termConceptToSubject).values(
+        command.subjectIds!.map((subjectId, idx) => ({
+          termConceptId: inserted.id,
+          subjectId,
+          isPrimary: idx === 0,
+        })),
+      );
+    }
+    const derivations = await registerTermConceptRecallDerivationDemands(tx, [
+      inserted.id,
+    ]);
+
+    return {
+      result: { ...inserted, derivations },
+      events: [domainEvent("concept:updated", { conceptId: inserted.id })],
+    };
+  });
 };

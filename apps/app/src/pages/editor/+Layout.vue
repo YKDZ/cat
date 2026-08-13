@@ -4,12 +4,14 @@ import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
 import { watch } from "vue";
 
+import { isExpectedNavigationCancellation } from "#/rpc/request-cancellation.ts";
 import { useBranchStore } from "#/stores/branch.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorElementStore } from "#/stores/editor/element.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { watchClient } from "#/utils/vue.ts";
 
+import LanguageAnalysisStatus from "./LanguageAnalysisStatus.vue";
 import { buildEditorHref, parseEditorScopeFromRoute } from "./scope-url.ts";
 import Sidebar from "./Sidebar.vue";
 import WorkbenchShell from "./WorkbenchShell.vue";
@@ -82,8 +84,13 @@ watchClient(
   scope,
   async (nextScope) => {
     if (!nextScope) return;
-    await contextStore.refresh();
-    await elementStore.clearAndLoadCurrentPage();
+    try {
+      await contextStore.refresh();
+      await elementStore.clearAndLoadCurrentPage();
+    } catch (error) {
+      if (isExpectedNavigationCancellation(error)) return;
+      throw error;
+    }
   },
   { deep: true, immediate: true },
 );
@@ -105,6 +112,7 @@ watchClient(currentBranchId, async (value) => {
     <template #sidebar>
       <Sidebar />
     </template>
+    <LanguageAnalysisStatus />
     <slot />
   </WorkbenchShell>
 </template>

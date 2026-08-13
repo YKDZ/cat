@@ -53,6 +53,7 @@ export const assertContentNodesInSession = async (
   contentNodeIds: string[],
   ctx: ToolExecutionContext,
 ): Promise<void> => {
+  ctx.signal.throwIfAborted();
   const sessionContentNodeIds = ctx.session.contentNodeIds ?? [];
   if (contentNodeIds.length === 0 && sessionContentNodeIds.length === 0) {
     return;
@@ -62,6 +63,7 @@ export const assertContentNodesInSession = async (
   const rows = await executeQuery({ db }, listProjectContentNodes, {
     projectId: ctx.session.projectId,
   });
+  ctx.signal.throwIfAborted();
   const allowedNodeIds = buildScopedContentNodeSet(rows, sessionContentNodeIds);
 
   for (const contentNodeId of contentNodeIds) {
@@ -125,10 +127,12 @@ export const assertElementInSession = async (
   elementId: number,
   ctx: ToolExecutionContext,
 ): Promise<ElementWithChunkIds> => {
+  ctx.signal.throwIfAborted();
   const { client: db } = await getDbHandle();
   const element = await executeQuery({ db }, getElementWithChunkIds, {
     elementId,
   });
+  ctx.signal.throwIfAborted();
 
   if (!element) {
     throw new Error(`Element ${elementId} not found`);
@@ -165,6 +169,7 @@ export const assertElementInSession = async (
         elementId,
       },
     );
+    ctx.signal.throwIfAborted();
 
     if (pageIndex === null) {
       throw new Error(
@@ -185,6 +190,7 @@ export const assertProjectInSession = (
   projectId: string,
   ctx: ToolExecutionContext,
 ): void => {
+  ctx.signal.throwIfAborted();
   if (projectId !== ctx.session.projectId) {
     throw new Error(`Project ${projectId} does not match the session project`);
   }

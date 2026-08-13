@@ -24,8 +24,9 @@ import * as z from "zod";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
+import { formatCalendarDate } from "#/utils/format.ts";
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const { rpcWarn, info } = useToastStore();
 
 type ApiKey = {
@@ -125,13 +126,13 @@ onMounted(load);
           {{ key.keyPrefix }}****
         </div>
         <div class="text-xs text-muted-foreground">
-          {{ t("创建于") }} {{ new Date(key.createdAt).toLocaleDateString() }}
+          {{ t("创建于") }} {{ formatCalendarDate(key.createdAt, locale) }}
           <template v-if="key.lastUsedAt">
             · {{ t("最后使用") }}
-            {{ new Date(key.lastUsedAt).toLocaleDateString() }}
+            {{ formatCalendarDate(key.lastUsedAt, locale) }}
           </template>
           <template v-if="key.expiresAt">
-            · {{ t("过期") }} {{ new Date(key.expiresAt).toLocaleDateString() }}
+            · {{ t("过期") }} {{ formatCalendarDate(key.expiresAt, locale) }}
           </template>
         </div>
       </div>

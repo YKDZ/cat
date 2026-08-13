@@ -1,107 +1,162 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, rmSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, resolve } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
-const runner = resolve(root, "tooling/oxlint/run.ts");
-const createdFixtures: string[] = [];
+const fixtureRoots: string[] = [];
 
-const createFixture = (relativePath: string, source: string): string => {
-  const path = resolve(root, relativePath);
-  writeFileSync(path, source);
-  createdFixtures.push(path);
+const createFixture = async (): Promise<string> => {
+  const fixtureRoot = await mkdtemp(resolve(tmpdir(), "cat-oxc-cli-"));
+  fixtureRoots.push(fixtureRoot);
+  await Promise.all([
+    cp(
+      resolve(root, "oxlint.config.ts"),
+      resolve(fixtureRoot, "oxlint.config.ts"),
+    ),
+    cp(
+      resolve(root, "oxfmt.config.ts"),
+      resolve(fixtureRoot, "oxfmt.config.ts"),
+    ),
+    cp(
+      resolve(root, "tooling/oxlint"),
+      resolve(fixtureRoot, "tooling/oxlint"),
+      {
+        recursive: true,
+      },
+    ),
+    symlink(
+      resolve(root, "node_modules"),
+      resolve(fixtureRoot, "node_modules"),
+    ),
+    mkdir(resolve(fixtureRoot, "apps/app"), { recursive: true }).then(() =>
+      symlink(
+        resolve(root, "apps/app/node_modules"),
+        resolve(fixtureRoot, "apps/app/node_modules"),
+      ),
+    ),
+  ]);
+  return fixtureRoot;
+};
+
+const writeFixture = async (
+  fixtureRoot: string,
+  relativePath: string,
+  source: string,
+): Promise<string> => {
+  const path = resolve(fixtureRoot, relativePath);
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, source);
   return path;
 };
 
-const runQuality = (
-  cwd: string,
-  mode: "lint" | "format" | "format:fix",
-  ...targets: string[]
-) =>
-  spawnSync(process.execPath, [runner, mode, ...targets], {
-    cwd,
-    encoding: "utf8",
-  });
+const runOxc = (executable: "oxfmt" | "oxlint", cwd: string, args: string[]) =>
+  spawnSync(
+    process.execPath,
+    [resolve(root, "node_modules", executable, "bin", executable), ...args],
+    {
+      cwd,
+      encoding: "utf8",
+    },
+  );
 
-afterEach(() => {
-  for (const fixture of createdFixtures.splice(0)) {
-    rmSync(fixture, { force: true });
-  }
+const outputOf = (result: ReturnType<typeof runOxc>): string =>
+  `${result.stdout}${result.stderr}`;
+
+afterEach(async () => {
+  await Promise.all(
+    fixtureRoots
+      .splice(0)
+      .map((path) => rm(path, { recursive: true, force: true })),
+  );
 });
 
-describe("root OXC command", () => {
-  it("applies app client overrides from root and package working directories", () => {
-    createFixture("apps/app/src/oxc-cwd-probe.client.ts", 'import "hono";\n');
-
-    const fromRoot = runQuality(
-      root,
-      "lint",
-      "apps/app/src/oxc-cwd-probe.client.ts",
-    );
-    const fromPackage = runQuality(
-      resolve(root, "apps/app"),
-      "lint",
-      "src/oxc-cwd-probe.client.ts",
-    );
-
-    for (const result of [fromRoot, fromPackage]) {
-      expect(result.status).not.toBe(0);
-      expect(`${result.stdout}${result.stderr}`).toContain(
-        "cat(no-server-import)",
-      );
+describe("direct Oxc commands", () => {
+  it("applies client import restrictions to every root-scoped workspace", async () => {
+    const fixtureRoot = await createFixture();
+    for (const [path, source] of [
+      ["apps/app/src/probe.client.ts", 'import "hono";\n'],
+      ["apps/app/src/pages/probe/+guard.ts", 'import "#/server/ssc.ts";\n'],
+      ["@cat-plugin/tiny-widget/src/probe.ts", 'import "hono";\n'],
+      ["packages/plugin-core/src/client/probe.ts", 'import "hono";\n'],
+      [
+        "packages/ui/src/probe.vue",
+        '<script setup lang="ts">\nimport "hono";\n</script>\n',
+      ],
+    ] as const) {
+      await writeFixture(fixtureRoot, path, source);
+      const result = runOxc("oxlint", fixtureRoot, [
+        "--quiet",
+        "--format=unix",
+        "--type-aware",
+        "--config",
+        "oxlint.config.ts",
+        path,
+      ]);
+      expect(result.status, path).not.toBe(0);
+      expect(outputOf(result)).toContain("cat(no-server-import)");
     }
   });
 
-  it("does not apply app client rules to plugin build files", () => {
-    createFixture(
-      "@cat-plugin/basic-tokenizer/oxc-build-probe.ts",
+  it("limits app client rules to client paths", async () => {
+    const fixtureRoot = await createFixture();
+    await writeFixture(
+      fixtureRoot,
+      "@cat-plugin/basic-tokenizer/probe.ts",
       'import "hono";\n',
     );
 
-    const result = runQuality(
-      resolve(root, "@cat-plugin/basic-tokenizer"),
-      "lint",
-      "oxc-build-probe.ts",
-    );
+    const result = runOxc("oxlint", fixtureRoot, [
+      "--quiet",
+      "--format=unix",
+      "--type-aware",
+      "--config",
+      "oxlint.config.ts",
+      "@cat-plugin/basic-tokenizer/probe.ts",
+    ]);
 
     expect(result.status).toBe(0);
-    expect(`${result.stdout}${result.stderr}`).not.toContain(
-      "cat(no-server-import)",
-    );
-
-    const tinyWidgetResult = runQuality(
-      resolve(root, "@cat-plugin/tiny-widget"),
-      "lint",
-      "vite.config.ts",
-    );
-    expect(tinyWidgetResult.status).toBe(0);
-    expect(
-      `${tinyWidgetResult.stdout}${tinyWidgetResult.stderr}`,
-    ).not.toContain("cat(no-server-import)");
+    expect(outputOf(result)).not.toContain("cat(no-server-import)");
   });
 
-  it("reports unsafe-type warnings without failing the command", () => {
-    createFixture(
-      "@cat-plugin/basic-tokenizer/oxc-warning-probe.ts",
+  it("keeps advisory warnings visible to lint:fix without failing", async () => {
+    const fixtureRoot = await createFixture();
+    await writeFixture(
+      fixtureRoot,
+      "@cat-plugin/basic-tokenizer/warning.ts",
       'export const warningProbe = JSON.parse("{}").missing();\n',
     );
 
-    const result = runQuality(
-      resolve(root, "@cat-plugin/basic-tokenizer"),
-      "lint",
-      "oxc-warning-probe.ts",
-    );
-    const output = `${result.stdout}${result.stderr}`;
+    const result = runOxc("oxlint", fixtureRoot, [
+      "--fix",
+      "--format=unix",
+      "--type-aware",
+      "--config",
+      "oxlint.config.ts",
+      "@cat-plugin/basic-tokenizer/warning.ts",
+    ]);
 
     expect(result.status).toBe(0);
-    expect(output).toMatch(/typescript\(no-unsafe-(call|member-access)\)/);
+    expect(outputOf(result)).toMatch(
+      /typescript\(no-unsafe-(call|member-access)\)/,
+    );
   });
 
-  it("fails when a promise-returning callback is passed to a void contract", () => {
-    createFixture(
-      "@cat-plugin/basic-tokenizer/oxc-misused-promise-probe.ts",
+  it("reports type-aware promise contract errors", async () => {
+    const fixtureRoot = await createFixture();
+    await writeFixture(
+      fixtureRoot,
+      "@cat-plugin/basic-tokenizer/promise.ts",
       [
         "const runNow = (callback: () => void) => callback();",
         "runNow(async () => {",
@@ -111,21 +166,24 @@ describe("root OXC command", () => {
       ].join("\n"),
     );
 
-    const result = runQuality(
-      resolve(root, "@cat-plugin/basic-tokenizer"),
-      "lint",
-      "oxc-misused-promise-probe.ts",
-    );
+    const result = runOxc("oxlint", fixtureRoot, [
+      "--quiet",
+      "--format=unix",
+      "--type-aware",
+      "--config",
+      "oxlint.config.ts",
+      "@cat-plugin/basic-tokenizer/promise.ts",
+    ]);
 
     expect(result.status).not.toBe(0);
-    expect(`${result.stdout}${result.stderr}`).toContain(
-      "typescript(no-misused-promises)",
-    );
+    expect(outputOf(result)).toContain("typescript(no-misused-promises)");
   });
 
-  it("allows declaration and inline type-only server imports", () => {
-    createFixture(
-      "apps/app/src/oxc-type-import-probe.client.ts",
+  it("allows type-only server imports but rejects value import forms", async () => {
+    const fixtureRoot = await createFixture();
+    await writeFixture(
+      fixtureRoot,
+      "apps/app/src/type-only.client.ts",
       [
         'import type { Context } from "hono";',
         'import { type Hono } from "hono";',
@@ -134,51 +192,49 @@ describe("root OXC command", () => {
         "",
       ].join("\n"),
     );
+    const typeOnly = runOxc("oxlint", fixtureRoot, [
+      "--quiet",
+      "--format=unix",
+      "--type-aware",
+      "--config",
+      "oxlint.config.ts",
+      "apps/app/src/type-only.client.ts",
+    ]);
+    expect(typeOnly.status).toBe(0);
 
-    const result = runQuality(
-      resolve(root, "apps/app"),
-      "lint",
-      "src/oxc-type-import-probe.client.ts",
-    );
-
-    expect(result.status).toBe(0);
-    expect(`${result.stdout}${result.stderr}`).not.toContain(
-      "cat(no-server-import)",
-    );
-  });
-
-  it("rejects mixed, dynamic, and CommonJS server imports", () => {
-    const probes = [
+    for (const [path, source] of [
       [
-        "apps/app/src/oxc-mixed-import-probe.client.ts",
+        "apps/app/src/mixed.client.ts",
         'import { type Context, Hono } from "hono";\nexport const probe = new Hono<Context>();\n',
       ],
       [
-        "apps/app/src/oxc-dynamic-import-probe.client.ts",
+        "apps/app/src/dynamic.client.ts",
         'export const probe = () => import("hono");\n',
       ],
       [
-        "apps/app/src/oxc-require-probe.client.ts",
+        "apps/app/src/require.client.ts",
         'export const probe = require("hono");\n',
       ],
       [
-        "apps/app/src/oxc-import-equals-probe.client.ts",
+        "apps/app/src/import-equals.client.ts",
         'import ServerModule = require("hono");\nexport { ServerModule };\n',
       ],
-    ] as const;
-
-    for (const [relativePath, source] of probes) {
-      createFixture(relativePath, source);
-      const result = runQuality(root, "lint", relativePath);
-
-      expect(result.status).not.toBe(0);
-      expect(`${result.stdout}${result.stderr}`).toContain(
-        "cat(no-server-import)",
-      );
+    ] as const) {
+      await writeFixture(fixtureRoot, path, source);
+      const result = runOxc("oxlint", fixtureRoot, [
+        "--quiet",
+        "--format=unix",
+        "--type-aware",
+        "--config",
+        "oxlint.config.ts",
+        path,
+      ]);
+      expect(result.status, path).not.toBe(0);
+      expect(outputOf(result)).toContain("cat(no-server-import)");
     }
   });
 
-  it("executes a filtered plugin lint task without a bootstrap build", () => {
+  it("runs a filtered plugin lint task without a bootstrap build", () => {
     const result = spawnSync(
       "pnpm",
       [
@@ -190,43 +246,53 @@ describe("root OXC command", () => {
       ],
       { cwd: root, encoding: "utf8" },
     );
-    const output = `${result.stdout}${result.stderr}`;
 
     expect(result.status).toBe(0);
-    expect(output).toContain("@cat-plugin/basic-tokenizer:lint");
-    expect(output).not.toMatch(/@cat-plugin\/basic-tokenizer:build/);
+    expect(outputOf(result)).toContain("@cat-plugin/basic-tokenizer:lint");
+    expect(outputOf(result)).not.toMatch(/@cat-plugin\/basic-tokenizer:build/);
   });
 
-  it("checks maintained UI component source with Oxfmt", () => {
-    createFixture(
-      "packages/ui/src/components/oxc-format-probe.ts",
+  it("checks maintained source with Oxfmt and leaves generated schema files unchanged", async () => {
+    const fixtureRoot = await createFixture();
+    await writeFixture(
+      fixtureRoot,
+      "packages/ui/src/components/probe.ts",
       "export const probe={value:1}\n",
     );
-
-    const result = runQuality(
-      resolve(root, "packages/ui"),
-      "format",
-      "src/components/oxc-format-probe.ts",
+    await writeFixture(
+      fixtureRoot,
+      "packages/shared/src/schema/drizzle/generated.ts",
+      "export const generated={value:1}\n",
     );
 
-    expect(result.status).not.toBe(0);
-    expect(`${result.stdout}${result.stderr}`).toContain("oxc-format-probe.ts");
-  });
-
-  it("leaves generated schemas unchanged in formatter write mode", () => {
-    const fixture = createFixture(
-      "packages/shared/src/schema/drizzle/oxc-generated-format-probe.ts",
-      "export const probe={value:1}\n",
+    const formatCheck = runOxc("oxfmt", fixtureRoot, [
+      "--list-different",
+      "--config",
+      "oxfmt.config.ts",
+      "packages/ui/src/components/probe.ts",
+    ]);
+    const generatedBefore = await readFile(
+      resolve(fixtureRoot, "packages/shared/src/schema/drizzle/generated.ts"),
+      "utf8",
     );
-    const before = readFileSync(fixture, "utf8");
+    const formatGenerated = runOxc("oxfmt", fixtureRoot, [
+      "--write",
+      "--config",
+      "oxfmt.config.ts",
+      "packages/shared/src/schema/drizzle/generated.ts",
+      "packages/ui/src/components/probe.ts",
+    ]);
 
-    const result = runQuality(
-      resolve(root, "packages/shared"),
-      "format:fix",
-      "src/schema/drizzle/oxc-generated-format-probe.ts",
+    expect(formatCheck.status).not.toBe(0);
+    expect(outputOf(formatCheck)).toContain(
+      "packages/ui/src/components/probe.ts",
     );
-
-    expect(result.status).toBe(0);
-    expect(readFileSync(fixture, "utf8")).toBe(before);
+    expect(formatGenerated.status).toBe(0);
+    await expect(
+      readFile(
+        resolve(fixtureRoot, "packages/shared/src/schema/drizzle/generated.ts"),
+        "utf8",
+      ),
+    ).resolves.toBe(generatedBefore);
   });
 });

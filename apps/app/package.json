@@ -14,23 +14,24 @@
   ],
   "type": "module",
   "imports": {
+    "#e2e-hmr-application": "./src/e2e/hmr-application-default.vue",
     "#/*": "./src/*"
   },
   "scripts": {
-    "build": "vike build",
+    "bootstrap-only": "node dist/bootstrap-only/bootstrap-only-cli.js",
+    "bootstrap:local": "pnpm --filter @cat/db drizzle:push && pnpm build && node scripts/bootstrap-local.mjs",
+    "build": "vike build && vite build --config vite.bootstrap.config.ts && vite build --config vite.database-preparation.config.ts",
+    "build:bootstrap-only": "vite build --config vite.bootstrap.config.ts",
     "copy-drizzle": "node scripts/copy-drizzle.ts",
     "dev": "node scripts/dev.ts",
-    "docker:build": "docker buildx build ../../ -f Dockerfile --target standalone -t ykdz/cat:latest",
-    "docker:build:runtime": "docker buildx build ../../ -f Dockerfile --target runtime -t ykdz/cat:latest-runtime",
-    "docker:build:standalone": "docker buildx build ../../ -f Dockerfile --target standalone -t ykdz/cat:latest",
-    "docker:push": "docker push ykdz/cat",
-    "format": "node ../../tooling/oxlint/run.ts format",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
-    "preview": "node scripts/copy-drizzle.ts && cross-env NODE_ENV=production node dist/server/index.mjs",
+    "format:check": "cd ../.. && oxfmt --list-different --config oxfmt.config.ts apps/app",
+    "format:write": "cd ../.. && oxfmt --write --config oxfmt.config.ts apps/app",
+    "lint": "cd ../.. && oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern apps/app",
+    "lint:fix": "cd ../.. && oxlint --fix --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern apps/app",
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:integration": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.spec.ts' --no-file-parallelism --passWithNoTests",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts' --no-file-parallelism --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --build apps/app/tsconfig.json --noEmit --pretty false && vue-tsc --noEmit --pretty false -p tsconfig.app.json"
   },
   "dependencies": {
     "@cat-plugin/basic-qa-checker": "link:../../@cat-plugin/basic-qa-checker",
@@ -42,7 +43,7 @@
     "@cat-plugin/openai-llm-provider": "link:../../@cat-plugin/openai-llm-provider",
     "@cat-plugin/openai-vectorizer": "link:../../@cat-plugin/openai-vectorizer",
     "@cat-plugin/password-auth-provider": "link:../../@cat-plugin/password-auth-provider",
-    "@cat-plugin/spacy-segmenter": "link:../../@cat-plugin/spacy-segmenter",
+    "@cat-plugin/spacy-language-analyzer": "link:../../@cat-plugin/spacy-language-analyzer",
     "@cat-plugin/tei-rerank-provider": "link:../../@cat-plugin/tei-rerank-provider",
     "@cat-plugin/tiny-widget": "link:../../@cat-plugin/tiny-widget",
     "@cat-plugin/yaml-file-handler": "link:../../@cat-plugin/yaml-file-handler",
@@ -122,6 +123,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@iconify-json/codicon": "catalog:",
     "@iconify-json/file-icons": "catalog:",
     "@iconify-json/flag": "catalog:",
@@ -134,9 +136,9 @@
     "@vitejs/plugin-vue": "catalog:",
     "@vue/test-utils": "catalog:",
     "@vue/tsconfig": "catalog:",
-    "cross-env": "catalog:",
     "happy-dom": "catalog:",
     "pino-pretty": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vite-plugin-vue-devtools": "catalog:",
     "vitest": "catalog:",

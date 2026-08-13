@@ -84,7 +84,89 @@ export class VCSMiddleware {
     // Direct mode: execute write, then record entry
     const result = await writeFn();
 
-    // Lazy changeset creation: create on first interceptWrite call
+    await this.recordWrite(ctx, entityType, entityId, action, before, after);
+
+    return result;
+  }
+
+  /**
+   * Direct-mode interception for canonical commands that allocate their
+   * durable identity and final snapshot during the write.
+   */
+  async interceptResolvedWrite<T>(
+    ctx: VCSContext,
+    entityType: string,
+    action: "CREATE" | "UPDATE" | "DELETE",
+    before: SerializableType,
+    writeFn: () => Promise<{
+      entityId: string;
+      after: SerializableType;
+      result: T;
+    }>,
+  ): Promise<T> {
+    if (ctx.mode !== "direct") {
+      throw new TypeError("Resolved VCS writes require direct mode.");
+    }
+    const applied = await writeFn();
+    await this.recordWrite(
+      ctx,
+      entityType,
+      applied.entityId,
+      action,
+      before,
+      applied.after,
+    );
+    return applied.result;
+  }
+
+  /** Records the canonical command's locked before/after aggregate snapshots. */
+  async interceptMutationWrite<T>(
+    ctx: VCSContext,
+    entityType: string,
+    writeFn: () => Promise<
+      | {
+          entityId: string;
+          action: "CREATE" | "UPDATE" | "DELETE";
+          before: SerializableType;
+          after: SerializableType;
+          result: T;
+        }
+      | { mutation: null; result: T }
+    >,
+  ): Promise<T> {
+    if (ctx.mode !== "direct") {
+      throw new TypeError("Canonical mutation VCS writes require direct mode.");
+    }
+    const applied = await writeFn();
+    if ("mutation" in applied) return applied.result;
+    await this.recordWrite(
+      ctx,
+      entityType,
+      applied.entityId,
+      applied.action,
+      applied.before,
+      applied.after,
+    );
+    return applied.result;
+  }
+
+  private async recordWrite(
+    ctx: VCSContext,
+    entityType: string,
+    entityId: string,
+    action: "CREATE" | "UPDATE" | "DELETE",
+    before: SerializableType,
+    after: SerializableType,
+  ): Promise<void> {
+    if (ctx.mode !== "direct") {
+      throw new Error(
+        "Committed-write recording is only valid in direct mode.",
+      );
+    }
+    const beforeJSON = toJSONSafe(before);
+    const afterJSON = toJSONSafe(after);
+
+    // Lazy changeset creation: create on the first direct audit entry.
     if (ctx.currentChangesetId === undefined) {
       const cs = await this.changeSetService.createChangeSet({
         projectId: ctx.projectId,
@@ -105,8 +187,6 @@ export class VCSMiddleware {
       after: afterJSON,
       riskLevel: diffResult?.impactScope === "CASCADING" ? "MEDIUM" : "LOW",
     });
-
-    return result;
   }
 }
 

@@ -1,4 +1,4 @@
-import type { RecallChannel } from "@cat/shared";
+import type { EvidenceLane } from "@cat/shared";
 import { assert, describe, expect, it } from "vitest";
 
 import { applyDeterministicRanking } from "./deterministic-ranker.ts";
@@ -21,7 +21,7 @@ const HYPOTHESIS_UNKNOWN = { topicIds: [], confidence: "unknown" as const };
 
 const make = (
   id: number,
-  channels: RecallChannel[],
+  channels: EvidenceLane[],
   confidence: number,
   topicState: "compatible" | "conflict" | "unknown" = "compatible",
 ): RecallCandidate => ({

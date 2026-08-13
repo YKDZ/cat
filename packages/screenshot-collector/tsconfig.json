@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.node-base.json",
+  "extends": "@cat/typescript-config/node.json",
   "compilerOptions": {
     "lib": ["ES2023", "DOM"],
     "noEmit": true,

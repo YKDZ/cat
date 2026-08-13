@@ -1,0 +1,10 @@
+{
+  "extends": "./bundler.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": false,
+    "emitDeclarationOnly": true,
+    "isolatedDeclarations": true,
+    "noEmit": false
+  }
+}

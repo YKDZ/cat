@@ -127,6 +127,7 @@ export type GraphEventType =
   | "human:input:received"
   | "checkpoint:saved"
   | "workflow:translation:created"
+  | "workflow:task:progress"
   | "workflow:qa:issue"
   | "workflow:suggestion:ready";
 
@@ -405,6 +406,7 @@ export const useAgentStore = defineStore("agent", () => {
       case "human:input:received":
       case "checkpoint:saved":
       case "workflow:translation:created":
+      case "workflow:task:progress":
       case "workflow:qa:issue":
       case "workflow:suggestion:ready":
         break;
@@ -537,8 +539,8 @@ export const useAgentStore = defineStore("agent", () => {
       definitions.value = result;
     } catch (err) {
       logger
-        .withSituation("WEB")
-        .error(err, "Failed to fetch agent definitions");
+        .child({ component: "web" })
+        .error("Failed to fetch agent definitions", { error: err });
     }
   };
 
@@ -592,7 +594,9 @@ export const useAgentStore = defineStore("agent", () => {
         createdAt: r.createdAt,
       }));
     } catch (err) {
-      logger.withSituation("WEB").error(err, "Failed to fetch sessions");
+      logger
+        .child({ component: "web" })
+        .error("Failed to fetch sessions", { error: err });
     }
   };
 
@@ -636,7 +640,9 @@ export const useAgentStore = defineStore("agent", () => {
     try {
       await loadSession(sessionId);
     } catch (err) {
-      logger.withSituation("WEB").error(err, "Failed to load agent session");
+      logger
+        .child({ component: "web" })
+        .error("Failed to load agent session", { error: err });
     }
   };
 
@@ -663,7 +669,9 @@ export const useAgentStore = defineStore("agent", () => {
       }
       return result.sessionId;
     } catch (err) {
-      logger.withSituation("WEB").error(err, "Failed to create agent session");
+      logger
+        .child({ component: "web" })
+        .error("Failed to create agent session", { error: err });
       return "";
     }
   };
@@ -731,7 +739,9 @@ export const useAgentStore = defineStore("agent", () => {
       if (abortController.signal.aborted) {
         streamingStatus.value = "idle";
       } else {
-        logger.withSituation("WEB").error(err, "Agent stream error");
+        logger
+          .child({ component: "web" })
+          .error("Agent stream error", { error: err });
         errorMessage.value =
           err instanceof Error ? err.message : "Unknown error";
         streamingStatus.value = "error";
@@ -781,7 +791,9 @@ export const useAgentStore = defineStore("agent", () => {
       });
       streamingStatus.value = "streaming";
     } catch (err) {
-      logger.withSituation("WEB").error(err, "Failed to submit confirmation");
+      logger
+        .child({ component: "web" })
+        .error("Failed to submit confirmation", { error: err });
     }
   };
 

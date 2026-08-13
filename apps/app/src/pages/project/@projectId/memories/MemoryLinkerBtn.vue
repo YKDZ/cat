@@ -74,7 +74,7 @@ const handleLink = async () => {
 
 <template>
   <Dialog>
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button :class="$attrs.class" @click="handleOpen">
         <Link2 />
         {{ t("连接记忆库") }}</Button

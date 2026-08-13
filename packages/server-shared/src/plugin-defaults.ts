@@ -6,15 +6,10 @@ export const defaultFilesystemPluginIds = [
   "json-file-handler",
   "yaml-file-handler",
   "markdown-file-handler",
-  "local-storage-provider",
   "basic-tokenizer",
   "basic-qa-checker",
   "tiny-widget",
   "openai-vectorizer",
-  "openai-llm-provider",
-  "libretranslate-advisor",
-  "spacy-segmenter",
-  "tei-rerank-provider",
 ] as const;
 
 /**

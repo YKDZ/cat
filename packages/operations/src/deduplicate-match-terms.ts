@@ -1,7 +1,11 @@
 import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTermConceptIdsByRecallVariants } from "@cat/domain";
+import { resolvePluginManager } from "@cat/server-shared";
+import { NormalizedLanguageIdSchema } from "@cat/shared";
 import * as z from "zod";
+
+import { probeGlossaryRecallDependency } from "./glossary-recall-derivation.ts";
 
 export const DeduplicateAndMatchInputSchema = z.object({
   candidates: z.array(
@@ -71,9 +75,12 @@ export type DeduplicateAndMatchOutput = z.infer<
  */
 export const deduplicateAndMatchOp = async (
   data: DeduplicateAndMatchInput,
-  _ctx?: OperationContext,
+  ctx?: OperationContext,
 ): Promise<DeduplicateAndMatchOutput> => {
   const { client: drizzle } = await getDbHandle();
+  const sourceLanguageId = NormalizedLanguageIdSchema.parse(
+    data.sourceLanguageId,
+  );
 
   // Step 1: Deduplicate by normalizedText, keep highest confidence per key
   const deduped = new Map<string, (typeof data.candidates)[number]>();
@@ -90,6 +97,13 @@ export const deduplicateAndMatchOp = async (
   if (uniqueCandidates.length === 0) {
     return { candidates: [] };
   }
+  const dependency = await probeGlossaryRecallDependency({
+    db: drizzle,
+    pluginManager: resolvePluginManager(ctx?.pluginManager),
+    languageId: sourceLanguageId,
+    text: uniqueCandidates[0]!.text,
+    ctx,
+  });
 
   // Step 2: Batch compare against glossary using word_similarity (pg_trgm)
   // Run in parallel batches of ~50 candidates
@@ -114,6 +128,7 @@ export const deduplicateAndMatchOp = async (
               sourceLanguageId: data.sourceLanguageId,
               minSimilarity: 0.8,
               maxAmount: 1,
+              requiredDerivationVersion: dependency.requiredDerivationVersion,
             },
           );
           if (conceptIds.length > 0 && conceptIds[0] !== undefined) {

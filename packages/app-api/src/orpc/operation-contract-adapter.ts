@@ -40,14 +40,15 @@ export const projectOperationContractErrorToORPC = (error: unknown): never => {
           ? "FORBIDDEN"
           : error.identifier === "not_found"
             ? "NOT_FOUND"
-            : "INTERNAL_SERVER_ERROR";
+            : error.identifier === "review_change_blocked"
+              ? "CONFLICT"
+              : "INTERNAL_SERVER_ERROR";
 
     throw new ORPCError(code, {
       message: error.message,
       data: {
         operationContractErrorIdentifier: error.identifier,
         operationFailure: error.operationFailure,
-        localizationTask: error.localizationTask,
       },
     });
   }

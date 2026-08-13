@@ -1,15 +1,11 @@
 import {
   type CacheStore,
-  getCacheStore,
-  getCurrentRedisHandle,
   type SessionStore,
-  getSessionStore,
-  getDbHandle,
   type DrizzleDB,
   type RedisConnection,
 } from "@cat/domain";
 import { type AuthContext, loadUserSystemRoles } from "@cat/permissions";
-import { PluginManager } from "@cat/plugin-core";
+import type { PluginManager } from "@cat/plugin-core";
 import { userFromSessionId } from "@cat/server-shared";
 import type { User } from "@cat/shared";
 import {
@@ -21,6 +17,15 @@ import {
 import { generateCsrfToken } from "#/middleware/csrf.ts";
 
 import { resolveApiKey, updateApiKeyLastUsedAsync } from "./api-key.ts";
+import { getRuntimeCapabilities } from "./runtime-capabilities.ts";
+
+export {
+  getRuntimeCapabilities,
+  hasRuntimeCapabilities,
+  publishRuntimeCapabilities,
+  resetRuntimeCapabilitiesForTest,
+  type RuntimeCapabilities,
+} from "./runtime-capabilities.ts";
 
 export const getContext = async (
   req: Request,
@@ -36,12 +41,8 @@ export const getContext = async (
     }),
   );
 
-  const drizzleDB = await getDbHandle();
-  const redis = getCurrentRedisHandle();
-  const pluginManager = PluginManager.get("GLOBAL", "");
-
-  const cacheStore = getCacheStore();
-  const sessionStore = getSessionStore();
+  const { cacheStore, drizzleDB, pluginManager, redis, sessionStore } =
+    getRuntimeCapabilities();
 
   // ====== 双通道认证 ======
   let user: User | null = null;

@@ -3,6 +3,7 @@ import { Button } from "@cat/ui";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -22,7 +23,7 @@ defineProps<{
 
 <template>
   <Dialog>
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button
         ><div class="icon-[mdi--plus] size-4" />
         {{ t("插入术语") }}</Button
@@ -30,7 +31,14 @@ defineProps<{
     </DialogTrigger>
     <DialogContent class="max-h-[90dvh] overflow-y-auto">
       <DialogHeader
-        ><DialogTitle>{{ t("插入术语") }}</DialogTitle></DialogHeader
+        ><DialogTitle>{{ t("插入术语") }}</DialogTitle>
+        <DialogDescription class="sr-only">
+          {{
+            t(
+              "选择术语语言与翻译语言，并以换行符分隔的方式键入左右一一对应的术语和翻译",
+            )
+          }}
+        </DialogDescription></DialogHeader
       >
       <Tabs>
         <TabsList class="grid w-full grid-cols-2">

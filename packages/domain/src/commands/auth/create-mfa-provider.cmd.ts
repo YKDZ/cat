@@ -1,13 +1,16 @@
 import { mfaProvider } from "@cat/db";
-import { nonNullSafeZDotJson } from "@cat/shared";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  nonNullSafeZDotJson,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const CreateMfaProviderCommandSchema = z.object({
   userId: z.uuidv4(),
-  mfaServiceId: z.int(),
+  mfaService: ServiceImplementationReferenceSchema,
   payload: nonNullSafeZDotJson,
 });
 
@@ -24,7 +27,7 @@ export const createMfaProvider: Command<
       .insert(mfaProvider)
       .values({
         userId: command.userId,
-        mfaServiceId: command.mfaServiceId,
+        mfaService: command.mfaService,
         payload: command.payload,
       })
       .returning(),

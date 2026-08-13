@@ -14,7 +14,7 @@ import { GitBranch } from "@lucide/vue";
 import { useQuery } from "@pinia/colada";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 import {
@@ -37,6 +37,11 @@ const ctx = usePageContext();
 const branchStore = useBranchStore();
 
 const searchTerm = ref("");
+const isHydrated = ref(false);
+
+onMounted(() => {
+  isHydrated.value = true;
+});
 
 const resolveWorkbenchTarget = () => {
   const value = ctx.routeParams.elementId;
@@ -188,7 +193,11 @@ const handleSelectMain = () => {
 </script>
 
 <template>
-  <Combobox v-model:search-term="searchTerm">
+  <Button v-if="!isHydrated" variant="outline" size="sm">
+    <GitBranch class="size-3.5 text-muted-foreground" />
+    <span class="max-w-32 truncate">{{ t("main") }}</span>
+  </Button>
+  <Combobox v-else v-model:search-term="searchTerm">
     <ComboboxAnchor>
       <ComboboxTrigger as-child>
         <Button variant="outline" size="sm">

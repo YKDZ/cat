@@ -63,28 +63,9 @@ const normalizeText = (value: string): string =>
 
 const placeholderRegex =
   /\{[^}]+\}|\$\{[^}]+\}|%[sdif]|%\([^)]+\)[sdif]|\{\{[^}]+\}\}/gu;
-const tokenRegex = /[\p{L}\p{N}]+/gu;
-
-const segmentWords = (text: string, languageId: string): string[] => {
+const nonAnalysisTextFeature = (text: string): string[] => {
   const normalized = normalizeText(text);
-  const segmenterCtor = Intl.Segmenter;
-
-  if (segmenterCtor) {
-    try {
-      const segmenter = new segmenterCtor(languageId, { granularity: "word" });
-      const words = [...segmenter.segment(normalized)]
-        .filter((segment) => segment.isWordLike)
-        .map((segment) => segment.segment.trim())
-        .filter((segment) => segment.length > 0);
-      if (words.length > 0) {
-        return words;
-      }
-    } catch {
-      // Invalid BCP-47 language tags or runtime Intl failures fall back to regex.
-    }
-  }
-
-  return [...normalized.matchAll(tokenRegex)].map((match) => match[0]);
+  return normalized.length === 0 ? [] : [normalized];
 };
 
 const buildNgrams = (tokens: string[]): Set<string> => {
@@ -104,9 +85,8 @@ const buildNgrams = (tokens: string[]): Set<string> => {
 const extractFeature = (row: PriorityRankableEditorElement): ElementFeature => {
   const normalizedText = normalizeText(row.value);
   const placeholders = normalizedText.match(placeholderRegex) ?? [];
-  const tokens = segmentWords(
+  const tokens = nonAnalysisTextFeature(
     normalizedText.replace(placeholderRegex, " "),
-    row.languageId,
   );
 
   return {

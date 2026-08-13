@@ -6,7 +6,10 @@ import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
 import PluginDetailShell from "#/components/plugin/PluginDetailShell.vue";
-import type { PluginProbeResult } from "#/components/plugin/types.ts";
+import type {
+  PluginProbeResult,
+  PluginProbeTarget,
+} from "#/components/plugin/types.ts";
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
 
@@ -20,7 +23,7 @@ const detail = ref(initialData.detail);
 const probeResult = ref<PluginProbeResult | null>(null);
 const isBusy = ref(false);
 const isSaving = ref(false);
-const isProbing = ref(false);
+const activeProbeTarget = ref<PluginProbeTarget | null>(null);
 let probeAbortController: AbortController | null = null;
 const rpcErrorSchema = z.object({ message: z.string().optional() });
 
@@ -76,14 +79,14 @@ const handleReload = async () => {
 
 const handleSaveConfig = async (
   value: NonNullJSONType,
-  expectedUpdatedAt: string | null,
+  expectedRevision: number | null,
 ) => {
   isSaving.value = true;
   try {
     const result = await orpc.plugin.saveConfigAndApply({
       ...scopeInput(),
       value,
-      expectedUpdatedAt,
+      expectedRevision,
     });
     if (result.status === "APPLIED") {
       toast.info(t(result.message));
@@ -102,13 +105,35 @@ const handleSaveConfig = async (
   }
 };
 
-const runProbe = async (
-  target: "CANDIDATE" | "RUNTIME",
-  value?: NonNullJSONType,
-) => {
+const handleMigrateConfig = async (value: NonNullJSONType) => {
+  const config = detail.value.config;
+  const instance = config.instance;
+  if (!config.config || !instance) return;
+
+  isSaving.value = true;
+  try {
+    const result = await orpc.plugin.migrateConfigAndApply({
+      ...scopeInput(),
+      instanceId: instance.id,
+      fromVersion: instance.appliedVersion,
+      expectedSchemaDigest: config.config.schemaDigest,
+      expectedRevision: instance.revision,
+      value,
+    });
+    toast.info(t(result.message));
+    await refreshDetail();
+  } catch (error) {
+    warnRpc(error);
+    await refreshDetail().catch(() => undefined);
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const runProbe = async (target: PluginProbeTarget, value?: NonNullJSONType) => {
   probeAbortController?.abort();
   probeAbortController = new AbortController();
-  isProbing.value = true;
+  activeProbeTarget.value = target;
   try {
     probeResult.value = await orpc.plugin.probeConfig(
       { ...scopeInput(), target, value },
@@ -124,7 +149,7 @@ const runProbe = async (
     }
     warnRpc(error);
   } finally {
-    isProbing.value = false;
+    activeProbeTarget.value = null;
     probeAbortController = null;
   }
 };
@@ -140,11 +165,12 @@ const handleCancelProbe = () => {
     :probe-result="probeResult"
     :is-busy="isBusy"
     :is-saving="isSaving"
-    :is-probing="isProbing"
+    :active-probe-target="activeProbeTarget"
     @install="handleInstall"
     @uninstall="handleUninstall"
     @reload="handleReload"
     @save-config="handleSaveConfig"
+    @migrate-config="handleMigrateConfig"
     @probe-candidate="(value) => runProbe('CANDIDATE', value)"
     @probe-runtime="() => runProbe('RUNTIME')"
     @cancel-probe="handleCancelProbe"

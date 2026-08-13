@@ -59,6 +59,9 @@ export const evaluate = (
         status: caseResult.status,
         scores,
         durationMs: caseResult.durationMs,
+        ...(caseResult.recallResult === undefined
+          ? {}
+          : { recallResult: caseResult.recallResult }),
       });
     }
 

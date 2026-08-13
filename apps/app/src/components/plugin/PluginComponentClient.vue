@@ -19,12 +19,16 @@ const scopedName = computed(() => {
 
 const url = computed(() => {
   if (props.component.url.startsWith("http")) return props.component.url;
+  const baseURL =
+    typeof window === "undefined"
+      ? ctx.globalContext.baseURL
+      : window.location.origin;
   const result = new URL(
     "/_plugin/" +
       props.component.pluginId +
       "/component/" +
       props.component.name,
-    ctx.globalContext.baseURL,
+    baseURL,
   );
   result.searchParams.append("path", props.component.url);
   return result.href;
@@ -41,10 +45,15 @@ const load = async () => {
 
   try {
     const response = await fetch(url.value);
+    if (!response.ok) {
+      throw new Error(
+        `Plugin component request failed with ${response.status}`,
+      );
+    }
     const code = await response.text();
 
     const sandbox = createSandbox(props.component.pluginId, window, {
-      globalContextBuilder: (pluginId, win) => ({
+      globalContextBuilder: () => ({
         customElements: safeCustomElements(registry),
         Vue: { ...Vue },
         fetch: window.fetch,
@@ -54,23 +63,28 @@ const load = async () => {
 
     sandbox.evaluate(code);
   } catch (e) {
-    logger.withSituation("WEB").error(e, "Failed to evaluate sandbox code");
+    logger
+      .child({ component: "web" })
+      .error("Failed to evaluate sandbox code", { error: e });
   }
 
-  // TODO 逻辑上暂时不允许一次注册多个组件
-  if (registry.size > 1 || registry.size === 0) {
+  // Component entries currently register exactly one custom element.
+  if (registry.size !== 1) {
     logger
-      .withSituation("WEB")
+      .child({ component: "web" })
       .warn(
         `Plugin registered component enrty script should define only one component. Bot got ${registry.size}`,
       );
+    return;
   }
 
-  const [name, { constructor, options }] = registry.entries().next().value!;
+  const entry = registry.entries().next().value;
+  if (entry === undefined) return;
+  const [name, { constructor, options }] = entry;
 
   if (name !== props.component.name) {
     logger
-      .withSituation("WEB")
+      .child({ component: "web" })
       .warn(
         `Component name mismatch. Claimed ${props.component.name}, but got ${name}`,
       );

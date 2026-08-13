@@ -109,9 +109,9 @@ const recallByElement = async (
     async () => {
       const stream = await config.client.memory.onNew(input);
 
-      for await (const suggestion of stream) {
+      for await (const event of stream) {
         // oxlint-disable-next-line no-console
-        console.log(JSON.stringify(suggestion, null, 2));
+        console.log(JSON.stringify(event, null, 2));
       }
     },
     { path: "memory.onNew", input },
@@ -167,9 +167,9 @@ const recallByText = async (
     async () => {
       const stream = await config.client.memory.searchByText(input);
 
-      for await (const suggestion of stream) {
+      for await (const event of stream) {
         // oxlint-disable-next-line no-console
-        console.log(JSON.stringify(suggestion, null, 2));
+        console.log(JSON.stringify(event, null, 2));
       }
     },
     { path: "memory.searchByText", input },

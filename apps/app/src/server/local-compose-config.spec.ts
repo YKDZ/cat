@@ -5,7 +5,7 @@ import { parse as parseDotenv } from "dotenv";
 import { describe, expect, it } from "vitest";
 
 const appRoot = resolve(import.meta.dirname, "../..");
-const localComposePath = resolve(appRoot, "docker-compose.local.yml");
+const localComposePath = resolve(appRoot, "compose.local.yaml");
 const itWhenLocalComposeExists = existsSync(localComposePath) ? it : it.skip;
 
 const readText = (relativePath: string): string => {
@@ -35,7 +35,7 @@ const extractComposeDefaultPort = (
   containerPort: number,
 ): string => {
   const pattern = new RegExp(
-    String.raw`\$\{${variableName}:-([0-9]+)\}:${containerPort}`,
+    String.raw`(?:127\.0\.0\.1:)?\$\{${variableName}:-([0-9]+)\}:${containerPort}`,
     "u",
   );
   const match = composeText.match(pattern);
@@ -49,7 +49,7 @@ describe("local docker compose config", () => {
   itWhenLocalComposeExists(
     "keeps local PostgreSQL/Redis ports isolated from e2e defaults and in sync with app env files",
     () => {
-      const composeText = readText("docker-compose.local.yml");
+      const composeText = readText("compose.local.yaml");
       const envExample = parseDotenv(readText(".env.example"));
       const dbEnvExample = parseDotenv(
         readText("../../packages/db/.env.example"),

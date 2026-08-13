@@ -1,0 +1,78 @@
+name: cat-e2e
+
+# Disposable E2E dependencies. TestServiceLease supplies unique credentials,
+# project identity, and dynamic loopback bindings for every acquisition.
+services:
+  postgresql:
+    extends:
+      file: ../app/compose.services.yaml
+      service: postgresql
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: ${CAT_E2E_POSTGRES_PASSWORD:-pass}
+      POSTGRES_USER: ${CAT_E2E_POSTGRES_USER:-user}
+    ports:
+      - "${CAT_E2E_BIND_HOST:-127.0.0.1}:${CAT_E2E_POSTGRES_HOST_PORT:-0}:5432"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+    volumes:
+      - e2e-postgresql-data:/var/lib/postgresql
+
+  redis:
+    extends:
+      file: ../app/compose.services.yaml
+      service: redis
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --requirepass
+      - ${CAT_E2E_REDIS_PASSWORD:-cat-e2e-redis}
+    environment:
+      REDIS_PASSWORD: ${CAT_E2E_REDIS_PASSWORD:-cat-e2e-redis}
+    ports:
+      - "${CAT_E2E_BIND_HOST:-127.0.0.1}:${CAT_E2E_REDIS_HOST_PORT:-0}:6379"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+    volumes:
+      - e2e-redis-data:/data
+
+  spacy:
+    extends:
+      file: ../app/compose.services.yaml
+      service: spacy
+    ports:
+      - "${CAT_E2E_BIND_HOST:-127.0.0.1}:${CAT_E2E_SPACY_HOST_PORT:-0}:8000"
+    environment:
+      CAT_TEST_EXPOSE_REQUEST_COUNTS: "1"
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+    volumes:
+      - e2e-spacy-models:/models
+
+networks:
+  default:
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+
+volumes:
+  e2e-postgresql-data:
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+  e2e-redis-data:
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
+  e2e-spacy-models:
+    labels:
+      cat.test-service-lease.token: ${CAT_E2E_LEASE_TOKEN:-unowned}
