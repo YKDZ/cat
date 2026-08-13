@@ -21,7 +21,7 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
-const languageIds = defineModel<string[]>({ default: [] });
+const languageIds = defineModel<string[]>({ default: () => [] });
 const search = ref("");
 
 const { state, loadNextPage } = useInfiniteQuery({
