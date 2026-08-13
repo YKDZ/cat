@@ -161,8 +161,8 @@ catalogs:
       specifier: ^4.15.1
       version: 4.15.1
     '@vikejs/hono':
-      specifier: ^0.2.0
-      version: 0.2.0
+      specifier: ^0.2.1
+      version: 0.2.1
     '@vitejs/plugin-vue':
       specifier: ^6.0.7
       version: 6.0.7
@@ -1038,7 +1038,7 @@ importers:
         version: 4.15.1(vue@3.5.41(typescript@6.0.3))(zod@4.4.3)
       '@vikejs/hono':
         specifier: 'catalog:'
-        version: 0.2.0(hono@4.13.1)(srvx@0.11.16)(vike@0.4.259(hono@4.13.1)(srvx@0.11.16)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))
+        version: 0.2.1(hono@4.13.1)(srvx@0.11.16)(vike@0.4.259(hono@4.13.1)(srvx@0.11.16)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))
       '@vueuse/components':
         specifier: 'catalog:'
         version: 14.4.0(vue@3.5.41(typescript@6.0.3))
@@ -5705,8 +5705,8 @@ packages:
     peerDependencies:
       zod: ^3.24.0
 
-  '@vikejs/hono@0.2.0':
-    resolution: {integrity: sha512-kM0CLN+qmjkJTvtHEHo7KiEbqnLAhibn7jqNWzlsfKXVjN0VIkY1U0E9hU7zIWYkxw6KCA2kNDt6IVRRixBsKw==}
+  '@vikejs/hono@0.2.1':
+    resolution: {integrity: sha512-p63PBM88spYeMe3nl8YKbgirsxlGptrBDrXb1SxqnOjXRsb7GWsmRbuGC8axDBguxHHLM8q8Zgi4pMSQPe3t2A==}
     peerDependencies:
       hono: ^4.0.0
       vike: ^0.4.255
@@ -13421,7 +13421,7 @@ snapshots:
     transitivePeerDependencies:
       - vue
 
-  '@vikejs/hono@0.2.0(hono@4.13.1)(srvx@0.11.16)(vike@0.4.259(hono@4.13.1)(srvx@0.11.16)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))':
+  '@vikejs/hono@0.2.1(hono@4.13.1)(srvx@0.11.16)(vike@0.4.259(hono@4.13.1)(srvx@0.11.16)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))':
     dependencies:
       '@universal-middleware/hono': 0.4.21(hono@4.13.1)(srvx@0.11.16)
       hono: 4.13.1

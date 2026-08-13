@@ -79,7 +79,7 @@ catalog:
   "@types/unist": ^3.0.3
   "@typescript/native": npm:typescript@^7.0.2
   "@vee-validate/zod": ^4.15.1
-  "@vikejs/hono": ^0.2.0
+  "@vikejs/hono": ^0.2.1
   "@vitejs/plugin-vue": ^6.0.7
   "@vitest/ui": ^4.1.8
   "@vue-flow/controls": ^1.1.3
