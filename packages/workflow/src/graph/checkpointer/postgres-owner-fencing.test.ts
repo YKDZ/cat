@@ -112,7 +112,7 @@ const createDeferred = <T = void>(): {
 
 const expireRunOwnership = async (runId: string): Promise<void> => {
   await db.client.execute(sql`
-    UPDATE agent_run
+    UPDATE "AgentRun"
     SET owner_lease_expires_at = clock_timestamp() - interval '1 second'
     WHERE external_id = ${runId}
   `);
