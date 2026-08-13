@@ -211,8 +211,7 @@ const handleRetry = async (): Promise<void> => {
                 <CollapsibleContent>
                   <pre
                     class="mx-2 mb-1 overflow-auto rounded bg-muted/50 p-2 font-mono text-[10px]"
-                    >{{ JSON.stringify(event.payload, null, 2) }}</pre
-                  >
+                    >{{ JSON.stringify(event.payload, null, 2) }}</pre>
                 </CollapsibleContent>
               </Collapsible>
 
