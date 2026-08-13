@@ -185,7 +185,7 @@ export default defineConfig({
   build: {
     target: "esnext",
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       external: [...serverExternalPackages],
     },
   },
