@@ -772,22 +772,20 @@ export const collectMemoryRecallOp = async (
 
   // The seen Map already holds per-item merged suggestions from all channels.
   // Convert to RawMemoryResult for the precision pipeline.
-  const rawMemoryResults = [...seen.values()].map(
-    (m): RawMemoryResult => ({
-      surface: "memory",
-      id: m.id,
-      memoryId: m.memoryId,
-      source: m.source,
-      translation: m.translation,
-      confidence: m.confidence,
-      matchedText: m.matchedText,
-      matchedVariantText: m.matchedVariantText,
-      matchedVariantType: m.matchedVariantType,
-      adaptedTranslation: m.adaptedTranslation,
-      adaptationMethod: m.adaptationMethod,
-      evidences: m.evidences,
-    }),
-  );
+  const rawMemoryResults = [...seen.values()].map((m): RawMemoryResult => ({
+    surface: "memory",
+    id: m.id,
+    memoryId: m.memoryId,
+    source: m.source,
+    translation: m.translation,
+    confidence: m.confidence,
+    matchedText: m.matchedText,
+    matchedVariantText: m.matchedVariantText,
+    matchedVariantType: m.matchedVariantType,
+    adaptedTranslation: m.adaptedTranslation,
+    adaptationMethod: m.adaptationMethod,
+    evidences: m.evidences,
+  }));
 
   const sparseContentWords = sourceLanguageAnalysisTokens
     ? sourceLanguageAnalysisTokens

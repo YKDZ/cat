@@ -257,7 +257,9 @@ const isNonEmptyString = (value: unknown): value is string =>
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 
-const candidateBundleFile = (target: ReleaseImageTarget): CandidateBundleFile =>
+const candidateBundleFile = (
+  target: ReleaseImageTarget,
+): CandidateBundleFile =>
   target === "spacy" ? "spacy-image.tar" : "application-images.tar";
 
 const candidateFamilyManifestFile = (family: ImageBuildFamily): string =>
