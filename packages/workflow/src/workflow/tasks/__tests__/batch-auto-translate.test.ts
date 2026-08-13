@@ -11,10 +11,12 @@ import {
   vi,
 } from "vitest";
 
+import type { DefaultGraphRuntime } from "#/graph/index.ts";
 import {
-  createDefaultGraphRuntime,
-  type DefaultGraphRuntime,
-} from "#/graph/index.ts";
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 const mocks = vi.hoisted(() => ({
   resolveOperationScopeElementsOp: vi.fn(),
@@ -53,6 +55,7 @@ describe("batchAutoTranslateGraph", () => {
   let cleanup: TestDB["cleanup"] | undefined;
   let pluginManager: PluginManager;
   let runtime: DefaultGraphRuntime;
+  let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
   beforeAll(async () => {
     const db = await setupTestDB();
@@ -65,13 +68,16 @@ describe("batchAutoTranslateGraph", () => {
       new TestPluginLoader(),
     );
 
-    runtime = createDefaultGraphRuntime(db.client, pluginManager);
+    runtimeFixture = createTestGraphRuntime(db, pluginManager);
+    runtime = runtimeFixture.runtime;
   });
 
   afterAll(async () => {
-    await runtime?.dispose();
     PluginManager.clear();
-    await cleanup?.();
+    await cleanupTestGraphFixture(
+      runtimeFixture,
+      cleanup ? { cleanup } : undefined,
+    );
   });
 
   beforeEach(() => {

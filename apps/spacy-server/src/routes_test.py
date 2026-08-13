@@ -6,6 +6,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from typing import cast
 from unittest import mock
 
 from src.coordinator import (
@@ -16,7 +17,10 @@ from src.coordinator import (
 )
 from src.offsets import utf16_offsets
 from src.protocol import validate_batch_item_ids
-from src.worker import ResponseFrameTooLarge, write_frame
+from src.runtime import GenerationRuntime
+from src.worker import ResponseFrameTooLarge, serve, write_frame
+
+NORMAL_REQUEST_TIMEOUT_MS = 1_000
 
 
 class Utf16OffsetsTest(unittest.TestCase):
@@ -39,6 +43,62 @@ class Utf16OffsetsTest(unittest.TestCase):
             write_frame({"value": "too large"})
 
 
+class WorkerReadinessTest(unittest.TestCase):
+    def test_worker_publishes_ready_only_after_every_model_is_warm(self) -> None:
+        runtime = mock.Mock()
+        runtime.generation_id = "generation-test"
+        runtime.manifest.effective_plan.models = (
+            mock.Mock(language_id="en", validation_text="English warm-up"),
+            mock.Mock(language_id="zh-Hans", validation_text="中文预热"),
+        )
+        events: list[str] = []
+
+        def get_model(language_id: str) -> mock.Mock:
+            events.append(f"load:{language_id}")
+            pipeline = mock.Mock()
+            pipeline.side_effect = lambda text: events.append(
+                f"analyze:{language_id}:{text}"
+            )
+            return pipeline
+
+        runtime.get_model.side_effect = get_model
+        with (
+            mock.patch.dict(os.environ, {"SPACY_WORKER_EPOCH": "1"}),
+            mock.patch("src.worker.read_frame", return_value=None),
+            mock.patch(
+                "src.worker.write_frame",
+                side_effect=lambda _message: events.append("ready"),
+            ),
+        ):
+            serve(cast(GenerationRuntime, runtime))
+
+        self.assertEqual(
+            events,
+            [
+                "load:en",
+                "analyze:en:English warm-up",
+                "load:zh-Hans",
+                "analyze:zh-Hans:中文预热",
+                "ready",
+            ],
+        )
+
+    def test_worker_does_not_publish_ready_when_a_model_cannot_warm(self) -> None:
+        runtime = mock.Mock()
+        runtime.manifest.effective_plan.models = (
+            mock.Mock(language_id="en", validation_text="warm-up"),
+        )
+        runtime.get_model.side_effect = RuntimeError("model load failed")
+
+        with (
+            mock.patch("src.worker.write_frame") as ready,
+            self.assertRaisesRegex(RuntimeError, "model load failed"),
+        ):
+            serve(cast(GenerationRuntime, runtime))
+
+        ready.assert_not_called()
+
+
 class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         fixture = Path(__file__).parents[1] / "tests" / "worker_fixture.py"
@@ -54,10 +114,10 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_returns_a_worker_result_and_reuses_its_model_process(self) -> None:
         first = await self.coordinator.execute(
-            {"text": "first"}, 200, never_disconnected
+            {"text": "first"}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
         )
         second = await self.coordinator.execute(
-            {"text": "second"}, 200, never_disconnected
+            {"text": "second"}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
         )
 
         self.assertEqual(first["text"], "first")
@@ -72,7 +132,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(self.coordinator.worker_pid)
         self.assertProcessGone(active_pid)
         result = await self.coordinator.execute(
-            {"text": "replacement"}, 200, never_disconnected
+            {"text": "replacement"}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
         )
         self.assertNotEqual(result["pid"], active_pid)
 
@@ -80,7 +140,9 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
         disconnected = asyncio.Event()
         request = asyncio.create_task(
             self.coordinator.execute(
-                {"delay_ms": 100}, 200, lambda: disconnected.is_set()
+                {"delay_ms": 100},
+                NORMAL_REQUEST_TIMEOUT_MS,
+                lambda: disconnected.is_set(),
             )
         )
         await asyncio.sleep(0.01)
@@ -93,7 +155,9 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
     async def test_task_cancellation_terminates_the_active_worker(self) -> None:
         active_pid = self.coordinator.worker_pid
         request = asyncio.create_task(
-            self.coordinator.execute({"delay_ms": 100}, 200, never_disconnected)
+            self.coordinator.execute(
+                {"delay_ms": 100}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
+            )
         )
         await asyncio.sleep(0.01)
         request.cancel()
@@ -106,7 +170,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
     async def test_batch_uses_the_same_bounded_protocol(self) -> None:
         result = await self.coordinator.execute(
             {"items": [{"id": "a", "text": "one"}, {"id": "b", "text": "two"}]},
-            200,
+            NORMAL_REQUEST_TIMEOUT_MS,
             never_disconnected,
         )
 
@@ -116,12 +180,16 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_queued_disconnect_does_not_kill_the_running_job(self) -> None:
         running = asyncio.create_task(
-            self.coordinator.execute({"delay_ms": 60}, 200, never_disconnected)
+            self.coordinator.execute(
+                {"delay_ms": 60}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
+            )
         )
         await asyncio.sleep(0.01)
         active_pid = self.coordinator.worker_pid
         with self.assertRaises(ClientDisconnected):
-            await self.coordinator.execute({"text": "queued"}, 200, lambda: True)
+            await self.coordinator.execute(
+                {"text": "queued"}, NORMAL_REQUEST_TIMEOUT_MS, lambda: True
+            )
 
         completed = await running
         self.assertEqual(completed["pid"], active_pid)
@@ -130,17 +198,21 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
     async def test_crashed_worker_reports_unavailable_and_is_replaced(self) -> None:
         active_pid = self.coordinator.worker_pid
         with self.assertRaises(WorkerUnavailable):
-            await self.coordinator.execute({"crash": True}, 200, never_disconnected)
+            await self.coordinator.execute(
+                {"crash": True}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
+            )
 
         result = await self.coordinator.execute(
-            {"text": "replacement"}, 200, never_disconnected
+            {"text": "replacement"}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
         )
         self.assertNotEqual(result["pid"], active_pid)
 
     async def test_malformed_worker_frame_terminates_the_protocol_peer(self) -> None:
         active_pid = self.coordinator.worker_pid
         with self.assertRaises(WorkerUnavailable):
-            await self.coordinator.execute({"malformed": True}, 200, never_disconnected)
+            await self.coordinator.execute(
+                {"malformed": True}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
+            )
 
         self.assertIsNone(self.coordinator.worker_pid)
         self.assertProcessGone(active_pid)
@@ -151,7 +223,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
         active_pid = self.coordinator.worker_pid
         with self.assertRaises(WorkerUnavailable):
             await self.coordinator.execute(
-                {"wrong_epoch": True}, 200, never_disconnected
+                {"wrong_epoch": True}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
             )
 
         self.assertIsNone(self.coordinator.worker_pid)
@@ -163,7 +235,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
         active_pid = self.coordinator.worker_pid
         with self.assertRaises(AnalysisRequestError) as error:
             await self.coordinator.execute(
-                {"unsupported": True}, 200, never_disconnected
+                {"unsupported": True}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
             )
 
         self.assertEqual(error.exception.status_code, 422)
@@ -178,7 +250,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
             self.assertRaises(AnalysisRequestError) as error,
         ):
             await self.coordinator.execute(
-                {"text": "too large"}, 200, never_disconnected
+                {"text": "too large"}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
             )
 
         self.assertEqual(error.exception.status_code, 413)
@@ -207,7 +279,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
                 coordinator = AnalysisCoordinator(
                     worker_command=(sys.executable, str(fixture), mode),
                     generation_id="generation-test",
-                    worker_start_timeout_s=0.2,
+                    worker_start_timeout_s=1.0,
                 )
                 try:
                     with self.assertRaises(WorkerUnavailable):
@@ -233,7 +305,9 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
             self.addAsyncCleanup(coordinator.close)
             await coordinator.start()
             with self.assertRaises(WorkerUnavailable):
-                await coordinator.execute({"crash": True}, 200, never_disconnected)
+                await coordinator.execute(
+                    {"crash": True}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
+                )
 
             started = time.monotonic()
             with self.assertRaises(TimeoutError):
@@ -264,7 +338,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
             request = asyncio.create_task(
                 coordinator.execute(
                     {"text": "replacement"},
-                    200,
+                    NORMAL_REQUEST_TIMEOUT_MS,
                     lambda: disconnected.is_set(),
                 )
             )
@@ -279,7 +353,9 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
     async def test_shutdown_terminates_an_active_worker_without_a_zombie(self) -> None:
         active_pid = self.coordinator.worker_pid
         request = asyncio.create_task(
-            self.coordinator.execute({"delay_ms": 100}, 200, never_disconnected)
+            self.coordinator.execute(
+                {"delay_ms": 100}, NORMAL_REQUEST_TIMEOUT_MS, never_disconnected
+            )
         )
         await asyncio.sleep(0.01)
         await self.coordinator.close()

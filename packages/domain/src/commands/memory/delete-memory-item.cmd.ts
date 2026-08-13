@@ -11,6 +11,7 @@ import {
   assertSingleOrNull,
   computeMemoryDeletionCanonicalInputVersion,
   MemoryDeletionScopeValues,
+  NormalizedLanguageIdSchema,
   RecallDerivationReferenceSchema,
   type RecallDerivationReference,
 } from "@cat/shared";
@@ -91,7 +92,9 @@ export const deleteMemoryItemInTransaction = async (
     ...new Set([
       snapshot.source.languageId,
       snapshot.translation.languageId,
-      ...lockedStates.map((state) => state.languageId),
+      ...lockedStates.map((state) =>
+        NormalizedLanguageIdSchema.parse(state.languageId),
+      ),
     ]),
   ].sort();
   const canonicalInputVersion =

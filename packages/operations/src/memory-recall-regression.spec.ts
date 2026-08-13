@@ -162,82 +162,23 @@ describe("memory recall regression fixtures", () => {
       }),
       expect.objectContaining({ signal: controller.signal }),
     );
+    expect(mocks.probeMemoryRecallDependency).not.toHaveBeenCalled();
   });
 
-  it("prefers supplied query vectors over chunk IDs and raw text vectorization", async () => {
-    const vectorize = vi.fn();
-    mocks.selectFirstServiceImplementation.mockImplementation(
-      (_pluginManager, serviceType) => {
-        if (serviceType === "VECTOR_STORAGE") {
-          return { reference: vectorStorage, service: {} };
-        }
-        if (serviceType === "TEXT_VECTORIZER") {
-          return {
-            reference: vectorizer,
-            service: { canVectorize: () => true, vectorize },
-          };
-        }
-        return undefined;
-      },
-    );
-    mocks.searchMemoryOp.mockResolvedValue({ memories: [] });
-
-    await collectMemoryRecallOp({
-      text: "semantic query",
-      sourceLanguageId: "en",
-      translationLanguageId: "zh-Hans",
-      memoryIds: [MEMORY_ID],
-      chunkIds: [7],
-      queryVectors: [[0.1, 0.2]],
-      channels: ["SEMANTIC"],
-    });
-
-    expect(vectorize).not.toHaveBeenCalled();
-    expect(mocks.searchMemoryOp).toHaveBeenCalledWith(
-      expect.objectContaining({
-        chunkIds: [],
-        queryVectors: [[0.1, 0.2]],
-      }),
-      undefined,
-    );
-  });
-
-  it("prefers supplied chunk IDs over raw text vectorization", async () => {
-    const vectorize = vi.fn();
-    mocks.selectFirstServiceImplementation.mockImplementation(
-      (_pluginManager, serviceType) => {
-        if (serviceType === "VECTOR_STORAGE") {
-          return { reference: vectorStorage, service: {} };
-        }
-        if (serviceType === "TEXT_VECTORIZER") {
-          return {
-            reference: vectorizer,
-            service: { canVectorize: () => true, vectorize },
-          };
-        }
-        return undefined;
-      },
-    );
-    mocks.searchMemoryOp.mockResolvedValue({ memories: [] });
-
-    await collectMemoryRecallOp({
-      text: "semantic query",
-      sourceLanguageId: "en",
-      translationLanguageId: "zh-Hans",
-      memoryIds: [MEMORY_ID],
-      chunkIds: [7],
-      channels: ["SEMANTIC"],
-    });
-
-    expect(vectorize).not.toHaveBeenCalled();
-    expect(mocks.searchMemoryOp).toHaveBeenCalledWith(
-      expect.objectContaining({ chunkIds: [7] }),
-      undefined,
-    );
-    expect(mocks.searchMemoryOp.mock.calls[0]?.[0]).not.toHaveProperty(
-      "queryVectors",
-    );
-  });
+  it.each(["chunkIds", "queryVectors"])(
+    "rejects caller-supplied semantic test hook %s",
+    (field) => {
+      expect(() =>
+        CollectMemoryRecallInputSchema.parse({
+          text: "semantic query",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          memoryIds: [MEMORY_ID],
+          [field]: field === "chunkIds" ? [7] : [[0.1, 0.2]],
+        }),
+      ).toThrow("Unrecognized key");
+    },
+  );
 
   it("treats a raw query with zero vectorized chunks as an empty semantic result", async () => {
     mocks.selectFirstServiceImplementation.mockImplementation(
@@ -399,10 +340,21 @@ describe("memory recall regression fixtures", () => {
     const controller = new AbortController();
     const reason = new Error("cancel storage search");
     mocks.selectFirstServiceImplementation.mockImplementation(
-      (_pluginManager, serviceType) =>
-        serviceType === "VECTOR_STORAGE"
-          ? { reference: vectorStorage, service: {} }
-          : undefined,
+      (_pluginManager, serviceType) => {
+        if (serviceType === "VECTOR_STORAGE") {
+          return { reference: vectorStorage, service: {} };
+        }
+        if (serviceType === "TEXT_VECTORIZER") {
+          return {
+            reference: vectorizer,
+            service: {
+              canVectorize: () => true,
+              vectorize: vi.fn().mockResolvedValue([[{ vector: [0.1, 0.2] }]]),
+            },
+          };
+        }
+        return undefined;
+      },
     );
     mocks.searchMemoryOp.mockImplementation(async () => {
       controller.abort(reason);
@@ -416,7 +368,6 @@ describe("memory recall regression fixtures", () => {
           sourceLanguageId: "en",
           translationLanguageId: "zh-Hans",
           memoryIds: [MEMORY_ID],
-          queryVectors: [[0.1, 0.2]],
           channels: ["SEMANTIC"],
         },
         { traceId: "cancel-storage-search", signal: controller.signal },
@@ -469,27 +420,348 @@ describe("memory recall regression fixtures", () => {
   });
 
   it.each([
-    {
-      sourceLanguageAnalysisTokens: [],
-    },
-    {
-      sourceLanguageAnalysisVersion: `sha256:${"a".repeat(64)}`,
-    },
-  ])("rejects an incomplete Language Analysis snapshot %#", (snapshot) => {
+    "sourceLanguageAnalysisTokens",
+    "sourceLanguageAnalysisVersion",
+    "normalizedText",
+    "unexpectedProof",
+  ])("rejects caller-supplied Language Analysis field %s", (field) => {
     expect(() =>
       CollectMemoryRecallInputSchema.parse({
         text: "Order completed",
         sourceLanguageId: "en",
         translationLanguageId: "zh-Hans",
         memoryIds: [MEMORY_ID],
-        ...snapshot,
+        [field]: [],
       }),
-    ).toThrow("Language Analysis tokens and version must be supplied together");
+    ).toThrow("Unrecognized key");
+  });
+
+  it("does not invent sparse evidence without Language Analysis tokens", async () => {
+    mocks.executeQuery.mockImplementation(async (_ctx, query) => {
+      if (query !== mocks.listExactMemorySuggestions) return [];
+      return [
+        {
+          id: 606,
+          translationId: null,
+          memoryId: MEMORY_ID,
+          creatorId: null,
+          createdAt: new Date("2026-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+          source: "Order completed",
+          translation: "订单已完成",
+          translationChunkSetId: null,
+          sourceTemplate: null,
+          translationTemplate: null,
+          slotMapping: null,
+          confidence: 1,
+          evidences: [
+            {
+              channel: "exact" as const,
+              matchedText: "Order completed",
+              confidence: 1,
+            },
+          ],
+        },
+      ];
+    });
+
+    const result = await collectMemoryRecallOp({
+      text: "Order completed",
+      sourceLanguageId: "en",
+      translationLanguageId: "zh-Hans",
+      memoryIds: [MEMORY_ID],
+      channels: ["EXACT"],
+    });
+
+    expect(getMemoryRecallCandidates(result)[0]?.evidences).not.toContainEqual(
+      expect.objectContaining({ channel: "sparse" }),
+    );
+    expect(mocks.probeMemoryRecallDependency).not.toHaveBeenCalled();
+  });
+
+  it.each(["EXACT", "FUZZY"] as const)(
+    "does not probe Language Analysis for %s-only memory recall",
+    async (channel) => {
+      mocks.probeMemoryRecallDependency.mockRejectedValue(
+        new Error("analyzer must not run"),
+      );
+      mocks.executeQuery.mockResolvedValue([
+        {
+          id: 607,
+          translationId: null,
+          memoryId: MEMORY_ID,
+          creatorId: null,
+          createdAt: new Date("2026-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+          source: "Order completed",
+          translation: "订单已完成",
+          translationChunkSetId: null,
+          sourceTemplate: null,
+          translationTemplate: null,
+          slotMapping: null,
+          confidence: 1,
+          evidences: [
+            {
+              channel: channel === "EXACT" ? ("exact" as const) : "trgm",
+              matchedText: "Order completed",
+              confidence: 1,
+            },
+          ],
+        },
+      ]);
+
+      await expect(
+        collectMemoryRecallOp({
+          text: "Order completed",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          memoryIds: [MEMORY_ID],
+          channels: [channel],
+        }),
+      ).resolves.toMatchObject({
+        outcomes: { [channel]: { status: "SUCCEEDED" } },
+      });
+      expect(mocks.probeMemoryRecallDependency).not.toHaveBeenCalled();
+    },
+  );
+
+  it("blocks only keyword recall when analysis dependency probing fails", async () => {
+    mocks.probeMemoryRecallDependency.mockRejectedValue(
+      new Error("analyzer unavailable"),
+    );
+    mocks.executeQuery.mockImplementation(async (_ctx, query) => {
+      if (
+        query !== mocks.listExactMemorySuggestions &&
+        query !== mocks.listTrgmMemorySuggestions
+      ) {
+        return [];
+      }
+      return [
+        {
+          id: 608,
+          translationId: null,
+          memoryId: MEMORY_ID,
+          creatorId: null,
+          createdAt: new Date("2026-01-01T00:00:00.000Z"),
+          updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+          source: "Order completed",
+          translation: "订单已完成",
+          translationChunkSetId: null,
+          sourceTemplate: null,
+          translationTemplate: null,
+          slotMapping: null,
+          confidence: 1,
+          evidences: [
+            {
+              channel:
+                query === mocks.listExactMemorySuggestions
+                  ? ("exact" as const)
+                  : "trgm",
+              confidence: 1,
+            },
+          ],
+        },
+      ];
+    });
+    mocks.selectFirstServiceImplementation.mockImplementation(
+      (_pluginManager, serviceType) => {
+        if (serviceType === "VECTOR_STORAGE") {
+          return { reference: vectorStorage, service: {} };
+        }
+        if (serviceType === "TEXT_VECTORIZER") {
+          return {
+            reference: vectorizer,
+            service: {
+              canVectorize: () => true,
+              vectorize: vi.fn().mockResolvedValue([[{ vector: [0.1, 0.2] }]]),
+            },
+          };
+        }
+        return undefined;
+      },
+    );
+    mocks.searchMemoryOp.mockResolvedValue({ memories: [] });
+
+    const result = await collectMemoryRecallOp({
+      text: "Order completed",
+      sourceLanguageId: "en",
+      translationLanguageId: "zh-Hans",
+      memoryIds: [MEMORY_ID],
+      channels: ["EXACT", "FUZZY", "KEYWORD", "SEMANTIC"],
+    });
+
+    expect(result.outcomes.EXACT).toMatchObject({ status: "SUCCEEDED" });
+    expect(result.outcomes.FUZZY).toMatchObject({ status: "SUCCEEDED" });
+    expect(result.outcomes.KEYWORD).toMatchObject({ status: "BLOCKED" });
+    expect(result.outcomes.SEMANTIC).toMatchObject({ status: "EMPTY" });
+    expect(mocks.probeMemoryRecallDependency).toHaveBeenCalledOnce();
+  });
+
+  it.each(["KEYWORD", "VARIANT"] as const)(
+    "uses the current dependency probe for %s-only memory recall",
+    async (channel) => {
+      mocks.probeMemoryRecallDependency.mockRejectedValue(
+        new Error("analyzer unavailable"),
+      );
+
+      await expect(
+        collectMemoryRecallOp({
+          text: "Order completed",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          memoryIds: [MEMORY_ID],
+          channels: [channel],
+        }),
+      ).rejects.toMatchObject({
+        recallResult: {
+          outcomes: { [channel]: { status: "BLOCKED" } },
+        },
+      });
+      expect(mocks.probeMemoryRecallDependency).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("fails the only requested Variant channel when query template construction fails", async () => {
+    mocks.probeMemoryRecallDependency.mockResolvedValue({
+      requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+      tokens: [],
+    });
+    mocks.tokenizeOp.mockRejectedValue(new Error("tokenizer unavailable"));
+    mocks.executeQuery.mockImplementation(async (_ctx, query) =>
+      query === mocks.listScopedMemoryRecallDerivationStates
+        ? [
+            {
+              targetId: "42",
+              stateId: 1,
+              languageId: "en",
+              status: "FRESH",
+              demandRevision: 1,
+              blocker: null,
+              canonicalInputVersion: `sha256:${"c".repeat(64)}`,
+              requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+              currentCanonicalInputVersion: `sha256:${"c".repeat(64)}`,
+              currentDerivationVersion: `sha256:${"d".repeat(64)}`,
+            },
+          ]
+        : [],
+    );
+
+    await expect(
+      collectMemoryRecallOp({
+        text: "running",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        memoryIds: [MEMORY_ID],
+        channels: ["VARIANT"],
+      }),
+    ).rejects.toMatchObject({
+      recallResult: {
+        outcomes: {
+          VARIANT: {
+            status: "BLOCKED",
+            blocker: {
+              reason: "CHANNEL_EXECUTION_FAILED",
+              capability: "RECALL_DERIVATION",
+            },
+          },
+        },
+      },
+    });
+    expect(mocks.executeQuery).not.toHaveBeenCalledWith(
+      expect.anything(),
+      mocks.listVariantMemorySuggestions,
+      expect.anything(),
+    );
+  });
+
+  it("keeps successful independent channels when Variant template construction fails", async () => {
+    mocks.probeMemoryRecallDependency.mockResolvedValue({
+      requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+      tokens: [],
+    });
+    mocks.tokenizeOp.mockRejectedValue(new Error("tokenizer unavailable"));
+    mocks.executeQuery.mockImplementation(async (_ctx, query) => {
+      if (query === mocks.listScopedMemoryRecallDerivationStates) {
+        return [
+          {
+            targetId: "42",
+            stateId: 1,
+            languageId: "en",
+            status: "FRESH",
+            demandRevision: 1,
+            blocker: null,
+            canonicalInputVersion: `sha256:${"c".repeat(64)}`,
+            requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+            currentCanonicalInputVersion: `sha256:${"c".repeat(64)}`,
+            currentDerivationVersion: `sha256:${"d".repeat(64)}`,
+          },
+        ];
+      }
+      if (query === mocks.listExactMemorySuggestions) {
+        return [
+          {
+            id: 42,
+            translationId: null,
+            memoryId: MEMORY_ID,
+            creatorId: null,
+            createdAt: new Date("2026-01-01T00:00:00.000Z"),
+            updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+            source: "running",
+            translation: "running translation",
+            translationChunkSetId: null,
+            sourceTemplate: null,
+            translationTemplate: null,
+            slotMapping: null,
+            confidence: 1,
+            evidences: [
+              {
+                channel: "exact" as const,
+                confidence: 1,
+                matchedText: "running",
+              },
+            ],
+          },
+        ];
+      }
+      return [];
+    });
+
+    await expect(
+      collectMemoryRecallOp({
+        text: "running",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        memoryIds: [MEMORY_ID],
+        channels: ["EXACT", "VARIANT"],
+      }),
+    ).resolves.toMatchObject({
+      outcomes: {
+        EXACT: { status: "SUCCEEDED" },
+        VARIANT: {
+          status: "BLOCKED",
+          blocker: {
+            reason: "CHANNEL_EXECUTION_FAILED",
+            capability: "RECALL_DERIVATION",
+          },
+        },
+      },
+    });
   });
 
   it("blocks a Candidate Channel atomically when a later internal lane fails", async () => {
     mocks.probeMemoryRecallDependency.mockResolvedValue({
       requiredDerivationVersion: `sha256:${"d".repeat(64)}`,
+      tokens: [
+        {
+          text: "running",
+          lemma: "run",
+          pos: "VERB",
+          start: 0,
+          end: 7,
+          isStop: false,
+          isPunct: false,
+        },
+      ],
     });
     mocks.tokenizeOp.mockResolvedValue({
       tokens: [{ type: "text", value: "running", start: 0, end: 7 }],
@@ -553,18 +825,6 @@ describe("memory recall regression fixtures", () => {
         translationLanguageId: "zh-Hans",
         memoryIds: [MEMORY_ID],
         channels: ["VARIANT"],
-        sourceLanguageAnalysisTokens: [
-          {
-            text: "running",
-            lemma: "run",
-            pos: "VERB",
-            start: 0,
-            end: 7,
-            isStop: false,
-            isPunct: false,
-          },
-        ],
-        sourceLanguageAnalysisVersion: `sha256:${"a".repeat(64)}`,
       }),
     ).rejects.toMatchObject({
       recallResult: {
@@ -576,6 +836,7 @@ describe("memory recall regression fixtures", () => {
         },
       },
     });
+    expect(mocks.tokenizeOp).toHaveBeenCalledOnce();
   });
 
   it.each(loadFixtures())("$name", async (fixture) => {
@@ -632,6 +893,23 @@ describe("memory recall regression fixtures", () => {
       })),
       reconciliation: { invalidated: 0, pendingUpdated: 0, resumed: 0 },
     });
+    mocks.selectFirstServiceImplementation.mockImplementation(
+      (_pluginManager, serviceType) => {
+        if (serviceType === "VECTOR_STORAGE") {
+          return { reference: vectorStorage, service: {} };
+        }
+        if (serviceType === "TEXT_VECTORIZER") {
+          return {
+            reference: vectorizer,
+            service: {
+              canVectorize: () => true,
+              vectorize: vi.fn().mockResolvedValue([[{ vector: [0.1, 0.2] }]]),
+            },
+          };
+        }
+        return undefined;
+      },
+    );
 
     const result = await collectMemoryRecallOp(
       {
@@ -639,9 +917,6 @@ describe("memory recall regression fixtures", () => {
         sourceLanguageId: fixture.query.sourceLanguageId,
         translationLanguageId: fixture.query.translationLanguageId,
         memoryIds: [MEMORY_ID],
-        chunkIds: [1],
-        queryVectors: [[0.1, 0.2]],
-        vectorStorage,
         maxAmount: 10,
       },
       { traceId: "memory-recall-regression" },

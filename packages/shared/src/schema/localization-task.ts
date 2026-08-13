@@ -149,6 +149,49 @@ export const OperationFailureInputSchema = OperationFailureSchema.omit({
   traceId: true,
 });
 
+export const OperationFailurePublicProjectionSchema =
+  OperationFailureSchema.pick({
+    id: true,
+    code: true,
+    message: true,
+    severity: true,
+    retryable: true,
+    blocker: true,
+    capability: true,
+    authorizationDecision: true,
+    affectedResources: true,
+    remediationHint: true,
+    redactionBoundary: true,
+  })
+    .extend({
+      redacted: z.literal(false),
+      redactionBoundary: z.literal("PUBLIC"),
+    })
+    .strip();
+
+export const OperationFailureRedactedProjectionSchema =
+  OperationFailureSchema.pick({
+    id: true,
+    code: true,
+    severity: true,
+    retryable: true,
+    blocker: true,
+    redactionBoundary: true,
+  })
+    .extend({
+      redacted: z.literal(true),
+      redactionBoundary: z.literal("INTERNAL"),
+    })
+    .strip();
+
+export const OperationFailureClientProjectionSchema = z.discriminatedUnion(
+  "redacted",
+  [
+    OperationFailurePublicProjectionSchema,
+    OperationFailureRedactedProjectionSchema,
+  ],
+);
+
 export const TaskStateSchema = z.strictObject({
   status: TaskStatusSchema,
   scope: TaskScopeSchema,
@@ -179,5 +222,33 @@ export type RecallDerivationTaskResult = z.infer<
 >;
 export type OperationFailure = z.infer<typeof OperationFailureSchema>;
 export type OperationFailureInput = z.infer<typeof OperationFailureInputSchema>;
+export type OperationFailurePublicProjection = z.infer<
+  typeof OperationFailurePublicProjectionSchema
+>;
+export type OperationFailureRedactedProjection = z.infer<
+  typeof OperationFailureRedactedProjectionSchema
+>;
+export type OperationFailureClientProjection = z.infer<
+  typeof OperationFailureClientProjectionSchema
+>;
+
+export const toOperationFailureClientProjection = (
+  failure:
+    | OperationFailure
+    | OperationFailurePublicProjection
+    | OperationFailureRedactedProjection,
+): OperationFailureClientProjection => {
+  if ("redacted" in failure) return failure;
+  if (failure.redactionBoundary === "PUBLIC") {
+    return OperationFailurePublicProjectionSchema.parse({
+      ...failure,
+      redacted: false,
+    });
+  }
+  return OperationFailureRedactedProjectionSchema.parse({
+    ...failure,
+    redacted: true,
+  });
+};
 export type TaskRuntime = z.infer<typeof TaskRuntimeSchema>;
 export type TaskState = z.infer<typeof TaskStateSchema>;

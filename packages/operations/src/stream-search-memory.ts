@@ -1,6 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 import {
   MemoryRecallStreamEventSchema,
+  NormalizedLanguageIdSchema,
   type MemoryRecallStreamEvent,
 } from "@cat/shared";
 import * as z from "zod";
@@ -13,11 +14,9 @@ import {
 
 export const StreamSearchMemoryInputSchema = z.strictObject({
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   memoryIds: z.array(z.uuidv4()),
-  /** Chunk IDs for the source element (used by the semantic channel). */
-  chunkIds: z.array(z.int()),
   minSimilarity: z.number().min(0).max(1).optional().default(0.72),
   maxAmount: z.int().min(1).optional().default(3),
 });

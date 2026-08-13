@@ -139,7 +139,6 @@ export * from "#/queries/plugin/list-plugins.query.ts";
 export * from "#/queries/plugin/get-plugin-config.query.ts";
 export * from "#/queries/plugin/get-plugin-config-instance.query.ts";
 export * from "#/queries/plugin/is-plugin-installed.query.ts";
-export * from "#/queries/plugin/get-plugin-service-by-id.query.ts";
 export * from "#/queries/plugin/list-plugin-service-ids-by-type.query.ts";
 export * from "#/queries/plugin/list-installed-plugins.query.ts";
 export * from "#/queries/plugin/get-plugin-installation.query.ts";
