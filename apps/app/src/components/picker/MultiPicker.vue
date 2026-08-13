@@ -24,8 +24,6 @@ import type { PickerOption } from "./index.ts";
 
 const { t } = useI18n();
 
-const createEmptyValues = <Value>(): Value[] => [];
-
 const props = withDefaults(
   defineProps<{
     options: PickerOption<T>[];
@@ -39,7 +37,7 @@ const props = withDefaults(
 );
 
 const modalValue = defineModel<T[]>({
-  default: createEmptyValues<T>,
+  default: () => [] as T[],
 });
 
 const selectedOptions = shallowRef<PickerOption<T>[]>([]);
