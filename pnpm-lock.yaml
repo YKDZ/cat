@@ -248,8 +248,8 @@ catalogs:
       specifier: ^20.10.2
       version: 20.10.2
     hono:
-      specifier: ^4.12.25
-      version: 4.12.25
+      specifier: ^4.12.34
+      version: 4.13.0
     hono-rate-limiter:
       specifier: ^0.5.3
       version: 0.5.3
@@ -260,8 +260,8 @@ catalogs:
       specifier: ^2.7.0
       version: 2.7.0
     js-yaml:
-      specifier: ^4.2.0
-      version: 4.2.0
+      specifier: ^5.2.3
+      version: 5.2.3
     marked:
       specifier: ^18.0.5
       version: 18.0.5
@@ -278,8 +278,8 @@ catalogs:
       specifier: ^1.69.0
       version: 1.69.0
     oxlint-tsgolint:
-      specifier: ^0.23.0
-      version: 0.23.0
+      specifier: ^7.0.2001
+      version: 7.0.2001
     partysocket:
       specifier: ^1.1.19
       version: 1.1.19
@@ -335,8 +335,8 @@ catalogs:
       specifier: ^3.6.0
       version: 3.6.0
     tailwindcss:
-      specifier: ^4.3.0
-      version: 4.3.0
+      specifier: ^4.3.3
+      version: 4.3.3
     telefunc:
       specifier: ^0.2.20
       version: 0.2.20
@@ -389,8 +389,8 @@ catalogs:
       specifier: ^3.5.38
       version: 3.5.38
     vue-i18n:
-      specifier: ^11.4.5
-      version: 11.4.5
+      specifier: ^11.4.8
+      version: 11.4.8
     vue-sonner:
       specifier: ^2.0.9
       version: 2.0.9
@@ -459,10 +459,10 @@ importers:
         version: 0.54.0
       oxlint:
         specifier: 'catalog:'
-        version: 1.69.0(oxlint-tsgolint@0.23.0)
+        version: 1.69.0(oxlint-tsgolint@7.0.2001)
       oxlint-tsgolint:
         specifier: 'catalog:'
-        version: 0.23.0
+        version: 7.0.2001
       pino-pretty:
         specifier: 'catalog:'
         version: 13.1.3
@@ -833,7 +833,7 @@ importers:
         version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
       hono:
         specifier: 'catalog:'
-        version: 4.12.25
+        version: 4.13.0
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
@@ -984,13 +984,13 @@ importers:
         version: 6.43.1
       '@hono/mcp':
         specifier: 'catalog:'
-        version: 0.3.0(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.12.25))(hono@4.12.25)(zod@4.4.3)
+        version: 0.3.0(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.13.0))(hono@4.13.0)(zod@4.4.3)
       '@hono/node-ws':
         specifier: 'catalog:'
-        version: 1.3.1(@hono/node-server@1.19.14(hono@4.12.25))(hono@4.12.25)
+        version: 1.3.1(@hono/node-server@1.19.14(hono@4.13.0))(hono@4.13.0)
       '@intlify/unplugin-vue-i18n':
         specifier: 'catalog:'
-        version: 11.2.3(@vue/compiler-dom@3.5.38)(eslint@9.37.0(jiti@2.7.0))(rollup@4.61.1)(typescript@6.0.3)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))
+        version: 11.2.3(@vue/compiler-dom@3.5.38)(eslint@9.37.0(jiti@2.7.0))(rollup@4.61.1)(typescript@6.0.3)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))
       '@lucide/vue':
         specifier: 'catalog:'
         version: 1.18.0(vue@3.5.38(typescript@6.0.3))
@@ -1038,7 +1038,7 @@ importers:
         version: 4.15.1(vue@3.5.38(typescript@6.0.3))(zod@4.4.3)
       '@vikejs/hono':
         specifier: 'catalog:'
-        version: 0.2.0(hono@4.12.25)(srvx@0.11.16)(vike@0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))
+        version: 0.2.0(hono@4.13.0)(srvx@0.11.16)(vike@0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))
       '@vueuse/components':
         specifier: 'catalog:'
         version: 14.3.0(vue@3.5.38(typescript@6.0.3))
@@ -1068,10 +1068,10 @@ importers:
         version: 1.0.0-rc.4-273829f(@electric-sql/pglite@0.5.2)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@7.6.13)(@types/pg@8.20.0)(better-sqlite3@12.10.0)(pg@8.21.0)(zod@4.4.3)
       hono:
         specifier: 'catalog:'
-        version: 4.12.25
+        version: 4.13.0
       hono-rate-limiter:
         specifier: 'catalog:'
-        version: 0.5.3(hono@4.12.25)
+        version: 0.5.3(hono@4.13.0)
       isomorphic-dompurify:
         specifier: 'catalog:'
         version: 3.16.0(@noble/hashes@1.8.0)
@@ -1101,7 +1101,7 @@ importers:
         version: 4.2.0
       tailwindcss:
         specifier: 'catalog:'
-        version: 4.3.0
+        version: 4.3.3
       telefunc:
         specifier: 'catalog:'
         version: 0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -1119,16 +1119,16 @@ importers:
         version: 4.15.1(vue@3.5.38(typescript@6.0.3))
       vike:
         specifier: 'catalog:'
-        version: 0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       vike-vue:
         specifier: 'catalog:'
-        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))(vue@3.5.38(typescript@6.0.3))
+        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))(vue@3.5.38(typescript@6.0.3))
       vue:
         specifier: 'catalog:'
         version: 3.5.38(typescript@6.0.3)
       vue-i18n:
         specifier: 'catalog:'
-        version: 11.4.5(vue@3.5.38(typescript@6.0.3))
+        version: 11.4.8(vue@3.5.38(typescript@6.0.3))
       vue-sonner:
         specifier: 'catalog:'
         version: 2.0.9
@@ -1159,13 +1159,13 @@ importers:
         version: 1.2.3
       '@iconify/tailwind4':
         specifier: 'catalog:'
-        version: 1.2.3(tailwindcss@4.3.0)
+        version: 1.2.3(tailwindcss@4.3.3)
       '@pinia/colada-devtools':
         specifier: 'catalog:'
         version: 1.0.0
       '@tailwindcss/typography':
         specifier: 'catalog:'
-        version: 0.5.20(tailwindcss@4.3.0)
+        version: 0.5.20(tailwindcss@4.3.3)
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -1268,7 +1268,7 @@ importers:
         version: 4.3.0(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       tailwindcss:
         specifier: 'catalog:'
-        version: 4.3.0
+        version: 4.3.3
     devDependencies:
       '@cat/typescript-config':
         specifier: link:../../packages/typescript-config
@@ -1278,10 +1278,10 @@ importers:
         version: 1.2.3
       '@iconify/tailwind4':
         specifier: 'catalog:'
-        version: 1.2.3(tailwindcss@4.3.0)
+        version: 1.2.3(tailwindcss@4.3.3)
       '@mermaid-js/mermaid-zenuml':
         specifier: 'catalog:'
-        version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.0)
+        version: 0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.3)
       '@vue/tsconfig':
         specifier: 'catalog:'
         version: 0.9.1(typescript@6.0.3)(vue@3.5.38(typescript@6.0.3))
@@ -1368,7 +1368,7 @@ importers:
         version: 15.0.0
       js-yaml:
         specifier: 'catalog:'
-        version: 4.2.0
+        version: 5.2.3
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -1530,7 +1530,7 @@ importers:
         version: link:../workflow
       '@hono/node-ws':
         specifier: 'catalog:'
-        version: 1.3.1(@hono/node-server@1.19.14(hono@4.12.25))(hono@4.12.25)
+        version: 1.3.1(@hono/node-server@1.19.14(hono@4.13.0))(hono@4.13.0)
       '@orpc/client':
         specifier: 'catalog:'
         version: 1.14.6(@opentelemetry/api@1.9.1)
@@ -1542,7 +1542,7 @@ importers:
         version: 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
       hono:
         specifier: 'catalog:'
-        version: 4.12.25
+        version: 4.13.0
       telefunc:
         specifier: 'catalog:'
         version: 0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
@@ -1848,7 +1848,7 @@ importers:
         version: 3.4.10
       hono:
         specifier: 'catalog:'
-        version: 4.12.25
+        version: 4.13.0
       vue:
         specifier: 'catalog:'
         version: 3.5.38(typescript@6.0.3)
@@ -1931,7 +1931,7 @@ importers:
         version: 12.10.0
       js-yaml:
         specifier: 'catalog:'
-        version: 4.2.0
+        version: 5.2.3
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -2083,7 +2083,7 @@ importers:
         version: 0.54.0
       oxlint:
         specifier: 'catalog:'
-        version: 1.69.0(oxlint-tsgolint@0.23.0)
+        version: 1.69.0(oxlint-tsgolint@7.0.2001)
 
   packages/ui:
     dependencies:
@@ -2125,7 +2125,7 @@ importers:
         version: 4.15.1(vue@3.5.38(typescript@6.0.3))
       vike-vue:
         specifier: 'catalog:'
-        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))(vue@3.5.38(typescript@6.0.3))
+        version: 0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))(vue@3.5.38(typescript@6.0.3))
       vue:
         specifier: 'catalog:'
         version: 3.5.38(typescript@6.0.3)
@@ -3318,20 +3318,28 @@ packages:
       vue-i18n:
         optional: true
 
-  '@intlify/core-base@11.4.5':
-    resolution: {integrity: sha512-lja3F/iKVIvTa48mIwmrIeDcQUFZ0F0drvFvT8AwINOvbwnAzl/S/p8p2DxILZpWEUHRi1qewfWNIkMvhD3kKA==}
+  '@intlify/core-base@11.4.8':
+    resolution: {integrity: sha512-A+Q7SKm5oEcy1E/cghqd7n/St4XjTqLhiiyDuieNcMrJcrHlkY5n0jp7Q9dD3txvVHzvsmBVV5M9wD5/s1zfzw==}
     engines: {node: '>= 22'}
 
-  '@intlify/devtools-types@11.4.5':
-    resolution: {integrity: sha512-W5vydP9Yq3t82IyWqCM6aR0BTWCZrN5RAwjZEPpH8I2OQWp2RLy03Evh2ANZlSMhcvGAoyDg25k0so85Kwncpw==}
+  '@intlify/devtools-types@11.4.8':
+    resolution: {integrity: sha512-MGpID+rlfzGUbNcnC20bm5NMSBHPrvx0atLTfv9dftn3kjXw1hGKDcIcwrO99tSrZEc2i+hczRL7ks8qXsHPkQ==}
     engines: {node: '>= 22'}
 
   '@intlify/message-compiler@11.4.5':
     resolution: {integrity: sha512-IEOZiHtbQopyPc/Dz2M869lOlZYX1SdcniNJwphATDYHhovvIneEKf1EFF37DE7NAABZtza1FNtnwwqZWInfpw==}
     engines: {node: '>= 22'}
 
+  '@intlify/message-compiler@11.4.8':
+    resolution: {integrity: sha512-vbzk17dYwduYiv52EK61+FDCyhfVg1uPUtPmiD/d45W99uJIcXywrweOBcHv7n9/iEqmXiMGT52bgJbZDQqK3w==}
+    engines: {node: '>= 22'}
+
   '@intlify/shared@11.4.5':
     resolution: {integrity: sha512-g/i5mtdUa9ia/8BaJ4w6ZRHgAXYQd9XyCaQPRMvsd8d5qmZwkjoTmHrNsI28Q/7I8h+2ijUkI4uEnnMCziKupQ==}
+    engines: {node: '>= 22'}
+
+  '@intlify/shared@11.4.8':
+    resolution: {integrity: sha512-XbRgrv+XEuvDr7UCY55oibVrh+o4u+A0VB6nSL0F5Z8LcZxE/8j573LYG6bCrOigIcHdGpSNI7Rh5UpC5/B/eg==}
     engines: {node: '>= 22'}
 
   '@intlify/unplugin-vue-i18n@11.2.3':
@@ -4451,33 +4459,33 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@oxlint-tsgolint/darwin-arm64@0.23.0':
-    resolution: {integrity: sha512-gOs9PVr2wEg4ox9z0aJo+RKhhImW86YL5N6yav8BK/rgPsIrwN/igSZ+pbRr723NFvUNKde9fgMhRA6JrXAOZw==}
+  '@oxlint-tsgolint/darwin-arm64@7.0.2001':
+    resolution: {integrity: sha512-CUJEdbSZ54+Xy9OXqOhWLTKZKV0BBiV7C2i/ygyVmXtkUNXx5YCzN8DpSSshTAKktoL7S+tnQ/ftFG/i7X896w==}
     cpu: [arm64]
     os: [darwin]
 
-  '@oxlint-tsgolint/darwin-x64@0.23.0':
-    resolution: {integrity: sha512-kjJ8B+7n4tB9VJdxS5A9GdJt6/bYpzbu4lXp2uO1S3sRmCB5gDEABlGoiePNApRWaW+xqL4b4xgiE727jSLhuA==}
+  '@oxlint-tsgolint/darwin-x64@7.0.2001':
+    resolution: {integrity: sha512-pXfBb5BqONCcgrXQNUZWXgiYmRSWJzd97S8i41VVOh6ut0tyo+cJ5FKFpczDHxiVNfj/3e7c9B4MtztNdpIVCw==}
     cpu: [x64]
     os: [darwin]
 
-  '@oxlint-tsgolint/linux-arm64@0.23.0':
-    resolution: {integrity: sha512-6dCZuKNu135seMXilkRk9SpCx6i1XgmiipYGalLij5WVRX6ZYS8c4xI7preN/zv9fCXhsQclTIMDu2Y/cytTjw==}
+  '@oxlint-tsgolint/linux-arm64@7.0.2001':
+    resolution: {integrity: sha512-roP7zujb/QDPzDwEKsFFpzNHHy91/Y7oX9vQXk78ekyZtcQj1QXDIMH33gjDdHBfRl4K9pZ36xhRgrP4Zr+R8A==}
     cpu: [arm64]
     os: [linux]
 
-  '@oxlint-tsgolint/linux-x64@0.23.0':
-    resolution: {integrity: sha512-3bdilnyA7kmSTjK27rvjIjSxL5SIg3wt7vwNiRkouWB83ytssyKnuGvxSYJxgMEmFpSutzaBzcCUM2jDtPGcgA==}
+  '@oxlint-tsgolint/linux-x64@7.0.2001':
+    resolution: {integrity: sha512-UDezNqdECVmngu2TPnjaS1YoAmcTaBoI5lV9vk3VahBxoi+I5r9k3iJTT7qZoYWOXTD/7T7bNcwRgrocR6BscQ==}
     cpu: [x64]
     os: [linux]
 
-  '@oxlint-tsgolint/win32-arm64@0.23.0':
-    resolution: {integrity: sha512-j+OEp44SVYiQ+ZD+uttsX7u6L9SvmbbQ77SO1pSFCcJlsVMeCk8qZsjhKfGKuT/jIA+ipOJMVs/+pqUfObBWNw==}
+  '@oxlint-tsgolint/win32-arm64@7.0.2001':
+    resolution: {integrity: sha512-uJZhqB6pdXLuN+AD1F5082byyQti/NPmJA77GtcFlmT2HzRelqbNls3SaIqxpjdFgvSBF9g0yOKGBkGFg7kX8Q==}
     cpu: [arm64]
     os: [win32]
 
-  '@oxlint-tsgolint/win32-x64@0.23.0':
-    resolution: {integrity: sha512-5MyjFuqf+g8OUPJBSGWHJtmoWnzFJYyOg4To9WMQshZYEWig/vtu7JtJ03VWnzHv9LJkAUeApY0gVCOywFR/iQ==}
+  '@oxlint-tsgolint/win32-x64@7.0.2001':
+    resolution: {integrity: sha512-FkDRm8hx9OwzGQqyWG1tO5QrTLRApff9DzSgpz9QZau37BR8d1VYKOxMLGf6shPZntJFoTwIIJYT68VndYDCog==}
     cpu: [x64]
     os: [win32]
 
@@ -7266,8 +7274,8 @@ packages:
       unstorage:
         optional: true
 
-  hono@4.12.25:
-    resolution: {integrity: sha512-2NFaIyNVgJmBs/ecmtGzlmluTFs5cHEWGTdu0t1HBwYzoGXOL5nUQBRMXsXWla5i4KkG//QMzVP88m1+I3fdAQ==}
+  hono@4.13.0:
+    resolution: {integrity: sha512-jhunvfHWxd7J5EFfSgH4xsYJzSe/lfqbUCxiyyeaQasUsXeEHXtzVid+7EOGByc5JnFa23SSFL3Y2RV/z1T+eQ==}
     engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
@@ -7495,6 +7503,10 @@ packages:
 
   js-yaml@4.2.0:
     resolution: {integrity: sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==}
+    hasBin: true
+
+  js-yaml@5.2.3:
+    resolution: {integrity: sha512-n+mUVyUX5bVv7G/G2zyIHOhdxfuU1dY2NOFzTQUWiMUbFss8b57NFlgCCaggU78wSw5KVS9cllzeLyzyR+n5nw==}
     hasBin: true
 
   jsbi@4.3.2:
@@ -8108,8 +8120,8 @@ packages:
       vite-plus:
         optional: true
 
-  oxlint-tsgolint@0.23.0:
-    resolution: {integrity: sha512-3mBv3CoPbh8dFbzfDGIWa2ytZjn2v+3EX4aKRXjIhsoGFzG8GCjfRirz3rwZf1wYbZzsNLTSgpw8VjQuWdp/jA==}
+  oxlint-tsgolint@7.0.2001:
+    resolution: {integrity: sha512-KjK/XLcXr1DSyonKhsuFqJRiuKqcyG9j3LJ8nkOsrLzGvodBPqzHOKauy10asLMDI0sUpvb+1sxlzff3udZvfg==}
     hasBin: true
 
   oxlint@1.69.0:
@@ -8875,6 +8887,9 @@ packages:
   tailwindcss@4.3.0:
     resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
 
+  tailwindcss@4.3.3:
+    resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
+
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
@@ -9369,8 +9384,8 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0 || ^10.0.0
 
-  vue-i18n@11.4.5:
-    resolution: {integrity: sha512-rm8YJ6RpjOrkcgS2GLrZwLvs/VbhxbTSuEspbyXDo233+fPK0OMFNLOj3fdQYVKdOgcpSfLW91JhbqgpkkcBWA==}
+  vue-i18n@11.4.8:
+    resolution: {integrity: sha512-0ULeHP6Z9CGvAm67S77ZEp41cfGXIREGL8qfhos2BMgcQQewtQcDKuojt6jjasAD/S8GwfTp2ySPmDSpwvrCMQ==}
     engines: {node: '>= 22'}
     peerDependencies:
       vue: ^3.0.0
@@ -10520,26 +10535,26 @@ snapshots:
       react-dom: 19.2.7(react@19.2.7)
       use-sync-external-store: 1.6.0(react@19.2.7)
 
-  '@headlessui/tailwindcss@0.2.2(tailwindcss@4.3.0)':
+  '@headlessui/tailwindcss@0.2.2(tailwindcss@4.3.3)':
     dependencies:
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.3
 
-  '@hono/mcp@0.3.0(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.12.25))(hono@4.12.25)(zod@4.4.3)':
+  '@hono/mcp@0.3.0(@modelcontextprotocol/sdk@1.29.0(zod@4.4.3))(hono-rate-limiter@0.5.3(hono@4.13.0))(hono@4.13.0)(zod@4.4.3)':
     dependencies:
       '@modelcontextprotocol/sdk': 1.29.0(zod@4.4.3)
-      hono: 4.12.25
-      hono-rate-limiter: 0.5.3(hono@4.12.25)
+      hono: 4.13.0
+      hono-rate-limiter: 0.5.3(hono@4.13.0)
       pkce-challenge: 5.0.1
       zod: 4.4.3
 
-  '@hono/node-server@1.19.14(hono@4.12.25)':
+  '@hono/node-server@1.19.14(hono@4.13.0)':
     dependencies:
-      hono: 4.12.25
+      hono: 4.13.0
 
-  '@hono/node-ws@1.3.1(@hono/node-server@1.19.14(hono@4.12.25))(hono@4.12.25)':
+  '@hono/node-ws@1.3.1(@hono/node-server@1.19.14(hono@4.13.0))(hono@4.13.0)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.25)
-      hono: 4.12.25
+      '@hono/node-server': 1.19.14(hono@4.13.0)
+      hono: 4.13.0
       ws: 8.21.0
     transitivePeerDependencies:
       - bufferutil
@@ -10585,12 +10600,12 @@ snapshots:
     dependencies:
       '@iconify/types': 2.0.0
 
-  '@iconify/tailwind4@1.2.3(tailwindcss@4.3.0)':
+  '@iconify/tailwind4@1.2.3(tailwindcss@4.3.3)':
     dependencies:
       '@iconify/tools': 5.0.12
       '@iconify/types': 2.0.0
       '@iconify/utils': 3.1.3
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.3
 
   '@iconify/tools@5.0.12':
     dependencies:
@@ -10622,7 +10637,7 @@ snapshots:
     dependencies:
       '@swc/helpers': 0.5.23
 
-  '@intlify/bundle-utils@11.2.3(vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)))':
+  '@intlify/bundle-utils@11.2.3(vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)))':
     dependencies:
       '@intlify/message-compiler': 11.4.5
       '@intlify/shared': 11.4.5
@@ -10634,32 +10649,39 @@ snapshots:
       source-map-js: 1.2.1
       yaml-eslint-parser: 1.3.2
     optionalDependencies:
-      vue-i18n: 11.4.5(vue@3.5.38(typescript@6.0.3))
+      vue-i18n: 11.4.8(vue@3.5.38(typescript@6.0.3))
 
-  '@intlify/core-base@11.4.5':
+  '@intlify/core-base@11.4.8':
     dependencies:
-      '@intlify/devtools-types': 11.4.5
-      '@intlify/message-compiler': 11.4.5
-      '@intlify/shared': 11.4.5
+      '@intlify/devtools-types': 11.4.8
+      '@intlify/message-compiler': 11.4.8
+      '@intlify/shared': 11.4.8
 
-  '@intlify/devtools-types@11.4.5':
+  '@intlify/devtools-types@11.4.8':
     dependencies:
-      '@intlify/core-base': 11.4.5
-      '@intlify/shared': 11.4.5
+      '@intlify/core-base': 11.4.8
+      '@intlify/shared': 11.4.8
 
   '@intlify/message-compiler@11.4.5':
     dependencies:
       '@intlify/shared': 11.4.5
       source-map-js: 1.2.1
 
+  '@intlify/message-compiler@11.4.8':
+    dependencies:
+      '@intlify/shared': 11.4.8
+      source-map-js: 1.2.1
+
   '@intlify/shared@11.4.5': {}
 
-  '@intlify/unplugin-vue-i18n@11.2.3(@vue/compiler-dom@3.5.38)(eslint@9.37.0(jiti@2.7.0))(rollup@4.61.1)(typescript@6.0.3)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
+  '@intlify/shared@11.4.8': {}
+
+  '@intlify/unplugin-vue-i18n@11.2.3(@vue/compiler-dom@3.5.38)(eslint@9.37.0(jiti@2.7.0))(rollup@4.61.1)(typescript@6.0.3)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))(vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
     dependencies:
       '@eslint-community/eslint-utils': 4.9.1(eslint@9.37.0(jiti@2.7.0))
-      '@intlify/bundle-utils': 11.2.3(vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)))
+      '@intlify/bundle-utils': 11.2.3(vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)))
       '@intlify/shared': 11.4.5
-      '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.4.5)(@vue/compiler-dom@3.5.38)(vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))
+      '@intlify/vue-i18n-extensions': 8.0.0(@intlify/shared@11.4.5)(@vue/compiler-dom@3.5.38)(vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))
       '@rollup/pluginutils': 5.4.0(rollup@4.61.1)
       '@typescript-eslint/scope-manager': 8.61.0
       '@typescript-eslint/typescript-estree': 8.61.0(typescript@6.0.3)
@@ -10671,7 +10693,7 @@ snapshots:
       vue: 3.5.38(typescript@6.0.3)
     optionalDependencies:
       vite: 8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
-      vue-i18n: 11.4.5(vue@3.5.38(typescript@6.0.3))
+      vue-i18n: 11.4.8(vue@3.5.38(typescript@6.0.3))
     transitivePeerDependencies:
       - '@vue/compiler-dom'
       - eslint
@@ -10679,14 +10701,14 @@ snapshots:
       - supports-color
       - typescript
 
-  '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.4.5)(@vue/compiler-dom@3.5.38)(vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
+  '@intlify/vue-i18n-extensions@8.0.0(@intlify/shared@11.4.5)(@vue/compiler-dom@3.5.38)(vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)))(vue@3.5.38(typescript@6.0.3))':
     dependencies:
       '@babel/parser': 7.29.7
     optionalDependencies:
       '@intlify/shared': 11.4.5
       '@vue/compiler-dom': 3.5.38
       vue: 3.5.38(typescript@6.0.3)
-      vue-i18n: 11.4.5(vue@3.5.38(typescript@6.0.3))
+      vue-i18n: 11.4.8(vue@3.5.38(typescript@6.0.3))
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -10769,9 +10791,9 @@ snapshots:
 
   '@marijn/find-cluster-break@1.0.2': {}
 
-  '@mermaid-js/mermaid-zenuml@0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.0)':
+  '@mermaid-js/mermaid-zenuml@0.2.3(@babel/core@7.29.7)(@babel/template@7.29.7)(mermaid@11.15.0)(tailwindcss@4.3.3)':
     dependencies:
-      '@zenuml/core': 3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.0)
+      '@zenuml/core': 3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.3)
       mermaid: 11.15.0
     transitivePeerDependencies:
       - '@babel/core'
@@ -10786,7 +10808,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.29.0(zod@3.25.76)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.25)
+      '@hono/node-server': 1.19.14(hono@4.13.0)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
@@ -10796,7 +10818,7 @@ snapshots:
       eventsource-parser: 3.1.0
       express: 5.2.1
       express-rate-limit: 8.5.2(express@5.2.1)
-      hono: 4.12.25
+      hono: 4.13.0
       jose: 6.2.3
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -10808,7 +10830,7 @@ snapshots:
 
   '@modelcontextprotocol/sdk@1.29.0(zod@4.4.3)':
     dependencies:
-      '@hono/node-server': 1.19.14(hono@4.12.25)
+      '@hono/node-server': 1.19.14(hono@4.13.0)
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
       content-type: 1.0.5
@@ -10818,7 +10840,7 @@ snapshots:
       eventsource-parser: 3.1.0
       express: 5.2.1
       express-rate-limit: 8.5.2(express@5.2.1)
-      hono: 4.12.25
+      hono: 4.13.0
       jose: 6.2.3
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
@@ -12029,22 +12051,22 @@ snapshots:
   '@oxfmt/binding-win32-x64-msvc@0.54.0':
     optional: true
 
-  '@oxlint-tsgolint/darwin-arm64@0.23.0':
+  '@oxlint-tsgolint/darwin-arm64@7.0.2001':
     optional: true
 
-  '@oxlint-tsgolint/darwin-x64@0.23.0':
+  '@oxlint-tsgolint/darwin-x64@7.0.2001':
     optional: true
 
-  '@oxlint-tsgolint/linux-arm64@0.23.0':
+  '@oxlint-tsgolint/linux-arm64@7.0.2001':
     optional: true
 
-  '@oxlint-tsgolint/linux-x64@0.23.0':
+  '@oxlint-tsgolint/linux-x64@7.0.2001':
     optional: true
 
-  '@oxlint-tsgolint/win32-arm64@0.23.0':
+  '@oxlint-tsgolint/win32-arm64@7.0.2001':
     optional: true
 
-  '@oxlint-tsgolint/win32-x64@0.23.0':
+  '@oxlint-tsgolint/win32-x64@7.0.2001':
     optional: true
 
   '@oxlint/binding-android-arm-eabi@1.69.0':
@@ -12501,10 +12523,10 @@ snapshots:
       '@tailwindcss/oxide-win32-arm64-msvc': 4.3.0
       '@tailwindcss/oxide-win32-x64-msvc': 4.3.0
 
-  '@tailwindcss/typography@0.5.20(tailwindcss@4.3.0)':
+  '@tailwindcss/typography@0.5.20(tailwindcss@4.3.3)':
     dependencies:
       postcss-selector-parser: 6.0.10
-      tailwindcss: 4.3.0
+      tailwindcss: 4.3.3
 
   '@tailwindcss/vite@4.3.0(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
@@ -12938,12 +12960,12 @@ snapshots:
     optionalDependencies:
       srvx: 0.11.16
 
-  '@universal-deploy/vite@0.1.10(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))':
+  '@universal-deploy/vite@0.1.10(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))':
     dependencies:
       '@universal-deploy/netlify': 0.2.2(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       '@universal-deploy/node': 0.1.7(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       '@universal-deploy/store': 0.2.1(srvx@0.11.16)
-      '@universal-middleware/express': 0.4.28(hono@4.12.25)(srvx@0.11.16)
+      '@universal-middleware/express': 0.4.28(hono@4.13.0)(srvx@0.11.16)
       magic-string: 0.30.21
       rou3: 0.8.1
     optionalDependencies:
@@ -12959,18 +12981,18 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/core@0.4.18(hono@4.12.25)(srvx@0.11.16)':
+  '@universal-middleware/core@0.4.18(hono@4.13.0)(srvx@0.11.16)':
     dependencies:
       regexparam: 3.0.0
       tough-cookie: 6.0.1
     optionalDependencies:
-      hono: 4.12.25
+      hono: 4.13.0
       srvx: 0.11.16
 
-  '@universal-middleware/express@0.4.28(hono@4.12.25)(srvx@0.11.16)':
+  '@universal-middleware/express@0.4.28(hono@4.13.0)(srvx@0.11.16)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(hono@4.12.25)(srvx@0.11.16)
-      '@universal-middleware/node': 0.2.1(hono@4.12.25)(srvx@0.11.16)
+      '@universal-middleware/core': 0.4.18(hono@4.13.0)(srvx@0.11.16)
+      '@universal-middleware/node': 0.2.1(hono@4.13.0)(srvx@0.11.16)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -12982,9 +13004,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/hono@0.4.21(hono@4.12.25)(srvx@0.11.16)':
+  '@universal-middleware/hono@0.4.21(hono@4.13.0)(srvx@0.11.16)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(hono@4.12.25)(srvx@0.11.16)
+      '@universal-middleware/core': 0.4.18(hono@4.13.0)(srvx@0.11.16)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -12996,9 +13018,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/node@0.1.0(hono@4.12.25)(srvx@0.11.16)':
+  '@universal-middleware/node@0.1.0(hono@4.13.0)(srvx@0.11.16)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(hono@4.12.25)(srvx@0.11.16)
+      '@universal-middleware/core': 0.4.18(hono@4.13.0)(srvx@0.11.16)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13010,9 +13032,9 @@ snapshots:
       - hono
       - srvx
 
-  '@universal-middleware/node@0.2.1(hono@4.12.25)(srvx@0.11.16)':
+  '@universal-middleware/node@0.2.1(hono@4.13.0)(srvx@0.11.16)':
     dependencies:
-      '@universal-middleware/core': 0.4.18(hono@4.12.25)(srvx@0.11.16)
+      '@universal-middleware/core': 0.4.18(hono@4.13.0)(srvx@0.11.16)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13050,11 +13072,11 @@ snapshots:
     transitivePeerDependencies:
       - vue
 
-  '@vikejs/hono@0.2.0(hono@4.12.25)(srvx@0.11.16)(vike@0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))':
+  '@vikejs/hono@0.2.0(hono@4.13.0)(srvx@0.11.16)(vike@0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))':
     dependencies:
-      '@universal-middleware/hono': 0.4.21(hono@4.12.25)(srvx@0.11.16)
-      hono: 4.12.25
-      vike: 0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
+      '@universal-middleware/hono': 0.4.21(hono@4.13.0)(srvx@0.11.16)
+      hono: 4.13.0
+      vike: 0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - '@hattip/core'
@@ -13376,11 +13398,11 @@ snapshots:
     dependencies:
       vue: 3.5.38(typescript@6.0.3)
 
-  '@zenuml/core@3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.0)':
+  '@zenuml/core@3.49.5(@babel/core@7.29.7)(@babel/template@7.29.7)(tailwindcss@4.3.3)':
     dependencies:
       '@floating-ui/react': 0.27.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@headlessui/react': 2.2.10(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@headlessui/tailwindcss': 0.2.2(tailwindcss@4.3.0)
+      '@headlessui/tailwindcss': 0.2.2(tailwindcss@4.3.3)
       antlr4: 4.11.0
       class-variance-authority: 0.7.1
       clsx: 2.1.1
@@ -14718,11 +14740,11 @@ snapshots:
 
   highlight.js@11.11.1: {}
 
-  hono-rate-limiter@0.5.3(hono@4.12.25):
+  hono-rate-limiter@0.5.3(hono@4.13.0):
     dependencies:
-      hono: 4.12.25
+      hono: 4.13.0
 
-  hono@4.12.25: {}
+  hono@4.13.0: {}
 
   hookable@5.5.3: {}
 
@@ -14903,6 +14925,10 @@ snapshots:
   js-tokens@4.0.0: {}
 
   js-yaml@4.2.0:
+    dependencies:
+      argparse: 2.0.1
+
+  js-yaml@5.2.3:
     dependencies:
       argparse: 2.0.1
 
@@ -15705,16 +15731,16 @@ snapshots:
       '@oxfmt/binding-win32-ia32-msvc': 0.54.0
       '@oxfmt/binding-win32-x64-msvc': 0.54.0
 
-  oxlint-tsgolint@0.23.0:
+  oxlint-tsgolint@7.0.2001:
     optionalDependencies:
-      '@oxlint-tsgolint/darwin-arm64': 0.23.0
-      '@oxlint-tsgolint/darwin-x64': 0.23.0
-      '@oxlint-tsgolint/linux-arm64': 0.23.0
-      '@oxlint-tsgolint/linux-x64': 0.23.0
-      '@oxlint-tsgolint/win32-arm64': 0.23.0
-      '@oxlint-tsgolint/win32-x64': 0.23.0
+      '@oxlint-tsgolint/darwin-arm64': 7.0.2001
+      '@oxlint-tsgolint/darwin-x64': 7.0.2001
+      '@oxlint-tsgolint/linux-arm64': 7.0.2001
+      '@oxlint-tsgolint/linux-x64': 7.0.2001
+      '@oxlint-tsgolint/win32-arm64': 7.0.2001
+      '@oxlint-tsgolint/win32-x64': 7.0.2001
 
-  oxlint@1.69.0(oxlint-tsgolint@0.23.0):
+  oxlint@1.69.0(oxlint-tsgolint@7.0.2001):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.69.0
       '@oxlint/binding-android-arm64': 1.69.0
@@ -15735,7 +15761,7 @@ snapshots:
       '@oxlint/binding-win32-arm64-msvc': 1.69.0
       '@oxlint/binding-win32-ia32-msvc': 1.69.0
       '@oxlint/binding-win32-x64-msvc': 1.69.0
-      oxlint-tsgolint: 0.23.0
+      oxlint-tsgolint: 7.0.2001
 
   p-event@6.0.1:
     dependencies:
@@ -16648,6 +16674,8 @@ snapshots:
 
   tailwindcss@4.3.0: {}
 
+  tailwindcss@4.3.3: {}
+
   tapable@2.3.3: {}
 
   tar-fs@2.1.4:
@@ -16941,18 +16969,18 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vike-vue@0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))(vue@3.5.38(typescript@6.0.3)):
+  vike-vue@0.9.11(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)(vike@0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)))(vue@3.5.38(typescript@6.0.3)):
     dependencies:
       magic-string: 0.30.21
       oxc-parser: 0.104.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
       oxc-walker: 0.6.0(oxc-parser@0.104.0(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0))
-      vike: 0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
+      vike: 0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       vue: 3.5.38(typescript@6.0.3)
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
 
-  vike@0.4.259(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)):
+  vike@0.4.259(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)):
     dependencies:
       '@babel/core': 7.29.7
       '@babel/types': 7.29.7
@@ -16961,9 +16989,9 @@ snapshots:
       '@brillout/picocolors': 1.0.31
       '@brillout/vite-plugin-server-entry': 0.7.18
       '@universal-deploy/store': 0.2.1(srvx@0.11.16)
-      '@universal-deploy/vite': 0.1.10(hono@4.12.25)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
-      '@universal-middleware/core': 0.4.18(hono@4.12.25)(srvx@0.11.16)
-      '@universal-middleware/node': 0.1.0(hono@4.12.25)(srvx@0.11.16)
+      '@universal-deploy/vite': 0.1.10(hono@4.13.0)(srvx@0.11.16)(vite@8.0.16(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
+      '@universal-middleware/core': 0.4.18(hono@4.13.0)(srvx@0.11.16)
+      '@universal-middleware/node': 0.1.0(hono@4.13.0)(srvx@0.11.16)
       cac: 6.7.14
       convert-route: 1.1.1
       es-module-lexer: 1.7.0
@@ -17293,11 +17321,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  vue-i18n@11.4.5(vue@3.5.38(typescript@6.0.3)):
+  vue-i18n@11.4.8(vue@3.5.38(typescript@6.0.3)):
     dependencies:
-      '@intlify/core-base': 11.4.5
-      '@intlify/devtools-types': 11.4.5
-      '@intlify/shared': 11.4.5
+      '@intlify/core-base': 11.4.8
+      '@intlify/devtools-types': 11.4.8
+      '@intlify/shared': 11.4.8
       '@vue/devtools-api': 6.6.4
       vue: 3.5.38(typescript@6.0.3)
 
