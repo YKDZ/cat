@@ -316,11 +316,12 @@ test.describe("Language Analysis policy surfaces", () => {
       throw new Error("Authenticated Workbench did not expose a CSRF token");
     }
     const apiContext = page.request;
+    const apiOrigin = new URL(page.url()).origin;
     await page.goto("about:blank");
     const before = await waitForStableRequestCounts();
 
     const directObservationResponse = await apiContext.post(
-      "/api/rpc/languageAnalysis/getProjectObservations",
+      `${apiOrigin}/api/rpc/languageAnalysis/getProjectObservations`,
       {
         data: { json: { projectId: refs.project } },
         headers: { "x-csrf-token": csrfToken },
@@ -328,7 +329,9 @@ test.describe("Language Analysis policy surfaces", () => {
     );
     const directObservationBody: unknown =
       await directObservationResponse.json();
-    expect(directObservationResponse.ok()).toBe(true);
+    expect(directObservationResponse.ok(), {
+      message: JSON.stringify(directObservationBody),
+    }).toBe(true);
     expect(await requestCounts()).toEqual(before);
     expect(
       parseObservationTiming(directObservationBody, sourceLanguageId),
