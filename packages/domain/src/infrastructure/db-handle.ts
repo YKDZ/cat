@@ -1,9 +1,13 @@
-import { DrizzleDB, RedisConnection } from "@cat/db";
+import {
+  DrizzleDB,
+  RedisConnection,
+  type RedisConnectionOptions,
+} from "@cat/db";
 
 declare global {
-  // oxlint-disable-next-line no-var
+  // oxlint-disable-next-line no-underscore-dangle
   var __DRIZZLE_DB__: DrizzleDB | undefined;
-  // oxlint-disable-next-line no-var
+  // oxlint-disable-next-line no-underscore-dangle
   var __REDIS__: RedisConnection | undefined;
 }
 
@@ -13,7 +17,6 @@ export const getDbHandle = async (): Promise<DrizzleDB> => {
     // 这防止了 Worker 在 setupTestDB 完成之前抢跑导致的连接错误
     for (let i = 0; i < 100; i += 1) {
       if (globalThis["__DRIZZLE_DB__"]) break;
-      // oxlint-disable-next-line no-await-in-loop
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
   }
@@ -30,11 +33,14 @@ export const getDbHandle = async (): Promise<DrizzleDB> => {
 /**
  * Get the global Redis handle, creating and caching it when needed.
  *
+ * @param options - Connection lifecycle and diagnostic policy
  * @returns - Connected Redis handle
  */
-export const getRedisHandle = async (): Promise<RedisConnection> => {
+export const getRedisHandle = async (
+  options: RedisConnectionOptions,
+): Promise<RedisConnection> => {
   if (!globalThis["__REDIS__"]) {
-    const db = new RedisConnection();
+    const db = new RedisConnection(options);
     await db.connect();
     globalThis["__REDIS__"] = db;
   }

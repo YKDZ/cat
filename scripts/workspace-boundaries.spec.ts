@@ -4,6 +4,7 @@ import {
   auditWorkspacePackages,
   extractWorkspaceImports,
   loadWorkspacePackages,
+  runNativeTurboBoundaries,
   type WorkspacePackage,
 } from "./workspace-boundaries.ts";
 
@@ -24,6 +25,15 @@ const approvedFixtures: WorkspacePackage[] = [
 const workspaceRoot = ".";
 
 describe("workspace database boundaries", () => {
+  it("reports a native Turbo boundary command terminated by a signal", () => {
+    expect(() =>
+      runNativeTurboBoundaries("/workspace", () => ({
+        signal: "SIGTERM",
+        status: null,
+      })),
+    ).toThrow("turbo boundaries terminated by signal SIGTERM");
+  });
+
   it("accepts the classified repository with exactly seven consumers", () => {
     expect(
       auditWorkspacePackages(loadWorkspacePackages(workspaceRoot)),

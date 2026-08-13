@@ -2,6 +2,7 @@ import { stringify as stringifyYaml } from "yaml";
 import * as z from "zod";
 
 import { AgentDefinitionTypeSchema } from "#/schema/enum.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 // ─── LLM Configuration ───
 
@@ -9,8 +10,8 @@ import { AgentDefinitionTypeSchema } from "#/schema/enum.ts";
  * Agent LLM configuration schema.
  */
 export const AgentLLMConfigSchema = z.object({
-  /** Optional fallback PluginService DB ID referencing an LLM_PROVIDER instance */
-  providerId: z.int().nullable().optional(),
+  /** Optional fallback LLM_PROVIDER implementation. */
+  provider: ServiceImplementationReferenceSchema.nullable().optional(),
   temperature: z.number().min(0).max(2).optional(),
   maxTokens: z.int().positive().optional(),
 });
@@ -51,7 +52,7 @@ export const AgentScopeSchema = z.object({
 export const AgentSessionMetadataSchema = z.strictObject({
   projectId: z.uuidv4().optional(),
   projectName: z.string().optional(),
-  providerId: z.int().optional(),
+  provider: ServiceImplementationReferenceSchema.optional(),
   branchId: z.int().positive().optional(),
   contentNodeIds: z.array(z.uuidv4()).optional(),
   currentElementContentNodeId: z.uuidv4().optional(),
@@ -118,7 +119,7 @@ export const AgentDefinitionMetadataSchema = z.object({
   icon: z.string().optional(),
   /** Agent usage type/category */
   type: AgentDefinitionTypeSchema.default("GENERAL"),
-  /** LLM configuration — optional; providerId is only used as a fallback when the session does not specify one */
+  /** LLM configuration — optional; provider is only used as a fallback when the session does not specify one */
   llm: AgentLLMConfigSchema.optional(),
   /** List of tool names this agent is allowed to use */
   tools: z.array(z.string()).default([]),

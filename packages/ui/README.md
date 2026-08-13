@@ -54,7 +54,7 @@ pnpm dev
 pnpm lint
 
 # Format
-pnpm format
+pnpm format:check
 
 # Type check
 pnpm typecheck

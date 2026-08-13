@@ -35,8 +35,8 @@ export class MessageRouter {
     for (const r of results) {
       if (r.status === "rejected") {
         serverLogger
-          .withSituation("SERVER")
-          .error(r.reason, "Channel dispatch failed");
+          .child({ component: "server" })
+          .error("Channel dispatch failed", { error: r.reason });
       }
     }
   }

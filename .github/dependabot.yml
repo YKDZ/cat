@@ -51,11 +51,6 @@ updates:
         patterns:
           - node
 
-  - package-ecosystem: docker
-    directory: /apps/postgres-search-runtime
-    schedule:
-      interval: weekly
-
   - package-ecosystem: github-actions
     directory: /
     schedule:

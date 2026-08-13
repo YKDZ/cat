@@ -7,8 +7,12 @@ import {
   sql,
   vectorizedString,
 } from "@cat/db";
-import type { MemorySuggestion } from "@cat/shared";
-import { SlotMappingEntrySchema, type SlotMappingEntry } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  SlotMappingEntrySchema,
+  type MemorySuggestion,
+  type SlotMappingEntry,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -27,8 +31,8 @@ const parseSlotMapping = (raw: unknown): SlotMappingEntry[] | null => {
 
 export const ListExactMemorySuggestionsQuerySchema = z.object({
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   memoryIds: z.array(z.uuidv4()),
   maxAmount: z.int().min(1),
 });
@@ -36,11 +40,15 @@ export const ListExactMemorySuggestionsQuerySchema = z.object({
 export type ListExactMemorySuggestionsQuery = z.infer<
   typeof ListExactMemorySuggestionsQuerySchema
 >;
+type ListExactMemorySuggestionsQueryInput = z.input<
+  typeof ListExactMemorySuggestionsQuerySchema
+>;
 
 export const listExactMemorySuggestions: Query<
-  ListExactMemorySuggestionsQuery,
+  ListExactMemorySuggestionsQueryInput,
   RawMemorySuggestion[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = ListExactMemorySuggestionsQuerySchema.parse(input);
   if (query.memoryIds.length === 0) return [];
 
   const trimmedText = query.text.trim();
@@ -57,9 +65,9 @@ export const listExactMemorySuggestions: Query<
     creatorId: memoryItem.creatorId,
     createdAt: memoryItem.createdAt,
     updatedAt: memoryItem.updatedAt,
-    sourceTemplate: memoryItem.sourceTemplate,
-    translationTemplate: memoryItem.translationTemplate,
-    slotMapping: memoryItem.slotMapping,
+    sourceTemplate: sql<string | null>`NULL`,
+    translationTemplate: sql<string | null>`NULL`,
+    slotMapping: sql<unknown>`NULL`,
   };
 
   const [forwardRows, reversedRows] = await Promise.all([
@@ -136,8 +144,8 @@ export const listExactMemorySuggestions: Query<
 
 export const ListTrgmMemorySuggestionsQuerySchema = z.object({
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   memoryIds: z.array(z.uuidv4()),
   minSimilarity: z.number().min(0).max(1),
   maxAmount: z.int().min(1),
@@ -146,11 +154,15 @@ export const ListTrgmMemorySuggestionsQuerySchema = z.object({
 export type ListTrgmMemorySuggestionsQuery = z.infer<
   typeof ListTrgmMemorySuggestionsQuerySchema
 >;
+type ListTrgmMemorySuggestionsQueryInput = z.input<
+  typeof ListTrgmMemorySuggestionsQuerySchema
+>;
 
 export const listTrgmMemorySuggestions: Query<
-  ListTrgmMemorySuggestionsQuery,
+  ListTrgmMemorySuggestionsQueryInput,
   RawMemorySuggestion[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = ListTrgmMemorySuggestionsQuerySchema.parse(input);
   if (query.memoryIds.length === 0) return [];
 
   const trimmedText = query.text.trim();
@@ -166,9 +178,9 @@ export const listTrgmMemorySuggestions: Query<
     creatorId: memoryItem.creatorId,
     createdAt: memoryItem.createdAt,
     updatedAt: memoryItem.updatedAt,
-    sourceTemplate: memoryItem.sourceTemplate,
-    translationTemplate: memoryItem.translationTemplate,
-    slotMapping: memoryItem.slotMapping,
+    sourceTemplate: sql<string | null>`NULL`,
+    translationTemplate: sql<string | null>`NULL`,
+    slotMapping: sql<unknown>`NULL`,
   };
 
   const [forwardRows, reversedRows] = await Promise.all([

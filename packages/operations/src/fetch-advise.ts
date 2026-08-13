@@ -1,17 +1,27 @@
 import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, getElementMeta } from "@cat/domain";
-import { firstOrGivenService, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
-import type { JSONType } from "@cat/shared";
-import { TranslationAdviseSchema } from "@cat/shared";
+import {
+  type JSONType,
+  ServiceImplementationReferenceSchema,
+  TranslationAdviseSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
-import { collectMemoryRecallOp } from "./collect-memory-recall.ts";
+import {
+  collectMemoryRecallOp,
+  getMemoryRecallCandidates,
+} from "./collect-memory-recall.ts";
 import { termRecallOp } from "./term-recall.ts";
 
 export const FetchAdviseInputSchema = z.object({
-  advisorId: z.int().optional().meta({
+  advisor: ServiceImplementationReferenceSchema.optional().meta({
     description:
       "Plugin service ID of the TRANSLATION_ADVISOR to use. Omit to use the default.",
   }),
@@ -133,11 +143,10 @@ export const fetchAdviseOp = async (
               sourceLanguageId: data.sourceLanguageId,
               translationLanguageId: data.translationLanguageId,
               memoryIds: data.memoryIds,
-              chunkIds: [],
             },
             ctx,
           );
-          return results.map((m) => ({
+          return getMemoryRecallCandidates(results).map((m) => ({
             source: m.source,
             translation: m.adaptedTranslation ?? m.translation,
             confidence: m.confidence,
@@ -150,17 +159,22 @@ export const fetchAdviseOp = async (
       : ({} as JSONType),
   ]);
 
-  const advisor = firstOrGivenService(
-    pluginManager,
-    "TRANSLATION_ADVISOR",
-    data.advisorId,
-  );
+  const advisor = data.advisor
+    ? {
+        reference: data.advisor,
+        service: resolveServiceImplementation(
+          pluginManager,
+          data.advisor,
+          "TRANSLATION_ADVISOR",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "TRANSLATION_ADVISOR");
 
   if (!advisor) {
     logger
-      .withSituation("WORKER")
+      .child({ component: "worker" })
       .warn(
-        `Translation advisor service ${data.advisorId} not found while no default service is available. No suggestion will be given.`,
+        `Translation advisor service ${data.advisor?.serviceId ?? "default"} not found while no default service is available. No suggestion will be given.`,
       );
     return { suggestions: [] };
   }

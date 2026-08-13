@@ -154,7 +154,7 @@ const branchOverlayCtesSql = (branchId: number | undefined) => {
         overlay.after->>'languageId' AS "language_id",
         (overlay.after->>'exportRole')::"ContentNodeExportRole" AS "export_role",
         (overlay.after->>'boundaryType')::"ContentBoundaryType" AS "boundary_type",
-        (overlay.after->>'fileHandlerId')::int AS "file_handler_id",
+        overlay.after->'fileHandler' AS "file_handler",
         (overlay.after->>'fileId')::int AS "file_id",
         COALESCE((overlay.after->>'lifecycleStatus')::"ContentNodeLifecycleStatus", 'ACTIVE') AS "lifecycle_status",
         overlay.after->'provenance' AS provenance,

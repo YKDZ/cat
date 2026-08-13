@@ -85,8 +85,8 @@ const update = async () => {
           return;
         }
         logger
-          .withSituation("WEB")
-          .error(error, "Error when consume qa issues");
+          .child({ component: "web" })
+          .error("Error when consume qa issues", { error: error });
       },
     },
   );

@@ -232,7 +232,18 @@ export class AgentRuntime {
    * @param sessionId - agentSession external UUID
    * @param runId - agentRun external UUID
    */
-  async *runLoop(sessionId: string, runId: string): AsyncIterable<AgentEvent> {
+  async *runLoop(
+    sessionId: string,
+    runId: string,
+    signal: AbortSignal,
+  ): AsyncIterable<AgentEvent> {
+    const throwIfAborted = (): void => {
+      if (!signal.aborted) return;
+      throw (
+        signal.reason ??
+        new DOMException("Agent runtime interrupted", "AbortError")
+      );
+    };
     // Load session state
     const state = await this.sessionManager.loadSession(sessionId, runId);
     const { agentDefinition, blackboardSnapshot } = state;
@@ -268,6 +279,44 @@ export class AgentRuntime {
           // oxlint-disable-next-line no-unsafe-type-assertion -- structural cast required for Blackboard API
           initialData: initialData as unknown as Record<string, unknown>,
         });
+
+    let cancellationPersisted = false;
+    const persistCancellationAndThrow = async (
+      snapshotAlreadySaved = false,
+    ): Promise<never> => {
+      const interruption =
+        signal.reason ??
+        new DOMException("Agent runtime interrupted", "AbortError");
+      this.logger.logRun({
+        runId,
+        sessionId,
+        status: "cancelled",
+        message: "AgentRuntime: run cancelled",
+      });
+      try {
+        if (!snapshotAlreadySaved) {
+          await this.sessionManager.saveSnapshot(
+            runId,
+            // oxlint-disable-next-line no-unsafe-type-assertion -- Blackboard snapshot data is structurally Record<string, unknown>
+            blackboard.getSnapshot().data as Record<string, unknown>,
+          );
+        }
+        await this.sessionManager.completeSession(
+          sessionId,
+          runId,
+          "CANCELLED",
+        );
+        cancellationPersisted = true;
+      } catch (persistenceError) {
+        throw new AggregateError(
+          [interruption, persistenceError],
+          "Agent cancellation could not be persisted",
+        );
+      }
+      throw interruption;
+    };
+
+    if (signal.aborted) await persistCancellationAndThrow();
 
     // Error recovery, metrics, and compression
     const errorRecovery = new ErrorRecoveryManager(constraints);
@@ -324,6 +373,7 @@ export class AgentRuntime {
       promptEngine,
       constraints,
       startedAt,
+      signal,
       logger: this.logger,
       ...(this.config.pluginManager
         ? { pluginManager: this.config.pluginManager }
@@ -361,6 +411,7 @@ export class AgentRuntime {
     try {
       // DAG loop
       while (true) {
+        throwIfAborted();
         // ── PreCheck ─────────────────────────────────────────────────────────
         yield { type: "node", nodeType: "precheck", status: "started" };
         // oxlint-disable-next-line no-await-in-loop -- sequential DAG step: must complete before reasoning
@@ -538,15 +589,9 @@ export class AgentRuntime {
               data.tool_calls?.find((tc) => tc.id === tr.toolCallId)?.name ??
                 "unknown",
             );
-            yield {
-              type: "tool_result",
-              toolCallId: tr.toolCallId,
-              content: tr.content,
-            };
           }
 
           applyUpdates(toolResult.updates);
-          yield { type: "node", nodeType: "tool", status: "completed" };
 
           // Save snapshot after tool execution
           // oxlint-disable-next-line no-await-in-loop -- sequential DAG step: snapshot must be saved before next turn
@@ -555,6 +600,23 @@ export class AgentRuntime {
             // oxlint-disable-next-line no-unsafe-type-assertion -- Blackboard snapshot data is structurally Record<string, unknown>
             blackboard.getSnapshot().data as Record<string, unknown>,
           );
+
+          if (signal.aborted) {
+            // The settled tool outcome is already durable; cancellation can now
+            // terminalize the run without losing a non-idempotent write result.
+            await persistCancellationAndThrow(true);
+          }
+
+          for (const tr of toolResult.toolResults) {
+            yield {
+              type: "tool_result",
+              toolCallId: tr.toolCallId,
+              content: tr.content,
+            };
+          }
+          if (signal.aborted) await persistCancellationAndThrow(true);
+          yield { type: "node", nodeType: "tool", status: "completed" };
+          if (signal.aborted) await persistCancellationAndThrow(true);
         }
 
         // ── Decision ──────────────────────────────────────────────────────────
@@ -585,6 +647,10 @@ export class AgentRuntime {
         // on PreCheckNode + DecisionNode for the actual maxTurns guard.
       }
     } catch (error) {
+      if (signal.aborted) {
+        if (cancellationPersisted) throw error;
+        await persistCancellationAndThrow();
+      }
       const err = error instanceof Error ? error : new Error(String(error));
       this.logger.logError({
         error: err,

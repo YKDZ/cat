@@ -51,7 +51,13 @@ describe("session-hydration", () => {
       agentDefinitionId: "agent-1",
       status: "ACTIVE",
       metadata: {
-        providerId: 42,
+        provider: {
+          pluginId: "test-plugin",
+          serviceId: "llm",
+          serviceType: "LLM_PROVIDER",
+          scopeType: "GLOBAL",
+          scopeId: "",
+        },
         projectId: "11111111-1111-4111-8111-111111111111",
         branchId: 7,
         contentNodeIds: ["22222222-2222-4222-8222-222222222222"],
@@ -65,7 +71,7 @@ describe("session-hydration", () => {
     });
 
     expect(state.runId).toBe("run-1");
-    expect(state.metadata?.providerId).toBe(42);
+    expect(state.metadata?.provider).toMatchObject({ serviceId: "llm" });
     expect(state.metadata?.branchId).toBe(7);
     expect(state.metadata?.contentNodeIds).toEqual([
       "22222222-2222-4222-8222-222222222222",

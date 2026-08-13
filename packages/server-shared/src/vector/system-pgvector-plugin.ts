@@ -3,6 +3,7 @@ import type {
   CatPlugin,
   PluginContext,
 } from "@cat/plugin-core";
+import { PluginDataSchema, PluginManifestSchema } from "@cat/shared";
 
 import { NativePgVectorStorage } from "./native-pgvector-storage.ts";
 
@@ -14,7 +15,7 @@ const systemPgVectorPlugin = {
  * Builtin pgvector system plugin entry exposed through the standard plugin lifecycle.
  */
 export const systemPgVectorEntry: BuiltinPluginEntry = {
-  manifest: {
+  manifest: PluginManifestSchema.parse({
     id: "system-pgvector-storage",
     version: "1.0.0",
     entry: "builtin:system-pgvector-storage",
@@ -25,13 +26,13 @@ export const systemPgVectorEntry: BuiltinPluginEntry = {
         dynamic: false,
       },
     ],
-  },
-  data: {
+  }),
+  data: PluginDataSchema.parse({
     id: "system-pgvector-storage",
     name: "system pgvector storage",
     version: "1.0.0",
     overview: "Built-in PostgreSQL pgvector storage service.",
     entry: "builtin:system-pgvector-storage",
-  },
+  }),
   load: () => systemPgVectorPlugin,
 };

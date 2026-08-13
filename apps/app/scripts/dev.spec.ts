@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import {
-  appendFile,
   chmod,
   mkdir,
   mkdtemp,
@@ -36,11 +35,17 @@ const runDev = (
     cwd: resolve(import.meta.dirname, ".."),
     env: {
       ...env,
-      CAT_PLUGIN_DEBOUNCE_MS: "30",
-      CAT_PLUGIN_ROOT: join(fixtureDirectory, "plugins"),
       CAT_REPOSITORY_ROOT: fixtureDirectory,
+      FAKE_DB_CAPABILITIES_FILE: join(
+        fixtureDirectory,
+        "database-capabilities.txt",
+      ),
+      FAKE_DB_PUSH_FILE: join(fixtureDirectory, "database-push.txt"),
+      FAKE_VECTOR_RUNTIME_SCHEMA_FILE: join(
+        fixtureDirectory,
+        "vector-runtime-schema.txt",
+      ),
       FAKE_INITIAL_BUILD_FILE: join(fixtureDirectory, "initial-build.txt"),
-      FAKE_PLUGIN_BUILD_LOG: join(fixtureDirectory, "plugin-builds.log"),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -86,21 +91,27 @@ const waitForFile = async (path: string): Promise<void> => {
 beforeEach(async () => {
   fixtureDirectory = await mkdtemp(join(tmpdir(), "cat-dev-runner-"));
   await mkdir(join(fixtureDirectory, "apps/app"), { recursive: true });
-  await mkdir(join(fixtureDirectory, "plugins/example/src"), {
-    recursive: true,
-  });
-  await writeFile(
-    join(fixtureDirectory, "plugins/example/src/index.ts"),
-    "export const value = 1;\n",
-  );
   const fakePnpm = join(fixtureDirectory, "pnpm");
   await writeFile(
     fakePnpm,
     `#!/usr/bin/env node
-const { appendFileSync, writeFileSync } = require("node:fs");
+const { writeFileSync } = require("node:fs");
 
 const args = process.argv.slice(2);
+if (args[0] === "--filter" && args[1] === "@cat/db" && args[2] === "drizzle:push") {
+  if (process.env.FAKE_DB_CAPABILITIES_MODE === "fail") process.exit(16);
+  writeFileSync(process.env.FAKE_DB_CAPABILITIES_FILE, "prepared");
+  if (process.env.FAKE_DB_PUSH_MODE === "fail") process.exit(17);
+  writeFileSync(process.env.FAKE_DB_PUSH_FILE, "pushed");
+  if (process.env.FAKE_VECTOR_RUNTIME_SCHEMA_MODE === "fail") process.exit(18);
+  writeFileSync(process.env.FAKE_VECTOR_RUNTIME_SCHEMA_FILE, "prepared");
+  process.exit(0);
+}
+
 if (args[0] === "build-plugins") {
+  if (process.env.FAKE_EXPECT_DB_PUSH !== "false" && !require("node:fs").existsSync(process.env.FAKE_DB_PUSH_FILE)) {
+    process.exit(92);
+  }
   if (process.env.FAKE_INITIAL_BUILD_MODE === "fail") process.exit(19);
   writeFileSync(process.env.FAKE_INITIAL_BUILD_FILE, "built");
   process.exit(0);
@@ -110,6 +121,13 @@ if (args[0] === "exec" && args[1] === "vike") {
   if (!require("node:fs").existsSync(process.env.FAKE_INITIAL_BUILD_FILE)) {
     process.exit(91);
   }
+  if (process.env.FAKE_VIKE_MODE === "hang") {
+    process.on("SIGTERM", () => {
+      writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
+      process.exit(0);
+    });
+  }
+
   writeFileSync(process.env.FAKE_VIKE_ARGS_FILE, JSON.stringify(args.slice(2)));
   process.stdout.write(JSON.stringify({ level: 30, time: Date.now(), msg: "fake vike started" }) + "\\n");
 
@@ -118,26 +136,12 @@ if (args[0] === "exec" && args[1] === "vike") {
   }
 
   if (process.env.FAKE_VIKE_MODE === "hang") {
-    process.on("SIGTERM", () => {
-      writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
-      process.exit(0);
-    });
     setInterval(() => {}, 1_000);
   }
   return;
 }
 
-appendFileSync(process.env.FAKE_PLUGIN_BUILD_LOG, JSON.stringify(args) + "\\n");
-if (process.env.FAKE_PLUGIN_BUILD_MODE === "fail") process.exit(29);
-if (process.env.FAKE_PLUGIN_BUILD_MODE === "hang") {
-  process.on("SIGTERM", () => {
-    writeFileSync(process.env.FAKE_PLUGIN_BUILD_CLEANUP_FILE, "cleaned");
-    process.exit(0);
-  });
-  setInterval(() => {}, 1_000);
-} else {
-  setTimeout(() => process.exit(0), Number(process.env.FAKE_PLUGIN_BUILD_DELAY ?? 0));
-}
+process.exit(93);
 `,
     "utf8",
   );
@@ -151,6 +155,13 @@ const { writeFileSync } = require("node:fs");
 if (!require("node:fs").existsSync(process.env.FAKE_INITIAL_BUILD_FILE)) {
   process.exit(91);
 }
+if (process.env.FAKE_VIKE_MODE === "hang") {
+  process.on("SIGTERM", () => {
+    writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
+    process.exit(0);
+  });
+}
+
 writeFileSync(process.env.FAKE_VIKE_ARGS_FILE, JSON.stringify(process.argv.slice(2)));
 process.stdout.write(JSON.stringify({ level: 30, time: Date.now(), msg: "fake vike started" }) + "\\n");
 
@@ -159,10 +170,6 @@ if (process.env.FAKE_VIKE_MODE === "fail") {
 }
 
 if (process.env.FAKE_VIKE_MODE === "hang") {
-  process.on("SIGTERM", () => {
-    writeFileSync(process.env.FAKE_VIKE_CLEANUP_FILE, "cleaned");
-    process.exit(0);
-  });
   setInterval(() => {}, 1_000);
 }
 `,
@@ -176,6 +183,136 @@ afterEach(async () => {
 });
 
 describe("development runner", () => {
+  it("prepares database capabilities and pushes the schema before building plugins", async () => {
+    const argsFile = join(fixtureDirectory, "args.json");
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_VIKE_ARGS_FILE: argsFile,
+      FAKE_VIKE_MODE: "success",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    await expect(
+      readFile(join(fixtureDirectory, "database-capabilities.txt"), "utf8"),
+    ).resolves.toBe("prepared");
+    await expect(
+      readFile(join(fixtureDirectory, "database-push.txt"), "utf8"),
+    ).resolves.toBe("pushed");
+    await expect(
+      readFile(join(fixtureDirectory, "vector-runtime-schema.txt"), "utf8"),
+    ).resolves.toBe("prepared");
+    await expect(
+      readFile(join(fixtureDirectory, "initial-build.txt"), "utf8"),
+    ).resolves.toBe("built");
+  });
+
+  it("stops before schema push when database capability preparation fails", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_DB_CAPABILITIES_MODE: "fail",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 16, signal: null });
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+    expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
+  });
+
+  it("stops when the development schema push fails", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_DB_PUSH_MODE: "fail",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 17, signal: null });
+    expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
+  });
+
+  it("stops before application build when vector schema preparation fails", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_VECTOR_RUNTIME_SCHEMA_MODE: "fail",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 18, signal: null });
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(true);
+    expect(
+      existsSync(join(fixtureDirectory, "vector-runtime-schema.txt")),
+    ).toBe(false);
+    expect(existsSync(join(fixtureDirectory, "initial-build.txt"))).toBe(false);
+  });
+
+  it("can skip the development schema push", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      CAT_DEV_DB_PUSH: "false",
+      FAKE_EXPECT_DB_PUSH: "false",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      FAKE_VIKE_MODE: "success",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    expect(
+      existsSync(join(fixtureDirectory, "database-capabilities.txt")),
+    ).toBe(false);
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+    expect(
+      existsSync(join(fixtureDirectory, "vector-runtime-schema.txt")),
+    ).toBe(false);
+  });
+
+  it("requires explicit approval before pushing a remote database", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      DATABASE_URL: "postgresql://user:pass@database.example.com/cat",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 1, signal: null });
+    expect((await result).stderr).toContain(
+      "CAT_DEV_DB_PUSH_ALLOW_REMOTE=true",
+    );
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+  });
+
+  it("refuses to push from a production process", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      DATABASE_URL: "postgresql://user:pass@localhost:25432/cat",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      NODE_ENV: "production",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 1, signal: null });
+    expect((await result).stderr).toContain("production process");
+    expect(existsSync(join(fixtureDirectory, "database-push.txt"))).toBe(false);
+  });
+
+  it("pushes an explicitly approved remote development database", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      CAT_DEV_DB_PUSH_ALLOW_REMOTE: "true",
+      DATABASE_URL: "postgresql://user:pass@database.example.com/cat",
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      FAKE_VIKE_MODE: "success",
+    });
+
+    await expect(result).resolves.toMatchObject({ code: 0, signal: null });
+    await expect(
+      readFile(join(fixtureDirectory, "database-push.txt"), "utf8"),
+    ).resolves.toBe("pushed");
+  });
+
   it("forwards every CLI argument to Vike and preserves pretty logging", async () => {
     const argsFile = join(fixtureDirectory, "args.json");
     const { result } = runDev(
@@ -200,6 +337,20 @@ describe("development runner", () => {
       ]),
     );
     expect((await result).stdout).toContain("fake vike started");
+  });
+
+  it("preserves Vike NDJSON when diagnostic capture is enabled", async () => {
+    const { result } = runDev([], {
+      ...process.env,
+      CAT_DIAGNOSTIC_NDJSON: "true",
+      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_VIKE_ARGS_FILE: join(fixtureDirectory, "args.json"),
+      FAKE_VIKE_MODE: "success",
+    });
+
+    const output = await result;
+    expect(output).toMatchObject({ code: 0, signal: null });
+    expect(output.stdout).toContain('{"level":30');
   });
 
   it("returns Vike's failure status", async () => {
@@ -236,99 +387,7 @@ describe("development runner", () => {
       async () => {
         await expect(readFile(cleanupFile, "utf8")).resolves.toBe("cleaned");
       },
-      { interval: 20, timeout: 10_000 },
+      { interval: 20, timeout: 3_000 },
     );
-  }, 15_000);
-
-  it("debounces changes and queues a follow-up build for changes during a build", async () => {
-    const argsFile = join(fixtureDirectory, "args.json");
-    const buildLog = join(fixtureDirectory, "plugin-builds.log");
-    const source = join(fixtureDirectory, "plugins/example/src/index.ts");
-    const { child, result } = runDev([], {
-      ...process.env,
-      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
-      FAKE_PLUGIN_BUILD_DELAY: "250",
-      FAKE_VIKE_ARGS_FILE: argsFile,
-      FAKE_VIKE_CLEANUP_FILE: join(fixtureDirectory, "cleanup.txt"),
-      FAKE_VIKE_MODE: "hang",
-    });
-
-    await waitForFile(argsFile);
-    await Promise.all([
-      appendFile(source, "// first\n"),
-      appendFile(source, "// debounced\n"),
-    ]);
-    await vi.waitFor(
-      async () => {
-        expect(
-          (await readFile(buildLog, "utf8")).trim().split("\n"),
-        ).toHaveLength(1);
-      },
-      { interval: 20, timeout: 2_000 },
-    );
-    await appendFile(source, "// queued\n");
-    await vi.waitFor(
-      async () => {
-        expect(
-          (await readFile(buildLog, "utf8")).trim().split("\n"),
-        ).toHaveLength(2);
-      },
-      { interval: 20, timeout: 2_000 },
-    );
-
-    child.kill("SIGTERM");
-    await expect(result).resolves.toMatchObject({ signal: "SIGTERM" });
-  });
-
-  it("reports plugin build failures without stopping Vike", async () => {
-    const argsFile = join(fixtureDirectory, "args.json");
-    const source = join(fixtureDirectory, "plugins/example/src/index.ts");
-    const { child, result } = runDev([], {
-      ...process.env,
-      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
-      FAKE_PLUGIN_BUILD_MODE: "fail",
-      FAKE_VIKE_ARGS_FILE: argsFile,
-      FAKE_VIKE_CLEANUP_FILE: join(fixtureDirectory, "cleanup.txt"),
-      FAKE_VIKE_MODE: "hang",
-    });
-
-    await waitForFile(argsFile);
-    await appendFile(source, "// fail\n");
-    await vi.waitFor(
-      async () => {
-        expect(
-          await readFile(join(fixtureDirectory, "plugin-builds.log"), "utf8"),
-        ).toContain("@cat-plugin/example");
-      },
-      { interval: 20, timeout: 2_000 },
-    );
-    expect(child.exitCode).toBeNull();
-    child.kill("SIGTERM");
-    const output = await result;
-    expect(output.signal).toBe("SIGTERM");
-    expect(output.stderr).toContain("Plugin example build failed");
-  });
-
-  it("terminates an active plugin build during shutdown", async () => {
-    const argsFile = join(fixtureDirectory, "args.json");
-    const buildCleanup = join(fixtureDirectory, "build-cleanup.txt");
-    const source = join(fixtureDirectory, "plugins/example/src/index.ts");
-    const { child, result } = runDev([], {
-      ...process.env,
-      PATH: `${fixtureDirectory}${delimiter}${process.env.PATH ?? ""}`,
-      FAKE_PLUGIN_BUILD_CLEANUP_FILE: buildCleanup,
-      FAKE_PLUGIN_BUILD_MODE: "hang",
-      FAKE_VIKE_ARGS_FILE: argsFile,
-      FAKE_VIKE_CLEANUP_FILE: join(fixtureDirectory, "cleanup.txt"),
-      FAKE_VIKE_MODE: "hang",
-    });
-
-    await waitForFile(argsFile);
-    await appendFile(source, "// hang\n");
-    await waitForFile(join(fixtureDirectory, "plugin-builds.log"));
-    child.kill("SIGTERM");
-
-    await expect(result).resolves.toMatchObject({ signal: "SIGTERM" });
-    await expect(readFile(buildCleanup, "utf8")).resolves.toBe("cleaned");
   });
 });

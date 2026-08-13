@@ -1,5 +1,14 @@
-import type { JSONType, NonNullJSONType } from "@cat/shared";
+import type {
+  JSONType,
+  NonNullJSONType,
+  ServiceImplementationReference,
+} from "@cat/shared";
 
+import type {
+  GlossaryListByCreatorCapabilityInput,
+  MemoryListByCreatorCapabilityInput,
+  ProjectListByCreatorCapabilityInput,
+} from "#/capabilities/resource-list-contracts.ts";
 import type { createAgentDefinition } from "#/commands/agent/create-agent-definition.cmd.ts";
 import type { createAgentSession } from "#/commands/agent/create-agent-session.cmd.ts";
 import type { deleteAgentDefinition } from "#/commands/agent/delete-agent-definition.cmd.ts";
@@ -15,7 +24,6 @@ import type { createGlossary } from "#/commands/glossary/create-glossary.cmd.ts"
 import type { deleteGlossaryTerm } from "#/commands/glossary/delete-glossary-term.cmd.ts";
 import type { updateGlossaryConcept } from "#/commands/glossary/update-glossary-concept.cmd.ts";
 import type { createMemory } from "#/commands/memory/create-memory.cmd.ts";
-import type { addProjectTargetLanguages } from "#/commands/project/add-project-target-languages.cmd.ts";
 import type { createProject } from "#/commands/project/create-project.cmd.ts";
 import type { deleteProject } from "#/commands/project/delete-project.cmd.ts";
 import type { linkProjectGlossaries } from "#/commands/project/link-project-glossaries.cmd.ts";
@@ -83,7 +91,7 @@ export type ProjectCapabilities = {
     input: CapabilityInput<typeof getProject>,
   ) => Promise<CapabilityOutput<typeof getProject>>;
   listByCreator: (
-    input: CapabilityInput<typeof listProjectsByCreator>,
+    input: ProjectListByCreatorCapabilityInput,
   ) => Promise<CapabilityOutput<typeof listProjectsByCreator>>;
   listOwned: (
     input: CapabilityInput<typeof listOwnedProjects>,
@@ -109,9 +117,6 @@ export type ProjectCapabilities = {
   ) => Promise<void>;
   unlinkMemories: (
     input: CapabilityInput<typeof unlinkProjectMemories>,
-  ) => Promise<void>;
-  addTargetLanguages: (
-    input: CapabilityInput<typeof addProjectTargetLanguages>,
   ) => Promise<void>;
 };
 
@@ -160,7 +165,7 @@ export type AuthCapabilities = {
   }) => Promise<JSONType | null>;
   getMfaPayloadForUser: (input: {
     userId: string;
-    factorId: string;
+    mfaService: ServiceImplementationReference;
   }) => Promise<NonNullJSONType | null>;
 };
 
@@ -262,7 +267,7 @@ export type GlossaryCapabilities = {
     input: CapabilityInput<typeof listGlossaryTermPairs>,
   ) => Promise<CapabilityOutput<typeof listGlossaryTermPairs>>;
   listByCreator: (
-    input: CapabilityInput<typeof listGlossariesByCreator>,
+    input: GlossaryListByCreatorCapabilityInput,
   ) => Promise<CapabilityOutput<typeof listGlossariesByCreator>>;
   listOwned: (
     input: CapabilityInput<typeof listOwnedGlossaries>,
@@ -301,7 +306,7 @@ export type MemoryCapabilities = {
     input: CapabilityInput<typeof getMemory>,
   ) => Promise<CapabilityOutput<typeof getMemory>>;
   listByCreator: (
-    input: CapabilityInput<typeof listMemoriesByCreator>,
+    input: MemoryListByCreatorCapabilityInput,
   ) => Promise<CapabilityOutput<typeof listMemoriesByCreator>>;
   listOwned: (
     input: CapabilityInput<typeof listOwnedMemories>,

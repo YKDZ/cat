@@ -5,8 +5,12 @@ import {
   getDbHandle,
 } from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";
-import type { MemorySuggestion } from "@cat/shared";
-import type { EnrichedTermMatch } from "@cat/shared";
+import type {
+  EnrichedTermMatch,
+  MemorySuggestion,
+  ServiceImplementationReference,
+} from "@cat/shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { applyBandOrder } from "./rerank/apply-band-order.ts";
@@ -75,7 +79,7 @@ export const RecallContextRerankInputSchema = z.object({
   elementId: z.int(),
   queryText: z.string(),
   memories: z.array(z.any()),
-  rerankProviderId: z.int().optional(),
+  rerankProvider: ServiceImplementationReferenceSchema.optional(),
   rerankTimeoutMs: z.int().positive().optional(),
 });
 
@@ -83,7 +87,7 @@ export type RecallContextRerankInput = {
   elementId: number;
   queryText: string;
   memories: MemorySuggestion[];
-  rerankProviderId?: number;
+  rerankProvider?: ServiceImplementationReference;
   rerankTimeoutMs?: number;
 };
 
@@ -91,7 +95,7 @@ export const TermRecallContextRerankInputSchema = z.object({
   elementId: z.int(),
   queryText: z.string(),
   terms: z.array(z.any()),
-  rerankProviderId: z.int().optional(),
+  rerankProvider: ServiceImplementationReferenceSchema.optional(),
   rerankTimeoutMs: z.int().positive().optional(),
 });
 
@@ -99,7 +103,7 @@ export type TermRecallContextRerankInput = {
   elementId: number;
   queryText: string;
   terms: EnrichedTermMatch[];
-  rerankProviderId?: number;
+  rerankProvider?: ServiceImplementationReference;
   rerankTimeoutMs?: number;
 };
 
@@ -157,7 +161,7 @@ export const recallContextRerankOp = async (
       band,
       candidates: normalized,
       contextHints: { evidence },
-      rerankProviderId: data.rerankProviderId,
+      rerankProvider: data.rerankProvider,
       timeoutMs: data.rerankTimeoutMs,
     },
     pluginManager,
@@ -253,7 +257,7 @@ export const rerankTermRecallOp = async (
       band,
       candidates: normalized,
       contextHints: { evidence },
-      rerankProviderId: data.rerankProviderId,
+      rerankProvider: data.rerankProvider,
       timeoutMs: data.rerankTimeoutMs,
     },
     pluginManager,

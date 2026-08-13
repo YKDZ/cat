@@ -6,6 +6,7 @@ import {
   executeCommand,
   updateGlossaryConcept,
 } from "@cat/domain";
+import { RecallDerivationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 export const UpdateConceptInputSchema = z.object({
@@ -16,6 +17,7 @@ export const UpdateConceptInputSchema = z.object({
 
 export const UpdateConceptOutputSchema = z.object({
   updated: z.boolean(),
+  derivations: z.array(RecallDerivationReferenceSchema),
 });
 
 export type UpdateConceptInput = z.infer<typeof UpdateConceptInputSchema>;
@@ -47,5 +49,5 @@ export const updateConceptOp = async (
 
   await collector.flush();
 
-  return { updated: result.updated };
+  return { updated: result.updated, derivations: result.derivations };
 };

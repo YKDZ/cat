@@ -1,7 +1,11 @@
 {
-  "extends": "../../tsconfig.vue.json",
+  "extends": [
+    "@vue/tsconfig/tsconfig.dom.json",
+    "@cat/typescript-config/bundler.json"
+  ],
   "compilerOptions": {
-    "noEmit": true,
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.cache/tsconfig.tsbuildinfo",
     "types": []
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"]

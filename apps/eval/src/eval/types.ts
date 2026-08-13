@@ -25,6 +25,7 @@ export type CaseEvaluation = {
   status: string;
   scores: ScoreValue[];
   durationMs: number;
+  recallResult?: NonNullable<CaseResult["recallResult"]>;
 };
 
 export type ScenarioEvaluation = {

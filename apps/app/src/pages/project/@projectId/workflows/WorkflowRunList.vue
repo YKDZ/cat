@@ -11,7 +11,9 @@ import {
 import { navigate } from "vike/client/router";
 import { useI18n } from "vue-i18n";
 
-const { t } = useI18n();
+import { formatTimestamp } from "#/utils/format.ts";
+
+const { locale, t } = useI18n();
 
 const props = defineProps<{
   runs: Array<{
@@ -35,10 +37,8 @@ const statusVariant = (
   return "outline";
 };
 
-const formatDate = (date: Date | null): string => {
-  if (!date) return "—";
-  return new Date(date).toLocaleString();
-};
+const formatRunDate = (date: Date | null): string =>
+  date ? formatTimestamp(date, locale.value) : "—";
 </script>
 
 <template>
@@ -66,10 +66,10 @@ const formatDate = (date: Date | null): string => {
             }}</Badge>
           </TableCell>
           <TableCell class="text-sm text-muted-foreground">{{
-            formatDate(run.startedAt)
+            formatRunDate(run.startedAt)
           }}</TableCell>
           <TableCell class="text-sm text-muted-foreground">{{
-            formatDate(run.completedAt)
+            formatRunDate(run.completedAt)
           }}</TableCell>
         </TableRow>
       </TableBody>

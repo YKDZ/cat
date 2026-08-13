@@ -1,4 +1,5 @@
-import type { MemorySuggestion } from "@cat/shared";
+import { EffectiveMemoryRecallStreamEventSchema } from "@cat/shared";
+import { MemorySuggestionSchema, type MemorySuggestion } from "@cat/shared";
 import { defineStore, storeToRefs } from "pinia";
 import { ref, shallowRef } from "vue";
 
@@ -6,28 +7,43 @@ import { orpc } from "#/rpc/orpc.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { useProfileStore } from "#/stores/profile.ts";
+import {
+  createTrackedRequest,
+  type TrackedRequest,
+} from "#/utils/request-cancellation.ts";
+
+type MemoryRecallScopeState = {
+  status: "SUCCEEDED" | "BLOCKED" | "SKIPPED";
+};
+type MemoryRecallState = {
+  scopes: {
+    PROJECT: MemoryRecallScopeState;
+    PERSONAL: MemoryRecallScopeState;
+  };
+};
 
 export const useEditorMemoryStore = defineStore("editorMemory", () => {
   const { elementId } = storeToRefs(useEditorTableStore());
   const { languageToId } = storeToRefs(useEditorContextStore());
   const { editorMemoryMinConfidence } = storeToRefs(useProfileStore());
-  const onNew = shallowRef<AsyncGenerator<MemorySuggestion>>();
-  let abortController: AbortController | null = null;
+  const onNew = shallowRef<AsyncGenerator<unknown>>();
+  let activeRequest: TrackedRequest | null = null;
 
   const memories = ref<MemorySuggestion[]>([]);
+  const recallResult = ref<MemoryRecallState | null>(null);
   const error = ref<string | null>(null);
 
   const subMemories = async () => {
     error.value = null;
 
-    if (abortController) {
-      abortController.abort();
-    }
-    abortController = new AbortController();
-
     if (!elementId.value || !languageToId.value) return;
 
+    activeRequest?.cancel();
+    const request = createTrackedRequest();
+    activeRequest = request;
+
     memories.value = [];
+    recallResult.value = null;
 
     try {
       onNew.value = await orpc.memory.onNew(
@@ -36,10 +52,23 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
           translationLanguageId: languageToId.value,
           minConfidence: editorMemoryMinConfidence.value[0],
         },
-        { signal: abortController.signal },
+        { signal: request.signal },
       );
 
-      for await (const memory of onNew.value) {
+      for await (const rawEvent of onNew.value) {
+        if (activeRequest !== request) return;
+        const event = EffectiveMemoryRecallStreamEventSchema.parse(rawEvent);
+        if (event.type === "COMPLETED") {
+          recallResult.value = {
+            scopes: {
+              PROJECT: { status: event.result.scopes.PROJECT.status },
+              PERSONAL: { status: event.result.scopes.PERSONAL.status },
+            },
+          };
+          continue;
+        }
+
+        const memory = MemorySuggestionSchema.parse(event.candidate);
         const existingIndex = memories.value.findIndex(
           (item) => item.id === memory.id,
         );
@@ -51,23 +80,31 @@ export const useEditorMemoryStore = defineStore("editorMemory", () => {
       }
     } catch (err) {
       if (
-        err instanceof Error &&
-        (err.message === "Stream was cancelled" || err.name === "AbortError")
+        request.signal.aborted ||
+        (err instanceof Error &&
+          (err.message === "Stream was cancelled" || err.name === "AbortError"))
       ) {
         return;
       }
       memories.value = [];
       error.value = err instanceof Error ? err.message : "unknown-error";
+    } finally {
+      if (activeRequest === request) activeRequest = null;
     }
   };
 
   const unsubscribe = async () => {
-    if (abortController) {
-      abortController.abort();
-      abortController = null;
-    }
+    activeRequest?.cancel();
+    activeRequest = null;
     onNew.value = undefined;
   };
 
-  return { memories, error, subMemories, unsubscribe };
+  if (!import.meta.env.SSR) {
+    const dispose = (): void => {
+      void unsubscribe();
+    };
+    window.addEventListener("beforeunload", dispose, { once: true });
+  }
+
+  return { memories, recallResult, error, subMemories, unsubscribe };
 });

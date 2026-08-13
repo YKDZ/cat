@@ -1,5 +1,6 @@
 import type { DrizzleDB, RedisConnection } from "@cat/db";
 import type { MessageGateway } from "@cat/message";
+import type { RecallDerivationWorker } from "@cat/operations";
 import type { PluginManager } from "@cat/plugin-core";
 import type { Hono } from "hono";
 
@@ -10,7 +11,7 @@ export {};
 declare global {
   var inited: boolean;
   var app: Hono;
-  var messageGateway: MessageGateway;
+  var messageGateway: MessageGateway | undefined;
   // Set by server/initialize.ts at startup; consumed by +onCreateGlobalContext.server.ts
   var drizzleDB: DrizzleDB;
   var redis: RedisConnection | undefined;
@@ -18,4 +19,5 @@ declare global {
   var serverName: string;
   var serverBaseURL: string;
   var runtimeCleanup: RuntimeCleanupHandle | null | undefined;
+  var recallDerivationWorker: RecallDerivationWorker | undefined;
 }

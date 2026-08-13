@@ -15,12 +15,14 @@
     "./extractor": "./src/extractor.ts"
   },
   "scripts": {
-    "format": "node ../../tooling/oxlint/run.ts format",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",
+    "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
+    "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
+    "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
     "test:integration": "vitest run --exclude '**/*.spec.ts' --no-file-parallelism --reporter=agent --silent=passed-only --passWithNoTests",
     "test:unit": "vitest run --exclude '**/*.test.ts' --reporter=agent --silent=passed-only --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p packages/source-collector/tsconfig.json"
   },
   "dependencies": {
     "@cat/shared": "link:../shared",
@@ -31,6 +33,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../typescript-config",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   }

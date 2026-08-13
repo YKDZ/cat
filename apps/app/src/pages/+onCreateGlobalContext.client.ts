@@ -1,5 +1,3 @@
-import { getCookieFunc } from "@cat/shared";
-import { usePreferredLanguages } from "@vueuse/core";
 import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import type { GlobalContextClient } from "vike/types";
@@ -16,16 +14,7 @@ export const onCreateGlobalContext = async (ctx: GlobalContextClient) => {
 const hydrateI18n = async (ctx: GlobalContextClient) => {
   ctx.i18n = i18n;
 
-  const key =
-    getCookieFunc(document.cookie)("displayLanguage") ??
-    usePreferredLanguages().value[0]?.toLocaleLowerCase().replace("-", "_") ??
-    "zh_cn";
-
-  if (
-    typeof ctx.i18nMessages === "object" &&
-    Object.keys(ctx.i18nMessages).findIndex((k) => k === key) !== -1
-  ) {
-    i18n.global.setLocaleMessage(key, ctx.i18nMessages[key]);
-    i18n.global.locale.value = key;
+  for (const [locale, messages] of Object.entries(ctx.i18nMessages ?? {})) {
+    i18n.global.setLocaleMessage(locale, messages);
   }
 };

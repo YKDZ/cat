@@ -136,4 +136,54 @@ describe("useQaReviewWorkbenchStore", () => {
     expect(store.noteBody).toBe("Draft note");
     expect(store.submitError).toBe("network failed");
   });
+
+  it("syncs route element without navigating again", async () => {
+    const store = useQaReviewWorkbenchStore();
+
+    await store.syncRouteElement(7);
+
+    expect(store.selectedElementId).toBe(7);
+    expect(mocks.getReviewableElement).toHaveBeenCalledWith({
+      projectId: "11111111-1111-4111-8111-111111111111",
+      languageId: "zh-Hans",
+      branchId: null,
+      elementId: 7,
+    });
+    expect(mocks.navigate).not.toHaveBeenCalled();
+  });
+
+  it("retries route detail when the first refresh has no candidates", async () => {
+    mocks.getReviewableElement
+      .mockResolvedValueOnce({ sourceText: "Apple", candidates: [] })
+      .mockResolvedValueOnce({
+        sourceText: "Apple",
+        candidates: [
+          {
+            queueItem: {
+              id: 1,
+              optimisticVersion: 1,
+            },
+            translation: { id: 2, text: "苹果" },
+            findings: [],
+            annotations: [],
+          },
+        ],
+      });
+    const store = useQaReviewWorkbenchStore();
+
+    await store.syncRouteElement(7);
+
+    expect(mocks.getReviewableElement).toHaveBeenCalledTimes(2);
+  });
+
+  it("navigates when selecting an element from the workbench", async () => {
+    const store = useQaReviewWorkbenchStore();
+
+    await store.selectElement(8);
+
+    expect(store.selectedElementId).toBe(8);
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      "/qa-review/project/11111111-1111-4111-8111-111111111111/zh-Hans/8",
+    );
+  });
 });

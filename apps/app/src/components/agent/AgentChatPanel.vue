@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import {
+  type ServiceImplementationReference,
+  serviceImplementationReferenceKey,
+} from "@cat/shared";
 import { Button, ScrollArea, Textarea } from "@cat/ui";
 import {
   AlertTriangle,
@@ -55,8 +59,7 @@ const {
 } = storeToRefs(agentStore);
 
 interface LLMProviderOption {
-  id: number;
-  serviceId: string;
+  reference: ServiceImplementationReference;
   name: string;
 }
 
@@ -66,7 +69,7 @@ const inputText = ref("");
 const scrollAreaRef = ref<InstanceType<typeof ScrollArea> | null>(null);
 const composerTextareaRef = ref<InstanceType<typeof Textarea> | null>(null);
 const llmProviders = ref<LLMProviderOption[]>([]);
-const selectedProviderId = ref<number | null>(null);
+const selectedProviderReferenceKey = ref<string | null>(null);
 const isAtBottom = ref(true);
 const resizeObserver = ref<ResizeObserver | null>(null);
 const scrollViewport = ref<HTMLElement | null>(null);
@@ -161,11 +164,16 @@ const syncViewportBindings = () => {
 const fetchLLMProviders = async () => {
   try {
     llmProviders.value = await orpc.agent.listLLMProviders();
-    if (selectedProviderId.value === null) {
-      selectedProviderId.value = llmProviders.value[0]?.id ?? null;
+    if (selectedProviderReferenceKey.value === null) {
+      const first = llmProviders.value[0];
+      selectedProviderReferenceKey.value = first
+        ? serviceImplementationReferenceKey(first.reference)
+        : null;
     }
   } catch (err) {
-    logger.withSituation("WEB").error(err, "Failed to fetch LLM providers");
+    logger
+      .child({ component: "web" })
+      .error("Failed to fetch LLM providers", { error: err });
   }
 };
 
@@ -179,7 +187,11 @@ const buildSessionMetadata = () => {
   return {
     projectId: props.projectId,
     projectName: props.projectName,
-    providerId: selectedProviderId.value ?? undefined,
+    provider: llmProviders.value.find(
+      (provider) =>
+        serviceImplementationReferenceKey(provider.reference) ===
+        selectedProviderReferenceKey.value,
+    )?.reference,
     ...(scope
       ? {
           languageId: scope.languageToId,
@@ -228,14 +240,26 @@ watch(
   () => {
     if (
       activeSessionId.value &&
-      typeof activeSessionContext.value?.providerId === "number"
+      activeSessionContext.value?.provider !== undefined
     ) {
-      selectedProviderId.value = activeSessionContext.value.providerId;
+      const selectedProvider = llmProviders.value.find(
+        (provider) =>
+          provider.reference.pluginId ===
+            activeSessionContext.value?.provider?.pluginId &&
+          provider.reference.serviceId ===
+            activeSessionContext.value?.provider?.serviceId,
+      );
+      selectedProviderReferenceKey.value = selectedProvider
+        ? serviceImplementationReferenceKey(selectedProvider.reference)
+        : null;
       return;
     }
 
-    if (selectedProviderId.value === null) {
-      selectedProviderId.value = llmProviders.value[0]?.id ?? null;
+    if (selectedProviderReferenceKey.value === null) {
+      const first = llmProviders.value[0];
+      selectedProviderReferenceKey.value = first
+        ? serviceImplementationReferenceKey(first.reference)
+        : null;
     }
   },
   { immediate: true },
@@ -273,8 +297,8 @@ const handleNewSession = () => {
   agentStore.selectDefinition(selectedDefinitionId.value);
 };
 
-const handleProviderChange = (value: number | null) => {
-  selectedProviderId.value = value;
+const handleProviderChange = (value: string | null) => {
+  selectedProviderReferenceKey.value = value;
 };
 
 const isRunActive = computed(() => {
@@ -407,7 +431,7 @@ onUnmounted(() => {
             <AgentProviderSelector
               compact
               :providers="llmProviders"
-              :model-value="selectedProviderId"
+              :model-value="selectedProviderReferenceKey"
               :disabled="isRunActive || llmProviders.length === 0"
               @update:model-value="handleProviderChange"
             />
@@ -522,7 +546,7 @@ onUnmounted(() => {
             <AgentProviderSelector
               compact
               :providers="llmProviders"
-              :model-value="selectedProviderId"
+              :model-value="selectedProviderReferenceKey"
               :disabled="isRunActive || llmProviders.length === 0"
               @update:model-value="handleProviderChange"
             />

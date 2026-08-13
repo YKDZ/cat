@@ -12,6 +12,10 @@ const m = vi.hoisted(() => ({
   markBranchConflicted: Symbol("markBranchConflicted"),
   mergeBranch: vi.fn(),
   applyChangeSet: vi.fn(),
+  collectorFlush: vi.fn().mockResolvedValue(undefined),
+  collectorCollect: vi.fn(),
+  createInProcessCollector: vi.fn(),
+  domainEventBus: Symbol("domainEventBus"),
   getDefaultRegistries: vi.fn().mockReturnValue({
     diffRegistry: {},
     appMethodRegistry: {},
@@ -25,6 +29,8 @@ vi.mock("@cat/domain", () => ({
   getBranchById: m.getBranchById,
   mergePR: m.mergePR,
   markBranchConflicted: m.markBranchConflicted,
+  createInProcessCollector: m.createInProcessCollector,
+  domainEventBus: m.domainEventBus,
 }));
 
 vi.mock("@cat/vcs", () => ({
@@ -67,6 +73,12 @@ beforeEach(() => {
   m.executeCommand.mockReset();
   m.mergeBranch.mockReset();
   m.applyChangeSet.mockReset();
+  m.collectorFlush.mockClear();
+  m.collectorCollect.mockClear();
+  m.createInProcessCollector.mockReset().mockReturnValue({
+    collect: m.collectorCollect,
+    flush: m.collectorFlush,
+  });
   db.transaction.mockClear();
 });
 
@@ -92,6 +104,12 @@ describe("mergePRFull", () => {
     expect(result.success).toBe(true);
     expect(result.hasConflicts).toBe(false);
     expect(result.mainChangesetId).toBe(200);
+    expect(m.createInProcessCollector).toHaveBeenCalledWith(m.domainEventBus);
+    expect(m.collectorFlush).toHaveBeenCalledOnce();
+    expect(m.applyChangeSet).toHaveBeenCalledWith(200, {
+      projectId: mockBranch.projectId,
+      collector: expect.objectContaining({ flush: m.collectorFlush }),
+    });
   });
 
   test("冲突路径 — mergeBranch 返回冲突", async () => {
@@ -123,5 +141,6 @@ describe("mergePRFull", () => {
     expect(result.success).toBe(false);
     expect(result.hasConflicts).toBe(true);
     expect(result.conflicts).toHaveLength(1);
+    expect(m.collectorFlush).not.toHaveBeenCalled();
   });
 });

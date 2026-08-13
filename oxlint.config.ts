@@ -14,6 +14,7 @@ const clientForbiddenImports = [
   "@orpc/server",
   "drizzle-orm",
   "telefunc",
+  "#/server",
   "node:",
 ];
 
@@ -77,7 +78,6 @@ export default defineConfig({
         "apps/app/src/pages/**/+onBeforeRenderClient.ts",
         "apps/app/src/pages/**/+onBeforeRender.ts",
         "apps/app/src/pages/**/+guard.ts",
-        "apps/app/src/pages/**/+data.ts",
         "packages/ui/**/*.vue",
         "packages/plugin-core/src/client/**/*.ts",
         "@cat-plugin/tiny-widget/src/**/*.{ts,vue}",

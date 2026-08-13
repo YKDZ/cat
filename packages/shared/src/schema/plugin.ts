@@ -2,14 +2,11 @@ import * as z from "zod";
 
 import { PluginServiceTypeSchema } from "#/schema/enum.ts";
 import { JSONSchemaSchema, nonNullSafeZDotJson } from "#/schema/json.ts";
+import { PluginIdentifierSchema } from "#/schema/plugin-identifier.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
-export const PluginManifestSchema = z.object({
-  id: z
-    .string()
-    .regex(
-      /^(?:[A-Za-z0-9\-_.!~*'()]+|%[0-9A-Fa-f]{2})+$/,
-      "The plugin ID does not meet the requirements. It needs to be a string that can be used for URL fragments",
-    ),
+const PluginManifestBaseSchema = z.object({
+  id: PluginIdentifierSchema,
   version: z.string(),
   entry: z.string(),
   iconURL: z.url().optional(),
@@ -38,13 +35,30 @@ export const PluginManifestSchema = z.object({
     )
     .optional(),
   config: JSONSchemaSchema.optional(),
+  configVersion: z.string().min(1).optional(),
 });
 
-export const PluginDataSchema = PluginManifestSchema.extend({
+const requireConfigVersion = (
+  manifest: z.infer<typeof PluginManifestBaseSchema>,
+  context: z.RefinementCtx,
+): void => {
+  if (manifest.config !== undefined && manifest.configVersion === undefined) {
+    context.addIssue({
+      code: "custom",
+      message: "Plugins that declare configuration must declare configVersion",
+      path: ["configVersion"],
+    });
+  }
+};
+
+export const PluginManifestSchema =
+  PluginManifestBaseSchema.superRefine(requireConfigVersion);
+
+export const PluginDataSchema = PluginManifestBaseSchema.extend({
   name: z.string().lowercase(),
   version: z.string(),
   overview: z.string().nullable(),
-});
+}).superRefine(requireConfigVersion);
 
 export const TranslationAdviseSchema = z.object({
   translation: z.string(),
@@ -53,7 +67,7 @@ export const TranslationAdviseSchema = z.object({
 });
 
 export const TranslationSuggestionSchema = TranslationAdviseSchema.extend({
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
 });
 
 export type TranslationAdvise = z.infer<typeof TranslationAdviseSchema>;

@@ -69,9 +69,19 @@ export class TotpFactor extends AuthFactor {
       };
     }
 
+    if (!ctx.serviceReference) {
+      return {
+        status: "failure",
+        error: {
+          code: "TOTP_NOT_CONFIGURED",
+          message: "TOTP implementation reference not available",
+        },
+      };
+    }
+
     const payload = await this.capabilities.auth.getMfaPayloadForUser({
       userId: ctx.userId,
-      factorId: this.getId(),
+      mfaService: ctx.serviceReference,
     });
 
     const secretResult = PayloadSchema.safeParse(payload);

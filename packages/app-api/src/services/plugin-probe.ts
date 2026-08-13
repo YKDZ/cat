@@ -1,6 +1,6 @@
 import type {
   LLMProvider,
-  NlpWordSegmenter,
+  LanguageAnalyzer,
   PluginServiceAvailability,
   RerankProvider,
   StorageProvider,
@@ -13,7 +13,14 @@ import {
   hasAvailabilityProbe,
   type IPluginService,
 } from "@cat/plugin-core";
-import type { NonNullJSONType, PluginServiceType } from "@cat/shared";
+import {
+  LanguageAnalyzerConfigurationAssessmentSchema,
+  ServiceImplementationReferenceSchema,
+  validateLanguageAnalysisResult,
+  type ServiceImplementationReference,
+  type NonNullJSONType,
+  type PluginServiceType,
+} from "@cat/shared";
 import { ORPCError } from "@orpc/client";
 
 import type { Context } from "#/utils/context.ts";
@@ -21,6 +28,7 @@ import type { Context } from "#/utils/context.ts";
 import {
   assertConfigValueMatchesSchema,
   getPluginDetailModel,
+  resolvePluginManager,
 } from "./plugin-management.ts";
 import { errorMessage, redactJson } from "./plugin-redaction.ts";
 import type {
@@ -54,7 +62,7 @@ const unsupportedReason = (serviceType: PluginServiceType): string | null => {
       "RERANK_PROVIDER",
       "STORAGE_PROVIDER",
       "TRANSLATION_ADVISOR",
-      "NLP_WORD_SEGMENTER",
+      "LANGUAGE_ANALYZER",
     ].includes(serviceType)
   ) {
     return "此服务类型没有平台内置通用检测。";
@@ -431,28 +439,43 @@ const probeTranslationAdvisor = async (
   };
 };
 
-const probeNlpSegmenter = async (
-  service: NlpWordSegmenter,
+const probeLanguageAnalyzer = async (
+  service: LanguageAnalyzer,
   signal: AbortSignal,
+  implementation: {
+    reference: ServiceImplementationReference;
+    packageName: string;
+    packageVersion: string;
+  },
 ): Promise<PluginProbeServiceResult> => {
-  const serviceType = "NLP_WORD_SEGMENTER" as const;
+  const serviceType = "LANGUAGE_ANALYZER" as const;
   const serviceId = service.getId();
   const { value, resultBase, error } = await timed(
     serviceType,
     serviceId,
     signal,
     async () => {
-      const languages = await service.getSupportedLanguages();
+      const configuration = LanguageAnalyzerConfigurationAssessmentSchema.parse(
+        service.getLanguageAnalysisConfigurationAssessment(),
+      );
+      if (configuration.status === "INVALID") {
+        throw new Error("INVALID_CONFIGURATION");
+      }
+      const languages = configuration.supportedLanguages;
       const languageId = languages[0];
-      const segmented =
+      const analysis =
         languageId !== undefined
-          ? await service.segment({
-              text: "Hello world",
+          ? validateLanguageAnalysisResult(
+              await service.analyze({
+                text: "Hello world",
+                languageId,
+                signal,
+              }),
               languageId,
-              signal,
-            })
+              { text: "Hello world", implementation },
+            )
           : null;
-      return { languages, tokenCount: segmented?.tokens.length ?? 0 };
+      return { languages, tokenCount: analysis?.tokens.length ?? 0 };
     },
   );
   if (error)
@@ -549,18 +572,22 @@ const isTranslationAdvisor = (
   );
 };
 
-const isNlpWordSegmenter = (
+const isLanguageAnalyzer = (
   service: IPluginService,
-): service is NlpWordSegmenter => {
+): service is LanguageAnalyzer => {
   return (
-    service.getType() === "NLP_WORD_SEGMENTER" &&
-    hasFunction(service, "segment")
+    service.getType() === "LANGUAGE_ANALYZER" && hasFunction(service, "analyze")
   );
 };
 
 const probeService = async (
   service: IPluginService,
   signal: AbortSignal,
+  implementation: {
+    reference: ServiceImplementationReference;
+    packageName: string;
+    packageVersion: string;
+  },
 ): Promise<PluginProbeServiceResult> => {
   if (hasAvailabilityProbe(service)) {
     const availability = await service.getAvailability();
@@ -604,9 +631,9 @@ const probeService = async (
       return isTranslationAdvisor(service)
         ? await probeTranslationAdvisor(service, signal)
         : incompatibleService(service);
-    case "NLP_WORD_SEGMENTER":
-      return isNlpWordSegmenter(service)
-        ? await probeNlpSegmenter(service, signal)
+    case "LANGUAGE_ANALYZER":
+      return isLanguageAnalyzer(service)
+        ? await probeLanguageAnalyzer(service, signal, implementation)
         : incompatibleService(service);
     default:
       return unsupported(service);
@@ -713,7 +740,7 @@ export const probePluginConfig = async (
   const {
     drizzleDB: { client: drizzle },
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
   const signal = combineSignals(
     context.requestSignal,
     input.timeoutMs ?? DEFAULT_TIMEOUT_MS,
@@ -746,7 +773,19 @@ export const probePluginConfig = async (
 
   const results = await Promise.all(
     filterServices(services, input.serviceType).map(async (service) => {
-      return await probeService(service, signal);
+      const packageData = await manager.getLoader().getData(input.pluginId);
+      const implementation = {
+        reference: ServiceImplementationReferenceSchema.parse({
+          pluginId: input.pluginId,
+          serviceId: service.getId(),
+          serviceType: service.getType(),
+          scopeType: input.scopeType,
+          scopeId: input.scopeId,
+        }),
+        packageName: packageData.name,
+        packageVersion: packageData.version,
+      };
+      return await probeService(service, signal, implementation);
     }),
   );
 

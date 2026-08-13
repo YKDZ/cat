@@ -106,21 +106,15 @@ export const withCache = <I, O>(
 
     const cached = await store.get<O>(key);
     if (cached !== null) {
-      logger.debug(
-        {
-          key,
-        },
-        "Cache hit",
-      );
+      logger.debug("Cache hit", {
+        key,
+      });
       return cached;
     }
 
-    logger.debug(
-      {
-        key,
-      },
-      "Cache miss",
-    );
+    logger.debug("Cache miss", {
+      key,
+    });
 
     const result = await operation(input);
     await store.set(key, result, options.ttl);

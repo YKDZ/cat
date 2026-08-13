@@ -23,6 +23,21 @@ afterAll(async () => {
 });
 
 describe("PostgresTaskQueue", () => {
+  it("deduplicates a stable task identity", async () => {
+    const queue = new PostgresTaskQueue<TaskPayload>(
+      testDb.client,
+      `queue_${randomUUID()}`,
+    );
+
+    await expect(
+      queue.enqueue([{ task: "stable" }], { taskIds: ["stable-task"] }),
+    ).resolves.toEqual(["stable-task"]);
+    await expect(
+      queue.enqueue([{ task: "stable" }], { taskIds: ["stable-task"] }),
+    ).resolves.toEqual([]);
+    await expect(queue.pendingCount()).resolves.toBe(1);
+  });
+
   it("supports enqueue, dequeue, maxCount, ack, and pendingCount", async () => {
     const queue = new PostgresTaskQueue<TaskPayload>(
       testDb.client,

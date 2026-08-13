@@ -6,9 +6,8 @@ import {
   getPluginConfigInstance,
   getPluginInstallation,
   listPluginServicesForInstallation,
-  updatePluginConfigInstanceValue,
-  updatePluginConfigInstanceValueIfUnchanged,
-  upsertPluginConfigInstance,
+  migratePluginConfigInstance,
+  writePluginConfigInstance,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
 import {
@@ -40,10 +39,35 @@ const PROBABLE_SERVICE_TYPES = new Set([
   "RERANK_PROVIDER",
   "STORAGE_PROVIDER",
   "TRANSLATION_ADVISOR",
-  "NLP_WORD_SEGMENTER",
+  "LANGUAGE_ANALYZER",
 ]);
 
 const degradedRuntimeStates = new Map<string, string>();
+
+/**
+ * Resolve scope managers from the initialized request runtime. A bare
+ * PluginManager.get() creates a filesystem-only loader when no instance exists,
+ * which cannot load built-in plugins from the application catalog.
+ */
+export const resolvePluginManager = (
+  context: Context,
+  scope: Pick<PluginScopeInput, "scopeType" | "scopeId">,
+): PluginManager => {
+  const { pluginManager } = context;
+  if (
+    pluginManager.scopeType === scope.scopeType &&
+    pluginManager.scopeId === scope.scopeId
+  ) {
+    return pluginManager;
+  }
+
+  return PluginManager.get(
+    scope.scopeType,
+    scope.scopeId,
+    pluginManager.getLoader(),
+    pluginManager.getDiagnosticLogger(),
+  );
+};
 
 const runtimeStateKey = (input: PluginScopeInput): string => {
   return `${input.scopeType}:${input.scopeId}:${input.pluginId}`;
@@ -123,7 +147,7 @@ export const getPluginDetailModel = async (
   const {
     drizzleDB: { client: drizzle },
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
 
   const plugin = await executeQuery({ db: drizzle }, getPlugin, {
     pluginId: input.pluginId,
@@ -185,7 +209,6 @@ export const getPluginDetailModel = async (
       serviceType: service.type,
       serviceId: service.id,
       source: "DATABASE",
-      dbId: service.dbId,
       dynamic: !manifestServices.some(
         (manifestService) =>
           manifestService.id === service.id &&
@@ -204,7 +227,6 @@ export const getPluginDetailModel = async (
       serviceType: service.type,
       serviceId: service.id,
       source: "RUNTIME",
-      dbId: service.dbId,
       dynamic: true,
       supportsProbe: reason === undefined,
       probeBillable: BILLABLE_SERVICE_TYPES.has(service.type),
@@ -229,7 +251,12 @@ export const getPluginDetailModel = async (
     source: "RUNTIME" as const,
   }));
 
-  const schema = config?.schema ?? null;
+  const hasConfig = config?.isAvailable ?? false;
+  const schema = hasConfig ? (config?.schema ?? null) : null;
+  const isStale =
+    hasConfig &&
+    configInstance !== null &&
+    configInstance.appliedVersion !== config?.schemaVersion;
   const value = configInstance?.value ?? defaultConfigValue(schema);
   const hasProbeableService = [...serviceMap.values()].some(
     (service) => service.supportsProbe,
@@ -254,12 +281,13 @@ export const getPluginDetailModel = async (
       lastError: degradedMessage,
     },
     config: {
-      hasConfig: config !== null,
+      hasConfig,
+      isStale,
       schema,
       config,
       instance: configInstance,
       value,
-      expectedUpdatedAt: configInstance?.updatedAt.toISOString() ?? null,
+      expectedRevision: configInstance?.revision ?? null,
     },
     capabilities: {
       services: [...serviceMap.values()],
@@ -270,10 +298,11 @@ export const getPluginDetailModel = async (
     actions: {
       canInstall: !isInstalled,
       canUninstall: isInstalled,
-      canSaveConfig: isInstalled && config !== null,
+      canSaveConfig: isInstalled && hasConfig && !isStale,
+      canMigrateConfig: isInstalled && isStale,
       canReload: isInstalled,
       canRetryApply: isInstalled && degradedMessage !== null,
-      canProbeCandidate: config !== null && hasProbeableService,
+      canProbeCandidate: hasConfig && hasProbeableService,
       canProbeRuntime: runtime.isActive && hasProbeableService,
     },
   };
@@ -315,7 +344,7 @@ export const installPluginToScope = async (
   const {
     drizzleDB: { client: drizzle },
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
 
   await manager.install(drizzle, input.pluginId);
 
@@ -345,7 +374,7 @@ export const uninstallPluginFromScope = async (
   const {
     drizzleDB: { client: drizzle },
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
 
   await manager.deactivate(drizzle, input.pluginId);
   await drizzle.transaction(async (tx) => {
@@ -370,7 +399,7 @@ export const reloadPluginRuntime = async (
   const {
     drizzleDB: { client: drizzle },
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
 
   try {
     await manager.reloadPlugin(drizzle, input.pluginId);
@@ -394,14 +423,14 @@ export const savePluginConfigAndApply = async (
   context: Context,
   input: PluginScopeInput & {
     value: NonNullJSONType;
-    expectedUpdatedAt?: string | null | undefined;
+    expectedRevision?: number | null | undefined;
   },
 ): Promise<PluginActionResult> => {
   const {
     drizzleDB: { client: drizzle },
     user,
   } = context;
-  const manager = PluginManager.get(input.scopeType, input.scopeId);
+  const manager = resolvePluginManager(context, input);
   const detail = await getPluginDetailModel(context, input);
 
   if (!detail) {
@@ -412,7 +441,8 @@ export const savePluginConfigAndApply = async (
       message: "插件必须先安装才能保存配置",
     });
   }
-  if (!detail.config.hasConfig || !detail.config.schema) {
+  const definition = detail.config.config;
+  if (!detail.config.hasConfig || !detail.config.schema || !definition) {
     return { status: "NO_CONFIG", message: "插件未声明配置项" };
   }
 
@@ -421,49 +451,32 @@ export const savePluginConfigAndApply = async (
   const oldInstance = detail.config.instance;
   const oldValue =
     oldInstance?.value ?? defaultConfigValue(detail.config.schema);
-  const expectedUpdatedAt = input.expectedUpdatedAt;
+  const expectedRevision = input.expectedRevision;
 
-  let savedInstance = oldInstance;
-  if (oldInstance && !expectedUpdatedAt) {
+  if (oldInstance && !expectedRevision) {
     throw new ORPCError("PRECONDITION_FAILED", {
       message: "保存已有配置时必须携带配置版本，请刷新后重试。",
     });
   }
 
-  if (oldInstance) {
-    const expectedUpdatedAtValue = expectedUpdatedAt;
-    if (!expectedUpdatedAtValue) {
-      throw new ORPCError("PRECONDITION_FAILED", {
-        message: "保存已有配置时必须携带配置版本，请刷新后重试。",
-      });
-    }
-    const updated = await executeCommand(
-      { db: drizzle },
-      updatePluginConfigInstanceValueIfUnchanged,
-      {
-        instanceId: oldInstance.id,
-        expectedUpdatedAt: new Date(expectedUpdatedAtValue),
-        value: input.value,
-      },
-    );
-    if (!updated) {
-      throw new ORPCError("CONFLICT", {
-        message: "插件配置已被其他请求修改，请刷新后重试。",
-      });
-    }
-    savedInstance = updated;
-  } else {
-    savedInstance = await executeCommand(
-      { db: drizzle },
-      upsertPluginConfigInstance,
-      {
-        pluginId: input.pluginId,
-        scopeType: input.scopeType,
-        scopeId: input.scopeId,
-        creatorId: user!.id,
-        value: input.value,
-      },
-    );
+  const savedInstance = await executeCommand(
+    { db: drizzle },
+    writePluginConfigInstance,
+    {
+      pluginId: input.pluginId,
+      scopeType: input.scopeType,
+      scopeId: input.scopeId,
+      creatorId: user!.id,
+      value: input.value,
+      expectedSchemaVersion: definition.schemaVersion,
+      expectedSchemaDigest: definition.schemaDigest,
+      expectedRevision: oldInstance ? expectedRevision : null,
+    },
+  );
+  if (!savedInstance) {
+    throw new ORPCError("CONFLICT", {
+      message: "插件配置已被其他请求修改，请刷新后重试。",
+    });
   }
 
   try {
@@ -487,10 +500,22 @@ export const savePluginConfigAndApply = async (
     }
 
     try {
-      await executeCommand({ db: drizzle }, updatePluginConfigInstanceValue, {
-        instanceId: savedInstance.id,
-        value: oldValue,
-      });
+      const rolledBack = await executeCommand(
+        { db: drizzle },
+        writePluginConfigInstance,
+        {
+          pluginId: input.pluginId,
+          scopeType: input.scopeType,
+          scopeId: input.scopeId,
+          creatorId: user!.id,
+          expectedSchemaVersion: definition.schemaVersion,
+          expectedSchemaDigest: definition.schemaDigest,
+          expectedRevision: savedInstance.revision,
+          value: oldValue,
+        },
+      );
+      if (!rolledBack)
+        throw new Error("Plugin configuration rollback conflict");
       await manager.reloadPlugin(drizzle, input.pluginId);
       degradedRuntimeStates.delete(runtimeStateKey(input));
       return {
@@ -508,4 +533,55 @@ export const savePluginConfigAndApply = async (
       };
     }
   }
+};
+
+/** Explicitly validate a stale instance against the current definition before reactivation. */
+export const migratePluginConfigAndApply = async (
+  context: Context,
+  input: PluginScopeInput & {
+    instanceId: number;
+    fromVersion: string;
+    expectedSchemaDigest: string;
+    expectedRevision: number;
+    value: NonNullJSONType;
+  },
+): Promise<PluginActionResult> => {
+  const {
+    drizzleDB: { client: drizzle },
+  } = context;
+  const detail = await getPluginDetailModel(context, input);
+  if (!detail) throw new ORPCError("NOT_FOUND", { message: "插件不存在" });
+  if (!detail.isInstalled || !detail.config.config || !detail.config.instance) {
+    throw new ORPCError("PRECONDITION_FAILED", {
+      message: "插件没有可迁移的配置实例",
+    });
+  }
+  if (
+    !detail.config.isStale ||
+    detail.config.instance.id !== input.instanceId
+  ) {
+    throw new ORPCError("PRECONDITION_FAILED", {
+      message: "插件配置不是待迁移状态，请刷新后重试。",
+    });
+  }
+
+  const migrated = await executeCommand(
+    { db: drizzle },
+    migratePluginConfigInstance,
+    input,
+  );
+  if (!migrated) {
+    throw new ORPCError("CONFLICT", {
+      message: "插件配置或定义已变化，请刷新后重试。",
+    });
+  }
+
+  const manager = resolvePluginManager(context, input);
+  await manager.reloadPlugin(drizzle, input.pluginId);
+  degradedRuntimeStates.delete(runtimeStateKey(input));
+  return {
+    status: "MIGRATED",
+    message: "插件配置已迁移并应用",
+    configInstance: migrated,
+  };
 };

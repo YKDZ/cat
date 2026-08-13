@@ -67,11 +67,12 @@ const createDetail = (overrides?: {
   },
   config: {
     hasConfig: false,
+    isStale: false,
     schema: null,
     config: null,
     instance: null,
     value: {},
-    expectedUpdatedAt: null,
+    expectedRevision: null,
   },
   capabilities: {
     services: [
@@ -94,6 +95,7 @@ const createDetail = (overrides?: {
     canInstall: false,
     canUninstall: true,
     canSaveConfig: false,
+    canMigrateConfig: false,
     canReload: true,
     canRetryApply: overrides?.canRetryApply ?? false,
     canProbeCandidate: false,
@@ -129,7 +131,7 @@ describe("PluginDetailShell", () => {
         probeResult: null,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -156,7 +158,7 @@ describe("PluginDetailShell", () => {
         probeResult: null,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -193,7 +195,7 @@ describe("PluginDetailShell", () => {
         probeResult: null,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],
@@ -217,7 +219,7 @@ describe("PluginDetailShell", () => {
         probeResult: unsupportedProbeResult,
         isBusy: false,
         isSaving: false,
-        isProbing: false,
+        activeProbeTarget: null,
       },
       global: {
         plugins: [i18n],

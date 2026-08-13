@@ -32,6 +32,9 @@ export const useEditorTableStore = defineStore("editorTable", () => {
    * Replaces the legacy `inputTextareaEl` ref.
    */
   const editorView = ref<EditorView | null>(null);
+  const setEditorView = (view: EditorView | null): void => {
+    editorView.value = view;
+  };
 
   const elementId = ref<number | null>(null);
   const selectedElementSnapshot = ref<TranslatableElementWithDetails | null>(
@@ -351,7 +354,7 @@ export const useEditorTableStore = defineStore("editorTable", () => {
     elementId,
     translationValue,
     inputDivEl,
-    editorView,
+    setEditorView,
     sourceTokens,
     translationTokens,
     searchQuery,

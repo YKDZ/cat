@@ -33,6 +33,8 @@ node_modules
 # Build, test, diagnostic, and local runtime output.
 **/coverage
 **/dist
+**/build
+**/out
 **/playwright-report
 **/test-results
 **/*.log
@@ -52,5 +54,7 @@ apps/docs
 apps/eval
 docs
 docs/**
-tools
+tools/**
+!tools/*/
+!tools/*/package.json
 .template

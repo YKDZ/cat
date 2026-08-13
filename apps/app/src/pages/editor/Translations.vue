@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEditorTableStore } from "#/stores/editor/table.ts";
@@ -11,8 +12,10 @@ import Translation from "./Translation.vue";
 const { t } = useI18n();
 
 const { state } = storeToRefs(useEditorTranslationStore());
-const { refetch } = useEditorTranslationStore();
+const { refetch, subscribe, unsubscribe } = useEditorTranslationStore();
 const { elementId } = storeToRefs(useEditorTableStore());
+
+subscribe();
 
 watchClient(
   elementId,
@@ -21,6 +24,8 @@ watchClient(
   },
   { immediate: true },
 );
+
+onBeforeUnmount(unsubscribe);
 </script>
 
 <template>

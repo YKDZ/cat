@@ -6,6 +6,9 @@ export const toShortFixed = (
   return parseFloat(fixed).toString();
 };
 
+export const compareCodeUnitStrings = (left: string, right: string): number =>
+  left < right ? -1 : left > right ? 1 : 0;
+
 export const parsePreferredLanguage = (
   acceptLanguage: string,
 ): string | null => {

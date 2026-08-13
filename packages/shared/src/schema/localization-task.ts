@@ -1,0 +1,254 @@
+import * as z from "zod";
+
+import { OperationScopeSchema } from "#/schema/editor.ts";
+import {
+  BatchAutoTranslationTaskPhaseSchema,
+  RecallDerivationTaskPhaseSchema,
+  OperationFailureBlockerSchema,
+  OperationFailureAuthorizationDecisionSchema,
+  OperationFailureCapabilitySchema,
+  OperationFailureCodeSchema,
+  OperationFailureRedactionBoundarySchema,
+  OperationFailureSeveritySchema,
+  TaskAffectedResourceTypeSchema,
+  TaskKindNameSchema,
+  TaskStatusSchema,
+} from "#/schema/enum.ts";
+import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";
+import { RecallDerivationReferenceSchema } from "#/schema/recall-derivation.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
+
+export const TaskAffectedResourceSchema = z.strictObject({
+  type: TaskAffectedResourceTypeSchema,
+  id: z.string().min(1),
+});
+
+export const TaskActorSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("USER"), id: z.uuidv4() }),
+  z.strictObject({ type: z.literal("SYSTEM"), id: z.null() }),
+]);
+
+export const TaskScopeSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("PROJECT"), id: z.uuidv4() }),
+  z.strictObject({ type: z.literal("USER"), id: z.uuidv4() }),
+  z.strictObject({ type: z.literal("INSTANCE"), id: z.null() }),
+]);
+
+export const AutoTranslateConfigSchema = z.strictObject({
+  llm: z
+    .strictObject({
+      enabled: z.boolean().default(false),
+      llmProvider: ServiceImplementationReferenceSchema.optional(),
+      systemPrompt: z.string().optional(),
+      temperature: z.number().min(0).max(2).default(0.3),
+      maxTokens: z.int().default(1024),
+    })
+    .optional(),
+  gatherScopeContext: z.boolean().default(false),
+  weights: z
+    .strictObject({
+      memory: z.number().min(0).default(1),
+      advisor: z.number().min(0).default(0.8),
+    })
+    .optional(),
+  highConfidenceThreshold: z.number().min(0).max(1).default(0.95),
+});
+
+export const MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS = 10_000;
+
+export const BatchAutoTranslationInvocationSchema = z.strictObject({
+  ...OperationScopeSchema.omit({ elementIds: true, branchId: true }).shape,
+  elementIds: z
+    .array(z.int().positive())
+    .max(MAX_BATCH_AUTO_TRANSLATION_SNAPSHOT_ELEMENTS),
+  languageId: NormalizedLanguageIdSchema,
+  advisor: ServiceImplementationReferenceSchema.optional(),
+  minMemorySimilarity: z.number().min(0).max(1).default(0.72),
+  maxMemoryAmount: z.int().min(0).default(3),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
+  translatorId: z.uuidv4(),
+  memoryIds: z.array(z.uuidv4()).default([]),
+  glossaryIds: z.array(z.uuidv4()).default([]),
+  config: AutoTranslateConfigSchema.optional(),
+});
+
+export const BatchAutoTranslationTaskPayloadSchema = z.strictObject({
+  invocation: BatchAutoTranslationInvocationSchema,
+  cancelable: z.literal(true),
+});
+
+/** A user-visible projection over one or more coalesced derivation demands. */
+export const RecallDerivationTaskPayloadSchema = z.strictObject({
+  references: z.array(RecallDerivationReferenceSchema).min(1),
+  cancelable: z.literal(true),
+});
+
+export const TaskKindSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: TaskKindNameSchema.extract(["BATCH_AUTO_TRANSLATION"]),
+    payload: BatchAutoTranslationTaskPayloadSchema,
+  }),
+  z.strictObject({
+    kind: TaskKindNameSchema.extract(["RECALL_DERIVATION"]),
+    payload: RecallDerivationTaskPayloadSchema,
+  }),
+]);
+
+export const TaskPayloadSchema = z.union([
+  BatchAutoTranslationTaskPayloadSchema,
+  RecallDerivationTaskPayloadSchema,
+]);
+
+export const BatchAutoTranslationTaskResultSchema = z.strictObject({
+  translationIds: z.array(z.int()),
+  translatedElementIds: z.array(z.int()),
+  skippedElementIds: z.array(z.int()),
+});
+
+export const RecallDerivationTaskResultSchema = z.strictObject({
+  fresh: z.int().nonnegative(),
+  failed: z.int().nonnegative(),
+  superseded: z.int().nonnegative(),
+  total: z.int().positive(),
+});
+
+export const TaskRuntimeSchema = z.discriminatedUnion("kind", [
+  z.strictObject({
+    kind: TaskKindNameSchema.extract(["BATCH_AUTO_TRANSLATION"]),
+    phase: BatchAutoTranslationTaskPhaseSchema.nullable(),
+    result: BatchAutoTranslationTaskResultSchema.nullable(),
+  }),
+  z.strictObject({
+    kind: TaskKindNameSchema.extract(["RECALL_DERIVATION"]),
+    phase: RecallDerivationTaskPhaseSchema.nullable(),
+    result: RecallDerivationTaskResultSchema.nullable(),
+  }),
+]);
+
+export const OperationFailureSchema = z.strictObject({
+  id: z.uuidv4(),
+  code: OperationFailureCodeSchema,
+  message: z.string().min(1),
+  severity: OperationFailureSeveritySchema,
+  retryable: z.boolean(),
+  blocker: OperationFailureBlockerSchema.optional(),
+  capability: OperationFailureCapabilitySchema.optional(),
+  authorizationDecision: OperationFailureAuthorizationDecisionSchema.optional(),
+  affectedResources: z.array(TaskAffectedResourceSchema),
+  remediationHint: z.string().min(1).optional(),
+  redactionBoundary: OperationFailureRedactionBoundarySchema,
+  taskId: z.uuidv4().optional(),
+  traceId: z.string().min(1).optional(),
+});
+
+export const OperationFailureInputSchema = OperationFailureSchema.omit({
+  id: true,
+  taskId: true,
+  traceId: true,
+});
+
+export const OperationFailurePublicProjectionSchema =
+  OperationFailureSchema.pick({
+    id: true,
+    code: true,
+    message: true,
+    severity: true,
+    retryable: true,
+    blocker: true,
+    capability: true,
+    authorizationDecision: true,
+    affectedResources: true,
+    remediationHint: true,
+    redactionBoundary: true,
+  })
+    .extend({
+      redacted: z.literal(false),
+      redactionBoundary: z.literal("PUBLIC"),
+    })
+    .strip();
+
+export const OperationFailureRedactedProjectionSchema =
+  OperationFailureSchema.pick({
+    id: true,
+    code: true,
+    severity: true,
+    retryable: true,
+    blocker: true,
+    redactionBoundary: true,
+  })
+    .extend({
+      redacted: z.literal(true),
+      redactionBoundary: z.literal("INTERNAL"),
+    })
+    .strip();
+
+export const OperationFailureClientProjectionSchema = z.discriminatedUnion(
+  "redacted",
+  [
+    OperationFailurePublicProjectionSchema,
+    OperationFailureRedactedProjectionSchema,
+  ],
+);
+
+export const TaskStateSchema = z.strictObject({
+  status: TaskStatusSchema,
+  scope: TaskScopeSchema,
+  actor: TaskActorSchema,
+  resources: z.array(TaskAffectedResourceSchema),
+  revision: z.int().nonnegative(),
+  progressCurrent: z.int().nonnegative().nullable(),
+  progressTotal: z.int().positive().nullable(),
+  runtime: TaskRuntimeSchema,
+  currentFailureId: z.uuidv4().nullable(),
+  retryOfTaskId: z.uuidv4().nullable(),
+});
+
+export type TaskAffectedResource = z.infer<typeof TaskAffectedResourceSchema>;
+export type TaskActor = z.infer<typeof TaskActorSchema>;
+export type TaskScope = z.infer<typeof TaskScopeSchema>;
+export type TaskKind = z.infer<typeof TaskKindSchema>;
+export type TaskPayload = z.infer<typeof TaskPayloadSchema>;
+export type AutoTranslateConfig = z.infer<typeof AutoTranslateConfigSchema>;
+export type BatchAutoTranslationInvocation = z.infer<
+  typeof BatchAutoTranslationInvocationSchema
+>;
+export type BatchAutoTranslationTaskResult = z.infer<
+  typeof BatchAutoTranslationTaskResultSchema
+>;
+export type RecallDerivationTaskResult = z.infer<
+  typeof RecallDerivationTaskResultSchema
+>;
+export type OperationFailure = z.infer<typeof OperationFailureSchema>;
+export type OperationFailureInput = z.infer<typeof OperationFailureInputSchema>;
+export type OperationFailurePublicProjection = z.infer<
+  typeof OperationFailurePublicProjectionSchema
+>;
+export type OperationFailureRedactedProjection = z.infer<
+  typeof OperationFailureRedactedProjectionSchema
+>;
+export type OperationFailureClientProjection = z.infer<
+  typeof OperationFailureClientProjectionSchema
+>;
+
+export const toOperationFailureClientProjection = (
+  failure:
+    | OperationFailure
+    | OperationFailurePublicProjection
+    | OperationFailureRedactedProjection,
+): OperationFailureClientProjection => {
+  if ("redacted" in failure) return failure;
+  if (failure.redactionBoundary === "PUBLIC") {
+    return OperationFailurePublicProjectionSchema.parse({
+      ...failure,
+      redacted: false,
+    });
+  }
+  return OperationFailureRedactedProjectionSchema.parse({
+    ...failure,
+    redacted: true,
+  });
+};
+export type TaskRuntime = z.infer<typeof TaskRuntimeSchema>;
+export type TaskState = z.infer<typeof TaskStateSchema>;

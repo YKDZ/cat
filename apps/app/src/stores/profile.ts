@@ -21,7 +21,7 @@ export const useProfileStore = defineStore(
     const editorMemoryAutoCreateMemory = ref(true);
 
     /** Ghost text auto-suggest toggle */
-    const ghostTextEnabled = ref(true);
+    const ghostTextEnabled = ref(false);
     /**
      * 前端 fallback 策略：当 Ghost Text API 无预翻译结果时的回退行为。
      *

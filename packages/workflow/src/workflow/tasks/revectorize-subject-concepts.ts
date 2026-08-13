@@ -3,6 +3,7 @@ import {
   getDbHandle,
   listTermConceptIdsBySubject,
 } from "@cat/domain";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -12,8 +13,8 @@ import { revectorizeConceptGraph } from "./revectorize-concept.ts";
 
 export const RevectorizeSubjectConceptsInputSchema = z.object({
   subjectId: z.int(),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const RevectorizeSubjectConceptsOutputSchema = z.object({
@@ -43,8 +44,8 @@ export const revectorizeSubjectConceptsGraph = defineGraph({
               revectorizeConceptGraph,
               {
                 conceptId,
-                vectorizerId: input.vectorizerId,
-                vectorStorageId: input.vectorStorageId,
+                vectorizer: input.vectorizer,
+                vectorStorage: input.vectorStorage,
               },
               { signal: ctx.signal },
             );

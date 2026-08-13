@@ -13,11 +13,17 @@ import ReviewCandidateList from "./ReviewCandidateList.vue";
 
 const { t } = useI18n();
 const store = useQaReviewWorkbenchStore();
-const { detail, selectedCandidate, selectedElementId, noteBody, submitError } =
-  storeToRefs(store);
+const {
+  detail,
+  selectedCandidate,
+  selectedElementId,
+  noteBody,
+  submitError,
+  isSubmitting,
+} = storeToRefs(store);
 const writeCapability = useProjectWriteCapabilityStore();
 const { canWrite, disabledReason } = storeToRefs(writeCapability);
-const writeDisabled = computed(() => !canWrite.value);
+const writeDisabled = computed(() => !canWrite.value || isSubmitting.value);
 </script>
 
 <template>

@@ -1,5 +1,9 @@
 import { createElements, executeCommand, getDbHandle } from "@cat/domain";
-import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
+import {
+  nonNullSafeZDotJson,
+  safeZDotJson,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
@@ -27,8 +31,8 @@ export const CreateElementInputSchema = z.object({
       sourceLocationMeta: safeZDotJson.optional(),
     }),
   ),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const CreateElementOutputSchema = z.object({
@@ -51,8 +55,8 @@ export const createElementGraph = defineGraph({
               text: item.text,
               languageId: item.languageId,
             })),
-            vectorizerId: input.vectorizerId,
-            vectorStorageId: input.vectorStorageId,
+            vectorizer: input.vectorizer,
+            vectorStorage: input.vectorStorage,
           },
           { signal: ctx.signal },
         );

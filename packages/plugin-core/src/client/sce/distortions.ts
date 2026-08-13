@@ -1,3 +1,4 @@
+import { logger } from "@cat/shared";
 import DOMPurify from "dompurify";
 
 import type { BrowserWindow, Distortion } from "#/client/sce/types.ts";
@@ -10,8 +11,9 @@ export const createDocumentDistortion = (
     if (key === "cookie") return () => "";
     if (key === "getElementById") {
       return () => (_id: string) => {
-        // oxlint-disable-next-line no-console -- client-side browser logging
-        console.warn(`Plugin ${pluginId} blocked getElementById`);
+        logger
+          .child({ component: "plugin-sce", runtime: "client" })
+          .warn("Plugin blocked getElementById", { pluginId });
         return null;
       };
     }
@@ -35,7 +37,7 @@ export const createElementDistortion = (_win: BrowserWindow): Distortion => ({
 });
 
 export const createNodeDistortion = (win: BrowserWindow): Distortion => ({
-  get: (target, key) => {
+  get: (_target, key) => {
     if (
       key === "parentNode" ||
       key === "parentElement" ||
@@ -74,8 +76,9 @@ export const createPrototypeDistortion = (win: BrowserWindow): Distortion => ({
       target === win.Array.prototype ||
       target === win.Function.prototype
     ) {
-      // oxlint-disable-next-line no-console -- client-side browser logging
-      console.warn({ msg: "Prototype pollution attempt blocked!" });
+      logger
+        .child({ component: "plugin-sce", runtime: "client" })
+        .warn("Prototype pollution attempt blocked");
       return false;
     }
     return true;
@@ -113,13 +116,15 @@ export const createFetchDistortion = (
     );
 
     if (!isAllowed) {
-      // oxlint-disable-next-line no-console -- client-side browser logging
-      console.warn({ msg: `Plugin fetch blocked: ${urlStr}` });
+      logger
+        .child({ component: "plugin-sce", runtime: "client" })
+        .warn("Plugin fetch blocked", { pluginId, url: urlStr });
       throw new Error(`Permission denied: Fetch to ${urlStr} blocked.`);
     }
 
-    // oxlint-disable-next-line no-console -- client-side browser logging
-    console.info({ msg: `Plugin ${pluginId} fetching ${urlStr}` });
+    logger
+      .child({ component: "plugin-sce", runtime: "client" })
+      .info("Plugin fetching", { pluginId, url: urlStr });
 
     return Reflect.apply(
       // oxlint-disable-next-line no-unsafe-type-assertion

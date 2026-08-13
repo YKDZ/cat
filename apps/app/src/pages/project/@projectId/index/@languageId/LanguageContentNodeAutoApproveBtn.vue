@@ -11,12 +11,17 @@ import {
   DialogTrigger,
 } from "@cat/ui";
 import { Check } from "@lucide/vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
 
 const { t } = useI18n();
+const hydrated = ref(false);
+onMounted(() => {
+  hydrated.value = true;
+});
 
 const props = defineProps<{
   contentNode: Pick<ContentNode, "id" | "projectId">;
@@ -35,16 +40,20 @@ const handleAutoApprove = async () => {
       },
       languageId: props.language.id,
     })
-    .then((count) => {
-      info(t("成功自动批准 {count} 条可用翻译", { count }));
+    .then((result) => {
+      info(
+        t("成功自动批准 {count} 条可用翻译", {
+          count: result.count,
+        }),
+      );
     })
     .catch(rpcWarn);
 };
 </script>
 
 <template>
-  <Dialog>
-    <DialogTrigger>
+  <Dialog v-if="hydrated">
+    <DialogTrigger as-child>
       <Button variant="outline" size="icon"><Check /></Button>
     </DialogTrigger>
     <DialogContent>

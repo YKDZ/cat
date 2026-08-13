@@ -57,7 +57,7 @@ const handleLink = async () => {
 
 <template>
   <Dialog>
-    <DialogTrigger>
+    <DialogTrigger as-child>
       <Button :class="$attrs.class"><Link2 /> {{ t("连接术语库") }}</Button>
     </DialogTrigger>
     <DialogContent>

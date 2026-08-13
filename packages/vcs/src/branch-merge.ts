@@ -10,6 +10,7 @@ import {
   listBranchChangesetEntries,
   listBranchChangesetIds,
   listMainEntriesSince,
+  lockActiveBranchChangesets,
   markBranchConflicted,
   updateBranchBaseChangeset,
   updateBranchStatus,
@@ -51,7 +52,7 @@ export async function detectConflicts(
   branchId: number,
 ): Promise<ConflictInfo[]> {
   const branch = await executeQuery({ db }, getBranchById, { branchId });
-  if (!branch || branch.baseChangesetId === null) {
+  if (!branch) {
     return [];
   }
 
@@ -118,83 +119,76 @@ export async function mergeBranch(
   branchId: number,
   mergedByUserId: string | null,
 ): Promise<MergeResult> {
-  const branch = await executeQuery({ db }, getBranchById, { branchId });
-  if (!branch) {
-    throw new Error(`Branch ${branchId} not found`);
-  }
-  if (branch.status !== "ACTIVE") {
-    throw new Error(
-      `Branch ${branchId} is not ACTIVE (status: ${branch.status})`,
-    );
-  }
-
-  const conflicts = await detectConflicts(db, branchId);
-  if (conflicts.length > 0) {
-    await executeCommand({ db }, markBranchConflicted, {
-      branchId,
-      hasConflicts: true,
-    });
-    return { success: false, hasConflicts: true, conflicts };
-  }
-
-  // Get all changeset IDs belonging to this branch
-  const branchCsIds = await executeQuery({ db }, listBranchChangesetIds, {
-    branchId,
-  });
-
-  if (branchCsIds.length > 0) {
-    // Create a new main (no branchId) changeset for the merged changes
-    const newCs = await executeCommand({ db }, createChangeset, {
-      projectId: branch.projectId,
-      createdBy: mergedByUserId ?? undefined,
-      summary: `Merge branch ${branchId}`,
-      status: "APPLIED",
-    });
-
-    // Copy all branch entries into the new main changeset
-    const allBranchEntries = await executeQuery(
-      { db },
-      listBranchChangesetEntries,
+  return await db.transaction(async (tx) => {
+    const branch = await executeCommand(
+      { db: tx },
+      lockActiveBranchChangesets,
       { branchId },
     );
 
-    await Promise.all(
-      allBranchEntries.map(async (e) =>
-        executeCommand({ db }, addChangesetEntry, {
-          changesetId: newCs.id,
-          entityType: e.entityType,
-          entityId: e.entityId,
-          action: e.action,
-          before: e.before ?? undefined,
-          after: e.after ?? undefined,
-          fieldPath: e.fieldPath ?? undefined,
-          riskLevel: e.riskLevel,
-        }),
-      ),
-    );
+    const conflicts = await detectConflicts(tx, branchId);
+    if (conflicts.length > 0) {
+      await executeCommand({ db: tx }, markBranchConflicted, {
+        branchId,
+        hasConflicts: true,
+      });
+      return { success: false, hasConflicts: true, conflicts };
+    }
 
-    await executeCommand({ db }, updateBranchStatus, {
+    const branchCsIds = await executeQuery({ db: tx }, listBranchChangesetIds, {
+      branchId,
+    });
+
+    if (branchCsIds.length > 0) {
+      const newCs = await executeCommand({ db: tx }, createChangeset, {
+        projectId: branch.projectId,
+        createdBy: mergedByUserId ?? undefined,
+        summary: `Merge branch ${branchId}`,
+        status: "APPLIED",
+      });
+
+      const allBranchEntries = await executeQuery(
+        { db: tx },
+        listBranchChangesetEntries,
+        { branchId },
+      );
+
+      for (const entry of allBranchEntries.sort(
+        (left, right) => left.id - right.id,
+      )) {
+        await executeCommand({ db: tx }, addChangesetEntry, {
+          changesetId: newCs.id,
+          entityType: entry.entityType,
+          entityId: entry.entityId,
+          action: entry.action,
+          before: entry.before ?? undefined,
+          after: entry.after ?? undefined,
+          fieldPath: entry.fieldPath ?? undefined,
+          riskLevel: entry.riskLevel,
+        });
+      }
+
+      await executeCommand({ db: tx }, updateBranchStatus, {
+        branchId,
+        status: "MERGED",
+        mergedAt: new Date(),
+      });
+
+      return {
+        success: true,
+        hasConflicts: false,
+        conflicts: [],
+        mainChangesetId: newCs.id,
+      };
+    }
+
+    await executeCommand({ db: tx }, updateBranchStatus, {
       branchId,
       status: "MERGED",
       mergedAt: new Date(),
     });
-
-    return {
-      success: true,
-      hasConflicts: false,
-      conflicts: [],
-      mainChangesetId: newCs.id,
-    };
-  }
-
-  // Empty branch — just mark as merged
-  await executeCommand({ db }, updateBranchStatus, {
-    branchId,
-    status: "MERGED",
-    mergedAt: new Date(),
+    return { success: true, hasConflicts: false, conflicts: [] };
   });
-
-  return { success: true, hasConflicts: false, conflicts: [] };
 }
 
 /**
@@ -206,68 +200,76 @@ export async function rebaseBranch(
   branchId: number,
   appMethodRegistry: ApplicationMethodRegistry,
 ): Promise<RebaseResult> {
-  const branch = await executeQuery({ db }, getBranchById, { branchId });
-  if (!branch) {
-    throw new Error(`Branch ${branchId} not found`);
-  }
-
-  const newBaseChangesetId = await executeQuery(
-    { db },
-    getLatestMainChangesetId,
-    { projectId: branch.projectId },
-  );
-
-  await executeCommand({ db }, updateBranchBaseChangeset, {
-    branchId,
-    baseChangesetId: newBaseChangesetId,
-  });
-
-  // 2. Rewrite before-values for UPDATE/DELETE entries
-  const branchEntries = await executeQuery({ db }, listBranchChangesetEntries, {
-    branchId,
-  });
-
-  const entriesToRewrite = branchEntries.filter(
-    (e) => e.action === "UPDATE" || e.action === "DELETE",
-  );
-
-  if (entriesToRewrite.length > 0) {
-    // Group by entityType for batch query optimization
-    const grouped = new Map<string, typeof entriesToRewrite>();
-    for (const entry of entriesToRewrite) {
-      const list = grouped.get(entry.entityType) ?? [];
-      list.push(entry);
-      grouped.set(entry.entityType, list);
-    }
-
-    const updateBatches = await Promise.all(
-      [...grouped.entries()].map(async ([entityType, entries]) => {
-        if (!appMethodRegistry.has(entityType)) return [];
-
-        const method = appMethodRegistry.get(entityType);
-        const entityIds = entries.map((e) => e.entityId);
-        const stateMap = await method.fetchCurrentStates(entityIds, {
-          projectId: branch.projectId,
-        });
-
-        const batch: Array<{ entryId: number; before: unknown }> = [];
-        for (const entry of entries) {
-          if (!stateMap.has(entry.entityId)) continue;
-          batch.push({
-            entryId: entry.id,
-            before: stateMap.get(entry.entityId) ?? null,
-          });
-        }
-        return batch;
-      }),
+  return await db.transaction(async (tx) => {
+    const branch = await executeCommand(
+      { db: tx },
+      lockActiveBranchChangesets,
+      { branchId },
     );
 
-    const updates = updateBatches.flat();
+    const newBaseChangesetId = await executeQuery(
+      { db: tx },
+      getLatestMainChangesetId,
+      { projectId: branch.projectId },
+    );
 
-    if (updates.length > 0) {
-      await executeCommand({ db }, batchUpdateEntryBefore, { updates });
+    await executeCommand({ db: tx }, updateBranchBaseChangeset, {
+      branchId,
+      baseChangesetId: newBaseChangesetId,
+    });
+
+    // 2. Rewrite before-values for UPDATE/DELETE entries
+    const branchEntries = await executeQuery(
+      { db: tx },
+      listBranchChangesetEntries,
+      {
+        branchId,
+      },
+    );
+
+    const entriesToRewrite = branchEntries.filter(
+      (e) => e.action === "UPDATE" || e.action === "DELETE",
+    );
+
+    if (entriesToRewrite.length > 0) {
+      // Group by entityType for batch query optimization
+      const grouped = new Map<string, typeof entriesToRewrite>();
+      for (const entry of entriesToRewrite) {
+        const list = grouped.get(entry.entityType) ?? [];
+        list.push(entry);
+        grouped.set(entry.entityType, list);
+      }
+
+      const updateBatches = await Promise.all(
+        [...grouped.entries()].map(async ([entityType, entries]) => {
+          if (!appMethodRegistry.has(entityType)) return [];
+
+          const method = appMethodRegistry.get(entityType);
+          const entityIds = entries.map((e) => e.entityId);
+          const stateMap = await method.fetchCurrentStates(entityIds, {
+            projectId: branch.projectId,
+            db: tx,
+          });
+
+          const batch: Array<{ entryId: number; before: unknown }> = [];
+          for (const entry of entries) {
+            if (!stateMap.has(entry.entityId)) continue;
+            batch.push({
+              entryId: entry.id,
+              before: stateMap.get(entry.entityId) ?? null,
+            });
+          }
+          return batch;
+        }),
+      );
+
+      const updates = updateBatches.flat();
+
+      if (updates.length > 0) {
+        await executeCommand({ db: tx }, batchUpdateEntryBefore, { updates });
+      }
     }
-  }
 
-  return { success: true, newBaseChangesetId };
+    return { success: true, newBaseChangesetId };
+  });
 }

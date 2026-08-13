@@ -5,7 +5,10 @@ import {
   contentRelationType,
   eq,
 } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { domainEvent } from "#/events/domain-events.ts";
@@ -34,7 +37,7 @@ export const CreateContentNodeUnderParentCommandSchema = z.object({
   boundaryType: z
     .enum(["SOURCE_ROOT", "DIRECTORY", "FILE", "MODULE", "NONE"])
     .default("NONE"),
-  fileHandlerId: z.int().nullable().optional(),
+  fileHandler: ServiceImplementationReferenceSchema.nullable().optional(),
   fileId: z.int().nullable().optional(),
   localOrder: z.int().default(0),
 });
@@ -77,7 +80,7 @@ export const createContentNodeUnderParent: Command<
         languageId: command.languageId ?? null,
         exportRole: command.exportRole,
         boundaryType: command.boundaryType,
-        fileHandlerId: command.fileHandlerId ?? null,
+        fileHandler: command.fileHandler ?? null,
         fileId: command.fileId ?? null,
       })
       .returning(),

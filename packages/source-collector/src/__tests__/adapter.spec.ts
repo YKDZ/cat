@@ -1,3 +1,4 @@
+import { normalizeLanguageId } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import { toCollectionPayload } from "#/adapter.ts";
@@ -27,7 +28,7 @@ describe("toCollectionPayload", () => {
         stableSourceRef: "source:src/app.vue:template:L1:C0",
         sourceNodeRef: "source-file:src/app.vue",
         text: "Hello",
-        languageId: "en",
+        languageId: normalizeLanguageId("en"),
         localOrder: 0,
       },
     ],

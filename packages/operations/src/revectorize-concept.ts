@@ -8,14 +8,15 @@ import {
   setConceptStringId,
 } from "@cat/domain";
 import { buildConceptVectorizationText } from "@cat/domain";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { createVectorizedStringOp } from "./create-vectorized-string.ts";
 
 export const RevectorizeConceptInputSchema = z.object({
   conceptId: z.int(),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const RevectorizeConceptOutputSchema = z.object({
@@ -84,8 +85,8 @@ export const revectorizeConceptOp = async (
     const { stringIds } = await createVectorizedStringOp(
       {
         data: [{ text: newText, languageId: "mul" }],
-        vectorizerId: data.vectorizerId,
-        vectorStorageId: data.vectorStorageId,
+        vectorizer: data.vectorizer,
+        vectorStorage: data.vectorStorage,
       },
       ctx,
     );

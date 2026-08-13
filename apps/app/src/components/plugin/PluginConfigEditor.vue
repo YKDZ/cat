@@ -8,7 +8,7 @@ import * as z from "zod";
 
 import JsonForm from "#/components/json-form/JsonForm.vue";
 
-import type { NonNullPluginDetail } from "./types.ts";
+import type { NonNullPluginDetail, PluginProbeTarget } from "./types.ts";
 
 const { t } = useI18n();
 
@@ -20,8 +20,8 @@ const props = defineProps<{
   detail: NonNullPluginDetail;
   /** Whether a save request is in progress. */
   isSaving: boolean;
-  /** Whether a probe request is in progress. */
-  isProbing: boolean;
+  /** Target currently being probed, if any. */
+  activeProbeTarget: PluginProbeTarget | null;
 }>();
 
 /**
@@ -29,7 +29,9 @@ const props = defineProps<{
  */
 const emit = defineEmits<{
   /** Save the edited config and request backend hot-apply. */
-  save: [value: NonNullJSONType, expectedUpdatedAt: string | null];
+  save: [value: NonNullJSONType, expectedRevision: number | null];
+  /** Explicitly migrate the stale config and request backend hot-apply. */
+  migrate: [value: NonNullJSONType];
   /** Probe the current form value as candidate config. */
   probeCandidate: [value: NonNullJSONType];
 }>();
@@ -47,6 +49,10 @@ const errors = ref<string[]>([]);
 const isDirty = computed(() => {
   return JSON.stringify(localData.value) !== JSON.stringify(savedData.value);
 });
+const isCandidateProbing = computed(
+  () => props.activeProbeTarget === "CANDIDATE",
+);
+const isProbeInProgress = computed(() => props.activeProbeTarget !== null);
 
 watch(
   () => props.detail.config.value,
@@ -86,17 +92,22 @@ const handleUpdate = (value: NonNullJSONType) => {
 
 const handleSave = () => {
   if (!validate()) return;
-  emit("save", localData.value, props.detail.config.expectedUpdatedAt);
+  emit("save", localData.value, props.detail.config.expectedRevision);
 };
 
 const handleProbeCandidate = () => {
   if (!validate()) return;
   emit("probeCandidate", localData.value);
 };
+
+const handleMigrate = () => {
+  if (!validate()) return;
+  emit("migrate", localData.value);
+};
 </script>
 
 <template>
-  <Card>
+  <Card data-testid="plugin-config-editor">
     <CardHeader>
       <CardTitle>{{ t("配置") }}</CardTitle>
     </CardHeader>
@@ -109,6 +120,12 @@ const handleProbeCandidate = () => {
       </div>
 
       <template v-else>
+        <div
+          v-if="detail.config.isStale"
+          class="border-warning text-warning rounded-md border p-3 text-sm"
+        >
+          {{ t("此配置使用旧 schema，必须显式迁移后才能激活") }}
+        </div>
         <JsonForm
           v-if="
             detail.config.schema && typeof detail.config.schema !== 'boolean'
@@ -133,6 +150,14 @@ const handleProbeCandidate = () => {
 
         <div class="flex flex-wrap gap-2">
           <Button
+            v-if="detail.config.isStale"
+            :disabled="isSaving || !detail.actions.canMigrateConfig"
+            @click="handleMigrate"
+          >
+            <Save class="mr-2 size-4" />
+            {{ isSaving ? t("迁移并应用中…") : t("迁移并应用") }}
+          </Button>
+          <Button
             :disabled="!isDirty || isSaving || !detail.actions.canSaveConfig"
             @click="handleSave"
           >
@@ -141,11 +166,11 @@ const handleProbeCandidate = () => {
           </Button>
           <Button
             variant="outline"
-            :disabled="isProbing || !detail.actions.canProbeCandidate"
+            :disabled="isProbeInProgress || !detail.actions.canProbeCandidate"
             @click="handleProbeCandidate"
           >
             <TestTube2 class="mr-2 size-4" />
-            {{ isProbing ? t("检测中…") : t("检测当前配置") }}
+            {{ isCandidateProbing ? t("检测中…") : t("检测当前配置") }}
           </Button>
           <p v-if="isDirty" class="self-center text-xs text-muted-foreground">
             {{ t("当前表单有未保存修改") }}

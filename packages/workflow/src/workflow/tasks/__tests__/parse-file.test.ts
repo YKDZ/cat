@@ -9,7 +9,6 @@ import {
   createUser,
   ensureCoreRelationTypes,
   ensureLanguages,
-  getPluginServiceByType,
   listAllFiles,
   executeCommand,
   executeQuery,
@@ -17,7 +16,10 @@ import {
   listProjectContentNodes,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
-import { firstOrGivenService, readableToString } from "@cat/server-shared";
+import {
+  readableToString,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import { assertSingleNonNullish } from "@cat/shared";
 import {
   installTestVectorizationQueue,
@@ -27,17 +29,25 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { parseFileGraph } from "../parse-file.ts";
 import { upsertContentNodeGraph } from "../upsert-content-node-from-file.ts";
 
 const key = "/file/key";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -61,21 +71,17 @@ beforeAll(async () => {
     languageIds: ["en"],
   });
 
-  const storageService = await executeQuery(
-    { db: drizzle },
-    getPluginServiceByType,
-    {
-      serviceType: "STORAGE_PROVIDER",
-    },
+  const storageService = selectFirstServiceImplementation(
+    pluginManager,
+    "STORAGE_PROVIDER",
   );
-
   if (!storageService) {
     throw new Error("Storage provider not found");
   }
 
   const blobResult = await executeCommand({ db: drizzle }, createBlob, {
     key,
-    storageProviderId: storageService.id,
+    storageProvider: storageService.reference,
   });
 
   await executeCommand({ db: drizzle }, createFile, {
@@ -85,12 +91,15 @@ beforeAll(async () => {
   });
 
   installTestVectorizationQueue();
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("storage provider should store and retrieve data correctly", async () => {
   const pluginManager = PluginManager.get("GLOBAL", "");
-  const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+  const storage = selectFirstServiceImplementation(
+    pluginManager,
+    "STORAGE_PROVIDER",
+  );
   if (!storage) {
     throw new Error("Storage provider not found");
   }
@@ -122,7 +131,7 @@ test("worker should parse elements from file", async () => {
 test("upsert graph should reuse existing file content node metadata", async () => {
   const { client: drizzle } = await getDbHandle();
   const pluginManager = PluginManager.get("GLOBAL", "");
-  const storageProvider = firstOrGivenService(
+  const storageProvider = selectFirstServiceImplementation(
     pluginManager,
     "STORAGE_PROVIDER",
   );
@@ -130,7 +139,7 @@ test("upsert graph should reuse existing file content node metadata", async () =
   const vectorizer = pluginManager.getServices("TEXT_VECTORIZER")[0];
   const vectorStorage = pluginManager.getServices("VECTOR_STORAGE")[0];
 
-  if (!storageProvider || !fileImporter?.id || !fileImporter.dbId) {
+  if (!storageProvider || !fileImporter || !vectorizer || !vectorStorage) {
     throw new Error("Required file services not found");
   }
 
@@ -182,7 +191,8 @@ test("upsert graph should reuse existing file content node metadata", async () =
       stableSourceNodeRef: "file-node:test-file",
       exportRole: "FILE",
       boundaryType: "FILE",
-      fileHandlerId: fileImporter.dbId,
+      fileHandler:
+        pluginManager.createServiceImplementationReference(fileImporter),
       fileId,
       localOrder: 0,
     },
@@ -193,8 +203,9 @@ test("upsert graph should reuse existing file content node metadata", async () =
     contentNodeId: existingNode.id,
     fileId,
     languageId: "en",
-    vectorizerId: vectorizer?.dbId ?? 1,
-    vectorStorageId: vectorStorage?.dbId ?? 1,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   const contentNodes = await executeQuery(
@@ -214,6 +225,7 @@ test("upsert graph should reuse existing file content node metadata", async () =
     exportRole: "FILE",
     boundaryType: "FILE",
     fileId,
-    fileHandlerId: fileImporter.dbId,
+    fileHandler:
+      pluginManager.createServiceImplementationReference(fileImporter),
   });
 });

@@ -32,10 +32,12 @@ export const issueCommentTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = issueCommentArgs.parse(args);
     const agentId = parseInt(ctx.session.agentId, 10) || undefined;
 
+    ctx.signal.throwIfAborted();
     const { result: thread } = await createThread(
       { db },
       {
@@ -44,13 +46,15 @@ export const issueCommentTool: AgentToolDefinition = {
         isReviewThread: false,
       },
     );
+    ctx.signal.throwIfAborted();
 
-    return await executeCommand({ db }, createIssueComment, {
+    const comment = await executeCommand({ db }, createIssueComment, {
       threadId: thread.id,
       body: parsed.body,
       authorAgentId: agentId,
       targetType: "issue",
       targetId: parsed.issueId,
     });
+    return comment;
   },
 };

@@ -1,6 +1,7 @@
-import { and, eq, inArray, vectorizedString } from "@cat/db";
+import { and, eq, inArray, or, vectorizedString } from "@cat/db";
 import * as z from "zod";
 
+import { assertActiveAgentRunOwnership } from "#/commands/agent/assert-agent-run-ownership.ts";
 import type { Command } from "#/types.ts";
 
 export const CreateVectorizedStringsCommandSchema = z.object({
@@ -11,6 +12,13 @@ export const CreateVectorizedStringsCommandSchema = z.object({
       languageId: z.string(),
     }),
   ),
+  ownershipFence: z
+    .object({
+      runId: z.uuidv4(),
+      ownerId: z.uuidv4(),
+      epoch: z.int().positive(),
+    })
+    .optional(),
 });
 
 export type CreateVectorizedStringsCommand = z.infer<
@@ -28,6 +36,10 @@ export const createVectorizedStrings: Command<
       result: [],
       events: [],
     };
+  }
+
+  if (command.ownershipFence) {
+    await assertActiveAgentRunOwnership(ctx.db, command.ownershipFence);
   }
 
   const makeKey = (languageId: string, text: string): string =>
@@ -54,6 +66,27 @@ export const createVectorizedStrings: Command<
 
   const idMap = new Map<string, number>();
 
+  const findExisting = async (entries: Map<string, string[]>) => {
+    if (entries.size === 0) return [];
+    return await ctx.db
+      .select({
+        id: vectorizedString.id,
+        value: vectorizedString.value,
+        languageId: vectorizedString.languageId,
+      })
+      .from(vectorizedString)
+      .where(
+        or(
+          ...Array.from(entries, ([languageId, values]) =>
+            and(
+              eq(vectorizedString.languageId, languageId),
+              inArray(vectorizedString.value, values),
+            ),
+          ),
+        ),
+      );
+  };
+
   const byLanguage = new Map<string, string[]>();
   for (const entry of uniqueEntries) {
     const values = byLanguage.get(entry.data.languageId) ?? [];
@@ -61,28 +94,10 @@ export const createVectorizedStrings: Command<
     byLanguage.set(entry.data.languageId, values);
   }
 
-  const existingResults = await Promise.all(
-    Array.from(byLanguage.entries()).map(([languageId, values]) =>
-      ctx.db
-        .select({
-          id: vectorizedString.id,
-          value: vectorizedString.value,
-          languageId: vectorizedString.languageId,
-        })
-        .from(vectorizedString)
-        .where(
-          and(
-            eq(vectorizedString.languageId, languageId),
-            inArray(vectorizedString.value, values),
-          ),
-        ),
-    ),
-  );
+  const existingResults = await findExisting(byLanguage);
 
-  for (const rows of existingResults) {
-    for (const row of rows) {
-      idMap.set(makeKey(row.languageId, row.value), row.id);
-    }
+  for (const row of existingResults) {
+    idMap.set(makeKey(row.languageId, row.value), row.id);
   }
 
   const missingEntries = uniqueEntries.filter((entry) => !idMap.has(entry.key));
@@ -120,28 +135,10 @@ export const createVectorizedStrings: Command<
         missingByLanguage.set(entry.data.languageId, values);
       }
 
-      const foundResults = await Promise.all(
-        Array.from(missingByLanguage.entries()).map(([languageId, values]) =>
-          ctx.db
-            .select({
-              id: vectorizedString.id,
-              value: vectorizedString.value,
-              languageId: vectorizedString.languageId,
-            })
-            .from(vectorizedString)
-            .where(
-              and(
-                eq(vectorizedString.languageId, languageId),
-                inArray(vectorizedString.value, values),
-              ),
-            ),
-        ),
-      );
+      const foundResults = await findExisting(missingByLanguage);
 
-      for (const rows of foundResults) {
-        for (const row of rows) {
-          idMap.set(makeKey(row.languageId, row.value), row.id);
-        }
+      for (const row of foundResults) {
+        idMap.set(makeKey(row.languageId, row.value), row.id);
       }
     }
   }

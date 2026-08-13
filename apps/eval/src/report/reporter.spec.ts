@@ -32,7 +32,22 @@ describe("generateReport", () => {
   };
 
   it("passes thresholds correctly", () => {
-    const report = generateReport(runResult, evaluation, {
+    const evaluationWithPassingCase: EvaluationReport = {
+      scenarioEvaluations: [
+        {
+          ...evaluation.scenarioEvaluations[0]!,
+          caseEvaluations: [
+            {
+              caseId: "case-ok",
+              status: "ok",
+              scores: [],
+              durationMs: 1,
+            },
+          ],
+        },
+      ],
+    };
+    const report = generateReport(runResult, evaluationWithPassingCase, {
       "precision@5": ">= 0.85",
       "recall@5": ">= 0.80",
       p95_latency_ms: "<= 200",
@@ -54,4 +69,31 @@ describe("generateReport", () => {
     expect(report.markdown).toContain("term-recall");
     expect(report.markdown).toContain("precision@5");
   });
+
+  it("fails when no evaluation case was executed", () => {
+    expect(generateReport(runResult, evaluation).allPassed).toBe(false);
+  });
+
+  it.each(["error", "timeout", "skipped"])(
+    "fails when a case has %s status even without thresholds",
+    (status) => {
+      const report = generateReport(runResult, {
+        scenarioEvaluations: [
+          {
+            ...evaluation.scenarioEvaluations[0]!,
+            caseEvaluations: [
+              {
+                caseId: "not-ok",
+                status,
+                scores: [],
+                durationMs: 1,
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(report.allPassed).toBe(false);
+    },
+  );
 });

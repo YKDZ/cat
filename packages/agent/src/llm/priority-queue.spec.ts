@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import type { LLMPriority } from "./priority-queue.ts";
 import { PriorityQueue } from "./priority-queue.ts";
 
+const activeSignal = new AbortController().signal;
+
 describe("PriorityQueue", () => {
   it("processes items by priority order (CRITICAL > HIGH > NORMAL > LOW)", async () => {
     const queue = new PriorityQueue<string>(1);
@@ -22,7 +24,7 @@ describe("PriorityQueue", () => {
     // With concurrency=1, the first enqueue resolves immediately (running slot)
     // Subsequent items wait. We'll track resolution order.
     const allPromises = items.map(async ({ value, priority }) =>
-      queue.enqueue(value, priority).then(() => {
+      queue.enqueue(value, priority, activeSignal).then(() => {
         order.push(value);
         // Release immediately so the next can run
         queue.release();
@@ -43,21 +45,21 @@ describe("PriorityQueue", () => {
     const order: string[] = [];
 
     // First item claims the concurrency slot immediately
-    const p1 = queue.enqueue("first", "NORMAL").then(() => {
+    const p1 = queue.enqueue("first", "NORMAL", activeSignal).then(() => {
       order.push("first");
       queue.release();
     });
 
     // Enqueue three more at same priority
-    const p2 = queue.enqueue("second", "NORMAL").then(() => {
+    const p2 = queue.enqueue("second", "NORMAL", activeSignal).then(() => {
       order.push("second");
       queue.release();
     });
-    const p3 = queue.enqueue("third", "NORMAL").then(() => {
+    const p3 = queue.enqueue("third", "NORMAL", activeSignal).then(() => {
       order.push("third");
       queue.release();
     });
-    const p4 = queue.enqueue("fourth", "NORMAL").then(() => {
+    const p4 = queue.enqueue("fourth", "NORMAL", activeSignal).then(() => {
       order.push("fourth");
       queue.release();
     });
@@ -74,7 +76,7 @@ describe("PriorityQueue", () => {
     let maxRunning = 0;
 
     const tasks = Array.from({ length: 5 }, async (_, i) =>
-      queue.enqueue(`task-${i}`, "NORMAL").then(async () => {
+      queue.enqueue(`task-${i}`, "NORMAL", activeSignal).then(async () => {
         runningCount += 1;
         maxRunning = Math.max(maxRunning, runningCount);
         // Simulate async work
@@ -93,11 +95,11 @@ describe("PriorityQueue", () => {
     const queue = new PriorityQueue<number>(1);
 
     // First item runs immediately — takes the slot
-    const p1 = queue.enqueue(1, "NORMAL");
+    const p1 = queue.enqueue(1, "NORMAL", activeSignal);
 
     // These two are buffered
-    void queue.enqueue(2, "NORMAL");
-    void queue.enqueue(3, "NORMAL");
+    void queue.enqueue(2, "NORMAL", activeSignal);
+    void queue.enqueue(3, "NORMAL", activeSignal);
 
     // 2 are waiting in the queue (1 is already running)
     expect(queue.size).toBe(2);
@@ -118,10 +120,10 @@ describe("PriorityQueue", () => {
     const queue = new PriorityQueue<string>(1);
     const resolved: string[] = [];
 
-    const p1 = queue.enqueue("first", "NORMAL").then(() => {
+    const p1 = queue.enqueue("first", "NORMAL", activeSignal).then(() => {
       resolved.push("first");
     });
-    const p2 = queue.enqueue("second", "NORMAL").then(() => {
+    const p2 = queue.enqueue("second", "NORMAL", activeSignal).then(() => {
       resolved.push("second");
     });
 
@@ -136,5 +138,22 @@ describe("PriorityQueue", () => {
     queue.release();
     await p2;
     expect(resolved).toEqual(["first", "second"]);
+  });
+
+  it("removes an aborted waiting item without consuming a future slot", async () => {
+    const queue = new PriorityQueue<string>(1);
+    await queue.enqueue("running", "NORMAL", activeSignal);
+    const controller = new AbortController();
+    const cause = new Error("queue wait cancelled");
+    const waiting = queue.enqueue("cancelled", "NORMAL", controller.signal);
+    controller.abort(cause);
+
+    await expect(waiting).rejects.toBe(cause);
+    expect(queue.size).toBe(0);
+
+    queue.release();
+    await expect(
+      queue.enqueue("next", "NORMAL", activeSignal),
+    ).resolves.toBeUndefined();
   });
 });

@@ -10,6 +10,8 @@ import {
   reviewChangesetEntry,
   updateChangesetAsyncStatus,
   updateEntryAsyncStatus,
+  createInProcessCollector,
+  domainEventBus,
 } from "@cat/domain";
 import type { ChangesetStatus } from "@cat/shared";
 import type { JSONType } from "@cat/shared";
@@ -231,56 +233,130 @@ export class ChangeSetService {
    */
   async applyChangeSet(
     changesetId: number,
-    ctx: { projectId: string; sessionId?: string; agentRunId?: number },
+    ctx: {
+      projectId: string;
+      sessionId?: string;
+      agentRunId?: number;
+      collector?: import("@cat/domain").EventCollector;
+    },
+    atomic = true,
   ): Promise<void> {
-    const entries = await getChangesetEntries(this.ctx, { changesetId });
-
-    const results = await Promise.all(
-      entries.map(async (row) => {
-        const result = await (async () => {
-          if (!this.appMethodRegistry.has(row.entityType)) {
-            return {
-              status: "BLOCKED" as const,
-              errorMessage: `No application method registered for ${row.entityType}`,
-            };
-          }
-
-          const method = this.appMethodRegistry.get(row.entityType);
-          const action = row.action;
-          const methodCtx = { ...ctx, db: this.ctx.db };
-
-          try {
-            if (action === "CREATE") {
-              return await method.applyCreate(mapEntry(row), methodCtx);
-            }
-            if (action === "UPDATE") {
-              return await method.applyUpdate(mapEntry(row), methodCtx);
-            }
-            return await method.applyDelete(mapEntry(row), methodCtx);
-          } catch (error) {
-            return {
-              status: "FAILED" as const,
-              errorMessage:
-                error instanceof Error ? error.message : String(error),
-            };
-          }
-        })();
-
-        const entryAsyncStatus =
-          result.status === "ASYNC_PENDING"
-            ? "PENDING"
-            : result.status === "APPLIED"
-              ? "READY"
-              : "FAILED";
-
-        await updateEntryAsyncStatus(this.ctx, {
-          entryId: row.id,
-          asyncStatus: entryAsyncStatus,
+    if (atomic) {
+      const ownsCollector = ctx.collector === undefined;
+      const collector =
+        ctx.collector ?? createInProcessCollector(domainEventBus);
+      try {
+        await this.ctx.db.transaction(async (tx) => {
+          const transactionalService = new ChangeSetService(
+            tx,
+            this.diffRegistry,
+            this.appMethodRegistry,
+          );
+          await transactionalService.applyChangeSet(
+            changesetId,
+            { ...ctx, collector },
+            false,
+          );
         });
+        if (ownsCollector) await collector.flush();
+        return;
+      } catch (error) {
+        if (error instanceof ChangeSetApplicationError) {
+          await updateEntryAsyncStatus(this.ctx, {
+            entryId: error.entryId,
+            asyncStatus: "FAILED",
+          });
+          await updateChangesetAsyncStatus(this.ctx, {
+            changesetId,
+            asyncStatus: "HAS_FAILED",
+          });
+        }
+        throw error;
+      }
+    }
+    const entries = (await getChangesetEntries(this.ctx, { changesetId })).sort(
+      (left, right) => left.id - right.id,
+    );
+    const lanes = new Map<string, typeof entries>();
+    for (const entry of entries) {
+      const key = `${entry.entityType}:${entry.entityId}`;
+      const lane = lanes.get(key) ?? [];
+      lane.push(entry);
+      lanes.set(key, lane);
+    }
 
-        return { result, row };
+    const laneResults = await Promise.all(
+      [...lanes.values()].map(async (lane) => {
+        const results: Array<{
+          result: {
+            status: "APPLIED" | "ASYNC_PENDING" | "BLOCKED" | "FAILED";
+            errorMessage?: string;
+          };
+          row: (typeof entries)[number];
+        }> = [];
+        let blockedByFailure = false;
+        for (const row of lane) {
+          const result = blockedByFailure
+            ? {
+                status: "BLOCKED" as const,
+                errorMessage: `Skipped after an earlier ${row.entityType}:${row.entityId} failure.`,
+              }
+            : await (async () => {
+                const result = await (async () => {
+                  if (!this.appMethodRegistry.has(row.entityType)) {
+                    return {
+                      status: "BLOCKED" as const,
+                      errorMessage: `No application method registered for ${row.entityType}`,
+                    };
+                  }
+
+                  const method = this.appMethodRegistry.get(row.entityType);
+                  const action = row.action;
+                  const methodCtx = { ...ctx, db: this.ctx.db };
+
+                  try {
+                    if (action === "CREATE") {
+                      return await method.applyCreate(mapEntry(row), methodCtx);
+                    }
+                    if (action === "UPDATE") {
+                      return await method.applyUpdate(mapEntry(row), methodCtx);
+                    }
+                    return await method.applyDelete(mapEntry(row), methodCtx);
+                  } catch (error) {
+                    return {
+                      status: "FAILED" as const,
+                      errorMessage:
+                        error instanceof Error ? error.message : String(error),
+                    };
+                  }
+                })();
+                return result;
+              })();
+
+          if (result.status === "FAILED" || result.status === "BLOCKED") {
+            blockedByFailure = true;
+          }
+
+          const entryAsyncStatus =
+            result.status === "ASYNC_PENDING"
+              ? "PENDING"
+              : result.status === "APPLIED"
+                ? "READY"
+                : "FAILED";
+
+          await updateEntryAsyncStatus(this.ctx, {
+            entryId: row.id,
+            asyncStatus: entryAsyncStatus,
+          });
+
+          results.push({ result, row });
+        }
+        return results;
       }),
     );
+    const results = laneResults
+      .flat()
+      .sort((left, right) => left.row.id - right.row.id);
 
     const failed = results.find(
       ({ result }) => result.status === "FAILED" || result.status === "BLOCKED",
@@ -323,26 +399,28 @@ export class ChangeSetService {
     changesetId: number,
     createdBy?: string,
   ): Promise<Changeset> {
-    const original = await getChangeset(this.ctx, { changesetId });
-    if (!original) throw new Error(`Changeset ${changesetId} not found`);
-
-    const entries = await getChangesetEntries(this.ctx, { changesetId });
-
     const reverseAction = (action: string): "CREATE" | "UPDATE" | "DELETE" => {
       if (action === "CREATE") return "DELETE";
       if (action === "DELETE") return "CREATE";
       return "UPDATE";
     };
 
-    const { result: reverse } = await createChangeset(this.ctx, {
-      projectId: original.projectId,
-      createdBy,
-      summary: `Rollback of changeset #${changesetId}`,
-    });
-
-    await Promise.all(
-      entries.map(async (entry) =>
-        addChangesetEntry(this.ctx, {
+    return await this.ctx.db.transaction(async (tx) => {
+      const transactionalContext = { db: tx };
+      const original = await getChangeset(transactionalContext, {
+        changesetId,
+      });
+      if (!original) throw new Error(`Changeset ${changesetId} not found`);
+      const entries = (
+        await getChangesetEntries(transactionalContext, { changesetId })
+      ).sort((left, right) => right.id - left.id);
+      const { result: reverse } = await createChangeset(transactionalContext, {
+        projectId: original.projectId,
+        createdBy,
+        summary: `Rollback of changeset #${changesetId}`,
+      });
+      for (const entry of entries) {
+        await addChangesetEntry(transactionalContext, {
           changesetId: reverse.id,
           entityType: EntityTypeSchema.parse(entry.entityType),
           entityId: entry.entityId,
@@ -351,11 +429,10 @@ export class ChangeSetService {
           after: entry.before,
           fieldPath: entry.fieldPath ?? undefined,
           riskLevel: entry.riskLevel ?? "LOW",
-        }),
-      ),
-    );
-
-    return mapChangeset(reverse);
+        });
+      }
+      return mapChangeset(reverse);
+    });
   }
 
   //──────────────────────────────────────────────────────────────────────────

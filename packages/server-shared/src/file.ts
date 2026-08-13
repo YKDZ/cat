@@ -13,17 +13,23 @@ import {
   type SessionStore,
 } from "@cat/domain";
 import type { PluginManager, StorageProvider } from "@cat/plugin-core";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
-import { getServiceFromDBId } from "./plugin.ts";
+import { resolveServiceImplementation } from "./plugin.ts";
 import { hashFromReadable } from "./stream.ts";
 import { serverLogger } from "./utils/logger.ts";
+
+const SessionServiceImplementationReferenceSchema = z
+  .string()
+  .transform((value) => JSON.parse(value))
+  .pipe(ServiceImplementationReferenceSchema);
 
 export const PresignedPutFileSessionPayloadSchema = z.object({
   blobId: z.coerce.number().int(),
   fileId: z.coerce.number().int(),
   key: z.string(),
-  storageProviderId: z.coerce.number().int(),
+  storageProvider: SessionServiceImplementationReferenceSchema,
   ctxHash: z.string(),
 });
 export type PresignedPutFileSessionPayload = z.infer<
@@ -33,7 +39,7 @@ export type PresignedPutFileSessionPayload = z.infer<
 export const putBufferToStorage = async (
   drizzle: DbHandle,
   storageProvider: StorageProvider,
-  storageProviderId: number,
+  storageProviderReference: import("@cat/shared").ServiceImplementationReference,
   buffer: Buffer,
   key: string,
   name: string,
@@ -44,7 +50,7 @@ export const putBufferToStorage = async (
     async (tx) => {
       return await executeCommand({ db: tx }, createOrReferenceBlobAndFile, {
         key,
-        storageProviderId,
+        storageProvider: storageProviderReference,
         name,
         hash,
       });
@@ -63,7 +69,9 @@ export const putBufferToStorage = async (
         });
       });
 
-      serverLogger.withSituation("WORKER").error(error, "Error putting file");
+      serverLogger
+        .child({ component: "worker" })
+        .error("Error putting file", { error: error });
       throw error;
     }
 
@@ -74,7 +82,7 @@ export const preparePresignedPutFile = async (
   drizzle: DbHandle,
   sessionStore: SessionStore,
   storage: StorageProvider,
-  storageId: number,
+  storageProviderReference: import("@cat/shared").ServiceImplementationReference,
   key: string,
   name: string,
   ctxHash: string = "",
@@ -83,7 +91,7 @@ export const preparePresignedPutFile = async (
   const { blobId, fileId } = await drizzle.transaction(async (tx) => {
     return await executeCommand({ db: tx }, createBlobAndFile, {
       key,
-      storageProviderId: storageId,
+      storageProvider: storageProviderReference,
       name,
     });
   });
@@ -97,9 +105,9 @@ export const preparePresignedPutFile = async (
       blobId,
       fileId,
       key,
-      storageProviderId: storageId,
+      storageProvider: JSON.stringify(storageProviderReference),
       ctxHash,
-    } satisfies PresignedPutFileSessionPayload,
+    },
     expiresInSeconds,
   );
 
@@ -122,7 +130,7 @@ export const preparePresignedPutFile = async (
 
 export const FileDownloadPayloadSchema = z.object({
   key: z.string(),
-  storageProviderId: z.coerce.number().int(),
+  storageProvider: SessionServiceImplementationReferenceSchema,
   filename: z.string(),
 });
 export type FileDownloadPayload = z.infer<typeof FileDownloadPayloadSchema>;
@@ -130,7 +138,7 @@ export type FileDownloadPayload = z.infer<typeof FileDownloadPayloadSchema>;
 export const getDownloadUrl = async (
   sessionStore: SessionStore,
   storageProvider: StorageProvider,
-  storageProviderId: number,
+  storageProviderReference: import("@cat/shared").ServiceImplementationReference,
   key: string,
   expiresInSeconds: number = 120,
   filename?: string,
@@ -143,9 +151,9 @@ export const getDownloadUrl = async (
       redisKey,
       {
         key,
-        storageProviderId,
+        storageProvider: JSON.stringify(storageProviderReference),
         filename: filename ?? "",
-      } satisfies FileDownloadPayload,
+      },
       expiresInSeconds,
     );
 
@@ -171,7 +179,7 @@ export const finishPresignedPutFile = async (
     blobId,
     fileId,
     key,
-    storageProviderId,
+    storageProvider,
     ctxHash: storedCtxHash,
   } = PresignedPutFileSessionPayloadSchema.parse(
     await sessionStore.getAll(redisKey),
@@ -179,13 +187,14 @@ export const finishPresignedPutFile = async (
 
   await sessionStore.destroy(redisKey);
 
-  const storageProvider = getServiceFromDBId<StorageProvider>(
+  const storage = resolveServiceImplementation(
     pluginManager,
-    storageProviderId,
+    storageProvider,
+    "STORAGE_PROVIDER",
   );
 
   if (storedCtxHash !== ctxHash) {
-    await storageProvider.delete({ key });
+    await storage.delete({ key });
     await drizzle.transaction(async (tx) => {
       await executeCommand({ db: tx }, deleteBlobAndFile, {
         blobId,
@@ -194,9 +203,9 @@ export const finishPresignedPutFile = async (
     });
   }
 
-  await storageProvider.head({ key });
+  await storage.head({ key });
 
-  const hash = await hashFromReadable(await storageProvider.getStream({ key }));
+  const hash = await hashFromReadable(await storage.getStream({ key }));
 
   // 查找是否有哈希相同的 blob，如果有则删除原 blob 并将 file 关联到这个 blob
   // 否则将 hash 更新到源 blob 上
@@ -209,7 +218,7 @@ export const finishPresignedPutFile = async (
     });
   });
 
-  if (conflicted) await storageProvider.delete({ key });
+  if (conflicted) await storage.delete({ key });
 
   return fileId;
 };

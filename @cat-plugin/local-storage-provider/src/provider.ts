@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
-import { mkdir, stat, unlink, access, open } from "node:fs/promises";
+import { mkdir, stat, unlink, access, open, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import type { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
@@ -52,6 +53,9 @@ export class Provider extends StorageProvider {
   async ping(): Promise<void> {
     const basePath = resolve(process.cwd(), this.config["root-path"]);
     await access(basePath);
+    const probePath = resolve(basePath, `.cat-readiness-${randomUUID()}`);
+    await writeFile(probePath, "");
+    await unlink(probePath);
   }
 
   async connect(): Promise<void> {

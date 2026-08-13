@@ -3,6 +3,8 @@ import { Badge } from "@cat/ui";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { formatShortDateTime } from "#/utils/format.ts";
+
 const { t } = useI18n();
 
 type ChangesetStatus =
@@ -60,15 +62,9 @@ const statusLabel = computed(() => {
 
 const shortId = computed(() => props.changeset.externalId.slice(0, 8));
 
-const formattedDate = computed(() => {
-  const d = new Date(props.changeset.createdAt);
-  return d.toLocaleDateString("zh-CN", {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-});
+const formattedDate = computed(() =>
+  formatShortDateTime(props.changeset.createdAt),
+);
 </script>
 
 <template>

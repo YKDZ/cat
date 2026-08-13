@@ -1,5 +1,6 @@
 import { sessionRecord as sessionRecordTable } from "@cat/db";
 import { and, eq, gt, isNull } from "@cat/db";
+import type { ServiceImplementationReference } from "@cat/shared";
 
 import type { Query } from "#/types.ts";
 
@@ -12,7 +13,7 @@ export interface SessionRecordRow {
   userId: string;
   ip: string | null;
   userAgent: string | null;
-  authProviderId: number | null;
+  authProvider: ServiceImplementationReference;
   expiresAt: Date;
   revokedAt: Date | null;
   createdAt: Date;

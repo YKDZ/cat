@@ -58,6 +58,7 @@ const baseCtx = {
   projectId: "project-1",
   sessionMetadata: null,
   logger: createNoopAgentLogger(),
+  signal: new AbortController().signal,
   pluginManager: undefined,
 };
 

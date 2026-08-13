@@ -1,12 +1,14 @@
 import { randomUUID } from "node:crypto";
 
-import { agentEvent, agentRun, eq } from "@cat/db";
+import { agentEvent, agentRun, eq, sql, workflowTaskDispatch } from "@cat/db";
+import { BatchAutoTranslationInvocationSchema } from "@cat/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   createAgentDefinition,
   createAgentRun,
   createAgentSession,
+  createWorkflowTaskWithDispatch,
   createUser,
   executeCommand,
 } from "#/index.ts";
@@ -24,7 +26,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await testDb.cleanup();
+  await testDb?.cleanup();
 });
 
 const graphDefinition = {
@@ -39,7 +41,7 @@ const graphDefinition = {
 
 const createRunFixture = async (
   status: string,
-  options: { currentNodeId?: string } = {},
+  options: { currentNodeId?: string; externalId?: string } = {},
 ) => {
   const user = await executeCommand({ db: testDb.client }, createUser, {
     email: `crash-${randomUUID()}@example.com`,
@@ -72,6 +74,9 @@ const createRunFixture = async (
   const run = await executeCommand({ db: testDb.client }, createAgentRun, {
     sessionId: session.sessionId,
     graphDefinition,
+    ...(options.externalId === undefined
+      ? {}
+      : { externalId: options.externalId }),
   });
 
   if (status !== "running" || options.currentNodeId) {
@@ -87,6 +92,61 @@ const createRunFixture = async (
   }
 
   return run;
+};
+
+const createDispatch = async (status: "CLAIMED" | "RUNNING" | "CANCELLING") => {
+  const user = await executeCommand({ db: testDb.client }, createUser, {
+    email: `dispatch-${randomUUID()}@example.com`,
+    name: "Dispatch Recovery",
+  });
+  const projectId = randomUUID();
+  const service = (serviceType: "VECTOR_STORAGE" | "TEXT_VECTORIZER") => ({
+    pluginId: `test.${serviceType.toLowerCase()}`,
+    serviceId: "default",
+    serviceType,
+    scopeType: "GLOBAL" as const,
+    scopeId: "" as const,
+  });
+  const created = await executeCommand(
+    { db: testDb.client },
+    createWorkflowTaskWithDispatch,
+    {
+      task: {
+        kind: "BATCH_AUTO_TRANSLATION",
+        payload: {
+          invocation: BatchAutoTranslationInvocationSchema.parse({
+            projectId,
+            contentNodeIds: [],
+            elementIds: [],
+            sortMode: "structure",
+            languageId: "zh-Hans",
+            minMemorySimilarity: 0.72,
+            maxMemoryAmount: 3,
+            memoryVectorStorage: service("VECTOR_STORAGE"),
+            translationVectorStorage: service("VECTOR_STORAGE"),
+            vectorizer: service("TEXT_VECTORIZER"),
+            translatorId: user.id,
+            memoryIds: [],
+            glossaryIds: [],
+          }),
+          cancelable: true,
+        },
+      },
+      scope: { type: "PROJECT", id: projectId },
+      actor: { type: "USER", id: user.id },
+      resources: [{ type: "PROJECT", id: projectId }],
+    },
+  );
+  await testDb.client
+    .update(workflowTaskDispatch)
+    .set({
+      status,
+      ownerId: randomUUID(),
+      ownerEpoch: 1,
+      ownerLeaseExpiresAt: sql`clock_timestamp() + interval '1 minute'`,
+    })
+    .where(eq(workflowTaskDispatch.id, created.dispatch.id));
+  return created.dispatch;
 };
 
 describe("recoverCrashedAgentRuns", () => {
@@ -196,6 +256,44 @@ describe("recoverCrashedAgentRuns", () => {
       .where(eq(agentRun.externalId, running.runId));
 
     expect(rows[0]).toMatchObject({ status: "running", completedAt: null });
+  });
+
+  it("protects every live task dispatch lease and recovers expired leases", async () => {
+    for (const status of ["CLAIMED", "RUNNING", "CANCELLING"] as const) {
+      const liveDispatch = await createDispatch(status);
+      const liveRun = await createRunFixture("running", {
+        externalId: liveDispatch.runId,
+      });
+      const expiredDispatch = await createDispatch(status);
+      const expiredRun = await createRunFixture("running", {
+        externalId: expiredDispatch.runId,
+      });
+      await testDb.client
+        .update(workflowTaskDispatch)
+        .set({
+          ownerLeaseExpiresAt: sql`clock_timestamp() - interval '1 second'`,
+        })
+        .where(eq(workflowTaskDispatch.id, expiredDispatch.id));
+
+      const result = await executeCommand(
+        { db: testDb.client },
+        recoverCrashedAgentRuns,
+        {},
+      );
+
+      expect(result.recoveredRunIds).not.toContain(liveRun.runId);
+      expect(result.recoveredRunIds).toContain(expiredRun.runId);
+      const [livePersisted] = await testDb.client
+        .select({ status: agentRun.status })
+        .from(agentRun)
+        .where(eq(agentRun.externalId, liveRun.runId));
+      const [expiredPersisted] = await testDb.client
+        .select({ status: agentRun.status })
+        .from(agentRun)
+        .where(eq(agentRun.externalId, expiredRun.runId));
+      expect(livePersisted?.status).toBe("running");
+      expect(expiredPersisted?.status).toBe("failed");
+    }
   });
 
   it("does not duplicate the crash event if a previous recovery crashed after event insert", async () => {

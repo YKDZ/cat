@@ -1,23 +1,31 @@
-import { createGlossaryTerms, executeCommand, getDbHandle } from "@cat/domain";
-import { TermDataSchema } from "@cat/shared";
+import {
+  createGlossaryTerms,
+  createInProcessCollector,
+  domainEventBus,
+  executeCommand,
+  getDbHandle,
+} from "@cat/domain";
+import {
+  ServiceImplementationReferenceSchema,
+  RecallDerivationReferenceSchema,
+  TermDataSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { generateCacheKey } from "#/graph/cache.ts";
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
-import { runGraph } from "#/graph/dsl/run-graph.ts";
-
-import { revectorizeConceptGraph } from "./revectorize-concept.ts";
 
 export const CreateTermInputSchema = z.object({
   glossaryId: z.uuidv4(),
   creatorId: z.uuidv4().optional(),
   data: z.array(TermDataSchema),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const CreateTermOutputSchema = z.object({
   termIds: z.array(z.int()),
+  derivations: z.array(RecallDerivationReferenceSchema),
 });
 
 export const createTermGraph = defineGraph({
@@ -30,37 +38,29 @@ export const createTermGraph = defineGraph({
       output: CreateTermOutputSchema,
       handler: async (input, ctx) => {
         const sideEffectKey = `terms:${input.glossaryId}:${generateCacheKey(input.data)}`;
-        const existing = await ctx.checkSideEffect<number[]>(sideEffectKey);
+        const existing =
+          await ctx.checkSideEffect<z.infer<typeof CreateTermOutputSchema>>(
+            sideEffectKey,
+          );
         if (existing !== null) {
-          return { termIds: existing };
+          return existing;
         }
 
         const { client: db } = await getDbHandle();
-        const { termIds, conceptIds } = await db.transaction(async (tx) => {
-          return executeCommand({ db: tx }, createGlossaryTerms, {
+        const collector = createInProcessCollector(domainEventBus);
+        const { termIds, derivations } = await db.transaction(async (tx) => {
+          return executeCommand({ db: tx, collector }, createGlossaryTerms, {
             glossaryId: input.glossaryId,
             creatorId: input.creatorId,
             data: input.data,
           });
         });
+        await collector.flush();
 
-        await Promise.all(
-          conceptIds.map(async (conceptId) => {
-            await runGraph(
-              revectorizeConceptGraph,
-              {
-                conceptId,
-                vectorizerId: input.vectorizerId,
-                vectorStorageId: input.vectorStorageId,
-              },
-              { signal: ctx.signal },
-            );
-          }),
-        );
+        const result = { termIds, derivations };
+        await ctx.recordSideEffect(sideEffectKey, "db_write", result);
 
-        await ctx.recordSideEffect(sideEffectKey, "db_write", termIds);
-
-        return { termIds };
+        return result;
       },
     }),
   },

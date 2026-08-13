@@ -2,6 +2,7 @@
 import * as z from "zod";
 import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "#/schema/content.ts";
 import { DrizzleDateTimeSchema } from "#/schema/misc.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 import { safeZDotJson } from "#/schema/json.ts";
 
 export const ContentNodeSchema = z.object({
@@ -19,7 +20,7 @@ export const ContentNodeSchema = z.object({
   languageId: z.string().nullable(),
   exportRole: z.enum(["NONE", "PROJECT_ROOT", "DIRECTORY", "FILE", "SECTION"]),
   boundaryType: z.enum(["PROJECT", "SOURCE_ROOT", "DIRECTORY", "FILE", "MODULE", "MOD", "NAMESPACE", "NONE"]),
-  fileHandlerId: z.int().nullable(),
+  fileHandler: ServiceImplementationReferenceSchema.nullable(),
   fileId: z.int().nullable(),
   lifecycleStatus: z.enum(["ACTIVE", "DRAFT", "DELETED", "QUARANTINED"]),
   provenance: safeZDotJson.nullable(),
@@ -127,7 +128,7 @@ export const ContextEvidenceSchema = z.object({
   freshnessAt: DrizzleDateTimeSchema.nullable(),
   jsonData: safeZDotJson.nullable(),
   fileId: z.int().nullable(),
-  storageProviderId: z.int().nullable(),
+  storageProvider: ServiceImplementationReferenceSchema.nullable(),
   textData: z.string().nullable(),
   displayLabel: z.string().nullable(),
   provenance: safeZDotJson.nullable(),

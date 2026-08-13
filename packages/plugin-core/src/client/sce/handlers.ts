@@ -1,3 +1,5 @@
+import { logger } from "@cat/shared";
+
 import { Membrane } from "#/client/sce/membrane.ts";
 
 export const UNWRAP = Symbol.for("sce.unwrap");
@@ -40,8 +42,9 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     if (distortion && distortion.get) {
       const distortedGetter = distortion.get(target, key);
       if (distortedGetter) {
-        // oxlint-disable-next-line no-console -- client-side browser logging
-        console.debug(`[WEB] Distortion hit for key: ${String(key)}`);
+        logger
+          .child({ component: "plugin-sce", runtime: "client" })
+          .debug("Distortion hit", { key: String(key) });
 
         const result = distortedGetter(target, receiver);
         return this.membrane.convertBlueToRed(result);
@@ -65,8 +68,9 @@ export class BlueToRedHandler implements ProxyHandler<object> {
     if (distortion && distortion.set) {
       const allowed = distortion.set(target, key, value);
       if (!allowed) {
-        // oxlint-disable-next-line no-console -- client-side browser logging
-        console.warn(`[WEB] Distortion blocked set for key: ${String(key)}`);
+        logger
+          .child({ component: "plugin-sce", runtime: "client" })
+          .warn("Distortion blocked set", { key: String(key) });
         return false;
       }
     }
@@ -90,8 +94,9 @@ export class BlueToRedHandler implements ProxyHandler<object> {
         // 别忘了把结果转回 Red (Blue -> Red)
         return this.membrane.convertBlueToRed(result);
       } catch (err) {
-        // oxlint-disable-next-line no-console -- client-side browser logging
-        console.error(`[WEB] Distortion apply error`, err);
+        logger
+          .child({ component: "plugin-sce", runtime: "client" })
+          .error("Distortion apply error", { error: err });
         throw err;
       }
     }

@@ -6,7 +6,9 @@ import {
   eq,
   getColumns,
   inArray,
+  qaReviewAnnotation,
   qaReviewDecision,
+  qaReviewFinding,
   qaReviewQueueItem,
   qaReviewRun,
   qaReviewSuggestion,
@@ -18,9 +20,6 @@ import {
 import * as z from "zod";
 
 import type { DbHandle, Query } from "#/types.ts";
-
-import { listQaReviewAnnotations } from "./list-review-annotations.query.ts";
-import { listQaReviewFindings } from "./list-review-findings.query.ts";
 
 const OPEN_QUEUE_STATUSES = [
   "OPEN",
@@ -50,8 +49,8 @@ export type QaReviewCandidateDetail = {
     createdAt: Date;
   } | null;
   latestRunSummary: string | null;
-  findings: Awaited<ReturnType<typeof listQaReviewFindings>>;
-  annotations: Awaited<ReturnType<typeof listQaReviewAnnotations>>;
+  findings: Array<typeof qaReviewFinding.$inferSelect>;
+  annotations: Array<typeof qaReviewAnnotation.$inferSelect>;
   decisions: Array<typeof qaReviewDecision.$inferSelect>;
   suggestions: Array<typeof qaReviewSuggestion.$inferSelect>;
 };
@@ -68,6 +67,21 @@ export type QaReviewableElementDetail = {
     createdAt: Date;
   } | null;
   candidates: QaReviewCandidateDetail[];
+};
+
+const groupByNumberKey = <TRow>(
+  rows: TRow[],
+  getKey: (row: TRow) => number | null,
+): Map<number, TRow[]> => {
+  const grouped = new Map<number, TRow[]>();
+  for (const row of rows) {
+    const key = getKey(row);
+    if (key === null) continue;
+    const values = grouped.get(key) ?? [];
+    values.push(row);
+    grouped.set(key, values);
+  }
+  return grouped;
 };
 
 const resolveTranslationById = async (
@@ -203,66 +217,135 @@ export const getQaReviewableElementDetail: Query<
       desc(qaReviewQueueItem.id),
     );
 
-  const candidates = await Promise.all(
-    queueRows.map(async (queueItem) => {
-      const translationRow = await resolveTranslationById(
-        ctx.db,
-        queueItem.translationId,
+  const candidates: QaReviewCandidateDetail[] = [];
+  if (queueRows.length > 0) {
+    const queueItemIds = queueRows.map((row) => row.id);
+    const translationIds = queueRows.flatMap((row) =>
+      row.translationId === null ? [] : [row.translationId],
+    );
+    const translationRows = await ctx.db
+      .select({
+        id: translation.id,
+        text: vectorizedString.value,
+        translatorId: translation.translatorId,
+        createdAt: translation.createdAt,
+      })
+      .from(translation)
+      .innerJoin(
+        vectorizedString,
+        eq(vectorizedString.id, translation.stringId),
+      )
+      .where(inArray(translation.id, translationIds));
+    const runRows = await ctx.db
+      .select({
+        translationId: qaReviewRun.translationId,
+        summary: qaReviewRun.summary,
+      })
+      .from(qaReviewRun)
+      .where(
+        and(
+          eq(qaReviewRun.projectId, query.projectId),
+          eq(qaReviewRun.elementId, query.elementId),
+          inArray(qaReviewRun.translationId, translationIds),
+        ),
+      )
+      .orderBy(desc(qaReviewRun.createdAt), desc(qaReviewRun.id));
+    const findingRows = await ctx.db
+      .select({ ...getColumns(qaReviewFinding) })
+      .from(qaReviewFinding)
+      .where(
+        and(
+          eq(qaReviewFinding.projectId, query.projectId),
+          eq(qaReviewFinding.elementId, query.elementId),
+          inArray(qaReviewFinding.translationId, translationIds),
+        ),
+      )
+      .orderBy(
+        desc(qaReviewFinding.riskScore),
+        desc(qaReviewFinding.createdAt),
+        desc(qaReviewFinding.id),
       );
+    const annotationRows = await ctx.db
+      .select({ ...getColumns(qaReviewAnnotation) })
+      .from(qaReviewAnnotation)
+      .where(inArray(qaReviewAnnotation.queueItemId, queueItemIds))
+      .orderBy(
+        sql`${qaReviewAnnotation.rootAnnotationId} NULLS FIRST`,
+        qaReviewAnnotation.createdAt,
+        qaReviewAnnotation.id,
+      );
+    const decisionRows = await ctx.db
+      .select({ ...getColumns(qaReviewDecision) })
+      .from(qaReviewDecision)
+      .where(inArray(qaReviewDecision.queueItemId, queueItemIds))
+      .orderBy(desc(qaReviewDecision.createdAt), desc(qaReviewDecision.id));
+    const annotationIds = annotationRows.map((annotation) => annotation.id);
+    const suggestionRows =
+      annotationIds.length === 0
+        ? []
+        : await ctx.db
+            .select({ ...getColumns(qaReviewSuggestion) })
+            .from(qaReviewSuggestion)
+            .where(inArray(qaReviewSuggestion.annotationId, annotationIds))
+            .orderBy(
+              desc(qaReviewSuggestion.createdAt),
+              desc(qaReviewSuggestion.id),
+            );
 
-      const [latestRun, findings, annotations, decisions] = await Promise.all([
-        ctx.db
-          .select({ summary: qaReviewRun.summary })
-          .from(qaReviewRun)
-          .where(
-            and(
-              eq(qaReviewRun.projectId, query.projectId),
-              eq(qaReviewRun.elementId, query.elementId),
-              sql`${qaReviewRun.translationId} IS NOT DISTINCT FROM ${queueItem.translationId}`,
-            ),
-          )
-          .orderBy(desc(qaReviewRun.createdAt), desc(qaReviewRun.id))
-          .limit(1)
-          .then((rows) => rows[0]?.summary ?? null),
-        listQaReviewFindings(ctx, {
-          queueItemId: queueItem.id,
-          includeSuppressed: true,
-        }),
-        listQaReviewAnnotations(ctx, {
-          queueItemId: queueItem.id,
-          includeHidden: true,
-        }),
-        ctx.db
-          .select({ ...getColumns(qaReviewDecision) })
-          .from(qaReviewDecision)
-          .where(eq(qaReviewDecision.queueItemId, queueItem.id))
-          .orderBy(desc(qaReviewDecision.createdAt), desc(qaReviewDecision.id)),
-      ]);
+    const translationsById = new Map(
+      translationRows.map((row) => [row.id, row]),
+    );
+    const latestRunByTranslationId = new Map<number, string | null>();
+    for (const row of runRows) {
+      if (
+        row.translationId !== null &&
+        !latestRunByTranslationId.has(row.translationId)
+      ) {
+        latestRunByTranslationId.set(row.translationId, row.summary);
+      }
+    }
+    const findingsByTranslationId = groupByNumberKey(
+      findingRows,
+      (row) => row.translationId,
+    );
+    const annotationsByQueueItemId = groupByNumberKey(
+      annotationRows,
+      (row) => row.queueItemId,
+    );
+    const decisionsByQueueItemId = groupByNumberKey(
+      decisionRows,
+      (row) => row.queueItemId,
+    );
+    const queueItemIdByAnnotationId = new Map(
+      annotationRows.map((row) => [row.id, row.queueItemId]),
+    );
+    const suggestionsByQueueItemId = groupByNumberKey(
+      suggestionRows,
+      (row) => queueItemIdByAnnotationId.get(row.annotationId) ?? null,
+    );
 
-      const annotationIds = annotations.map((annotation) => annotation.id);
-      const suggestions =
-        annotationIds.length === 0
-          ? []
-          : await ctx.db
-              .select({ ...getColumns(qaReviewSuggestion) })
-              .from(qaReviewSuggestion)
-              .where(inArray(qaReviewSuggestion.annotationId, annotationIds))
-              .orderBy(
-                desc(qaReviewSuggestion.createdAt),
-                desc(qaReviewSuggestion.id),
-              );
-
-      return {
+    for (const queueItem of queueRows) {
+      const translationId = queueItem.translationId;
+      candidates.push({
         queueItem,
-        translation: translationRow,
-        latestRunSummary: latestRun,
-        findings,
-        annotations,
-        decisions,
-        suggestions,
-      };
-    }),
-  );
+        translation:
+          translationId === null
+            ? null
+            : (translationsById.get(translationId) ?? null),
+        latestRunSummary:
+          translationId === null
+            ? null
+            : (latestRunByTranslationId.get(translationId) ?? null),
+        findings:
+          translationId === null
+            ? []
+            : (findingsByTranslationId.get(translationId) ?? []),
+        annotations: annotationsByQueueItemId.get(queueItem.id) ?? [],
+        decisions: decisionsByQueueItemId.get(queueItem.id) ?? [],
+        suggestions: suggestionsByQueueItemId.get(queueItem.id) ?? [],
+      });
+    }
+  }
 
   const approvedTranslation = await resolveApprovedTranslationForQaDetail(
     ctx.db,

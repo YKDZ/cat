@@ -6,6 +6,7 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
+import { RecallDerivationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 export const DeleteTermInputSchema = z.object({
@@ -15,6 +16,7 @@ export const DeleteTermInputSchema = z.object({
 export const DeleteTermOutputSchema = z.object({
   deleted: z.boolean(),
   conceptId: z.int().nullable(),
+  derivations: z.array(RecallDerivationReferenceSchema),
 });
 
 export type DeleteTermInput = z.infer<typeof DeleteTermInputSchema>;
@@ -46,5 +48,9 @@ export const deleteTermOp = async (
 
   await collector.flush();
 
-  return { deleted: result.deleted, conceptId: result.conceptId };
+  return {
+    deleted: result.deleted,
+    conceptId: result.conceptId,
+    derivations: result.derivations,
+  };
 };

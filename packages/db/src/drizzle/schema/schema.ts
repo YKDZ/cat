@@ -8,8 +8,22 @@ import type {
   QaReviewRunMeta,
   QaReviewSpan,
   QaReviewTextRange,
+  ServiceImplementationReference,
+  LanguageAnalysisRequirementAssessment,
+  CanonicalInputVersion,
+  MemoryRecallVariantMeta,
+  TermRecallVariantMeta,
+  RecallDerivationBlocker,
+  RecallDerivationVersion,
 } from "@cat/shared";
-import type { _JSONSchema, JSONType, NonNullJSONType } from "@cat/shared";
+import type {
+  _JSONSchema,
+  JSONType,
+  NonNullJSONType,
+  TaskAffectedResource,
+  TaskKind,
+  TaskRuntime,
+} from "@cat/shared";
 import type { ProjectSettingPayload } from "@cat/shared";
 
 import {
@@ -17,6 +31,16 @@ import {
   ResourceTypeValues,
   ScopeTypeValues,
   TaskStatusValues,
+  TaskScopeTypeValues,
+  TaskKindValues,
+  WorkflowTaskDispatchStatusValues,
+  TaskActorTypeValues,
+  OperationFailureCodeValues,
+  OperationFailureSeverityValues,
+  OperationFailureBlockerValues,
+  OperationFailureCapabilityValues,
+  OperationFailureAuthorizationDecisionValues,
+  OperationFailureRedactionBoundaryValues,
   QueueTaskStatusValues,
   CommentReactionTypeValues,
   TranslatableElementContextTypeValues,
@@ -45,6 +69,8 @@ import {
   ChangesetEntryAsyncStatusValues,
   RecallVariantTypeValues,
   RecallQuerySideValues,
+  RecallDerivationStatusValues,
+  RecallDerivationTargetKindValues,
   IssueStatusValues,
   PullRequestStatusValues,
   PullRequestTypeValues,
@@ -107,6 +133,37 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const taskStatus = pgEnum("TaskStatus", TaskStatusValues);
+export const taskScopeType = pgEnum("TaskScopeType", TaskScopeTypeValues);
+export const taskKind = pgEnum("TaskKind", TaskKindValues);
+export const workflowTaskDispatchStatus = pgEnum(
+  "WorkflowTaskDispatchStatus",
+  WorkflowTaskDispatchStatusValues,
+);
+export const taskActorType = pgEnum("TaskActorType", TaskActorTypeValues);
+export const operationFailureCode = pgEnum(
+  "OperationFailureCode",
+  OperationFailureCodeValues,
+);
+export const operationFailureSeverity = pgEnum(
+  "OperationFailureSeverity",
+  OperationFailureSeverityValues,
+);
+export const operationFailureBlocker = pgEnum(
+  "OperationFailureBlocker",
+  OperationFailureBlockerValues,
+);
+export const operationFailureCapability = pgEnum(
+  "OperationFailureCapability",
+  OperationFailureCapabilityValues,
+);
+export const operationFailureAuthorizationDecision = pgEnum(
+  "OperationFailureAuthorizationDecision",
+  OperationFailureAuthorizationDecisionValues,
+);
+export const operationFailureRedactionBoundary = pgEnum(
+  "OperationFailureRedactionBoundary",
+  OperationFailureRedactionBoundaryValues,
+);
 
 export const queueTaskStatus = pgEnum("QueueTaskStatus", QueueTaskStatusValues);
 
@@ -322,12 +379,7 @@ export const account = snakeCase.table(
     userId: uuid()
       .notNull()
       .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-    authProviderId: integer()
-      .notNull()
-      .references(() => pluginService.id, {
-        onDelete: "cascade",
-        onUpdate: "cascade",
-      }),
+    authProvider: jsonb().$type<ServiceImplementationReference>().notNull(),
 
     ...timestamps,
   },
@@ -342,12 +394,7 @@ export const mfaProvider = snakeCase.table("MFAProvider", {
   userId: uuid()
     .notNull()
     .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
-  mfaServiceId: integer()
-    .notNull()
-    .references(() => pluginService.id, {
-      onDelete: "restrict",
-      onUpdate: "cascade",
-    }),
+  mfaService: jsonb().$type<ServiceImplementationReference>().notNull(),
 
   ...timestamps,
 });
@@ -357,19 +404,14 @@ export const blob = snakeCase.table(
   {
     id: serial().primaryKey(),
     key: text().notNull(),
-    storageProviderId: integer()
-      .notNull()
-      .references(() => pluginService.id, {
-        onDelete: "restrict",
-        onUpdate: "cascade",
-      }),
+    storageProvider: jsonb().$type<ServiceImplementationReference>().notNull(),
     referenceCount: integer().default(1).notNull(),
     hash: bytea(),
     createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
   },
   (table) => [
     unique().on(table.hash),
-    unique().on(table.storageProviderId, table.key),
+    unique().on(table.storageProvider, table.key),
     check("hash_check", sql`octet_length(${table.hash}) = 32`),
     check("referenceCount_check", sql`${table.referenceCount} >= 0`),
   ],
@@ -386,13 +428,8 @@ export const chunk = snakeCase.table(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    vectorizerId: integer()
-      .notNull()
-      .references(() => pluginService.id, {
-        onDelete: "restrict",
-        onUpdate: "cascade",
-      }),
-    vectorStorageId: integer().notNull(),
+    vectorizer: jsonb().$type<ServiceImplementationReference>().notNull(),
+    vectorStorage: jsonb().$type<ServiceImplementationReference>().notNull(),
     ...timestamps,
   },
   (table) => [index().using("btree", table.chunkSetId.asc().nullsLast())],
@@ -432,10 +469,7 @@ export const contentNode = snakeCase.table(
     }),
     exportRole: contentNodeExportRole().notNull().default("NONE"),
     boundaryType: contentBoundaryType().notNull().default("NONE"),
-    fileHandlerId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-      onUpdate: "cascade",
-    }),
+    fileHandler: jsonb().$type<ServiceImplementationReference>(),
     fileId: integer().references(() => file.id, {
       onDelete: "set null",
       onUpdate: "cascade",
@@ -664,7 +698,7 @@ export const memoryItem = snakeCase.table(
     memoryId: uuid()
       .notNull()
       .references(() => memory.id, {
-        onDelete: "cascade",
+        onDelete: "restrict",
         onUpdate: "cascade",
       }),
     sourceElementId: integer().references(() => translatableElement.id, {
@@ -687,12 +721,6 @@ export const memoryItem = snakeCase.table(
         onDelete: "restrict",
         onUpdate: "cascade",
       }),
-    /** Placeholderized source text template, e.g. "Error Code: {NUM_0}" */
-    sourceTemplate: text(),
-    /** Placeholderized translation text template */
-    translationTemplate: text(),
-    /** JSON mapping of placeholder → original value + token type */
-    slotMapping: jsonb().$type<JSONType>(),
     ...timestamps,
   },
   (table) => [
@@ -838,8 +866,11 @@ export const pluginConfig = snakeCase.table(
       .references(() => plugin.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
-      }),
+    }),
     schema: jsonb().notNull().$type<_JSONSchema>(),
+    schemaVersion: text().notNull(),
+    schemaDigest: text().notNull(),
+    isAvailable: boolean().notNull().default(true),
     ...timestamps,
   },
   (table) => [uniqueIndex().using("btree", table.pluginId.asc().nullsLast())],
@@ -851,9 +882,11 @@ export const pluginConfigInstance = snakeCase.table(
     id: serial().primaryKey(),
     value: jsonb().notNull().$type<NonNullJSONType>(),
     creatorId: uuid().references(() => user.id, {
-      onDelete: "cascade",
+      onDelete: "set null",
       onUpdate: "cascade",
     }),
+    appliedVersion: text().notNull(),
+    revision: integer().notNull().default(1),
     configId: integer()
       .notNull()
       .references(() => pluginConfig.id, {
@@ -902,6 +935,20 @@ export const pluginInstallation = snakeCase.table(
   ],
 );
 
+/** A one-shot deployment plan receipt. Configuration remains operator-owned. */
+export const bootstrapReceipt = snakeCase.table(
+  "BootstrapReceipt",
+  {
+    id: serial().primaryKey(),
+    idempotencyKey: text().notNull().unique(),
+    planVersion: text().notNull(),
+    inputDigest: text().notNull(),
+    schemaDigest: text().notNull(),
+    pluginDigest: text().notNull(),
+    appliedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+);
+
 export const pluginService = snakeCase.table(
   "PluginService",
   {
@@ -924,6 +971,44 @@ export const pluginService = snakeCase.table(
       table.pluginInstallationId.asc().nullsLast(),
     ),
   ],
+);
+
+/** Deployment-wide Language Analysis policy; null is an auditable tombstone. */
+export const languageAnalysisSelection = snakeCase.table(
+  "LanguageAnalysisSelection",
+  {
+    key: text().primaryKey(),
+    implementation: jsonb().$type<ServiceImplementationReference | null>(),
+    revision: integer().notNull(),
+    configurationFingerprint: text(),
+    ...timestamps,
+  },
+);
+
+/** Serializes deployment-wide Language Analysis policy publication. */
+export const languageAnalysisPolicy = snakeCase.table(
+  "LanguageAnalysisPolicy",
+  {
+    id: integer().primaryKey(),
+    epoch: integer().notNull(),
+    ...timestamps,
+  },
+);
+
+/** Last live requirement result. It is accepted only for its selected revision. */
+export const languageAnalysisObservation = snakeCase.table(
+  "LanguageAnalysisObservation",
+  {
+    languageId: text().primaryKey(),
+    policyEpoch: integer().notNull(),
+    selectionKey: text().notNull(),
+    selectionRevision: integer().notNull(),
+    configurationFingerprint: text().notNull(),
+    assessment: jsonb().$type<LanguageAnalysisRequirementAssessment>().notNull(),
+    observedAt: timestamp({ withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (table) => [index().on(table.selectionKey)],
 );
 
 export const pluginComponent = snakeCase.table("PluginComponent", {
@@ -1306,16 +1391,92 @@ export const setting = snakeCase.table(
   (table) => [uniqueIndex().using("btree", table.key.asc().nullsLast())],
 );
 
+export const operationFailure = snakeCase.table("OperationFailure", {
+  id: uuid().defaultRandom().primaryKey(),
+  code: operationFailureCode().notNull(),
+  message: text().notNull(),
+  severity: operationFailureSeverity().notNull(),
+  retryable: boolean().notNull(),
+  blocker: operationFailureBlocker(),
+  capability: operationFailureCapability(),
+  authorizationDecision: operationFailureAuthorizationDecision(),
+  affectedResources: jsonb().notNull().$type<TaskAffectedResource[]>(),
+  remediationHint: text(),
+  redactionBoundary: operationFailureRedactionBoundary().notNull(),
+  taskId: uuid(),
+  traceId: text(),
+  createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+});
+
 export const task = snakeCase.table(
   "Task",
   {
     id: uuid().defaultRandom().primaryKey(),
+    kind: taskKind().notNull(),
+    payload: jsonb().notNull().$type<TaskKind["payload"]>(),
     status: taskStatus().default("PENDING").notNull(),
-    type: text().notNull(),
-    meta: jsonb().$type<JSONType>(),
+    scopeType: taskScopeType().notNull(),
+    scopeId: uuid(),
+    actorType: taskActorType().notNull(),
+    actorId: uuid().references(() => user.id, {
+      onDelete: "restrict",
+      onUpdate: "cascade",
+    }),
+    resources: jsonb().notNull().$type<TaskAffectedResource[]>(),
+    revision: integer().notNull().default(0),
+    progressCurrent: integer(),
+    progressTotal: integer(),
+    runtime: jsonb().notNull().$type<TaskRuntime>(),
+    currentFailureId: uuid().references(() => operationFailure.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    retryOfTaskId: uuid(),
+    startedAt: timestamp({ withTimezone: true }),
+    finishedAt: timestamp({ withTimezone: true }),
     ...timestamps,
   },
-  (table) => [index().using("btree", table.meta.asc().nullsLast())],
+  (table) => [
+    foreignKey({
+      columns: [table.retryOfTaskId],
+      foreignColumns: [table.id],
+      name: "Task_retry_of_task_id_Task_id_fk",
+    })
+      .onDelete("set null")
+      .onUpdate("cascade"),
+    check(
+      "Task_scope_contract_check",
+      sql`(("scope_type" IN ('PROJECT', 'USER') AND "scope_id" IS NOT NULL) OR ("scope_type" = 'INSTANCE' AND "scope_id" IS NULL))`,
+    ),
+    check(
+      "Task_actor_contract_check",
+      sql`(("actor_type" = 'USER' AND "actor_id" IS NOT NULL) OR ("actor_type" = 'SYSTEM' AND "actor_id" IS NULL))`,
+    ),
+    check(
+      "Task_progress_contract_check",
+      sql`("progress_current" IS NULL OR "progress_current" >= 0) AND ("progress_total" IS NULL OR "progress_total" > 0) AND ("progress_current" IS NULL OR "progress_total" IS NULL OR "progress_current" <= "progress_total")`,
+    ),
+    index().using(
+      "btree",
+      table.scopeType.asc().nullsLast(),
+      table.scopeId.asc().nullsLast(),
+    ),
+    index().using("btree", table.status.asc().nullsLast()),
+    uniqueIndex("Task_retry_of_task_id_unique").on(table.retryOfTaskId),
+  ],
+);
+
+export const taskTransitionRequest = snakeCase.table(
+  "TaskTransitionRequest",
+  {
+    taskId: uuid()
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    requestId: uuid().notNull(),
+    intentFingerprint: text().notNull(),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [primaryKey({ columns: [table.taskId, table.requestId] })],
 );
 
 export const term = snakeCase.table(
@@ -1572,10 +1733,7 @@ export const contextEvidence = snakeCase.table(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-    storageProviderId: integer().references(() => pluginService.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+    storageProvider: jsonb().$type<ServiceImplementationReference>(),
     textData: text(),
     displayLabel: text(),
     provenance: jsonb().$type<JSONType>(),
@@ -1622,18 +1780,6 @@ export const vectorizedString = snakeCase.table(
       "gin",
       sql`${table.value} gin_trgm_ops`,
     ),
-    index("idx_vectorized_string_value_en_bm25_rum")
-      .using(
-        "rum",
-        sql`to_tsvector('english', ${table.value}) rum_tsvector_ops`,
-      )
-      .where(sql`${table.languageId} = 'en'`),
-    index("idx_vectorized_string_value_zh_hans_bm25_rum")
-      .using(
-        "rum",
-        sql`to_tsvector('cat_zh_hans', ${table.value}) rum_tsvector_ops`,
-      )
-      .where(sql`${table.languageId} = 'zh-Hans'`),
     // Index for faster language lookup
     index().using("btree", table.languageId.asc().nullsLast()),
     // Index for status-based filtering
@@ -1759,12 +1905,7 @@ export const qaResultItem = snakeCase.table("QaResultItem", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  checkerId: integer()
-    .notNull()
-    .references(() => pluginService.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+  checker: jsonb().$type<ServiceImplementationReference>().notNull(),
   ...timestamps,
 });
 
@@ -1827,12 +1968,8 @@ export const qaReviewRun = snakeCase.table(
     }),
     layer: qaReviewRunLayer().notNull(),
     status: qaReviewRunStatus().notNull(),
-    checkerServiceId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-    }),
-    modelServiceId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-    }),
+    checkerService: jsonb().$type<ServiceImplementationReference>(),
+    modelService: jsonb().$type<ServiceImplementationReference>(),
     riskScore: integer().notNull().default(0),
     summary: text(),
     errorMessage: text(),
@@ -1872,9 +2009,7 @@ export const qaReviewFinding = snakeCase.table(
     qaResultItemId: integer().references(() => qaResultItem.id, {
       onDelete: "set null",
     }),
-    checkerServiceId: integer().references(() => pluginService.id, {
-      onDelete: "set null",
-    }),
+    checkerService: jsonb().$type<ServiceImplementationReference>(),
     layer: qaReviewRunLayer().notNull(),
     ruleId: text().notNull(),
     ruleFamily: text().notNull(),
@@ -2261,11 +2396,47 @@ export const agentRun = snakeCase.table(
     startedAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
     completedAt: timestamp({ withTimezone: true }),
     metadata: jsonb().$type<JSONType>(),
+    ownerId: text(),
+    ownerEpoch: integer().notNull().default(0),
+    ownerLeaseExpiresAt: timestamp({ withTimezone: true }),
   },
   (table) => [
     index().on(table.sessionId),
     index().on(table.status),
-    index().on(table.deduplicationKey),
+    uniqueIndex().on(table.deduplicationKey),
+  ],
+);
+
+/**
+ * Batch-auto-translation's private dispatch intent. Task remains a user-facing
+ * projection and must not carry queue leases, run binding or event cursors.
+ */
+export const workflowTaskDispatch = snakeCase.table(
+  "WorkflowTaskDispatch",
+  {
+    id: uuid().defaultRandom().primaryKey(),
+    taskId: uuid()
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    generation: integer().notNull(),
+    runId: uuid().defaultRandom().notNull().unique(),
+    status: workflowTaskDispatchStatus().notNull().default("REQUESTED"),
+    ownerId: uuid(),
+    ownerEpoch: integer().notNull().default(0),
+    ownerLeaseExpiresAt: timestamp({ withTimezone: true }),
+    attemptCount: integer().notNull().default(0),
+    agentSessionId: integer().references(() => agentSession.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    lastProjectedEventSequence: integer().notNull().default(0),
+    settledAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    unique().on(table.taskId, table.generation),
+    index().on(table.status, table.ownerLeaseExpiresAt),
+    index().on(table.taskId, table.generation),
   ],
 );
 
@@ -2577,7 +2748,7 @@ export const sessionRecord = snakeCase.table(
       .references(() => user.id, { onDelete: "cascade" }),
     ip: text(),
     userAgent: text(),
-    authProviderId: integer(),
+    authProvider: jsonb().$type<ServiceImplementationReference>().notNull(),
     expiresAt: timestamp({ withTimezone: true }).notNull(),
     revokedAt: timestamp({ withTimezone: true }),
     ...timestamps,
@@ -2688,6 +2859,105 @@ export const recallVariantType = pgEnum(
 );
 
 export const recallQuerySide = pgEnum("RecallQuerySide", RecallQuerySideValues);
+export const recallDerivationStatus = pgEnum(
+  "RecallDerivationStatus",
+  RecallDerivationStatusValues,
+);
+export const recallDerivationTargetKind = pgEnum(
+  "RecallDerivationTargetKind",
+  RecallDerivationTargetKindValues,
+);
+
+export const recallDerivationState = snakeCase.table(
+  "RecallDerivationState",
+  {
+    id: serial().primaryKey(),
+    targetKind: recallDerivationTargetKind().notNull(),
+    targetId: text().notNull(),
+    languageId: text()
+      .notNull()
+      .references(() => language.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    status: recallDerivationStatus().notNull().default("PENDING"),
+    demandRevision: integer().notNull().default(1),
+    taskProjectionRevision: integer().notNull().default(1),
+    executionEpoch: integer().notNull().default(0),
+    leaseOwnerId: uuid(),
+    leaseToken: uuid(),
+    leaseExpiresAt: timestamp({ withTimezone: true }),
+    retryCount: integer().notNull().default(0),
+    nextAttemptAt: timestamp({ withTimezone: true }),
+    blocker: jsonb().$type<RecallDerivationBlocker>(),
+    canonicalInputVersion: text().$type<CanonicalInputVersion>().notNull(),
+    requiredDerivationVersion: text().$type<RecallDerivationVersion>(),
+    currentCanonicalInputVersion: text().$type<CanonicalInputVersion>(),
+    currentDerivationVersion: text().$type<RecallDerivationVersion>(),
+    lastAttemptAt: timestamp({ withTimezone: true }),
+    publishedAt: timestamp({ withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex().on(table.targetKind, table.targetId, table.languageId),
+    uniqueIndex().on(table.leaseToken),
+    index().on(table.status, table.nextAttemptAt),
+    index().on(table.leaseExpiresAt),
+    check(
+      "RecallDerivationState_running_lease_check",
+      sql`(${table.status} = 'RUNNING' AND ${table.executionEpoch} > 0 AND ${table.leaseOwnerId} IS NOT NULL AND ${table.leaseToken} IS NOT NULL AND ${table.leaseExpiresAt} IS NOT NULL) OR (${table.status} <> 'RUNNING' AND ${table.leaseOwnerId} IS NULL AND ${table.leaseToken} IS NULL AND ${table.leaseExpiresAt} IS NULL)`,
+    ),
+    check(
+      "RecallDerivationState_fresh_version_check",
+      sql`${table.status} <> 'FRESH' OR (${table.canonicalInputVersion} IS NOT NULL AND ${table.requiredDerivationVersion} IS NOT NULL AND ${table.currentCanonicalInputVersion} IS NOT NULL AND ${table.currentDerivationVersion} IS NOT NULL AND ${table.currentCanonicalInputVersion} = ${table.canonicalInputVersion} AND ${table.currentDerivationVersion} = ${table.requiredDerivationVersion})`,
+    ),
+    check(
+      "RecallDerivationState_revision_check",
+      sql`${table.demandRevision} > 0 AND ${table.taskProjectionRevision} > 0 AND ${table.executionEpoch} >= 0 AND ${table.retryCount} >= 0`,
+    ),
+  ],
+);
+
+/**
+ * A Task is an observer of a demand, never its lease or retry owner. Multiple
+ * initiating tasks may therefore observe one coalesced derivation state.
+ */
+export const recallDerivationTaskDemand = snakeCase.table(
+  "RecallDerivationTaskDemand",
+  {
+    id: serial().primaryKey(),
+    taskId: uuid()
+      .notNull()
+      .references(() => task.id, { onDelete: "cascade", onUpdate: "cascade" }),
+    derivationStateId: integer()
+      .references(() => recallDerivationState.id, {
+        onDelete: "set null",
+        onUpdate: "cascade",
+      }),
+    targetKind: recallDerivationTargetKind().notNull(),
+    targetId: text().notNull(),
+    languageId: text().notNull(),
+    demandRevision: integer().notNull(),
+    observedProjectionRevision: integer().notNull(),
+    detachedAt: timestamp({ withTimezone: true }),
+    supersededAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    unique().on(
+      table.taskId,
+      table.targetKind,
+      table.targetId,
+      table.languageId,
+      table.demandRevision,
+    ),
+    index().on(table.derivationStateId, table.detachedAt),
+    check(
+      "RecallDerivationTaskDemand_revision_check",
+      sql`${table.demandRevision} > 0 AND ${table.observedProjectionRevision} > 0`,
+    ),
+  ],
+);
 
 // ─── Term Recall Variant Table ────────────────────────────────────────────
 
@@ -2695,6 +2965,12 @@ export const termRecallVariant = snakeCase.table(
   "TermRecallVariant",
   {
     id: serial().primaryKey(),
+    derivationStateId: integer()
+      .notNull()
+      .references(() => recallDerivationState.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     conceptId: integer()
       .notNull()
       .references(() => termConcept.id, {
@@ -2710,11 +2986,18 @@ export const termRecallVariant = snakeCase.table(
     text: text().notNull(),
     normalizedText: text().notNull(),
     variantType: recallVariantType().notNull(),
-    meta: jsonb().$type<JSONType>(),
+    meta: jsonb().$type<TermRecallVariantMeta>().notNull(),
+    canonicalInputVersion: text().$type<CanonicalInputVersion>().notNull(),
+    recallDerivationVersion: text().$type<RecallDerivationVersion>().notNull(),
     ...timestamps,
   },
   (table) => [
     index().using("btree", table.conceptId.asc().nullsLast()),
+    index().on(
+      table.derivationStateId,
+      table.canonicalInputVersion,
+      table.recallDerivationVersion,
+    ),
     index().using("btree", table.languageId.asc().nullsLast()),
     index("idx_term_recall_variant_text_trgm").using(
       "gin",
@@ -2729,6 +3012,12 @@ export const memoryRecallVariant = snakeCase.table(
   "MemoryRecallVariant",
   {
     id: serial().primaryKey(),
+    derivationStateId: integer()
+      .notNull()
+      .references(() => recallDerivationState.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     memoryItemId: integer()
       .notNull()
       .references(() => memoryItem.id, {
@@ -2751,11 +3040,18 @@ export const memoryRecallVariant = snakeCase.table(
     text: text().notNull(),
     normalizedText: text().notNull(),
     variantType: recallVariantType().notNull(),
-    meta: jsonb().$type<JSONType>(),
+    meta: jsonb().$type<MemoryRecallVariantMeta>(),
+    canonicalInputVersion: text().$type<CanonicalInputVersion>().notNull(),
+    recallDerivationVersion: text().$type<RecallDerivationVersion>().notNull(),
     ...timestamps,
   },
   (table) => [
     index().using("btree", table.memoryItemId.asc().nullsLast()),
+    index().on(
+      table.derivationStateId,
+      table.canonicalInputVersion,
+      table.recallDerivationVersion,
+    ),
     index().using("btree", table.memoryId.asc().nullsLast()),
     index().using("btree", table.languageId.asc().nullsLast()),
     index("idx_memory_recall_variant_text_trgm").using(

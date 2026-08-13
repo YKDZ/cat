@@ -25,7 +25,11 @@ export type RunQaReviewForTranslationInput = {
   pullRequestId?: number | null | undefined;
   qaResultId: number;
   qaResultItemIds: number[];
-  qaItems: Array<{ isPassed: boolean; checkerId: number; meta: unknown }>;
+  qaItems: Array<{
+    isPassed: boolean;
+    checker: import("@cat/shared").ServiceImplementationReference;
+    meta: unknown;
+  }>;
 };
 
 /**
@@ -36,8 +40,9 @@ export const runQaReviewForTranslationOp = async (
   ctx?: OperationContext,
 ): Promise<{ queueItemId: number | null }> => {
   const { client: db } = await getDbHandle();
-  const pluginManager =
-    ctx?.pluginManager instanceof PluginManager ? ctx.pluginManager : undefined;
+  const pluginManager = PluginManager.isInstance(ctx?.pluginManager)
+    ? ctx.pluginManager
+    : undefined;
   const profile = await executeQuery({ db }, resolveQaReviewProfile, {
     projectId: input.projectId,
     languageId: input.languageId,
@@ -108,7 +113,7 @@ export const runQaReviewForTranslationOp = async (
         pullRequestId: input.pullRequestId ?? null,
         layer: "SEMANTIC",
         status: semantic.status,
-        modelServiceId: semantic.modelServiceId,
+        modelService: semantic.modelService,
         riskScore: Math.max(
           0,
           ...semantic.findings.map((item) => item.riskScore),

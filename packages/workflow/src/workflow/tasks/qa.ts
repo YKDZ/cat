@@ -93,8 +93,16 @@ export const qaGraph = defineGraph({
           terms,
         } satisfies CheckContext;
 
-        const checkers: { service: QAChecker; dbId: number }[] =
-          pluginManager.getServices("QA_CHECKER");
+        const checkers: {
+          service: QAChecker;
+          reference: ReturnType<
+            typeof pluginManager.createServiceImplementationReference
+          >;
+        }[] = pluginManager.getServices("QA_CHECKER").map((checker) => ({
+          service: checker.service,
+          reference:
+            pluginManager.createServiceImplementationReference(checker),
+        }));
 
         const result: Omit<
           QaResultItem,
@@ -106,7 +114,7 @@ export const qaGraph = defineGraph({
                 (issue) => ({
                   isPassed: false,
                   meta: { ...issue },
-                  checkerId: checker.dbId,
+                  checker: checker.reference,
                 }),
               );
 
@@ -117,7 +125,7 @@ export const qaGraph = defineGraph({
               return [
                 {
                   isPassed: true,
-                  checkerId: checker.dbId,
+                  checker: checker.reference,
                   meta: {},
                 } satisfies Omit<
                   QaResultItem,

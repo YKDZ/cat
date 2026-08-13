@@ -86,7 +86,10 @@ export const suggest = authed
 
     if (suggestion) {
       yield { text: suggestion.translation };
+      return;
     }
 
-    // No suggestion — frontend handles its own fallback
+    // Preserve a well-formed streaming response when no provider has a result.
+    // Browsers otherwise report the empty SSE response as an aborted request.
+    yield { text: "" };
   });

@@ -1,5 +1,8 @@
 import { account, and, eq } from "@cat/db";
-import { assertSingleOrNull } from "@cat/shared";
+import {
+  assertSingleOrNull,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -7,7 +10,7 @@ import type { Query } from "#/types.ts";
 export const FindAccountByProviderIdentityQuerySchema = z.object({
   providerIssuer: z.string(),
   providedAccountId: z.string(),
-  authProviderId: z.int(),
+  authProvider: ServiceImplementationReferenceSchema,
 });
 
 export type FindAccountByProviderIdentityQuery = z.infer<
@@ -36,7 +39,7 @@ export const findAccountByProviderIdentity: Query<
         and(
           eq(account.providerIssuer, query.providerIssuer),
           eq(account.providedAccountId, query.providedAccountId),
-          eq(account.authProviderId, query.authProviderId),
+          eq(account.authProvider, query.authProvider),
         ),
       ),
   );

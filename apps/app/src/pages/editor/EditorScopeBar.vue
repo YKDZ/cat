@@ -4,7 +4,7 @@ import { Badge, Button } from "@cat/ui";
 import { useQuery } from "@pinia/colada";
 import { storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TextTooltip from "#/components/tooltip/TextTooltip.vue";
@@ -17,6 +17,11 @@ import { buildEditorHref } from "./scope-url.ts";
 const { t } = useI18n();
 const contextStore = useEditorContextStore();
 const { scope, contentNodeFilters } = storeToRefs(contextStore);
+const isHydrated = ref(false);
+
+onMounted(() => {
+  isHydrated.value = true;
+});
 
 // Same query key as ContentNodeFilterPicker — Pinia Colada deduplicates the request.
 const { state: contentNodeState, isPending } = useQuery({
@@ -40,7 +45,9 @@ const { state: contentNodeState, isPending } = useQuery({
 // While loading (isPending), default to visible to avoid a flash of hidden content
 // on projects that do have multiple nodes.
 const hasMultipleContentNodes = computed(
-  () => isPending.value || (contentNodeState.value.data ?? []).length > 1,
+  () =>
+    isHydrated.value &&
+    (isPending.value || (contentNodeState.value.data ?? []).length > 1),
 );
 
 const removeFilter = async (id: string) => {

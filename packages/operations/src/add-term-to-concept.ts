@@ -6,7 +6,11 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
-import { TermStatusValues, TermTypeValues } from "@cat/shared";
+import {
+  RecallDerivationReferenceSchema,
+  TermStatusValues,
+  TermTypeValues,
+} from "@cat/shared";
 import * as z from "zod";
 
 export const AddTermToConceptInputSchema = z.object({
@@ -20,6 +24,7 @@ export const AddTermToConceptInputSchema = z.object({
 
 export const AddTermToConceptOutputSchema = z.object({
   termId: z.int(),
+  derivations: z.array(RecallDerivationReferenceSchema),
 });
 
 export type AddTermToConceptInput = z.infer<typeof AddTermToConceptInputSchema>;
@@ -57,5 +62,5 @@ export const addTermToConceptOp = async (
 
   await collector.flush();
 
-  return { termId: termResult.termId };
+  return { termId: termResult.termId, derivations: termResult.derivations };
 };
