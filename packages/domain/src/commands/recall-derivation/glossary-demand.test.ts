@@ -345,6 +345,22 @@ describe("Glossary Recall Derivation demand", () => {
     }
   };
 
+  const waitForBackendExit = async (pid: number): Promise<void> => {
+    const deadline = Date.now() + 5_000;
+    while (true) {
+      const result = await db.client.execute<{ present: boolean }>(sql`
+        SELECT EXISTS (
+          SELECT 1 FROM pg_stat_activity WHERE pid = ${pid}
+        ) AS present
+      `);
+      if (!result.rows[0]?.present) return;
+      if (Date.now() >= deadline) {
+        throw new Error(`Backend ${pid} did not exit after termination`);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+  };
+
   it("interrupts and settles active database work during bounded cleanup", async () => {
     const concurrentDb = await db.openConcurrentClient();
     const pid = await backendPid(concurrentDb.client);
@@ -363,12 +379,7 @@ describe("Glossary Recall Derivation demand", () => {
       within,
     });
     await expect(activeQuery).rejects.toThrow();
-    const backend = await db.client.execute<{ present: boolean }>(sql`
-      SELECT EXISTS (
-        SELECT 1 FROM pg_stat_activity WHERE pid = ${pid}
-      ) AS present
-    `);
-    expect(backend.rows[0]?.present).toBe(false);
+    await waitForBackendExit(pid);
   });
 
   it("returns NO_WORK for an empty glossary without creating a Task", async () => {
