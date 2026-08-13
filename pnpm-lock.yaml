@@ -224,8 +224,8 @@ catalogs:
       specifier: ^9.0.0
       version: 9.0.0
     dompurify:
-      specifier: ^3.4.10
-      version: 3.4.10
+      specifier: ^3.4.13
+      version: 3.4.13
     dotenv:
       specifier: ^17.4.2
       version: 17.4.2
@@ -1059,7 +1059,7 @@ importers:
         version: 9.0.0
       dompurify:
         specifier: 'catalog:'
-        version: 3.4.10
+        version: 3.4.13
       dotenv:
         specifier: 'catalog:'
         version: 17.4.2
@@ -13679,7 +13679,7 @@ snapshots:
       class-variance-authority: 0.7.1
       clsx: 2.1.1
       color-string: 2.1.4
-      dompurify: 3.4.10
+      dompurify: 3.4.13
       highlight.js: 11.11.1
       html-to-image: 1.11.13
       jotai: 2.20.1(@babel/core@7.29.7)(@babel/template@7.29.7)(react@19.2.7)
