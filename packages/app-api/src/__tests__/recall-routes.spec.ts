@@ -318,6 +318,8 @@ describe("recall routes", () => {
   });
 
   it("memory.onNew yields all memories directly without LLM adaptation", async () => {
+    const projectMemoryId = "22222222-2222-4222-8222-222222222222";
+    const personalMemoryId = "55555555-5555-4555-8555-555555555555";
     const element = {
       id: 1,
       value: "Order 43 completed",
@@ -331,9 +333,9 @@ describe("recall routes", () => {
       if (query === getElementWithChunkIds) return element;
       if (query === listEffectiveMemoryIdsByProject)
         return {
-          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
-          personalMemoryIds: [],
-          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          projectMemoryIds: [projectMemoryId],
+          personalMemoryIds: [personalMemoryId],
+          allMemoryIds: [projectMemoryId, personalMemoryId],
         };
       return [];
     });
@@ -344,7 +346,7 @@ describe("recall routes", () => {
         source: "Order 42 completed",
         translation: "订单 42 已完成",
         confidence: 0.83,
-        memoryId: "22222222-2222-4222-8222-222222222222",
+        memoryId: projectMemoryId,
         sourceScope: "PROJECT" as const,
         translationChunkSetId: null,
         creatorId: null,
@@ -357,7 +359,7 @@ describe("recall routes", () => {
         source: "Order completed",
         translation: "订单已完成",
         confidence: 0.7,
-        memoryId: "22222222-2222-4222-8222-222222222222",
+        memoryId: projectMemoryId,
         sourceScope: "PROJECT" as const,
         translationChunkSetId: null,
         creatorId: null,
@@ -380,6 +382,19 @@ describe("recall routes", () => {
 
     const results = await collect(stream);
 
+    expect(opMocks.collectEffectiveMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: element.value,
+        sourceLanguageId: element.languageId,
+        translationLanguageId: "zh-Hans",
+        projectMemoryIds: [projectMemoryId],
+        personalMemoryIds: [personalMemoryId],
+        minSimilarity: 0.72,
+        maxAmount: 3,
+        excludeMemoryItemIds: [],
+      },
+      expect.any(Object),
+    );
     // All memories yielded directly — no adaptationPending, no LLM round-trip
     expect(results).toHaveLength(3);
     expect(results[0]).toEqual({
@@ -405,6 +420,61 @@ describe("recall routes", () => {
       }),
     );
     expect(results[2]).toEqual({ type: "COMPLETED", result: recallResult });
+  });
+
+  it("memory.searchByText preserves exact project and personal memory scopes", async () => {
+    const projectMemoryId = "22222222-2222-4222-8222-222222222222";
+    const personalMemoryId = "55555555-5555-4555-8555-555555555555";
+    const result = {
+      scopes: {
+        PROJECT: {
+          status: "SKIPPED" as const,
+          reason: "NO_SCOPED_ASSETS" as const,
+        },
+        PERSONAL: {
+          status: "SKIPPED" as const,
+          reason: "NO_SCOPED_ASSETS" as const,
+        },
+      },
+    };
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === listEffectiveMemoryIdsByProject) {
+        return {
+          projectMemoryIds: [projectMemoryId],
+          personalMemoryIds: [personalMemoryId],
+          allMemoryIds: [projectMemoryId, personalMemoryId],
+        };
+      }
+      return [];
+    });
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(result);
+
+    const stream = await call(
+      searchMemoryByText,
+      {
+        projectId: DEFAULT_PROJECT_ID,
+        text: "Order completed",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+      },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).resolves.toEqual([
+      { type: "COMPLETED", result },
+    ]);
+    expect(opMocks.collectEffectiveMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: "Order completed",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        projectMemoryIds: [projectMemoryId],
+        personalMemoryIds: [personalMemoryId],
+        minSimilarity: 0.72,
+        maxAmount: 5,
+      },
+      expect.any(Object),
+    );
   });
 
   it.skip("persists a language analysis failure once instead of returning an empty stream", async () => {

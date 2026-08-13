@@ -203,20 +203,18 @@ beforeAll(async () => {
     languageIds: ["en", "zh-Hans"],
   });
 
-  const [creator, reviewerA, reviewerB] = await Promise.all([
-    executeCommand({ db: testDb.client }, createUser, {
-      email: `qa-review-creator-${randomUUID()}@example.com`,
-      name: "QA Review Creator",
-    }),
-    executeCommand({ db: testDb.client }, createUser, {
-      email: `qa-review-reviewer-a-${randomUUID()}@example.com`,
-      name: "QA Review Reviewer A",
-    }),
-    executeCommand({ db: testDb.client }, createUser, {
-      email: `qa-review-reviewer-b-${randomUUID()}@example.com`,
-      name: "QA Review Reviewer B",
-    }),
-  ]);
+  const creator = await executeCommand({ db: testDb.client }, createUser, {
+    email: `qa-review-creator-${randomUUID()}@example.com`,
+    name: "QA Review Creator",
+  });
+  const reviewerA = await executeCommand({ db: testDb.client }, createUser, {
+    email: `qa-review-reviewer-a-${randomUUID()}@example.com`,
+    name: "QA Review Reviewer A",
+  });
+  const reviewerB = await executeCommand({ db: testDb.client }, createUser, {
+    email: `qa-review-reviewer-b-${randomUUID()}@example.com`,
+    name: "QA Review Reviewer B",
+  });
 
   creatorId = creator.id;
   reviewerAId = reviewerA.id;

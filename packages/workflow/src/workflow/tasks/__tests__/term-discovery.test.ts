@@ -30,12 +30,17 @@ vi.mock("@cat/operations", async () => {
   };
 });
 
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { termDiscoveryGraph } from "../term-discovery.ts";
 
 describe("termDiscoveryGraph", () => {
   let cleanup: (() => Promise<void>) | undefined;
+  let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
   beforeAll(async () => {
     const db = await setupTestDB();
@@ -48,11 +53,14 @@ describe("termDiscoveryGraph", () => {
       new TestPluginLoader(),
     );
     await pluginManager.getDiscovery().syncDefinitions(db.client);
-    createDefaultGraphRuntime(db.client, pluginManager);
+    runtimeFixture = createTestGraphRuntime(db, pluginManager);
   });
 
   afterAll(async () => {
-    await cleanup?.();
+    await cleanupTestGraphFixture(
+      runtimeFixture,
+      cleanup ? { cleanup } : undefined,
+    );
   });
 
   beforeEach(() => {

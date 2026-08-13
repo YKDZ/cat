@@ -1,6 +1,7 @@
 import {
   llmTermAlignOp,
   mergeAlignmentOp,
+  StatisticalTermAlignInputSchema,
   statisticalTermAlignOp,
   vectorTermAlignOp,
 } from "@cat/operations";
@@ -322,7 +323,7 @@ export const termAlignmentGraph = defineGraph({
         }
 
         return statisticalTermAlignOp(
-          {
+          StatisticalTermAlignInputSchema.parse({
             termGroups: input.termGroups.map((g) => ({
               languageId: g.languageId,
               candidates: g.candidates.map((c) => ({
@@ -334,7 +335,7 @@ export const termAlignmentGraph = defineGraph({
             config: {
               minCoOccurrence: statCfg?.minCoOccurrence ?? 0.3,
             },
-          },
+          }),
           opCtx,
         );
       },

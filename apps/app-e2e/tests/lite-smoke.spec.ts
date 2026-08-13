@@ -1,12 +1,23 @@
 import { writeFileSync } from "node:fs";
 
-import { TaskStatusSchema, type TaskStatus } from "@cat/shared";
+import {
+  RecallDerivationReferenceSchema,
+  TaskKindSchema,
+  TaskStateSchema,
+  TaskStatusSchema,
+  type RecallDerivationReference,
+  type TaskAffectedResource,
+  type TaskStatus,
+} from "@cat/shared";
 import type { Locator, Page, Request, Response } from "@playwright/test";
 
 import { test, expect } from "#/fixtures.ts";
 import { gotoHydrated } from "#/pages/app-navigation.ts";
 
-import { paginationFixtureCount } from "../pagination-fixture.ts";
+import {
+  paginationFixtureCount,
+  taskPaginationFixtureCount,
+} from "../pagination-fixture.ts";
 
 const uploadedFileName = "lite-smoke.json";
 
@@ -20,9 +31,16 @@ const getCreatedProjectId = () => {
   return createdProjectId;
 };
 
-const parseTaskListResponse = (
-  body: unknown,
-): Array<{ id: string; state: { status: TaskStatus } }> => {
+type TaskListItem = Readonly<{ id: string; state: { status: TaskStatus } }>;
+
+type TaskListPage = Readonly<{
+  hasMore: boolean;
+  items: readonly TaskListItem[];
+  nextCursor: Readonly<{ id: string; updatedAt: string }> | null;
+  total: number;
+}>;
+
+const parseTaskListPage = (body: unknown): TaskListPage => {
   if (typeof body !== "object" || body === null) {
     throw new Error("task.list response was not an object");
   }
@@ -37,7 +55,32 @@ const parseTaskListResponse = (
   if (!Array.isArray(payload.items)) {
     throw new Error("task.list response items were not an array");
   }
-  return payload.items.map((item) => {
+  if (
+    !("hasMore" in payload) ||
+    typeof payload.hasMore !== "boolean" ||
+    !("nextCursor" in payload) ||
+    !("total" in payload) ||
+    typeof payload.total !== "number"
+  ) {
+    throw new Error("task.list response did not contain page metadata");
+  }
+  const nextCursor = payload.nextCursor;
+  const nextCursorId =
+    nextCursor === null || typeof nextCursor !== "object"
+      ? undefined
+      : Reflect.get(nextCursor, "id");
+  const nextCursorUpdatedAt =
+    nextCursor === null || typeof nextCursor !== "object"
+      ? undefined
+      : Reflect.get(nextCursor, "updatedAt");
+  if (
+    nextCursor !== null &&
+    (typeof nextCursorId !== "string" ||
+      typeof nextCursorUpdatedAt !== "string")
+  ) {
+    throw new Error("task.list response did not contain a valid next cursor");
+  }
+  const items = payload.items.map((item) => {
     if (
       typeof item !== "object" ||
       item === null ||
@@ -56,6 +99,176 @@ const parseTaskListResponse = (
       state: { status: TaskStatusSchema.parse(state.status) },
     };
   });
+  return {
+    hasMore: payload.hasMore,
+    items,
+    nextCursor:
+      nextCursor === null
+        ? null
+        : { id: nextCursorId, updatedAt: nextCursorUpdatedAt },
+    total: payload.total,
+  };
+};
+
+const parseTaskListResponse = (body: unknown): readonly TaskListItem[] =>
+  parseTaskListPage(body).items;
+
+type RecallTaskListItem = Readonly<{
+  id: string;
+  references: readonly RecallDerivationReference[];
+  resources: readonly TaskAffectedResource[];
+}>;
+
+type RecallTaskListPage = Readonly<{
+  itemCount: number;
+  items: readonly RecallTaskListItem[];
+}>;
+
+type RecallTaskDetail = Readonly<{
+  id: string;
+  resources: readonly TaskAffectedResource[];
+  state: TaskStatus;
+  total: number | null;
+  result: Readonly<{
+    failed: number;
+    fresh: number;
+    superseded: number;
+    total: number;
+  }> | null;
+}>;
+
+const taskResourceLabel: Record<TaskAffectedResource["type"], string> = {
+  ELEMENT: "元素",
+  GLOSSARY: "术语库",
+  MEMORY: "记忆库",
+  PROJECT: "项目",
+  TRANSLATION: "翻译",
+};
+
+const taskListItems = (body: unknown): readonly unknown[] => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("task.list response was not an object");
+  }
+  const payload = "json" in body ? body.json : "ret" in body ? body.ret : body;
+  if (
+    typeof payload !== "object" ||
+    payload === null ||
+    !("items" in payload) ||
+    !Array.isArray(payload.items)
+  ) {
+    throw new Error("task.list response did not contain items");
+  }
+  return payload.items;
+};
+
+const parseRecallTaskListPage = (body: unknown): RecallTaskListPage => {
+  const items = taskListItems(body);
+  return {
+    itemCount: items.length,
+    items: items.flatMap((item) => {
+      if (typeof item !== "object" || item === null) {
+        throw new Error("task.list item was not an object");
+      }
+      const id = Reflect.get(item, "id");
+      if (typeof id !== "string") {
+        throw new Error("task.list item did not contain an id");
+      }
+      const task = TaskKindSchema.parse(Reflect.get(item, "task"));
+      if (task.kind !== "RECALL_DERIVATION") return [];
+      const state = TaskStateSchema.parse(Reflect.get(item, "state"));
+      return [
+        {
+          id,
+          references: task.payload.references,
+          resources: state.resources,
+        },
+      ];
+    }),
+  };
+};
+
+const parseRecallRebuildResponse = (
+  body: unknown,
+):
+  | Readonly<{ status: "NO_WORK" }>
+  | Readonly<{ status: "STARTED"; taskId: string }> => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("glossary.rebuildRecall response was not an object");
+  }
+  const payload = "json" in body ? body.json : "ret" in body ? body.ret : body;
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error(
+      "glossary.rebuildRecall response did not contain an object",
+    );
+  }
+  const status = Reflect.get(payload, "status");
+  if (status === "NO_WORK") return { status };
+  const taskId = Reflect.get(payload, "taskId");
+  if (status !== "STARTED" || typeof taskId !== "string") {
+    throw new Error("glossary.rebuildRecall response did not start a Task");
+  }
+  return { status, taskId };
+};
+
+const parseRecallTaskDetailResponse = (body: unknown): RecallTaskDetail => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("task.detail response was not an object");
+  }
+  const payload = "json" in body ? body.json : "ret" in body ? body.ret : body;
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error("task.detail response did not contain an object");
+  }
+  const task = Reflect.get(payload, "task");
+  if (typeof task !== "object" || task === null) {
+    throw new Error("task.detail response did not contain a Task");
+  }
+  const id = Reflect.get(task, "id");
+  if (typeof id !== "string") {
+    throw new Error("task.detail response Task did not contain an id");
+  }
+  const kind = TaskKindSchema.parse(Reflect.get(task, "task"));
+  if (kind.kind !== "RECALL_DERIVATION") {
+    throw new Error("task.detail response did not contain a Recall Task");
+  }
+  const state = TaskStateSchema.parse(Reflect.get(task, "state"));
+  if (state.runtime.kind !== "RECALL_DERIVATION") {
+    throw new Error("Recall Task detail contained another runtime kind");
+  }
+  return {
+    id,
+    resources: state.resources,
+    result: state.runtime.result,
+    state: state.status,
+    total: state.progressTotal,
+  };
+};
+
+const parseInsertTermRecallResult = (
+  body: unknown,
+): Readonly<{
+  derivations: readonly RecallDerivationReference[];
+  recallDerivationTaskId: string;
+}> => {
+  if (typeof body !== "object" || body === null) {
+    throw new Error("glossary.insertTerm response was not an object");
+  }
+  const payload = "json" in body ? body.json : "ret" in body ? body.ret : body;
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error("glossary.insertTerm response did not contain an object");
+  }
+  const taskId = Reflect.get(payload, "recallDerivationTaskId");
+  const derivations = Reflect.get(payload, "derivations");
+  if (typeof taskId !== "string" || !Array.isArray(derivations)) {
+    throw new Error(
+      "glossary.insertTerm response did not include a Recall derivation task",
+    );
+  }
+  return {
+    derivations: derivations.map((reference) =>
+      RecallDerivationReferenceSchema.parse(reference),
+    ),
+    recallDerivationTaskId: taskId,
+  };
 };
 
 const taskStatusLabel = (status: TaskStatus): string =>
@@ -71,7 +284,7 @@ const taskStatusLabel = (status: TaskStatus): string =>
     }) satisfies Record<TaskStatus, string>
   )[status];
 
-type PagedResource = Readonly<{ id: string }>;
+type PagedResource = Readonly<{ id: string; name: string }>;
 
 type TelefuncRequestPayload = Readonly<{
   args: readonly unknown[];
@@ -109,11 +322,15 @@ const parsePagedResourceResponse = (
       typeof item !== "object" ||
       item === null ||
       !("id" in item) ||
-      typeof item.id !== "string"
+      typeof item.id !== "string" ||
+      !("name" in item) ||
+      typeof item.name !== "string"
     ) {
-      throw new Error("Controlled table response item did not contain an id.");
+      throw new Error(
+        "Controlled table response item did not contain an id and name.",
+      );
     }
-    return { id: item.id };
+    return { id: item.id, name: item.name };
   });
   return { data, total: payload.total };
 };
@@ -186,6 +403,69 @@ const expectOffsetRequest = (
   expect(payload.args).toEqual([pageIndex, pageSize]);
 };
 
+const expectFilteredOffsetRequest = (
+  response: Response,
+  pageIndex: number,
+  pageSize: number,
+  search: string,
+): void => {
+  const payload = parseTelefuncRequest(response.request());
+  if (payload === null) {
+    throw new Error(
+      "Controlled table filter request did not include serialized args.",
+    );
+  }
+  expect(payload.args).toEqual([pageIndex, pageSize, search]);
+};
+
+const expectSortedOffsetRequest = (
+  response: Response,
+  pageIndex: number,
+  pageSize: number,
+  desc: boolean,
+): void => {
+  const payload = parseTelefuncRequest(response.request());
+  if (payload === null) {
+    throw new Error(
+      "Controlled table sort request did not include serialized args.",
+    );
+  }
+  expect(payload.args).toEqual([
+    pageIndex,
+    pageSize,
+    null,
+    { desc, id: "name" },
+  ]);
+};
+
+const expectTaskListRequest = (
+  response: Response,
+  input: Readonly<{
+    cursor?: Readonly<{ id: string; updatedAt: string }>;
+    projectId: string;
+    status?: TaskStatus;
+  }>,
+): void => {
+  let body: unknown;
+  try {
+    body = response.request().postDataJSON() as unknown;
+  } catch {
+    throw new Error("task.list request did not include JSON input");
+  }
+  if (typeof body !== "object" || body === null || !("json" in body)) {
+    throw new Error("task.list request did not include an oRPC JSON envelope");
+  }
+  const payload = body.json;
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error("task.list request did not include an object input");
+  }
+  expect(payload).toMatchObject({ pageSize: 20, projectId: input.projectId });
+  if (input.cursor === undefined) expect("cursor" in payload).toBe(false);
+  else expect(Reflect.get(payload, "cursor")).toEqual(input.cursor);
+  if (input.status === undefined) expect("status" in payload).toBe(false);
+  else expect(Reflect.get(payload, "status")).toBe(input.status);
+};
+
 const expectTableControlsToFit = async (
   page: import("@playwright/test").Page,
   viewportWidth: number,
@@ -250,7 +530,7 @@ const expectTableControlsToFit = async (
 
 const expectTaskRowsToMatchResponse = async (
   page: import("@playwright/test").Page,
-  items: Array<{ id: string; state: { status: TaskStatus } }>,
+  items: readonly TaskListItem[],
 ): Promise<void> => {
   const rows = page.locator("tbody tr[data-row-id]");
   await expect(rows).toHaveCount(items.length);
@@ -410,10 +690,21 @@ test.describe("CAT Lite smoke", () => {
     refs,
   }) => {
     const tables = [
-      { request: "onRequestProjects", route: "/projects", target: "/project/" },
-      { request: "onRequestMemories", route: "/memories", target: "/memory/" },
+      {
+        request: "onRequestProjects",
+        resource: "project",
+        route: "/projects",
+        target: "/project/",
+      },
+      {
+        request: "onRequestMemories",
+        resource: "memory",
+        route: "/memories",
+        target: "/memory/",
+      },
       {
         request: "onRequestGlossaries",
+        resource: "glossary",
         route: "/glossaries",
         target: "/glossary/",
       },
@@ -501,6 +792,82 @@ test.describe("CAT Lite smoke", () => {
       await expect(
         page.getByText(`1 / ${Math.ceil(firstPage.total / 10)}`),
       ).toBeVisible();
+
+      const searchText = `E2E pagination ${table.resource} 11`;
+      const filteredRequest = waitForTelefuncResponse(page, table.request);
+      await page.getByLabel("搜索名称或描述").fill(searchText);
+      const filteredResponse = await filteredRequest;
+      if (!filteredResponse.ok()) {
+        throw new Error(
+          `${table.request} search request failed with ${filteredResponse.status()}: ${await filteredResponse.text()}`,
+        );
+      }
+      expectFilteredOffsetRequest(filteredResponse, 0, 10, searchText);
+      const filteredPage = parsePagedResourceResponse(
+        await filteredResponse.json(),
+      );
+      expect(filteredPage.total).toBe(1);
+      expect(filteredPage.data).toHaveLength(1);
+      await expect(firstPageRows).toHaveCount(filteredPage.data.length);
+      await expect(page.getByText("1 / 1")).toBeVisible();
+      await expect(firstPageRows.first()).toHaveAttribute(
+        "data-row-id",
+        filteredPage.data[0]?.id ?? "",
+      );
+      await expect(firstPageRows.first()).toContainText(searchText);
+
+      const clearedRequest = waitForTelefuncResponse(page, table.request);
+      await page.getByLabel("搜索名称或描述").fill("");
+      const clearedResponse = await clearedRequest;
+      if (!clearedResponse.ok()) {
+        throw new Error(
+          `${table.request} clear-filter request failed with ${clearedResponse.status()}: ${await clearedResponse.text()}`,
+        );
+      }
+      expectOffsetRequest(clearedResponse, 0, 10);
+
+      const ascendingRequest = waitForTelefuncResponse(page, table.request);
+      await page.getByRole("button", { name: "名称", exact: true }).click();
+      const ascendingResponse = await ascendingRequest;
+      if (!ascendingResponse.ok()) {
+        throw new Error(
+          `${table.request} ascending sort request failed with ${ascendingResponse.status()}: ${await ascendingResponse.text()}`,
+        );
+      }
+      expectSortedOffsetRequest(ascendingResponse, 0, 10, false);
+      const ascendingPage = parsePagedResourceResponse(
+        await ascendingResponse.json(),
+      );
+      const ascendingNames = ascendingPage.data.map((item) => item.name);
+      expect(ascendingNames.length).toBeGreaterThan(1);
+      expect(ascendingNames).toEqual(
+        ascendingNames.toSorted((left, right) => left.localeCompare(right)),
+      );
+      await expect(firstPageRows).toHaveCount(ascendingNames.length);
+      expect(
+        await firstPageRows.locator("td:first-child").allTextContents(),
+      ).toEqual(ascendingNames);
+
+      const descendingRequest = waitForTelefuncResponse(page, table.request);
+      await page.getByRole("button", { name: "名称", exact: true }).click();
+      const descendingResponse = await descendingRequest;
+      if (!descendingResponse.ok()) {
+        throw new Error(
+          `${table.request} descending sort request failed with ${descendingResponse.status()}: ${await descendingResponse.text()}`,
+        );
+      }
+      expectSortedOffsetRequest(descendingResponse, 0, 10, true);
+      const descendingPage = parsePagedResourceResponse(
+        await descendingResponse.json(),
+      );
+      const descendingNames = descendingPage.data.map((item) => item.name);
+      expect(descendingNames).toEqual(
+        descendingNames.toSorted((left, right) => right.localeCompare(left)),
+      );
+      await expect(firstPageRows).toHaveCount(descendingNames.length);
+      expect(
+        await firstPageRows.locator("td:first-child").allTextContents(),
+      ).toEqual(descendingNames);
 
       const firstRow = page.locator("tbody tr[data-row-id]").first();
       await expect(firstRow).toBeVisible();
@@ -619,6 +986,111 @@ test.describe("CAT Lite smoke", () => {
     }
   });
 
+  test("@lite-smoke cursor-paginates, filters, and opens Task rows", async ({
+    page,
+    refs,
+  }) => {
+    const projectId = refs.project;
+    await gotoHydrated(page, `/project/${projectId}/tasks`);
+
+    const firstRequest = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/task/list") &&
+        response.request().method() === "POST",
+    );
+    await page.getByTitle("刷新").click();
+    const firstResponse = await firstRequest;
+    if (!firstResponse.ok()) {
+      throw new Error(
+        `first Task page failed with ${firstResponse.status()}: ${await firstResponse.text()}`,
+      );
+    }
+    expectTaskListRequest(firstResponse, { projectId });
+    const firstPage = parseTaskListPage(await firstResponse.json());
+    expect(firstPage.total).toBeGreaterThanOrEqual(taskPaginationFixtureCount);
+    expect(firstPage.hasMore).toBe(true);
+    if (firstPage.nextCursor === null) {
+      throw new Error(
+        "first Task page did not expose a cursor for the next page",
+      );
+    }
+    await expectTaskRowsToMatchResponse(page, firstPage.items);
+
+    const nextRequest = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/task/list") &&
+        response.request().method() === "POST",
+    );
+    await page.getByTitle("下一页").click();
+    const nextResponse = await nextRequest;
+    if (!nextResponse.ok()) {
+      throw new Error(
+        `next Task page failed with ${nextResponse.status()}: ${await nextResponse.text()}`,
+      );
+    }
+    expectTaskListRequest(nextResponse, {
+      cursor: firstPage.nextCursor,
+      projectId,
+    });
+    const secondPage = parseTaskListPage(await nextResponse.json());
+    expect(secondPage.items).not.toEqual(firstPage.items);
+    await expectTaskRowsToMatchResponse(page, secondPage.items);
+    await expect(page.getByTitle("上一页")).toBeEnabled();
+    if (secondPage.hasMore) {
+      await expect(page.getByTitle("下一页")).toBeEnabled();
+    } else {
+      await expect(page.getByTitle("下一页")).toBeDisabled();
+    }
+
+    const previousRequest = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/task/list") &&
+        response.request().method() === "POST",
+    );
+    await page.getByTitle("上一页").click();
+    const previousResponse = await previousRequest;
+    if (!previousResponse.ok()) {
+      throw new Error(
+        `previous Task page failed with ${previousResponse.status()}: ${await previousResponse.text()}`,
+      );
+    }
+    expectTaskListRequest(previousResponse, { projectId });
+    expect(parseTaskListPage(await previousResponse.json()).items).toEqual(
+      firstPage.items,
+    );
+    await expectTaskRowsToMatchResponse(page, firstPage.items);
+
+    const filteredRequest = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/task/list") &&
+        response.request().method() === "POST",
+    );
+    await page.getByLabel("状态").selectOption("COMPLETED");
+    const filteredResponse = await filteredRequest;
+    if (!filteredResponse.ok()) {
+      throw new Error(
+        `Task status filter failed with ${filteredResponse.status()}: ${await filteredResponse.text()}`,
+      );
+    }
+    expectTaskListRequest(filteredResponse, { projectId, status: "COMPLETED" });
+    const filteredPage = parseTaskListPage(await filteredResponse.json());
+    expect(filteredPage.items.length).toBeGreaterThan(0);
+    expect(
+      filteredPage.items.every((item) => item.state.status === "COMPLETED"),
+    ).toBe(true);
+    await expectTaskRowsToMatchResponse(page, filteredPage.items);
+
+    const firstRow = page.locator("tbody tr[data-row-id]").first();
+    const selectedTaskId = await firstRow.getAttribute("data-row-id");
+    if (selectedTaskId === null) {
+      throw new Error("Task row did not expose its task ID");
+    }
+    await firstRow.locator("button[data-row-action]").press("Enter");
+    await expect(page).toHaveURL(/\/tasks\?taskId=[0-9a-f-]+$/);
+    expect(new URL(page.url()).searchParams.get("taskId")).toBe(selectedTaskId);
+    await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
+  });
+
   test("@lite-smoke creates and filters a Recall derivation Task through the glossary UI", async ({
     page,
     refs,
@@ -669,7 +1141,10 @@ test.describe("CAT Lite smoke", () => {
         `glossary insert failed with ${insertResponse.status()}: ${await insertResponse.text()}`,
       );
     }
-
+    const insertedRecall = parseInsertTermRecallResult(
+      await insertResponse.json(),
+    );
+    expect(insertedRecall.derivations.length).toBeGreaterThan(0);
     await gotoHydrated(page, `/project/${projectId}/tasks`);
     const filteredList = page.waitForResponse(
       (response) =>
@@ -686,39 +1161,167 @@ test.describe("CAT Lite smoke", () => {
     expect(response.request().postData() ?? "").toContain(
       '"kind":"RECALL_DERIVATION"',
     );
-    const body = await response.json();
-    const payload =
-      typeof body === "object" && body !== null && "json" in body
-        ? body.json
-        : body;
-    if (
-      typeof payload !== "object" ||
-      payload === null ||
-      !("items" in payload) ||
-      !Array.isArray(payload.items)
-    ) {
-      throw new Error("Recall task filter response did not contain items.");
+    let recallPage = parseRecallTaskListPage(await response.json());
+    for (let attempt = 0; attempt < 10; attempt += 1) {
+      if (
+        recallPage.items.some(
+          (item) => item.id === insertedRecall.recallDerivationTaskId,
+        )
+      ) {
+        break;
+      }
+      const refreshed = page.waitForResponse(
+        (candidate) =>
+          candidate.url().includes("/api/rpc/task/list") &&
+          candidate.request().method() === "POST",
+      );
+      await page.getByTitle("刷新").click();
+      const refreshedResponse = await refreshed;
+      if (!refreshedResponse.ok()) {
+        throw new Error(
+          `Recall task refresh failed with ${refreshedResponse.status()}: ${await refreshedResponse.text()}`,
+        );
+      }
+      recallPage = parseRecallTaskListPage(await refreshedResponse.json());
     }
-    expect(payload.items.length).toBeGreaterThan(0);
-    expect(
-      payload.items.every(
-        (item: unknown) =>
-          typeof item === "object" &&
-          item !== null &&
-          "task" in item &&
-          typeof item.task === "object" &&
-          item.task !== null &&
-          "kind" in item.task &&
-          item.task.kind === "RECALL_DERIVATION",
-      ),
-    ).toBe(true);
+    expect(recallPage.itemCount).toBe(recallPage.items.length);
+    const createdRecallTask = recallPage.items.find(
+      (item) => item.id === insertedRecall.recallDerivationTaskId,
+    );
+    if (createdRecallTask === undefined) {
+      throw new Error(
+        `task.list did not include newly created Recall task ${insertedRecall.recallDerivationTaskId}`,
+      );
+    }
+    expect(createdRecallTask.references).toEqual(insertedRecall.derivations);
+    expect(createdRecallTask.resources).toEqual(
+      expect.arrayContaining([
+        { type: "PROJECT", id: projectId },
+        { type: "GLOSSARY", id: glossaryId },
+      ]),
+    );
     const rows = page.locator("tbody tr[data-row-id]");
-    await expect(rows).toHaveCount(payload.items.length);
-    await expect(rows).toContainText("召回派生");
-    await expect(rows.first().locator("button[data-row-action]")).toBeVisible();
+    await expect(rows).toHaveCount(recallPage.items.length);
+    const createdRow = page.locator(
+      `tbody tr[data-row-id="${insertedRecall.recallDerivationTaskId}"]`,
+    );
+    await expect(createdRow).toContainText("召回派生");
+    await expect(createdRow.locator("button[data-row-action]")).toBeVisible();
     await expect(page.getByTitle("重试")).toHaveCount(0);
     await expect(page.getByTitle("恢复")).toHaveCount(0);
-    await rows.first().locator("button[data-row-action]").click();
+    await createdRow.locator("button[data-row-action]").click();
+    await expect(page).toHaveURL(
+      new RegExp(`\\?taskId=${insertedRecall.recallDerivationTaskId}$`),
+    );
     await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
+  });
+
+  test("@lite-smoke rebuilds glossary Recall through the UI and observes its public Task", async ({
+    page,
+    refs,
+  }) => {
+    const projectId = refs.project;
+    const glossaryId = refs.glossary;
+    await gotoHydrated(page, `/project/${projectId}/glossaries`);
+
+    const glossaryRow = page.getByRole("row").filter({
+      has: page.getByRole("link", { name: "E2E Glossary", exact: true }),
+    });
+    const rebuild = glossaryRow.getByTitle("重建术语召回");
+    await expect(rebuild).toBeVisible();
+
+    const rebuildResponse = page.waitForResponse(
+      (response) =>
+        response.url().includes("/api/rpc/glossary/rebuildRecall") &&
+        response.request().method() === "POST",
+    );
+    await rebuild.click();
+    const response = await rebuildResponse;
+    if (!response.ok()) {
+      throw new Error(
+        `glossary rebuild failed with ${response.status()}: ${await response.text()}`,
+      );
+    }
+    const rebuildResult = parseRecallRebuildResponse(await response.json());
+    if (rebuildResult.status !== "STARTED") {
+      throw new Error("E2E glossary must contain terms to rebuild Recall");
+    }
+
+    const taskId = rebuildResult.taskId;
+    await expect(page).toHaveURL(
+      new RegExp(`/project/${projectId}/tasks\\?taskId=${taskId}$`),
+    );
+    await expect(page.getByRole("heading", { name: "任务详情" })).toBeVisible();
+
+    const taskDetailButton = page.locator(
+      `tbody tr[data-row-id="${taskId}"] button[data-row-action]`,
+    );
+    let detail: RecallTaskDetail | undefined;
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const detailResponse = page.waitForResponse(
+        (candidate) =>
+          candidate.url().includes("/api/rpc/task/detail") &&
+          candidate.request().method() === "POST",
+      );
+      await taskDetailButton.click();
+      const response = await detailResponse;
+      if (!response.ok()) {
+        throw new Error(
+          `Task detail failed with ${response.status()}: ${await response.text()}`,
+        );
+      }
+      detail = parseRecallTaskDetailResponse(await response.json());
+      if (
+        detail.state === "COMPLETED" ||
+        detail.state === "FAILED" ||
+        detail.state === "CANCELED"
+      ) {
+        break;
+      }
+      await page.waitForTimeout(250);
+    }
+
+    if (
+      detail === undefined ||
+      detail.result === null ||
+      detail.total === null
+    ) {
+      throw new Error(
+        "Completed Recall rebuild did not expose a result and total.",
+      );
+    }
+    expect(detail.id).toBe(taskId);
+    expect(detail.state).toBe("COMPLETED");
+    expect(detail.total).toBeGreaterThan(0);
+    expect(detail.result.total).toBe(detail.total);
+    expect(detail.result.fresh).toBe(detail.total);
+    expect(detail.result.failed).toBe(0);
+    expect(detail.result.superseded).toBe(0);
+    expect(detail.resources).toEqual(
+      expect.arrayContaining([
+        { type: "PROJECT", id: projectId },
+        { type: "GLOSSARY", id: glossaryId },
+      ]),
+    );
+
+    const renderedDetail = page.locator('section[aria-label="任务详情"]');
+    await expect(renderedDetail).toBeVisible();
+    await expect(renderedDetail).toContainText("派生需求");
+    const renderedResults = renderedDetail
+      .getByRole("heading", { name: "结果" })
+      .locator("..");
+    await expect(renderedResults).toContainText(`新鲜: ${detail.result.fresh}`);
+    await expect(renderedResults).toContainText("失败: 0");
+    await expect(renderedResults).toContainText("已被替代: 0");
+    const renderedResources = renderedDetail
+      .getByRole("heading", { name: "受影响资源" })
+      .locator("..");
+    const renderedResourceItems = renderedResources.locator("li");
+    await expect(renderedResourceItems).toHaveCount(detail.resources.length);
+    await expect(renderedResourceItems).toHaveText(
+      detail.resources.map(
+        (resource) => `${taskResourceLabel[resource.type]} · ${resource.id}`,
+      ),
+    );
   });
 });
