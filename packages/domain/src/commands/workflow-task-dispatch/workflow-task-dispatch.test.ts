@@ -864,11 +864,10 @@ describe("workflow task dispatch owner", () => {
             ownerId,
             ownerEpoch,
             attemptCount: 7,
-            ownerLeaseExpiresAt: sql`clock_timestamp() + interval '40 milliseconds'`,
+            ownerLeaseExpiresAt: sql`clock_timestamp() + interval '30 seconds'`,
           })
           .where(eq(workflowTaskDispatch.id, created.dispatch.id));
 
-        await new Promise((resolve) => setTimeout(resolve, 20));
         await expect(
           executeCommand({ db: testDb.client }, renewWorkflowTaskDispatch, {
             dispatchId: created.dispatch.id,
@@ -882,10 +881,9 @@ describe("workflow task dispatch owner", () => {
             dispatchId: created.dispatch.id,
             ownerId,
             ownerEpoch,
-            leaseDurationMs: 100,
+            leaseDurationMs: 30_000,
           }),
         ).resolves.toBe(true);
-        await new Promise((resolve) => setTimeout(resolve, 50));
         await expect(
           executeCommand({ db: other.client }, claimWorkflowTaskDispatch, {
             dispatchId: created.dispatch.id,
