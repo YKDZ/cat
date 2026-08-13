@@ -2,6 +2,7 @@ import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -287,6 +288,101 @@ describe("ExecutionCell scheduler", () => {
       await Promise.all(
         registered.map(async (unregister) => await unregister()),
       );
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("validates ordinary Vike page bootstrap before release readiness", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-docker-"));
+    const docker = join(directory, "docker");
+    const recorder = join(directory, "docker-recorder.mjs");
+    const requests: string[] = [];
+    const server = createServer((request, response) => {
+      requests.push(request.url ?? "");
+      if (request.url === "/_health/ready") {
+        response.writeHead(200, { "content-type": "application/json" });
+        response.end(JSON.stringify(readyReport("production")));
+        return;
+      }
+      response.writeHead(200, { "content-type": "text/html" });
+      response.end("<!doctype html><body>ready</body>");
+    });
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve),
+    );
+    const address = server.address();
+    if (typeof address === "string" || address === null) {
+      throw new Error("Failed to bind release bootstrap test server");
+    }
+    try {
+      await writeFile(
+        recorder,
+        [
+          "const args = process.argv.slice(2);",
+          'if (args[0] === "container" && args[1] === "inspect") {',
+          "  process.stdout.write(JSON.stringify({",
+          '    Image: "sha256:standalone",',
+          "    State: { Running: true },",
+          "    HostConfig: { PortBindings: { '3000/tcp': [{ HostPort: process.env.CAT_E2E_APPLICATION_PORT }] } },",
+          "    Config: {",
+          '      Cmd: ["prepare-and-start"],',
+          '      Image: "sha256:standalone",',
+          '      Env: ["CAT_CACHE_BACKEND=redis","CAT_DIAGNOSTIC_NDJSON=true","CAT_QUEUE_BACKEND=redis","CAT_REDIS_NAMESPACE=cat-e2e:test","CAT_RUNTIME_PROFILE=production","CAT_SESSION_BACKEND=redis","DATABASE_URL=postgresql://user:password@postgresql:5432/cat","PORT=3000","REDIS_URL=redis://redis:6379/0","SPACY_SERVER_URL=http://spacy:8000","CAT_BOOTSTRAP_PLAN={}"],',
+          "      Labels: {",
+          '        "org.opencontainers.image.description": "CAT standalone application with database preparation",',
+          '        "org.opencontainers.image.version": "release-test",',
+          "      },",
+          "    },",
+          '    Mounts: [{ Type: "volume", Name: "cat-e2e-storage", Destination: "/data/storage" }],',
+          '    NetworkSettings: { Networks: { "cat-e2e-test_default": {} } },',
+          "  }));",
+          "}",
+          'if (args[0] === "start") {',
+          '  process.on("SIGTERM", () => process.exit(0));',
+          "  setInterval(() => undefined, 1000);",
+          "}",
+        ].join("\n"),
+      );
+      await writeFile(
+        docker,
+        '#!/bin/sh\nexec node "$CAT_E2E_DOCKER_RECORDER" "$@"\n',
+        { mode: 0o755 },
+      );
+      const runtime = createTestRuntime({
+        applicationPort: address.port,
+        applicationUrl: `http://127.0.0.1:${address.port}`,
+        artifactDirectory: directory,
+        databaseUrl: "postgresql://user:password@localhost/cat",
+        environment: {
+          CAT_E2E_APPLICATION_PORT: String(address.port),
+          CAT_E2E_DOCKER_RECORDER: recorder,
+          PATH: `${directory}:${process.env.PATH ?? ""}`,
+          REDIS_URL: "redis://localhost:6379/0",
+          SPACY_SERVER_URL: "http://spacy:8000",
+        },
+        storageVolumeName: "cat-e2e-storage",
+      });
+      const adapter = new StandaloneTargetAdapter(
+        "sha256:standalone",
+        "chromium",
+        () => () => undefined,
+        new AbortController().signal,
+      );
+      const started = await adapter.start(runtime, "validation");
+      try {
+        await adapter.attest(runtime, started);
+      } finally {
+        started.child.kill("SIGKILL");
+      }
+
+      expect(requests.slice(0, 2)).toEqual(["/", "/_health/ready"]);
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((resolve, reject) => {
+        server.close((error) =>
+          error === undefined ? resolve() : reject(error),
+        );
+      });
       await rm(directory, { force: true, recursive: true });
     }
   });
