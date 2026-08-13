@@ -212,25 +212,23 @@ const planDefinition = (
       resourceLane: "docker",
       timeoutClass: "long",
     },
-    ...e2eTargets.map(
-      (target): VerificationNode => ({
-        dependencies:
-          target === "dev"
-            ? ["spacy-image"]
-            : ["spacy-image", "application-images"],
-        e2eTarget: target,
-        id: `e2e-${target}`,
-        immutableInputs: ["source-sha"],
-        lane: `e2e-${target}`,
-        requiredArtifacts:
-          target === "dev"
-            ? ["spacy-candidate"]
-            : ["application-candidates", "spacy-candidate"],
-        requiredRecord: true,
-        resourceLane: "docker",
-        timeoutClass: "long",
-      }),
-    ),
+    ...e2eTargets.map((target): VerificationNode => ({
+      dependencies:
+        target === "dev"
+          ? ["spacy-image"]
+          : ["spacy-image", "application-images"],
+      e2eTarget: target,
+      id: `e2e-${target}`,
+      immutableInputs: ["source-sha"],
+      lane: `e2e-${target}`,
+      requiredArtifacts:
+        target === "dev"
+          ? ["spacy-candidate"]
+          : ["application-candidates", "spacy-candidate"],
+      requiredRecord: true,
+      resourceLane: "docker",
+      timeoutClass: "long",
+    })),
     {
       dependencies: ["spacy-image", "application-images"],
       id: "container-lifecycle",
