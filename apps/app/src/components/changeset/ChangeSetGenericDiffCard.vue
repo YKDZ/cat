@@ -97,15 +97,13 @@ const formatJSON = (value: unknown) => {
         <p class="mb-1 font-sans text-muted-foreground">{{ t("变更前") }}</p>
         <pre
           class="break-all whitespace-pre-wrap text-red-700 dark:text-red-400"
-          >{{ formatJSON(entry.before) }}</pre
-        >
+          >{{ formatJSON(entry.before) }}</pre>
       </div>
       <div class="p-3">
         <p class="mb-1 font-sans text-muted-foreground">{{ t("变更后") }}</p>
         <pre
           class="break-all whitespace-pre-wrap text-green-700 dark:text-green-400"
-          >{{ formatJSON(entry.after) }}</pre
-        >
+          >{{ formatJSON(entry.after) }}</pre>
       </div>
     </div>
   </div>
