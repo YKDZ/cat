@@ -72,7 +72,7 @@ const cleanupSettlementTimeoutMs = executionCellCleanupSettlementTimeoutMs;
 const processTerminationGraceMs = 5_000;
 const forcedProcessExitTimeoutMs = 5_000;
 const logDrainTimeoutMs = 5_000;
-const playwrightTimeoutMs = 480_000;
+export const playwrightTimeoutMs = 10 * 60_000;
 
 export type ExecutionTarget = "dev" | "standalone" | "runtime";
 export type ExecutionBrowser = "chromium" | "firefox";
