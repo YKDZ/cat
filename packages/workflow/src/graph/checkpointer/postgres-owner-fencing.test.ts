@@ -279,7 +279,7 @@ describe("PostgresCheckpointer owner fencing", () => {
 
     const other = await db.openConcurrentClient();
     const newOwner = new PostgresCheckpointer(other.client, {
-      ownerLeaseMs: 1_000,
+      ownerLeaseMs: 30_000,
     });
     const eventBus = new InProcessEventBus();
     const graphRegistry = new GraphRegistry();
