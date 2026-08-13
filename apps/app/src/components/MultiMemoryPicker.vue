@@ -26,7 +26,7 @@ const props = withDefaults(
   },
 );
 
-const memoryIds = defineModel<string[]>({ default: [] });
+const memoryIds = defineModel<string[]>({ default: () => [] });
 
 const { state } = useQuery({
   key: ["memories"],
