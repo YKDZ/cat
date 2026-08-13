@@ -54,11 +54,10 @@ describe("database capability preparation", () => {
   });
 
   it("prepares the fixed vector runtime schema after the base schema", async () => {
-    const query = vi.fn(
-      async (statement: string): Promise<unknown> =>
-        statement === "SELECT current_schema() AS schema_name"
-          ? { rows: [{ schema_name: "test_schema" }] }
-          : undefined,
+    const query = vi.fn(async (statement: string): Promise<unknown> =>
+      statement === "SELECT current_schema() AS schema_name"
+        ? { rows: [{ schema_name: "test_schema" }] }
+        : undefined,
     );
 
     await prepareVectorRuntimeSchema({ query });
