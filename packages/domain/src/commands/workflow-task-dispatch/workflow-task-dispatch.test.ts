@@ -236,6 +236,41 @@ const makeDispatchUnclaimable = async (dispatchId: string): Promise<void> => {
     .where(eq(workflowTaskDispatch.id, dispatchId));
 };
 
+type ConcurrentTestClient = Awaited<ReturnType<TestDB["openConcurrentClient"]>>;
+
+const holdAgentRunRowLock = (
+  holder: ConcurrentTestClient,
+  runId: string,
+): {
+  acquired: Promise<void>;
+  release: () => void;
+  settled: Promise<void>;
+} => {
+  let release = (): void => {};
+  const locked = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let resolveAcquired = (): void => {};
+  let rejectAcquired = (_error: unknown): void => {};
+  const acquired = new Promise<void>((resolve, reject) => {
+    resolveAcquired = resolve;
+    rejectAcquired = reject;
+  });
+  const settled = holder.client.transaction(async (tx) => {
+    await tx
+      .select({ id: agentRun.id })
+      .from(agentRun)
+      .where(eq(agentRun.externalId, runId))
+      .for("update");
+    resolveAcquired();
+    await locked;
+  });
+  void settled.catch((error: unknown) => {
+    rejectAcquired(error);
+  });
+  return { acquired, release, settled };
+};
+
 afterEach(async () => {
   for (const dispatchId of claimableDispatchIds) {
     await makeDispatchUnclaimable(dispatchId);
@@ -605,24 +640,10 @@ describe("workflow task dispatch owner", () => {
           .from(agentRun)
           .where(eq(agentRun.externalId, created.dispatch.runId));
         const holder = await testDb.openConcurrentClient();
-        let release: (() => void) | undefined;
+        const heldLock = holdAgentRunRowLock(holder, created.dispatch.runId);
         await runWithCleanup(
           async () => {
-            const locked = new Promise<void>((resolve) => {
-              release = resolve;
-            });
-            const acquiredLock = new Promise<void>((resolve) => {
-              void holder.client.transaction(async (tx) => {
-                await tx
-                  .select({ id: agentRun.id })
-                  .from(agentRun)
-                  .where(eq(agentRun.externalId, created.dispatch.runId))
-                  .for("update");
-                resolve();
-                await locked;
-              });
-            });
-            await acquiredLock;
+            await heldLock.acquired;
             const activation = executeCommand(
               { db: testDb.client },
               activateWorkflowTaskDispatch,
@@ -634,8 +655,9 @@ describe("workflow task dispatch owner", () => {
               },
             );
             await new Promise((resolve) => setTimeout(resolve, 60));
-            release?.();
+            heldLock.release();
             await expect(activation).rejects.toThrow("Task revision conflict");
+            await heldLock.settled;
             await expect(
               executeQuery(
                 { db: testDb.client },
@@ -665,9 +687,13 @@ describe("workflow task dispatch owner", () => {
             ).resolves.toEqual(beforeRun);
           },
           async () => {
-            release?.();
+            heldLock.release();
             await runWithCleanup(
-              holder.cleanup,
+              async () =>
+                await runWithCleanup(
+                  async () => await heldLock.settled,
+                  holder.cleanup,
+                ),
               async () => await makeDispatchUnclaimable(created.dispatch.id),
             );
           },
@@ -736,24 +762,10 @@ describe("workflow task dispatch owner", () => {
           .from(agentRun)
           .where(eq(agentRun.externalId, created.dispatch.runId));
         const holder = await testDb.openConcurrentClient();
-        let release: (() => void) | undefined;
+        const heldLock = holdAgentRunRowLock(holder, created.dispatch.runId);
         await runWithCleanup(
           async () => {
-            const locked = new Promise<void>((resolve) => {
-              release = resolve;
-            });
-            const acquiredLock = new Promise<void>((resolve) => {
-              void holder.client.transaction(async (tx) => {
-                await tx
-                  .select({ id: agentRun.id })
-                  .from(agentRun)
-                  .where(eq(agentRun.externalId, created.dispatch.runId))
-                  .for("update");
-                resolve();
-                await locked;
-              });
-            });
-            await acquiredLock;
+            await heldLock.acquired;
             const settlement = executeCommand(
               { db: testDb.client },
               settleWorkflowTaskDispatchCancellation,
@@ -765,8 +777,9 @@ describe("workflow task dispatch owner", () => {
               },
             );
             await new Promise((resolve) => setTimeout(resolve, 60));
-            release?.();
+            heldLock.release();
             await expect(settlement).rejects.toThrow("Task revision conflict");
+            await heldLock.settled;
             await expect(
               executeQuery(
                 { db: testDb.client },
@@ -796,9 +809,13 @@ describe("workflow task dispatch owner", () => {
             ).resolves.toEqual(beforeRun);
           },
           async () => {
-            release?.();
+            heldLock.release();
             await runWithCleanup(
-              holder.cleanup,
+              async () =>
+                await runWithCleanup(
+                  async () => await heldLock.settled,
+                  holder.cleanup,
+                ),
               async () => await makeDispatchUnclaimable(created.dispatch.id),
             );
           },
@@ -1293,24 +1310,10 @@ describe("workflow task dispatch owner", () => {
       { externalId: session.externalId },
     );
     const holder = await testDb.openConcurrentClient();
-    let release: (() => void) | undefined;
+    const heldLock = holdAgentRunRowLock(holder, created.dispatch.runId);
     await runWithCleanup(
       async () => {
-        const locked = new Promise<void>((resolve) => {
-          release = resolve;
-        });
-        const acquiredLock = new Promise<void>((resolve) => {
-          void holder.client.transaction(async (tx) => {
-            await tx
-              .select({ id: agentRun.id })
-              .from(agentRun)
-              .where(eq(agentRun.externalId, created.dispatch.runId))
-              .for("update");
-            resolve();
-            await locked;
-          });
-        });
-        await acquiredLock;
+        await heldLock.acquired;
         const acquisition = executeCommand(
           { db: testDb.client },
           acquireWorkflowTaskDispatchRunOwnership,
@@ -1323,13 +1326,18 @@ describe("workflow task dispatch owner", () => {
           }),
         );
         await new Promise((resolve) => setTimeout(resolve, 40));
-        release?.();
+        heldLock.release();
         await expect(acquisition).resolves.toBeNull();
+        await heldLock.settled;
       },
       async () => {
-        release?.();
+        heldLock.release();
         await runWithCleanup(
-          holder.cleanup,
+          async () =>
+            await runWithCleanup(
+              async () => await heldLock.settled,
+              holder.cleanup,
+            ),
           async () => await makeDispatchUnclaimable(created.dispatch.id),
         );
       },

@@ -5,7 +5,10 @@ import {
   TermStatusSchema,
   TermTypeSchema,
 } from "#/schema/enum.ts";
-import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";
+import {
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
+} from "#/schema/language-analysis.ts";
 import {
   type CanonicalInputVersion,
   computeCanonicalInputVersion,
@@ -56,7 +59,7 @@ const TermConceptCanonicalInputSchema = z.strictObject({
 
 export const computeTermConceptCanonicalInputVersion = async (
   snapshot: TermConceptCanonicalSnapshot,
-  languageId: string,
+  languageId: NormalizedLanguageId,
 ): Promise<CanonicalInputVersion> =>
   await computeCanonicalInputVersion(
     TermConceptCanonicalInputSchema.parse({
@@ -88,7 +91,7 @@ const TermConceptDeletionCanonicalInputSchema = z.strictObject({
 export const computeTermConceptDeletionCanonicalInputVersion = async (input: {
   targetId: string;
   glossaryId: string;
-  languageIds: readonly string[];
+  languageIds: readonly NormalizedLanguageId[];
 }): Promise<CanonicalInputVersion> =>
   await computeCanonicalInputVersion(
     TermConceptDeletionCanonicalInputSchema.parse({

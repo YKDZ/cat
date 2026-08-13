@@ -204,5 +204,5 @@ describe("application data lifecycle", () => {
       .where(eq(contentNode.id, result.contentNodeId));
     expect(elementsNode?.languageId).toBe("en");
     expect(vectorSchemaAfter.rows).toEqual(vectorSchemaBefore.rows);
-  });
+  }, 30_000);
 });

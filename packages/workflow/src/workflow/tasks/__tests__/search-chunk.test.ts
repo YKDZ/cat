@@ -16,7 +16,11 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { createVectorizedStringGraph } from "../create-vectorized-string.ts";
 import { searchChunkGraph } from "../search-chunk.ts";
@@ -27,12 +31,16 @@ const data = [
   { text: "Search chunk text 3", languageId: "en" },
 ];
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 let pluginManager: PluginManager;
 let vectorizationQueue: ReturnType<typeof installTestVectorizationQueue>;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -65,7 +73,7 @@ beforeAll(async () => {
   );
 
   vectorizationQueue = installTestVectorizationQueue();
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 
   await runGraph(createVectorizedStringGraph, {
     data,
