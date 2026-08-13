@@ -45,7 +45,6 @@ describe("streamSearchMemoryOp", () => {
           sourceLanguageId: "en",
           translationLanguageId: "zh-Hans",
           memoryIds: ["22222222-2222-4222-8222-222222222222"],
-          chunkIds: [],
         }),
       ),
     ).rejects.toThrow();
@@ -83,7 +82,6 @@ describe("streamSearchMemoryOp", () => {
         sourceLanguageId: "en",
         translationLanguageId: "zh-Hans",
         memoryIds: ["22222222-2222-4222-8222-222222222222"],
-        chunkIds: [1],
       }),
     );
 
@@ -93,7 +91,6 @@ describe("streamSearchMemoryOp", () => {
         sourceLanguageId: "en",
         translationLanguageId: "zh-Hans",
         memoryIds: ["22222222-2222-4222-8222-222222222222"],
-        chunkIds: [1],
         minSimilarity: 0.72,
         maxAmount: 3,
       },

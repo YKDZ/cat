@@ -52,7 +52,7 @@ RUN --mount=type=secret,id=turbo_team,required=false \
     export TURBO_TEAM="$(cat /run/secrets/turbo_team 2>/dev/null || true)" && \
     export TURBO_TOKEN="$(cat /run/secrets/turbo_token 2>/dev/null || true)" && \
     export TURBO_REMOTE_CACHE_SIGNATURE_KEY="$(cat /run/secrets/turbo_remote_cache_signature_key 2>/dev/null || true)" && \
-    pnpm exec turbo run build --filter=@cat/app && \
+    pnpm build:app && \
     pnpm --filter @cat/app copy-drizzle && \
     pnpm --filter @cat/app deploy --prod /application-release && \
     install -d /standalone-deployment && \

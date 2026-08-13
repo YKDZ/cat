@@ -143,7 +143,6 @@ export const fetchAdviseOp = async (
               sourceLanguageId: data.sourceLanguageId,
               translationLanguageId: data.translationLanguageId,
               memoryIds: data.memoryIds,
-              chunkIds: [],
             },
             ctx,
           );

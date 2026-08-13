@@ -68,16 +68,48 @@ const hasExpectedServiceType = <T extends PluginServiceType>(
 ): reference is ServiceImplementationReference & { serviceType: T } =>
   reference.serviceType === expectedServiceType;
 
-export const createServiceImplementationReference = (
+type StaticServiceImplementationMismatch<T extends PluginServiceType> = Extract<
+  ServiceImplementationResolution<T>,
+  { kind: "INSTALLATION_SCOPE_MISMATCH" | "SERVICE_TYPE_MISMATCH" }
+>;
+
+export const validateServiceImplementationReference = <
+  T extends PluginServiceType,
+>(
   scope: RuntimeScope,
-  service: Pick<RegisteredService, "pluginId" | "id" | "type">,
+  reference: ServiceImplementationReference,
+  expectedServiceType: T,
+): StaticServiceImplementationMismatch<T> | null => {
+  if (!isSameScope(scope, reference)) {
+    return {
+      kind: "INSTALLATION_SCOPE_MISMATCH",
+      reference,
+      installationScope: scope,
+    };
+  }
+  if (!hasExpectedServiceType(reference, expectedServiceType)) {
+    return {
+      kind: "SERVICE_TYPE_MISMATCH",
+      reference,
+      expectedServiceType,
+      actualServiceType: reference.serviceType,
+    };
+  }
+  return null;
+};
+
+export const createServiceImplementationReference = (
+  service: Pick<
+    RegisteredService,
+    "pluginId" | "id" | "type" | "scopeType" | "scopeId"
+  >,
 ): ServiceImplementationReference =>
   ServiceImplementationReferenceSchema.parse({
     pluginId: service.pluginId,
     serviceId: service.id,
     serviceType: service.type,
-    scopeType: scope.scopeType,
-    scopeId: scope.scopeId,
+    scopeType: service.scopeType,
+    scopeId: service.scopeId,
   });
 
 /**
@@ -92,22 +124,12 @@ export const resolveRegisteredServiceImplementationReference = <
   reference: ServiceImplementationReference,
   expectedServiceType: T,
 ): ServiceImplementationResolution<T> => {
-  if (!isSameScope(scope, reference)) {
-    return {
-      kind: "INSTALLATION_SCOPE_MISMATCH",
-      reference,
-      installationScope: scope,
-    };
-  }
-
-  if (!hasExpectedServiceType(reference, expectedServiceType)) {
-    return {
-      kind: "SERVICE_TYPE_MISMATCH",
-      reference,
-      expectedServiceType,
-      actualServiceType: reference.serviceType,
-    };
-  }
+  const mismatch = validateServiceImplementationReference(
+    scope,
+    reference,
+    expectedServiceType,
+  );
+  if (mismatch !== null) return mismatch;
 
   const identityMatches = registry
     .getAll()

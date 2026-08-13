@@ -11,10 +11,12 @@ import {
 } from "vitest";
 import * as z from "zod";
 
+import type { DefaultGraphRuntime } from "#/graph/index.ts";
 import {
-  createDefaultGraphRuntime,
-  type DefaultGraphRuntime,
-} from "#/graph/index.ts";
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { defineGraph, defineNode } from "./index.ts";
 import { runGraph, startGraph } from "./run-graph.ts";
@@ -65,8 +67,9 @@ const ownershipContextGraph = defineGraph({
   exit: ["observe"],
 });
 
-let db: TestDB;
-let runtime: DefaultGraphRuntime;
+let db: TestDB | undefined;
+let runtime: DefaultGraphRuntime | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
 beforeAll(async () => {
   db = await setupTestDB();
@@ -76,15 +79,15 @@ beforeAll(async () => {
     "structured-cancellation-test",
     new TestPluginLoader(),
   );
-  runtime = createDefaultGraphRuntime(db.client, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
+  runtime = runtimeFixture.runtime;
   runtime.graphRegistry.register(cancellationGraph.graphDefinition);
   runtime.graphRegistry.register(ownershipContextGraph.graphDefinition);
 });
 
 afterAll(async () => {
-  await runtime.dispose();
   PluginManager.clear();
-  await db.cleanup();
+  await cleanupTestGraphFixture(runtimeFixture, db);
 });
 
 afterEach(() => {
@@ -130,6 +133,7 @@ describe("runGraph cancellation", () => {
   });
 
   it("observes an abort while scheduler.start is pending in runGraph", async () => {
+    if (!runtime) throw new Error("Test runtime was not initialized.");
     let markHandlerStarted: (() => void) | undefined;
     const started = new Promise<void>((resolve) => {
       markHandlerStarted = resolve;
@@ -167,6 +171,7 @@ describe("runGraph cancellation", () => {
   });
 
   it("observes an abort while scheduler.start is pending in startGraph", async () => {
+    if (!runtime) throw new Error("Test runtime was not initialized.");
     let markHandlerStarted: (() => void) | undefined;
     const started = new Promise<void>((resolve) => {
       markHandlerStarted = resolve;

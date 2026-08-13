@@ -7,24 +7,29 @@ import {
   memoryItem,
   vectorizedString,
 } from "@cat/db";
+import { NormalizedLanguageIdSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
 
 export const GetSearchMemoryChunkRangeQuerySchema = z.object({
   memoryIds: z.array(z.uuidv4()),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
 });
 
 export type GetSearchMemoryChunkRangeQuery = z.infer<
   typeof GetSearchMemoryChunkRangeQuerySchema
 >;
+type GetSearchMemoryChunkRangeQueryInput = z.input<
+  typeof GetSearchMemoryChunkRangeQuerySchema
+>;
 
 export const getSearchMemoryChunkRange: Query<
-  GetSearchMemoryChunkRangeQuery,
+  GetSearchMemoryChunkRangeQueryInput,
   number[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = GetSearchMemoryChunkRangeQuerySchema.parse(input);
   if (query.memoryIds.length === 0) {
     return [];
   }

@@ -80,7 +80,18 @@ export const invokeOperationContract = async <
   context: TContext,
   input: unknown,
 ): Promise<TOutput> => {
-  const parsedInput = await contract.inputSchema.parseAsync(input);
+  let parsedInput: TInput;
+  try {
+    parsedInput = await contract.inputSchema.parseAsync(input);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new OperationContractError(
+        "invalid_input",
+        "Invalid operation input",
+      );
+    }
+    throw error;
+  }
   const output = await contract.invoke(context, parsedInput);
   return await contract.outputSchema.parseAsync(output);
 };

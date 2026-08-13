@@ -11,6 +11,8 @@ import {
   task,
 } from "@cat/db";
 import {
+  classifyRecallDerivationBlocker,
+  NormalizedLanguageIdSchema,
   type RecallDerivationReference,
   RecallDerivationReferenceSchema,
   type TaskAffectedResource,
@@ -33,9 +35,24 @@ import type { Command, DbHandle } from "#/types.ts";
 
 const referenceKey = (reference: {
   targetKind: RecallDerivationReference["targetKind"];
-  targetId: string;
-  languageId: string;
+  targetId: RecallDerivationReference["targetId"];
+  languageId: RecallDerivationReference["languageId"];
 }) => `${reference.targetKind}\0${reference.targetId}\0${reference.languageId}`;
+
+const projectedLifecycleStatus = (
+  state: typeof recallDerivationState.$inferSelect,
+) => {
+  if (
+    (state.status !== "BLOCKED" && state.status !== "FAILED") ||
+    state.blocker === null
+  ) {
+    return state.status;
+  }
+  const lifecycle = classifyRecallDerivationBlocker(state.blocker);
+  return lifecycle === "PENDING" && state.status === "FAILED"
+    ? "FAILED"
+    : lifecycle;
+};
 
 export const CreateRecallDerivationTaskCommandSchema = z.strictObject({
   references: z.array(RecallDerivationReferenceSchema).min(1),
@@ -99,14 +116,23 @@ const statusFor = (
       entry.state.demandRevision === entry.demandRevision,
   );
   const fresh = current.filter(
-    (entry) => entry.state?.status === "FRESH",
+    (entry) => entry.state && projectedLifecycleStatus(entry.state) === "FRESH",
   ).length;
   const failures = current
-    .filter((entry) => entry.state?.status === "FAILED")
+    .filter(
+      (entry) =>
+        entry.state && projectedLifecycleStatus(entry.state) === "FAILED",
+    )
     .sort((left, right) => left.state!.id - right.state!.id);
   const failed = failures.length;
-  const blocked = current.filter((entry) => entry.state?.status === "BLOCKED");
-  const running = current.some((entry) => entry.state?.status === "RUNNING");
+  const blocked = current.filter(
+    (entry) =>
+      entry.state && projectedLifecycleStatus(entry.state) === "BLOCKED",
+  );
+  const running = current.some(
+    (entry) =>
+      entry.state && projectedLifecycleStatus(entry.state) === "RUNNING",
+  );
   if (active.length === 0)
     return {
       status: "CANCELED" as const,
@@ -157,26 +183,30 @@ const failureFor = (input: {
   status: "BLOCKED" | "FAILED";
   resources: TaskAffectedResource[];
   blocker?: { reason: string; retryable: boolean; message: string } | null;
-}) => ({
-  code:
-    input.status === "BLOCKED"
+}) => {
+  const dependencyBlocked =
+    input.status === "BLOCKED" &&
+    (input.blocker?.reason === "LANGUAGE_ANALYSIS" ||
+      input.blocker?.reason === "TOKENIZER");
+  return {
+    code: dependencyBlocked
       ? ("CAT_OPERATION_DEPENDENCY_UNAVAILABLE" as const)
       : ("CAT_OPERATION_FAILED" as const),
-  message:
-    input.blocker?.message ??
-    (input.status === "BLOCKED"
-      ? "Recall derivation is blocked by a shared dependency."
-      : "Recall derivation failed."),
-  severity: "ERROR" as const,
-  retryable: input.blocker?.retryable ?? false,
-  blocker:
-    input.status === "BLOCKED"
+    message:
+      input.blocker?.message ??
+      (input.status === "BLOCKED"
+        ? "Recall derivation is blocked by a shared dependency."
+        : "Recall derivation failed."),
+    severity: "ERROR" as const,
+    retryable: input.blocker?.retryable ?? false,
+    blocker: dependencyBlocked
       ? ("recall_derivation_blocked" as const)
       : ("recall_derivation_failed" as const),
-  capability: "RECALL_DERIVATION" as const,
-  affectedResources: input.resources,
-  redactionBoundary: "INTERNAL" as const,
-});
+    capability: "RECALL_DERIVATION" as const,
+    affectedResources: input.resources,
+    redactionBoundary: "INTERNAL" as const,
+  };
+};
 
 const sameFailure = (
   persisted: {
@@ -226,12 +256,17 @@ const confirmRecallDerivationTaskCancel = async (
 const projectTask = async (
   db: DbHandle,
   taskId: string,
+  lockedTask?: typeof task.$inferSelect,
 ): Promise<LocalizationTaskSummary | null> => {
-  const [current] = await db
-    .select(taskFields)
-    .from(task)
-    .where(eq(task.id, taskId))
-    .for("update");
+  const [selected] =
+    lockedTask === undefined
+      ? await db
+          .select(taskFields)
+          .from(task)
+          .where(eq(task.id, taskId))
+          .for("update")
+      : [lockedTask];
+  const current = selected;
   if (!current || current.kind !== "RECALL_DERIVATION") return null;
   const demands = await db
     .select()
@@ -403,88 +438,98 @@ const projectTask = async (
   return updated ? toSummary(updated) : null;
 };
 
+export const createRecallDerivationTaskInTransaction = async (
+  tx: DbHandle,
+  command: CreateRecallDerivationTaskCommand,
+): Promise<LocalizationTaskSummary | null> => {
+  const references = [
+    ...new Map(
+      command.references.map((reference) => [
+        referenceKey(reference),
+        reference,
+      ]),
+    ).values(),
+  ];
+  const referenceRevisions = new Map<string, number>();
+  for (const reference of command.references) {
+    const key = referenceKey(reference);
+    const previous = referenceRevisions.get(key);
+    if (previous !== undefined && previous !== reference.demandRevision) {
+      throw new TypeError(
+        "Recall derivation task references cannot mix demand revisions for one target.",
+      );
+    }
+    referenceRevisions.set(key, reference.demandRevision);
+  }
+  const states = await tx
+    .select({
+      id: recallDerivationState.id,
+      targetKind: recallDerivationState.targetKind,
+      targetId: recallDerivationState.targetId,
+      languageId: recallDerivationState.languageId,
+      demandRevision: recallDerivationState.demandRevision,
+      taskProjectionRevision: recallDerivationState.taskProjectionRevision,
+    })
+    .from(recallDerivationState)
+    .where(
+      or(
+        ...references.map((reference) =>
+          and(
+            eq(recallDerivationState.targetKind, reference.targetKind),
+            eq(recallDerivationState.targetId, reference.targetId),
+            eq(recallDerivationState.languageId, reference.languageId),
+          ),
+        ),
+      ),
+    )
+    .orderBy(asc(recallDerivationState.id))
+    .for("update");
+  const matched = references.map((reference) =>
+    states.find(
+      (state) =>
+        referenceKey(reference) ===
+          referenceKey({
+            ...state,
+            languageId: NormalizedLanguageIdSchema.parse(state.languageId),
+          }) && reference.demandRevision === state.demandRevision,
+    ),
+  );
+  if (matched.some((state) => state === undefined)) {
+    throw new TypeError(
+      "Recall derivation task references must resolve to persisted demands.",
+    );
+  }
+  const created = await insertLocalizationTask(tx, {
+    task: {
+      kind: "RECALL_DERIVATION",
+      payload: { references, cancelable: true },
+    },
+    scope: command.scope,
+    actor: command.actor,
+    resources: command.resources,
+  });
+  await tx.insert(recallDerivationTaskDemand).values(
+    matched.map((state) => ({
+      taskId: created.id,
+      derivationStateId: state!.id,
+      targetKind: state!.targetKind,
+      targetId: state!.targetId,
+      languageId: state!.languageId,
+      demandRevision: state!.demandRevision,
+      observedProjectionRevision: state!.taskProjectionRevision,
+    })),
+  );
+  return await projectTask(tx, created.id);
+};
+
 export const createRecallDerivationTask: Command<
   CreateRecallDerivationTaskCommand,
   LocalizationTaskSummary
 > = async (ctx, input) => {
   const command = CreateRecallDerivationTaskCommandSchema.parse(input);
-  const result = await ctx.db.transaction(async (tx) => {
-    const references = [
-      ...new Map(
-        command.references.map((reference) => [
-          referenceKey(reference),
-          reference,
-        ]),
-      ).values(),
-    ];
-    const referenceRevisions = new Map<string, number>();
-    for (const reference of command.references) {
-      const key = referenceKey(reference);
-      const previous = referenceRevisions.get(key);
-      if (previous !== undefined && previous !== reference.demandRevision) {
-        throw new TypeError(
-          "Recall derivation task references cannot mix demand revisions for one target.",
-        );
-      }
-      referenceRevisions.set(key, reference.demandRevision);
-    }
-    const states = await tx
-      .select({
-        id: recallDerivationState.id,
-        targetKind: recallDerivationState.targetKind,
-        targetId: recallDerivationState.targetId,
-        languageId: recallDerivationState.languageId,
-        demandRevision: recallDerivationState.demandRevision,
-        taskProjectionRevision: recallDerivationState.taskProjectionRevision,
-      })
-      .from(recallDerivationState)
-      .where(
-        or(
-          ...references.map((reference) =>
-            and(
-              eq(recallDerivationState.targetKind, reference.targetKind),
-              eq(recallDerivationState.targetId, reference.targetId),
-              eq(recallDerivationState.languageId, reference.languageId),
-            ),
-          ),
-        ),
-      )
-      .orderBy(asc(recallDerivationState.id))
-      .for("update");
-    const matched = references.map((reference) =>
-      states.find(
-        (state) =>
-          referenceKey(reference) === referenceKey(state) &&
-          reference.demandRevision === state.demandRevision,
-      ),
-    );
-    if (matched.some((state) => state === undefined)) {
-      throw new TypeError(
-        "Recall derivation task references must resolve to persisted demands.",
-      );
-    }
-    const created = await insertLocalizationTask(tx, {
-      task: {
-        kind: "RECALL_DERIVATION",
-        payload: { references, cancelable: true },
-      },
-      scope: command.scope,
-      actor: command.actor,
-      resources: command.resources,
-    });
-    await tx.insert(recallDerivationTaskDemand).values(
-      matched.map((state) => ({
-        taskId: created.id,
-        derivationStateId: state!.id,
-        targetKind: state!.targetKind,
-        targetId: state!.targetId,
-        languageId: state!.languageId,
-        demandRevision: state!.demandRevision,
-        observedProjectionRevision: state!.taskProjectionRevision,
-      })),
-    );
-    return await projectTask(tx, created.id);
-  });
+  const result = await ctx.db.transaction(
+    async (tx) => await createRecallDerivationTaskInTransaction(tx, command),
+  );
   if (!result) throw new Error("Recall derivation task was not created.");
   return { result, events: [] };
 };
@@ -496,9 +541,16 @@ export const projectRecallDerivationTasks: Command<
   const command = ProjectRecallDerivationTasksCommandSchema.parse(input);
   const taskIds = [...new Set(command.taskIds)].sort();
   const result = await ctx.db.transaction(async (tx) => {
+    const lockedTasks = await tx
+      .select(taskFields)
+      .from(task)
+      .where(inArray(task.id, taskIds))
+      .orderBy(asc(task.id))
+      .for("update");
+    const tasksById = new Map(lockedTasks.map((entry) => [entry.id, entry]));
     const summaries: LocalizationTaskSummary[] = [];
     for (const taskId of taskIds) {
-      const summary = await projectTask(tx, taskId);
+      const summary = await projectTask(tx, taskId, tasksById.get(taskId));
       if (summary) summaries.push(summary);
     }
     return summaries;
