@@ -2480,6 +2480,7 @@ class ReleaseTargetAdapter implements TargetAdapter {
         this.signal,
       );
     }
+    await waitForApplicationBootstrap(runtime, process, this.signal);
     const report = await waitForReadiness(runtime, process, this.signal);
     assertReadiness(report, "production");
   }
