@@ -100,7 +100,10 @@ export class QaReviewPage {
         if (
           await expect(handledError)
             .toBeVisible({ timeout: 1_000 })
-            .then(() => true, () => false)
+            .then(
+              () => true,
+              () => false,
+            )
         )
           continue;
       }
