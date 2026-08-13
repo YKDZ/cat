@@ -315,33 +315,26 @@ test.describe("Language Analysis policy surfaces", () => {
     if (csrfToken === undefined) {
       throw new Error("Authenticated Workbench did not expose a CSRF token");
     }
+    const apiContext = page.request;
+    await page.close();
     const before = await waitForStableRequestCounts();
-    const directObservation = await page.evaluate(
-      async ({ csrfToken: requestCsrfToken, projectId }) => {
-        const response = await fetch(
-          "/api/rpc/languageAnalysis/getProjectObservations",
-          {
-            body: JSON.stringify({ json: { projectId } }),
-            credentials: "same-origin",
-            headers: {
-              "content-type": "application/json",
-              "x-csrf-token": requestCsrfToken,
-            },
-            method: "POST",
-          },
-        );
-        const body: unknown = await response.json();
-        return { body, ok: response.ok };
+
+    const directObservationResponse = await apiContext.post(
+      "/api/rpc/languageAnalysis/getProjectObservations",
+      {
+        data: { json: { projectId: refs.project } },
+        headers: { "x-csrf-token": csrfToken },
       },
-      { csrfToken, projectId: refs.project },
     );
-    expect(directObservation.ok).toBe(true);
+    const directObservationBody: unknown =
+      await directObservationResponse.json();
+    expect(directObservationResponse.ok()).toBe(true);
+    expect(await requestCounts()).toEqual(before);
     expect(
-      parseObservationTiming(directObservation.body, sourceLanguageId),
+      parseObservationTiming(directObservationBody, sourceLanguageId),
     ).toEqual({
       assessmentStatus: "SATISFIED",
       observationStatus: "SATISFIED",
     });
-    expect(await requestCounts()).toEqual(before);
   });
 });
