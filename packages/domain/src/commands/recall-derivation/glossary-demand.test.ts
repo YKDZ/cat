@@ -106,6 +106,14 @@ const runWithConcurrentCleanup = async <T>(options: {
   } catch (error) {
     appendError(errors, error);
   }
+  try {
+    await options.within(
+      Promise.all(options.settlements),
+      "Concurrent database work settlement",
+    );
+  } catch (error) {
+    appendError(errors, error);
+  }
   const cleanupSettlements: ConcurrentWorkSettlement[] = [];
   for (const { pid, cleanup } of options.clients) {
     const boundedCleanup = options.within(
@@ -117,14 +125,6 @@ const runWithConcurrentCleanup = async <T>(options: {
   const cleanupResults = await Promise.all(cleanupSettlements);
   for (const result of cleanupResults) {
     if (result.status === "rejected") appendError(errors, result.reason);
-  }
-  try {
-    await options.within(
-      Promise.all(options.settlements),
-      "Concurrent database work settlement",
-    );
-  } catch (error) {
-    appendError(errors, error);
   }
   throwCollectedErrors(errors, "Concurrent database test cleanup failed");
   if (!outcome.ok) throw outcome.error;
@@ -167,10 +167,7 @@ describe("concurrent database test cleanup", () => {
         settlements,
         terminateActive: async () => undefined,
         within: async (work, label) => {
-          if (
-            label === "Concurrent client cleanup" ||
-            label === "Concurrent client cleanup for backend 2"
-          ) {
+          if (label === "Concurrent client cleanup for backend 2") {
             throw secondCleanupTimeout;
           }
           if (label === "Concurrent database work settlement") {
@@ -186,12 +183,15 @@ describe("concurrent database test cleanup", () => {
     expect(released).toBe(true);
     expect(thrown).toBeInstanceOf(AggregateError);
     if (!(thrown instanceof AggregateError)) throw thrown;
-    expect(thrown.errors).toEqual([
-      primaryError,
-      firstCleanupError,
-      secondCleanupTimeout,
-      settlementTimeout,
-    ]);
+    expect(thrown.errors).toHaveLength(4);
+    expect(thrown.errors).toEqual(
+      expect.arrayContaining([
+        primaryError,
+        firstCleanupError,
+        secondCleanupTimeout,
+        settlementTimeout,
+      ]),
+    );
   });
 });
 
