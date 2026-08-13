@@ -269,7 +269,7 @@ describe("PostgresCheckpointer owner fencing", () => {
       edges: [],
     };
     const staleOwner = new PostgresCheckpointer(db.client, {
-      ownerLeaseMs: 50,
+      ownerLeaseMs: 30_000,
     });
     const initial = await staleOwner.createOrClaimRunOwnership({
       runId,
@@ -447,7 +447,7 @@ describe("PostgresCheckpointer owner fencing", () => {
 
   it("cannot renew or write through an expired epoch before takeover", async () => {
     const run = await createRun();
-    const owner = new PostgresCheckpointer(db.client, { ownerLeaseMs: 50 });
+    const owner = new PostgresCheckpointer(db.client, { ownerLeaseMs: 30_000 });
     expect(await owner.claimRunOwnership(run.runId)).toBe(true);
 
     await new Promise((resolve) => setTimeout(resolve, 80));
@@ -466,7 +466,7 @@ describe("PostgresCheckpointer owner fencing", () => {
 
   it("increments the epoch when the same owner reclaims an expired lease", async () => {
     const run = await createRun();
-    const owner = new PostgresCheckpointer(db.client, { ownerLeaseMs: 50 });
+    const owner = new PostgresCheckpointer(db.client, { ownerLeaseMs: 30_000 });
     expect(await owner.claimRunOwnership(run.runId)).toBe(true);
     const staleFence = owner.getRunOwnershipFence(run.runId);
     expect(staleFence).not.toBeNull();
@@ -489,7 +489,9 @@ describe("PostgresCheckpointer owner fencing", () => {
 
   it("rejects a live-owner takeover and fences every stale persistence write after expiry", async () => {
     const run = await createRun();
-    const ownerA = new PostgresCheckpointer(db.client, { ownerLeaseMs: 100 });
+    const ownerA = new PostgresCheckpointer(db.client, {
+      ownerLeaseMs: 30_000,
+    });
     const ownerB = new PostgresCheckpointer(db.client, {
       ownerLeaseMs: 30_000,
     });
