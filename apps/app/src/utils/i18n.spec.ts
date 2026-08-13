@@ -1,12 +1,18 @@
 import { useTimeAgo } from "@vueuse/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createSSRApp, defineComponent, h, nextTick } from "vue";
+import { createSSRApp, defineComponent, h, nextTick, shallowRef } from "vue";
 import { createI18n, useI18n } from "vue-i18n";
 import { renderToString } from "vue/server-renderer";
 
 import { createTimeAgoMessages } from "./i18n.ts";
 
 const now = new Date("2026-08-02T12:00:00.000Z");
+
+const disabledTimeAgoScheduler = () => ({
+  isActive: shallowRef(false),
+  pause: () => undefined,
+  resume: () => undefined,
+});
 
 const englishMessages = {
   "{count} 个月": "{count} months",
@@ -42,11 +48,11 @@ const RelativeTimeProbe = defineComponent({
     const messages = createTimeAgoMessages(t);
     const recent = useTimeAgo(new Date(now.getTime() - 30_000), {
       messages,
-      updateInterval: 0,
+      scheduler: disabledTimeAgoScheduler,
     });
     const oneDayAgo = useTimeAgo(new Date(now.getTime() - 86_400_000), {
       messages,
-      updateInterval: 0,
+      scheduler: disabledTimeAgoScheduler,
     });
 
     return () =>
