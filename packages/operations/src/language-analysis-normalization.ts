@@ -1,4 +1,4 @@
-import type { LanguageAnalysisToken } from "@cat/shared";
+import type { LanguageAnalysisToken, NormalizedLanguageId } from "@cat/shared";
 
 /**
  * Language analyzers may omit lemmas for languages whose token surface is
@@ -8,14 +8,14 @@ export const normalizeTokenLemma = (
   token: Pick<LanguageAnalysisToken, "text" | "lemma">,
 ): string => (token.lemma.trim().length > 0 ? token.lemma : token.text);
 
-export const isCjkLanguage = (languageId: string): boolean => {
+export const isCjkLanguage = (languageId: NormalizedLanguageId): boolean => {
   const lang = languageId.split("-")[0]?.toLowerCase() ?? "";
   return ["zh", "ja", "ko"].includes(lang);
 };
 
 export const joinTokens = (
   tokens: LanguageAnalysisToken[],
-  languageId: string,
+  languageId: NormalizedLanguageId,
 ): string => {
   const separator = isCjkLanguage(languageId) ? "" : " ";
   return tokens.map((token) => token.text).join(separator);
@@ -23,7 +23,7 @@ export const joinTokens = (
 
 export const joinLemmas = (
   tokens: LanguageAnalysisToken[],
-  languageId: string,
+  languageId: NormalizedLanguageId,
 ): string => {
   const separator = isCjkLanguage(languageId) ? "" : " ";
   return tokens.map(normalizeTokenLemma).join(separator);
@@ -38,7 +38,7 @@ export type TokenWindow = {
 
 export const buildTokenWindows = (
   tokens: LanguageAnalysisToken[],
-  languageId: string,
+  languageId: NormalizedLanguageId,
   maxWindowSize = tokens.length,
 ): TokenWindow[] => {
   if (tokens.length === 0) return [];

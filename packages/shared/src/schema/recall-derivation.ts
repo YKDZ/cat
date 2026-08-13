@@ -138,6 +138,21 @@ export type RecallDerivationBlocker = z.infer<
   typeof RecallDerivationBlockerSchema
 >;
 
+export type RecallDerivationBlockerLifecycle = "PENDING" | "BLOCKED" | "FAILED";
+
+export const classifyRecallDerivationBlocker = (
+  blocker: RecallDerivationBlocker,
+): RecallDerivationBlockerLifecycle => {
+  if (blocker.retryable) return "PENDING";
+  if (
+    blocker.reason === "LANGUAGE_ANALYSIS" ||
+    blocker.reason === "TOKENIZER"
+  ) {
+    return "BLOCKED";
+  }
+  return "FAILED";
+};
+
 export const computeCanonicalInputVersion = async (
   value: unknown,
 ): Promise<CanonicalInputVersion> => {

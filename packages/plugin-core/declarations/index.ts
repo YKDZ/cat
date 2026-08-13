@@ -107,7 +107,15 @@ export type RegisteredService = {
   dbId: number;
   id: string;
   pluginId: string;
+  scopeId: string;
+  scopeType: ScopeType;
   service: IPluginService;
+  type: PluginServiceType;
+};
+
+type PluginServiceRecord = {
+  dbId: number;
+  id: string;
   type: PluginServiceType;
 };
 
@@ -138,7 +146,7 @@ export type PluginContext = {
   config: JsonValue;
   scopeType: string;
   scopeId: string;
-  registeredServices: Omit<RegisteredService, "pluginId" | "service">[];
+  registeredServices: PluginServiceRecord[];
   capabilities: PluginCapabilities;
   logger: PluginLogger;
   cacheStore: CacheStore;
@@ -936,7 +944,10 @@ export declare class PluginManager {
     expectedServiceType: T,
   ): ServiceImplementationResolution<T>;
   createServiceImplementationReference(
-    service: Pick<RegisteredService, "pluginId" | "id" | "type">,
+    service: Pick<
+      RegisteredService,
+      "pluginId" | "id" | "type" | "scopeType" | "scopeId"
+    >,
   ): ServiceImplementationReference;
   getAllServices(): RegisteredService[];
   getServices<T extends PluginServiceType>(type: T): RegisteredService[];

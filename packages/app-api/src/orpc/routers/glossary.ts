@@ -1,24 +1,19 @@
 import {
   addGlossaryTermToConcept,
   assertProjectGlossaryBinding,
-  appendChangesetEntriesIfUnchanged,
   countGlossaryConcepts,
-  createRecallDerivationTask,
   createAgentDefinition,
   createAgentSession,
   createInProcessCollector,
   createGlossary as createGlossaryCommand,
-  createGlossaryTerms,
   deleteGlossaryTerm,
   domainEventBus,
   executeCommand,
   executeQuery,
   findAgentDefinitionByNameAndScope,
-  findGlossaryConceptMaterializationByDefinition,
   getAgentSessionByExternalId,
   getElementWithChunkIds,
   getGlossary,
-  getChangesetEntries,
   getGlossaryConceptMaterialization,
   getGlossaryTermConceptSnapshot,
   listGlossaryConceptSubjects,
@@ -49,12 +44,28 @@ import { JSONObjectSchema } from "@cat/shared";
 import { RecallDerivationReferenceSchema } from "@cat/shared";
 import { TermDataSchema } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
-import { listOverlayStates, listWithOverlay, readWithOverlay } from "@cat/vcs";
+import {
+  appendBranchChangesWithRetry,
+  BranchWriteConflictError,
+  BranchWriteInactiveError,
+  listOverlayStates,
+  listWithOverlay,
+  readWithOverlay,
+} from "@cat/vcs";
 import { termAlignmentGraph, termDiscoveryGraph } from "@cat/workflow/tasks";
 import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 
+import {
+  glossaryRecallRebuildContract,
+  glossaryTermWriteContract,
+  invokeOperationContract,
+} from "#/operation-contracts/index.ts";
 import { withBranchContext } from "#/orpc/middleware/with-branch-context.ts";
+import {
+  operationInvocationContextFromORPC,
+  projectOperationContractErrorToORPC,
+} from "#/orpc/operation-contract-adapter.ts";
 import { authed, checkPermission } from "#/orpc/server.ts";
 import { throwRecallOperationFailure } from "#/services/recall-operation-failure.ts";
 import { getGraphRuntime } from "#/utils/graph-runtime.ts";
@@ -62,170 +73,6 @@ import {
   createVCSRouteHelper,
   ensureBranchWriteContext,
 } from "#/utils/vcs-route-helper.ts";
-
-const glossaryDefinitionKey = (
-  definition: string | null | undefined,
-): string | null =>
-  typeof definition === "string" && definition.length > 0 ? definition : null;
-
-const collectGlossaryTermGroups = (
-  termsData: z.infer<typeof TermDataSchema>[],
-) => {
-  const groups = new Map<
-    string,
-    {
-      definition: string | null;
-      terms: Array<z.infer<typeof TermDataSchema>>;
-      subjects: Map<number, boolean>;
-    }
-  >();
-  for (const [index, item] of termsData.entries()) {
-    const definition = glossaryDefinitionKey(item.definition);
-    const key =
-      definition === null ? `anonymous:${index}` : `definition:${definition}`;
-    const group = groups.get(key) ?? {
-      definition,
-      terms: [],
-      subjects: new Map<number, boolean>(),
-    };
-    group.terms.push(item);
-    item.subjectIds?.forEach((subjectId, subjectIndex) => {
-      if (!group.subjects.has(subjectId)) {
-        group.subjects.set(subjectId, subjectIndex === 0);
-      }
-    });
-    groups.set(key, group);
-  }
-  return [...groups.values()];
-};
-
-const buildGlossaryBranchChanges = async (input: {
-  glossaryId: string;
-  creatorId: string;
-  termsData: z.infer<typeof TermDataSchema>[];
-  db: DbHandle;
-  branchId: number;
-  branchEntries?: Array<{
-    id: number;
-    entityType: string;
-    entityId: string;
-    action: string;
-    after: unknown;
-  }>;
-}) => {
-  const groups = collectGlossaryTermGroups(input.termsData);
-  const branchSnapshots = (
-    input.branchEntries === undefined
-      ? await listOverlayStates<
-          z.infer<typeof GlossaryConceptMaterializationSchema>
-        >(input.db, input.branchId, "term_concept")
-      : [...input.branchEntries]
-          .filter((entry) => entry.entityType === "term_concept")
-          .sort((left, right) => right.id - left.id)
-          .reduce<{ states: unknown[]; seen: Set<string> }>(
-            (acc, entry) => {
-              if (entry.after !== null && !acc.seen.has(entry.entityId)) {
-                acc.states.push(entry.after);
-              }
-              acc.seen.add(entry.entityId);
-              return acc;
-            },
-            { states: [], seen: new Set<string>() },
-          ).states
-  ).flatMap((snapshot) => {
-    const parsed = GlossaryConceptMaterializationSchema.safeParse(snapshot);
-    return parsed.success ? [parsed.data] : [];
-  });
-  const previous = await Promise.all(
-    groups.map(async (group) =>
-      group.definition === null
-        ? null
-        : (branchSnapshots.find(
-            (snapshot) =>
-              snapshot.concept.glossaryId === input.glossaryId &&
-              snapshot.concept.definition === group.definition,
-          ) ??
-          (await executeQuery(
-            { db: input.db },
-            findGlossaryConceptMaterializationByDefinition,
-            { glossaryId: input.glossaryId, definition: group.definition },
-          ))),
-    ),
-  );
-
-  const reserved = await executeCommand(
-    { db: input.db },
-    reserveGlossaryEntityIds,
-    {
-      conceptCount: previous.filter((snapshot) => snapshot === null).length,
-      termCount: input.termsData.length * 2,
-    },
-  );
-  let nextConceptId = 0;
-  let nextTermId = 0;
-  return groups.map((group, index) => {
-    const before = previous[index] ?? null;
-    const conceptId =
-      before?.concept.id ?? reserved.conceptIds[nextConceptId++];
-    if (conceptId === undefined) {
-      throw new Error("Glossary concept ID reservation was incomplete.");
-    }
-    const terms = group.terms.flatMap((item) => {
-      const sourceTermId = reserved.termIds[nextTermId++];
-      const targetTermId = reserved.termIds[nextTermId++];
-      if (sourceTermId === undefined || targetTermId === undefined) {
-        throw new Error("Glossary term ID reservation was incomplete.");
-      }
-      return [
-        {
-          id: sourceTermId,
-          termConceptId: conceptId,
-          creatorId: input.creatorId,
-          text: item.term,
-          languageId: item.termLanguageId,
-          type: "NOT_SPECIFIED" as const,
-          status: "NOT_SPECIFIED" as const,
-        },
-        {
-          id: targetTermId,
-          termConceptId: conceptId,
-          creatorId: input.creatorId,
-          text: item.translation,
-          languageId: item.translationLanguageId,
-          type: "NOT_SPECIFIED" as const,
-          status: "NOT_SPECIFIED" as const,
-        },
-      ];
-    });
-    const subjects = new Map<number, boolean>(
-      before?.subjects.map((subject) => [
-        subject.subjectId,
-        subject.isPrimary,
-      ]) ?? [],
-    );
-    for (const [subjectId, isPrimary] of group.subjects) {
-      if (!subjects.has(subjectId)) subjects.set(subjectId, isPrimary);
-    }
-    const after = GlossaryConceptMaterializationSchema.parse({
-      concept: {
-        id: conceptId,
-        glossaryId: input.glossaryId,
-        creatorId: before?.concept.creatorId ?? null,
-        definition: before?.concept.definition ?? group.definition,
-      },
-      terms: [...(before?.terms ?? []), ...terms],
-      subjects: [...subjects.entries()].map(([subjectId, isPrimary]) => ({
-        subjectId,
-        isPrimary,
-      })),
-    });
-    return {
-      action: before === null ? ("CREATE" as const) : ("UPDATE" as const),
-      before,
-      after,
-    };
-  });
-};
 
 const resolveGlossaryConceptBranchState = async (input: {
   db: DbHandle;
@@ -252,7 +99,7 @@ const resolveGlossaryConceptBranchState = async (input: {
 const appendGlossaryBranchChanges = async (input: {
   db: DbHandle;
   changesetId: number;
-  build: (entries: Awaited<ReturnType<typeof getChangesetEntries>>) => Promise<
+  build: () => Promise<
     Array<{
       action: "CREATE" | "UPDATE";
       before: z.infer<typeof GlossaryConceptMaterializationSchema> | null;
@@ -260,19 +107,12 @@ const appendGlossaryBranchChanges = async (input: {
     }>
   >;
 }) => {
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const entries = await executeQuery({ db: input.db }, getChangesetEntries, {
+  try {
+    await appendBranchChangesWithRetry({
+      db: input.db,
       changesetId: input.changesetId,
-    });
-    const changes = await input.build(entries);
-    const appended = await executeCommand(
-      { db: input.db },
-      appendChangesetEntriesIfUnchanged,
-      {
-        changesetId: input.changesetId,
-        expectedLatestEntryId:
-          Math.max(...entries.map((entry) => entry.id), 0) || null,
-        entries: changes.map((change) => ({
+      build: async () =>
+        (await input.build()).map((change) => ({
           entityType: "term_concept" as const,
           entityId: String(change.after.concept.id),
           action: change.action,
@@ -281,25 +121,25 @@ const appendGlossaryBranchChanges = async (input: {
           fieldPath: null,
           riskLevel: "MEDIUM" as const,
         })),
-      },
-    );
-    if (appended.status === "APPENDED") return;
-    if (appended.status === "BRANCH_NOT_ACTIVE") {
+    });
+  } catch (error) {
+    if (error instanceof BranchWriteInactiveError) {
+      throw new ORPCError("CONFLICT", { message: error.message });
+    }
+    if (error instanceof BranchWriteConflictError) {
       throw new ORPCError("CONFLICT", {
-        message: "The branch is no longer active.",
+        message: "Glossary branch changed concurrently. Retry the write.",
       });
     }
+    throw error;
   }
-  throw new ORPCError("CONFLICT", {
-    message: "Glossary branch changed concurrently. Retry the write.",
-  });
 };
 
 export const deleteTerm = authed
   .input(
     z.object({
       termId: z.int(),
-      branchId: z.int().optional(),
+      branchId: z.int().positive().optional(),
       /** Project ID for Direct mode VCS audit */
       projectId: z.uuidv4().optional(),
     }),
@@ -545,16 +385,11 @@ export const insertTerm = authed
       glossaryId: z.uuidv4(),
       termsData: z.array(TermDataSchema),
       operation: GlossaryTermWriteOperationSchema,
-      branchId: z.int().optional(),
+      branchId: z.int().positive().optional(),
       /** Project ID for Direct mode VCS audit */
       projectId: z.uuidv4().optional(),
     }),
   )
-  .use(withBranchContext, (i) => ({
-    branchId: i.branchId,
-    projectId: i.projectId,
-  }))
-  .use(checkPermission("glossary", "editor"), (input) => input.glossaryId)
   .output(
     z.object({
       derivations: z.array(RecallDerivationReferenceSchema),
@@ -562,140 +397,44 @@ export const insertTerm = authed
     }),
   )
   .handler(async ({ context, input }) => {
-    const { user } = context;
-    const { termsData, glossaryId } = input;
-
-    if (context.branchId !== undefined && input.projectId === undefined) {
-      throw new ORPCError("BAD_REQUEST", {
-        message: "projectId is required when branchId is provided",
-      });
+    try {
+      return await invokeOperationContract(
+        glossaryTermWriteContract,
+        operationInvocationContextFromORPC(context),
+        input,
+      );
+    } catch (error) {
+      return projectOperationContractErrorToORPC(error);
     }
-    if (context.branchId !== undefined) {
-      const {
-        drizzleDB: { client: drizzle },
-      } = context;
-      const branchWriteContext = await ensureBranchWriteContext({
-        drizzle,
-        branchId: context.branchId,
-        branchChangesetId: context.branchChangesetId,
-        branchProjectId: context.branchProjectId,
-      });
+  });
 
-      if (!branchWriteContext) {
-        throw new ORPCError("BAD_REQUEST", {
-          message: "Invalid branch context for glossary term creation",
-        });
-      }
-
-      await executeCommand({ db: drizzle }, assertProjectGlossaryBinding, {
-        glossaryId,
-        projectId: branchWriteContext.projectId,
-      });
-
-      await appendGlossaryBranchChanges({
-        db: drizzle,
-        changesetId: branchWriteContext.branchChangesetId,
-        build: async (entries) =>
-          await buildGlossaryBranchChanges({
-            db: drizzle,
-            glossaryId,
-            creatorId: user.id,
-            termsData,
-            branchId: context.branchId!,
-            branchEntries: entries,
-          }),
-      });
-      return { derivations: [] };
+export const rebuildRecall = authed
+  .input(
+    z.strictObject({
+      glossaryId: z.uuidv4(),
+      projectId: z.uuidv4(),
+    }),
+  )
+  .output(
+    z.discriminatedUnion("status", [
+      z.strictObject({ status: z.literal("NO_WORK") }),
+      z.strictObject({
+        status: z.literal("STARTED"),
+        taskId: z.uuidv4(),
+        total: z.int().positive(),
+      }),
+    ]),
+  )
+  .handler(async ({ context, input }) => {
+    try {
+      return await invokeOperationContract(
+        glossaryRecallRebuildContract,
+        operationInvocationContextFromORPC(context),
+        input,
+      );
+    } catch (error) {
+      return projectOperationContractErrorToORPC(error);
     }
-
-    if (input.projectId !== undefined) {
-      const {
-        drizzleDB: { client: drizzle },
-      } = context;
-      const collector = createInProcessCollector(domainEventBus);
-      const vcsCtx: VCSContext = {
-        mode: "direct",
-        projectId: input.projectId,
-        createdBy: user.id,
-      };
-      const groups = collectGlossaryTermGroups(termsData);
-      const derivations: z.infer<typeof RecallDerivationReferenceSchema>[] = [];
-      let recallDerivationTaskId: string | undefined;
-      await drizzle.transaction(async (tx) => {
-        const { middleware } = createVCSRouteHelper(tx);
-        for (const group of groups) {
-          const created = await middleware.interceptMutationWrite(
-            vcsCtx,
-            "term_concept",
-            async () => {
-              const created = await executeCommand(
-                { db: tx, collector },
-                createGlossaryTerms,
-                {
-                  glossaryId,
-                  projectId: input.projectId,
-                  creatorId: user.id,
-                  data: group.terms,
-                },
-              );
-              const mutation = created.mutations[0];
-              if (mutation === undefined || created.mutations.length !== 1) {
-                throw new Error(
-                  "Glossary import did not resolve exactly one concept.",
-                );
-              }
-              return {
-                entityId: String(mutation.after.concept.id),
-                action: mutation.action,
-                before: mutation.before,
-                after: mutation.after,
-                result: created,
-              };
-            },
-          );
-          derivations.push(...created.derivations);
-        }
-        if (input.operation === "BULK_IMPORT" && derivations.length > 0) {
-          const recallTask = await executeCommand(
-            { db: tx },
-            createRecallDerivationTask,
-            {
-              references: derivations,
-              scope: { type: "PROJECT", id: vcsCtx.projectId },
-              actor: { type: "USER", id: user.id },
-              resources: [
-                { type: "PROJECT", id: vcsCtx.projectId },
-                { type: "GLOSSARY", id: glossaryId },
-              ],
-            },
-          );
-          recallDerivationTaskId = recallTask.id;
-        }
-      });
-      await collector.flush();
-      return {
-        derivations,
-        ...(recallDerivationTaskId === undefined
-          ? {}
-          : { recallDerivationTaskId }),
-      };
-    }
-
-    if (input.operation === "BULK_IMPORT") {
-      throw new ORPCError("BAD_REQUEST", {
-        message: "Bulk glossary import requires a direct project scope",
-      });
-    }
-
-    const {
-      drizzleDB: { client: drizzle },
-    } = context;
-    const created = await executeCommand({ db: drizzle }, createGlossaryTerms, {
-      glossaryId,
-      creatorId: user.id,
-      data: termsData,
-    });
-    return { derivations: created.derivations };
   });
 
 export const searchTerm = authed
@@ -1500,6 +1239,7 @@ export const glossaryRouter = {
   countTerm,
   create,
   insertTerm,
+  rebuildRecall,
   searchTerm,
   findTerm,
   updateConcept,

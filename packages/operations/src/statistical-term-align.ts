@@ -1,5 +1,8 @@
 import { executeQuery, listTranslationsByElement } from "@cat/domain";
-import { serverLogger as logger } from "@cat/server-shared";
+import {
+  type NormalizedLanguageId,
+  NormalizedLanguageIdSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { joinLemmas } from "./language-analysis-normalization.ts";
@@ -11,7 +14,7 @@ import { languageAnalyzeBatchOp } from "./language-analyze-batch.ts";
 export const StatisticalTermAlignInputSchema = z.object({
   termGroups: z.array(
     z.object({
-      languageId: z.string().min(1),
+      languageId: NormalizedLanguageIdSchema,
       candidates: z.array(
         z.object({
           text: z.string(),
@@ -86,51 +89,44 @@ const computeCoOccurrence = (
 const enrichFromTranslation = async (
   elementId: number,
   candidateText: string,
-  languageId: string,
+  languageId: NormalizedLanguageId,
   ctx: LanguageAnalysisOperationContext,
 ): Promise<number[]> => {
-  try {
-    const translations = await executeQuery(ctx, listTranslationsByElement, {
-      elementId,
+  const translations = await executeQuery(ctx, listTranslationsByElement, {
+    elementId,
+    languageId,
+  });
+
+  if (translations.length === 0) return [];
+
+  // Use Language Analysis to find the candidate lemma sequence.
+  const analysis = await languageAnalyzeBatchOp(
+    {
+      items: translations.map((t) => ({
+        id: String(t.id),
+        text: t.text,
+      })),
       languageId,
-    });
+    },
+    ctx,
+  );
 
-    if (translations.length === 0) return [];
+  const candidateLemma = candidateText.toLowerCase();
+  const matchingTranslationIds: number[] = [];
 
-    // Use Language Analysis to find the candidate lemma sequence.
-    const analysis = await languageAnalyzeBatchOp(
-      {
-        items: translations.map((t) => ({
-          id: String(t.id),
-          text: t.text,
-        })),
-        languageId,
-      },
-      ctx,
-    );
+  for (const { id, result } of analysis.results) {
+    const translationId = parseInt(id, 10);
+    if (Number.isNaN(translationId)) continue;
 
-    const candidateLemma = candidateText.toLowerCase();
-    const matchingTranslationIds: number[] = [];
+    const contentTokens = result.tokens.filter((t) => !t.isPunct);
+    const lemmaString = joinLemmas(contentTokens, languageId);
 
-    for (const { id, result } of analysis.results) {
-      const translationId = parseInt(id, 10);
-      if (Number.isNaN(translationId)) continue;
-
-      const contentTokens = result.tokens.filter((t) => !t.isPunct);
-      const lemmaString = joinLemmas(contentTokens, languageId);
-
-      if (lemmaString.includes(candidateLemma)) {
-        matchingTranslationIds.push(translationId);
-      }
+    if (lemmaString.includes(candidateLemma)) {
+      matchingTranslationIds.push(translationId);
     }
-
-    return matchingTranslationIds;
-  } catch (err: unknown) {
-    logger
-      .child({ component: "operation" })
-      .error("enrichFromTranslation failed", { error: err });
-    return [];
   }
+
+  return matchingTranslationIds;
 };
 
 /**
@@ -162,7 +158,7 @@ export const statisticalTermAlignOp = async (
   type PendingItem = {
     gi: number;
     ci: number;
-    languageId: string;
+    languageId: NormalizedLanguageId;
     candidateText: string;
     rawOccurrences: Array<{
       elementId: number;

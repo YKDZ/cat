@@ -9,7 +9,14 @@ import {
   listLocalizationTasks,
 } from "@cat/domain";
 import { getPermissionEngine } from "@cat/permissions";
-import { TaskKindNameSchema, TaskStatusSchema } from "@cat/shared";
+import {
+  OperationFailureClientProjectionSchema,
+  TaskKindSchema,
+  TaskKindNameSchema,
+  TaskStateSchema,
+  TaskStatusSchema,
+  toOperationFailureClientProjection,
+} from "@cat/shared";
 import { ORPCError } from "@orpc/server";
 import * as z from "zod";
 
@@ -27,6 +34,21 @@ const listInput = z.object({
 const taskInput = z.object({ projectId: z.uuidv4(), taskId: z.uuidv4() });
 const taskMutationInput = taskInput.extend({
   requestId: z.uuidv4().default(() => randomUUID()),
+});
+
+const TaskSummaryOutputSchema = z.strictObject({
+  id: z.uuidv4(),
+  task: TaskKindSchema,
+  state: TaskStateSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+  startedAt: z.date().nullable(),
+  finishedAt: z.date().nullable(),
+});
+
+const TaskDetailOutputSchema = z.strictObject({
+  task: TaskSummaryOutputSchema,
+  currentFailure: OperationFailureClientProjectionSchema.nullable(),
 });
 
 const authorizationForProject = (input: {
@@ -86,6 +108,7 @@ export const list = authed
 
 export const detail = authed
   .input(taskInput)
+  .output(TaskDetailOutputSchema)
   .handler(async ({ context, input }) => {
     const {
       drizzleDB: { client: db },
@@ -124,7 +147,13 @@ export const detail = authed
           authorization,
         })
       : null;
-    return { task: result, currentFailure };
+    return {
+      task: result,
+      currentFailure:
+        currentFailure === null
+          ? null
+          : toOperationFailureClientProjection(currentFailure),
+    };
   });
 
 export const cancel = authed

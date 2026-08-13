@@ -1,5 +1,8 @@
 import { eq, recallDerivationState } from "@cat/db";
-import { NormalizedLanguageIdSchema } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  type NormalizedLanguageId,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -10,7 +13,7 @@ export const ListMemoryRecallDerivationLanguagesQuerySchema = z.strictObject(
 
 export const listMemoryRecallDerivationLanguages: Query<
   z.infer<typeof ListMemoryRecallDerivationLanguagesQuerySchema>,
-  string[]
+  NormalizedLanguageId[]
 > = async (ctx) => {
   const rows = await ctx.db
     .selectDistinct({ languageId: recallDerivationState.languageId })

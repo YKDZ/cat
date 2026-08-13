@@ -13,15 +13,23 @@ import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { fetchAdviseGraph } from "../fetch-advise.ts";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
 let pluginManager: PluginManager;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -58,7 +66,7 @@ beforeAll(async () => {
     creatorId: user.id,
   });
 
-  createDefaultGraphRuntime(db.client, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("worker should fetch advise", async () => {

@@ -1,4 +1,4 @@
-import { lstat, realpath } from "node:fs/promises";
+import { lstat, realpath, rename, rm } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve } from "node:path";
 
 export type BuildxCachePaths = {
@@ -6,9 +6,9 @@ export type BuildxCachePaths = {
   source?: string;
 };
 
-export const buildxCacheTargets = ["standalone", "runtime", "spacy"] as const;
+export const buildxCacheFamilies = ["application", "spacy"] as const;
 
-export type BuildxCacheTarget = (typeof buildxCacheTargets)[number];
+export type BuildxCacheFamily = (typeof buildxCacheFamilies)[number];
 
 export type BuildxCacheResolution =
   | { paths: BuildxCachePaths; valid: true }
@@ -33,14 +33,20 @@ type PathStats = {
 };
 
 export type ValidateBuildxCachePathsOptions = ResolveBuildxCachePathsOptions & {
+  families?: readonly BuildxCacheFamily[];
   fs?: BuildxCacheFileSystem;
   requireOutputMarkers?: boolean;
 };
 
+export type FinalizeBuildxFamilyCacheOptions =
+  ResolveBuildxCachePathsOptions & {
+    family: BuildxCacheFamily;
+  };
+
 export type ValidatedBuildxCacheResolution =
   | {
       paths: BuildxCachePaths;
-      sourceScopes: Record<BuildxCacheTarget, boolean>;
+      sourceScopes: Record<BuildxCacheFamily, boolean>;
       valid: true;
     }
   | { message: string; paths: {}; valid: false };
@@ -202,7 +208,7 @@ export const validateBuildxCachePaths = async (
   if (paths.paths.source === undefined && paths.paths.output === undefined) {
     return {
       paths: {},
-      sourceScopes: { runtime: false, spacy: false, standalone: false },
+      sourceScopes: { application: false, spacy: false },
       valid: true,
     };
   }
@@ -219,12 +225,12 @@ export const validateBuildxCachePaths = async (
   try {
     await inspectExistingPath(fs, cwd, allowedCacheRoot, "directory", false);
     const sourceScopes = Object.fromEntries(
-      buildxCacheTargets.map((target) => [target, false]),
-    ) as Record<BuildxCacheTarget, boolean>;
+      buildxCacheFamilies.map((family) => [family, false]),
+    ) as Record<BuildxCacheFamily, boolean>;
     for (const [name, path] of Object.entries(paths.paths)) {
       await inspectExistingPath(fs, cwd, path, "directory", false);
-      for (const target of buildxCacheTargets) {
-        const scope = join(path, target);
+      for (const family of options.families ?? buildxCacheFamilies) {
+        const scope = join(path, family);
         const exists = await inspectExistingPath(
           fs,
           cwd,
@@ -239,11 +245,62 @@ export const validateBuildxCachePaths = async (
           "file",
           options.requireOutputMarkers === true && name === "output",
         );
-        if (name === "source") sourceScopes[target] = exists && hasMarker;
+        if (name === "source") sourceScopes[family] = exists && hasMarker;
       }
     }
     return { paths: paths.paths, sourceScopes, valid: true };
   } catch (error) {
     return invalidFilesystemResolution(error);
+  }
+};
+
+export const finalizeBuildxFamilyCache = async (
+  options: FinalizeBuildxFamilyCacheOptions,
+): Promise<void> => {
+  const validation = await validateBuildxCachePaths({
+    ...options,
+    families: [options.family],
+    requireOutputMarkers: true,
+  });
+  if (
+    !validation.valid ||
+    validation.paths.source === undefined ||
+    validation.paths.output === undefined
+  ) {
+    throw new Error(
+      validation.valid
+        ? "Buildx cache finalization requires source and output paths"
+        : validation.message,
+    );
+  }
+  const source = join(validation.paths.source, options.family);
+  const output = join(validation.paths.output, options.family);
+  const previous = `${source}.previous-${process.pid}`;
+  let sourceMoved = false;
+  try {
+    if ((await lstatIfPresent({ lstat, realpath }, previous)) !== undefined) {
+      throw new Error(`Previous Buildx cache path already exists: ${previous}`);
+    }
+    if ((await lstatIfPresent({ lstat, realpath }, source)) !== undefined) {
+      await rename(source, previous);
+      sourceMoved = true;
+    }
+    try {
+      await rename(output, source);
+    } catch (error) {
+      if (sourceMoved) {
+        await rename(previous, source);
+        sourceMoved = false;
+      }
+      throw error;
+    }
+    if (sourceMoved) {
+      await rm(previous, { force: true, recursive: true });
+    }
+  } catch (error) {
+    throw new Error(
+      `Could not finalize ${options.family} Buildx cache: ${error instanceof Error ? error.message : String(error)}`,
+      { cause: error },
+    );
   }
 };

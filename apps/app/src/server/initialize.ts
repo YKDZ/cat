@@ -23,6 +23,7 @@ import {
 import { MessageGateway } from "@cat/message";
 import {
   executeLanguageAnalysisReadinessAssessment,
+  createRecallDerivationTaskProjectionObserver,
   registerDomainEventHandlers,
   registerVectorizationConsumer,
   startRecallDerivationWorker,
@@ -183,6 +184,9 @@ const initializeAppOnce = async (): Promise<void> => {
     recallDerivationWorker = await startRecallDerivationWorker({
       db: drizzleDB.client,
       pluginManager,
+      onStateCommitted: createRecallDerivationTaskProjectionObserver({
+        db: drizzleDB.client,
+      }),
     });
     globalThis.recallDerivationWorker = recallDerivationWorker;
 

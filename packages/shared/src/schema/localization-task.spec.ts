@@ -4,6 +4,8 @@ import {
   BatchAutoTranslationInvocationSchema,
   BatchAutoTranslationTaskPayloadSchema,
   BatchAutoTranslationTaskResultSchema,
+  OperationFailureSchema,
+  toOperationFailureClientProjection,
 } from "./localization-task.ts";
 
 const vectorStorage = {
@@ -109,5 +111,35 @@ describe("batch auto-translation task contract", () => {
         translatorId: "4a72bfde-f298-44de-a387-2b940805ac2e",
       }),
     ).toThrow();
+  });
+
+  it("projects public and internal operation failures as a discriminated client union", () => {
+    const failure = OperationFailureSchema.parse({
+      affectedResources: [
+        { type: "PROJECT", id: "0113d502-f8c3-4d21-98dc-0e3c6c5cc701" },
+      ],
+      code: "CAT_OPERATION_FAILED",
+      id: "4a72bfde-f298-44de-a387-2b940805ac2e",
+      message: "internal diagnostic must not reach the browser",
+      redactionBoundary: "INTERNAL",
+      retryable: false,
+      severity: "ERROR",
+    });
+    const redacted = toOperationFailureClientProjection(failure);
+
+    expect(redacted).toMatchObject({
+      code: "CAT_OPERATION_FAILED",
+      redacted: true,
+    });
+    expect("message" in redacted).toBe(false);
+
+    const publicProjection = toOperationFailureClientProjection({
+      ...failure,
+      redactionBoundary: "PUBLIC",
+    });
+    expect(publicProjection).toMatchObject({
+      message: failure.message,
+      redacted: false,
+    });
   });
 });
