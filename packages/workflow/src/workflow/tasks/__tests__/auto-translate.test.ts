@@ -28,10 +28,12 @@ import {
   vi,
 } from "vitest";
 
+import type { DefaultGraphRuntime } from "#/graph/index.ts";
 import {
-  createDefaultGraphRuntime,
-  type DefaultGraphRuntime,
-} from "#/graph/index.ts";
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 const mocks = vi.hoisted(() => ({
   collectMemoryRecallOp: vi.fn(),
@@ -89,6 +91,7 @@ describe("autoTranslateGraph", () => {
   let db: TestDB;
   let pluginManager: PluginManager;
   let runtime: DefaultGraphRuntime;
+  let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
   beforeAll(async () => {
     db = await setupTestDB();
@@ -101,7 +104,8 @@ describe("autoTranslateGraph", () => {
       new TestPluginLoader(),
     );
 
-    runtime = createDefaultGraphRuntime(db.client, pluginManager);
+    runtimeFixture = createTestGraphRuntime(db, pluginManager);
+    runtime = runtimeFixture.runtime;
     await executeCommand({ db: db.client }, ensureCoreRelationTypes, {});
     await executeCommand({ db: db.client }, ensureLanguages, {
       languageIds: ["en", "zh-Hans"],
@@ -109,9 +113,11 @@ describe("autoTranslateGraph", () => {
   });
 
   afterAll(async () => {
-    await runtime?.dispose();
     PluginManager.clear();
-    await cleanup?.();
+    await cleanupTestGraphFixture(
+      runtimeFixture,
+      cleanup ? { cleanup } : undefined,
+    );
   });
 
   beforeEach(() => {

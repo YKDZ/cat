@@ -2,6 +2,7 @@ import {
   NormalizedLanguageIdSchema,
   LanguageAnalysisRequirementStatusSchema,
   LanguageAnalysisSelectionSourceSchema,
+  TermRecallStreamEventSchema,
   type NormalizedLanguageId,
 } from "@cat/shared";
 
@@ -11,6 +12,29 @@ import { gotoHydrated } from "#/pages/app-navigation.ts";
 type ObservationTiming =
   | { assessmentStatus: "UNKNOWN"; observationStatus: null }
   | { assessmentStatus: "SATISFIED"; observationStatus: "SATISFIED" };
+
+const parseTermRecallStreamEvents = (body: string) =>
+  body.split(/\r?\n\r?\n/).flatMap((frame) => {
+    const data = frame
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice("data:".length).trim())
+      .join("\n");
+    if (data.length === 0) return [];
+    const encoded: unknown = JSON.parse(data);
+    const event =
+      typeof encoded === "object" && encoded !== null && "json" in encoded
+        ? encoded.json
+        : encoded;
+    if (
+      typeof event !== "object" ||
+      event === null ||
+      !["CANDIDATE", "COMPLETED"].includes(Reflect.get(event, "type") as string)
+    ) {
+      return [];
+    }
+    return [TermRecallStreamEventSchema.parse(event)];
+  });
 
 const parseObservationTiming = (
   body: unknown,
@@ -186,6 +210,72 @@ test.describe("Language Analysis policy surfaces", () => {
       expect(termPanel.getByText("Hello", { exact: true })).toBeVisible(),
       expect(termPanel.getByText("World", { exact: true })).toBeVisible(),
     ]);
+
+    const publicRecall = await page.evaluate(
+      async ({ projectId }) => {
+        const documentValue = Reflect.get(globalThis, "document");
+        const cookie =
+          typeof documentValue === "object" &&
+          documentValue !== null &&
+          typeof Reflect.get(documentValue, "cookie") === "string"
+            ? Reflect.get(documentValue, "cookie")
+            : "";
+        const csrfToken = cookie
+          .split("; ")
+          .find((value: string) => value.startsWith("csrfToken="))
+          ?.slice("csrfToken=".length);
+        if (csrfToken === undefined) {
+          throw new Error(
+            "Authenticated Workbench did not expose a CSRF token",
+          );
+        }
+        const response = await fetch("/api/rpc/glossary/searchTerm", {
+          body: JSON.stringify({
+            json: {
+              projectId,
+              text: "Hello World",
+              termLanguageId: "en",
+              translationLanguageId: "zh-Hans",
+              minConfidence: 0.6,
+            },
+          }),
+          credentials: "same-origin",
+          headers: {
+            "content-type": "application/json",
+            "x-csrf-token": csrfToken,
+          },
+          method: "POST",
+        });
+        return {
+          body: await response.text(),
+          contentType: response.headers.get("content-type"),
+          ok: response.ok,
+        };
+      },
+      { projectId: refs.project },
+    );
+    expect(publicRecall.ok).toBe(true);
+    expect(publicRecall.contentType).toContain("text/event-stream");
+    const completed = parseTermRecallStreamEvents(publicRecall.body).find(
+      (event) => event.type === "COMPLETED",
+    );
+    if (completed === undefined) {
+      throw new Error("Public term recall stream did not complete");
+    }
+    expect(completed.result.requestedChannels).toContain("EXACT");
+    const exactOutcome = completed.result.outcomes.EXACT;
+    expect(exactOutcome.status).toBe("SUCCEEDED");
+    if (exactOutcome.status !== "SUCCEEDED") {
+      throw new Error("Public term recall did not produce an EXACT outcome");
+    }
+    expect(exactOutcome.candidates).toContainEqual(
+      expect.objectContaining({
+        term: "Hello",
+        evidences: expect.arrayContaining([
+          expect.objectContaining({ channel: "exact" }),
+        ]),
+      }),
+    );
 
     const csrfToken = (await page.context().cookies()).find(
       (cookie) => cookie.name === "csrfToken",

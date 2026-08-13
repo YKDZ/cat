@@ -20,6 +20,7 @@ import {
   runImageBuildCli,
   type ImageBuildCommandOptions,
 } from "./image-builder.ts";
+import { buildCandidateImageFamily } from "./image-family-builder.ts";
 
 const imageId = (suffix: string): string => `sha256:${suffix.repeat(64)}`;
 const execFileAsync = promisify(execFile);
@@ -59,17 +60,26 @@ describe("release image builder", () => {
       readFileSync(resolve(root, "apps/app/package.json"), "utf8"),
     ) as { scripts?: Record<string, string> };
 
-    expect(rootManifest.scripts?.["build:images"]).toBe(
-      "node scripts/image-builder.ts",
+    expect(rootManifest.scripts?.["build:application-images"]).toBe(
+      "node scripts/image-family-builder.ts --family application",
     );
     expect(rootManifest.scripts?.["build:spacy-image"]).toBe(
-      "node scripts/image-builder.ts --target spacy",
+      "node scripts/image-family-builder.ts --family spacy",
+    );
+    expect(rootManifest.scripts?.["build:images"]).toBe(
+      "node scripts/image-family-builder.ts --all",
     );
     expect(
       Object.keys(appManifest.scripts ?? {}).filter((name) =>
         name.startsWith("docker:"),
       ),
     ).toEqual([]);
+  });
+
+  it("requires an explicit shared directory, stable run identity, and owner token before a family build", async () => {
+    await expect(buildCandidateImageFamily("application", {})).rejects.toThrow(
+      "CAT_IMAGE_CANDIDATE_DIR",
+    );
   });
 
   it("builds both final targets by default and returns their immutable local IDs", async () => {
@@ -174,28 +184,36 @@ describe("release image builder", () => {
     );
   });
 
-  it("accepts pnpm's argument separator before one explicit target", () => {
-    expect(parseImageBuildArguments(["--", "--target", "runtime"])).toEqual([
-      "runtime",
+  it("accepts pnpm's argument separator before one build family", () => {
+    expect(parseImageBuildArguments(["--", "--family", "spacy"])).toEqual([
+      "spacy",
     ]);
   });
 
-  it("rejects invalid or duplicate target arguments before invoking Docker", () => {
-    expect(() => parseImageBuildArguments(["--target", "preview"])).toThrow(
-      "Unknown image target",
+  it("rejects invalid or duplicate build-family arguments before invoking Docker", () => {
+    expect(() => parseImageBuildArguments(["--family", "preview"])).toThrow(
+      "Unknown image build family",
     );
     expect(() =>
-      parseImageBuildArguments(["--target", "runtime", "--target", "runtime"]),
+      parseImageBuildArguments([
+        "--family",
+        "application",
+        "--family",
+        "application",
+      ]),
     ).toThrow("Usage:");
   });
 
   it("reports a concise human-readable build result through its CLI interface", async () => {
     const output: string[] = [];
     const errors: string[] = [];
-    const run = imageBuilderRunner({ standalone: imageId("d") });
+    const run = imageBuilderRunner({
+      runtime: imageId("e"),
+      standalone: imageId("d"),
+    });
 
     await runImageBuildCli({
-      args: ["--target", "standalone"],
+      args: ["--family", "application"],
       buildId: "contract",
       env: {},
       run,
@@ -209,11 +227,11 @@ describe("release image builder", () => {
     expect(errors).toEqual([]);
   });
 
-  it("keeps each release target in an independent advisory local-cache scope", async () => {
+  it("shares one advisory local-cache scope across each build family", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "cat-buildx-cache-"));
     const cacheRoot = join(cwd, ".cache");
-    for (const target of ["standalone", "runtime", "spacy"]) {
-      const scope = join(cacheRoot, "buildx", target);
+    for (const family of ["application", "spacy"]) {
+      const scope = join(cacheRoot, "buildx", family);
       mkdirSync(scope, { recursive: true });
       writeFileSync(join(scope, "index.json"), "{}\n");
     }
@@ -245,16 +263,30 @@ describe("release image builder", () => {
       .mocked(run)
       .mock.calls.filter(([, args]) => args[0] === "buildx")
       .map(([, args]) => args);
-    expect(builds).toEqual(
+    const standalone = builds.find((args) => args.includes("standalone"))!;
+    const runtime = builds.find((args) => args.includes("runtime"))!;
+    const spacy = builds.find((args) => args.includes("spacy"))!;
+    expect(standalone).toEqual(
       expect.arrayContaining([
-        expect.arrayContaining([
-          "--cache-to",
-          `type=local,dest=${join(cwd, ".cache/buildx-next", "standalone")},mode=max,ignore-error=true`,
-        ]),
-        expect.arrayContaining([
-          "--cache-to",
-          `type=local,dest=${join(cwd, ".cache/buildx-next", "runtime")},mode=max,ignore-error=true`,
-        ]),
+        "--cache-from",
+        `type=local,src=${join(cwd, ".cache/buildx", "application")}`,
+      ]),
+    );
+    expect(standalone).not.toContain("--cache-to");
+    expect(runtime).toEqual(
+      expect.arrayContaining([
+        "--cache-from",
+        `type=local,src=${join(cwd, ".cache/buildx", "application")}`,
+        "--cache-to",
+        `type=local,dest=${join(cwd, ".cache/buildx-next", "application")},mode=max,ignore-error=true`,
+      ]),
+    );
+    expect(spacy).toEqual(
+      expect.arrayContaining([
+        "--cache-from",
+        `type=local,src=${join(cwd, ".cache/buildx", "spacy")}`,
+        "--cache-to",
+        `type=local,dest=${join(cwd, ".cache/buildx-next", "spacy")},mode=max,ignore-error=true`,
       ]),
     );
     expect(builds.flat()).toEqual(
@@ -265,13 +297,6 @@ describe("release image builder", () => {
         "id=turbo_remote_cache_signature_key,env=TURBO_REMOTE_CACHE_SIGNATURE_KEY",
       ]),
     );
-    expect(builds.flat()).toEqual(
-      expect.arrayContaining([
-        "--cache-from",
-        `type=local,src=${join(cwd, ".cache/buildx", "standalone")}`,
-        `type=local,src=${join(cwd, ".cache/buildx", "runtime")}`,
-      ]),
-    );
     expect(
       builds.flat().some((argument) => argument.startsWith("TURBO_TOKEN=")),
     ).toBe(false);
@@ -280,7 +305,7 @@ describe("release image builder", () => {
   it("does not import a source cache scope without its OCI marker", async () => {
     const cwd = mkdtempSync(join(tmpdir(), "cat-buildx-cache-incomplete-"));
     const cacheRoot = join(cwd, ".cache");
-    const sourceScope = join(cacheRoot, "buildx", "standalone");
+    const sourceScope = join(cacheRoot, "buildx", "application");
     mkdirSync(sourceScope, { recursive: true });
     const run = imageBuilderRunner({ standalone: imageId("8") });
 
@@ -308,7 +333,7 @@ describe("release image builder", () => {
     expect(build).toEqual(
       expect.arrayContaining([
         "--cache-to",
-        `type=local,dest=${join(cwd, ".cache/buildx-next", "standalone")},mode=max,ignore-error=true`,
+        `type=local,dest=${join(cwd, ".cache/buildx-next", "application")},mode=max,ignore-error=true`,
       ]),
     );
   });
@@ -531,7 +556,7 @@ describe("release image builder", () => {
     try {
       const result = await execFileAsync(
         process.execPath,
-        ["scripts/image-builder.ts", "--target", "standalone"],
+        ["scripts/image-builder.ts", "--family", "application"],
         {
           cwd: resolve(import.meta.dirname, ".."),
           env: { ...process.env, PATH: `${directory}:${process.env.PATH}` },
@@ -570,7 +595,7 @@ if (args.join(' ').includes('history logs')) process.stdout.write('plain Buildx 
       await expect(
         execFileAsync(
           process.execPath,
-          ["scripts/image-builder.ts", "--target", "standalone"],
+          ["scripts/image-builder.ts", "--family", "application"],
           {
             cwd: resolve(import.meta.dirname, ".."),
             env: { ...process.env, PATH: `${directory}:${process.env.PATH}` },

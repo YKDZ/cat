@@ -45,6 +45,7 @@ import {
 import {
   processVectorizationBatch,
   revectorizeConceptOp,
+  startRecallDerivationWorker,
   validateLanguageAnalyzerConfiguration,
   waitForRecallDerivationFresh,
 } from "@cat/operations";
@@ -797,11 +798,20 @@ const hydrateSeed = async (
       recallDerivations.push(...created.derivations);
     }
   }
-  await waitForRecallDerivationFresh(recallDerivations, {
-    db: testDb.client,
-    pluginManager,
-    signal: opts.signal,
-  });
+  if (recallDerivations.length > 0) {
+    const recallDerivationWorker = await startRecallDerivationWorker({
+      db: testDb.client,
+      pluginManager,
+    });
+    try {
+      await waitForRecallDerivationFresh(recallDerivations, {
+        db: testDb.client,
+        signal: opts.signal,
+      });
+    } finally {
+      await recallDerivationWorker.stop();
+    }
+  }
 
   // ── 9b. Core relation types ──────────────────────────────────────
   // createElements requires core:contains:1.0.0 to exist.

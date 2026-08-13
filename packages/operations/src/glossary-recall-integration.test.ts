@@ -36,7 +36,7 @@ import { validateLanguageAnalyzerConfiguration } from "./language-analysis-requi
 import {
   startRecallDerivationWorker,
   waitForRecallDerivationFresh,
-} from "./memory-recall-derivation.ts";
+} from "./recall-derivation-runtime.ts";
 
 describe("Glossary recall worker integration", () => {
   let db: TestDB;
@@ -180,7 +180,6 @@ describe("Glossary recall worker integration", () => {
     try {
       await waitForRecallDerivationFresh(references, {
         db: db.client,
-        pluginManager,
         timeoutMs: 30_000,
       });
     } finally {
@@ -268,5 +267,48 @@ describe("Glossary recall worker integration", () => {
         );
       }),
     ).toBe(true);
+  });
+
+  it("blocks public term recall when the current analyzer selection is absent", async () => {
+    await executeCommand(
+      { db: db.client },
+      writeValidatedLanguageAnalysisSelection,
+      {
+        key: LanguageAnalysisWildcardSelectionKey,
+        implementation: null,
+        configurationFingerprint: null,
+        expectedRevision: 1,
+      },
+    );
+
+    await expect(
+      collectTermRecallOp(
+        {
+          glossaryIds: [glossaryId],
+          text: "selection must be present",
+          sourceLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+          channels: ["EXACT"],
+        },
+        { traceId: "term-recall-missing-selection", pluginManager },
+      ),
+    ).rejects.toMatchObject({
+      operationFailure: {
+        code: "CAT_OPERATION_MISSING_CAPABILITY",
+        blocker: "language_analysis_unavailable",
+        capability: "LANGUAGE_ANALYSIS",
+      },
+      recallResult: {
+        outcomes: {
+          EXACT: {
+            status: "BLOCKED",
+            blocker: {
+              reason: "LANGUAGE_ANALYSIS_UNAVAILABLE",
+              capability: "LANGUAGE_ANALYSIS",
+            },
+          },
+        },
+      },
+    });
   });
 });

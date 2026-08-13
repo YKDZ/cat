@@ -82,7 +82,6 @@ export const searchTmTool: AgentToolDefinition = {
           sourceLanguageId,
           translationLanguageId,
           memoryIds: parsed.memoryIds,
-          chunkIds: [],
           minSimilarity: parsed.minSimilarity,
           maxAmount: parsed.maxAmount,
         },

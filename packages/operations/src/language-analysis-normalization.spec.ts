@@ -1,4 +1,4 @@
-import type { LanguageAnalysisToken } from "@cat/shared";
+import { type LanguageAnalysisToken, normalizeLanguageId } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -21,11 +21,11 @@ const makeToken = (text: string, lemma: string): LanguageAnalysisToken => ({
 
 describe("language-analysis-normalization", () => {
   it("detects CJK language ids", () => {
-    expect(isCjkLanguage("zh")).toBe(true);
-    expect(isCjkLanguage("zh-Hans")).toBe(true);
-    expect(isCjkLanguage("ja")).toBe(true);
-    expect(isCjkLanguage("ko")).toBe(true);
-    expect(isCjkLanguage("en")).toBe(false);
+    expect(isCjkLanguage(normalizeLanguageId("zh"))).toBe(true);
+    expect(isCjkLanguage(normalizeLanguageId("zh-Hans"))).toBe(true);
+    expect(isCjkLanguage(normalizeLanguageId("ja"))).toBe(true);
+    expect(isCjkLanguage(normalizeLanguageId("ko"))).toBe(true);
+    expect(isCjkLanguage(normalizeLanguageId("en"))).toBe(false);
   });
 
   it("joins English tokens with spaces", () => {
@@ -34,13 +34,15 @@ describe("language-analysis-normalization", () => {
       makeToken("translation", "translation"),
     ];
 
-    expect(joinTokens(tokens, "en")).toBe("machine translation");
+    expect(joinTokens(tokens, normalizeLanguageId("en"))).toBe(
+      "machine translation",
+    );
   });
 
   it("joins CJK tokens without spaces", () => {
     const tokens = [makeToken("机器", "机器"), makeToken("翻译", "翻译")];
 
-    expect(joinTokens(tokens, "zh-Hans")).toBe("机器翻译");
+    expect(joinTokens(tokens, normalizeLanguageId("zh-Hans"))).toBe("机器翻译");
   });
 
   it("joins lemmas with the language-specific separator", () => {
@@ -50,15 +52,19 @@ describe("language-analysis-normalization", () => {
     ];
     const cjkTokens = [makeToken("运行", "运行"), makeToken("测试", "测试")];
 
-    expect(joinLemmas(englishTokens, "en")).toBe("run test");
-    expect(joinLemmas(cjkTokens, "zh-Hans")).toBe("运行测试");
+    expect(joinLemmas(englishTokens, normalizeLanguageId("en"))).toBe(
+      "run test",
+    );
+    expect(joinLemmas(cjkTokens, normalizeLanguageId("zh-Hans"))).toBe(
+      "运行测试",
+    );
   });
 
   it("uses the token surface when an analyzer returns an empty lemma", () => {
     const tokens = [makeToken("允许", ""), makeToken("传送", "")];
 
     expect(normalizeTokenLemma(tokens[0]!)).toBe("允许");
-    expect(joinLemmas(tokens, "zh-Hans")).toBe("允许传送");
+    expect(joinLemmas(tokens, normalizeLanguageId("zh-Hans"))).toBe("允许传送");
   });
 
   it("builds bounded token windows with shared normalization rules", () => {
@@ -68,7 +74,7 @@ describe("language-analysis-normalization", () => {
         makeToken("tests", "test"),
         makeToken("daily", "daily"),
       ],
-      "en",
+      normalizeLanguageId("en"),
       2,
     );
 

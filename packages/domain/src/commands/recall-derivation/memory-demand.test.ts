@@ -4,11 +4,13 @@ import {
   memoryRecallVariant,
   recallDerivationState,
   recallDerivationTaskDemand,
+  sql,
 } from "@cat/db";
 import {
   CanonicalInputVersionSchema,
   LanguageAnalysisSelectionFingerprintSchema,
   LanguageAnalysisWildcardSelectionKey,
+  RecallDerivationReferenceSchema,
   RecallDerivationVersionSchema,
   ServiceImplementationReferenceSchema,
 } from "@cat/shared";
@@ -35,6 +37,7 @@ import { executeCommand, executeQuery } from "#/executor.ts";
 import { listVariantMemorySuggestions } from "#/queries/memory/list-variant-memory-suggestions.query.ts";
 import { getRecallDerivationStates } from "#/queries/recall-derivation/get-recall-derivation-states.query.ts";
 import { setupTestDB, type TestDB } from "#/testing/setup-test-db.ts";
+import type { DbHandle } from "#/types.ts";
 
 describe("Memory Recall Derivation demand", () => {
   let db: TestDB;
@@ -106,6 +109,138 @@ describe("Memory Recall Derivation demand", () => {
         /^sha256:[a-f0-9]{64}$/.test(state.canonicalInputVersion),
       ),
     ).toBe(true);
+  });
+
+  it("projects overlapping Task batches without lock-order deadlock", async () => {
+    await executeCommand({ db: db.client }, ensureLanguages, {
+      languageIds: ["en"],
+    });
+    const user = await executeCommand({ db: db.client }, createUser, {
+      email: `projection-lock-${crypto.randomUUID()}@example.com`,
+      name: "Projection lock owner",
+    });
+    const project = await executeCommand({ db: db.client }, createProject, {
+      creatorId: user.id,
+      description: null,
+      name: "Projection lock project",
+    });
+    await db.client.insert(recallDerivationState).values({
+      targetKind: "MEMORY_ITEM",
+      targetId: "700",
+      languageId: "en",
+      canonicalInputVersion: CanonicalInputVersionSchema.parse(
+        `sha256:${"7".repeat(64)}`,
+      ),
+    });
+    const reference = RecallDerivationReferenceSchema.parse({
+      targetKind: "MEMORY_ITEM",
+      targetId: "700",
+      languageId: "en",
+      demandRevision: 1,
+    });
+    const createTask = async () =>
+      await executeCommand({ db: db.client }, createRecallDerivationTask, {
+        references: [reference],
+        scope: { type: "PROJECT", id: project.id },
+        actor: { type: "USER", id: user.id },
+        resources: [{ type: "PROJECT", id: project.id }],
+      });
+    const [taskA, taskB] = await Promise.all([createTask(), createTask()]);
+    const orderedTasks = [taskA, taskB].sort((left, right) =>
+      left.id.localeCompare(right.id),
+    );
+    const firstTask = orderedTasks[0]!;
+    const secondTask = orderedTasks[1]!;
+    const [holderDb, batchDb, singleDb] = await Promise.all([
+      db.openConcurrentClient(),
+      db.openConcurrentClient(),
+      db.openConcurrentClient(),
+    ]);
+    let releaseHolder = (): void => undefined;
+    const holderRelease = new Promise<void>((resolve) => {
+      releaseHolder = resolve;
+    });
+    let holderReady = (): void => undefined;
+    const held = new Promise<void>((resolve) => {
+      holderReady = resolve;
+    });
+    const backendPid = async (client: DbHandle) =>
+      (
+        await client.execute<{ pid: number }>(
+          sql`SELECT pg_backend_pid()::integer AS pid`,
+        )
+      ).rows[0]!.pid;
+    const waitForBlocker = async (
+      waitingPid: number,
+      blockerPid: number,
+      label: string,
+    ) => {
+      const deadline = Date.now() + 5_000;
+      while (true) {
+        const result = await db.client.execute<{ blocked: boolean }>(sql`
+          SELECT ${blockerPid} = ANY(pg_blocking_pids(${waitingPid})) AS blocked
+        `);
+        if (result.rows[0]?.blocked) return;
+        if (Date.now() >= deadline) {
+          throw new Error(`${label} did not reach its lock barrier`);
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    };
+    const [holderPid, batchPid, singlePid] = await Promise.all([
+      backendPid(holderDb.client),
+      backendPid(batchDb.client),
+      backendPid(singleDb.client),
+    ]);
+    const holder = holderDb.client.transaction(async (tx) => {
+      await tx
+        .select({ id: recallDerivationState.id })
+        .from(recallDerivationState)
+        .for("update");
+      holderReady();
+      await holderRelease;
+    });
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await held;
+      const batch = executeCommand(
+        { db: batchDb.client },
+        projectRecallDerivationTasks,
+        { taskIds: [firstTask.id, secondTask.id] },
+      );
+      await waitForBlocker(batchPid, holderPid, "[A, B] projection");
+
+      const single = executeCommand(
+        { db: singleDb.client },
+        projectRecallDerivationTasks,
+        { taskIds: [secondTask.id] },
+      );
+      await waitForBlocker(singlePid, batchPid, "[B] projection");
+
+      releaseHolder();
+      const [first, second] = await Promise.race([
+        Promise.all([batch, single]),
+        new Promise<never>((_resolve, reject) => {
+          timeout = setTimeout(
+            () => reject(new Error("projection lock timeout")),
+            5_000,
+          );
+        }),
+      ]);
+      await holder;
+      expect(first).toHaveLength(2);
+      expect(second).toHaveLength(1);
+      expect(first.every((summary) => summary.state.revision >= 0)).toBe(true);
+    } finally {
+      if (timeout !== undefined) clearTimeout(timeout);
+      releaseHolder();
+      await Promise.allSettled([holder]);
+      await Promise.all([
+        holderDb.cleanup(),
+        batchDb.cleanup(),
+        singleDb.cleanup(),
+      ]);
+    }
   });
 
   it("removes obsolete language states when an upsert changes language shape", async () => {

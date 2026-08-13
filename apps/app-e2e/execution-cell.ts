@@ -16,7 +16,7 @@ import {
 } from "node:net";
 import { join, resolve } from "node:path";
 
-import { DrizzleDB, vectorizedString } from "@cat/db";
+import { DrizzleDB, task, vectorizedString } from "@cat/db";
 import {
   createContentNodeUnderParent,
   createElements,
@@ -33,7 +33,12 @@ import {
   updatePRStatus,
 } from "@cat/domain";
 import { loadDevSeed, runFixtureHydration, type RefResolver } from "@cat/seed";
-import { formatDiagnosticErrorTree, redactDiagnosticText } from "@cat/shared";
+import {
+  BatchAutoTranslationTaskPayloadSchema,
+  formatDiagnosticErrorTree,
+  redactDiagnosticText,
+  TaskRuntimeSchema,
+} from "@cat/shared";
 import { Client } from "pg";
 import { createClient } from "redis";
 
@@ -43,21 +48,31 @@ import {
   type DevProbeWorkspace,
 } from "./dev-probe-workspace.ts";
 import { parseE2ERefs } from "./e2e-refs.ts";
-import { paginationFixtureCount } from "./pagination-fixture.ts";
+import {
+  paginationFixtureCount,
+  taskPaginationFixtureCount,
+} from "./pagination-fixture.ts";
 import type {
   TestServiceDatabaseCleanup,
   TestServiceLease,
 } from "./test-service-lease.ts";
 
 const root = resolve(import.meta.dirname, "../..");
-const e2eArtifactRoot = join(root, ".tmp", "e2e");
+export const e2eArtifactRootFrom = (env: NodeJS.ProcessEnv): string =>
+  resolve(
+    env.CAT_E2E_ARTIFACT_ROOT === undefined || env.CAT_E2E_ARTIFACT_ROOT === ""
+      ? join(root, ".tmp", "e2e")
+      : env.CAT_E2E_ARTIFACT_ROOT,
+  );
 const startupTimeoutMs = 300_000;
-const cleanupTimeoutMs = 60_000;
-const cleanupSettlementTimeoutMs = 10_000;
+export const executionCellCleanupTimeoutMs = 60_000;
+const cleanupTimeoutMs = executionCellCleanupTimeoutMs;
+export const executionCellCleanupSettlementTimeoutMs = 10_000;
+const cleanupSettlementTimeoutMs = executionCellCleanupSettlementTimeoutMs;
 const processTerminationGraceMs = 5_000;
 const forcedProcessExitTimeoutMs = 5_000;
 const logDrainTimeoutMs = 5_000;
-const playwrightTimeoutMs = 480_000;
+export const playwrightTimeoutMs = 10 * 60_000;
 
 export type ExecutionTarget = "dev" | "standalone" | "runtime";
 export type ExecutionBrowser = "chromium" | "firefox";
@@ -3120,6 +3135,73 @@ const seedPaginationFixtures = async (
   }
 };
 
+const seedTaskPaginationFixtures = async (
+  db: DrizzleDB["client"],
+  refs: RefResolver,
+): Promise<void> => {
+  const actorId = refs.getStringId("user:admin");
+  const projectId = refs.getStringId("project");
+  const vectorStorage = {
+    pluginId: "e2e.vector-storage",
+    serviceId: "default",
+    serviceType: "VECTOR_STORAGE" as const,
+    scopeType: "GLOBAL" as const,
+    scopeId: "" as const,
+  };
+  const vectorizer = {
+    pluginId: "e2e.vectorizer",
+    serviceId: "default",
+    serviceType: "TEXT_VECTORIZER" as const,
+    scopeType: "GLOBAL" as const,
+    scopeId: "" as const,
+  };
+  const batchPayload = BatchAutoTranslationTaskPayloadSchema.parse({
+    invocation: {
+      projectId,
+      contentNodeIds: [],
+      elementIds: [],
+      sortMode: "structure",
+      languageId: "zh-Hans",
+      minMemorySimilarity: 0.72,
+      maxMemoryAmount: 3,
+      memoryVectorStorage: vectorStorage,
+      translationVectorStorage: vectorStorage,
+      vectorizer,
+      translatorId: actorId,
+      memoryIds: [],
+      glossaryIds: [],
+    },
+    cancelable: true,
+  });
+  const batchRuntime = TaskRuntimeSchema.parse({
+    kind: "BATCH_AUTO_TRANSLATION",
+    phase: null,
+    result: {
+      translationIds: [],
+      translatedElementIds: [],
+      skippedElementIds: [],
+    },
+  });
+  await db.insert(task).values(
+    Array.from({ length: taskPaginationFixtureCount }, (_, index) => ({
+      id: randomUUID(),
+      kind: "BATCH_AUTO_TRANSLATION" as const,
+      payload: batchPayload,
+      status: "COMPLETED" as const,
+      scopeType: "PROJECT" as const,
+      scopeId: projectId,
+      actorType: "USER" as const,
+      actorId,
+      resources: [{ type: "PROJECT" as const, id: projectId }],
+      progressCurrent: 1,
+      progressTotal: 1,
+      runtime: batchRuntime,
+      createdAt: new Date(Date.UTC(2024, 0, 1, 0, 0, index)),
+      updatedAt: new Date(Date.UTC(2024, 0, 1, 0, 0, index)),
+    })),
+  );
+};
+
 const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
   const database = new DrizzleDB(runtime.databaseUrl);
   await database.connect();
@@ -3138,6 +3220,7 @@ const hydrateFixtures = async (runtime: CellRuntime): Promise<void> => {
     await seedQaReviewDeferTarget(database.client, result.refs);
     await seedBranchWorkspace(database.client, result.refs);
     await seedPaginationFixtures(database.client, result.refs);
+    await seedTaskPaginationFixtures(database.client, result.refs);
     const refs = parseE2ERefs(
       Object.fromEntries(
         [...result.refs.entries()].map(([key, value]) => [key, String(value)]),
@@ -3383,6 +3466,7 @@ export class ExecutionCell {
 
   private async createRuntime(): Promise<CellRuntime> {
     const cellId = randomUUID();
+    const e2eArtifactRoot = e2eArtifactRootFrom(process.env);
     await mkdir(e2eArtifactRoot, { recursive: true });
     const artifactDirectory = await mkdtemp(
       join(

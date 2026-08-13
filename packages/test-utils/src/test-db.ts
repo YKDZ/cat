@@ -11,7 +11,7 @@ import {
   generateMigration,
 } from "drizzle-kit/api-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Client } from "pg";
+import { Client, Pool } from "pg";
 
 export type TestDB = DrizzleDB & {
   cleanup: () => Promise<void>;
@@ -19,6 +19,10 @@ export type TestDB = DrizzleDB & {
     client: DrizzleDB["client"];
     cleanup: () => Promise<void>;
   }>;
+  openPooledClient: () => {
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  };
 };
 
 /** Create a migrated NodePg test database and register it for test consumers. */
@@ -39,6 +43,29 @@ export const setupTestDB = async (): Promise<TestDB> => {
   }
 
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
+  const childCleanups = new Set<() => Promise<void>>();
+  const registerChildCleanup = (
+    cleanupChild: () => Promise<void>,
+  ): (() => Promise<void>) => {
+    let cleanupAttempt: Promise<void> | undefined;
+    let cleaned = false;
+    const cleanup = async (): Promise<void> => {
+      if (cleaned) return;
+      if (cleanupAttempt) return await cleanupAttempt;
+
+      const attempt = cleanupChild();
+      cleanupAttempt = attempt;
+      try {
+        await attempt;
+        cleaned = true;
+        childCleanups.delete(cleanup);
+      } finally {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      }
+    };
+    childCleanups.add(cleanup);
+    return cleanup;
+  };
   try {
     await client.query(`CREATE SCHEMA "${schemaName}"`);
   } catch (error) {
@@ -108,21 +135,49 @@ export const setupTestDB = async (): Promise<TestDB> => {
     cleanup: () => Promise<void>;
   }> => {
     const concurrent = new Client({ connectionString });
+    const cleanup = registerChildCleanup(async () => {
+      await concurrent.end();
+    });
     try {
       await concurrent.connect();
       await concurrent.query(`SET search_path TO "${schemaName}", public`);
-    } catch (error) {
-      await concurrent.end();
-      throw error;
+    } catch (setupError) {
+      try {
+        await cleanup();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [setupError, cleanupError],
+          "Concurrent test database client setup and cleanup failed.",
+        );
+      }
+      throw setupError;
     }
     return {
       client: drizzle({
         client: concurrent,
         relations,
       }) as unknown as DrizzleDB["client"],
-      cleanup: async () => {
-        await concurrent.end();
-      },
+      cleanup,
+    };
+  };
+
+  const openPooledClient = (): {
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  } => {
+    const pool = new Pool({
+      connectionString,
+      options: `-c search_path=${schemaName},public`,
+    });
+    const cleanup = registerChildCleanup(async () => {
+      await pool.end();
+    });
+    return {
+      client: drizzle({
+        client: pool,
+        relations,
+      }) as unknown as DrizzleDB["client"],
+      cleanup,
     };
   };
 
@@ -133,9 +188,33 @@ export const setupTestDB = async (): Promise<TestDB> => {
     if (globalThis["__DRIZZLE_DB__"] === drizzleDB) {
       globalThis["__DRIZZLE_DB__"] = undefined;
     }
-    await cleanupSchema();
+    const errors: unknown[] = [];
+    for (const cleanupChild of [...childCleanups]) {
+      try {
+        // Child resources are closed in creation order before dropping their schema.
+        // oxlint-disable-next-line no-await-in-loop
+        await cleanupChild();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
+    try {
+      await cleanupSchema();
+    } catch (error) {
+      errors.push(error);
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) {
+      throw new AggregateError(errors, "Test database cleanup failed.");
+    }
   };
 
-  // oxlint-disable-next-line typescript/no-misused-spread, no-unsafe-type-assertion
-  return { ...drizzleDB, cleanup, openConcurrentClient } as unknown as TestDB;
+  // oxlint-disable-next-line no-unsafe-type-assertion
+  return {
+    // oxlint-disable-next-line typescript/no-misused-spread
+    ...drizzleDB,
+    cleanup,
+    openConcurrentClient,
+    openPooledClient,
+  } as unknown as TestDB;
 };

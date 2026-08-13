@@ -464,9 +464,28 @@ const component: ComponentData = { name: "example", slot: "example", url: "examp
 const token: Token = { type: "text", value: "x", start: 0, end: 1 };
 declare const pluginContext: PluginContext;
 pluginContext.logger.error("plugin diagnostic", { code: "PLUGIN_DIAGNOSTIC" });
+const registeredService = pluginContext.registeredServices[0]!;
+void [registeredService.type, registeredService.id, registeredService.dbId];
+// @ts-expect-error Plugin contexts expose service records, not persisted scope identity.
+registeredService.scopeType;
+// @ts-expect-error Plugin contexts expose service records, not persisted scope identity.
+registeredService.scopeId;
 declare const pluginLogger: PluginLogger;
 const pluginManager = PluginManager.get("GLOBAL", "", undefined, pluginLogger);
 pluginManager.getDiagnosticLogger().info("host diagnostic");
+pluginManager.createServiceImplementationReference({
+  pluginId: "consumer-plugin",
+  id: "consumer-language-analyzer",
+  type: "LANGUAGE_ANALYZER",
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+// @ts-expect-error Published service references require their persisted scope identity.
+pluginManager.createServiceImplementationReference({
+  pluginId: "consumer-plugin",
+  id: "consumer-language-analyzer",
+  type: "LANGUAGE_ANALYZER",
+});
 const serviceRegistry = new ServiceRegistry([], pluginLogger);
 const consumerAnalyzer = new ConsumerLanguageAnalyzer();
 void [plugin, component, token, consumerAnalyzer, serviceRegistry, AuthFactor, FileImporter, QAChecker, createSandbox, safeCustomElements];

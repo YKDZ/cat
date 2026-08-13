@@ -11,6 +11,7 @@ import {
   executeCommand,
   executeQuery,
   getChangesetEntries,
+  listLocalizationTasks,
   ensureLanguages,
   listBranchChangesetEntries,
   listBranchChangesetIds,
@@ -38,6 +39,9 @@ import type { Context } from "#/utils/context.ts";
 
 const mocks = vi.hoisted(() => ({
   permissionCheck: vi.fn(async () => true),
+  writeMode: vi.fn(
+    async (): Promise<"direct" | "isolation" | "no_access"> => "direct",
+  ),
 }));
 
 vi.mock("@cat/permissions", async () => {
@@ -51,7 +55,7 @@ vi.mock("@cat/permissions", async () => {
     getPermissionEngine: () => ({
       check: mocks.permissionCheck,
     }),
-    determineWriteMode: async () => "direct" as const,
+    determineWriteMode: mocks.writeMode,
     loadUserSystemRoles: async () => [],
   };
 });
@@ -71,6 +75,7 @@ let creatorId: string;
 
 const createContext = (
   client: Context["drizzleDB"]["client"] = testDb.client,
+  scopes: string[] | null = null,
 ): Context => {
   const base = createAuthedTestContext(
     {
@@ -102,7 +107,7 @@ const createContext = (
       subjectType: "user",
       subjectId: creatorId,
       systemRoles: [],
-      scopes: null,
+      scopes,
     },
     csrfToken: "csrf-token",
     isSSR: true,
@@ -138,6 +143,8 @@ describe("VCS branch-aware entrypoint guards", () => {
   beforeEach(() => {
     mocks.permissionCheck.mockReset();
     mocks.permissionCheck.mockResolvedValue(true);
+    mocks.writeMode.mockReset();
+    mocks.writeMode.mockResolvedValue("direct");
   });
 
   it("rejects branch comments without an explicit projectId", async () => {
@@ -282,8 +289,17 @@ describe("VCS branch-aware entrypoint guards", () => {
     });
   });
 
-  it("rejects branch glossary term inserts without an explicit projectId", async () => {
+  it("resolves a branch glossary write from the server-owned branch project", async () => {
     const project = await seedProject("glossary-project");
+    const glossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `Branch resolution ${randomUUID()}`,
+        creatorId,
+        projectIds: [project.id],
+      },
+    );
     const pr = await executeCommand({ db: testDb.client }, createPR, {
       projectId: project.id,
       title: "Glossary branch",
@@ -302,17 +318,259 @@ describe("VCS branch-aware entrypoint guards", () => {
       call(
         insertTerm,
         {
-          glossaryId: randomUUID(),
+          glossaryId: glossary.id,
           termsData: [],
           operation: "DIRECT_WRITE",
           branchId: pr.branchId,
         },
         { context: createContext() },
       ),
+    ).resolves.toEqual({ derivations: [] });
+  });
+
+  it("projects forced isolation and relationship denial through the glossary contract", async () => {
+    const project = await seedProject("glossary-contract-denial");
+    const glossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `Contract denial ${randomUUID()}`,
+        creatorId,
+        projectIds: [project.id],
+      },
+    );
+    mocks.writeMode.mockResolvedValueOnce("isolation");
+    await expect(
+      call(
+        insertTerm,
+        {
+          glossaryId: glossary.id,
+          projectId: project.id,
+          termsData: [],
+          operation: "DIRECT_WRITE",
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      data: {
+        operationContractErrorIdentifier: "execution_denied",
+        operationFailure: { authorizationDecision: "write_mode_denied" },
+      },
+    });
+
+    mocks.permissionCheck.mockResolvedValueOnce(false);
+    await expect(
+      call(
+        insertTerm,
+        {
+          glossaryId: glossary.id,
+          termsData: [],
+          operation: "DIRECT_WRITE",
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      data: {
+        operationContractErrorIdentifier: "relationship_denied",
+        operationFailure: {
+          code: "CAT_OPERATION_RELATIONSHIP_DENIED",
+          message: "rebac_denied: glossary editor relationship is required",
+        },
+      },
+    });
+  });
+
+  it("requires both glossary and project API scopes for direct project writes", async () => {
+    const project = await seedProject("glossary-scope-denial");
+    const glossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `Scope denial ${randomUUID()}`,
+        creatorId,
+        projectIds: [project.id],
+      },
+    );
+    const cases: Array<{ scopes: string[]; requiredScope?: string }> = [
+      { scopes: [], requiredScope: "glossary:editor" },
+      { scopes: ["project:editor"], requiredScope: "glossary:editor" },
+      { scopes: ["glossary:editor"], requiredScope: "project:editor" },
+      { scopes: ["glossary:editor", "project:editor"] },
+    ];
+    for (const scopeCase of cases) {
+      const invocation = call(
+        insertTerm,
+        {
+          glossaryId: glossary.id,
+          projectId: project.id,
+          termsData: [],
+          operation: "DIRECT_WRITE",
+        },
+        { context: createContext(testDb.client, scopeCase.scopes) },
+      );
+      if (scopeCase.requiredScope === undefined) {
+        await expect(invocation).resolves.toMatchObject({ derivations: [] });
+        continue;
+      }
+      await expect(invocation).rejects.toMatchObject({
+        code: "FORBIDDEN",
+        data: {
+          operationContractErrorIdentifier: "execution_denied",
+          operationFailure: {
+            authorizationDecision: "api_key_scope_denied",
+            message: `api_key_scope_denied: ${scopeCase.requiredScope} scope is required`,
+          },
+        },
+      });
+    }
+  });
+
+  it("does not create an empty branch changeset before binding access succeeds", async () => {
+    const ownerProject = await seedProject("glossary-binding-owner");
+    const branchProject = await seedProject("glossary-binding-branch");
+    const glossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `Binding denial ${randomUUID()}`,
+        creatorId,
+        projectIds: [ownerProject.id],
+      },
+    );
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId: branchProject.id,
+      title: "Unlinked glossary branch",
+      body: "",
+      reviewers: [],
+      authorId: creatorId,
+    });
+    await expect(
+      call(
+        insertTerm,
+        {
+          glossaryId: glossary.id,
+          projectId: branchProject.id,
+          branchId: pr.branchId,
+          termsData: [],
+          operation: "DIRECT_WRITE",
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      data: { operationContractErrorIdentifier: "relationship_denied" },
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, listBranchChangesetIds, {
+        branchId: pr.branchId,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it("rejects a contradictory branch project without appending a branch change", async () => {
+    const requestedProject = await seedProject("glossary-requested-project");
+    const branchProject = await seedProject("glossary-branch-project");
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId: branchProject.id,
+      title: "Contradictory glossary branch",
+      body: "",
+      reviewers: [],
+      authorId: creatorId,
+    });
+
+    await expect(
+      call(
+        insertTerm,
+        {
+          glossaryId: randomUUID(),
+          projectId: requestedProject.id,
+          branchId: pr.branchId,
+          termsData: [],
+          operation: "DIRECT_WRITE",
+        },
+        { context: createContext() },
+      ),
     ).rejects.toMatchObject({
       code: "BAD_REQUEST",
-      message: "projectId is required when branchId is provided",
+      data: { operationContractErrorIdentifier: "invalid_input" },
     });
+    await expect(
+      executeQuery({ db: testDb.client }, listBranchChangesetEntries, {
+        branchId: pr.branchId,
+      }),
+    ).resolves.toEqual([]);
+  });
+
+  it("rolls back an earlier aggregate write when a later term group fails", async () => {
+    await executeCommand({ db: testDb.client }, ensureLanguages, {
+      languageIds: ["en", "zh-Hans"],
+    });
+    const project = await seedProject("glossary-write-rollback");
+    const glossary = await executeCommand(
+      { db: testDb.client },
+      createGlossary,
+      {
+        name: `Rollback ${randomUUID()}`,
+        creatorId,
+        projectIds: [project.id],
+      },
+    );
+    await expect(
+      call(
+        insertTerm,
+        {
+          glossaryId: glossary.id,
+          projectId: project.id,
+          operation: "BULK_IMPORT",
+          termsData: [
+            {
+              definition: "first group",
+              term: "first",
+              translation: "first target",
+              termLanguageId: "en",
+              translationLanguageId: "zh-Hans",
+            },
+            {
+              definition: "second group",
+              term: "second",
+              translation: "second target",
+              termLanguageId: "missing-language",
+              translationLanguageId: "zh-Hans",
+            },
+          ],
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({
+      code: "INTERNAL_SERVER_ERROR",
+      data: { operationContractErrorIdentifier: "operation_failed" },
+    });
+    await expect(
+      executeQuery({ db: testDb.client }, countGlossaryConcepts, {
+        glossaryId: glossary.id,
+      }),
+    ).resolves.toBe(0);
+    await expect(
+      executeQuery({ db: testDb.client }, listChangesets, {
+        projectId: project.id,
+        limit: 10,
+        offset: 0,
+      }),
+    ).resolves.toEqual([]);
+    await expect(
+      executeQuery({ db: testDb.client }, listLocalizationTasks, {
+        projectId: project.id,
+        kind: "RECALL_DERIVATION",
+        pageSize: 20,
+        authorization: {
+          viewerId: creatorId,
+          authorizedProjectIds: [project.id],
+          systemAdmin: false,
+        },
+      }),
+    ).resolves.toMatchObject({ total: 0 });
   });
 
   it("retries concurrent branch glossary inserts without losing aggregate terms", async () => {

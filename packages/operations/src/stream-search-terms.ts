@@ -1,5 +1,6 @@
 import type { OperationContext } from "@cat/domain";
 import {
+  NormalizedLanguageIdSchema,
   TermRecallStreamEventSchema,
   type TermRecallStreamEvent,
 } from "@cat/shared";
@@ -14,8 +15,8 @@ import {
 export const StreamSearchTermsInputSchema = z.strictObject({
   glossaryIds: z.array(z.string()),
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   minConfidence: z.number().min(0).max(1).optional().default(0.6),
   maxAmount: z.int().min(1).optional().default(20),
 });
