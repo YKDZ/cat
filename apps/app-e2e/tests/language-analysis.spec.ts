@@ -342,6 +342,6 @@ test.describe("Language Analysis policy surfaces", () => {
       assessmentStatus: "SATISFIED",
       observationStatus: "SATISFIED",
     });
-    expect(await waitForStableRequestCounts()).toEqual(before);
+    expect(await requestCounts()).toEqual(before);
   });
 });
