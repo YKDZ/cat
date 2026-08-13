@@ -11,7 +11,7 @@ import {
   getAgentRunInternalId,
   saveAgentRunSnapshot,
 } from "@cat/domain";
-import { setupTestDB, type TestDB } from "@cat/test-utils";
+import { setupTestDB, sql, type TestDB } from "@cat/test-utils";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { InProcessEventBus } from "#/graph/event-bus.ts";
@@ -108,6 +108,14 @@ const createDeferred = <T = void>(): {
       resolve?.(value);
     },
   };
+};
+
+const expireRunOwnership = async (runId: string): Promise<void> => {
+  await db.client.execute(sql`
+    UPDATE "AgentRun"
+    SET owner_lease_expires_at = clock_timestamp() - interval '1 second'
+    WHERE external_id = ${runId}
+  `);
 };
 
 describe("PostgresCheckpointer owner fencing", () => {
@@ -287,7 +295,7 @@ describe("PostgresCheckpointer owner fencing", () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     });
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    await expireRunOwnership(runId);
 
     const other = await db.openConcurrentClient();
     const newOwner = new PostgresCheckpointer(other.client, {
@@ -450,7 +458,7 @@ describe("PostgresCheckpointer owner fencing", () => {
     const owner = new PostgresCheckpointer(db.client, { ownerLeaseMs: 30_000 });
     expect(await owner.claimRunOwnership(run.runId)).toBe(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    await expireRunOwnership(run.runId);
 
     expect(await owner.renewRunOwnership(run.runId)).toBe(false);
     await expect(
@@ -471,7 +479,7 @@ describe("PostgresCheckpointer owner fencing", () => {
     const staleFence = owner.getRunOwnershipFence(run.runId);
     expect(staleFence).not.toBeNull();
 
-    await new Promise((resolve) => setTimeout(resolve, 80));
+    await expireRunOwnership(run.runId);
 
     expect(await owner.claimRunOwnership(run.runId)).toBe(true);
     const currentFence = owner.getRunOwnershipFence(run.runId);
@@ -498,7 +506,7 @@ describe("PostgresCheckpointer owner fencing", () => {
     expect(await ownerA.claimRunOwnership(run.runId)).toBe(true);
     expect(await ownerB.claimRunOwnership(run.runId)).toBe(false);
 
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await expireRunOwnership(run.runId);
     expect(await ownerB.claimRunOwnership(run.runId)).toBe(true);
 
     const snapshot = {
