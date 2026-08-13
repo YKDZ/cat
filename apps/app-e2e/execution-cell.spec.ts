@@ -2812,13 +2812,16 @@ describe("ExecutionCell scheduler", () => {
   it("preserves no-color semantics without passing conflicting variables to Playwright", () => {
     expect(
       playwrightChildEnvironment({
+        CAT_E2E_OUTPUT_DIR: "/tmp/cell-a/playwright",
         FORCE_COLOR: "3",
         NO_COLOR: "1",
         PATH: "/bin",
       }),
     ).toEqual({
+      CAT_E2E_OUTPUT_DIR: "/tmp/cell-a/playwright",
       FORCE_COLOR: "0",
       PATH: "/bin",
+      PWTEST_CACHE_DIR: "/tmp/cell-a/playwright/transform-cache",
     });
     expect(
       playwrightChildEnvironment({ FORCE_COLOR: "3", PATH: "/bin" }),
@@ -2826,6 +2829,25 @@ describe("ExecutionCell scheduler", () => {
       FORCE_COLOR: "3",
       PATH: "/bin",
     });
+  });
+
+  it("isolates Playwright transform caches between concurrent cells", () => {
+    const first = playwrightChildEnvironment({
+      CAT_E2E_OUTPUT_DIR: "/tmp/cell-a/playwright",
+      PWTEST_CACHE_DIR: "/tmp/shared-playwright-cache",
+    });
+    const second = playwrightChildEnvironment({
+      CAT_E2E_OUTPUT_DIR: "/tmp/cell-b/playwright",
+      PWTEST_CACHE_DIR: "/tmp/shared-playwright-cache",
+    });
+
+    expect(first.PWTEST_CACHE_DIR).toBe(
+      "/tmp/cell-a/playwright/transform-cache",
+    );
+    expect(second.PWTEST_CACHE_DIR).toBe(
+      "/tmp/cell-b/playwright/transform-cache",
+    );
+    expect(first.PWTEST_CACHE_DIR).not.toBe(second.PWTEST_CACHE_DIR);
   });
 
   it("does not retry scenarios by default", async () => {
