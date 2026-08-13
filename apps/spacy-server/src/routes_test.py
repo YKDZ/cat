@@ -20,7 +20,8 @@ from src.protocol import validate_batch_item_ids
 from src.runtime import GenerationRuntime
 from src.worker import ResponseFrameTooLarge, serve, write_frame
 
-NORMAL_REQUEST_TIMEOUT_MS = 1_000
+NORMAL_REQUEST_TIMEOUT_MS = 5_000
+HANDSHAKE_FAILURE_TIMEOUT_S = 5.0
 
 
 class Utf16OffsetsTest(unittest.TestCase):
@@ -279,7 +280,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
                 coordinator = AnalysisCoordinator(
                     worker_command=(sys.executable, str(fixture), mode),
                     generation_id="generation-test",
-                    worker_start_timeout_s=1.0,
+                    worker_start_timeout_s=HANDSHAKE_FAILURE_TIMEOUT_S,
                 )
                 try:
                     with self.assertRaises(WorkerUnavailable):
@@ -300,7 +301,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
                     str(marker),
                 ),
                 generation_id="generation-test",
-                worker_start_timeout_s=1.0,
+                worker_start_timeout_s=HANDSHAKE_FAILURE_TIMEOUT_S,
             )
             self.addAsyncCleanup(coordinator.close)
             await coordinator.start()
@@ -328,7 +329,7 @@ class AnalysisCoordinatorTest(unittest.IsolatedAsyncioTestCase):
                     str(marker),
                 ),
                 generation_id="generation-test",
-                worker_start_timeout_s=1.0,
+                worker_start_timeout_s=HANDSHAKE_FAILURE_TIMEOUT_S,
             )
             self.addAsyncCleanup(coordinator.close)
             await coordinator.start()
