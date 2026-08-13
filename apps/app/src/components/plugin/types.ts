@@ -24,3 +24,8 @@ export type PluginActionResult = Awaited<ReturnType<PluginRouter["install"]>>;
 export type PluginProbeResult = Awaited<
   ReturnType<PluginRouter["probeConfig"]>
 >;
+
+/**
+ * Target currently being probed.
+ */
+export type PluginProbeTarget = PluginProbeResult["target"];

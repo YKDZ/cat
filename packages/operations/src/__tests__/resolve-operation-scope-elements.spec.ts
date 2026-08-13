@@ -358,6 +358,34 @@ describe("resolveOperationScopeElementsOp", () => {
     );
   });
 
+  it("chunks a resolved task snapshot larger than the detail-query limit", async () => {
+    const rows = Array.from({ length: 5_001 }, (_, index) => ({
+      id: index + 1,
+      projectId: PROJECT_ID,
+      primaryContentNodeId: FILE_A_ID,
+      value: `Element ${index + 1}`,
+      languageId: "en",
+      chunkIds: [index + 1],
+    }));
+    configureDomainMocks({
+      resolvedScopeElements: rows,
+      resolvedDetails: rows,
+    });
+
+    const result = await resolveOperationScopeElementsOp({
+      projectId: PROJECT_ID,
+      contentNodeIds: [],
+      elementIds: rows.map((row) => row.id),
+      sortMode: "structure",
+      languageToId: "zh-Hans",
+      statusFilter: "all",
+      exactElementIds: true,
+    });
+
+    expect(result.elements).toHaveLength(5_001);
+    expect(countQueryCalls(listElementsWithChunkIdsByIds)).toBe(2);
+  });
+
   it("passes reuse-first sort mode to paged editor-scope queries", async () => {
     await resolveOperationScopeElementsOp({
       projectId: PROJECT_ID,

@@ -4,10 +4,10 @@ import { Advisor } from "./advisor.ts";
 
 class Plugin implements CatPlugin {
   services(ctx: PluginContext) {
-    return [new Advisor(ctx.config ?? {})];
+    return [new Advisor(ctx.config ?? {}, ctx.logger)];
   }
 }
 
-const plugin = new Plugin();
+const plugin = new Plugin() satisfies CatPlugin;
 
 export default plugin;

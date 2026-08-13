@@ -1,4 +1,4 @@
-import type { QueueTask, TaskQueue } from "./task-queue.ts";
+import type { EnqueueOptions, QueueTask, TaskQueue } from "./task-queue.ts";
 
 /**
  * In-memory task queue implementation backed by Map, satisfies the TaskQueue interface (primarily for testing).
@@ -7,10 +7,21 @@ export class InMemoryTaskQueue<T> implements TaskQueue<T> {
   private pending: Map<string, QueueTask<T>> = new Map();
   private processing: Map<string, QueueTask<T>> = new Map();
 
-  enqueue = async (payloads: T[]): Promise<string[]> => {
+  enqueue = async (
+    payloads: T[],
+    options?: EnqueueOptions,
+  ): Promise<string[]> => {
+    if (
+      options?.taskIds !== undefined &&
+      options.taskIds.length !== payloads.length
+    ) {
+      throw new Error("taskIds length must match payloads length");
+    }
+
     const ids: string[] = [];
-    for (const payload of payloads) {
-      const id = crypto.randomUUID();
+    for (const [index, payload] of payloads.entries()) {
+      const id = options?.taskIds?.[index] ?? crypto.randomUUID();
+      if (this.pending.has(id) || this.processing.has(id)) continue;
       const task: QueueTask<T> = {
         id,
         payload,

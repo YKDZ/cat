@@ -8,5 +8,11 @@ export const memoryItemDiffStrategy: DiffStrategy = createGenericStrategy({
   entityType: "memory_item",
   semanticLabel: "Memory Item",
   impactScope: "CASCADING",
-  watchedFields: ["content", "type", "tags", "slotMapping"],
+  watchedFields: [
+    "memoryId",
+    "translationId",
+    "sourceStringId",
+    "translationStringId",
+    "creatorId",
+  ],
 });

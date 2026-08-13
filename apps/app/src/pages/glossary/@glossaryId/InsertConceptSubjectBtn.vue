@@ -52,7 +52,7 @@ const createSubject = async () => {
     // 触发刷新事件
     window.dispatchEvent(new CustomEvent("refresh-concepts"));
   } catch (error) {
-    logger.withSituation("WEB").error(error, "创建主题失败");
+    logger.child({ component: "web" }).error("创建主题失败", { error: error });
     toastStore.error(t("创建主题失败，请重试"));
   } finally {
     isCreating.value = false;

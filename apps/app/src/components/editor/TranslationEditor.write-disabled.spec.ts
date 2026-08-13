@@ -44,7 +44,7 @@ vi.mock("#/stores/editor/table.ts", async () => {
       translationValue: ref(mocks.translationValue),
       elementId: ref(mocks.elementId),
       translationTokens: ref(mocks.translationTokens),
-      editorView: ref(null),
+      setEditorView: vi.fn(),
     })),
   };
 });

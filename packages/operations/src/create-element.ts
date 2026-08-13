@@ -1,6 +1,7 @@
 import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { createElements, executeCommand } from "@cat/domain";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
@@ -25,8 +26,8 @@ export const CreateElementInputSchema = z.object({
       sourceLocationMeta: z.json().nullable().optional(),
     }),
   ),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const CreateElementOutputSchema = z.object({
@@ -61,8 +62,8 @@ export const createElementOp = async (
         text: d.text,
         languageId: d.languageId,
       })),
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.vectorStorageId,
+      vectorizer: data.vectorizer,
+      vectorStorage: data.vectorStorage,
     },
     ctx,
   );

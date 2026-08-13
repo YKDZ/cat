@@ -1,5 +1,5 @@
 {
-  "$schema": "../../plugin-core/manifest-schema.json",
+  "$schema": "../../packages/plugin-core/manifest-schema.json",
   "id": "basic-qa-checker",
   "version": "0.1.0",
   "entry": "dist/index.js",

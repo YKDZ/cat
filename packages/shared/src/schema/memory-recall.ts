@@ -1,35 +1,37 @@
 import * as z from "zod";
 
-export const MemoryRecallBm25CompressionProfileSchema = z.enum([
-  "bm25-ratio-k1-v1",
-]);
+import { MemorySuggestionSchema } from "#/schema/misc.ts";
+import { RankingDecisionSchema } from "#/schema/precision-recall.ts";
+import {
+  createCandidateRecallResultSchema,
+  createCandidateStreamEventSchema,
+  RecallEvidenceSchema,
+} from "#/schema/recall.ts";
 
-export const MemoryRecallBm25CapabilityEntrySchema = z.object({
-  languageId: z.string(),
-  enabled: z.boolean(),
-  textSearchConfig: z.string().nullable(),
-  tokenizerLabel: z.string().nullable(),
-  compressionProfile: MemoryRecallBm25CompressionProfileSchema.nullable(),
-  disabledReason: z.string().nullable(),
+/**
+ * A memory candidate after recall has established its non-empty evidence set.
+ *
+ * MemorySuggestion remains the permissive persistence and display shape. Recall
+ * transport uses this stricter shape so successful candidates cannot cross a
+ * package or network boundary without evidence.
+ */
+export const MemoryRecallCandidateSchema = MemorySuggestionSchema.omit({
+  evidences: true,
+}).extend({
+  evidences: z.tuple([RecallEvidenceSchema], RecallEvidenceSchema),
+  rankingDecisions: z.array(RankingDecisionSchema).optional(),
 });
 
-export const MemoryRecallBm25CapabilityQuerySchema = z.object({
-  languageIds: z.array(z.string()).default([]),
-});
+export const MemoryRecallResultSchema = createCandidateRecallResultSchema(
+  MemoryRecallCandidateSchema,
+);
+export const MemoryRecallStreamEventSchema = createCandidateStreamEventSchema(
+  MemoryRecallCandidateSchema,
+  MemoryRecallResultSchema,
+);
 
-export const MemoryRecallBm25CapabilityDirectorySchema = z.object({
-  capabilities: z.array(MemoryRecallBm25CapabilityEntrySchema),
-});
-
-export type MemoryRecallBm25CompressionProfile = z.infer<
-  typeof MemoryRecallBm25CompressionProfileSchema
->;
-export type MemoryRecallBm25CapabilityEntry = z.infer<
-  typeof MemoryRecallBm25CapabilityEntrySchema
->;
-export type MemoryRecallBm25CapabilityQuery = z.infer<
-  typeof MemoryRecallBm25CapabilityQuerySchema
->;
-export type MemoryRecallBm25CapabilityDirectory = z.infer<
-  typeof MemoryRecallBm25CapabilityDirectorySchema
+export type MemoryRecallCandidate = z.infer<typeof MemoryRecallCandidateSchema>;
+export type MemoryRecallResult = z.infer<typeof MemoryRecallResultSchema>;
+export type MemoryRecallStreamEvent = z.infer<
+  typeof MemoryRecallStreamEventSchema
 >;

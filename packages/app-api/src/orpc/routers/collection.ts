@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { addElementContextEvidence, executeCommand } from "@cat/domain";
 import {
   finishPresignedPutFile,
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   preparePresignedPutFile,
 } from "@cat/server-shared";
 import { sanitizeFileName, StructuredContentPayloadSchema } from "@cat/shared";
@@ -13,6 +13,7 @@ import { ORPCError } from "@orpc/client";
 import * as z from "zod";
 
 import { authed, checkPermission } from "#/orpc/server.ts";
+import { assertProjectLanguageAnalysisPreflight } from "#/services/language-analysis-preflight.ts";
 
 /**
  * Ingest collection: accept CollectionPayload, run full ingestion pipeline.
@@ -33,8 +34,29 @@ export const ingest = authed
   .handler(async ({ context, input }) => {
     const { pluginManager } = context;
 
-    const vectorStorage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-    const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+    const languageAnalysisPolicySnapshot =
+      await assertProjectLanguageAnalysisPreflight(
+        input.projectId,
+        [
+          input.sourceLanguageId,
+          ...input.nodes.flatMap((node) =>
+            node.languageId === null || node.languageId === undefined
+              ? []
+              : [node.languageId],
+          ),
+          ...input.elements.map((element) => element.languageId),
+        ],
+        context,
+      );
+
+    const vectorStorage = selectFirstServiceImplementation(
+      pluginManager,
+      "VECTOR_STORAGE",
+    );
+    const vectorizer = selectFirstServiceImplementation(
+      pluginManager,
+      "TEXT_VECTORIZER",
+    );
 
     if (!vectorStorage || !vectorizer) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
@@ -44,8 +66,9 @@ export const ingest = authed
 
     const result = await runGraph(ingestCollectionGraph, {
       payload: input,
-      vectorizerId: vectorizer.id,
-      vectorStorageId: vectorStorage.id,
+      vectorizer: vectorizer.reference,
+      vectorStorage: vectorStorage.reference,
+      languageAnalysisPolicySnapshot,
     });
 
     return result;
@@ -76,7 +99,10 @@ export const prepareUpload = authed
       pluginManager,
     } = context;
 
-    const storage = firstOrGivenService(pluginManager, "STORAGE_PROVIDER");
+    const storage = selectFirstServiceImplementation(
+      pluginManager,
+      "STORAGE_PROVIDER",
+    );
     if (!storage) {
       throw new ORPCError("INTERNAL_SERVER_ERROR", {
         message: "No storage provider found",
@@ -90,7 +116,7 @@ export const prepareUpload = authed
       drizzle,
       sessionStore,
       storage.service,
-      storage.id,
+      storage.reference,
       key,
       name,
     );

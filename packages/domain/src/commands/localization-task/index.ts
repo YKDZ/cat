@@ -1,16 +1,10 @@
-export {
-  upsertLocalizationTask,
-  UpsertLocalizationTaskCommandSchema,
-  LocalizationTaskActorSchema,
-  LocalizationTaskAffectedResourceSchema,
-  LocalizationTaskFailureSchema,
-  LocalizationTaskMetaSchema,
-  OperationFailureAffectedResourceSchema,
-  OperationFailureSchema,
-  LocalizationTaskRelatedPullRequestSchema,
-  LocalizationTaskRelatedReviewableChangeSchema,
-  type LocalizationTaskMeta,
-  type LocalizationTaskSummary,
-  type OperationFailure,
-  type UpsertLocalizationTaskCommand,
+export type {
+  CreateLocalizationTaskCommand,
+  LocalizationTaskSummary,
 } from "./upsert-localization-task.cmd.ts";
+export {
+  assertExpectedRevision,
+  TaskRevisionConflictError,
+  transitionTaskStatus,
+  type TaskTransition,
+} from "./task-state.ts";

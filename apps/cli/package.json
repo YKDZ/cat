@@ -13,12 +13,14 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "format": "node ../../tooling/oxlint/run.ts format",
+    "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",
+    "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
     "generate:routes": "node scripts/generate-routes.ts",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
+    "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
     "test": "vitest run --reporter=agent --silent=passed-only --config package.json",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config package.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p apps/cli/tsconfig.json"
   },
   "dependencies": {
     "@cat/app-api": "link:../../packages/app-api",
@@ -26,6 +28,7 @@
     "@orpc/server": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@types/node": "catalog:",
     "vitest": "catalog:"
   }

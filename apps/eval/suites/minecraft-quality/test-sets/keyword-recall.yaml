@@ -1,0 +1,12 @@
+name: keyword-recall
+cases:
+  - id: "find-elytra"
+    inputText: "Find Elytra"
+    sourceLanguage: en
+    targetLanguage: "zh-Hans"
+    expectedMemories:
+      - memoryItemRef: "mem:adv:advancements_end_elytra_description"
+        expectedSource: "Find Elytra"
+        expectedTranslation: "找到鞘翅"
+        minimumConfidence: 0.95
+        requiredChannels: ["keyword"]

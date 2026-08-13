@@ -16,14 +16,22 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { createVectorizedStringGraph } from "../create-vectorized-string.ts";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -48,7 +56,7 @@ beforeAll(async () => {
   });
 
   installTestVectorizationQueue();
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("worker should insert strings to db", async () => {
@@ -70,8 +78,9 @@ test("worker should insert strings to db", async () => {
 
   const { stringIds } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   const strings = await executeQuery(
     { db: client },
@@ -110,8 +119,9 @@ test("empty input should return empty array", async () => {
 
   const { stringIds } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(stringIds.length).toEqual(0);
 });
@@ -131,14 +141,16 @@ test("worker should reuse existing strings", async () => {
 
   const { stringIds: ids1 } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   const { stringIds: ids2 } = await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(ids1[0]).toEqual(ids2[0]);

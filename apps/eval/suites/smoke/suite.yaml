@@ -5,9 +5,14 @@ seed:
   project: seed/project.json
   glossary: seed/glossary.json
 
+vectorization: skip
+
 plugins:
   loader: test
-  overrides: []
+  overrides:
+    - plugin: mock-language-analyzer
+      scope: GLOBAL
+      config: {}
 
 scenarios:
   - type: term-recall

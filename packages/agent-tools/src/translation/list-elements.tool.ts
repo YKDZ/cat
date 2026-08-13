@@ -69,6 +69,7 @@ export const listElementsTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = listElementsArgs.parse(args);
     const projectId = parsed.projectId ?? ctx.session.projectId;
     if (!projectId) {
@@ -88,6 +89,7 @@ export const listElementsTool: AgentToolDefinition = {
 
     assertProjectInSession(projectId, ctx);
     await assertContentNodesInSession(contentNodeIds, ctx);
+    ctx.signal.throwIfAborted();
 
     const { client: db } = await getDbHandle();
     const rows = await executeQuery({ db }, listEditorScopeElements, {
@@ -108,6 +110,7 @@ export const listElementsTool: AgentToolDefinition = {
       }),
       sortMode: "structure",
     });
+    ctx.signal.throwIfAborted();
 
     return {
       scope: { projectId, contentNodeIds, languageId },

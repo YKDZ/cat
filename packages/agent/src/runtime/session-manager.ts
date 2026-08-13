@@ -239,18 +239,23 @@ export class SessionManager {
   async completeSession(
     sessionId: string,
     runId: string,
-    status: "COMPLETED" | "FAILED",
+    status: "CANCELLED" | "COMPLETED" | "FAILED",
   ): Promise<void> {
     const { client: db } = await getDbHandle();
-    await Promise.all([
-      executeCommand({ db }, completeAgentSession, {
+    await db.transaction(async (tx) => {
+      await executeCommand({ db: tx }, completeAgentSession, {
         sessionId,
         finalStatus: status,
-      }),
-      executeCommand({ db }, finishAgentRun, {
+      });
+      await executeCommand({ db: tx }, finishAgentRun, {
         runId,
-        status: status === "COMPLETED" ? "completed" : "failed",
-      }),
-    ]);
+        status:
+          status === "COMPLETED"
+            ? "completed"
+            : status === "CANCELLED"
+              ? "cancelled"
+              : "failed",
+      });
+    });
   }
 }

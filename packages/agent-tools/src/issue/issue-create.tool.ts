@@ -34,11 +34,13 @@ export const issueCreateTool: AgentToolDefinition = {
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = issueCreateArgs.parse(args);
     const projectId = ctx.session.projectId;
 
-    return await executeCommand({ db }, createIssue, {
+    ctx.signal.throwIfAborted();
+    const issue = await executeCommand({ db }, createIssue, {
       projectId,
       title: parsed.title,
       body: parsed.body ?? "",
@@ -46,5 +48,6 @@ export const issueCreateTool: AgentToolDefinition = {
       assignees: [],
       labels: parsed.labels ?? [],
     });
+    return issue;
   },
 };

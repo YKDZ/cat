@@ -6,8 +6,8 @@ import type { AuthFactor } from "#/services/auth-factor.ts";
 import type { EmailProviderService } from "#/services/email-provider.ts";
 import type { FileExporter, FileImporter } from "#/services/file-handler.ts";
 import type { QAChecker, Tokenizer } from "#/services/index.ts";
+import type { LanguageAnalyzer } from "#/services/language-analyzer.ts";
 import type { LLMProvider } from "#/services/llm-provider.ts";
-import type { NlpWordSegmenter } from "#/services/nlp-word-segmenter.ts";
 import type { RerankProvider } from "#/services/rerank-provider.ts";
 import type { StorageProvider } from "#/services/storage-provider.ts";
 import type { TextVectorizer } from "#/services/text-vectorizer.ts";
@@ -28,7 +28,7 @@ export type PluginServiceTypeMap = {
   RERANK_PROVIDER: RerankProvider;
   AGENT_TOOL_PROVIDER: AgentToolProvider;
   AGENT_CONTEXT_PROVIDER: AgentContextProvider;
-  NLP_WORD_SEGMENTER: NlpWordSegmenter;
+  LANGUAGE_ANALYZER: LanguageAnalyzer;
   EMAIL_PROVIDER: EmailProviderService;
 };
 

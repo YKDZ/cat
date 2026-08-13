@@ -1,3 +1,4 @@
+import { normalizeLanguageId } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import type { CapturedScreenshot } from "#/types.ts";
@@ -36,7 +37,7 @@ describe("screenshot deduplication by filePath", () => {
           stableSourceRef: "el-1",
           sourceNodeRef: "",
           text: "Hello",
-          languageId: "",
+          languageId: normalizeLanguageId("en"),
           meta: {
             framework: "vue-i18n",
             file: "a.vue",
@@ -52,7 +53,7 @@ describe("screenshot deduplication by filePath", () => {
           stableSourceRef: "el-2",
           sourceNodeRef: "",
           text: "Hello",
-          languageId: "",
+          languageId: normalizeLanguageId("en"),
           meta: {
             framework: "vue-i18n",
             file: "b.vue",

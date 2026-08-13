@@ -19,16 +19,24 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { createElementGraph } from "../create-element.ts";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 let contentNodeId: string;
 let projectId: string;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -77,7 +85,7 @@ beforeAll(async () => {
   contentNodeId = contentNode.id;
 
   installTestVectorizationQueue();
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("create-element should insert elements to db", async () => {
@@ -129,8 +137,9 @@ test("create-element should insert elements to db", async () => {
 
   const { elementIds } = await runGraph(createElementGraph, {
     data: elementData,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(elementIds.length).toEqual(elementData.length);
@@ -151,8 +160,9 @@ test("create-element with empty data should return empty elementIds", async () =
 
   const { elementIds } = await runGraph(createElementGraph, {
     data: [],
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(elementIds).toEqual([]);
 });

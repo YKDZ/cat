@@ -1,8 +1,9 @@
 import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
-import { executeQuery, getChunkVectorStorageId } from "@cat/domain";
-import { PluginManager, type VectorStorage } from "@cat/plugin-core";
-import { getServiceFromDBId } from "@cat/server-shared";
+import { executeQuery, getChunkVectorStorageReference } from "@cat/domain";
+import { PluginManager } from "@cat/plugin-core";
+import { resolveServiceImplementation } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 export const RetrieveEmbeddingsInputSchema = z.object({
@@ -11,7 +12,7 @@ export const RetrieveEmbeddingsInputSchema = z.object({
 
 export const RetrieveEmbeddingsOutputSchema = z.object({
   embeddings: z.array(z.array(z.number())),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export type RetrieveEmbeddingsInput = z.infer<
@@ -42,27 +43,30 @@ export const retrieveEmbeddingsOp = async (
   const firstChunkId = data.chunkIds.at(0) ?? 0;
 
   // TODO 暂时假设所有 chunk 的 storageId 都相同
-  const vectorStorageId = await executeQuery(
+  const vectorStorage = await executeQuery(
     { db: drizzle },
-    getChunkVectorStorageId,
+    getChunkVectorStorageReference,
     {
       chunkId: firstChunkId,
     },
   );
-  if (vectorStorageId === null) {
+  if (vectorStorage === null) {
     throw new Error(`Chunk ${String(firstChunkId)} not found`);
   }
 
-  const vectorStorage = getServiceFromDBId<VectorStorage>(
+  const vectorStorageService = resolveServiceImplementation(
     pluginManager,
-    vectorStorageId,
+    vectorStorage,
+    "VECTOR_STORAGE",
   );
 
-  const chunks = await vectorStorage.retrieve({ chunkIds: data.chunkIds });
+  const chunks = await vectorStorageService.retrieve({
+    chunkIds: data.chunkIds,
+  });
   const embeddings = chunks.map((c) => c.vector);
 
   return {
     embeddings,
-    vectorStorageId,
+    vectorStorage,
   };
 };

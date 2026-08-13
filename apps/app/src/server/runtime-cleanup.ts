@@ -59,10 +59,9 @@ export const startPostgresRuntimeCleanup = (
     void Promise.all(
       cleanableStores.map(async (store) => store.cleanupExpired(batchSize)),
     ).catch((error: unknown) => {
-      serverLogger.warn(
-        { err: error },
-        "PostgreSQL runtime store cleanup failed",
-      );
+      serverLogger.warn("PostgreSQL runtime store cleanup failed", {
+        err: error,
+      });
     });
   }, intervalMs);
   timer.unref?.();

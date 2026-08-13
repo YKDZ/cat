@@ -6,6 +6,11 @@ import {
   domainEventBus,
   executeCommand,
 } from "@cat/domain";
+import {
+  RecallDerivationReferenceSchema,
+  ServiceImplementationReferenceSchema,
+  type RecallDerivationReference,
+} from "@cat/shared";
 import { zip } from "@cat/shared";
 import * as z from "zod";
 
@@ -25,13 +30,14 @@ export const CreateTranslationInputSchema = z.object({
   ),
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()).default([]),
-  vectorizerId: z.int().optional(),
-  vectorStorageId: z.int().optional(),
+  vectorizer: ServiceImplementationReferenceSchema.optional(),
+  vectorStorage: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const CreateTranslationOutputSchema = z.object({
   translationIds: z.array(z.int()),
   memoryItemIds: z.array(z.int()),
+  derivations: z.array(RecallDerivationReferenceSchema),
 });
 
 export const CreateTranslationPubPayloadSchema = z.object({
@@ -81,8 +87,8 @@ export const createTranslationOp = async (
         text: d.text,
         languageId: d.languageId,
       })),
-      vectorizerId: data.vectorizerId,
-      vectorStorageId: data.vectorStorageId,
+      vectorizer: data.vectorizer,
+      vectorStorage: data.vectorStorage,
     },
     ctx,
   );
@@ -109,11 +115,13 @@ export const createTranslationOp = async (
 
   // 4. 可选写入翻译记忆
   let memoryItemIds: number[] | undefined;
+  let derivations: RecallDerivationReference[] = [];
 
   if (data.memoryIds.length > 0) {
     await drizzle.transaction(async (tx) => {
-      memoryItemIds = (await insertMemory(tx, data.memoryIds, translationIds))
-        .memoryItemIds;
+      const inserted = await insertMemory(tx, data.memoryIds, translationIds);
+      memoryItemIds = inserted.memoryItemIds;
+      derivations = inserted.derivations;
     });
   }
 
@@ -127,5 +135,6 @@ export const createTranslationOp = async (
   return {
     translationIds,
     memoryItemIds: memoryItemIds ?? [],
+    derivations,
   };
 };

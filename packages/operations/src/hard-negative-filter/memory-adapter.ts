@@ -1,4 +1,5 @@
 import { serverLogger as logger } from "@cat/server-shared";
+import type { LanguageAnalysisToken } from "@cat/shared";
 
 import type {
   RawResult,
@@ -28,30 +29,26 @@ const toHnfCandidate = (r: RawMemoryResult): HnfCandidate => ({
  * Apply HNF pre-pipeline rules to memory recall results.
  *
  * @param results - Raw memory recall results
- * @param sourceNlpTokens - NLP tokens of the source text
+ * @param sourceLanguageAnalysisTokens - Language Analysis tokens of the source text
  * @param queryText - Query text
  * @returns - Removal records
  */
 export const applyMemoryHnfPre = (
   results: RawResult[],
-  sourceNlpTokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  sourceLanguageAnalysisTokens: LanguageAnalysisToken[],
   queryText: string,
 ): HardNegativeRemoval[] => {
   if (results.length === 0) return [];
 
-  const { contentWords, keyNouns } =
-    extractContentWordsFromTokens(sourceNlpTokens);
+  const { contentWords, keyNouns } = extractContentWordsFromTokens(
+    sourceLanguageAnalysisTokens,
+  );
   const queryTextLength = queryText.length;
 
   if (contentWords.length === 0) {
-    // NLP tokens not available — skip rules 1 and 3, only apply rule 2
+    // Language Analysis tokens not available — skip rules 1 and 3, only apply rule 2
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn("HNF(memory): no content words, skipping rules 1 and 3");
     return [];
   }
@@ -67,22 +64,24 @@ export const applyMemoryHnfPre = (
     queryTextLength,
   );
 
-  // In-place mutation: update confidence and evidences for kept candidates, remove filtered ones
+  // Keep filtering and confidence updates atomic for the caller-owned array.
   const keptKeys = new Set(kept.map((c) => c.candidateKey));
   for (const r of results) {
     if (r.surface !== "memory") continue;
     const key = candidateKey(r);
-    if (!keptKeys.has(key)) {
-      // Mark for removal from results array
-      (r as Record<string, unknown>)["_hnfRemoved"] = true;
-      continue;
-    }
+    if (!keptKeys.has(key)) continue;
     const updated = kept.find((c) => c.candidateKey === key);
     if (updated) {
       r.confidence = updated.confidence;
       r.evidences = updated.evidences;
     }
   }
+  const retained = results.filter(
+    (result) =>
+      result.surface !== "memory" || keptKeys.has(candidateKey(result)),
+  );
+  results.length = 0;
+  results.push(...retained);
 
   return removals;
 };
@@ -91,24 +90,21 @@ export const applyMemoryHnfPre = (
  * Apply HNF post-pipeline rules to ranked memory recall results.
  *
  * @param ranked - Ranked candidates with tier info
- * @param sourceNlpTokens - NLP tokens of the source text
+ * @param sourceLanguageAnalysisTokens - Language Analysis tokens of the source text
  * @returns - Removal records
  */
 export const applyMemoryHnfPost = (
   ranked: RecallCandidate[],
-  sourceNlpTokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  sourceLanguageAnalysisTokens: LanguageAnalysisToken[],
 ): HardNegativeRemoval[] => {
   if (ranked.length === 0) return [];
 
-  const { contentWords } = extractContentWordsFromTokens(sourceNlpTokens);
+  const { contentWords } = extractContentWordsFromTokens(
+    sourceLanguageAnalysisTokens,
+  );
   if (contentWords.length === 0) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn("HNF(memory,post): no content words, skipping");
     return [];
   }

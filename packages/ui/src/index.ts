@@ -7,6 +7,7 @@ export * from "#/components/card/index.ts";
 export * from "#/components/collapsible/index.ts";
 export * from "#/components/combobox/index.ts";
 export * from "#/components/dag-graph/index.ts";
+export * from "#/components/data-table/index.ts";
 export * from "#/components/dialog/index.ts";
 export * from "#/components/dropdown-menu/index.ts";
 export * from "#/components/form/index.ts";

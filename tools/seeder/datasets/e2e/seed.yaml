@@ -4,6 +4,8 @@ description: "Minimal E2E test dataset — 2 users, 1 project, 20 elements"
 seed:
   project: seed/project.json
   users: seed/users.json
+  glossary: seed/glossary.json
+  memory: seed/memory.json
   elements: seed/elements.json
 
 plugins:

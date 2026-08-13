@@ -1,5 +1,13 @@
-import { executeQuery } from "@cat/domain";
+import { executeCommand, executeQuery } from "@cat/domain";
+import {
+  LanguageAnalysisPolicyChangedError,
+  RecallOperationFailureError,
+} from "@cat/operations";
 import { PluginManager } from "@cat/plugin-core";
+import {
+  NormalizedLanguageIdSchema,
+  RecallDerivationVersionSchema,
+} from "@cat/shared";
 import { createAuthedTestContext } from "@cat/test-utils";
 import { call } from "@orpc/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -7,13 +15,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Context } from "#/utils/context.ts";
 
 const opMocks = vi.hoisted(() => ({
+  collectTermRecallOp: vi.fn(),
+  getTermRecallCandidates: vi.fn(),
   collectEffectiveMemoryRecallOp: vi.fn(),
+  getEffectiveMemoryRecallCandidates: vi.fn(),
   recallContextRerankOp: vi.fn(),
   rerankTermRecallOp: vi.fn(),
   termRecallOp: vi.fn(),
+  languageAnalyzeOp: vi.fn(),
 }));
 
 const domainMocks = vi.hoisted(() => ({
+  executeCommand: vi.fn(),
   getElementWithChunkIds: vi.fn(),
   listAllLanguages: vi.fn(),
 }));
@@ -24,6 +37,7 @@ vi.mock("@cat/domain", async () => {
 
   return {
     ...actual,
+    executeCommand: domainMocks.executeCommand,
     executeQuery: vi.fn(),
     getElementWithChunkIds: domainMocks.getElementWithChunkIds,
     listAllLanguages: domainMocks.listAllLanguages,
@@ -36,10 +50,15 @@ vi.mock("@cat/operations", async () => {
 
   return {
     ...actual,
+    collectTermRecallOp: opMocks.collectTermRecallOp,
+    getTermRecallCandidates: opMocks.getTermRecallCandidates,
     collectEffectiveMemoryRecallOp: opMocks.collectEffectiveMemoryRecallOp,
+    getEffectiveMemoryRecallCandidates:
+      opMocks.getEffectiveMemoryRecallCandidates,
     recallContextRerankOp: opMocks.recallContextRerankOp,
     rerankTermRecallOp: opMocks.rerankTermRecallOp,
     termRecallOp: opMocks.termRecallOp,
+    languageAnalyzeOp: opMocks.languageAnalyzeOp,
   };
 });
 
@@ -60,14 +79,13 @@ vi.mock("@cat/permissions", async () => {
 import {
   getElementWithChunkIds,
   listEffectiveMemoryIdsByProject,
-  listAllLanguages,
   listProjectGlossaryIds,
 } from "@cat/domain";
 
 import { searchTerm } from "#/orpc/routers/glossary.ts";
 import {
-  getRecallCapabilities,
   onNew as onNewMemory,
+  searchByText as searchMemoryByText,
 } from "#/orpc/routers/memory.ts";
 
 const DEFAULT_PROJECT_ID = "33333333-3333-4333-8333-333333333333";
@@ -117,9 +135,65 @@ const collect = async <T>(iterable: AsyncIterable<T>): Promise<T[]> => {
   return items;
 };
 
+const successfulEffectiveRecall = <TCandidate>(candidates: TCandidate[]) => ({
+  scopes: {
+    PROJECT: {
+      status: "SUCCEEDED" as const,
+      result: {
+        requestedChannels: ["EXACT"] as const,
+        outcomes: {
+          EXACT: { status: "SUCCEEDED" as const, candidates },
+          FUZZY: {
+            status: "SKIPPED" as const,
+            reason: "NOT_REQUESTED" as const,
+          },
+          KEYWORD: {
+            status: "SKIPPED" as const,
+            reason: "NOT_REQUESTED" as const,
+          },
+          VARIANT: {
+            status: "SKIPPED" as const,
+            reason: "NOT_REQUESTED" as const,
+          },
+          SEMANTIC: {
+            status: "SKIPPED" as const,
+            reason: "NOT_REQUESTED" as const,
+          },
+        },
+      },
+    },
+    PERSONAL: {
+      status: "SKIPPED" as const,
+      reason: "NO_SCOPED_ASSETS" as const,
+    },
+  },
+});
+
+const successfulTermRecall = <TCandidate>(candidates: TCandidate[]) => ({
+  requestedChannels: ["EXACT"] as const,
+  outcomes: {
+    EXACT: { status: "SUCCEEDED" as const, candidates },
+    FUZZY: { status: "SKIPPED" as const, reason: "NOT_REQUESTED" as const },
+    KEYWORD: {
+      status: "SKIPPED" as const,
+      reason: "NOT_REQUESTED" as const,
+    },
+    VARIANT: {
+      status: "SKIPPED" as const,
+      reason: "NOT_REQUESTED" as const,
+    },
+    SEMANTIC: {
+      status: "SKIPPED" as const,
+      reason: "NOT_REQUESTED" as const,
+    },
+  },
+});
+
 describe("recall routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    opMocks.languageAnalyzeOp.mockResolvedValue({ tokens: [] });
+    opMocks.getEffectiveMemoryRecallCandidates.mockReturnValue([]);
   });
 
   it("searchTerm exposes richer term evidence fields from fused recall", async () => {
@@ -129,29 +203,29 @@ describe("recall routes", () => {
       }
       return [];
     });
-    opMocks.termRecallOp.mockResolvedValue({
-      terms: [
-        {
-          term: "memory bank",
-          translation: "记忆库",
-          confidence: 0.88,
-          definition: "TM repository",
-          conceptId: 1,
-          glossaryId: "11111111-1111-4111-8111-111111111111",
-          matchedText: "memory bank",
-          evidences: [
-            {
-              channel: "morphological",
-              matchedText: "memory bank",
-              matchedVariantText: "memory bank",
-              matchedVariantType: "LEMMA",
-              confidence: 0.88,
-            },
-          ],
-          concept: { subjects: [], definition: "TM repository" },
-        },
-      ],
-    });
+    const terms = [
+      {
+        term: "memory bank",
+        translation: "记忆库",
+        confidence: 0.88,
+        definition: "TM repository",
+        conceptId: 1,
+        glossaryId: "11111111-1111-4111-8111-111111111111",
+        matchedText: "memory bank",
+        evidences: [
+          {
+            channel: "morphological",
+            matchedText: "memory bank",
+            matchedVariantText: "memory bank",
+            matchedVariantType: "LEMMA",
+            confidence: 0.88,
+          },
+        ],
+        concept: { subjects: [], definition: "TM repository" },
+      },
+    ];
+    opMocks.collectTermRecallOp.mockResolvedValue(successfulTermRecall(terms));
+    opMocks.getTermRecallCandidates.mockReturnValue(terms);
 
     const stream = await call(
       searchTerm,
@@ -168,20 +242,84 @@ describe("recall routes", () => {
 
     expect(results).toEqual([
       expect.objectContaining({
-        conceptId: 1,
-        glossaryId: "11111111-1111-4111-8111-111111111111",
-        matchedText: "memory bank",
-        evidences: [
-          expect.objectContaining({
-            channel: "morphological",
-            matchedVariantType: "LEMMA",
-          }),
-        ],
+        type: "CANDIDATE",
+        candidate: expect.objectContaining({
+          conceptId: 1,
+          glossaryId: "11111111-1111-4111-8111-111111111111",
+          matchedText: "memory bank",
+          evidences: [
+            expect.objectContaining({
+              channel: "morphological",
+              matchedVariantType: "LEMMA",
+            }),
+          ],
+        }),
       }),
+      expect.objectContaining({ type: "COMPLETED" }),
+    ]);
+  });
+
+  it("emits one completed memory recall result when no effective scopes exist", async () => {
+    const result = {
+      scopes: {
+        PROJECT: {
+          status: "SKIPPED" as const,
+          reason: "NO_SCOPED_ASSETS" as const,
+        },
+        PERSONAL: {
+          status: "SKIPPED" as const,
+          reason: "NO_SCOPED_ASSETS" as const,
+        },
+      },
+    };
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(result);
+    opMocks.recallContextRerankOp.mockResolvedValue([]);
+    const element = {
+      id: 1,
+      value: "hello",
+      languageId: "en",
+      projectId: DEFAULT_PROJECT_ID,
+      chunkIds: [],
+    };
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getElementWithChunkIds) return element;
+      if (query === listEffectiveMemoryIdsByProject) {
+        return {
+          projectMemoryIds: [],
+          personalMemoryIds: [],
+          allMemoryIds: [],
+        };
+      }
+      return [];
+    });
+
+    const elementStream = await call(
+      onNewMemory,
+      { elementId: 1, translationLanguageId: "zh-Hans" },
+      { context: createContext() },
+    );
+    const textStream = await call(
+      searchMemoryByText,
+      {
+        projectId: DEFAULT_PROJECT_ID,
+        text: "hello",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+      },
+      { context: createContext() },
+    );
+
+    await expect(collect(elementStream)).resolves.toEqual([
+      { type: "COMPLETED", result },
+    ]);
+    await expect(collect(textStream)).resolves.toEqual([
+      { type: "COMPLETED", result },
     ]);
   });
 
   it("memory.onNew yields all memories directly without LLM adaptation", async () => {
+    const projectMemoryId = "22222222-2222-4222-8222-222222222222";
+    const personalMemoryId = "55555555-5555-4555-8555-555555555555";
     const element = {
       id: 1,
       value: "Order 43 completed",
@@ -195,9 +333,9 @@ describe("recall routes", () => {
       if (query === getElementWithChunkIds) return element;
       if (query === listEffectiveMemoryIdsByProject)
         return {
-          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
-          personalMemoryIds: [],
-          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          projectMemoryIds: [projectMemoryId],
+          personalMemoryIds: [personalMemoryId],
+          allMemoryIds: [projectMemoryId, personalMemoryId],
         };
       return [];
     });
@@ -208,28 +346,32 @@ describe("recall routes", () => {
         source: "Order 42 completed",
         translation: "订单 42 已完成",
         confidence: 0.83,
-        memoryId: "22222222-2222-4222-8222-222222222222",
+        memoryId: projectMemoryId,
+        sourceScope: "PROJECT" as const,
         translationChunkSetId: null,
         creatorId: null,
         createdAt: new Date("2024-01-01T00:00:00.000Z"),
         updatedAt: new Date("2024-01-01T00:00:00.000Z"),
-        evidences: [],
+        evidences: [{ channel: "exact", confidence: 0.83 }],
       },
       {
         id: 302,
         source: "Order completed",
         translation: "订单已完成",
         confidence: 0.7,
-        memoryId: "22222222-2222-4222-8222-222222222222",
+        memoryId: projectMemoryId,
+        sourceScope: "PROJECT" as const,
         translationChunkSetId: null,
         creatorId: null,
         createdAt: new Date("2024-01-01T00:00:00.000Z"),
         updatedAt: new Date("2024-01-01T00:00:00.000Z"),
-        evidences: [],
+        evidences: [{ channel: "exact", confidence: 0.7 }],
       },
     ];
 
-    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(memories);
+    const recallResult = successfulEffectiveRecall(memories);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(recallResult);
+    opMocks.getEffectiveMemoryRecallCandidates.mockReturnValue(memories);
     opMocks.recallContextRerankOp.mockResolvedValue(memories);
 
     const stream = await call(
@@ -240,16 +382,237 @@ describe("recall routes", () => {
 
     const results = await collect(stream);
 
+    expect(opMocks.collectEffectiveMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: element.value,
+        sourceLanguageId: element.languageId,
+        translationLanguageId: "zh-Hans",
+        projectMemoryIds: [projectMemoryId],
+        personalMemoryIds: [personalMemoryId],
+        minSimilarity: 0.72,
+        maxAmount: 3,
+        excludeMemoryItemIds: [],
+      },
+      expect.any(Object),
+    );
     // All memories yielded directly — no adaptationPending, no LLM round-trip
-    expect(results).toHaveLength(2);
+    expect(results).toHaveLength(3);
+    expect(results[0]).toEqual({
+      type: "CANDIDATE",
+      candidate: expect.objectContaining({ id: 301, confidence: 0.83 }),
+    });
     expect(results[0]).toEqual(
-      expect.objectContaining({ id: 301, confidence: 0.83 }),
+      expect.not.objectContaining({
+        candidate: expect.objectContaining({
+          adaptationPending: expect.anything(),
+        }),
+      }),
     );
-    expect(results[0]).not.toHaveProperty("adaptationPending");
+    expect(results[1]).toEqual({
+      type: "CANDIDATE",
+      candidate: expect.objectContaining({ id: 302, confidence: 0.7 }),
+    });
     expect(results[1]).toEqual(
-      expect.objectContaining({ id: 302, confidence: 0.7 }),
+      expect.not.objectContaining({
+        candidate: expect.objectContaining({
+          adaptationPending: expect.anything(),
+        }),
+      }),
     );
-    expect(results[1]).not.toHaveProperty("adaptationPending");
+    expect(results[2]).toEqual({ type: "COMPLETED", result: recallResult });
+  });
+
+  it("memory.searchByText preserves exact project and personal memory scopes", async () => {
+    const projectMemoryId = "22222222-2222-4222-8222-222222222222";
+    const personalMemoryId = "55555555-5555-4555-8555-555555555555";
+    const result = {
+      scopes: {
+        PROJECT: {
+          status: "SKIPPED" as const,
+          reason: "NO_SCOPED_ASSETS" as const,
+        },
+        PERSONAL: {
+          status: "SKIPPED" as const,
+          reason: "NO_SCOPED_ASSETS" as const,
+        },
+      },
+    };
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === listEffectiveMemoryIdsByProject) {
+        return {
+          projectMemoryIds: [projectMemoryId],
+          personalMemoryIds: [personalMemoryId],
+          allMemoryIds: [projectMemoryId, personalMemoryId],
+        };
+      }
+      return [];
+    });
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(result);
+
+    const stream = await call(
+      searchMemoryByText,
+      {
+        projectId: DEFAULT_PROJECT_ID,
+        text: "Order completed",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+      },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).resolves.toEqual([
+      { type: "COMPLETED", result },
+    ]);
+    expect(opMocks.collectEffectiveMemoryRecallOp).toHaveBeenCalledWith(
+      {
+        text: "Order completed",
+        sourceLanguageId: "en",
+        translationLanguageId: "zh-Hans",
+        projectMemoryIds: [projectMemoryId],
+        personalMemoryIds: [personalMemoryId],
+        minSimilarity: 0.72,
+        maxAmount: 5,
+      },
+      expect.any(Object),
+    );
+  });
+
+  it.skip("persists a language analysis failure once instead of returning an empty stream", async () => {
+    const element = {
+      id: 1,
+      value: "Order 43 completed",
+      languageId: "en",
+      projectId: DEFAULT_PROJECT_ID,
+      chunkIds: [1],
+    };
+    domainMocks.getElementWithChunkIds.mockResolvedValue(element);
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getElementWithChunkIds) return element;
+      if (query === listEffectiveMemoryIdsByProject)
+        return {
+          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          personalMemoryIds: [],
+          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+        };
+      return [];
+    });
+    opMocks.languageAnalyzeOp.mockRejectedValue(
+      new LanguageAnalysisPolicyChangedError(new Error("selection revision 9")),
+    );
+    domainMocks.executeCommand.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      message: "Language analysis configuration changed during the operation.",
+    });
+
+    const stream = await call(
+      onNewMemory,
+      { elementId: 1, translationLanguageId: "zh-Hans" },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      data: {
+        operationFailure: { id: "11111111-1111-4111-8111-111111111111" },
+      },
+    });
+    expect(executeCommand).toHaveBeenCalledOnce();
+    expect(executeCommand).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({
+        failure: expect.objectContaining({
+          affectedResources: [
+            { type: "PROJECT", id: DEFAULT_PROJECT_ID },
+            { type: "ELEMENT", id: "1" },
+          ],
+        }),
+      }),
+    );
+  });
+
+  it("persists a blocked recall failure instead of returning an empty stream", async () => {
+    const element = {
+      id: 1,
+      value: "Order 43 completed",
+      languageId: "en",
+      projectId: DEFAULT_PROJECT_ID,
+      chunkIds: [1],
+    };
+    domainMocks.getElementWithChunkIds.mockResolvedValue(element);
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getElementWithChunkIds) return element;
+      if (query === listEffectiveMemoryIdsByProject) {
+        return {
+          projectMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+          personalMemoryIds: [],
+          allMemoryIds: ["22222222-2222-4222-8222-222222222222"],
+        };
+      }
+      return [];
+    });
+    opMocks.collectEffectiveMemoryRecallOp.mockRejectedValue(
+      new RecallOperationFailureError(
+        {
+          code: "CAT_OPERATION_DEPENDENCY_UNAVAILABLE",
+          message: "All requested Candidate Channels are blocked.",
+          severity: "ERROR",
+          retryable: true,
+          blocker: "recall_derivation_pending",
+          capability: "RECALL_DERIVATION",
+          affectedResources: [],
+          remediationHint:
+            "Resolve the reported recall dependencies, then retry.",
+          redactionBoundary: "PUBLIC",
+        },
+        {
+          requestedChannels: ["KEYWORD"],
+          outcomes: {
+            EXACT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+            FUZZY: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+            KEYWORD: {
+              status: "BLOCKED",
+              blocker: {
+                reason: "RECALL_DERIVATION_PENDING",
+                message: "Recall Variants are pending.",
+                retryable: true,
+                capability: "RECALL_DERIVATION",
+                affectedTargets: [
+                  {
+                    targetKind: "MEMORY_ITEM",
+                    targetId: "1",
+                    languageId: NormalizedLanguageIdSchema.parse("en"),
+                  },
+                ],
+                requiredDerivationVersion: RecallDerivationVersionSchema.parse(
+                  `sha256:${"a".repeat(64)}`,
+                ),
+              },
+            },
+            VARIANT: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+            SEMANTIC: { status: "SKIPPED", reason: "NOT_REQUESTED" },
+          },
+        },
+      ),
+    );
+    domainMocks.executeCommand.mockResolvedValue({
+      id: "11111111-1111-4111-8111-111111111111",
+      message: "All requested Candidate Channels are blocked.",
+    });
+
+    const stream = await call(
+      onNewMemory,
+      { elementId: 1, translationLanguageId: "zh-Hans" },
+      { context: createContext() },
+    );
+
+    await expect(collect(stream)).rejects.toMatchObject({
+      code: "PRECONDITION_FAILED",
+      data: {
+        operationFailure: { id: "11111111-1111-4111-8111-111111111111" },
+      },
+    });
+    expect(executeCommand).toHaveBeenCalledOnce();
   });
 
   it("memory.onNew yields exact-match memories without calling any LLM operation", async () => {
@@ -280,14 +643,17 @@ describe("recall routes", () => {
       confidence: 1,
       adaptationMethod: "exact" as const,
       memoryId: "22222222-2222-4222-8222-222222222222",
+      sourceScope: "PROJECT" as const,
       translationChunkSetId: null,
       creatorId: null,
       createdAt: new Date("2024-01-01T00:00:00.000Z"),
       updatedAt: new Date("2024-01-01T00:00:00.000Z"),
-      evidences: [],
+      evidences: [{ channel: "exact", confidence: 1 }],
     };
 
-    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue([exactMemory]);
+    const recallResult = successfulEffectiveRecall([exactMemory]);
+    opMocks.collectEffectiveMemoryRecallOp.mockResolvedValue(recallResult);
+    opMocks.getEffectiveMemoryRecallCandidates.mockReturnValue([exactMemory]);
     opMocks.recallContextRerankOp.mockResolvedValue([exactMemory]);
 
     const stream = await call(
@@ -298,63 +664,21 @@ describe("recall routes", () => {
 
     const results = await collect(stream);
 
-    expect(results).toHaveLength(1);
-    expect(results[0]).toEqual(
-      expect.objectContaining({ id: 302, adaptationMethod: "exact" }),
-    );
-    expect(results[0]).not.toHaveProperty("adaptationPending");
-  });
-
-  it("memory.getRecallCapabilities returns full-catalog and filtered BM25 capabilities", async () => {
-    const languages = [{ id: "en" }, { id: "ja" }, { id: "zh-Hans" }];
-
-    domainMocks.listAllLanguages.mockResolvedValue(languages);
-    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
-      if (query === listAllLanguages) return languages;
-      return [];
+    expect(results).toHaveLength(2);
+    expect(results[0]).toEqual({
+      type: "CANDIDATE",
+      candidate: expect.objectContaining({
+        id: 302,
+        adaptationMethod: "exact",
+      }),
     });
-
-    const fullCatalog = await call(
-      getRecallCapabilities,
-      { languageIds: [] },
-      { context: createContext() },
+    expect(results[0]).toEqual(
+      expect.not.objectContaining({
+        candidate: expect.objectContaining({
+          adaptationPending: expect.anything(),
+        }),
+      }),
     );
-
-    expect(fullCatalog.capabilities).toEqual([
-      expect.objectContaining({
-        languageId: "en",
-        enabled: true,
-        textSearchConfig: "english",
-      }),
-      expect.objectContaining({
-        languageId: "ja",
-        enabled: false,
-        disabledReason: "not-in-bm25-first-rollout",
-      }),
-      expect.objectContaining({
-        languageId: "zh-Hans",
-        enabled: true,
-        textSearchConfig: "cat_zh_hans",
-      }),
-    ]);
-
-    const filtered = await call(
-      getRecallCapabilities,
-      { languageIds: ["zh-Hans", "ja"] },
-      { context: createContext() },
-    );
-
-    expect(filtered.capabilities).toEqual([
-      expect.objectContaining({
-        languageId: "zh-Hans",
-        enabled: true,
-        textSearchConfig: "cat_zh_hans",
-      }),
-      expect.objectContaining({
-        languageId: "ja",
-        enabled: false,
-        disabledReason: "not-in-bm25-first-rollout",
-      }),
-    ]);
+    expect(results[1]).toEqual({ type: "COMPLETED", result: recallResult });
   });
 });

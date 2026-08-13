@@ -45,6 +45,7 @@ export const runToolNode = async (
     | "pluginManager"
     | "vcsMode"
     | "permissionChecker"
+    | "signal"
   >,
 ): Promise<ToolNodeResult> => {
   const {
@@ -56,7 +57,9 @@ export const runToolNode = async (
     sessionMetadata,
     logger,
     pluginManager,
+    signal,
   } = ctx;
+  signal.throwIfAborted();
   const toolCalls = data.tool_calls ?? [];
 
   if (toolCalls.length === 0) {
@@ -75,12 +78,13 @@ export const runToolNode = async (
 
   // Build ToolExecutionContext
   const toolCtx: ToolExecutionContext = {
+    signal,
     session: {
       sessionId,
       agentId,
       projectId,
       runId,
-      providerId: sessionMetadata?.providerId,
+      provider: sessionMetadata?.provider,
       branchId: sessionMetadata?.branchId,
       contentNodeIds: sessionMetadata?.contentNodeIds,
       currentElementContentNodeId: sessionMetadata?.currentElementContentNodeId,
@@ -104,6 +108,7 @@ export const runToolNode = async (
   // Execute all tool calls concurrently
   const results = await Promise.allSettled(
     toolCalls.map(async (tc) => {
+      signal.throwIfAborted();
       const startMs = Date.now();
       logger.logToolExecute({
         toolName: tc.name,

@@ -1,7 +1,8 @@
 {
-  "$schema": "../../plugin-core/manifest-schema.json",
+  "$schema": "../../packages/plugin-core/manifest-schema.json",
   "id": "local-storage-provider",
   "version": "0.1.0",
+  "configVersion": "1",
   "entry": "dist/index.js",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
@@ -12,6 +13,7 @@
   ],
   "config": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "root-path": {
         "type": "string",

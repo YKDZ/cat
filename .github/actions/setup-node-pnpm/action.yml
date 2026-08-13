@@ -1,0 +1,24 @@
+name: "CAT Node and pnpm setup"
+description: "Activate the manifest-pinned Node and pnpm toolchain, then install the frozen workspace."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Bootstrap integrity-pinned pnpm for dependency caching
+      shell: bash
+      run: node scripts/package-manager-pin.ts
+
+    - name: Setup exact Node.js patch
+      uses: actions/setup-node@v7
+      with:
+        node-version-file: package.json
+        cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
+
+    - name: Activate integrity-pinned pnpm for the exact Node runtime
+      shell: bash
+      run: node scripts/package-manager-pin.ts
+
+    - name: Install frozen workspace dependencies
+      shell: bash
+      run: pnpm ci:install

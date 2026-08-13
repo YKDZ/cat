@@ -10,8 +10,9 @@ const domainMocks = vi.hoisted(() => ({
 
 const serverMocks = vi.hoisted(() => ({
   collectLLMResponse: vi.fn(),
-  firstOrGivenService: vi.fn(),
   resolvePluginManager: vi.fn(),
+  resolveServiceImplementation: vi.fn(),
+  selectFirstServiceImplementation: vi.fn(),
 }));
 
 vi.mock("@cat/domain", async () => {
@@ -35,8 +36,10 @@ vi.mock("@cat/server-shared", async () => {
   return {
     ...actual,
     collectLLMResponse: serverMocks.collectLLMResponse,
-    firstOrGivenService: serverMocks.firstOrGivenService,
     resolvePluginManager: serverMocks.resolvePluginManager,
+    resolveServiceImplementation: serverMocks.resolveServiceImplementation,
+    selectFirstServiceImplementation:
+      serverMocks.selectFirstServiceImplementation,
   };
 });
 
@@ -192,27 +195,33 @@ describe("llmTranslateOp", () => {
   // --- Null / error cases ---
 
   it("returns null when no LLM provider is available", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(null);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(null);
     const result = await llmTranslateOp(BASE_INPUT);
     expect(result.suggestion).toBeNull();
   });
 
   it("returns null when LLM call throws", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockRejectedValue(new Error("LLM timeout"));
     const result = await llmTranslateOp(BASE_INPUT);
     expect(result.suggestion).toBeNull();
   });
 
   it("returns null when LLM returns empty content", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "   " });
     const result = await llmTranslateOp(BASE_INPUT);
     expect(result.suggestion).toBeNull();
   });
 
   it("returns null when element not found (listElementSourceTexts returns empty)", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     domainMocks.listElementSourceTexts.mockResolvedValue([]);
     const result = await llmTranslateOp(BASE_INPUT);
     expect(result.suggestion).toBeNull();
@@ -221,7 +230,9 @@ describe("llmTranslateOp", () => {
   // --- Successful generation ---
 
   it("returns a suggestion with source-only signal class when no other context", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "点击以确认" });
     domainMocks.assembleContextEvidence.mockResolvedValue([]);
 
@@ -242,7 +253,9 @@ describe("llmTranslateOp", () => {
   });
 
   it("includes all signal classes when context is present", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "点击以确认" });
 
     domainMocks.getElementMeta.mockResolvedValue({ key: "confirm_button" });
@@ -290,7 +303,9 @@ describe("llmTranslateOp", () => {
   // --- Config gating ---
 
   it("skips evidence query when elementContexts is disabled", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     await llmTranslateOp({
@@ -302,7 +317,9 @@ describe("llmTranslateOp", () => {
   });
 
   it("skips comments query when config disables it", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     await llmTranslateOp({
@@ -316,7 +333,9 @@ describe("llmTranslateOp", () => {
   // --- Error resilience ---
 
   it("proceeds when assembleContextEvidence fails", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     domainMocks.assembleContextEvidence.mockRejectedValue(
@@ -334,7 +353,9 @@ describe("llmTranslateOp", () => {
   // --- Prompt content ---
 
   it("includes evidence items in prompt", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     domainMocks.assembleContextEvidence.mockResolvedValue([
@@ -367,7 +388,9 @@ describe("llmTranslateOp", () => {
   });
 
   it("uses adaptedTranslation from memory when available", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     await llmTranslateOp({
@@ -395,7 +418,9 @@ describe("llmTranslateOp", () => {
   // --- C1: Prompt includes target language ---
 
   it("includes target language in the user prompt", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "点击以确认" });
 
     await llmTranslateOp({
@@ -415,7 +440,9 @@ describe("llmTranslateOp", () => {
   // --- W1: config.memory / config.term gate signalClasses and confidence ---
 
   it("excludes memory from signalClasses when config.memory is false", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     const result = await llmTranslateOp({
@@ -435,7 +462,9 @@ describe("llmTranslateOp", () => {
   });
 
   it("excludes terms from signalClasses when config.term is false", async () => {
-    serverMocks.firstOrGivenService.mockReturnValue(mockLlmService);
+    serverMocks.selectFirstServiceImplementation.mockReturnValue(
+      mockLlmService,
+    );
     serverMocks.collectLLMResponse.mockResolvedValue({ content: "x" });
 
     const result = await llmTranslateOp({

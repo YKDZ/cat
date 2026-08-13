@@ -89,7 +89,7 @@ export const qaTranslationOp = async (
   // 5. 持久化 QA 结果
   const qaItems = qaResult2.result.map((item) => ({
     isPassed: item.isPassed,
-    checkerId: item.checkerId,
+    checker: item.checker,
     meta: item.meta,
   }));
 

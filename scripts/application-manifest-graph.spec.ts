@@ -89,16 +89,20 @@ describe("application manifest graph", () => {
     }
   });
 
-  it("uses one alias-free validation config per migrated workspace", () => {
+  it("uses alias-free validation configs owned by each migrated workspace", () => {
     for (const root of migratedRoots) {
       const configs = listFiles(root).filter((path) =>
         /(^|\/)tsconfig(?:\.[^/]+)?\.json$/.test(path),
       );
-      expect(configs, root).toEqual([join(root, "tsconfig.json")]);
+      expect(configs, root).toContain(join(root, "tsconfig.json"));
 
-      const config = readFileSync(join(workspaceRoot, configs[0]!), "utf8");
-      expect(config, `${root} paths`).not.toMatch(/"paths"/);
-      expect(config, `${root} references`).not.toMatch(/"references"/);
+      for (const path of configs) {
+        const config = readFileSync(join(workspaceRoot, path), "utf8");
+        expect(config, `${path} paths`).not.toMatch(/"paths"/);
+        if (root !== "apps/app") {
+          expect(config, `${path} references`).not.toMatch(/"references"/);
+        }
+      }
     }
   });
 
@@ -117,7 +121,14 @@ describe("application manifest graph", () => {
   it("owns Turbo tasks and direct Node maintenance commands in manifests", () => {
     for (const root of migratedRoots) {
       const manifest = readJson<Manifest>(join(root, "package.json"));
-      expect(manifest.scripts?.format, `${root} format`).toBeDefined();
+      expect(
+        manifest.scripts?.["format:check"],
+        `${root} format:check`,
+      ).toBeDefined();
+      expect(
+        manifest.scripts?.["format:write"],
+        `${root} format:write`,
+      ).toBeDefined();
       expect(manifest.scripts?.lint, `${root} lint`).toBeDefined();
       expect(manifest.scripts?.typecheck, `${root} typecheck`).toBeDefined();
 
@@ -134,7 +145,9 @@ describe("application manifest graph", () => {
       );
       const manifest = readJson<Manifest>(join(root, "package.json"));
       expect(manifest.scripts?.build).toBeUndefined();
-      expect(manifest.devDependencies?.["unplugin-" + "dts"]).toBeUndefined();
+      expect(
+        manifest.devDependencies?.[["unplugin", "dts"].join("-")],
+      ).toBeUndefined();
       expect(manifest.devDependencies?.vite).toBeUndefined();
     }
   });

@@ -72,7 +72,11 @@ const onScroll = (e: Event) => {
   >
     <ComboboxAnchor class="flex w-fit min-w-48 gap-1">
       <ComboboxTrigger as-child>
-        <Button variant="outline" class="w-full">
+        <Button
+          variant="outline"
+          class="w-full"
+          :aria-label="selectedOption?.content ?? placeholder"
+        >
           {{ selectedOption?.content ?? placeholder }}
           <ChevronDown class="ml-auto h-4 w-4 shrink-0 self-end opacity-50" />
         </Button>

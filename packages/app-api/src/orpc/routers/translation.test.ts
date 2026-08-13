@@ -15,15 +15,14 @@ import {
   ensureLanguages,
   executeCommand,
   executeQuery,
-  getPRByNumber,
+  getOperationFailure,
   getPRDiff,
-  getLocalizationTask,
+  listLocalizationTasks,
   listPRs,
   grantPermissionTuple,
   MemoryCacheStore,
 } from "@cat/domain";
-import { mergePRFull } from "@cat/operations";
-import { getPermissionEngine, initPermissionEngine } from "@cat/permissions";
+import { initPermissionEngine } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import type { EntityType, SerializableType } from "@cat/shared";
 import type { Relation } from "@cat/shared";
@@ -59,6 +58,12 @@ type FakeRunGraphOptions = {
   vcsContext?: VCSContext;
 };
 
+type FakeRunGraphOutput = {
+  derivations: [];
+  memoryItemIds: number[];
+  translationIds: number[];
+};
+
 const mocks = vi.hoisted(() => ({
   interceptWrite: vi.fn(
     async (
@@ -92,9 +97,13 @@ const mocks = vi.hoisted(() => ({
       graph: unknown,
       input: FakeRunGraphInput,
       options?: FakeRunGraphOptions,
-    ) => Promise<{ translationIds: number[] }>
-  >(async () => ({ translationIds: [101] })),
-  firstOrGivenService: vi.fn(
+    ) => Promise<FakeRunGraphOutput>
+  >(async () => ({
+    translationIds: [101],
+    memoryItemIds: [],
+    derivations: [],
+  })),
+  selectFirstServiceImplementation: vi.fn(
     (_: unknown, kind: string): { id: number } | null => ({
       id: kind === "VECTOR_STORAGE" ? 1 : 2,
     }),
@@ -110,7 +119,7 @@ vi.mock("@cat/server-shared", async () => {
 
   return {
     ...actual,
-    firstOrGivenService: mocks.firstOrGivenService,
+    selectFirstServiceImplementation: mocks.selectFirstServiceImplementation,
   };
 });
 
@@ -143,13 +152,7 @@ vi.mock("#/utils/vcs-route-helper.ts", async () => {
   };
 });
 
-import {
-  directTranslationWriteContract,
-  invokeOperationContract,
-  type OperationInvocationContext,
-} from "#/operation-contracts/index.ts";
-
-import { create, getAll } from "./translation.ts";
+import { autoTranslate, create, getAll } from "./translation.ts";
 
 let testDb: TestDB;
 let creatorUser: NonNullable<Context["user"]>;
@@ -261,6 +264,8 @@ const seedProjectElement = async (
   return {
     projectId: project.id,
     elementId,
+    fileId: file.id,
+    sourceStringId,
   };
 };
 
@@ -312,52 +317,12 @@ const createContext = (
   };
 };
 
-const createOperationInvocationContext = (
-  overrides: Partial<OperationInvocationContext> = {},
-): OperationInvocationContext => ({
-  db: overrides.db ?? testDb.client,
-  actor: overrides.actor ?? {
-    type: "user",
-    id: getCreatorId(),
-  },
-  auth: overrides.auth ?? {
-    subjectType: "user",
-    subjectId: getCreatorId(),
-    systemRoles: [],
-    scopes: null,
-  },
-  pluginManager: overrides.pluginManager ?? new PluginManager("GLOBAL", ""),
-  ...(overrides.signal === undefined ? {} : { signal: overrides.signal }),
-});
-
-const getErrorLocalizationTaskId = (error: unknown): string | null => {
-  if (typeof error !== "object" || error === null) return null;
-  const localizationTask = Reflect.get(error, "localizationTask");
-  if (typeof localizationTask !== "object" || localizationTask === null) {
-    return null;
-  }
-  const taskId = Reflect.get(localizationTask, "id");
-  return typeof taskId === "string" ? taskId : null;
-};
-
-const getProjectedLocalizationTaskId = (error: unknown): string | null => {
-  if (typeof error !== "object" || error === null) return null;
-  const data = Reflect.get(error, "data");
-  if (typeof data !== "object" || data === null) return null;
-  const localizationTask = Reflect.get(data, "localizationTask");
-  if (typeof localizationTask !== "object" || localizationTask === null) {
-    return null;
-  }
-  const taskId = Reflect.get(localizationTask, "id");
-  return typeof taskId === "string" ? taskId : null;
-};
-
 // Keep the fake at the workflow boundary; route and contract assertions read back through public interfaces.
 const writeTranslationsWithFakeGraph = async (
   _graph: unknown,
   input: FakeRunGraphInput,
   _options?: FakeRunGraphOptions,
-): Promise<{ translationIds: number[] }> => {
+): Promise<FakeRunGraphOutput> => {
   const stringIds = await executeCommand(
     { db: testDb.client },
     createVectorizedStrings,
@@ -384,7 +349,7 @@ const writeTranslationsWithFakeGraph = async (
     },
   );
 
-  return { translationIds };
+  return { translationIds, memoryItemIds: [], derivations: [] };
 };
 
 beforeAll(async () => {
@@ -408,847 +373,13 @@ afterAll(async () => {
   await testDb?.cleanup();
 });
 
-describe("direct translation write operation contract", () => {
+describe("direct translation operation failures", () => {
   beforeEach(() => {
-    mocks.interceptWrite.mockClear();
-    mocks.runGraph.mockClear();
-    mocks.runGraph.mockImplementation(writeTranslationsWithFakeGraph);
-    mocks.firstOrGivenService.mockClear();
     mocks.ensureBranchWriteContext.mockClear();
   });
 
-  it("writes a direct translation through the contract invocation interface", async () => {
-    const fixture = await seedProjectElement("contract-direct-create");
-
-    const result = await invokeOperationContract(
-      directTranslationWriteContract,
-      createOperationInvocationContext(),
-      {
-        projectId: fixture.projectId,
-        elementId: fixture.elementId,
-        languageId: "zh-Hans",
-        text: "契约直写译文",
-        createMemory: false,
-      },
-    );
-
-    expect(result.translationIds).toHaveLength(1);
-    expect(result.writeMode).toBe("direct");
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          kind: "main",
-          id: result.translationIds[0],
-          translatableElementId: fixture.elementId,
-          text: "契约直写译文",
-          translatorId: getCreatorId(),
-        }),
-      ]),
-    );
-  });
-
-  it("denies direct translation writes when ReBAC lacks the project editor relationship", async () => {
-    const fixture = await seedProjectElement("contract-rebac-denied");
-    const deniedUser = await executeCommand({ db: testDb.client }, createUser, {
-      email: `contract-rebac-denied-${randomUUID()}@example.com`,
-      name: "Contract ReBAC Denied",
-    });
-
-    let caughtError: unknown;
-    try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext({
-          actor: {
-            type: "user",
-            id: deniedUser.id,
-          },
-          auth: {
-            subjectType: "user",
-            subjectId: deniedUser.id,
-            systemRoles: [],
-            scopes: null,
-          },
-        }),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "不应写入的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "relationship_denied",
-      message: "rebac_denied: project editor relationship is required",
-      localizationTask: {
-        status: "FAILED",
-        operationContract: "translation.directWrite",
-        actor: {
-          type: "user",
-          id: deniedUser.id,
-        },
-        affectedResources: [
-          {
-            type: "project",
-            id: fixture.projectId,
-          },
-          {
-            type: "translatable_element",
-            id: String(fixture.elementId),
-          },
-        ],
-        failure: {
-          identifier: "relationship_denied",
-          message: "rebac_denied: project editor relationship is required",
-        },
-      },
-    });
-
-    const localizationTaskId = getErrorLocalizationTaskId(caughtError);
-    if (localizationTaskId === null) {
-      throw new Error("Expected failed localization task on ReBAC error");
-    }
-
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, {
-        taskId: localizationTaskId,
-      }),
-    ).resolves.toMatchObject({
-      id: localizationTaskId,
-      status: "FAILED",
-      failure: {
-        identifier: "relationship_denied",
-        message: "rebac_denied: project editor relationship is required",
-      },
-    });
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-  });
-
-  it("denies direct translation writes when the API key lacks project editor scope", async () => {
-    const fixture = await seedProjectElement("contract-api-scope-denied");
-
-    await expect(
-      invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext({
-          auth: {
-            subjectType: "user",
-            subjectId: getCreatorId(),
-            systemRoles: [],
-            scopes: ["project:viewer"],
-          },
-        }),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "不应写入的 API key 译文",
-          createMemory: false,
-        },
-      ),
-    ).rejects.toMatchObject({
-      identifier: "execution_denied",
-      message: "api_key_scope_denied: project:editor scope is required",
-    });
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-  });
-
-  it("records a failed localization task when the requested element is not found", async () => {
-    const requestedProjectId = randomUUID();
-    const missingElementId = 2_147_483_647;
-
-    let caughtError: unknown;
-    try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext(),
-        {
-          projectId: requestedProjectId,
-          elementId: missingElementId,
-          languageId: "zh-Hans",
-          text: "找不到元素的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "not_found",
-      message: `Element ${missingElementId} not found`,
-      localizationTask: {
-        status: "FAILED",
-        operationContract: "translation.directWrite",
-        affectedResources: [
-          {
-            type: "project",
-            id: requestedProjectId,
-          },
-          {
-            type: "translatable_element",
-            id: String(missingElementId),
-          },
-        ],
-        failure: {
-          identifier: "not_found",
-          message: `Element ${missingElementId} not found`,
-        },
-      },
-    });
-
-    const localizationTaskId = getErrorLocalizationTaskId(caughtError);
-    if (localizationTaskId === null) {
-      throw new Error("Expected failed localization task on not-found error");
-    }
-
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, {
-        taskId: localizationTaskId,
-      }),
-    ).resolves.toMatchObject({
-      id: localizationTaskId,
-      status: "FAILED",
-      failure: {
-        identifier: "not_found",
-        message: `Element ${missingElementId} not found`,
-      },
-    });
-  });
-
-  it("records a failed localization task when input project and element project mismatch", async () => {
-    const requestedProject = await seedProjectElement(
-      "contract-invalid-requested-project",
-    );
-    const elementProject = await seedProjectElement(
-      "contract-invalid-element-project",
-    );
-
-    let caughtError: unknown;
-    try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext(),
-        {
-          projectId: requestedProject.projectId,
-          elementId: elementProject.elementId,
-          languageId: "zh-Hans",
-          text: "项目不匹配的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "invalid_input",
-      message: `Element ${elementProject.elementId} does not belong to project ${requestedProject.projectId}`,
-      localizationTask: {
-        status: "FAILED",
-        operationContract: "translation.directWrite",
-        affectedResources: [
-          {
-            type: "project",
-            id: requestedProject.projectId,
-          },
-          {
-            type: "translatable_element",
-            id: String(elementProject.elementId),
-          },
-        ],
-        failure: {
-          identifier: "invalid_input",
-          message: `Element ${elementProject.elementId} does not belong to project ${requestedProject.projectId}`,
-        },
-      },
-    });
-
-    const localizationTaskId = getErrorLocalizationTaskId(caughtError);
-    if (localizationTaskId === null) {
-      throw new Error("Expected failed localization task on invalid input");
-    }
-
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, {
-        taskId: localizationTaskId,
-      }),
-    ).resolves.toMatchObject({
-      id: localizationTaskId,
-      status: "FAILED",
-      failure: {
-        identifier: "invalid_input",
-        message: `Element ${elementProject.elementId} does not belong to project ${requestedProject.projectId}`,
-      },
-    });
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: elementProject.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-  });
-
-  it("records a failed localization task when execution authorization denies the invocation", async () => {
-    const fixture = await seedProjectElement("contract-task-failed");
-
-    let caughtError: unknown;
-    try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext({
-          auth: {
-            subjectType: "user",
-            subjectId: getCreatorId(),
-            systemRoles: [],
-            scopes: ["project:viewer"],
-          },
-        }),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "不应写入但应记录任务的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "execution_denied",
-      localizationTask: {
-        status: "FAILED",
-        operationContract: "translation.directWrite",
-        actor: {
-          type: "user",
-          id: getCreatorId(),
-        },
-        affectedResources: [
-          {
-            type: "project",
-            id: fixture.projectId,
-          },
-          {
-            type: "translatable_element",
-            id: String(fixture.elementId),
-          },
-        ],
-        failure: {
-          identifier: "execution_denied",
-          message: "api_key_scope_denied: project:editor scope is required",
-        },
-      },
-    });
-
-    const localizationTaskId = getErrorLocalizationTaskId(caughtError);
-    if (localizationTaskId === null) {
-      throw new Error("Expected failed localization task on contract error");
-    }
-
-    const task = await executeQuery(
-      { db: testDb.client },
-      getLocalizationTask,
-      {
-        taskId: localizationTaskId,
-      },
-    );
-
-    expect(task).toEqual(
-      expect.objectContaining({
-        id: localizationTaskId,
-        status: "FAILED",
-        operationContract: "translation.directWrite",
-        failure: expect.objectContaining({
-          identifier: "execution_denied",
-          message: "api_key_scope_denied: project:editor scope is required",
-          operationFailure: expect.objectContaining({
-            code: "CAT_OPERATION_EXECUTION_DENIED",
-            taskId: localizationTaskId,
-          }),
-        }),
-      }),
-    );
-  });
-
-  it("records a failed localization task when the direct write fails after task creation", async () => {
-    const fixture = await seedProjectElement("contract-task-workflow-failed");
-    mocks.runGraph.mockRejectedValueOnce(new Error("workflow write failed"));
-
-    let caughtError: unknown;
-    try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext(),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "失败后不应写入的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "operation_failed",
-      message: "Translation operation failed",
-      localizationTask: {
-        status: "FAILED",
-        operationContract: "translation.directWrite",
-        affectedResources: [
-          {
-            type: "project",
-            id: fixture.projectId,
-          },
-          {
-            type: "translatable_element",
-            id: String(fixture.elementId),
-          },
-        ],
-        failure: {
-          identifier: "operation_failed",
-          message: "Translation operation failed",
-        },
-      },
-    });
-
-    const localizationTaskId = getErrorLocalizationTaskId(caughtError);
-    if (localizationTaskId === null) {
-      throw new Error("Expected failed localization task on write failure");
-    }
-
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, {
-        taskId: localizationTaskId,
-      }),
-    ).resolves.toMatchObject({
-      id: localizationTaskId,
-      status: "FAILED",
-      failure: {
-        identifier: "operation_failed",
-        message: "Translation operation failed",
-      },
-    });
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-  });
-
-  it("records missing service capability as a distinct Operation Failure", async () => {
-    const fixture = await seedProjectElement("contract-missing-capability");
-    mocks.firstOrGivenService.mockReturnValueOnce(null);
-
-    let caughtError: unknown;
-    try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext(),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "缺少能力时不应写入的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "missing_capability",
-      operationFailure: {
-        id: expect.any(String),
-        code: "CAT_OPERATION_MISSING_CAPABILITY",
-        message: "No vector storage provider available",
-        severity: "error",
-        retryable: true,
-        redactionBoundary: "public",
-        missingCapability: "VECTOR_STORAGE",
-      },
-      localizationTask: {
-        status: "BLOCKED",
-        failure: {
-          identifier: "missing_capability",
-          message: "No vector storage provider available",
-          operationFailure: {
-            id: expect.any(String),
-            code: "CAT_OPERATION_MISSING_CAPABILITY",
-          },
-        },
-      },
-    });
-  });
-
-  it("records missing text vectorizer capability as a distinct Operation Failure decision", async () => {
-    const fixture = await seedProjectElement("contract-missing-vectorizer");
-    mocks.firstOrGivenService
-      .mockReturnValueOnce({ id: 1 })
-      .mockReturnValueOnce(null);
-
-    await expect(
-      invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext(),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "缺少向量化能力时不应写入的译文",
-          createMemory: false,
-        },
-      ),
-    ).rejects.toMatchObject({
-      identifier: "missing_capability",
-      operationFailure: {
-        code: "CAT_OPERATION_MISSING_CAPABILITY",
-        message: "No text vectorizer capability available",
-        missingCapability: "TEXT_VECTORIZER",
-      },
-      localizationTask: {
-        status: "BLOCKED",
-        failure: {
-          operationFailure: {
-            missingCapability: "TEXT_VECTORIZER",
-          },
-        },
-      },
-    });
-  });
-
-  it("authorizes against the element project before reporting project mismatch details", async () => {
-    const requestedProject = await seedProjectElement(
-      "contract-requested-project",
-    );
-    const hiddenElementProject = await seedProjectElement(
-      "contract-hidden-element-project",
-      { grantEditor: false },
-    );
-
-    await expect(
-      invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext(),
-        {
-          projectId: requestedProject.projectId,
-          elementId: hiddenElementProject.elementId,
-          languageId: "zh-Hans",
-          text: "不应泄露项目归属的译文",
-          createMemory: false,
-        },
-      ),
-    ).rejects.toMatchObject({
-      identifier: "relationship_denied",
-      message: "rebac_denied: project editor relationship is required",
-    });
-  });
-
-  it("fails without creating review entries when write-mode resolution returns no access", async () => {
-    const fixture = await seedProjectElement("contract-write-mode-no-access");
-    const permissionEngine = getPermissionEngine();
-    const originalCheck = permissionEngine.check;
-    let editorChecks = 0;
-    const checkSpy = vi
-      .spyOn(permissionEngine, "check")
-      .mockImplementation(async (...args) => {
-        const [, object, relation] = args;
-        if (
-          object.type === "project" &&
-          object.id === fixture.projectId &&
-          relation === "editor"
-        ) {
-          editorChecks += 1;
-          return editorChecks === 1;
-        }
-        return await originalCheck(...args);
-      });
-
-    try {
-      await expect(
-        invokeOperationContract(
-          directTranslationWriteContract,
-          createOperationInvocationContext(),
-          {
-            projectId: fixture.projectId,
-            elementId: fixture.elementId,
-            languageId: "zh-Hans",
-            text: "不应创建待审校变更的译文",
-            createMemory: false,
-          },
-        ),
-      ).rejects.toMatchObject({
-        identifier: "execution_denied",
-        message: "write_mode_denied: project editor access is required",
-        operationFailure: {
-          authorizationDecision: "write_mode_denied",
-        },
-      });
-    } finally {
-      checkSpy.mockRestore();
-    }
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-
-    await expect(
-      executeQuery({ db: testDb.client }, listPRs, {
-        projectId: fixture.projectId,
-        limit: 10,
-        offset: 0,
-      }),
-    ).resolves.toEqual([]);
-  });
-
-  it("keeps inspection-required writes out of mainline translations", async () => {
-    const fixture = await seedProjectElement("contract-write-mode-inspected");
-    await grantProjectRelation(
-      getCreatorId(),
-      fixture.projectId,
-      "isolation_forced",
-    );
-
-    const result = await invokeOperationContract(
-      directTranslationWriteContract,
-      createOperationInvocationContext({
-        auth: {
-          subjectType: "user",
-          subjectId: getCreatorId(),
-          systemRoles: [],
-          scopes: ["project:*"],
-        },
-      }),
-      {
-        projectId: fixture.projectId,
-        elementId: fixture.elementId,
-        languageId: "zh-Hans",
-        text: "不应直写的隔离译文",
-        createMemory: false,
-      },
-    );
-
-    expect(result.writeMode).toBe("reviewable_change");
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-  });
-
-  it("creates a reviewable change when write-mode limits require inspection", async () => {
-    const fixture = await seedProjectElement("contract-reviewable-change");
-    await grantProjectRelation(
-      getCreatorId(),
-      fixture.projectId,
-      "isolation_forced",
-    );
-
-    const result = await invokeOperationContract(
-      directTranslationWriteContract,
-      createOperationInvocationContext({
-        auth: {
-          subjectType: "user",
-          subjectId: getCreatorId(),
-          systemRoles: [],
-          scopes: ["project:*"],
-        },
-      }),
-      {
-        projectId: fixture.projectId,
-        elementId: fixture.elementId,
-        languageId: "zh-Hans",
-        text: "待审校的契约译文",
-        createMemory: false,
-      },
-    );
-
-    expect(result).toMatchObject({
-      writeMode: "reviewable_change",
-      reviewableChange: {
-        sourceOperation: "translation.directWrite",
-        pullRequestId: expect.any(Number),
-        pullRequestNumber: expect.any(Number),
-        status: "DRAFT",
-        affectedTranslationUnit: {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-      },
-    });
-    expect(result.translationIds).toEqual([]);
-
-    if (result.reviewableChange === undefined) {
-      throw new Error("Expected reviewable change metadata");
-    }
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-
-    const entries = await executeQuery({ db: testDb.client }, getPRDiff, {
-      prId: result.reviewableChange.pullRequestId,
-      entityType: "translation",
-      limit: 10,
-    });
-
-    expect(entries).toEqual([
-      expect.objectContaining({
-        action: "CREATE",
-        after: expect.objectContaining({
-          translatableElementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "待审校的契约译文",
-          translatorId: getCreatorId(),
-          sourceOperation: "translation.directWrite",
-        }),
-      }),
-    ]);
-  });
-
-  it("records a completed localization task for a successful reviewable translation invocation", async () => {
-    const fixture = await seedProjectElement("contract-task-completed");
-    await grantProjectRelation(
-      getCreatorId(),
-      fixture.projectId,
-      "isolation_forced",
-    );
-
-    const result = await invokeOperationContract(
-      directTranslationWriteContract,
-      createOperationInvocationContext({
-        auth: {
-          subjectType: "user",
-          subjectId: getCreatorId(),
-          systemRoles: [],
-          scopes: ["project:*"],
-        },
-      }),
-      {
-        projectId: fixture.projectId,
-        elementId: fixture.elementId,
-        languageId: "zh-Hans",
-        text: "带任务记录的待审校译文",
-        createMemory: false,
-      },
-    );
-
-    expect(result.localizationTask).toMatchObject({
-      status: "COMPLETED",
-      operationContract: "translation.directWrite",
-      actor: {
-        type: "user",
-        id: getCreatorId(),
-      },
-      affectedResources: [
-        {
-          type: "project",
-          id: fixture.projectId,
-        },
-        {
-          type: "translatable_element",
-          id: String(fixture.elementId),
-        },
-      ],
-    });
-
-    if (result.reviewableChange === undefined) {
-      throw new Error("Expected reviewable change metadata");
-    }
-
-    expect(result.localizationTask.relatedPullRequest).toEqual({
-      id: result.reviewableChange.pullRequestId,
-      number: result.reviewableChange.pullRequestNumber,
-    });
-    expect(result.localizationTask.relatedReviewableChange).toEqual({
-      sourceOperation: "translation.directWrite",
-      pullRequestId: result.reviewableChange.pullRequestId,
-    });
-
-    const task = await executeQuery(
-      { db: testDb.client },
-      getLocalizationTask,
-      {
-        taskId: result.localizationTask.id,
-      },
-    );
-
-    expect(task).toEqual(result.localizationTask);
-  });
-
-  it("links a blocked reviewable change and localization task to the same Operation Failure", async () => {
-    const fixture = await seedProjectElement("contract-reviewable-blocked");
+  it("persists one failure identity for the API error and reviewable change metadata", async () => {
+    const fixture = await seedProjectElement("direct-write-failure-identity");
     await grantProjectRelation(
       getCreatorId(),
       fixture.projectId,
@@ -1258,323 +389,55 @@ describe("direct translation write operation contract", () => {
 
     let caughtError: unknown;
     try {
-      await invokeOperationContract(
-        directTranslationWriteContract,
-        createOperationInvocationContext({
-          auth: {
-            subjectType: "user",
-            subjectId: getCreatorId(),
-            systemRoles: [],
-            scopes: ["project:*"],
-          },
-        }),
-        {
-          projectId: fixture.projectId,
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "无法写入待审校分支的译文",
-          createMemory: false,
-        },
-      );
-    } catch (error) {
-      caughtError = error;
-    }
-
-    expect(caughtError).toMatchObject({
-      identifier: "review_change_blocked",
-      operationFailure: {
-        id: expect.any(String),
-        code: "CAT_OPERATION_REVIEW_CHANGE_BLOCKED",
-        severity: "error",
-        retryable: false,
-        reviewBlocker: "branch_write_context_unavailable",
-      },
-      localizationTask: {
-        status: "BLOCKED",
-        relatedReviewableChange: {
-          sourceOperation: "translation.directWrite",
-          pullRequestId: expect.any(Number),
-        },
-        relatedPullRequest: {
-          id: expect.any(Number),
-          number: expect.any(Number),
-        },
-        failure: {
-          operationFailure: {
-            id: expect.any(String),
-            code: "CAT_OPERATION_REVIEW_CHANGE_BLOCKED",
-            reviewBlocker: "branch_write_context_unavailable",
-          },
-        },
-      },
-    });
-
-    if (typeof caughtError !== "object" || caughtError === null) {
-      throw new Error("Expected reviewable change blocker error");
-    }
-    const operationFailure = Reflect.get(caughtError, "operationFailure");
-    const localizationTask = Reflect.get(caughtError, "localizationTask");
-    if (
-      typeof operationFailure !== "object" ||
-      operationFailure === null ||
-      typeof localizationTask !== "object" ||
-      localizationTask === null
-    ) {
-      throw new Error("Expected operation failure and localization task");
-    }
-    const failureId = Reflect.get(operationFailure, "id");
-    const relatedPullRequest = Reflect.get(
-      localizationTask,
-      "relatedPullRequest",
-    );
-    if (
-      typeof failureId !== "string" ||
-      typeof relatedPullRequest !== "object" ||
-      relatedPullRequest === null ||
-      typeof Reflect.get(relatedPullRequest, "number") !== "number"
-    ) {
-      throw new Error("Expected failure id and related pull request");
-    }
-
-    const pr = await executeQuery({ db: testDb.client }, getPRByNumber, {
-      projectId: fixture.projectId,
-      number: Reflect.get(relatedPullRequest, "number"),
-    });
-    expect(pr?.metadata).toMatchObject({
-      sourceOperation: "translation.directWrite",
-      operationFailure: {
-        id: failureId,
-        code: "CAT_OPERATION_REVIEW_CHANGE_BLOCKED",
-      },
-    });
-  });
-
-  it("keeps post-PR reviewable write failures linked across API task and PR metadata", async () => {
-    const fixture = await seedProjectElement("contract-reviewable-write-fails");
-    await grantProjectRelation(
-      getCreatorId(),
-      fixture.projectId,
-      "isolation_forced",
-    );
-    mocks.interceptWrite.mockRejectedValueOnce(
-      new Error("reviewable change write failed"),
-    );
-
-    let caughtError: unknown;
-    try {
       await call(
         create,
         {
           projectId: fixture.projectId,
           elementId: fixture.elementId,
           languageId: "zh-Hans",
-          text: "写入待审校分支失败的译文",
+          text: "Reviewable failure identity",
           createMemory: false,
         },
-        {
-          context: createContext({
-            scopes: ["project:*"],
-          }),
-        },
+        { context: createContext() },
       );
     } catch (error) {
       caughtError = error;
     }
 
-    expect(caughtError).toMatchObject({
-      code: "INTERNAL_SERVER_ERROR",
-      data: {
-        operationContractErrorIdentifier: "operation_failed",
-        operationFailure: {
-          id: expect.any(String),
-          code: "CAT_OPERATION_FAILED",
-          reviewBlocker: "reviewable_change_write_failed",
-        },
-        localizationTask: {
-          status: "FAILED",
-          relatedReviewableChange: {
-            sourceOperation: "translation.directWrite",
-            pullRequestId: expect.any(Number),
-          },
-          relatedPullRequest: {
-            id: expect.any(Number),
-            number: expect.any(Number),
-          },
-          failure: {
-            operationFailure: {
-              id: expect.any(String),
-              code: "CAT_OPERATION_FAILED",
-              reviewBlocker: "reviewable_change_write_failed",
-            },
-          },
+    const errorData = Reflect.get(caughtError as object, "data");
+    const failure = Reflect.get(errorData as object, "operationFailure");
+    const failureId = Reflect.get(failure as object, "id");
+    expect(failure).toMatchObject({
+      id: expect.any(String),
+      code: "CAT_OPERATION_REVIEW_CHANGE_BLOCKED",
+      blocker: "branch_write_context_unavailable",
+    });
+    if (typeof failureId !== "string") {
+      throw new Error("Expected a persisted operation failure ID");
+    }
+
+    const persisted = await executeQuery(
+      { db: testDb.client },
+      getOperationFailure,
+      {
+        id: failureId,
+        authorization: {
+          viewerId: getCreatorId(),
+          authorizedProjectIds: [fixture.projectId],
+          systemAdmin: false,
         },
       },
-    });
-
-    if (typeof caughtError !== "object" || caughtError === null) {
-      throw new Error("Expected projected reviewable write failure");
-    }
-    const errorData = Reflect.get(caughtError, "data");
-    if (typeof errorData !== "object" || errorData === null) {
-      throw new Error("Expected projected error data");
-    }
-    const operationFailure = Reflect.get(errorData, "operationFailure");
-    const localizationTask = Reflect.get(errorData, "localizationTask");
-    if (
-      typeof operationFailure !== "object" ||
-      operationFailure === null ||
-      typeof localizationTask !== "object" ||
-      localizationTask === null
-    ) {
-      throw new Error("Expected operation failure and localization task");
-    }
-    const failureId = Reflect.get(operationFailure, "id");
-    const taskId = Reflect.get(localizationTask, "id");
-    const relatedPullRequest = Reflect.get(
-      localizationTask,
-      "relatedPullRequest",
     );
-    if (
-      typeof failureId !== "string" ||
-      typeof taskId !== "string" ||
-      typeof relatedPullRequest !== "object" ||
-      relatedPullRequest === null ||
-      typeof Reflect.get(relatedPullRequest, "number") !== "number"
-    ) {
-      throw new Error("Expected failure id task id and related pull request");
-    }
+    expect(persisted?.id).toBe(failureId);
 
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, { taskId }),
-    ).resolves.toMatchObject({
-      id: taskId,
-      status: "FAILED",
-      relatedPullRequest: {
-        id: Reflect.get(relatedPullRequest, "id"),
-        number: Reflect.get(relatedPullRequest, "number"),
-      },
-      failure: {
-        operationFailure: {
-          id: failureId,
-          code: "CAT_OPERATION_FAILED",
-          reviewBlocker: "reviewable_change_write_failed",
-        },
-      },
-    });
-
-    const pr = await executeQuery({ db: testDb.client }, getPRByNumber, {
+    const [pr] = await executeQuery({ db: testDb.client }, listPRs, {
       projectId: fixture.projectId,
-      number: Reflect.get(relatedPullRequest, "number"),
+      limit: 1,
+      offset: 0,
     });
     expect(pr?.metadata).toMatchObject({
-      sourceOperation: "translation.directWrite",
-      operationFailure: {
-        id: failureId,
-        code: "CAT_OPERATION_FAILED",
-      },
-      localizationTaskId: taskId,
+      operationFailure: { id: failureId },
     });
-  });
-
-  it("keeps reviewable translation changes off mainline until their pull request is merged", async () => {
-    const fixture = await seedProjectElement("contract-reviewable-merge");
-    await grantProjectRelation(
-      getCreatorId(),
-      fixture.projectId,
-      "isolation_forced",
-    );
-
-    const result = await invokeOperationContract(
-      directTranslationWriteContract,
-      createOperationInvocationContext({
-        auth: {
-          subjectType: "user",
-          subjectId: getCreatorId(),
-          systemRoles: [],
-          scopes: ["project:*"],
-        },
-      }),
-      {
-        projectId: fixture.projectId,
-        elementId: fixture.elementId,
-        languageId: "zh-Hans",
-        text: "合并后出现的契约译文",
-        createMemory: false,
-      },
-    );
-
-    expect(result.writeMode).toBe("reviewable_change");
-    if (result.reviewableChange === undefined) {
-      throw new Error("Expected reviewable change metadata");
-    }
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual([]);
-
-    const diff = await executeQuery({ db: testDb.client }, getPRDiff, {
-      prId: result.reviewableChange.pullRequestId,
-      entityType: "translation",
-      limit: 10,
-    });
-
-    expect(diff).toEqual([
-      expect.objectContaining({
-        action: "CREATE",
-        after: expect.objectContaining({
-          translatableElementId: fixture.elementId,
-          languageId: "zh-Hans",
-          text: "合并后出现的契约译文",
-          translatorId: getCreatorId(),
-        }),
-      }),
-    ]);
-
-    const pr = await executeQuery({ db: testDb.client }, getPRByNumber, {
-      projectId: fixture.projectId,
-      number: result.reviewableChange.pullRequestNumber,
-    });
-    if (pr === null) {
-      throw new Error("Expected reviewable change pull request");
-    }
-
-    const mergeResult = await mergePRFull(
-      { db: testDb.client },
-      {
-        prExternalId: pr.externalId,
-        mergedBy: getCreatorId(),
-      },
-    );
-
-    expect(mergeResult.success).toBe(true);
-    expect(mergeResult.hasConflicts).toBe(false);
-
-    await expect(
-      call(
-        getAll,
-        {
-          elementId: fixture.elementId,
-          languageId: "zh-Hans",
-        },
-        { context: createContext() },
-      ),
-    ).resolves.toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          kind: "main",
-          translatableElementId: fixture.elementId,
-          text: "合并后出现的契约译文",
-          translatorId: getCreatorId(),
-        }),
-      ]),
-    );
   });
 });
 
@@ -1583,7 +446,7 @@ describe("translation router branch-aware writes", () => {
     mocks.interceptWrite.mockClear();
     mocks.runGraph.mockClear();
     mocks.runGraph.mockImplementation(writeTranslationsWithFakeGraph);
-    mocks.firstOrGivenService.mockClear();
+    mocks.selectFirstServiceImplementation.mockClear();
   });
 
   it("creates a reviewable change from main route writes when isolation is required", async () => {
@@ -1605,14 +468,6 @@ describe("translation router branch-aware writes", () => {
       },
       { context: createContext() },
     );
-
-    expect(result?.localizationTask).toMatchObject({
-      status: "COMPLETED",
-      operationContract: "translation.directWrite",
-      relatedPullRequest: {
-        number: expect.any(Number),
-      },
-    });
 
     const prs = await executeQuery({ db: testDb.client }, listPRs, {
       projectId: fixture.projectId,
@@ -1660,15 +515,7 @@ describe("translation router branch-aware writes", () => {
       ),
     ).resolves.toEqual([]);
 
-    if (result === undefined) {
-      throw new Error("Expected route result with localization task");
-    }
-
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, {
-        taskId: result.localizationTask.id,
-      }),
-    ).resolves.toEqual(result.localizationTask);
+    expect(result?.writeMode).toBe("reviewable_change");
   });
 
   it("projects ReBAC denial from the direct write contract through the oRPC adapter", async () => {
@@ -1704,42 +551,24 @@ describe("translation router branch-aware writes", () => {
           id: expect.any(String),
           code: "CAT_OPERATION_RELATIONSHIP_DENIED",
           message: "rebac_denied: project editor relationship is required",
-          severity: "error",
+          severity: "ERROR",
           retryable: false,
           affectedResources: [
             {
-              type: "project",
+              type: "PROJECT",
               id: fixture.projectId,
             },
             {
-              type: "translatable_element",
+              type: "ELEMENT",
               id: String(fixture.elementId),
             },
           ],
           remediationHint:
             "Grant the project editor relationship or invoke as an authorized actor.",
-          taskId: expect.any(String),
-          redactionBoundary: "public",
-        },
-        localizationTask: {
-          status: "FAILED",
-          operationContract: "translation.directWrite",
-          failure: {
-            identifier: "relationship_denied",
-            message: "rebac_denied: project editor relationship is required",
-            operationFailure: {
-              id: expect.any(String),
-              code: "CAT_OPERATION_RELATIONSHIP_DENIED",
-            },
-          },
+          redactionBoundary: "PUBLIC",
         },
       },
     });
-
-    const localizationTaskId = getProjectedLocalizationTaskId(caughtError);
-    if (localizationTaskId === null) {
-      throw new Error("Expected projected localization task on route error");
-    }
 
     if (typeof caughtError !== "object" || caughtError === null) {
       throw new Error("Expected route error object");
@@ -1759,27 +588,6 @@ describe("translation router branch-aware writes", () => {
     ) {
       throw new Error("Expected projected operation failure");
     }
-    const projectedFailureId = Reflect.get(projectedFailure, "id");
-
-    await expect(
-      executeQuery({ db: testDb.client }, getLocalizationTask, {
-        taskId: localizationTaskId,
-      }),
-    ).resolves.toMatchObject({
-      id: localizationTaskId,
-      status: "FAILED",
-      failure: {
-        identifier: "relationship_denied",
-        message: "rebac_denied: project editor relationship is required",
-        operationFailure: {
-          id: projectedFailureId,
-          code: "CAT_OPERATION_RELATIONSHIP_DENIED",
-          retryable: false,
-          taskId: localizationTaskId,
-        },
-      },
-    });
-
     await expect(
       call(
         getAll,
@@ -1838,7 +646,7 @@ describe("translation router branch-aware writes", () => {
   it("allows API-key project editor scope when durable write mode permits direct writes", async () => {
     const fixture = await seedProjectElement("route-api-scope-allowed");
 
-    const result = await call(
+    await call(
       create,
       {
         projectId: fixture.projectId,
@@ -1849,21 +657,6 @@ describe("translation router branch-aware writes", () => {
       },
       { context: createContext({ scopes: ["project:editor"] }) },
     );
-
-    expect(result?.localizationTask).toMatchObject({
-      status: "COMPLETED",
-      operationContract: "translation.directWrite",
-      affectedResources: expect.arrayContaining([
-        {
-          type: "project",
-          id: fixture.projectId,
-        },
-        {
-          type: "translatable_element",
-          id: String(fixture.elementId),
-        },
-      ]),
-    });
 
     await expect(
       call(
@@ -1904,10 +697,6 @@ describe("translation router branch-aware writes", () => {
     expect(result).toMatchObject({
       writeMode: "direct",
       translationIds: [expect.any(Number)],
-      localizationTask: {
-        status: "COMPLETED",
-        operationContract: "translation.directWrite",
-      },
     });
 
     await expect(
@@ -2084,16 +873,16 @@ describe("translation router branch-aware writes", () => {
           message: "Branch translation write failed",
           affectedResources: [
             {
-              type: "project",
+              type: "PROJECT",
               id: fixture.projectId,
             },
             {
-              type: "translatable_element",
+              type: "ELEMENT",
               id: String(fixture.elementId),
             },
           ],
-          reviewBlocker: "branch_translation_write_failed",
-          redactionBoundary: "internal",
+          blocker: "branch_translation_write_failed",
+          redactionBoundary: "INTERNAL",
         },
       },
     });
@@ -2319,4 +1108,134 @@ describe("translation router branch-aware writes", () => {
       message: `Branch ${pr.branchId} does not belong to element project ${projectB.projectId}`,
     });
   });
+
+  it("rejects branch batch auto-translation before creating a task or base write", async () => {
+    const fixture = await seedProjectElement("branch-auto-translate");
+    const pr = await executeCommand({ db: testDb.client }, createPR, {
+      projectId: fixture.projectId,
+      title: "Unsupported branch batch",
+      body: "Branch batch must fail before scheduling.",
+      authorId: getCreatorId(),
+      reviewers: [],
+      branchName: `feature/unsupported-${randomUUID()}`,
+    });
+    const taskQuery = {
+      authorization: {
+        viewerId: getCreatorId(),
+        authorizedProjectIds: [fixture.projectId],
+        systemAdmin: false,
+      },
+      projectId: fixture.projectId,
+      pageSize: 100,
+    };
+    const before = await executeQuery(
+      { db: testDb.client },
+      listLocalizationTasks,
+      taskQuery,
+    );
+
+    await expect(
+      call(
+        autoTranslate,
+        {
+          scope: {
+            projectId: fixture.projectId,
+            branchId: pr.branchId,
+            contentNodeIds: [],
+            elementIds: [fixture.elementId],
+            sortMode: "structure",
+          },
+          languageId: "zh-Hans",
+          minMemorySimilarity: 0.72,
+          maxMemoryAmount: 3,
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "Batch auto-translation does not support branch scopes.",
+    });
+
+    const after = await executeQuery(
+      { db: testDb.client },
+      listLocalizationTasks,
+      taskQuery,
+    );
+    expect(after.items).toEqual(before.items);
+    expect(mocks.runGraph).not.toHaveBeenCalled();
+    expect(
+      await call(
+        getAll,
+        { elementId: fixture.elementId, languageId: "zh-Hans" },
+        { context: createContext() },
+      ),
+    ).toEqual([]);
+  });
+
+  it("rejects a resolved scope above the durable snapshot limit before creating a task", async () => {
+    const fixture = await seedProjectElement("oversized-auto-translate");
+    const taskQuery = {
+      authorization: {
+        viewerId: getCreatorId(),
+        authorizedProjectIds: [fixture.projectId],
+        systemAdmin: false,
+      },
+      projectId: fixture.projectId,
+      pageSize: 100,
+    };
+    const before = await executeQuery(
+      { db: testDb.client },
+      listLocalizationTasks,
+      taskQuery,
+    );
+
+    for (let batch = 0; batch < 10; batch += 1) {
+      // oxlint-disable-next-line no-await-in-loop -- keep each insert below PostgreSQL's parameter limit
+      await executeCommand({ db: testDb.client }, createElements, {
+        data: Array.from({ length: 1_000 }, (_, index) => {
+          const ordinal = batch * 1_000 + index + 1;
+          return {
+            projectId: fixture.projectId,
+            primaryContentNodeId: fixture.fileId,
+            importerId: "test-json",
+            sourceRootRef: "root",
+            sourceNodeRef: `oversized.item.${ordinal}`,
+            stableSourceRef: `oversized-${randomUUID()}-${ordinal}`,
+            stringId: fixture.sourceStringId,
+            localOrder: ordinal,
+          };
+        }),
+      });
+    }
+
+    await expect(
+      call(
+        autoTranslate,
+        {
+          scope: {
+            projectId: fixture.projectId,
+            contentNodeIds: [fixture.fileId],
+            elementIds: [],
+            sortMode: "structure",
+          },
+          languageId: "zh-Hans",
+          minMemorySimilarity: 0.72,
+          maxMemoryAmount: 3,
+        },
+        { context: createContext() },
+      ),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message:
+        "Batch auto-translation supports at most 10000 resolved elements.",
+    });
+
+    const after = await executeQuery(
+      { db: testDb.client },
+      listLocalizationTasks,
+      taskQuery,
+    );
+    expect(after.items).toEqual(before.items);
+    expect(mocks.runGraph).not.toHaveBeenCalled();
+  }, 30_000);
 });

@@ -1,17 +1,21 @@
 import { InMemoryTaskQueue } from "@cat/core";
 import {
-  setVectorizationQueue,
+  installVectorizationQueue,
   type VectorizationTask,
 } from "@cat/server-shared";
+
+export type TestVectorizationQueue = InMemoryTaskQueue<VectorizationTask> & {
+  restore: () => void;
+};
 
 /**
  * Install a global in-memory vectorization task queue for tests.
  *
  * @returns - The installed in-memory queue instance
  */
-export const installTestVectorizationQueue =
-  (): InMemoryTaskQueue<VectorizationTask> => {
-    const queue = new InMemoryTaskQueue<VectorizationTask>();
-    setVectorizationQueue(queue);
-    return queue;
-  };
+export const installTestVectorizationQueue = (): TestVectorizationQueue => {
+  const queue = new InMemoryTaskQueue<VectorizationTask>();
+  return Object.assign(queue, {
+    restore: installVectorizationQueue(queue),
+  });
+};

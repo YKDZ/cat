@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
 
+import { RequiredVectorDimension } from "@cat/shared";
 import Database from "better-sqlite3";
 
 /** Single chunk with embedding vector and optional metadata. */
@@ -60,9 +61,11 @@ export class VectorCache {
     // oxlint-disable-next-line no-unsafe-type-assertion -- better-sqlite3 .get() returns unknown
     const row = db
       .prepare(
-        "SELECT chunks_json FROM embeddings WHERE text = ? AND language_id = ?",
+        "SELECT chunks_json FROM embeddings WHERE text = ? AND language_id = ? AND dimension = ?",
       )
-      .get(text, languageId) as { chunks_json: string } | undefined;
+      .get(text, languageId, RequiredVectorDimension) as
+      | { chunks_json: string }
+      | undefined;
     if (!row) return undefined;
     // oxlint-disable-next-line no-unsafe-type-assertion -- JSON.parse returns any
     return JSON.parse(row.chunks_json) as CachedChunk[][];
@@ -73,13 +76,18 @@ export class VectorCache {
     text: string,
     languageId: string,
     chunks: CachedChunk[][],
-    dimension: number,
   ): void {
     const db = this.getDb(modelName);
     db.prepare(
       `INSERT OR REPLACE INTO embeddings (text, language_id, chunk_count, dimension, chunks_json)
        VALUES (?, ?, ?, ?, ?)`,
-    ).run(text, languageId, chunks.length, dimension, JSON.stringify(chunks));
+    ).run(
+      text,
+      languageId,
+      chunks.length,
+      RequiredVectorDimension,
+      JSON.stringify(chunks),
+    );
   }
 
   /** Delete a model's entire cache file (dimension mismatch recovery). */

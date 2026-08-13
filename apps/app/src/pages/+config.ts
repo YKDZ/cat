@@ -9,6 +9,8 @@ export default {
     "pluginComponents",
     "i18nMessages",
     "baseURL",
+    "displayLanguage",
+    "isMobile",
   ],
 
   extends: [vikeVue],

@@ -86,6 +86,7 @@ const createContext = (input?: { promptEngine?: PromptEngine }) => {
         maxCorrectionAttempts: 2,
       },
       startedAt: new Date("2026-04-11T00:00:00.000Z"),
+      signal: new AbortController().signal,
       logger: createNoopAgentLogger(),
       vcsMode: "direct" as const,
       permissionChecker: async () => true,

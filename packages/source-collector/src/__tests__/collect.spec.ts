@@ -2,6 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
+import { normalizeLanguageId } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import { collect } from "#/collect.ts";
@@ -33,7 +34,7 @@ const mockExtractor: SourceExtractor = {
         sourceNodeRef: `source-file:${filePath}`,
         localOrder: i,
         text: line.trim(),
-        languageId: sourceLanguageId ?? "en",
+        languageId: normalizeLanguageId(sourceLanguageId ?? "en"),
         meta: { extractor: "mock", file: filePath, line: i + 1 },
         location: { startLine: i + 1, endLine: i + 1 },
       }));

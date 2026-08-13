@@ -4,8 +4,11 @@ import {
   type PluginServiceAvailability,
   type VectorizeContext,
 } from "@cat/plugin-core";
-import type { JSONType } from "@cat/shared";
-import type { VectorizedTextData } from "@cat/shared";
+import type {
+  JSONType,
+  RequiredVectorDimension,
+  VectorizedTextData,
+} from "@cat/shared";
 import OpenAI from "openai";
 import * as z from "zod";
 
@@ -16,6 +19,8 @@ const ConfigSchema = z.object({
 });
 
 type Config = z.infer<typeof ConfigSchema>;
+
+const VECTOR_DIMENSION = 1024 satisfies RequiredVectorDimension;
 
 const PLACEHOLDER_API_KEYS = new Set(["", "dummy-key", "your api key"]);
 const PLACEHOLDER_BASE_URLS = new Set(["http://localhost:11434/v1"]);
@@ -91,12 +96,12 @@ export class Vectorizer extends TextVectorizer {
       {
         model: this.config["model-id"],
         input: values,
-        dimensions: 1024,
+        dimensions: VECTOR_DIMENSION,
       },
       { signal },
     );
 
-    return elements.map((element, index) => [
+    return elements.map((_element, index) => [
       {
         meta: {
           modelId: this.config["model-id"],

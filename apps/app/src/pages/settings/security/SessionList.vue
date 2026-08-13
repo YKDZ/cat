@@ -5,8 +5,9 @@ import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
+import { formatTimestamp } from "#/utils/format.ts";
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const { rpcWarn, info } = useToastStore();
 
 type Session = {
@@ -57,7 +58,8 @@ onMounted(load);
           {{ session.userAgent ?? t("未知设备") }}
         </div>
         <div class="text-xs text-muted-foreground">
-          {{ t("登录于") }} {{ new Date(session.createdAt).toLocaleString() }}
+          {{ t("登录于") }}
+          {{ formatTimestamp(session.createdAt, locale) }}
         </div>
       </div>
       <Button

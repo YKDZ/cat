@@ -30,13 +30,16 @@ export const prUpdateTool: AgentToolDefinition = {
   parameters: prUpdateArgs,
   sideEffectType: "internal",
   toolSecurityLevel: "standard",
-  async execute(args, _ctx) {
+  async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const { client: db } = await getDbHandle();
     const parsed = prUpdateArgs.parse(args);
 
-    return await executeCommand({ db }, updatePRStatus, {
+    ctx.signal.throwIfAborted();
+    const pullRequest = await executeCommand({ db }, updatePRStatus, {
       prId: parsed.prId,
       status: parsed.status,
     });
+    return pullRequest;
   },
 };

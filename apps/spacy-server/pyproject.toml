@@ -1,0 +1,41 @@
+[project]
+name = "cat-spacy-server"
+version = "0.1.0"
+requires-python = "==3.12.11"
+dependencies = [
+  "fastapi==0.116.1",
+  "langcodes==3.5.0",
+  "packaging==25.0",
+  "pip==25.1.1",
+  "pydantic==2.11.7",
+  "spacy==3.8.7",
+  "spacy-pkuseg==1.0.1",
+  "uvicorn==0.35.0",
+]
+
+[dependency-groups]
+dev = [
+  "httpx==0.28.1",
+  "mypy==1.17.0",
+  "pytest==8.4.1",
+  "ruff==0.12.4",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["src", "tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]

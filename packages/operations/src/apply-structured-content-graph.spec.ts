@@ -1,4 +1,7 @@
-import type { StructuredContentPayload } from "@cat/shared";
+import {
+  normalizeLanguageId,
+  type StructuredContentPayload,
+} from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -103,7 +106,7 @@ describe("applyStructuredContentGraphEnvelope", () => {
     const payload: StructuredContentPayload = {
       payloadVersion: "content-graph/v1",
       projectId: PROJECT_ID,
-      sourceLanguageId: "en",
+      sourceLanguageId: normalizeLanguageId("en"),
       importerId: "JSON",
       sourceRootRef: "content-node:abc",
       relationTypes: [],
@@ -156,7 +159,7 @@ describe("persistStructuredContentGraphAttachments", () => {
     const payload: StructuredContentPayload = {
       payloadVersion: "content-graph/v1",
       projectId: PROJECT_ID,
-      sourceLanguageId: "en",
+      sourceLanguageId: normalizeLanguageId("en"),
       importerId: "JSON",
       sourceRootRef: "content-node:abc",
       relationTypes: [],

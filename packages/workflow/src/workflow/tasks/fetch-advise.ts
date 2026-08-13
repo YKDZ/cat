@@ -3,6 +3,7 @@ import {
   FetchAdviseInputSchema,
   FetchAdviseOutputSchema,
 } from "@cat/operations";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -11,7 +12,7 @@ export { FetchAdviseOutputSchema };
 
 export const FetchAdviseWorkflowInputSchema = FetchAdviseInputSchema.extend({
   eventElementId: z.int().optional(),
-  eventAdvisorId: z.int().optional(),
+  eventAdvisor: ServiceImplementationReferenceSchema.optional(),
 });
 
 export const fetchAdviseGraph = defineGraph({
@@ -23,7 +24,7 @@ export const fetchAdviseGraph = defineGraph({
       input: FetchAdviseWorkflowInputSchema,
       output: FetchAdviseOutputSchema,
       handler: async (input, ctx) => {
-        const { eventAdvisorId, eventElementId, ...opInput } = input;
+        const { eventAdvisor, eventElementId, ...opInput } = input;
         const result = await fetchAdviseOp(opInput, {
           traceId: ctx.traceId,
           signal: ctx.signal,
@@ -37,8 +38,8 @@ export const fetchAdviseGraph = defineGraph({
                 elementId: eventElementId,
                 suggestion: {
                   ...suggestion,
-                  ...(eventAdvisorId !== undefined
-                    ? { advisorId: eventAdvisorId }
+                  ...(eventAdvisor !== undefined
+                    ? { advisor: eventAdvisor }
                     : {}),
                 },
               },

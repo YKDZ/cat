@@ -1,8 +1,9 @@
 {
-  "$schema": "../../plugin-core/manifest-schema.json",
+  "$schema": "../../packages/plugin-core/manifest-schema.json",
   "id": "openai-vectorizer",
   "entry": "dist/index.js",
   "version": "0.1.0",
+  "configVersion": "1",
   "iconURL": "https://unocss.dev/logo.svg",
   "services": [
     {
@@ -12,6 +13,7 @@
   ],
   "config": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "model-id": {
         "type": "string",

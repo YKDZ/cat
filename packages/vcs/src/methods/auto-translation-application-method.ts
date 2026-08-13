@@ -73,9 +73,16 @@ export class AutoTranslationApplicationMethod implements ApplicationMethod {
     }
 
     // Create vectorizedString for the translation text
-    const stringIds = await executeCommand({ db }, createVectorizedStrings, {
-      data: [{ text: payload.text, languageId: payload.languageId }],
-    });
+    const stringIds = await executeCommand(
+      {
+        db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
+      createVectorizedStrings,
+      {
+        data: [{ text: payload.text, languageId: payload.languageId }],
+      },
+    );
 
     if (stringIds.length === 0) {
       return {
@@ -85,14 +92,21 @@ export class AutoTranslationApplicationMethod implements ApplicationMethod {
     }
 
     // Create translation record
-    await executeCommand({ db }, createTranslations, {
-      data: [
-        {
-          translatableElementId: payload.elementId,
-          stringId: assertFirstNonNullish(stringIds),
-        },
-      ],
-    });
+    await executeCommand(
+      {
+        db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
+      createTranslations,
+      {
+        data: [
+          {
+            translatableElementId: payload.elementId,
+            stringId: assertFirstNonNullish(stringIds),
+          },
+        ],
+      },
+    );
 
     return { status: "APPLIED" };
   }

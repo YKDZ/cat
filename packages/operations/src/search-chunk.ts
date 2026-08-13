@@ -1,6 +1,9 @@
 import type { OperationContext } from "@cat/domain";
-import type { VectorStorage } from "@cat/plugin-core";
-import { getServiceFromDBId, resolvePluginManager } from "@cat/server-shared";
+import {
+  resolvePluginManager,
+  resolveServiceImplementation,
+} from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { retrieveEmbeddingsOp } from "./retrieve-embeddings.ts";
@@ -25,7 +28,7 @@ export const SearchChunkInputSchema = z.object({
         "Raw embedding vectors to use as the search query. " +
         "When provided, queryChunkIds is ignored and no DB lookup is performed.",
     }),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const SearchChunkOutputSchema = z.object({
@@ -77,14 +80,15 @@ export const searchChunkOp = async (
     vectors = embeddingsResult.embeddings;
   }
 
-  const { minSimilarity, maxAmount, vectorStorageId, searchRange } = payload;
+  const { minSimilarity, maxAmount, vectorStorage, searchRange } = payload;
 
-  const vectorStorage = getServiceFromDBId<VectorStorage>(
+  const vectorStorageService = resolveServiceImplementation(
     pluginManager,
-    vectorStorageId,
+    vectorStorage,
+    "VECTOR_STORAGE",
   );
 
-  const chunks = await vectorStorage.cosineSimilarity({
+  const chunks = await vectorStorageService.cosineSimilarity({
     vectors,
     chunkIdRange: searchRange,
     minSimilarity,

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
+import { onBeforeUnmount } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { useEditorSuggestionStore } from "#/stores/editor/suggestion.ts";
@@ -22,6 +23,8 @@ watchClient(
   },
   { immediate: true },
 );
+
+onBeforeUnmount(unsubscribe);
 </script>
 
 <template>

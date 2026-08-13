@@ -8,13 +8,18 @@
   },
   "scripts": {
     "eval": "node --conditions=source src/cli.ts",
-    "format": "node ../../tooling/oxlint/run.ts format",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
-    "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
-    "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "format:check": "oxfmt --list-different --config ../../oxfmt.config.ts .",
+    "format:write": "oxfmt --write --config ../../oxfmt.config.ts .",
+    "lint": "oxlint --quiet --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
+    "lint:fix": "oxlint --fix --format=unix --type-aware --config ../../oxlint.config.ts --no-error-on-unmatched-pattern .",
+    "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts'",
+    "test:integration": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.spec.ts' --no-file-parallelism",
+    "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --exclude '**/*.test.ts'",
+    "typecheck": "pnpm --workspace-root exec tsc --noEmit --pretty false -p apps/eval/tsconfig.json"
   },
   "dependencies": {
+    "@cat-plugin/openai-vectorizer": "link:../../@cat-plugin/openai-vectorizer",
+    "@cat-plugin/spacy-language-analyzer": "link:../../@cat-plugin/spacy-language-analyzer",
     "@cat/agent": "link:../../packages/agent",
     "@cat/agent-tools": "link:../../packages/agent-tools",
     "@cat/db": "link:../../packages/db",
@@ -37,8 +42,10 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../../packages/typescript-config",
     "@types/js-yaml": "catalog:",
     "@types/node": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yaml": "catalog:"
   }
 }

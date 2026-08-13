@@ -1,0 +1,168 @@
+name: cat
+
+# This is the distributable production artifact. It deliberately does not
+# inherit repository-local service definitions so operators can copy it alone.
+# `docker compose up -d` runs the self-contained standalone aggregate. To use
+# a runtime image, first target `bootstrap` with the runtime-preparation
+# profile, then set CAT_APPLICATION_IMAGE and CAT_APPLICATION_COMMAND=start-only.
+services:
+  postgresql:
+    image: ${CAT_POSTGRES_IMAGE:-pgvector/pgvector:0.8.6-pg18}
+    environment:
+      POSTGRES_DB: ${CAT_POSTGRES_DB:?CAT_POSTGRES_DB is required}
+      POSTGRES_PASSWORD: ${CAT_POSTGRES_PASSWORD:?CAT_POSTGRES_PASSWORD is required}
+      POSTGRES_USER: ${CAT_POSTGRES_USER:?CAT_POSTGRES_USER is required}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      interval: 10s
+      retries: 12
+      start_period: 20s
+      timeout: 5s
+    restart: unless-stopped
+    volumes:
+      - postgresql-data:/var/lib/postgresql
+
+  redis:
+    image: ${CAT_REDIS_IMAGE:-redis:8-alpine}
+    environment:
+      REDIS_PASSWORD: ${CAT_REDIS_PASSWORD:?CAT_REDIS_PASSWORD is required}
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --appendfsync
+      - everysec
+      - --requirepass
+      - $${REDIS_PASSWORD}
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli --no-auth-warning -a "$${REDIS_PASSWORD}" ping | grep PONG
+      interval: 10s
+      retries: 12
+      start_period: 10s
+      timeout: 3s
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  spacy:
+    image: ${CAT_SPACY_IMAGE:-ghcr.io/ykdz/cat-spacy-server:latest}
+    command: ["provision-and-serve"]
+    environment:
+      SPACY_EXTERNAL_PLAN: ${CAT_SPACY_EXTERNAL_PLAN:-}
+      SPACY_EXTERNAL_PLAN_SHA256: ${CAT_SPACY_EXTERNAL_PLAN_SHA256:-}
+      SPACY_MODELS_ROOT: /models
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3).read()
+      interval: 10s
+      retries: 18
+      start_period: 510s
+      timeout: 5s
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777
+    user: "10001:10001"
+    volumes:
+      - spacy-models:/models
+      # To use an external plan, populate this named volume with plan.json and
+      # its relative wheel directories, then set CAT_SPACY_EXTERNAL_PLAN to
+      # /config/plan.json and CAT_SPACY_EXTERNAL_PLAN_SHA256 to its digest.
+      - type: volume
+        source: spacy-config
+        target: /config
+        read_only: true
+
+  prepare:
+    image: ${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}
+    command: ["prepare-only"]
+    profiles: ["runtime-preparation"]
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      spacy:
+        condition: service_healthy
+    environment: &app-environment
+      CAT_DATABASE_HOST: postgresql
+      CAT_DATABASE_NAME: ${CAT_POSTGRES_DB:?CAT_POSTGRES_DB is required}
+      CAT_DATABASE_PASSWORD: ${CAT_POSTGRES_PASSWORD:?CAT_POSTGRES_PASSWORD is required}
+      CAT_DATABASE_PORT: "5432"
+      CAT_DATABASE_USER: ${CAT_POSTGRES_USER:?CAT_POSTGRES_USER is required}
+      CAT_REDIS_HOST: redis
+      CAT_REDIS_PASSWORD: ${CAT_REDIS_PASSWORD:?CAT_REDIS_PASSWORD is required}
+      CAT_REDIS_PORT: "6379"
+      CAT_RUNTIME_PROFILE: production
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777
+    user: "1001:1001"
+    volumes:
+      - cat-data:/data
+    restart: "no"
+
+  bootstrap:
+    image: ${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}
+    # The published standalone image contains the versioned official spaCy plan.
+    command: ["bootstrap-only"]
+    profiles: ["runtime-preparation"]
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+    environment:
+      <<: *app-environment
+      # Optional operator override; the image owns the default deployment plan.
+      CAT_BOOTSTRAP_PLAN: ${CAT_BOOTSTRAP_PLAN:-}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777
+    user: "1001:1001"
+    volumes:
+      - cat-data:/data
+    restart: "no"
+
+  app:
+    image: ${CAT_APPLICATION_IMAGE:-${CAT_STANDALONE_IMAGE:-ghcr.io/ykdz/cat:latest}}
+    command: ["${CAT_APPLICATION_COMMAND:-prepare-and-start}"]
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      spacy:
+        condition: service_healthy
+    environment: *app-environment
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,noexec,mode=1777
+    user: "1001:1001"
+    volumes:
+      - cat-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - /usr/local/bin/docker-health-check.js
+      interval: 10s
+      retries: 12
+      start_period: 30s
+      timeout: 3s
+    ports:
+      - "${CAT_HTTP_HOST_PORT:-3000}:3000"
+    restart: unless-stopped
+
+volumes:
+  cat-data:
+  postgresql-data:
+  redis-data:
+  spacy-config:
+    name: ${CAT_SPACY_CONFIG_VOLUME:-cat-spacy-config}
+  spacy-models:

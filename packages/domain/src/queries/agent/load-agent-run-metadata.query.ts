@@ -13,6 +13,7 @@ export type LoadAgentRunMetadataQuery = z.infer<
 >;
 
 export type AgentRunMetadataRow = {
+  sessionId: number;
   externalId: string;
   status: string;
   graphDefinition: NonNullJSONType;
@@ -21,6 +22,9 @@ export type AgentRunMetadataRow = {
   startedAt: Date;
   completedAt: Date | null;
   metadata: JSONType;
+  ownerId: string | null;
+  ownerEpoch: number;
+  ownerLeaseExpiresAt: Date | null;
 };
 
 export const loadAgentRunMetadata: Query<
@@ -29,6 +33,7 @@ export const loadAgentRunMetadata: Query<
 > = async (ctx, query) => {
   const [row] = await ctx.db
     .select({
+      sessionId: agentRun.sessionId,
       externalId: agentRun.externalId,
       status: agentRun.status,
       graphDefinition: agentRun.graphDefinition,
@@ -37,6 +42,9 @@ export const loadAgentRunMetadata: Query<
       startedAt: agentRun.startedAt,
       completedAt: agentRun.completedAt,
       metadata: agentRun.metadata,
+      ownerId: agentRun.ownerId,
+      ownerEpoch: agentRun.ownerEpoch,
+      ownerLeaseExpiresAt: agentRun.ownerLeaseExpiresAt,
     })
     .from(agentRun)
     .where(eq(agentRun.externalId, query.externalId))

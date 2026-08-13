@@ -101,6 +101,7 @@ describe("BranchCombobox", () => {
       props: { projectId },
       global: { plugins: [pinia, i18n] },
     });
+    await wrapper.vm.$nextTick();
 
     expect(wrapper.text()).toContain("branch-42");
     queryState.value = {

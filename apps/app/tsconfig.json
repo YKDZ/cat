@@ -1,21 +1,8 @@
 {
-  "extends": "../../tsconfig.vue.json",
-  "compilerOptions": {
-    "lib": ["ES2023", "DOM", "DOM.Iterable", "WebWorker"],
-    "importHelpers": false,
-    "declaration": false,
-    "declarationMap": false,
-    "emitDeclarationOnly": false,
-    "noEmit": true,
-    "types": ["node", "vite/client", "vitest/globals", "vitest/importMeta"]
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "src/**/*.vue",
-    "scripts/**/*.ts",
-    "vite.config.ts",
-    "vitest.config.ts"
-  ],
-  "exclude": ["dist", "out-tsc"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" },
+    { "path": "./tsconfig.test.json" }
+  ]
 }

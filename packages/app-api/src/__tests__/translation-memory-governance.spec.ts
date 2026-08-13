@@ -53,9 +53,14 @@ vi.mock("#/utils/vcs-route-helper.ts", async () => {
   };
 });
 
-import { deleteMemoryItem, getMemoryAccessContext } from "@cat/domain";
+import {
+  deleteMemory as deleteMemoryCommand,
+  deleteMemoryItem,
+  getMemoryAccessContext,
+  getMemoryCanonicalSnapshots,
+} from "@cat/domain";
 
-import { deleteItem } from "#/orpc/routers/memory.ts";
+import { deleteItem, deleteMemory } from "#/orpc/routers/memory.ts";
 
 const projectId = "33333333-3333-4333-8333-333333333333";
 const memoryId = "44444444-4444-4444-8444-444444444444";
@@ -123,10 +128,25 @@ describe("translation memory governance routes", () => {
           personalProjectId: projectId,
         };
       }
+      if (query === getMemoryCanonicalSnapshots) {
+        return [
+          {
+            id: 101,
+            memoryId,
+            translationId: null,
+            translation: { id: 2 },
+            source: { id: 1 },
+            creatorId: userId,
+          },
+        ];
+      }
       return null;
     });
 
-    mocks.executeCommand.mockResolvedValueOnce({ deleted: true });
+    mocks.executeCommand.mockResolvedValueOnce({
+      deleted: true,
+      derivations: [],
+    });
 
     const result = await call(
       deleteItem,
@@ -137,7 +157,7 @@ describe("translation memory governance routes", () => {
       { context },
     );
 
-    expect(result).toEqual({ deleted: true });
+    expect(result).toEqual({ deleted: true, derivations: [] });
     expect(mocks.interceptWrite).not.toHaveBeenCalled();
     expect(mocks.executeCommand).toHaveBeenCalledWith(
       { db: context.drizzleDB.client },
@@ -165,10 +185,25 @@ describe("translation memory governance routes", () => {
           personalProjectId: null,
         };
       }
+      if (query === getMemoryCanonicalSnapshots) {
+        return [
+          {
+            id: 102,
+            memoryId,
+            translationId: null,
+            translation: { id: 2 },
+            source: { id: 1 },
+            creatorId: userId,
+          },
+        ];
+      }
       return null;
     });
 
-    mocks.executeCommand.mockResolvedValueOnce({ deleted: true });
+    mocks.executeCommand.mockResolvedValueOnce({
+      deleted: true,
+      derivations: [],
+    });
 
     const result = await call(
       deleteItem,
@@ -179,7 +214,7 @@ describe("translation memory governance routes", () => {
       { context },
     );
 
-    expect(result).toEqual({ deleted: true });
+    expect(result).toEqual({ deleted: true, derivations: [] });
     expect(mocks.interceptWrite).toHaveBeenCalledTimes(1);
     expect(mocks.interceptWrite).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -196,7 +231,7 @@ describe("translation memory governance routes", () => {
         scope: "PROJECT",
         projectId,
       }),
-      { deleted: true },
+      { deleted: true, derivations: [] },
       expect.any(Function),
     );
   });
@@ -221,6 +256,18 @@ describe("translation memory governance routes", () => {
           personalProjectId: null,
         };
       }
+      if (query === getMemoryCanonicalSnapshots) {
+        return [
+          {
+            id: 104,
+            memoryId,
+            translationId: null,
+            translation: { id: 2 },
+            source: { id: 1 },
+            creatorId: context.user?.id ?? null,
+          },
+        ];
+      }
       return null;
     });
 
@@ -233,7 +280,7 @@ describe("translation memory governance routes", () => {
       { context },
     );
 
-    expect(result).toEqual({ deleted: true });
+    expect(result).toEqual({ deleted: true, derivations: [] });
     expect(mocks.executeCommand).not.toHaveBeenCalled();
     expect(mocks.interceptWrite).toHaveBeenCalledTimes(1);
     expect(mocks.interceptWrite).toHaveBeenCalledWith(
@@ -290,5 +337,42 @@ describe("translation memory governance routes", () => {
 
     expect(mocks.interceptWrite).not.toHaveBeenCalled();
     expect(mocks.executeCommand).not.toHaveBeenCalled();
+  });
+
+  it("routes Memory bank deletion through the governed aggregate command", async () => {
+    const context = createContext();
+    const userId = context.user?.id;
+    if (!userId) throw new Error("Expected authed user");
+    mocks.permissionCheck.mockResolvedValue(true);
+    mocks.executeQuery.mockImplementation(async (_ctx, query) => {
+      if (query === getMemoryAccessContext) {
+        return {
+          memoryId,
+          scope: "PROJECT",
+          projectIds: [projectId],
+          personalOwnerId: null,
+          personalProjectId: null,
+        };
+      }
+      return null;
+    });
+    mocks.executeCommand.mockResolvedValueOnce({
+      deleted: true,
+      itemCount: 2,
+      derivations: [],
+    });
+
+    await expect(
+      call(deleteMemory, { memoryId }, { context }),
+    ).resolves.toEqual({
+      deleted: true,
+      itemCount: 2,
+      derivations: [],
+    });
+    expect(mocks.executeCommand).toHaveBeenCalledWith(
+      { db: context.drizzleDB.client },
+      deleteMemoryCommand,
+      expect.objectContaining({ memoryId, deletedById: userId }),
+    );
   });
 });

@@ -1,6 +1,10 @@
 import { resolveOperationScopeElementsOp } from "@cat/operations";
 import type { ScopeTranslationSeed } from "@cat/shared";
-import { OperationScopeSchema } from "@cat/shared";
+import {
+  AutoTranslateConfigSchema,
+  BatchAutoTranslationInvocationSchema,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
@@ -8,7 +12,6 @@ import { runGraph } from "#/graph/dsl/run-graph.ts";
 
 import {
   type AutoTranslateOutput,
-  AutoTranslateConfigSchema,
   autoTranslateGraph,
 } from "./auto-translate.ts";
 
@@ -49,23 +52,13 @@ const isSeedApplicableToElement = (
 
 // ─── Input / Output Schemas ───────────────────────────────────────────────────
 
-export const BatchAutoTranslateInputSchema = OperationScopeSchema.extend({
-  languageId: z.string(),
-  advisorId: z.int().optional(),
-  minMemorySimilarity: z.number().min(0).max(1).default(0.72),
-  maxMemoryAmount: z.int().min(0).default(3),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
-  translatorId: z.uuidv4().nullable(),
-  memoryIds: z.array(z.uuidv4()).default([]),
-  glossaryIds: z.array(z.uuidv4()).default([]),
-  config: AutoTranslateConfigSchema.optional(),
-});
+export const BatchAutoTranslateInputSchema =
+  BatchAutoTranslationInvocationSchema;
 
 export const BatchAutoTranslateOutputSchema = z.object({
   translationIds: z.array(z.int()),
-  elementCount: z.int(),
+  translatedElementIds: z.array(z.int()),
+  skippedElementIds: z.array(z.int()),
 });
 
 export type BatchAutoTranslateInput = z.infer<
@@ -100,12 +93,12 @@ const TranslateAllNodeInputSchema = z.object({
     }),
   ),
   languageId: z.string(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   minMemorySimilarity: z.number().min(0).max(1),
   maxMemoryAmount: z.int().min(0),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
   translatorId: z.uuidv4().nullable(),
   memoryIds: z.array(z.uuidv4()),
   glossaryIds: z.array(z.uuidv4()),
@@ -126,7 +119,6 @@ export const batchAutoTranslateGraph = defineGraph({
     "load-elements": defineNode({
       input: BatchAutoTranslateInputSchema.pick({
         projectId: true,
-        branchId: true,
         contentNodeIds: true,
         elementIds: true,
         sortMode: true,
@@ -135,22 +127,24 @@ export const batchAutoTranslateGraph = defineGraph({
       output: LoadElementsOutputSchema,
       inputMapping: {
         projectId: "projectId",
-        branchId: "branchId",
         contentNodeIds: "contentNodeIds",
         elementIds: "elementIds",
         sortMode: "sortMode",
         languageId: "languageId",
       },
       handler: async (input, ctx) => {
+        // A Task invocation is an exact element snapshot. In particular, an
+        // empty snapshot is a valid no-op, never an implicit whole-project run.
+        if (input.elementIds.length === 0) return { elements: [] };
         const { elements } = await resolveOperationScopeElementsOp(
           {
             projectId: input.projectId,
-            branchId: input.branchId,
-            contentNodeIds: input.contentNodeIds,
+            contentNodeIds: [],
             elementIds: input.elementIds,
             sortMode: input.sortMode,
             languageToId: input.languageId,
-            statusFilter: "untranslated",
+            statusFilter: "all",
+            exactElementIds: true,
           },
           { traceId: ctx.runId, signal: ctx.signal },
         );
@@ -176,12 +170,12 @@ export const batchAutoTranslateGraph = defineGraph({
       inputMapping: {
         elements: "load-elements.elements",
         languageId: "languageId",
-        advisorId: "advisorId",
+        advisor: "advisor",
         minMemorySimilarity: "minMemorySimilarity",
         maxMemoryAmount: "maxMemoryAmount",
-        memoryVectorStorageId: "memoryVectorStorageId",
-        translationVectorStorageId: "translationVectorStorageId",
-        vectorizerId: "vectorizerId",
+        memoryVectorStorage: "memoryVectorStorage",
+        translationVectorStorage: "translationVectorStorage",
+        vectorizer: "vectorizer",
         translatorId: "translatorId",
         memoryIds: "memoryIds",
         glossaryIds: "glossaryIds",
@@ -189,11 +183,13 @@ export const batchAutoTranslateGraph = defineGraph({
       },
       handler: async (input, ctx) => {
         const allTranslationIds: number[] = [];
+        const translatedElementIds: number[] = [];
+        const skippedElementIds: number[] = [];
         const scopeTranslationSeeds: ScopeTranslationSeed[] = [];
 
         for (const element of input.elements) {
           // 尊重外部取消信号，提前退出
-          if (ctx.signal?.aborted) break;
+          ctx.signal?.throwIfAborted();
 
           let result: AutoTranslateOutput;
           try {
@@ -207,7 +203,7 @@ export const batchAutoTranslateGraph = defineGraph({
                 sourceLanguageId: element.languageId,
                 primaryContentNodeId: element.primaryContentNodeId,
                 translatorId: input.translatorId,
-                advisorId: input.advisorId,
+                advisor: input.advisor,
                 memoryIds: input.memoryIds,
                 glossaryIds: input.glossaryIds,
                 chunkIds: element.chunkIds,
@@ -216,32 +212,67 @@ export const batchAutoTranslateGraph = defineGraph({
                   .slice(-MAX_SCOPE_TRANSLATION_SEEDS),
                 minMemorySimilarity: input.minMemorySimilarity,
                 maxMemoryAmount: input.maxMemoryAmount,
-                memoryVectorStorageId: input.memoryVectorStorageId,
-                translationVectorStorageId: input.translationVectorStorageId,
-                vectorizerId: input.vectorizerId,
+                memoryVectorStorage: input.memoryVectorStorage,
+                translationVectorStorage: input.translationVectorStorage,
+                vectorizer: input.vectorizer,
                 config: input.config,
               },
-              { signal: ctx.signal, pluginManager: ctx.pluginManager },
+              {
+                signal: ctx.signal,
+                pluginManager: ctx.pluginManager,
+                ownershipFence: ctx.ownershipFence,
+                assertRunOwnership: ctx.assertRunOwnership,
+                vcsContext: ctx.vcsContext,
+                vcsMiddleware: ctx.vcsMiddleware,
+              },
             );
           } catch (error) {
             // 将内层错误附加元素 ID，便于顶层日志定位具体失败的元素
             const msg = error instanceof Error ? error.message : String(error);
-            throw new Error(
+            const contextualError = new Error(
               `Element ${element.id} ("${element.value.slice(0, 40)}"): ${msg}`,
+              { cause: error },
             );
+            const operationFailure =
+              typeof error === "object" && error !== null
+                ? Reflect.get(error, "operationFailure")
+                : undefined;
+            if (operationFailure !== undefined) {
+              Object.assign(contextualError, { operationFailure });
+            }
+            throw contextualError;
           }
 
           if (result.translationIds) {
             allTranslationIds.push(...result.translationIds);
           }
+          if (result.translationIds && result.translationIds.length > 0) {
+            translatedElementIds.push(element.id);
+          } else {
+            skippedElementIds.push(element.id);
+          }
           if (result.scopeTranslationSeed) {
             scopeTranslationSeeds.push(result.scopeTranslationSeed);
           }
+
+          // oxlint-disable-next-line no-await-in-loop
+          await ctx.emit({
+            type: "workflow:task:progress",
+            payload: {
+              current: translatedElementIds.length + skippedElementIds.length,
+              total: input.elements.length,
+              phase: "TRANSLATING",
+              translationIds: [...allTranslationIds],
+              translatedElementIds: [...translatedElementIds],
+              skippedElementIds: [...skippedElementIds],
+            },
+          });
         }
 
         return {
           translationIds: allTranslationIds,
-          elementCount: input.elements.length,
+          translatedElementIds,
+          skippedElementIds,
         };
       },
     }),

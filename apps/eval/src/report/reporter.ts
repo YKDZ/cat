@@ -54,7 +54,13 @@ export const generateReport = (
     }
   }
 
-  const allPassed = thresholdResults.every((t) => t.passed);
+  const cases = evaluation.scenarioEvaluations.flatMap(
+    ({ caseEvaluations }) => caseEvaluations,
+  );
+  const allPassed =
+    cases.length > 0 &&
+    cases.every(({ status }) => status === "ok") &&
+    thresholdResults.every((threshold) => threshold.passed);
 
   const lines: string[] = [];
   lines.push(`# Evaluation Report: ${runResult.suiteName}`);

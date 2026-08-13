@@ -1,5 +1,9 @@
 import type { JSONObject } from "@cat/shared";
-import { nonNullSafeZDotJson, safeZDotJson } from "@cat/shared";
+import {
+  nonNullSafeZDotJson,
+  OperationFailureInputSchema,
+  safeZDotJson,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { EventIdSchema, NodeTypeSchema } from "#/graph/types.ts";
@@ -26,6 +30,7 @@ export const EventTypeValues = [
   "human:input:received",
   "checkpoint:saved",
   "workflow:translation:created",
+  "workflow:task:progress",
   "workflow:qa:issue",
   "workflow:suggestion:ready",
   "tool:call",
@@ -50,8 +55,12 @@ export const eventPayloadSchemas = {
     status: z.string(),
     blackboard: z.unknown().optional(),
     finalMessage: z.string().nullable().optional(),
+    operationFailure: OperationFailureInputSchema.optional(),
   }),
-  "run:error": z.object({ error: z.string() }),
+  "run:error": z.object({
+    error: z.string(),
+    operationFailure: OperationFailureInputSchema.optional(),
+  }),
   "run:compensation:start": z.object({ count: z.int() }),
   "run:compensation:end": z.record(z.string(), z.unknown()),
 
@@ -64,7 +73,10 @@ export const eventPayloadSchemas = {
     pauseReason: z.string().nullable(),
     nodeType: NodeTypeSchema.optional(),
   }),
-  "node:error": z.object({ error: z.string() }),
+  "node:error": z.object({
+    error: z.string(),
+    operationFailure: OperationFailureInputSchema.optional(),
+  }),
   "node:retry": z.object({
     attempt: z.int(),
     maxAttempts: z.int(),
@@ -98,6 +110,14 @@ export const eventPayloadSchemas = {
     translationIds: z.array(z.int()),
     elementIds: z.array(z.int()),
     primaryContentNodeIds: z.array(z.uuidv4()),
+  }),
+  "workflow:task:progress": z.object({
+    current: z.int().nonnegative(),
+    total: z.int().positive(),
+    phase: z.enum(["PREPARING", "TRANSLATING", "INDEXING"]),
+    translationIds: z.array(z.int()),
+    translatedElementIds: z.array(z.int()),
+    skippedElementIds: z.array(z.int()),
   }),
   "workflow:qa:issue": z.object({
     traceId: z.string(),
@@ -150,6 +170,8 @@ export type AgentEventPayload =
 // ─── AgentEvent (full event with typed payload) ──────────────────
 
 type AgentEventBase = {
+  /** Durable append sequence when read from a Checkpointer. */
+  sequence?: number | undefined;
   eventId: string;
   runId: string;
   nodeId?: string | undefined;
@@ -227,6 +249,7 @@ export type EventHandler<T extends EventType = EventType> = (
 // ─── EventEnvelopeInput (typed discriminated union for addEvent/emit) ──
 
 type EventEnvelopeBase = {
+  eventId?: string;
   metadata?: JSONObject;
   parentEventId?: string;
   timestamp?: string;
@@ -243,6 +266,7 @@ const createEventEnvelopeVariant = <T extends EventType>(type: T) => {
   return z.object({
     type: z.literal(type),
     payload: eventPayloadSchemas[type],
+    eventId: EventIdSchema.optional(),
     metadata: safeZDotJson.optional(),
     parentEventId: EventIdSchema.optional(),
     timestamp: z.iso.datetime().optional(),
@@ -267,6 +291,7 @@ export const normalizeEventEnvelope = (
   ) as EventEnvelopeInput;
 
   return {
+    ...(parsed.eventId ? { eventId: parsed.eventId } : {}),
     runId,
     ...(nodeId ? { nodeId } : {}),
     type: parsed.type,

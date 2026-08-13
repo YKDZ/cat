@@ -4,11 +4,14 @@ import {
   getElementSourceLocation,
   getElementTranslationStatus as getElementTranslationStatusQuery,
 } from "@cat/domain";
-import { StorageProvider } from "@cat/plugin-core";
-import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
+import {
+  getDownloadUrl,
+  resolveServiceImplementation,
+} from "@cat/server-shared";
 import { ElementTranslationStatusSchema } from "@cat/shared";
 import { FlattenedContextEvidenceSchema } from "@cat/shared";
 import { safeZDotJson } from "@cat/shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { authed, checkElementPermission } from "#/orpc/server.ts";
@@ -51,7 +54,7 @@ export const getSourceLocation = authed
       sourceStartLine: z.int().nullable(),
       sourceEndLine: z.int().nullable(),
       sourceLocationMeta: safeZDotJson.nullable(),
-      fileHandlerId: z.int().nullable(),
+      fileHandler: ServiceImplementationReferenceSchema.nullable(),
     }),
   )
   .handler(async ({ context, input }) => {
@@ -67,15 +70,16 @@ export const getSourceLocation = authed
     });
 
     let fileUrl: string | null = null;
-    if (row.blobKey && row.storageProviderId) {
-      const provider = getServiceFromDBId<StorageProvider>(
+    if (row.blobKey && row.storageProvider) {
+      const provider = resolveServiceImplementation(
         pluginManager,
-        row.storageProviderId,
+        row.storageProvider,
+        "STORAGE_PROVIDER",
       );
       fileUrl = await getDownloadUrl(
         sessionStore,
         provider,
-        row.storageProviderId,
+        row.storageProvider,
         row.blobKey,
         120,
       );
@@ -88,7 +92,7 @@ export const getSourceLocation = authed
       sourceStartLine: row.sourceStartLine ?? null,
       sourceEndLine: row.sourceEndLine ?? null,
       sourceLocationMeta: row.sourceLocationMeta ?? null,
-      fileHandlerId: row.fileHandlerId ?? null,
+      fileHandler: row.fileHandler ?? null,
     };
   });
 

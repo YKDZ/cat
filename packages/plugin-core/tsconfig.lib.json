@@ -1,13 +1,10 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "@cat/typescript-config/declaration.json",
   "compilerOptions": {
     "rootDir": "./declarations",
     "outDir": "./dist",
-    "forceConsistentCasingInFileNames": true,
     "types": ["node"],
-    "lib": ["ESNext", "DOM"],
-    "declarationMap": false,
-    "isolatedDeclarations": true
+    "lib": ["ESNext", "DOM"]
   },
   "include": ["declarations/*.ts"]
 }

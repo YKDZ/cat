@@ -1,5 +1,9 @@
 import type { PluginManager } from "@cat/plugin-core";
-import { collectLLMResponse, firstOrGivenService } from "@cat/server-shared";
+import {
+  collectLLMResponse,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
+} from "@cat/server-shared";
 import {
   QaReviewSpanSchema,
   type NormalizedQaFinding,
@@ -71,7 +75,9 @@ export type RunSemanticQaReviewInput = {
 
 export type RunSemanticQaReviewResult = {
   status: "COMPLETED" | "FAILED" | "SKIPPED";
-  modelServiceId: number | null;
+  modelService: ReturnType<
+    PluginManager["createServiceImplementationReference"]
+  > | null;
   summary: string | null;
   errorMessage: string | null;
   findings: NormalizedQaFinding[];
@@ -86,7 +92,7 @@ export const runSemanticQaReview = async (
   if (!input.profile.enabledLayers.semantic) {
     return {
       status: "SKIPPED",
-      modelServiceId: null,
+      modelService: null,
       summary: "Semantic review disabled",
       errorMessage: null,
       findings: [],
@@ -96,23 +102,28 @@ export const runSemanticQaReview = async (
   if (!input.pluginManager) {
     return {
       status: "SKIPPED",
-      modelServiceId: null,
+      modelService: null,
       summary: "No LLM provider available",
       errorMessage: null,
       findings: [],
     };
   }
 
-  const llmService = firstOrGivenService(
-    input.pluginManager,
-    "LLM_PROVIDER",
-    input.profile.llm.providerServiceId,
-  );
+  const llmService = input.profile.llm.provider
+    ? {
+        reference: input.profile.llm.provider,
+        service: resolveServiceImplementation(
+          input.pluginManager,
+          input.profile.llm.provider,
+          "LLM_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(input.pluginManager, "LLM_PROVIDER");
 
   if (!llmService) {
     return {
       status: "SKIPPED",
-      modelServiceId: null,
+      modelService: null,
       summary: "No LLM provider available",
       errorMessage: null,
       findings: [],
@@ -146,12 +157,12 @@ export const runSemanticQaReview = async (
 
     return {
       status: "COMPLETED",
-      modelServiceId: llmService.id,
+      modelService: llmService.reference,
       summary: parsed.summary ?? null,
       errorMessage: null,
       findings: parsed.findings.map((finding) => ({
         layer: "SEMANTIC",
-        checkerServiceId: null,
+        checkerService: null,
         qaResultItemId: null,
         ruleId: finding.ruleId,
         ruleFamily: finding.ruleFamily,
@@ -179,7 +190,7 @@ export const runSemanticQaReview = async (
 
     return {
       status: "FAILED",
-      modelServiceId: llmService.id,
+      modelService: llmService.reference,
       summary: null,
       errorMessage,
       findings: [],

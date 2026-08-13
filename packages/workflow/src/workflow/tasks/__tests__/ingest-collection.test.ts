@@ -10,6 +10,7 @@ import {
   listProjectContentNodes,
 } from "@cat/domain";
 import { PluginManager } from "@cat/plugin-core";
+import type { ServiceImplementationReference } from "@cat/shared";
 import {
   installTestVectorizationQueue,
   setupTestDB,
@@ -18,17 +19,25 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { ingestCollectionGraph } from "../ingest-collection.ts";
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 let projectId: string;
-let vectorizerId: number;
-let vectorStorageId: number;
+let vectorizer: ServiceImplementationReference;
+let vectorStorage: ServiceImplementationReference;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -68,11 +77,19 @@ beforeAll(async () => {
 
   const vectorizers = pluginManager.getServices("TEXT_VECTORIZER");
   const vectorStorages = pluginManager.getServices("VECTOR_STORAGE");
-  vectorizerId = vectorizers[0]?.dbId ?? 1;
-  vectorStorageId = vectorStorages[0]?.dbId ?? 1;
+  const registeredVectorizer = vectorizers[0];
+  const registeredVectorStorage = vectorStorages[0];
+  if (!registeredVectorizer || !registeredVectorStorage) {
+    throw new Error("Required vector services not found");
+  }
+  vectorizer =
+    pluginManager.createServiceImplementationReference(registeredVectorizer);
+  vectorStorage = pluginManager.createServiceImplementationReference(
+    registeredVectorStorage,
+  );
 
   installTestVectorizationQueue();
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("structured payload ingestion creates graph rows and evidence without Document", async () => {
@@ -136,8 +153,8 @@ test("structured payload ingestion creates graph rows and evidence without Docum
         },
       ],
     },
-    vectorizerId,
-    vectorStorageId,
+    vectorizer,
+    vectorStorage,
   });
 
   // contentNodeIds should have at least one (the file node)

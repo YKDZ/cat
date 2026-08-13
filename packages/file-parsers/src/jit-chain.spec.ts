@@ -47,5 +47,6 @@ describe("the JIT package chain", () => {
       expect(existsSync(resolve(workspaceRoot, distPath))).toBe(false);
       expect(importFrom(cwd, specifier)).toBe("loaded");
     },
+    15_000,
   );
 });

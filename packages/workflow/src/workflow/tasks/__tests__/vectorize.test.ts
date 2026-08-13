@@ -11,7 +11,11 @@ import { setupTestDB, TestPluginLoader } from "@cat/test-utils";
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { vectorizeGraph } from "../vectorize.ts";
 
@@ -20,10 +24,14 @@ const data = [
   { text: "Vectorize text 2", languageId: "en" },
 ];
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -47,7 +55,7 @@ beforeAll(async () => {
     languageIds: ["en", "zh-Hans"],
   });
 
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 });
 
 test("vectorize should create chunk sets and store embeddings", async () => {
@@ -63,8 +71,9 @@ test("vectorize should create chunk sets and store embeddings", async () => {
 
   const { chunkSetIds } = await runGraph(vectorizeGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(chunkSetIds.length).toEqual(data.length);
@@ -85,8 +94,9 @@ test("vectorize with empty input should return empty chunkSetIds", async () => {
 
   const { chunkSetIds } = await runGraph(vectorizeGraph, {
     data: [],
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(chunkSetIds).toEqual([]);
 });

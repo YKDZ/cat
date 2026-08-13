@@ -6,17 +6,15 @@ import {
   executeQuery,
   listChunkVectorizationInputs,
 } from "@cat/domain";
-import {
-  PluginManager,
-  type TextVectorizer,
-  type VectorStorage,
-} from "@cat/plugin-core";
+import { PluginManager } from "@cat/plugin-core";
+import { resolveServiceImplementation } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import { z } from "zod";
 
 export const RevectorizeInputSchema = z.object({
   chunkIds: z.array(z.int()),
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
 });
 
 export const RevectorizeOutputSchema = z.object({});
@@ -42,7 +40,7 @@ export const revectorizeOp = async (
   payload: RevectorizeInput,
   _ctx?: OperationContext,
 ): Promise<RevectorizeOutput> => {
-  const { chunkIds, vectorizerId, vectorStorageId } = payload;
+  const { chunkIds, vectorizer, vectorStorage } = payload;
 
   if (chunkIds.length === 0) return {};
 
@@ -57,23 +55,16 @@ export const revectorizeOp = async (
   if (chunksData.length === 0) return {};
 
   // 2. 解析插件服务
-  const vectorizerService = pluginManager
-    .getServices("TEXT_VECTORIZER")
-    .find((s) => s.dbId === vectorizerId)?.service as
-    | TextVectorizer
-    | undefined;
-
-  const storageService = pluginManager
-    .getServices("VECTOR_STORAGE")
-    .find((s) => s.dbId === vectorStorageId)?.service as
-    | VectorStorage
-    | undefined;
-
-  if (!vectorizerService || !storageService) {
-    throw new Error(
-      `Service not found. Vectorizer: ${vectorizerId}, Storage: ${vectorStorageId}`,
-    );
-  }
+  const vectorizerService = resolveServiceImplementation(
+    pluginManager,
+    vectorizer,
+    "TEXT_VECTORIZER",
+  );
+  const storageService = resolveServiceImplementation(
+    pluginManager,
+    vectorStorage,
+    "VECTOR_STORAGE",
+  );
 
   // 3. 批量向量化
   const inputs = chunksData.map((c) => ({
@@ -91,8 +82,8 @@ export const revectorizeOp = async (
   const storePayload: { chunkId: number; vector: number[] }[] = [];
   const chunkUpdates: {
     id: number;
-    vectorizerId: number;
-    vectorStorageId: number;
+    vectorizer: typeof vectorizer;
+    vectorStorage: typeof vectorStorage;
   }[] = [];
 
   for (let i = 0; i < chunksData.length; i += 1) {
@@ -113,8 +104,8 @@ export const revectorizeOp = async (
       });
       chunkUpdates.push({
         id: chunkData.chunkId,
-        vectorizerId: vectorizerId,
-        vectorStorageId: vectorStorageId,
+        vectorizer,
+        vectorStorage,
       });
     }
   }
@@ -127,8 +118,8 @@ export const revectorizeOp = async (
   // 6. 更新 chunk 元数据
   await executeCommand({ db }, bulkUpdateChunkVectorMetadata, {
     chunkIds: chunkUpdates.map((item) => item.id),
-    vectorizerId,
-    vectorStorageId,
+    vectorizer,
+    vectorStorage,
   });
 
   return {};

@@ -103,33 +103,32 @@ export interface AgentLogger {
  * @returns - AgentLogger instance
  */
 export const createAgentLogger = (baseLogger: Logger): AgentLogger => {
-  const logger = baseLogger.withSituation("agent");
+  const logger = baseLogger.child({ component: "agent" });
 
   return {
     logRun: (event) => {
       // oxlint-disable-next-line no-unsafe-type-assertion -- pino logger requires plain object
-      logger.info(event as unknown as Record<string, unknown>, event.message);
+      logger.info(event.message, event as unknown as Record<string, unknown>);
     }, // L01
     logDAGNode: (event) => {
       // oxlint-disable-next-line no-unsafe-type-assertion -- pino logger requires plain object
-      logger.info(event as unknown as Record<string, unknown>, event.message);
+      logger.info(event.message, event as unknown as Record<string, unknown>);
     }, // L02
     logLLMCall: (event) => {
       // oxlint-disable-next-line no-unsafe-type-assertion -- pino logger requires plain object
-      logger.info(event as unknown as Record<string, unknown>, event.message);
+      logger.info(event.message, event as unknown as Record<string, unknown>);
     }, // L03
     logToolExecute: (event) => {
       // oxlint-disable-next-line no-unsafe-type-assertion -- pino logger requires plain object
-      logger.info(event as unknown as Record<string, unknown>, event.message);
+      logger.info(event.message, event as unknown as Record<string, unknown>);
     }, // L04
     logError: (event) => {
-      logger.error(event.error, event.message);
+      logger.error(event.message, { error: event.error });
     }, // L05
     logChangeSetEvent: (event) => {
       logger.info(
-        // oxlint-disable-next-line typescript/no-unsafe-type-assertion
-        event as unknown as Record<string, unknown>,
         `changeset.${event.type} cs=${event.changesetId}`,
+        event as unknown as Record<string, unknown>,
       );
     }, // L06
   };

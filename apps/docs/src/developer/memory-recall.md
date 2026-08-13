@@ -1,12 +1,12 @@
 # Memory Recall
 
-Memory recall retrieves translation memory entries and past translations that can be reused or adapted for the current source text. It is broader than term recall because a memory candidate may be an exact sentence, a fuzzy match, a token template, a BM25 keyword match, or a semantic neighbor.
+Memory recall retrieves translation memory entries and past translations that can be reused or adapted for the current source text. It is broader than term recall because a memory candidate may be an exact sentence, a fuzzy match, a token template, or a semantic neighbor.
 
 ## Retrieval Channels
 
-Exact recall checks for identical source text and returns the strongest confidence. Trigram recall handles small surface differences such as punctuation or minor spelling variation. Variant recall uses precomputed source variants for case-folded text, lemmas, fragments, and token templates.
+Exact recall checks for identical source text and returns the strongest confidence. Fuzzy recall uses the pg_trgm trigram channel for short surface differences such as punctuation or minor spelling variation. Keyword Recall is separate: the selected Language Analyzer contributes versioned content tokens and lemmas, which are matched against fresh, scoped Recall Variants. Variant recall uses precomputed source variants for case-folded text, lemmas, fragments, and token templates.
 
-BM25 recall is enabled through a static language capability registry rather than runtime probing. Languages outside the rollout report a stable disabled reason, which keeps product behavior predictable.
+Keyword Recall is available only when its Language Analysis and Recall Derivation versions are current for the requested memory scope. CAT does not substitute a weaker tokenizer or serve stale derived tokens when the selected analyzer or derivation is unavailable.
 
 Semantic recall searches vectorized source chunks within the selected memory range. The range boundary is important: memory suggestions should come from the requested memory library, not from unrelated projects that happen to contain similar text.
 

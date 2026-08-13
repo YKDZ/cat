@@ -6,6 +6,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import TextTooltip from "#/components/tooltip/TextTooltip.vue";
+import { isExpectedNavigationCancellation } from "#/rpc/request-cancellation.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
 import { useProjectWriteCapabilityStore } from "#/stores/write-capability.ts";
@@ -54,7 +55,12 @@ const handleRedo = () => {
 
 const handleTranslate = async (toNext: boolean) => {
   if (!canWrite.value) return;
-  await translate();
+  try {
+    await translate();
+  } catch (error) {
+    if (isExpectedNavigationCancellation(error)) return;
+    throw error;
+  }
   if (toNext) await toNextUntranslated();
 };
 </script>

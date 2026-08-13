@@ -8,12 +8,11 @@ import {
 import { systemPgVectorEntry } from "./vector/index.ts";
 
 describe("plugin defaults", () => {
-  it("combines filesystem and system defaults without the legacy pgvector plugin", () => {
+  it("combines filesystem and system defaults", () => {
     expect(defaultProductPluginIds).toEqual([
       ...defaultFilesystemPluginIds,
       ...defaultSystemPluginIds,
     ]);
     expect(defaultProductPluginIds).toContain(systemPgVectorEntry.manifest.id);
-    expect(defaultProductPluginIds).not.toContain("pgvector-storage");
   });
 });

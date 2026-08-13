@@ -1,0 +1,13 @@
+{
+  "extends": "./base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "importHelpers": false,
+    "lib": ["ES2023"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "target": "es2023",
+    "types": ["node"]
+  }
+}

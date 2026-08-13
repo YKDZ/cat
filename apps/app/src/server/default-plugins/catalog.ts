@@ -28,9 +28,9 @@ import openaiVectorizerPackage from "@cat-plugin/openai-vectorizer/package.json"
 import passwordAuthProvider from "@cat-plugin/password-auth-provider";
 import passwordAuthProviderManifest from "@cat-plugin/password-auth-provider/manifest.json";
 import passwordAuthProviderPackage from "@cat-plugin/password-auth-provider/package.json";
-import spacySegmenter from "@cat-plugin/spacy-segmenter";
-import spacySegmenterManifest from "@cat-plugin/spacy-segmenter/manifest.json";
-import spacySegmenterPackage from "@cat-plugin/spacy-segmenter/package.json";
+import spacyLanguageAnalyzer from "@cat-plugin/spacy-language-analyzer";
+import spacyLanguageAnalyzerManifest from "@cat-plugin/spacy-language-analyzer/manifest.json";
+import spacyLanguageAnalyzerPackage from "@cat-plugin/spacy-language-analyzer/package.json";
 import teiRerankProvider from "@cat-plugin/tei-rerank-provider";
 import teiRerankProviderManifest from "@cat-plugin/tei-rerank-provider/manifest.json";
 import teiRerankProviderPackage from "@cat-plugin/tei-rerank-provider/package.json";
@@ -55,6 +55,7 @@ import {
   systemPgVectorEntry,
 } from "@cat/server-shared";
 import { PluginManifestSchema } from "@cat/shared";
+import type { Logger } from "@cat/shared";
 
 const packageRootFromEntry = (entryUrl: string): string => {
   return dirname(dirname(fileURLToPath(entryUrl)));
@@ -82,6 +83,7 @@ const toEntry = (
     overview: pkg.description ?? manifest.id,
     entry: manifest.entry,
     config: manifest.config,
+    configVersion: manifest.configVersion,
   },
   load: () => plugin,
   ...(assetRoot === undefined ? {} : { assetRoot }),
@@ -148,9 +150,9 @@ export const builtinFilesystemPluginEntries: BuiltinPluginEntry[] = [
     libreTranslateAdvisor,
   ),
   toEntry(
-    parseManifest(spacySegmenterManifest),
-    spacySegmenterPackage,
-    spacySegmenter,
+    parseManifest(spacyLanguageAnalyzerManifest),
+    spacyLanguageAnalyzerPackage,
+    spacyLanguageAnalyzer,
   ),
   toEntry(
     parseManifest(teiRerankProviderManifest),
@@ -159,18 +161,25 @@ export const builtinFilesystemPluginEntries: BuiltinPluginEntry[] = [
   ),
 ];
 
-/**
- * Builtin plugin entries installed by default in the app.
- */
-export const builtinDefaultPluginEntries: BuiltinPluginEntry[] = [
+const builtinPluginEntries: BuiltinPluginEntry[] = [
   ...builtinFilesystemPluginEntries,
   systemPgVectorEntry,
 ];
 
 /**
- * Plugin IDs installed by default in the app.
+ * Plugin IDs installed by default in the app. Providers that need operator
+ * configuration remain available as builtins but cannot be activated by a
+ * fresh bootstrap plan.
  */
 export const defaultPluginIds = [...defaultProductPluginIds];
+const defaultPluginIdSet = new Set<string>(defaultPluginIds);
+
+/**
+ * Builtin plugin entries installed by default in the app.
+ */
+export const builtinDefaultPluginEntries = builtinPluginEntries.filter(
+  (entry) => defaultPluginIdSet.has(entry.manifest.id),
+);
 
 /**
  * Return a copy of the default plugin IDs.
@@ -180,9 +189,14 @@ export const getDefaultPluginIds = (): string[] => [...defaultPluginIds];
 /**
  * Create the app plugin loader that combines builtin and filesystem plugins.
  */
-export const createAppPluginLoader = (): PluginLoader => {
+export const createAppPluginLoader = (
+  diagnosticLogger: Logger,
+): PluginLoader => {
   return new CompositePluginLoader([
-    new BuiltinPluginLoader(builtinDefaultPluginEntries),
-    new FileSystemPluginLoader(resolve(process.cwd(), "plugins")),
+    new BuiltinPluginLoader(builtinPluginEntries),
+    new FileSystemPluginLoader({
+      diagnosticLogger,
+      pluginsDir: resolve(process.cwd(), "plugins"),
+    }),
   ]);
 };

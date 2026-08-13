@@ -22,6 +22,22 @@ describe("InMemoryTaskQueue", () => {
     expect(secondTask.payload.value).toBe("b");
   });
 
+  it("deduplicates a stable task identity while pending or processing", async () => {
+    await expect(
+      queue.enqueue([{ value: "a" }], { taskIds: ["stable-a"] }),
+    ).resolves.toEqual(["stable-a"]);
+    await expect(
+      queue.enqueue([{ value: "a" }], { taskIds: ["stable-a"] }),
+    ).resolves.toEqual([]);
+
+    await expect(queue.dequeue(1)).resolves.toEqual([
+      expect.objectContaining({ id: "stable-a", payload: { value: "a" } }),
+    ]);
+    await expect(
+      queue.enqueue([{ value: "a" }], { taskIds: ["stable-a"] }),
+    ).resolves.toEqual([]);
+  });
+
   it("dequeue returns at most maxCount items", async () => {
     await queue.enqueue([{ value: "a" }, { value: "b" }, { value: "c" }]);
     const tasks = await queue.dequeue(2);

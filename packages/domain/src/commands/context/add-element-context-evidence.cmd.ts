@@ -3,6 +3,7 @@ import {
   ContentEvidenceKindSchema,
   EvidenceTrustLevelSchema,
   safeZDotJson,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import * as z from "zod";
 
@@ -18,7 +19,8 @@ export const AddElementContextEvidenceCommandSchema = z.object({
       elementId: z.int(),
       kind: ContentEvidenceKindSchema,
       fileId: z.int().nullable().optional(),
-      storageProviderId: z.int().nullable().optional(),
+      storageProvider:
+        ServiceImplementationReferenceSchema.nullable().optional(),
       textData: z.string().nullable().optional(),
       jsonData: safeZDotJson.nullable().optional(),
       displayLabel: z.string().nullable().optional(),
@@ -84,7 +86,7 @@ export const addElementContextEvidence: Command<
         kind: item.kind,
         trustLevel: item.trustLevel,
         fileId: item.fileId ?? null,
-        storageProviderId: item.storageProviderId ?? null,
+        storageProvider: item.storageProvider ?? null,
         textData: item.textData ?? null,
         jsonData: item.jsonData ?? null,
         displayLabel: item.displayLabel ?? null,

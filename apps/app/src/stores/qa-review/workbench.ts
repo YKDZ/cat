@@ -2,12 +2,21 @@ import type { QaReviewActionResult } from "@cat/shared";
 import { useQuery, useQueryCache } from "@pinia/colada";
 import { defineStore, storeToRefs } from "pinia";
 import { navigate } from "vike/client/router";
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 
 import { buildQaReviewHref } from "#/pages/qa-review/scope-url.ts";
 import { orpc } from "#/rpc/orpc.ts";
 import { useEditorContextStore } from "#/stores/editor/context.ts";
 import { useEditorTableStore } from "#/stores/editor/table.ts";
+
+const retryRouteDetailDelayMs = 100;
+const routeDetailAttemptCount = 3;
+
+const waitForRouteDetailRetry = async () => {
+  await new Promise<void>((resolve) => {
+    globalThis.setTimeout(resolve, retryRouteDetailDelayMs);
+  });
+};
 
 /**
  * QA review workbench page state.
@@ -101,7 +110,7 @@ export const useQaReviewWorkbenchStore = defineStore(
         ) ?? null,
     );
 
-    const selectElement = async (elementId: number) => {
+    const setSelectedElement = (elementId: number) => {
       selectedElementId.value = elementId;
       selectedQueueItemId.value = null;
       selectedTranslationId.value = null;
@@ -119,9 +128,22 @@ export const useQaReviewWorkbenchStore = defineStore(
           ? {}
           : { sourceLanguageId: element.sourceLanguageId }),
       });
+    };
 
+    const selectElement = async (elementId: number) => {
+      setSelectedElement(elementId);
       if (scope.value) {
         await navigate(buildQaReviewHref(scope.value, elementId));
+      }
+    };
+
+    const syncRouteElement = async (elementId: number) => {
+      setSelectedElement(elementId);
+      await nextTick();
+      for (let attempt = 1; attempt <= routeDetailAttemptCount; attempt += 1) {
+        await refreshDetail();
+        if ((detail.value?.candidates.length ?? 0) > 0) return;
+        if (attempt < routeDetailAttemptCount) await waitForRouteDetailRetry();
       }
     };
 
@@ -225,7 +247,9 @@ export const useQaReviewWorkbenchStore = defineStore(
       overrideReason,
       submitError,
       isSubmitting,
+      primeRouteElement: setSelectedElement,
       selectElement,
+      syncRouteElement,
       selectCandidate,
       submitAction,
       refreshAll,

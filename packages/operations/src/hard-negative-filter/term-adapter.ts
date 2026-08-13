@@ -1,4 +1,5 @@
 import { serverLogger as logger } from "@cat/server-shared";
+import type { LanguageAnalysisToken } from "@cat/shared";
 
 import type { RawResult, RawTermResult } from "../precision/types.ts";
 import { candidateKey } from "../precision/types.ts";
@@ -18,23 +19,19 @@ const toHnfCandidate = (r: RawTermResult): HnfCandidate => ({
  */
 export const applyTermHnfPre = (
   results: RawResult[],
-  sourceNlpTokens: Array<{
-    lemma: string;
-    isStop: boolean;
-    isPunct: boolean;
-    pos: string;
-  }>,
+  sourceLanguageAnalysisTokens: LanguageAnalysisToken[],
   queryText: string,
 ): HardNegativeRemoval[] => {
   if (results.length === 0) return [];
 
-  const { contentWords, keyNouns } =
-    extractContentWordsFromTokens(sourceNlpTokens);
+  const { contentWords, keyNouns } = extractContentWordsFromTokens(
+    sourceLanguageAnalysisTokens,
+  );
   const queryTextLength = queryText.length;
 
   if (contentWords.length === 0) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .warn("HNF(term): no content words, skipping rules 1 and 3");
     return [];
   }
@@ -54,16 +51,18 @@ export const applyTermHnfPre = (
   for (const r of results) {
     if (r.surface !== "term") continue;
     const key = candidateKey(r);
-    if (!keptKeys.has(key)) {
-      (r as Record<string, unknown>)["_hnfRemoved"] = true;
-      continue;
-    }
+    if (!keptKeys.has(key)) continue;
     const updated = kept.find((c) => c.candidateKey === key);
     if (updated) {
       r.confidence = updated.confidence;
       r.evidences = updated.evidences;
     }
   }
+  const retained = results.filter(
+    (result) => result.surface !== "term" || keptKeys.has(candidateKey(result)),
+  );
+  results.length = 0;
+  results.push(...retained);
 
   return removals;
 };

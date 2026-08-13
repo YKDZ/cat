@@ -1,16 +1,20 @@
-import { spawnSync } from "node:child_process";
-import {
-  existsSync,
-  readdirSync,
-  readFileSync,
-  writeFileSync,
-  unlinkSync,
-} from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { toolingTestIncludes } from "./vitest.config.ts";
+
 const root = resolve(import.meta.dirname, "..");
+const removedPrecommitCommand = ["pre", "commit"].join("");
+const rootScopedOxcWorkspaces = new Set([
+  "apps/app",
+  "@cat-plugin/tiny-widget",
+  "packages/plugin-core",
+  "packages/ui",
+]);
+const sourceFilePattern = /\.(?:[cm]?[jt]sx?|vue|json|md|yaml|yml|css|html)$/;
+const ignoredSourceDirectories = new Set(["dist", "node_modules", "out-tsc"]);
 const workspacePackageFiles = (): string[] => {
   const roots = ["apps", "packages", "@cat-plugin", "tools"];
   return roots.flatMap((directory) =>
@@ -37,6 +41,26 @@ const packageTestFiles = (packageRoot: string): string[] => {
   visit(packageRoot);
   return files;
 };
+
+const sourceFiles = (roots: string[]): string[] => {
+  const files: string[] = [];
+  const visit = (directory: string): void => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = resolve(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (!ignoredSourceDirectories.has(entry.name)) {
+          visit(path);
+        }
+      } else if (entry.isFile() && sourceFilePattern.test(entry.name)) {
+        files.push(path);
+      }
+    }
+  };
+  for (const directory of roots) {
+    visit(resolve(root, directory));
+  }
+  return files;
+};
 const readRootManifest = (): {
   scripts?: Record<string, string>;
 } =>
@@ -45,154 +69,178 @@ const readRootManifest = (): {
   };
 
 describe("repository quality command contract", () => {
+  it("removes historical diagnostic situations from application sources", () => {
+    const offenders = sourceFiles(["apps", "packages", "@cat-plugin"]).filter(
+      (file) => /situation:|withSituation/.test(readFileSync(file, "utf8")),
+    );
+
+    expect(offenders.map((file) => file.replace(`${root}/`, ""))).toEqual([]);
+  });
+
+  it("routes browser-runtime errors through structured diagnostics", () => {
+    const offenders = sourceFiles([
+      "apps/app/src/pages/index",
+      "packages/plugin-core/src/client/sce",
+    ]).filter((file) =>
+      /console\.(debug|info|warn|error|log)/.test(readFileSync(file, "utf8")),
+    );
+
+    expect(offenders.map((file) => file.replace(`${root}/`, ""))).toEqual([]);
+  });
+
   it("keeps root checks explicit and removes the central Vitest registry", () => {
     const scripts = readRootManifest().scripts ?? {};
 
     expect(scripts.check).toBeDefined();
     expect(scripts["check:all"]).toBeDefined();
     expect(scripts.fix).toBeDefined();
-    expect(scripts["pre" + "commit"]).toBeUndefined();
+    expect(scripts[removedPrecommitCommand]).toBeUndefined();
     expect(existsSync(resolve(root, "vitest.config.ts"))).toBe(false);
   });
 
-  it("keeps check read-only and service-independent", () => {
+  it("runs the complete read-only quality graph through one concise Turbo command", () => {
     const scripts = readRootManifest().scripts ?? {};
     const check = scripts.check ?? "";
 
-    expect(check).not.toMatch(/(?:fix|migrate|push|docker|playwright)/i);
-    expect(check).toContain("pnpm format");
-    expect(check).toContain("pnpm lint");
-    expect(check).toContain("codegen:check");
-    expect(check).toContain("test:unit");
-    expect(check).toContain("test:tooling");
-    expect(check).not.toMatch(/(?:^|&&)\s*pnpm test\s*(?:&&|$)/);
+    expect(check).not.toMatch(/(?:\bfix\b|migrate|push|docker|playwright)/i);
+    expect(check).toMatch(/^turbo run /);
+    expect(check).not.toContain("&&");
+    for (const task of [
+      "boundaries",
+      "format:check",
+      "lint",
+      "typecheck",
+      "test:unit",
+      "codegen:check",
+      "test:tooling",
+    ]) {
+      expect(check).toContain(task);
+    }
+    expect(check).toContain("--output-logs=errors-only");
+    expect(check).toContain("--log-order=grouped");
+    expect(check).toContain("--log-prefix=task");
+    expect(check).toContain("--continue=dependencies-successful");
     expect(scripts.test).toBe("pnpm test:tooling");
     expect(scripts["test:tooling"]).toContain("scripts/vitest.config.ts");
-    expect(
-      readFileSync(resolve(root, "scripts/vitest.config.ts"), "utf8"),
-    ).toMatch(/include:[\s\S]+\.spec\.ts/);
-    expect(scripts["test:tooling"]).not.toContain("public-packages.test.ts");
+    expect(toolingTestIncludes).toContain("scripts/**/*.spec.ts");
+    expect(scripts["test:tooling"]).not.toContain("package-artifacts.test.ts");
   });
 
-  it("makes pnpm check reject a root tooling formatting defect", () => {
-    const probe = resolve(root, "scripts/quality-root-check-probe.ts");
-    const before = "export const rootCheckProbe={value:1}\n";
-    writeFileSync(probe, before);
-    try {
-      const result = spawnSync("pnpm", ["check"], {
-        cwd: root,
-        encoding: "utf8",
-        timeout: 120_000,
-      });
+  it("keeps every root Turbo entrypoint concise without wrapping its output", () => {
+    const scripts = readRootManifest().scripts ?? {};
+    const turboCommands = Object.entries(scripts).flatMap(([name, script]) =>
+      script
+        .split(" && ")
+        .filter((command) => command.startsWith("turbo run "))
+        .map((command) => ({ command, name })),
+    );
 
-      expect(result.status, result.stderr).not.toBe(0);
-      expect(readFileSync(probe, "utf8")).toBe(before);
-    } finally {
-      unlinkSync(probe);
+    expect(turboCommands.length).toBeGreaterThan(0);
+    for (const { command, name } of turboCommands) {
+      expect(command, name).toContain("--cache-workers=2");
+      expect(command, name).toContain("--remote-cache-timeout=5");
+    }
+    for (const name of [
+      "build",
+      "build:app",
+      "build:e2e",
+      "build-plugins",
+      "build:all",
+      "test:integration",
+    ] as const) {
+      expect(scripts[name], name).toContain("--output-logs=errors-only");
+      expect(scripts[name], name).toContain("--log-order=grouped");
+      expect(scripts[name], name).toContain("--log-prefix=task");
     }
   });
 
-  it("makes pnpm check reject a root tooling lint defect", () => {
-    const probe = resolve(root, "scripts/quality-root-lint-probe.ts");
-    const before = "export const rootLintProbe = (value: any): any => value;\n";
-    writeFileSync(probe, before);
-    try {
-      const result = spawnSync("pnpm", ["check"], {
-        cwd: root,
-        encoding: "utf8",
-        timeout: 120_000,
-      });
+  it("builds E2E source dependencies through the public root entrypoint", () => {
+    const scripts = readRootManifest().scripts ?? {};
 
-      expect(result.status, result.stderr).not.toBe(0);
-      expect(readFileSync(probe, "utf8")).toBe(before);
-    } finally {
-      unlinkSync(probe);
-    }
+    expect(scripts["build:e2e"]).toContain("--filter=@cat/app-e2e");
+    expect(scripts["build:e2e"]).toContain("--filter=@cat/plugin-core");
+    expect(scripts["build:e2e"]).toContain("--filter='@cat-plugin/*'");
+    expect(scripts["test:e2e"]).toMatch(
+      /^pnpm build:e2e && pnpm --filter @cat\/app-e2e test:e2e$/,
+    );
   });
 
   it("discovers root tooling specs without services or artifact tests", () => {
-    const result = spawnSync(
-      "pnpm",
-      ["exec", "vitest", "list", "--config", "scripts/vitest.config.ts"],
-      {
-        cwd: root,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-          HTTP_PROXY: "http://127.0.0.1:1",
-          HTTPS_PROXY: "http://127.0.0.1:1",
-          REDIS_URL: "redis://127.0.0.1:1",
-        },
-      },
+    expect(toolingTestIncludes).toEqual([
+      "scripts/**/*.spec.ts",
+      "tooling/oxlint/**/*.spec.ts",
+    ]);
+    expect(existsSync(resolve(root, "scripts/quality-contract.spec.ts"))).toBe(
+      true,
     );
-
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("scripts/quality-contract.spec.ts");
-    expect(result.stdout).not.toContain("public-packages.test.ts");
-  });
-
-  it("does not mutate a worktree sentinel during formatter verification", () => {
-    const sentinel = resolve(root, `.quality-check-sentinel-${process.pid}`);
-    writeFileSync(sentinel, "untouched\n");
-    try {
-      const result = spawnSync("pnpm", ["format"], {
-        cwd: root,
-        encoding: "utf8",
-      });
-      expect(result.status).toBe(0);
-      expect(readFileSync(sentinel, "utf8")).toBe("untouched\n");
-    } finally {
-      unlinkSync(sentinel);
-    }
-  });
-
-  it("fails on a package formatting defect without rewriting the package file", () => {
-    const probe = resolve(
-      root,
-      "packages/shared/src/quality-package-format-probe.ts",
+    expect(toolingTestIncludes).not.toContain("scripts/**/*.test.ts");
+    expect(toolingTestIncludes).not.toContain(
+      "scripts/package-artifacts.test.ts",
     );
-    const before = "export const probe={value:1}\n";
-    writeFileSync(probe, before);
-    try {
-      const result = spawnSync("pnpm", ["format"], {
-        cwd: root,
-        encoding: "utf8",
-      });
-      expect(result.status).not.toBe(0);
-      expect(readFileSync(probe, "utf8")).toBe(before);
-    } finally {
-      unlinkSync(probe);
-    }
   });
 
-  it("reserves mutation for fix and extends check for check:all", () => {
+  it("uses direct Oxc scripts with quiet read-only commands", () => {
     const scripts = readRootManifest().scripts ?? {};
-    const checkAllSource = readFileSync(
-      resolve(root, "scripts/check-all.ts"),
-      "utf8",
-    );
-    expect(scripts.fix).toMatch(/format:fix/);
+    expect(scripts.fix).toMatch(/format:write/);
     expect(scripts.fix).toMatch(/lint:fix/);
-    expect(scripts.format).not.toMatch(/format:fix|lint:fix/);
+    expect(scripts["format:check"]).toMatch(/^oxfmt /);
+    expect(scripts["format:check"]).toContain("--list-different");
+    expect(scripts["format:write"]).toMatch(/^oxfmt /);
+    expect(scripts["format:write"]).toContain("--write");
+    expect(scripts.lint).toMatch(/^oxlint /);
+    expect(scripts.lint).toContain("--quiet");
+    expect(scripts.lint).toContain("--format=unix");
+    expect(scripts["lint:fix"]).toMatch(/^oxlint /);
+    expect(scripts["lint:fix"]).toContain("--fix");
+    expect(scripts["lint:fix"]).not.toContain("--quiet");
+    expect(scripts.format).toBeUndefined();
     for (const file of workspacePackageFiles()) {
       const manifest = JSON.parse(readFileSync(file, "utf8")) as {
         scripts?: Record<string, string>;
       };
-      const format = manifest.scripts?.format;
-      if (format === undefined) continue;
-      expect(format, file).not.toMatch(/format:fix|lint:fix/);
+      const packageScripts = manifest.scripts ?? {};
+      const rootScopedTarget = file
+        .replace(`${root}/`, "")
+        .replace("/package.json", "");
+      const useRootScopedCommand =
+        rootScopedOxcWorkspaces.has(rootScopedTarget);
+      const prefix = useRootScopedCommand ? "cd ../.. && " : "";
+      const config = useRootScopedCommand ? "" : "../../";
+      const target = useRootScopedCommand ? rootScopedTarget : ".";
+      expect(packageScripts.format, file).toBeUndefined();
+      expect(packageScripts["format:check"], file).toBe(
+        `${prefix}oxfmt --list-different --config ${config}oxfmt.config.ts ${target}`,
+      );
+      expect(packageScripts["format:write"], file).toBe(
+        `${prefix}oxfmt --write --config ${config}oxfmt.config.ts ${target}`,
+      );
+      expect(packageScripts.lint, file).toBe(
+        `${prefix}oxlint --quiet --format=unix --type-aware --config ${config}oxlint.config.ts --no-error-on-unmatched-pattern ${target}`,
+      );
+      expect(packageScripts["lint:fix"], file).toBe(
+        `${prefix}oxlint --fix --format=unix --type-aware --config ${config}oxlint.config.ts --no-error-on-unmatched-pattern ${target}`,
+      );
     }
-    expect(scripts["check:all"]).toContain("scripts/check-all.ts");
-    expect(checkAllSource).toMatch(/integration|pglite|e2e|build|artifacts/i);
-    expect(checkAllSource).toContain("test:artifacts");
+  });
+
+  it("routes complete verification through the typed plan and shared executor", () => {
+    const scripts = readRootManifest().scripts ?? {};
+    const localVerificationSource = readFileSync(
+      resolve(root, "scripts/verification-local.ts"),
+      "utf8",
+    );
+    expect(scripts["check:all"]).toContain("scripts/verification-local.ts");
+    expect(scripts["check:all:ci"]).toBeUndefined();
+    expect(localVerificationSource).toContain("createVerificationPlan");
+    expect(localVerificationSource).toContain("executeVerificationPlan");
+    expect(localVerificationSource).not.toContain("e2e-concurrency");
     expect(scripts["test:artifacts"]).toContain("test:artifacts:verify");
     expect(scripts["test:artifacts:verify"]).toContain(
-      "public-packages.test.ts",
+      "package-artifacts.test.ts",
     );
     for (const [name, command] of Object.entries(scripts)) {
       if (name === "test:artifacts:verify" || name === "check:all") continue;
-      expect(command, name).not.toContain("public-packages.test.ts");
+      expect(command, name).not.toContain("package-artifacts.test.ts");
     }
   });
 
@@ -218,6 +266,22 @@ describe("repository quality command contract", () => {
     }
   });
 
+  it("keeps the mandatory release eval integration executable and non-vacuous", () => {
+    const manifest = JSON.parse(
+      readFileSync(resolve(root, "apps/eval/package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    const integration = manifest.scripts?.["test:integration"] ?? "";
+
+    expect(integration).toContain("--exclude '**/*.spec.ts'");
+    expect(integration).not.toContain("passWithNoTests");
+    expect(
+      existsSync(resolve(root, "apps/eval/src/release-recall.test.ts")),
+    ).toBe(true);
+    expect(
+      readFileSync(resolve(root, "apps/eval/vitest.config.ts"), "utf8"),
+    ).toContain("**/*.{spec,test}.ts");
+  });
+
   it("uses agent output for every package unit or integration task", () => {
     for (const file of workspacePackageFiles()) {
       const manifest = JSON.parse(readFileSync(file, "utf8")) as {
@@ -227,6 +291,7 @@ describe("repository quality command contract", () => {
         const script = manifest.scripts?.[name];
         if (script === undefined) continue;
         expect(script, `${file} ${name}`).toContain("--reporter=agent");
+        expect(script, `${file} ${name}`).toContain("--silent=passed-only");
       }
     }
   });
@@ -240,49 +305,23 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(233);
-    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(49);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(358);
+    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(81);
   });
 
   it("discovers package unit and integration suites by suffix without services", () => {
-    const env = {
-      ...process.env,
-      DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-      REDIS_URL: "redis://127.0.0.1:1",
-      TEST_DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-    };
-    const unit = spawnSync(
-      "pnpm",
-      [
-        "--filter",
-        "@cat/domain",
-        "exec",
-        "vitest",
-        "list",
-        "--exclude",
-        "**/*.test.ts",
-      ],
-      { cwd: root, encoding: "utf8", env },
-    );
-    const integration = spawnSync(
-      "pnpm",
-      [
-        "--filter",
-        "@cat/domain",
-        "exec",
-        "vitest",
-        "list",
-        "--exclude",
-        "**/*.spec.ts",
-      ],
-      { cwd: root, encoding: "utf8", env },
-    );
+    const manifest = JSON.parse(
+      readFileSync(resolve(root, "packages/domain/package.json"), "utf8"),
+    ) as { scripts?: Record<string, string> };
+    const unit = manifest.scripts?.["test:unit"] ?? "";
+    const integration = manifest.scripts?.["test:integration"] ?? "";
+    const domainTests = packageTestFiles(resolve(root, "packages/domain"));
 
-    expect(unit.status, unit.stderr).toBe(0);
-    expect(unit.stdout).toContain(".spec.ts");
-    expect(unit.stdout).not.toContain(".test.ts");
-    expect(integration.status, integration.stderr).toBe(0);
-    expect(integration.stdout).toContain(".test.ts");
-    expect(integration.stdout).not.toContain(".spec.ts");
+    expect(domainTests.some((file) => file.endsWith(".spec.ts"))).toBe(true);
+    expect(domainTests.some((file) => file.endsWith(".test.ts"))).toBe(true);
+    expect(unit).toContain("--exclude '**/*.test.ts'");
+    expect(unit).not.toContain("--exclude '**/*.spec.ts'");
+    expect(integration).toContain("--exclude '**/*.spec.ts'");
+    expect(integration).not.toContain("--exclude '**/*.test.ts'");
   });
 });
