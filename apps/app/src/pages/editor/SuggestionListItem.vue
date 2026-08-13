@@ -52,7 +52,6 @@ const { state } = useQuery({
       : "noAdvisor",
   ],
   placeholderData: {
-    id: -1,
     reference: props.suggestion.advisor ?? noAdvisorReference,
     name: "",
   },

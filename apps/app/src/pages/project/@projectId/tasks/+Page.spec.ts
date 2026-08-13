@@ -153,7 +153,58 @@ describe("Task page", () => {
     await flushPromises();
 
     expect(mocks.detail).not.toHaveBeenCalled();
-    expect(wrapper.get('[aria-label="任务详情"]').text()).toContain(taskId);
+    const detail = wrapper.get('[aria-label="任务详情"]').text();
+    expect(detail).toContain(taskId);
+    expect(detail).toContain("总量待定");
+  });
+
+  it("provides the required empty sorting contract without exposing sortable columns", async () => {
+    const warnings: string[] = [];
+    const wrapper = mount(TaskPage, {
+      global: {
+        config: {
+          warnHandler: (message) => warnings.push(message),
+        },
+        plugins: [i18n],
+        stubs: { ProjectPageDataError: true },
+      },
+    });
+    await flushPromises();
+
+    expect(warnings).not.toContain('Missing required prop: "sorting"');
+    expect(wrapper.findAll('thead button[aria-label="任务"]')).toHaveLength(0);
+    expect(wrapper.findAll('thead button[aria-label="状态"]')).toHaveLength(0);
+  });
+
+  it("renders an internal operation failure through its redacted projection", async () => {
+    mocks.pageContext.urlParsed = { searchOriginal: `?taskId=${taskId}` };
+    mocks.useData.mockReturnValue({
+      pageError: null,
+      projectId,
+      tasks: { items: [task], hasMore: false, nextCursor: null },
+      selectedDetail: {
+        task,
+        currentFailure: {
+          blocker: "recall_derivation_failed",
+          code: "CAT_OPERATION_FAILED",
+          id: "44444444-4444-4444-8444-444444444444",
+          redacted: true,
+          redactionBoundary: "INTERNAL",
+          retryable: false,
+          severity: "ERROR",
+        },
+      },
+      detailAvailability: null,
+    });
+
+    const wrapper = mount(TaskPage, {
+      global: { plugins: [i18n], stubs: { ProjectPageDataError: true } },
+    });
+    await flushPromises();
+
+    const detail = wrapper.get('[aria-label="任务详情"]').text();
+    expect(detail).toContain("失败详情已隐藏");
+    expect(detail).not.toContain("undefined");
   });
 
   it("keeps the task list when the taskId query is invalid or unavailable", async () => {

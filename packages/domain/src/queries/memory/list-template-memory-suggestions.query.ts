@@ -11,6 +11,7 @@ import {
 } from "@cat/db";
 import {
   MemoryRecallVariantMetaSchema,
+  NormalizedLanguageIdSchema,
   RecallDerivationVersionSchema,
 } from "@cat/shared";
 import * as z from "zod";
@@ -20,14 +21,17 @@ import type { Query } from "#/types.ts";
 
 export const ListTemplateMemorySuggestionsQuerySchema = z.object({
   sourceTemplate: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   requiredDerivationVersion: RecallDerivationVersionSchema,
   memoryIds: z.array(z.uuidv4()),
   maxAmount: z.int().min(1).default(10),
 });
 
 export type ListTemplateMemorySuggestionsQuery = z.infer<
+  typeof ListTemplateMemorySuggestionsQuerySchema
+>;
+type ListTemplateMemorySuggestionsQueryInput = z.input<
   typeof ListTemplateMemorySuggestionsQuerySchema
 >;
 
@@ -39,13 +43,13 @@ export type ListTemplateMemorySuggestionsQuery = z.infer<
  * (e.g. "1.20" → "1.21" → "{NUM_0}.{NUM_1}") would score too low under
  * trigram similarity to surface via the variant channel.
  *
- * The template string is stored in the variant's `meta` field during variant
- * building (`buildMemoryRecallVariantsOp`), keyed as `"template"`.
+ * The template string is stored in the variant's `meta` field under `"template"`.
  */
 export const listTemplateMemorySuggestions: Query<
-  ListTemplateMemorySuggestionsQuery,
+  ListTemplateMemorySuggestionsQueryInput,
   RawMemorySuggestion[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = ListTemplateMemorySuggestionsQuerySchema.parse(input);
   if (query.memoryIds.length === 0) return [];
 
   const sourceString = aliasedTable(vectorizedString, "sourceString");

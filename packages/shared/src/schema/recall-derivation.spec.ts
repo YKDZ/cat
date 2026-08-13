@@ -5,13 +5,61 @@ import {
   computeTermConceptCanonicalInputVersion,
   TermConceptCanonicalSnapshotSchema,
 } from "./glossary-recall-derivation.ts";
+import { NormalizedLanguageIdSchema } from "./language-analysis.ts";
 import {
+  classifyRecallDerivationBlocker,
   compareRecallDerivationTokenizerPipelineEntries,
   computeRecallDerivationVersion,
   RecallDerivationReferenceSchema,
 } from "./recall-derivation.ts";
 
 describe("Recall Derivation contract", () => {
+  it("classifies dependency blockers as explicitly recoverable lifecycle blocks", () => {
+    expect(
+      classifyRecallDerivationBlocker({
+        reason: "LANGUAGE_ANALYSIS",
+        retryable: false,
+        message: "Analyzer configuration is invalid.",
+      }),
+    ).toBe("BLOCKED");
+    expect(
+      classifyRecallDerivationBlocker({
+        reason: "TOKENIZER",
+        retryable: false,
+        message: "Tokenizer package is unavailable.",
+      }),
+    ).toBe("BLOCKED");
+  });
+
+  it.each([
+    { retryable: true, lifecycle: "PENDING" },
+    { retryable: false, lifecycle: "FAILED" },
+  ] as const)(
+    "classifies retryable=$retryable execution failures as $lifecycle",
+    ({ retryable, lifecycle }) => {
+      expect(
+        classifyRecallDerivationBlocker({
+          reason: "DERIVATION_EXECUTION",
+          retryable,
+          message: "Derivation execution failed.",
+        }),
+      ).toBe(lifecycle);
+    },
+  );
+
+  it.each(["LANGUAGE_ANALYSIS", "TOKENIZER"] as const)(
+    "classifies a retryable %s blocker as pending",
+    (reason) => {
+      expect(
+        classifyRecallDerivationBlocker({
+          reason,
+          retryable: true,
+          message: "Dependency is temporarily unavailable.",
+        }),
+      ).toBe("PENDING");
+    },
+  );
+
   it("computes a stable content-addressed version", async () => {
     const first = await computeRecallDerivationVersion({
       contract: "cat.recall-derivation/memory/v1",
@@ -130,8 +178,9 @@ describe("Recall Derivation contract", () => {
       ],
     });
 
+    const languageId = NormalizedLanguageIdSchema.parse("en");
     await expect(
-      computeTermConceptCanonicalInputVersion(snapshot, "en"),
+      computeTermConceptCanonicalInputVersion(snapshot, languageId),
     ).resolves.toBe(
       await computeTermConceptCanonicalInputVersion(
         {
@@ -139,7 +188,7 @@ describe("Recall Derivation contract", () => {
           terms: [...snapshot.terms].reverse(),
           subjects: [...snapshot.subjects].reverse(),
         },
-        "en",
+        languageId,
       ),
     );
   });

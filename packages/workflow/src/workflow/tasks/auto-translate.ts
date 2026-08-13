@@ -348,7 +348,6 @@ export const autoTranslateGraph = defineGraph({
           collectMemoryRecallOp(
             {
               text: input.text,
-              chunkIds: input.chunkIds,
               memoryIds: input.memoryIds,
               sourceLanguageId: input.sourceLanguageId,
               translationLanguageId: input.translationLanguageId,

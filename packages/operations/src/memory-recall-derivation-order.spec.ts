@@ -11,6 +11,7 @@ import {
 import {
   computeRecallDerivationVersion,
   LanguageAnalysisVersionSchema,
+  NormalizedLanguageIdSchema,
   ServiceImplementationReferenceSchema,
   serviceImplementationReferenceKey,
 } from "@cat/shared";
@@ -112,7 +113,7 @@ describe("Memory recall tokenizer pipeline ordering", () => {
     const first = await reconcileMemoryRecallDependency({
       db: {} as never,
       pluginManager: manager,
-      languageId: "en",
+      languageId: NormalizedLanguageIdSchema.parse("en"),
       languageAnalysisVersion,
     });
     manager.captureServiceRuntimeSnapshots = vi
@@ -121,7 +122,7 @@ describe("Memory recall tokenizer pipeline ordering", () => {
     const reordered = await reconcileMemoryRecallDependency({
       db: {} as never,
       pluginManager: manager,
-      languageId: "en",
+      languageId: NormalizedLanguageIdSchema.parse("en"),
       languageAnalysisVersion,
     });
 

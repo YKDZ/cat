@@ -1,8 +1,9 @@
-import { spawnSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+
+import { toolingTestIncludes } from "./vitest.config.ts";
 
 const root = resolve(import.meta.dirname, "..");
 const removedPrecommitCommand = ["pre", "commit"].join("");
@@ -121,48 +122,61 @@ describe("repository quality command contract", () => {
     expect(check).toContain("--continue=dependencies-successful");
     expect(scripts.test).toBe("pnpm test:tooling");
     expect(scripts["test:tooling"]).toContain("scripts/vitest.config.ts");
-    expect(
-      readFileSync(resolve(root, "scripts/vitest.config.ts"), "utf8"),
-    ).toMatch(/include:[\s\S]+\.spec\.ts/);
+    expect(toolingTestIncludes).toContain("scripts/**/*.spec.ts");
     expect(scripts["test:tooling"]).not.toContain("package-artifacts.test.ts");
   });
 
   it("keeps every root Turbo entrypoint concise without wrapping its output", () => {
     const scripts = readRootManifest().scripts ?? {};
+    const turboCommands = Object.entries(scripts).flatMap(([name, script]) =>
+      script
+        .split(" && ")
+        .filter((command) => command.startsWith("turbo run "))
+        .map((command) => ({ command, name })),
+    );
+
+    expect(turboCommands.length).toBeGreaterThan(0);
+    for (const { command, name } of turboCommands) {
+      expect(command, name).toContain("--cache-workers=2");
+      expect(command, name).toContain("--remote-cache-timeout=5");
+    }
     for (const name of [
       "build",
+      "build:app",
+      "build:e2e",
       "build-plugins",
       "build:all",
       "test:integration",
     ] as const) {
-      const command = scripts[name] ?? "";
-      expect(command, name).toMatch(/^turbo run /);
-      expect(command, name).toContain("--output-logs=errors-only");
-      expect(command, name).toContain("--log-order=grouped");
-      expect(command, name).toContain("--log-prefix=task");
+      expect(scripts[name], name).toContain("--output-logs=errors-only");
+      expect(scripts[name], name).toContain("--log-order=grouped");
+      expect(scripts[name], name).toContain("--log-prefix=task");
     }
   });
 
-  it("discovers root tooling specs without services or artifact tests", () => {
-    const result = spawnSync(
-      "pnpm",
-      ["exec", "vitest", "list", "--config", "scripts/vitest.config.ts"],
-      {
-        cwd: root,
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          DATABASE_URL: "postgresql://invalid:invalid@127.0.0.1:1/unreachable",
-          HTTP_PROXY: "http://127.0.0.1:1",
-          HTTPS_PROXY: "http://127.0.0.1:1",
-          REDIS_URL: "redis://127.0.0.1:1",
-        },
-      },
-    );
+  it("builds E2E source dependencies through the public root entrypoint", () => {
+    const scripts = readRootManifest().scripts ?? {};
 
-    expect(result.status, result.stderr).toBe(0);
-    expect(result.stdout).toContain("scripts/quality-contract.spec.ts");
-    expect(result.stdout).not.toContain("package-artifacts.test.ts");
+    expect(scripts["build:e2e"]).toContain("--filter=@cat/app-e2e");
+    expect(scripts["build:e2e"]).toContain("--filter=@cat/plugin-core");
+    expect(scripts["build:e2e"]).toContain("--filter='@cat-plugin/*'");
+    expect(scripts["test:e2e"]).toMatch(
+      /^pnpm build:e2e && pnpm --filter @cat\/app-e2e test:e2e$/,
+    );
+  });
+
+  it("discovers root tooling specs without services or artifact tests", () => {
+    expect(toolingTestIncludes).toEqual([
+      "scripts/**/*.spec.ts",
+      "tooling/oxlint/**/*.spec.ts",
+    ]);
+    expect(existsSync(resolve(root, "scripts/quality-contract.spec.ts"))).toBe(
+      true,
+    );
+    expect(toolingTestIncludes).not.toContain("scripts/**/*.test.ts");
+    expect(toolingTestIncludes).not.toContain(
+      "scripts/package-artifacts.test.ts",
+    );
   });
 
   it("uses direct Oxc scripts with quiet read-only commands", () => {
@@ -209,15 +223,17 @@ describe("repository quality command contract", () => {
     }
   });
 
-  it("extends the daily graph with check:all without retaining wrapper behavior", () => {
+  it("routes complete verification through the typed plan and shared executor", () => {
     const scripts = readRootManifest().scripts ?? {};
-    const checkAllSource = readFileSync(
-      resolve(root, "scripts/check-all.ts"),
+    const localVerificationSource = readFileSync(
+      resolve(root, "scripts/verification-local.ts"),
       "utf8",
     );
-    expect(scripts["check:all"]).toContain("scripts/check-all.ts");
-    expect(checkAllSource).toMatch(/integration|pglite|e2e|build|artifacts/i);
-    expect(checkAllSource).toContain("test:artifacts");
+    expect(scripts["check:all"]).toContain("scripts/verification-local.ts");
+    expect(scripts["check:all:ci"]).toBeUndefined();
+    expect(localVerificationSource).toContain("createVerificationPlan");
+    expect(localVerificationSource).toContain("executeVerificationPlan");
+    expect(localVerificationSource).not.toContain("e2e-concurrency");
     expect(scripts["test:artifacts"]).toContain("test:artifacts:verify");
     expect(scripts["test:artifacts:verify"]).toContain(
       "package-artifacts.test.ts",
@@ -289,8 +305,8 @@ describe("repository quality command contract", () => {
     );
     const tests = [...workspaceTests, ...rootTests];
 
-    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(343);
-    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(77);
+    expect(tests.filter((file) => file.endsWith(".spec.ts"))).toHaveLength(358);
+    expect(tests.filter((file) => file.endsWith(".test.ts"))).toHaveLength(81);
   });
 
   it("discovers package unit and integration suites by suffix without services", () => {

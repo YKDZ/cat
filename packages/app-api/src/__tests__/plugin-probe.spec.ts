@@ -30,11 +30,27 @@ import { errorMessage, redactJson } from "#/services/plugin-redaction.ts";
 const PLUGIN_ID = "probe-plugin";
 const UPDATED_AT = new Date("2026-05-16T00:00:00.000Z");
 
+type TransactionClient = {
+  transaction: <T>(
+    callback: (transaction: TransactionClient) => Promise<T>,
+  ) => Promise<T>;
+};
+
+const createTransactionClient = (): TransactionClient => {
+  let client: TransactionClient;
+  const transaction: TransactionClient["transaction"] = vi.fn(
+    async (callback) => await callback(client),
+  );
+  client = { transaction };
+  return client;
+};
+
 const createContext = (
   manager: PluginManager,
   requestSignal?: AbortSignal,
 ): Context => {
   const base = createAuthedTestContext();
+  const client = createTransactionClient();
   return {
     ...base,
     pluginManager: manager,
@@ -46,7 +62,7 @@ const createContext = (
     },
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     drizzleDB: {
-      client: { transaction: vi.fn() },
+      client,
     } as unknown as Context["drizzleDB"],
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     redis: {} as unknown as Context["redis"],

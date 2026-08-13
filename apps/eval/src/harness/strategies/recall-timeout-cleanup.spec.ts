@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@cat/operations", () => mocks);
 
 import { memoryRecallStrategy } from "./memory-recall.ts";
+import { DEFAULT_RECALL_OPERATION_TIMEOUT_MS } from "./recall-timeout.ts";
 import { termRecallStrategy } from "./term-recall.ts";
 
 const scenario = {
@@ -37,6 +38,86 @@ afterEach(() => {
 });
 
 describe("recall strategy timeout cleanup", () => {
+  it("aborts memory recall at its default operation timeout", async () => {
+    vi.useFakeTimers();
+    mocks.collectMemoryRecallOp.mockImplementationOnce(
+      async (_input, { signal }: { signal?: AbortSignal }) =>
+        await new Promise<never>((_resolve, reject) => {
+          signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+
+    const execution = memoryRecallStrategy.execute(
+      scenario,
+      {
+        cases: [
+          {
+            expectedMemories: [],
+            id: "memory-timeout-case",
+            inputText: "source",
+            negativeMemories: [],
+            sourceLanguage: "en",
+            targetLanguage: "zh",
+          },
+        ],
+        name: "memory cases",
+      },
+      context,
+    );
+    await vi.advanceTimersByTimeAsync(DEFAULT_RECALL_OPERATION_TIMEOUT_MS - 1);
+    expect(mocks.collectMemoryRecallOp).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(1);
+
+    await expect(execution).resolves.toMatchObject({
+      cases: [{ status: "timeout" }],
+    });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("aborts term recall at its default operation timeout", async () => {
+    vi.useFakeTimers();
+    mocks.collectTermRecallOp.mockImplementationOnce(
+      async (_input, { signal }: { signal?: AbortSignal }) =>
+        await new Promise<never>((_resolve, reject) => {
+          signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("aborted", "AbortError")),
+            { once: true },
+          );
+        }),
+    );
+
+    const execution = termRecallStrategy.execute(
+      scenario,
+      {
+        cases: [
+          {
+            expectedTerms: [],
+            id: "term-timeout-case",
+            inputText: "term",
+            negativeTerms: [],
+            sourceLanguage: "en",
+            targetLanguage: "zh",
+          },
+        ],
+        name: "term cases",
+      },
+      context,
+    );
+    await vi.advanceTimersByTimeAsync(DEFAULT_RECALL_OPERATION_TIMEOUT_MS - 1);
+    expect(mocks.collectTermRecallOp).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(1);
+
+    await expect(execution).resolves.toMatchObject({
+      cases: [{ status: "timeout" }],
+    });
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it("clears the memory recall timeout after an operation error", async () => {
     vi.useFakeTimers();
     mocks.collectMemoryRecallOp.mockRejectedValueOnce(new Error("failed"));

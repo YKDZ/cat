@@ -35,6 +35,8 @@ import {
   type LanguageAnalysisObservation,
   type LanguageAnalysisRequirementAssessment,
   type LanguageAnalysisSelection,
+  type LanguageAnalysisToken,
+  type LanguageAnalysisVersion,
   type JSONType,
   type NormalizedLanguageId,
   type ServiceImplementationReference,
@@ -431,6 +433,34 @@ export const executeRequiredLanguageAnalysisBatch = async (
     return await rejectStaleObservation(error, parsed, ctx);
   }
   return result;
+};
+
+export type RequiredLanguageAnalysisSnapshot = {
+  languageAnalysisVersion: LanguageAnalysisVersion;
+  tokens: LanguageAnalysisToken[];
+};
+
+/** Execute one current Language Analysis request without recall-derivation work. */
+export const getRequiredLanguageAnalysisSnapshot = async (
+  input: z.input<typeof RequirementInputSchema> & { text: string },
+  ctx: LanguageAnalysisOperationContext,
+): Promise<RequiredLanguageAnalysisSnapshot> => {
+  const result = await executeRequiredLanguageAnalysisBatch(
+    {
+      languageId: input.languageId,
+      items: [{ id: "recall-snapshot", text: input.text }],
+      ...(input.timeoutMs === undefined ? {} : { timeoutMs: input.timeoutMs }),
+    },
+    ctx,
+  );
+  const analysis = result.results[0]?.result;
+  if (!analysis) {
+    throw new TypeError("Language Analysis snapshot has no result.");
+  }
+  return {
+    languageAnalysisVersion: result.languageAnalysisVersion,
+    tokens: analysis.tokens,
+  };
 };
 
 export class LanguageAnalysisRequirementError extends Error {

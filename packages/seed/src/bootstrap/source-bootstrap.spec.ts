@@ -19,6 +19,7 @@ const sourceCollectorMock = vi.hoisted(() => ({
 
 const operationsMock = vi.hoisted(() => ({
   diffStructuredContentOp: vi.fn(),
+  startRecallDerivationWorker: vi.fn(),
   waitForRecallDerivationFresh: vi.fn(),
 }));
 
@@ -338,13 +339,20 @@ describe("runBootstrapSourceGraph", () => {
           throw new Error("Unexpected command");
         },
       );
+      const stop = vi.fn();
+      operationsMock.startRecallDerivationWorker.mockResolvedValue({ stop });
 
       await runBootstrapSourceGraph(input);
 
+      expect(operationsMock.startRecallDerivationWorker).toHaveBeenCalledWith({
+        db,
+        pluginManager: input.pluginManager,
+      });
       expect(operationsMock.waitForRecallDerivationFresh).toHaveBeenCalledWith(
         [derivation],
-        { db, pluginManager: input.pluginManager },
+        { db },
       );
+      expect(stop).toHaveBeenCalledOnce();
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -364,6 +372,8 @@ describe("runBootstrapSourceGraph", () => {
       operationsMock.waitForRecallDerivationFresh.mockRejectedValueOnce(
         freshnessFailure,
       );
+      const stop = vi.fn();
+      operationsMock.startRecallDerivationWorker.mockResolvedValue({ stop });
       localeBridgeMock.buildLocaleBridgeMaterial.mockResolvedValue({
         evidence: [],
         memoryItems: [
@@ -451,6 +461,7 @@ describe("runBootstrapSourceGraph", () => {
       await expect(runBootstrapSourceGraph(input)).rejects.toBe(
         freshnessFailure,
       );
+      expect(stop).toHaveBeenCalledOnce();
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

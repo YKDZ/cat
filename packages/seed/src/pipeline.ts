@@ -48,7 +48,10 @@ import {
   getPluginConfigSchemaDigest,
   writePluginConfigInstance,
 } from "@cat/domain";
-import { waitForRecallDerivationFresh } from "@cat/operations";
+import {
+  startRecallDerivationWorker,
+  waitForRecallDerivationFresh,
+} from "@cat/operations";
 import type { PluginLoader } from "@cat/plugin-core";
 import {
   BuiltinPluginLoader,
@@ -841,10 +844,19 @@ export const runSeedPipeline = async (
       }
     }
   }
-  await waitForRecallDerivationFresh(recallDerivations, {
-    db: execCtx.db,
-    pluginManager,
-  });
+  if (recallDerivations.length > 0) {
+    const recallDerivationWorker = await startRecallDerivationWorker({
+      db: execCtx.db,
+      pluginManager,
+    });
+    try {
+      await waitForRecallDerivationFresh(recallDerivations, {
+        db: execCtx.db,
+      });
+    } finally {
+      await recallDerivationWorker.stop();
+    }
+  }
 
   // ── 11. Element seeding ────────────────────────────────────────────
   if (elementsSeed) {

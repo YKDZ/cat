@@ -1,11 +1,14 @@
 import { and, eq, ne, recallDerivationState, sql } from "@cat/db";
-import type { RecallDerivationTargetKind } from "@cat/shared";
+import type {
+  NormalizedLanguageId,
+  RecallDerivationTargetKind,
+} from "@cat/shared";
 
 import type { DbHandle } from "#/types.ts";
 
 export const invalidateRecallDerivationDemands = async (
   db: DbHandle,
-  languageId?: string,
+  languageId?: NormalizedLanguageId,
   targetKind?: RecallDerivationTargetKind,
 ): Promise<number> => {
   const conditions = [

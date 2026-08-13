@@ -24,6 +24,7 @@ import {
   collectEffectiveMemoryRecallOp,
   getEffectiveMemoryRecallCandidates,
 } from "./collect-effective-memory-recall.ts";
+import { CollectMemoryRecallInputSchema } from "./collect-memory-recall.ts";
 
 const projectMemoryId = "11111111-1111-4111-8111-111111111111";
 const personalMemoryId = "22222222-2222-4222-8222-222222222222";
@@ -112,6 +113,39 @@ const blockedRecallError = () =>
 describe("collectEffectiveMemoryRecallOp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("forwards only public Memory Recall input to each scoped collection", async () => {
+    mocks.collectMemoryRecallOp.mockResolvedValue(recallResult([]));
+
+    await collectEffectiveMemoryRecallOp({
+      text: "Server Address",
+      sourceLanguageId: "en",
+      translationLanguageId: "zh-Hans",
+      projectMemoryIds: [projectMemoryId],
+      personalMemoryIds: [personalMemoryId],
+      maxAmount: 5,
+    });
+
+    expect(mocks.collectMemoryRecallOp).toHaveBeenCalledTimes(2);
+    const forwarded = mocks.collectMemoryRecallOp.mock.calls.map(
+      ([scopeInput]) => scopeInput,
+    );
+    expect(forwarded.map((scopeInput) => scopeInput.memoryIds)).toEqual([
+      [projectMemoryId],
+      [personalMemoryId],
+    ]);
+    expect(forwarded.map((scopeInput) => scopeInput.memoryScope)).toEqual([
+      "PROJECT",
+      "PERSONAL",
+    ]);
+    for (const scopeInput of forwarded) {
+      expect(() =>
+        CollectMemoryRecallInputSchema.parse(scopeInput),
+      ).not.toThrow();
+      expect(scopeInput).not.toHaveProperty("projectMemoryIds");
+      expect(scopeInput).not.toHaveProperty("personalMemoryIds");
+    }
   });
 
   it("keeps project memory when project/personal share the same dedupe key", async () => {
