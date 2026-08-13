@@ -5,10 +5,17 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parse } from "yaml";
 
+import {
+  verificationExecutorCleanupHeadroomMs,
+  verificationExecutorTimeoutBudget,
+} from "./verification-executor.ts";
+
 const root = resolve(import.meta.dirname, "..");
 
 type WorkflowStep = {
+  "continue-on-error"?: boolean;
   env?: Record<string, string>;
+  id?: string;
   if?: string;
   name?: string;
   run?: string;
@@ -21,6 +28,7 @@ type WorkflowJob = {
   needs?: string[];
   permissions?: Record<string, string>;
   steps?: WorkflowStep[];
+  "timeout-minutes"?: number;
 };
 
 type Workflow = {
@@ -28,6 +36,15 @@ type Workflow = {
   jobs?: Record<string, WorkflowJob>;
   on?: Record<string, unknown>;
   permissions?: Record<string, string>;
+};
+
+const trustedMainRemoteCacheEnvironment = {
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY:
+    "${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY || '' }}",
+  TURBO_TEAM:
+    "${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && vars.TURBO_TEAM || '' }}",
+  TURBO_TOKEN:
+    "${{ (((github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')) && vars.TURBO_TEAM != '' && secrets.TURBO_TOKEN != '' && secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY != '') && secrets.TURBO_TOKEN || '' }}",
 };
 
 type CompositeAction = {
@@ -43,6 +60,12 @@ const collectAction = readFileSync(
   "utf8",
 );
 const parsedCollectAction = parse(collectAction) as CompositeAction;
+const setupNodePnpmAction = parse(
+  readFileSync(
+    resolve(root, ".github/actions/setup-node-pnpm/action.yml"),
+    "utf8",
+  ),
+) as CompositeAction;
 const sourceCollectorHelp = execFileSync(
   resolve(root, "packages/source-collector/src/cli.ts"),
   ["--help"],
@@ -62,280 +85,285 @@ const actionStep = (name: string): WorkflowStep => {
   return step!;
 };
 
-const expectTurboRemoteCacheEnv = (env: Record<string, string> | undefined) => {
-  for (const name of [
-    "TURBO_TEAM",
-    "TURBO_TOKEN",
-    "TURBO_REMOTE_CACHE_SIGNATURE_KEY",
-  ] as const) {
-    const value = env?.[name] ?? "";
-    expect(value).toContain("github.event_name == 'push'");
-    expect(value).toContain("github.ref == 'refs/heads/main'");
-    expect(value).toContain("github.event_name == 'workflow_dispatch'");
-    if (name === "TURBO_TEAM") expect(value).toContain("vars.TURBO_TEAM");
-    else expect(value).toContain("secrets.");
-    if (name === "TURBO_REMOTE_CACHE_SIGNATURE_KEY") {
-      expect(value).toContain("secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY");
-      expect(value).not.toContain("TURBO_TOKEN");
-    }
-    expect(value).toContain("|| ''");
-    expect(value).not.toContain("pull_request");
-  }
-};
-
 describe("CI configuration contract", () => {
-  it("uses the supported action majors without Node 20 runtime fallbacks", () => {
-    const steps = Object.values(workflow.jobs ?? {}).flatMap(
-      (job) => job.steps ?? [],
-    );
-    const uses = steps.map((step) => step.uses);
-
-    expect(
-      uses.filter((value) => value === "actions/checkout@v7"),
-    ).toHaveLength(3);
-    expect(
-      uses.filter((value) => value === "actions/setup-node@v7"),
-    ).toHaveLength(3);
-    expect(uses).toContain("actions/cache/restore@v6");
-    expect(uses).toContain("actions/cache/save@v6");
-    expect(uses).toContain("actions/upload-artifact@v7");
-    expect(uses).toContain("actions/download-artifact@v8");
-    expect(uses).toContain("docker/setup-buildx-action@v4");
-    expect(uses).toContain("docker/login-action@v4");
-  });
-
-  it("runs both complete gates for every pull request without secret-only conditions", () => {
+  it("projects the typed plan into the distributed Complete Verification graph", () => {
     expect(workflow.on).toMatchObject({
       pull_request: null,
       push: { branches: ["main"] },
       workflow_dispatch: null,
     });
     expect(workflow.permissions).toEqual({ contents: "read" });
-    expect(workflow.concurrency).toMatchObject({
-      "cancel-in-progress": true,
-    });
-    expect(workflow.concurrency?.group).toContain("github.ref");
+    expect(workflow.concurrency).toMatchObject({ "cancel-in-progress": true });
 
-    const check = workflow.jobs?.check;
-    const checkAll = workflow.jobs?.["check-all"];
-    expect(check?.if).toBeUndefined();
-    expect(checkAll?.if).toBeUndefined();
-    expect(check?.steps?.some((step) => step.run === "pnpm check")).toBe(true);
+    const jobs = workflow.jobs ?? {};
+    expect(jobs["check-all"]).toBeUndefined();
     expect(
-      checkAll?.steps?.some((step) => step.run === "pnpm check:all:ci"),
-    ).toBe(true);
-    for (const job of [check, checkAll]) {
-      expect(JSON.stringify(job)).not.toMatch(
-        new RegExp(
-          [
-            "affected",
-            "base-branch",
-            String.fromCharCode(109, 111, 111, 110),
-          ].join("|"),
-          "i",
-        ),
-      );
-    }
-  });
-
-  it("installs every configured Playwright browser from the workspace before check:all", () => {
-    const steps = workflow.jobs?.["check-all"]?.steps ?? [];
-    const installIndex = steps.findIndex(
-      (step) => step.run === "pnpm test:e2e:install-browsers",
-    );
-    const checkAllIndex = steps.findIndex(
-      (step) => step.run === "pnpm check:all:ci",
-    );
-
-    expect(installIndex).toBeGreaterThan(-1);
-    expect(checkAllIndex).toBeGreaterThan(installIndex);
-    expect(steps[installIndex]?.run).not.toContain("playwright install");
-  });
-
-  it("uploads rich Playwright evidence only when the E2E matrix fails", () => {
-    const steps = workflow.jobs?.["check-all"]?.steps ?? [];
-    const diagnostics = steps.find(
-      (step) => step.name === "Upload failed E2E diagnostics",
-    );
-
-    expect(diagnostics).toMatchObject({
-      if: "failure()",
-      uses: "actions/upload-artifact@v7",
-      with: {
-        "include-hidden-files": true,
-        "if-no-files-found": "ignore",
-        path: ".tmp/e2e\n!.tmp/e2e/**/playwright/.auth/**\n",
-      },
-    });
-    expect(diagnostics?.with?.name).toBe("e2e-diagnostics-${{ github.sha }}");
-  });
-
-  it("uses the integrity-aware package manager installer in every build job", () => {
-    for (const name of ["check", "check-all"] as const) {
-      const steps = workflow.jobs?.[name]?.steps ?? [];
-      expect(
-        steps.some((step) => step.uses?.startsWith("pnpm/action-setup@")),
-      ).toBe(false);
-      expect(
-        steps.some(
-          (step) => step.run === "node scripts/package-manager-pin.ts",
-        ),
-      ).toBe(true);
-      expect(
-        steps.some(
-          (step) =>
-            step.uses === "actions/setup-node@v7" &&
-            step.with?.["node-version-file"] === "package.json" &&
-            step.with?.cache === "pnpm" &&
-            step.with?.["cache-dependency-path"] === "pnpm-lock.yaml",
-        ),
-      ).toBe(true);
-      expect(
-        steps.some(
-          (step) =>
-            step.uses === "actions/setup-node@v7" &&
-            step.with?.["registry-url"] !== undefined,
-        ),
-      ).toBe(false);
-    }
-
-    const manifest = JSON.parse(
-      readFileSync(resolve(root, "package.json"), "utf8"),
-    ) as { packageManager?: string };
-    expect(manifest.packageManager).toMatch(
-      /^pnpm@\d+\.\d+\.\d+\+sha512\.[a-f0-9]{128}$/,
-    );
-    for (const file of ["apps/app/Dockerfile", ".devcontainer/Dockerfile"]) {
-      const pin = readFileSync(resolve(root, file), "utf8").match(
-        /^ARG PACKAGE_MANAGER_PIN=(.+)$/m,
-      )?.[1];
-      expect(pin, file).toBe(manifest.packageManager);
-    }
-  });
-
-  it("provisions the exact Python runtime through pinned uv entrypoints", () => {
-    const setupUvAction =
-      "astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b";
-    for (const name of ["check", "check-all"] as const) {
-      const steps = workflow.jobs?.[name]?.steps ?? [];
-      const setupIndex = steps.findIndex((step) => step.uses === setupUvAction);
-      const installIndex = steps.findIndex(
-        (step) => step.run === "pnpm ci:install",
-      );
-      expect(setupIndex).toBeGreaterThan(-1);
-      expect(installIndex).toBeGreaterThan(setupIndex);
-      expect(steps[setupIndex]?.with).toEqual({
-        version: "0.8.3",
-        "python-version": "3.12.11",
-        "enable-cache": true,
-        "cache-dependency-glob": "apps/spacy-server/uv.lock",
-        "cache-python": true,
-      });
-    }
-
-    const manifest = JSON.parse(
-      readFileSync(resolve(root, "package.json"), "utf8"),
-    ) as { scripts?: Record<string, string> };
-    expect(manifest.scripts?.["ci:install"]).toContain("pnpm spacy:sync");
-    expect(manifest.scripts?.["spacy:sync"]).toBe(
-      "cd apps/spacy-server && uv sync --frozen",
-    );
-
-    const pyproject = readFileSync(
-      resolve(root, "apps/spacy-server/pyproject.toml"),
-      "utf8",
-    );
-    const uvLock = readFileSync(
-      resolve(root, "apps/spacy-server/uv.lock"),
-      "utf8",
-    );
-    expect(pyproject).toContain('requires-python = "==3.12.11"');
-    expect(uvLock).toContain('requires-python = "==3.12.11"');
-
-    const spacyDockerfile = readFileSync(
-      resolve(root, "apps/spacy-server/Dockerfile"),
-      "utf8",
-    );
-    const devcontainerDockerfile = readFileSync(
-      resolve(root, ".devcontainer/Dockerfile"),
-      "utf8",
-    );
-    const uvImage =
-      "ghcr.io/astral-sh/uv:0.8.3@sha256:ef11ed817e6a5385c02cd49fdcc99c23d02426088252a8eace6b6e6a2a511f36";
-    expect(spacyDockerfile).toContain(`FROM ${uvImage} AS uv`);
-    expect(devcontainerDockerfile).toContain(`FROM ${uvImage} AS uv`);
-    expect(devcontainerDockerfile).toContain(
-      "COPY --from=uv /uv /usr/local/bin/uv",
-    );
-    expect(devcontainerDockerfile).not.toMatch(/apt-get install[^;]*\buv\b/s);
-
-    const devcontainer = JSON.parse(
-      readFileSync(resolve(root, ".devcontainer/devcontainer.json"), "utf8"),
-    ) as { postCreateCommand?: string };
-    expect(devcontainer.postCreateCommand).toContain("pnpm ci:install");
-    expect(devcontainer.postCreateCommand).not.toContain(
-      "pnpm install --frozen-lockfile",
-    );
-  });
-
-  it("uses Turbo and Buildx caches in CI without persisting .turbo", () => {
-    for (const name of ["check", "check-all"] as const) {
-      const steps = workflow.jobs?.[name]?.steps ?? [];
-      const runStep = steps.find(
-        (step) =>
-          step.run === (name === "check" ? "pnpm check" : "pnpm check:all:ci"),
-      );
-      expectTurboRemoteCacheEnv(runStep?.env);
-      expect(
-        steps.some(
-          (step) =>
-            step.uses === "actions/cache/restore@v6" &&
-            step.with?.path === ".turbo",
-        ),
-      ).toBe(false);
-      expect(
-        steps.some(
-          (step) =>
-            step.uses === "actions/cache/save@v6" &&
-            step.with?.path === ".turbo",
-        ),
-      ).toBe(false);
-      expect(JSON.stringify(workflow.jobs?.[name])).not.toContain(
-        "github.event.pull_request.head.repo.full_name",
-      );
-    }
-    const checkAllSteps = workflow.jobs?.["check-all"]?.steps ?? [];
-    const restore = checkAllSteps.find(
-      (step) => step.uses === "actions/cache/restore@v6",
-    );
-    const save = checkAllSteps.find(
-      (step) => step.uses === "actions/cache/save@v6",
-    );
-    expect(
-      checkAllSteps.some(
-        (step) => step.uses === "docker/setup-buildx-action@v4",
+      jobs.plan?.steps?.some(
+        (step) => step.run === "pnpm ci:verification:plan",
       ),
     ).toBe(true);
-    expect(restore?.with?.path).toBe(".cache/buildx");
-    expect(restore?.with?.["restore-keys"]).toContain("-main-");
-    expect(save?.with?.path).toBe(".cache/buildx");
-    expect(save?.if).toContain("github.ref == 'refs/heads/main'");
-    expect(save?.if).not.toContain("pull_request");
+    expect(Reflect.get(jobs.aggregate ?? {}, "name")).toBe(
+      "Complete Verification",
+    );
+    expect(jobs.aggregate?.if).toBe("always()");
+    expect(jobs.quality?.needs).toEqual(["plan"]);
+    expect(jobs["source-artifacts"]?.needs).toEqual(["plan"]);
+    expect(jobs["spacy-image"]?.needs).toEqual(["plan"]);
+    expect(jobs["application-images"]?.needs).toEqual(["plan"]);
+    expect(jobs.integration?.needs).toEqual(["spacy-image"]);
+    expect(jobs["e2e-dev"]?.needs).toEqual(["spacy-image"]);
+    expect(jobs["release-e2e"]?.needs).toEqual([
+      "plan",
+      "spacy-image",
+      "application-images",
+    ]);
+    expect(jobs["container-lifecycle"]?.needs).toEqual([
+      "spacy-image",
+      "application-images",
+    ]);
+    expect(jobs.aggregate?.needs).toEqual([
+      "quality",
+      "source-artifacts",
+      "spacy-image",
+      "application-images",
+      "integration",
+      "e2e-dev",
+      "release-e2e",
+      "container-lifecycle",
+    ]);
+    expect(JSON.stringify(workflow)).not.toMatch(
+      /Full Graph|check:all|legacy|preview|watch/i,
+    );
   });
 
-  it("publishes only images exported by the successful main-branch gate", () => {
-    const checkAllSteps = workflow.jobs?.["check-all"]?.steps ?? [];
-    const release = workflow.jobs?.["release-images"];
-    const releaseSteps = release?.steps ?? [];
-
+  it("uses non-fail-fast target matrices and scoped browser setup", () => {
+    const jobs = workflow.jobs ?? {};
+    const release = Reflect.get(
+      jobs["release-e2e"] ?? {},
+      "strategy",
+    ) as Record<string, unknown>;
+    expect(release["fail-fast"]).toBe(false);
+    expect(release["max-parallel"]).toBe(2);
     expect(
-      checkAllSteps.some(
+      Reflect.get(jobs["source-artifacts"] ?? {}, "strategy"),
+    ).toBeUndefined();
+    expect(
+      jobs["source-artifacts"]?.steps?.some(
+        (step) => step.run === "pnpm ci:verification:run --lane source",
+      ),
+    ).toBe(true);
+    expect(JSON.stringify(release)).toContain("needs.plan.outputs.e2e");
+    expect(
+      jobs["e2e-dev"]?.steps?.some(
+        (step) => step.run === "pnpm ci:install:playwright:chromium",
+      ),
+    ).toBe(true);
+    expect(
+      jobs["release-e2e"]?.steps?.some(
+        (step) => step.run === "pnpm ci:install:playwright:release",
+      ),
+    ).toBe(true);
+    const workflowSource = readFileSync(
+      resolve(root, ".github/workflows/ci.yml"),
+      "utf8",
+    );
+    expect(workflowSource).not.toMatch(/browser:\s*(chromium|firefox)/i);
+  });
+
+  it("installs Python and spaCy tooling only for the quality contract", () => {
+    const jobs = workflow.jobs ?? {};
+    expect(
+      jobs.quality?.steps?.some((step) =>
+        step.uses?.startsWith("astral-sh/setup-uv@"),
+      ),
+    ).toBe(true);
+    expect(
+      jobs.quality?.steps?.some((step) => step.run === "pnpm ci:setup:spacy"),
+    ).toBe(true);
+    for (const [name, job] of Object.entries(jobs)) {
+      if (name === "quality") continue;
+      expect(
+        job.steps?.some((step) => step.uses?.startsWith("astral-sh/setup-uv@")),
+      ).toBe(false);
+      expect(
+        job.steps?.some((step) => step.run === "pnpm ci:setup:spacy"),
+      ).toBe(false);
+    }
+  });
+
+  it("transports candidates and records through short-lived Actions artifacts", () => {
+    const jobs = workflow.jobs ?? {};
+    for (const name of [
+      "quality",
+      "source-artifacts",
+      "spacy-image",
+      "application-images",
+      "integration",
+      "e2e-dev",
+      "release-e2e",
+      "container-lifecycle",
+    ]) {
+      const job = jobs[name];
+      expect(
+        job?.steps?.some(
+          (step) =>
+            step.uses === "actions/upload-artifact@v7" &&
+            String(step.with?.name).includes("verification-record-"),
+        ),
+      ).toBe(true);
+      const upload = job?.steps?.find(
         (step) =>
           step.uses === "actions/upload-artifact@v7" &&
-          step.with?.name === "validated-images-${{ github.sha }}",
-      ),
-    ).toBe(true);
-    expect(release?.needs).toEqual(["check", "check-all"]);
+          String(step.with?.name).includes("verification-record-"),
+      );
+      expect(upload?.if).toBe("success()");
+      expect(upload?.with?.overwrite).toBe(true);
+    }
+    for (const name of [
+      "integration",
+      "e2e-dev",
+      "release-e2e",
+      "container-lifecycle",
+    ]) {
+      expect(
+        jobs[name]?.steps?.some(
+          (step) => step.uses === "actions/download-artifact@v8",
+        ),
+      ).toBe(true);
+    }
+    expect(jobs["spacy-image"]?.permissions).toBeUndefined();
+    expect(jobs["application-images"]?.permissions).toBeUndefined();
+    for (const name of ["spacy-image", "application-images"]) {
+      const steps = jobs[name]?.steps ?? [];
+      const cleanupIndex = steps.findIndex(
+        (step) => step.run === "pnpm container:cleanup-image-artifacts",
+      );
+      const recordIndex = steps.findIndex(
+        (step) =>
+          step.uses === "actions/upload-artifact@v7" &&
+          String(step.with?.name).includes("verification-record-"),
+      );
+      expect(cleanupIndex).toBeGreaterThan(-1);
+      expect(recordIndex).toBeGreaterThan(cleanupIndex);
+    }
+    for (const name of [
+      "integration",
+      "e2e-dev",
+      "release-e2e",
+      "container-lifecycle",
+    ]) {
+      const steps = jobs[name]?.steps ?? [];
+      const runIndex = steps.findIndex((step) =>
+        step.run?.startsWith("pnpm ci:verification:run"),
+      );
+      const cleanupIndex = steps.findIndex(
+        (step) =>
+          step.name === "Clean consumed candidate artifact root" &&
+          step.if === "always()" &&
+          step.run === "pnpm container:cleanup-image-artifacts",
+      );
+      const recordIndex = steps.findIndex(
+        (step) =>
+          step.uses === "actions/upload-artifact@v7" &&
+          String(step.with?.name).includes("verification-record-"),
+      );
+      expect(cleanupIndex).toBeGreaterThan(runIndex);
+      expect(recordIndex).toBeGreaterThan(cleanupIndex);
+    }
+  });
+
+  it("keeps advisory Buildx caches isolated by build family", () => {
+    const jobs = workflow.jobs ?? {};
+    for (const [jobName, family] of [
+      ["application-images", "application"],
+      ["spacy-image", "spacy"],
+    ] as const) {
+      const steps = jobs[jobName]?.steps ?? [];
+      const restore = steps.find(
+        (step) => step.uses === "actions/cache/restore@v6",
+      );
+      expect(restore).toMatchObject({
+        "continue-on-error": true,
+        with: {
+          key: `buildx-${"${{ runner.os }}"}-${family}-${"${{ github.sha }}"}`,
+          path: `.cache/buildx/${family}`,
+          "restore-keys": `buildx-${"${{ runner.os }}"}-${family}-\n`,
+        },
+      });
+      const run = steps.find((step) =>
+        step.run?.startsWith("pnpm ci:verification:run"),
+      );
+      expect(run?.env).toMatchObject({
+        CAT_BUILDX_CACHE_OUTPUT: ".cache/buildx-next",
+        CAT_BUILDX_CACHE_SOURCE: ".cache/buildx",
+      });
+      const finalize = steps.find(
+        (step) => step.id === "finalize-buildx-cache",
+      );
+      expect(finalize).toMatchObject({
+        "continue-on-error": true,
+        run: `pnpm ci:buildx-cache:finalize ${family}`,
+      });
+      const save = steps.find((step) => step.uses === "actions/cache/save@v6");
+      expect(save?.["continue-on-error"]).toBe(true);
+      expect(save?.if).toContain("success()");
+      expect(save?.if).toContain(
+        "steps.finalize-buildx-cache.outcome == 'success'",
+      );
+      expect(save?.if).toContain("github.ref == 'refs/heads/main'");
+      expect(save?.with).toMatchObject({
+        key: `buildx-${"${{ runner.os }}"}-${family}-${"${{ github.sha }}"}`,
+        path: `.cache/buildx/${family}`,
+      });
+      expect(JSON.stringify(steps)).not.toContain(
+        family === "application"
+          ? ".cache/buildx/spacy"
+          : ".cache/buildx/application",
+      );
+    }
+  });
+
+  it("retains only native failed E2E diagnostics", () => {
+    for (const name of ["e2e-dev", "release-e2e"]) {
+      const run = workflow.jobs?.[name]?.steps?.find((step) =>
+        step.run?.startsWith("pnpm ci:verification:run"),
+      );
+      const diagnostic = workflow.jobs?.[name]?.steps?.find(
+        (step) => step.name === "Upload failed E2E diagnostics",
+      );
+      expect(diagnostic?.if).toBe("failure()");
+      expect(diagnostic?.uses).toBe("actions/upload-artifact@v7");
+      expect(diagnostic?.with?.["if-no-files-found"]).toBe("ignore");
+      expect(run?.env?.CAT_E2E_ARTIFACT_ROOT).toBe(
+        "/tmp/cat-e2e-${{ github.run_id }}",
+      );
+      const paths = String(diagnostic?.with?.path);
+      expect(paths).toContain(
+        "/tmp/cat-e2e-${{ github.run_id }}/**/playwright/**",
+      );
+      expect(paths).toContain(
+        "/tmp/cat-e2e-${{ github.run_id }}/**/playwright-report/**",
+      );
+      expect(paths).toContain("/**/playwright/.auth/**");
+      expect(paths).not.toMatch(/\.log|e2e-refs|attestation/);
+    }
+  });
+
+  it("keeps the source lane outer timeout above its sequential long-node budget", () => {
+    const outerBudget =
+      (workflow.jobs?.["source-artifacts"]?.["timeout-minutes"] ?? 0) * 60_000;
+    const longNodeBudget =
+      verificationExecutorTimeoutBudget.long +
+      verificationExecutorCleanupHeadroomMs.handlerSettlement +
+      verificationExecutorCleanupHeadroomMs.nodeCleanup;
+
+    expect(outerBudget).toBe(110 * 60_000);
+    expect(outerBudget).toBeGreaterThan(longNodeBudget * 2);
+  });
+
+  it("publishes original candidates only after aggregation on main", () => {
+    const release = workflow.jobs?.["release-images"];
+    expect(release?.needs).toEqual(["aggregate"]);
     expect(release?.if).toBe(
       "github.event_name == 'push' && github.ref == 'refs/heads/main'",
     );
@@ -343,39 +371,136 @@ describe("CI configuration contract", () => {
       contents: "read",
       packages: "write",
     });
-    expect(
-      releaseSteps.some(
-        (step) =>
-          step.uses === "actions/download-artifact@v8" &&
-          step.with?.name === "validated-images-${{ github.sha }}",
-      ),
-    ).toBe(true);
-    const releaseCommands = releaseSteps
+    const commands = (release?.steps ?? [])
       .map((step) => step.run ?? "")
       .join("\n");
-    expect(releaseCommands).toContain("pnpm container:verify-artifacts");
-    expect(releaseCommands).toContain("pnpm release:images");
-    expect(releaseCommands).not.toMatch(/(?:docker|sha256sum) /);
-    expect(releaseCommands).not.toContain("pnpm ci:install");
+    expect(commands).toContain("pnpm ci:verification:release");
+    expect(commands).not.toMatch(/docker build|build-push-action/);
     expect(
-      releaseSteps.some((step) => step.uses === "docker/build-push-action@v6"),
-    ).toBe(false);
+      release?.steps?.some(
+        (step) =>
+          step.uses === "actions/download-artifact@v8" &&
+          String(step.with?.name).startsWith("validated-release-"),
+      ),
+    ).toBe(true);
+    const aggregate = workflow.jobs?.aggregate;
+    expect(
+      aggregate?.steps?.some(
+        (step) =>
+          step.uses === "actions/download-artifact@v8" &&
+          String(step.with?.pattern).startsWith("candidate-*"),
+      ),
+    ).toBe(true);
+    expect(
+      aggregate?.steps?.some(
+        (step) =>
+          step.uses === "actions/upload-artifact@v7" &&
+          String(step.with?.name).startsWith("validated-release-"),
+      ),
+    ).toBe(true);
+    expect(
+      aggregate?.steps?.find(
+        (step) =>
+          step.run ===
+          "pnpm ci:verification:aggregate /tmp/verification-records",
+      )?.env?.CAT_VERIFICATION_JOB_RESULTS,
+    ).toContain("toJSON(needs)");
   });
 
-  it("uses package scripts for every post-activation CI shell command", () => {
-    for (const job of Object.values(workflow.jobs ?? {})) {
-      const activationIndex = (job.steps ?? []).findIndex(
-        (step) =>
-          step.name ===
-          "Activate integrity-pinned pnpm for the exact Node runtime",
-      );
-      for (const step of (job.steps ?? []).slice(activationIndex + 1)) {
-        if (step.run === undefined) continue;
-        expect(step.run).toMatch(/^pnpm [A-Za-z0-9:_-]+$/);
-      }
+  it("passes fixed subcommands directly through every package-script boundary", () => {
+    const commandSteps = Object.values(workflow.jobs ?? {}).flatMap((job) =>
+      (job.steps ?? []).filter((step) => step.run !== undefined),
+    );
+    const fixedSubcommandSteps = commandSteps.filter((step) =>
+      /^pnpm (?:ci:verification:(?:run|aggregate)|ci:buildx-cache:finalize)\b/.test(
+        step.run!,
+      ),
+    );
+
+    expect(fixedSubcommandSteps.length).toBeGreaterThan(0);
+    for (const step of fixedSubcommandSteps) {
+      expect(step.run).not.toContain(" -- ");
     }
   });
 
+  it("keeps package writes and registry login out of untrusted jobs", () => {
+    const jobs = workflow.jobs ?? {};
+    for (const [name, job] of Object.entries(jobs)) {
+      if (name === "release-images") continue;
+      expect(job.permissions?.packages).toBeUndefined();
+      expect(
+        job.steps?.some((step) =>
+          step.uses?.startsWith("docker/login-action@"),
+        ),
+      ).toBe(false);
+      expect(
+        job.steps?.some(
+          (step) =>
+            step.run?.includes("ci:verification:release") === true ||
+            step.run?.includes("release:images") === true ||
+            step.run?.includes("docker push") === true,
+        ),
+      ).toBe(false);
+    }
+  });
+
+  it("uses the integrity-aware Node and pnpm composite action", () => {
+    const setupSteps = setupNodePnpmAction.runs?.steps ?? [];
+    expect(setupNodePnpmAction.runs?.using).toBe("composite");
+    expect(setupSteps).toContainEqual(
+      expect.objectContaining({ run: "pnpm ci:install" }),
+    );
+    for (const job of Object.values(workflow.jobs ?? {})) {
+      expect(
+        (job.steps ?? []).some(
+          (step) => step.uses === "./.github/actions/setup-node-pnpm",
+        ),
+      ).toBe(true);
+      expect(
+        (job.steps ?? []).some((step) =>
+          step.uses?.startsWith("pnpm/action-setup@"),
+        ),
+      ).toBe(false);
+    }
+  });
+
+  it("injects signed remote cache identity only into trusted Turbo consumers", () => {
+    const jobs = workflow.jobs ?? {};
+    for (const name of [
+      "quality",
+      "source-artifacts",
+      "application-images",
+      "integration",
+    ]) {
+      const run = jobs[name]?.steps?.find((step) =>
+        step.run?.startsWith("pnpm ci:verification:run"),
+      );
+      expect(run?.env, name).toMatchObject(trustedMainRemoteCacheEnvironment);
+    }
+
+    for (const [name, job] of Object.entries(jobs)) {
+      for (const step of job.steps ?? []) {
+        const hasRemoteIdentity = Object.keys(
+          trustedMainRemoteCacheEnvironment,
+        ).some((variable) => step.env?.[variable] !== undefined);
+        if (!hasRemoteIdentity) continue;
+        expect([
+          "quality",
+          "source-artifacts",
+          "application-images",
+          "integration",
+        ]).toContain(name);
+        expect(step.env).toMatchObject(trustedMainRemoteCacheEnvironment);
+      }
+    }
+
+    const source = readFileSync(
+      resolve(root, ".github/workflows/ci.yml"),
+      "utf8",
+    );
+    expect(source).not.toMatch(/TURBO_(?:CACHE_WORKERS|REMOTE_CACHE_TIMEOUT)/);
+    expect(source).not.toMatch(/--(?:cache-workers|remote-cache-timeout)/);
+  });
   it("aligns the exact Node patch and official image digest across every environment", () => {
     const manifest = JSON.parse(
       readFileSync(resolve(root, "package.json"), "utf8"),

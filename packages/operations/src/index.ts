@@ -2,17 +2,11 @@
 export type { OperationContext } from "./types.ts";
 export type {
   MemorySuggestionWithPrecision,
-  LookedUpTermWithPrecision,
+  TermMatchWithPrecision,
 } from "./precision/types.ts";
 
 // === Memory utilities ===
 export { insertMemory } from "./memory.ts";
-export {
-  startRecallDerivationTask,
-  refreshRecallDerivationTask,
-  StartRecallDerivationTaskInputSchema,
-  type StartRecallDerivationTaskInput,
-} from "./recall-derivation-task.ts";
 export {
   processRecallDerivationBatch,
   RecallDerivationFreshnessError,
@@ -22,13 +16,12 @@ export {
   type ProcessRecallDerivationBatchOptions,
   type RecallDerivationFreshnessAssessment,
   type RecallDerivationWorker,
-} from "./memory-recall-derivation.ts";
+  type RecallDerivationStateCommitObserver,
+} from "./recall-derivation-runtime.ts";
 export {
-  probeGlossaryRecallDependency,
-  probeCurrentGlossaryRecallDependencies,
-  reconcileGlossaryRecallDependency,
-} from "./glossary-recall-derivation.ts";
-
+  createRecallDerivationTaskProjectionObserver,
+  projectPendingRecallDerivationTasks,
+} from "./recall-derivation-task-projection.ts";
 export {
   writePersonalTranslationMemoryOp,
   WritePersonalTranslationMemoryInputSchema,

@@ -392,11 +392,9 @@ describe("memory governance domain commands", () => {
         creatorId: user.id,
       },
     );
-    const [enSourceId, zhTranslationId, enTranslationId] = await Promise.all([
-      insertString("Save file", "en"),
-      insertString("保存文件", "zh-Hans"),
-      insertString("Store file", "en"),
-    ]);
+    const enSourceId = await insertString("Save file", "en");
+    const zhTranslationId = await insertString("保存文件", "zh-Hans");
+    const enTranslationId = await insertString("Store file", "en");
     const created = await executeCommand(
       { db: testDb.client },
       createMemoryItems,

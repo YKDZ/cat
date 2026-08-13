@@ -98,6 +98,10 @@ import {
 import { createAgentToolRegistry } from "#/utils/agent-tool-registry.ts";
 
 type PluginServiceEntry = ReturnType<PluginManager["getServices"]>[number];
+type GlobalPluginServiceFixture = Omit<
+  PluginServiceEntry,
+  "scopeType" | "scopeId"
+>;
 
 const asRecord = (value: unknown): Record<string, unknown> | null => {
   return typeof value === "object" && value !== null && !Array.isArray(value)
@@ -128,13 +132,17 @@ const createContext = (pluginManager: PluginManager): Context => {
 };
 
 const createPluginManager = (options?: {
-  llmProviders?: PluginServiceEntry[];
-  agentToolProviders?: PluginServiceEntry[];
+  llmProviders?: GlobalPluginServiceFixture[];
+  agentToolProviders?: GlobalPluginServiceFixture[];
 }): PluginManager => {
-  const services = [
+  const services: PluginServiceEntry[] = [
     ...(options?.llmProviders ?? []),
     ...(options?.agentToolProviders ?? []),
-  ];
+  ].map((service) => ({
+    ...service,
+    scopeType: "GLOBAL",
+    scopeId: "",
+  }));
   const manager = new PluginManager(
     "GLOBAL",
     "",

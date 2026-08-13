@@ -8,48 +8,19 @@ import {
   sql,
   task,
 } from "@cat/db";
-import { OperationFailureSchema, type OperationFailure } from "@cat/shared";
+import {
+  OperationFailurePublicProjectionSchema,
+  OperationFailureRedactedProjectionSchema,
+  type OperationFailure,
+  type OperationFailurePublicProjection,
+  type OperationFailureRedactedProjection,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { toOperationFailure } from "#/commands/operation-failure/create-operation-failure.cmd.ts";
 import type { Query } from "#/types.ts";
 
 import { TaskReadAuthorizationSchema } from "./get-localization-task.query.ts";
-
-export const OperationFailurePublicProjectionSchema =
-  OperationFailureSchema.pick({
-    id: true,
-    code: true,
-    message: true,
-    severity: true,
-    retryable: true,
-    blocker: true,
-    capability: true,
-    authorizationDecision: true,
-    affectedResources: true,
-    remediationHint: true,
-    redactionBoundary: true,
-  })
-    .extend({ redacted: z.literal(false) })
-    .strip();
-export type OperationFailurePublicProjection = z.infer<
-  typeof OperationFailurePublicProjectionSchema
->;
-
-export const OperationFailureRedactedProjectionSchema =
-  OperationFailureSchema.pick({
-    id: true,
-    code: true,
-    severity: true,
-    retryable: true,
-    blocker: true,
-    redactionBoundary: true,
-  })
-    .extend({ redacted: z.literal(true) })
-    .strip();
-export type OperationFailureRedactedProjection = z.infer<
-  typeof OperationFailureRedactedProjectionSchema
->;
 
 export const GetOperationFailureQuerySchema = z.strictObject({
   id: z.uuidv4(),

@@ -8,25 +8,35 @@ import {
   termConcept,
   termRecallVariant,
 } from "@cat/db";
-import { RecallDerivationVersionSchema } from "@cat/shared";
+import {
+  NormalizedLanguageIdSchema,
+  RecallDerivationVersionSchema,
+  type TermMatch,
+} from "@cat/shared";
 import * as z from "zod";
 
-import type { LookedUpTerm } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
 import { fetchTermsByConceptIds } from "#/queries/glossary/fetch-terms-by-concept-ids.query.ts";
 import type { Query } from "#/types.ts";
 
 export const ListKeywordTermSuggestionsQuerySchema = z.strictObject({
   glossaryIds: z.array(z.uuidv4()),
   keywords: z.array(z.string().min(1)).min(1),
-  sourceLanguageId: z.string().min(1),
-  translationLanguageId: z.string().min(1),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   requiredDerivationVersion: RecallDerivationVersionSchema,
   maxAmount: z.int().min(1),
 });
 
+export type ListKeywordTermSuggestionsQuery = z.output<
+  typeof ListKeywordTermSuggestionsQuerySchema
+>;
+type ListKeywordTermSuggestionsQueryInput = z.input<
+  typeof ListKeywordTermSuggestionsQuerySchema
+>;
+
 export const listKeywordTermSuggestions: Query<
-  z.infer<typeof ListKeywordTermSuggestionsQuerySchema>,
-  LookedUpTerm[]
+  ListKeywordTermSuggestionsQueryInput,
+  TermMatch[]
 > = async (ctx, input) => {
   const query = ListKeywordTermSuggestionsQuerySchema.parse(input);
   if (query.glossaryIds.length === 0) return [];

@@ -101,6 +101,56 @@ describe("plugin-management service", () => {
     expect(detail?.runtimeStatus).toBe("INACTIVE");
   });
 
+  it("exposes database-backed services by logical identity only", async () => {
+    const manager = PluginManager.get("GLOBAL", "");
+    vi.spyOn(manager.getLoader(), "getManifest").mockResolvedValue(
+      parseManifest({
+        id: PLUGIN_ID,
+        version: "0.0.1",
+        entry: "index.js",
+      }),
+    );
+    vi.mocked(executeQuery).mockImplementation(async (_ctx, query) => {
+      if (query === getPlugin) {
+        return {
+          id: PLUGIN_ID,
+          name: "plugin",
+          overview: "Plugin",
+          isExternal: false,
+          entry: "index.js",
+          iconUrl: null,
+          version: "0.0.1",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+      if (query === getPluginConfig) return null;
+      if (query === getPluginInstallation) return { id: 1 };
+      if (query === listPluginServicesForInstallation) {
+        return [{ dbId: 42, id: "tokenizer", type: "TOKENIZER" }];
+      }
+      return null;
+    });
+
+    const detail = await getPluginDetailModel(createContext(manager), {
+      pluginId: PLUGIN_ID,
+      scopeType: "GLOBAL",
+      scopeId: "",
+    });
+
+    expect(detail?.capabilities.services).toContainEqual({
+      serviceType: "TOKENIZER",
+      serviceId: "tokenizer",
+      source: "DATABASE",
+      dynamic: true,
+      supportsProbe: false,
+      probeBillable: false,
+      probeRequiresInstall: false,
+      unsupportedReason: "此服务类型没有平台内置通用检测。",
+    });
+    expect(detail?.capabilities.services[0]).not.toHaveProperty("dbId");
+  });
+
   it("exposes stale configuration as migratable but not normally saveable", async () => {
     const manager = PluginManager.get("GLOBAL", "");
     const updatedAt = new Date("2026-05-16T00:00:00.000Z");

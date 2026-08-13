@@ -209,7 +209,6 @@ export const getPluginDetailModel = async (
       serviceType: service.type,
       serviceId: service.id,
       source: "DATABASE",
-      dbId: service.dbId,
       dynamic: !manifestServices.some(
         (manifestService) =>
           manifestService.id === service.id &&
@@ -228,7 +227,6 @@ export const getPluginDetailModel = async (
       serviceType: service.type,
       serviceId: service.id,
       source: "RUNTIME",
-      dbId: service.dbId,
       dynamic: true,
       supportsProbe: reason === undefined,
       probeBillable: BILLABLE_SERVICE_TYPES.has(service.type),

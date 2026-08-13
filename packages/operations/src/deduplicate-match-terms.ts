@@ -2,6 +2,7 @@ import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { executeQuery, listTermConceptIdsByRecallVariants } from "@cat/domain";
 import { resolvePluginManager } from "@cat/server-shared";
+import { NormalizedLanguageIdSchema } from "@cat/shared";
 import * as z from "zod";
 
 import { probeGlossaryRecallDependency } from "./glossary-recall-derivation.ts";
@@ -77,6 +78,9 @@ export const deduplicateAndMatchOp = async (
   ctx?: OperationContext,
 ): Promise<DeduplicateAndMatchOutput> => {
   const { client: drizzle } = await getDbHandle();
+  const sourceLanguageId = NormalizedLanguageIdSchema.parse(
+    data.sourceLanguageId,
+  );
 
   // Step 1: Deduplicate by normalizedText, keep highest confidence per key
   const deduped = new Map<string, (typeof data.candidates)[number]>();
@@ -96,7 +100,7 @@ export const deduplicateAndMatchOp = async (
   const dependency = await probeGlossaryRecallDependency({
     db: drizzle,
     pluginManager: resolvePluginManager(ctx?.pluginManager),
-    languageId: data.sourceLanguageId,
+    languageId: sourceLanguageId,
     text: uniqueCandidates[0]!.text,
     ctx,
   });

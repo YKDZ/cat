@@ -65,6 +65,7 @@ const mocks = vi.hoisted(() => {
   const fakeCleanupHandle = { stop: vi.fn() };
   const stopRecallDerivationWorker = vi.fn().mockResolvedValue(undefined);
   const fakeRecallDerivationWorker = { stop: stopRecallDerivationWorker };
+  const recallDerivationTaskProjectionObserver = vi.fn();
   const ensureTaskRecovery = vi.fn().mockResolvedValue(undefined);
   const disposeGraphRuntime = vi.fn().mockResolvedValue(undefined);
   const fakeGraphRuntime = {
@@ -138,6 +139,10 @@ const mocks = vi.hoisted(() => {
     registerAuditHandler: vi.fn(),
     registerDomainEventHandlers: vi.fn(),
     registerVectorizationConsumer: vi.fn().mockResolvedValue(undefined),
+    createRecallDerivationTaskProjectionObserver: vi.fn(
+      () => recallDerivationTaskProjectionObserver,
+    ),
+    recallDerivationTaskProjectionObserver,
     startRecallDerivationWorker: vi.fn(),
     stopRecallDerivationWorker,
     ReadinessProbeFailure,
@@ -187,6 +192,8 @@ vi.mock("@cat/message", () => ({
 }));
 
 vi.mock("@cat/operations", () => ({
+  createRecallDerivationTaskProjectionObserver:
+    mocks.createRecallDerivationTaskProjectionObserver,
   registerDomainEventHandlers: mocks.registerDomainEventHandlers,
   registerVectorizationConsumer: mocks.registerVectorizationConsumer,
   startRecallDerivationWorker: mocks.startRecallDerivationWorker,
@@ -354,6 +361,12 @@ describe("initializeApp", () => {
     expect(mocks.startRecallDerivationWorker).toHaveBeenCalledWith({
       db: mocks.fakeDrizzleClient,
       pluginManager: mocks.fakePluginManager,
+      onStateCommitted: mocks.recallDerivationTaskProjectionObserver,
+    });
+    expect(
+      mocks.createRecallDerivationTaskProjectionObserver,
+    ).toHaveBeenCalledWith({
+      db: mocks.fakeDrizzleClient,
     });
     expect(mocks.getCurrentRedisHandle).toHaveBeenCalledOnce();
     expect(globalThis.app).toBe(mocks.fakeApp);

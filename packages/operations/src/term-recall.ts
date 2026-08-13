@@ -4,7 +4,10 @@ import {
   getDbHandle,
   listConceptSubjectsByConceptIds,
 } from "@cat/domain";
-import { EnrichedTermMatchSchema } from "@cat/shared";
+import {
+  EnrichedTermMatchSchema,
+  NormalizedLanguageIdSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import {
@@ -12,10 +15,10 @@ import {
   getTermRecallCandidates,
 } from "./collect-term-recall.ts";
 
-export const TermRecallInputSchema = z.object({
+export const TermRecallInputSchema = z.strictObject({
   text: z.string(),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
   glossaryIds: z.array(z.uuidv4()).default([]),
   wordSimilarityThreshold: z.number().min(0).max(1).default(0.3),
 });
