@@ -1,172 +1,167 @@
 <script setup lang="ts">
 import {
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  Pagination,
-  PaginationContent,
-  PaginationFirst,
-  PaginationLast,
-  PaginationNext,
-  PaginationPrevious,
+  DataTable,
+  type DataTableColumn,
+  type DataTableColumnVisibility,
+  type DataTablePagination,
+  type DataTableSort,
+  Input,
 } from "@cat/ui";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  ChevronsLeftIcon,
-  ChevronsRightIcon,
-} from "@lucide/vue";
+import { Search } from "@lucide/vue";
 import { usePageContext } from "vike-vue/usePageContext";
-import { ref, onMounted, watch, computed } from "vue";
+import { navigate } from "vike/client/router";
+import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+
+import {
+  toSearchRequestArgument,
+  useDataTableSearch,
+} from "#/utils/data-table-search.ts";
+import { createDataTableLabels } from "#/utils/data-table.ts";
+import { formatDate } from "#/utils/format.ts";
+import { clientLogger } from "#/utils/logger.ts";
+import { useRequestOwnership } from "#/utils/vue.ts";
 
 import {
   onRequestGlossaries,
   type GlossaryListItem,
 } from "./Table.telefunc.ts";
-import TableItem from "./TableItem.vue";
+
+type GlossarySortColumnId = "createdAt" | "name" | "updatedAt";
+type GlossaryColumnId = "description" | GlossarySortColumnId;
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const requestOwnership = useRequestOwnership();
 
 const glossaries = ref<GlossaryListItem[]>([]);
 const pageIndex = ref(0);
 const pageSize = ref(10);
 const total = ref(0);
 const isLoading = ref(false);
+const sorting = ref<readonly DataTableSort<GlossarySortColumnId>[]>([]);
+const columnVisibility = ref<DataTableColumnVisibility>({});
+const { filters, search, searchInput, updateSearch } =
+  useDataTableSearch(pageIndex);
 
-const currentPage = computed({
-  get: () => pageIndex.value + 1,
-  set: (value) => {
-    pageIndex.value = value - 1;
-  },
-});
+const columns: readonly DataTableColumn<GlossaryListItem, GlossaryColumnId>[] =
+  [
+    {
+      id: "name",
+      header: t("名称"),
+      render: (glossary) => glossary.name,
+      sortable: true,
+    },
+    {
+      id: "description",
+      header: t("描述"),
+      render: (glossary) => glossary.description || t("—"),
+    },
+    {
+      id: "createdAt",
+      header: t("创建时间"),
+      render: (glossary) => formatDate(glossary.createdAt),
+      sortable: true,
+    },
+    {
+      id: "updatedAt",
+      header: t("更新时间"),
+      render: (glossary) => formatDate(glossary.updatedAt),
+      sortable: true,
+    },
+  ];
 
-const pageTotalAmount = computed(() =>
-  total.value > 0 ? Math.ceil(total.value / pageSize.value) : 1,
-);
-
-const displayRange = computed(() => {
-  const from = pageIndex.value * pageSize.value + 1;
-  const to = Math.min((pageIndex.value + 1) * pageSize.value, total.value);
-  return { from, to };
-});
+const labels = createDataTableLabels(t);
 
 const fetchGlossaries = async () => {
   if (!ctx.user) return;
 
   isLoading.value = true;
-  try {
-    const result = await onRequestGlossaries(pageIndex.value, pageSize.value);
-    glossaries.value = result.data;
-    total.value = result.total;
-  } catch (err) {
-    // oxlint-disable-next-line no-console
-    console.error("Failed to fetch glossaries:", err);
-  } finally {
-    isLoading.value = false;
+  const sort = sorting.value[0];
+  const result = await requestOwnership.run(() => {
+    const searchArgument = toSearchRequestArgument(search.value);
+    if (sort !== undefined && searchArgument.length === 0) {
+      return onRequestGlossaries(pageIndex.value, pageSize.value, null, sort);
+    }
+    return onRequestGlossaries(
+      pageIndex.value,
+      pageSize.value,
+      ...searchArgument,
+      ...(sort === undefined ? [] : [sort]),
+    );
+  });
+  if (result.status === "released") return;
+  if (result.status === "failure") {
+    clientLogger
+      .child({ component: "glossary-table" })
+      .error("Failed to fetch glossaries", { error: result.error });
+  } else {
+    glossaries.value = result.value.data;
+    total.value = result.value.total;
   }
+  isLoading.value = false;
 };
+
+requestOwnership.onResume(() => void fetchGlossaries());
 
 onMounted(() => {
   fetchGlossaries();
 });
 
-watch([pageIndex], () => {
+watch([pageIndex, pageSize, search, sorting], () => {
   fetchGlossaries();
 });
+
+const updatePagination = (pagination: DataTablePagination) => {
+  pageIndex.value = pagination.pageIndex;
+  pageSize.value = pagination.pageSize;
+};
+
+const isSupportedSort = (
+  sort: DataTableSort<GlossaryColumnId>,
+): sort is DataTableSort<GlossarySortColumnId> => sort.id !== "description";
+
+const updateSorting = (next: readonly DataTableSort<GlossaryColumnId>[]) => {
+  sorting.value = next.filter(isSupportedSort);
+  pageIndex.value = 0;
+};
 </script>
 
 <template>
-  <div class="w-full">
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>{{ t("名称") }}</TableHead>
-          <TableHead>{{ t("描述") }}</TableHead>
-          <TableHead>{{ t("创建时间") }}</TableHead>
-          <TableHead>{{ t("更新时间") }}</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <template v-if="isLoading">
-          <TableRow v-for="i in pageSize" :key="i">
-            <TableCell>
-              <Skeleton class="h-4 w-32" />
-            </TableCell>
-            <TableCell>
-              <Skeleton class="h-4 w-48" />
-            </TableCell>
-            <TableCell>
-              <Skeleton class="h-4 w-24" />
-            </TableCell>
-            <TableCell>
-              <Skeleton class="h-4 w-24" />
-            </TableCell>
-          </TableRow>
-        </template>
-        <template v-else-if="glossaries.length === 0">
-          <TableRow>
-            <TableCell :colspan="4" class="py-8 text-center text-gray-500">
-              {{ t("暂无数据") }}
-            </TableCell>
-          </TableRow>
-        </template>
-        <template v-else>
-          <TableItem
-            v-for="glossary in glossaries"
-            :key="glossary.id"
-            :glossary
-          />
-        </template>
-      </TableBody>
-    </Table>
-
-    <!-- 分页 -->
-    <div v-if="total > 0" class="mt-4 flex items-center justify-between">
-      <div class="text-sm text-muted-foreground">
-        {{
-          t("显示 {from} - {to} 条，共 {total} 条", {
-            from: displayRange.from,
-            to: displayRange.to,
-            total: total,
-          })
-        }}
+  <DataTable
+    :column-visibility="columnVisibility"
+    :columns="columns"
+    :filters="filters"
+    :labels="labels"
+    :loading="isLoading"
+    :pagination="{ pageIndex, pageSize }"
+    :row-count="total"
+    :row-action-label="
+      (glossary) => t('打开术语库：{name}', { name: glossary.name })
+    "
+    :rows="glossaries"
+    :sorting="sorting"
+    :row-key="(glossary) => glossary.id"
+    @row-click="navigate(`/glossary/${$event.id}`)"
+    @update:column-visibility="columnVisibility = $event"
+    @update:pagination="updatePagination"
+    @update:sorting="updateSorting"
+  >
+    <template #toolbar>
+      <div class="relative w-full sm:w-80">
+        <Input
+          class="pl-8"
+          :aria-label="t('搜索名称或描述')"
+          :model-value="searchInput"
+          :placeholder="t('搜索名称或描述...')"
+          type="search"
+          @update:model-value="updateSearch"
+        />
+        <Search
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-y-0 left-2.5 my-auto size-4 text-muted-foreground"
+        />
       </div>
-      <Pagination
-        :items-per-page="pageSize"
-        :total="total"
-        :sibling-count="0"
-        v-model:page="currentPage"
-      >
-        <PaginationContent class="gap-0.5">
-          <PaginationFirst size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronsLeftIcon class="h-3 w-3" />
-          </PaginationFirst>
-          <PaginationPrevious size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronLeftIcon class="h-3 w-3" />
-          </PaginationPrevious>
-
-          <div
-            class="pointer-events-none flex min-w-12 items-center justify-center px-1"
-          >
-            <span class="text-xs font-medium tabular-nums">
-              {{ currentPage }}/{{ Math.max(1, pageTotalAmount) }}
-            </span>
-          </div>
-
-          <PaginationNext size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronRightIcon class="h-3 w-3" />
-          </PaginationNext>
-          <PaginationLast size="icon-sm" class="px-1.5! pr-1.5!">
-            <ChevronsRightIcon class="h-3 w-3" />
-          </PaginationLast>
-        </PaginationContent>
-      </Pagination>
-    </div>
-  </div>
+    </template>
+  </DataTable>
 </template>

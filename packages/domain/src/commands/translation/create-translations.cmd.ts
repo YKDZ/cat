@@ -1,4 +1,5 @@
 import {
+  agentExternalOutput,
   and,
   contentRelation,
   eq,
@@ -8,6 +9,7 @@ import {
 } from "@cat/db";
 import * as z from "zod";
 
+import { assertActiveAgentRunOwnership } from "#/commands/agent/assert-agent-run-ownership.ts";
 import { domainEvent } from "#/events/domain-events.ts";
 import type { Command } from "#/types.ts";
 
@@ -20,6 +22,21 @@ export const CreateTranslationsCommandSchema = z.object({
       meta: z.json().optional(),
     }),
   ),
+  ownershipFence: z
+    .object({
+      runId: z.uuidv4(),
+      ownerId: z.uuidv4(),
+      epoch: z.int().positive(),
+    })
+    .optional(),
+  workflowOutput: z
+    .object({
+      nodeId: z.string().min(1),
+      outputKey: z.string().min(1),
+      idempotencyKey: z.string().min(1),
+      payload: z.record(z.string(), z.json()).optional(),
+    })
+    .optional(),
 });
 
 export type CreateTranslationsCommand = z.infer<
@@ -37,10 +54,54 @@ export const createTranslations: Command<
     };
   }
 
-  const inserted = await ctx.db
-    .insert(translation)
-    .values(command.data)
-    .returning({ id: translation.id });
+  const inserted = await ctx.db.transaction(async (tx) => {
+    const runInternalId = command.ownershipFence
+      ? await assertActiveAgentRunOwnership(tx, command.ownershipFence)
+      : null;
+    if (command.workflowOutput && runInternalId === null) {
+      throw new Error(
+        "Workflow output idempotency requires an ownership fence.",
+      );
+    }
+    if (command.workflowOutput && runInternalId !== null) {
+      const [existing] = await tx
+        .select({ payload: agentExternalOutput.payload })
+        .from(agentExternalOutput)
+        .where(
+          and(
+            eq(agentExternalOutput.runId, runInternalId),
+            eq(
+              agentExternalOutput.idempotencyKey,
+              command.workflowOutput.idempotencyKey,
+            ),
+          ),
+        );
+      const parsed = z
+        .object({ translationIds: z.array(z.int()) })
+        .safeParse(existing?.payload);
+      if (parsed.success) {
+        return parsed.data.translationIds.map((id) => ({ id }));
+      }
+    }
+    const created = await tx
+      .insert(translation)
+      .values(command.data)
+      .returning({ id: translation.id });
+    if (command.workflowOutput && runInternalId !== null) {
+      await tx.insert(agentExternalOutput).values({
+        runId: runInternalId,
+        nodeId: command.workflowOutput.nodeId,
+        outputType: "db_write",
+        outputKey: command.workflowOutput.outputKey,
+        payload: {
+          translationIds: created.map((item) => item.id),
+          ...(command.workflowOutput.payload ?? {}),
+        },
+        idempotencyKey: command.workflowOutput.idempotencyKey,
+      });
+    }
+    return created;
+  });
 
   const translationIds = inserted.map((item) => item.id);
   const contextRows = await ctx.db

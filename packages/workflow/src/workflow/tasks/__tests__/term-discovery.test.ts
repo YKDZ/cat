@@ -30,13 +30,17 @@ vi.mock("@cat/operations", async () => {
   };
 });
 
-import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { termDiscoveryGraph } from "../term-discovery.ts";
 
 describe("termDiscoveryGraph", () => {
   let cleanup: (() => Promise<void>) | undefined;
+  let runtimeFixture: TestGraphRuntimeFixture | undefined;
 
   beforeAll(async () => {
     const db = await setupTestDB();
@@ -49,11 +53,14 @@ describe("termDiscoveryGraph", () => {
       new TestPluginLoader(),
     );
     await pluginManager.getDiscovery().syncDefinitions(db.client);
-    createDefaultGraphRuntime(db.client, pluginManager);
+    runtimeFixture = createTestGraphRuntime(db, pluginManager);
   });
 
   afterAll(async () => {
-    await cleanup?.();
+    await cleanupTestGraphFixture(
+      runtimeFixture,
+      cleanup ? { cleanup } : undefined,
+    );
   });
 
   beforeEach(() => {
@@ -73,7 +80,6 @@ describe("termDiscoveryGraph", () => {
           occurrences: [{ elementId: 1, ranges: [{ start: 0, end: 11 }] }],
         },
       ],
-      nlpSegmenterUsed: "plugin",
     });
     mocks.deduplicateAndMatchOp.mockResolvedValue({
       candidates: [
@@ -112,25 +118,9 @@ describe("termDiscoveryGraph", () => {
     });
   });
 
-  it("passes nlpSegmenterId through to statistical extraction", async () => {
-    const result = await runGraph(termDiscoveryGraph, {
-      projectId: "22222222-2222-4222-8222-222222222222",
-      contentNodeIds: ["33333333-3333-4333-8333-333333333333"],
-      elementIds: [],
-      glossaryId: "11111111-1111-4111-8111-111111111111",
-      sourceLanguageId: "en",
-      nlpSegmenterId: 77,
-      config: {
-        llm: { enabled: false },
-      },
-    });
-
-    expect(mocks.statisticalTermExtractOp).toHaveBeenCalledWith(
-      expect.objectContaining({
-        nlpSegmenterId: 77,
-      }),
-      expect.any(Object),
+  it("does not expose a per-call Language Analyzer override", () => {
+    expect("languageAnalyzer" in termDiscoveryGraph.inputSchema.shape).toBe(
+      false,
     );
-    expect(result.stats.nlpSegmenterUsed).toBe("plugin");
   });
 });

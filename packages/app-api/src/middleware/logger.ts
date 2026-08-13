@@ -7,7 +7,7 @@ export default createMiddleware(async (c, next) => {
     await next();
     const ms = Date.now() - start;
 
-    logger.withSituation("SERVER").info({
+    logger.child({ component: "server" }).info("diagnostic event", {
       method: c.req.method,
       path: c.req.path,
       status: c.res.status,

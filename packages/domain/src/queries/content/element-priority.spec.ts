@@ -115,7 +115,7 @@ describe("buildElementPriorityPlan", () => {
     );
   });
 
-  it("falls back to regex tokenization for invalid language ids", () => {
+  it("keeps non-analysis ranking independent of invalid language ids", () => {
     const rows = [
       { ...baseRow(1, "Checkout", 0), languageId: "not a language" },
       {

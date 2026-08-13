@@ -2,22 +2,25 @@ import { randomUUID } from "node:crypto";
 
 import {
   createPR,
+  createOperationFailure,
   executeCommand,
   executeQuery,
   getElementWithChunkIds,
-  type LocalizationTaskMeta,
-  type OperationFailure,
   updatePR,
-  upsertLocalizationTask,
 } from "@cat/domain";
 import { writePersonalTranslationMemoryOp } from "@cat/operations";
 import { determineWriteMode, getPermissionEngine } from "@cat/permissions";
 import {
-  firstOrGivenService,
+  selectFirstServiceImplementation,
   serverLogger as logger,
 } from "@cat/server-shared";
-import type { JSONObject, TaskStatus } from "@cat/shared";
-import { JSONObjectSchema } from "@cat/shared";
+import type {
+  JSONObject,
+  OperationFailure,
+  RecallDerivationReference,
+  TaskAffectedResource,
+} from "@cat/shared";
+import { JSONObjectSchema, RecallDerivationReferenceSchema } from "@cat/shared";
 import type { VCSContext } from "@cat/vcs";
 import { EditorOverlayTranslationStateSchema } from "@cat/vcs";
 import { createTranslationGraph, runGraph } from "@cat/workflow/tasks";
@@ -36,7 +39,7 @@ import { defineOperationContract, OperationContractError } from "./catalog.ts";
 
 type OperationFailureDecisionFields = Pick<
   Partial<OperationFailure>,
-  "authorizationDecision" | "missingCapability" | "reviewBlocker"
+  "authorizationDecision" | "capability" | "blocker"
 >;
 
 export const DirectTranslationWriteInputSchema = z.object({
@@ -49,47 +52,9 @@ export const DirectTranslationWriteInputSchema = z.object({
 
 export const DirectTranslationWriteOutputSchema = z.object({
   translationIds: z.array(z.int()),
+  memoryItemIds: z.array(z.int()),
+  derivations: z.array(RecallDerivationReferenceSchema),
   writeMode: z.enum(["direct", "reviewable_change"]).default("direct"),
-  localizationTask: z.object({
-    id: z.uuidv4(),
-    status: z.enum([
-      "PENDING",
-      "RUNNING",
-      "COMPLETED",
-      "FAILED",
-      "BLOCKED",
-      "CANCELED",
-    ]),
-    operationContract: z.string(),
-    actor: z.object({
-      type: z.literal("user"),
-      id: z.uuidv4(),
-    }),
-    affectedResources: z.array(
-      z.object({
-        type: z.enum(["project", "translatable_element", "translation"]),
-        id: z.string(),
-      }),
-    ),
-    relatedReviewableChange: z
-      .object({
-        sourceOperation: z.string(),
-        pullRequestId: z.int(),
-      })
-      .optional(),
-    relatedPullRequest: z
-      .object({
-        id: z.int(),
-        number: z.int(),
-      })
-      .optional(),
-    failure: z
-      .object({
-        identifier: z.string(),
-        message: z.string(),
-      })
-      .optional(),
-  }),
   reviewableChange: z
     .object({
       sourceOperation: z.literal("translation.directWrite"),
@@ -121,90 +86,70 @@ const hasRequiredProjectScope = (
     ["*", "project:*", `project:${relation}`].includes(scope),
   );
 
-const buildTranslationTaskMeta = (input: {
-  actor: OperationInvocationContext["actor"];
+const buildTranslationResources = (input: {
   projectId: string;
   elementId: number;
   translationIds?: number[];
-  relatedReviewableChange?: LocalizationTaskMeta["relatedReviewableChange"];
-  relatedPullRequest?: LocalizationTaskMeta["relatedPullRequest"];
-}): LocalizationTaskMeta => ({
-  operationContract: "translation.directWrite",
-  actor: input.actor,
-  affectedResources: [
-    {
-      type: "project",
-      id: input.projectId,
-    },
-    {
-      type: "translatable_element",
-      id: String(input.elementId),
-    },
-    ...(input.translationIds ?? []).map((translationId) => ({
-      type: "translation" as const,
-      id: String(translationId),
-    })),
-  ],
-  relatedReviewableChange: input.relatedReviewableChange,
-  relatedPullRequest: input.relatedPullRequest,
-});
+}): TaskAffectedResource[] => [
+  {
+    type: "PROJECT",
+    id: input.projectId,
+  },
+  {
+    type: "ELEMENT",
+    id: String(input.elementId),
+  },
+  ...(input.translationIds ?? []).map((translationId) => ({
+    type: "TRANSLATION" as const,
+    id: String(translationId),
+  })),
+];
 
 const asJSONObject = (value: unknown): JSONObject =>
   typeof value === "object" && value !== null && !Array.isArray(value)
     ? JSONObjectSchema.parse(value)
     : {};
 
-const failLocalizationTaskAndThrow = async (input: {
+const failOperationAndThrow = async (input: {
   db: OperationInvocationContext["db"];
-  taskId: string;
-  meta: LocalizationTaskMeta;
+  resources: TaskAffectedResource[];
   identifier: OperationContractErrorIdentifier;
   message: string;
-  status?: TaskStatus;
   decisionFields?: OperationFailureDecisionFields | undefined;
   onOperationFailure?:
     | ((operationFailure: OperationFailure) => Promise<void>)
     | undefined;
 }): Promise<never> => {
-  const operationFailure = buildOperationFailure({
+  const proposedFailure = buildOperationFailure({
     identifier: input.identifier,
     message: input.message,
-    taskId: input.taskId,
-    affectedResources: input.meta.affectedResources,
+    affectedResources: input.resources,
     ...(input.decisionFields === undefined
       ? {}
       : { decisionFields: input.decisionFields }),
   });
-  await input.onOperationFailure?.(operationFailure);
-  const localizationTask = await executeCommand(
+  const {
+    id,
+    taskId: _taskId,
+    traceId: _traceId,
+    ...failure
+  } = proposedFailure;
+  const operationFailure = await executeCommand(
     { db: input.db },
-    upsertLocalizationTask,
-    {
-      taskId: input.taskId,
-      status: input.status ?? getFailureTaskStatus(input.identifier),
-      meta: {
-        ...input.meta,
-        failure: {
-          identifier: input.identifier,
-          message: input.message,
-          operationFailure,
-        },
-      },
-    },
+    createOperationFailure,
+    { id, failure },
   );
-
+  await input.onOperationFailure?.(operationFailure);
   throw new OperationContractError(input.identifier, input.message, {
     operationFailure,
-    localizationTask,
   });
 };
 
 const buildOperationFailure = (input: {
   identifier: OperationContractErrorIdentifier;
   message: string;
-  taskId: string;
   traceId?: string;
-  affectedResources: LocalizationTaskMeta["affectedResources"];
+  affectedResources: TaskAffectedResource[];
   decisionFields?: OperationFailureDecisionFields;
 }): OperationFailure => ({
   id: randomUUID(),
@@ -214,15 +159,13 @@ const buildOperationFailure = (input: {
   retryable: getOperationFailureRetryability(input.identifier),
   affectedResources: input.affectedResources,
   remediationHint: getOperationFailureRemediationHint(input.identifier),
-  taskId: input.taskId,
-  traceId: input.traceId,
   redactionBoundary: getOperationFailureRedactionBoundary(input.identifier),
   ...input.decisionFields,
 });
 
 const getOperationFailureCode = (
   identifier: OperationContractErrorIdentifier,
-): string => {
+): OperationFailure["code"] => {
   switch (identifier) {
     case "canceled":
       return "CAT_OPERATION_CANCELED";
@@ -252,7 +195,7 @@ const getOperationFailureSeverity = (
 ): OperationFailure["severity"] => {
   switch (identifier) {
     case "canceled":
-      return "warning";
+      return "WARNING";
     case "dependency_unavailable":
     case "execution_denied":
     case "invalid_input":
@@ -262,7 +205,7 @@ const getOperationFailureSeverity = (
     case "permission_denied":
     case "relationship_denied":
     case "review_change_blocked":
-      return "error";
+      return "ERROR";
   }
 };
 
@@ -317,7 +260,7 @@ const getOperationFailureRedactionBoundary = (
 ): OperationFailure["redactionBoundary"] => {
   switch (identifier) {
     case "operation_failed":
-      return "internal";
+      return "INTERNAL";
     case "canceled":
     case "dependency_unavailable":
     case "execution_denied":
@@ -327,27 +270,7 @@ const getOperationFailureRedactionBoundary = (
     case "permission_denied":
     case "relationship_denied":
     case "review_change_blocked":
-      return "public";
-  }
-};
-
-const getFailureTaskStatus = (
-  identifier: OperationContractErrorIdentifier,
-): TaskStatus => {
-  switch (identifier) {
-    case "canceled":
-      return "CANCELED";
-    case "dependency_unavailable":
-    case "missing_capability":
-    case "review_change_blocked":
-      return "BLOCKED";
-    case "execution_denied":
-    case "invalid_input":
-    case "not_found":
-    case "operation_failed":
-    case "permission_denied":
-    case "relationship_denied":
-      return "FAILED";
+      return "PUBLIC";
   }
 };
 
@@ -358,10 +281,9 @@ const isAbortLikeError = (error: unknown): boolean => {
   return name === "AbortError";
 };
 
-const failTaskForThrownError = async (input: {
+const failOperationForThrownError = async (input: {
   db: OperationInvocationContext["db"];
-  taskId: string;
-  meta: LocalizationTaskMeta;
+  resources: TaskAffectedResource[];
   signal?: AbortSignal | undefined;
   error: unknown;
   decisionFields?: OperationFailureDecisionFields | undefined;
@@ -371,16 +293,15 @@ const failTaskForThrownError = async (input: {
 }): Promise<never> => {
   if (
     input.error instanceof OperationContractError &&
-    input.error.localizationTask !== undefined
+    input.error.operationFailure !== undefined
   ) {
     throw input.error;
   }
 
   if (input.error instanceof OperationContractError) {
-    return await failLocalizationTaskAndThrow({
+    return await failOperationAndThrow({
       db: input.db,
-      taskId: input.taskId,
-      meta: input.meta,
+      resources: input.resources,
       identifier: input.error.identifier,
       message: input.error.message,
       decisionFields: input.decisionFields,
@@ -389,25 +310,21 @@ const failTaskForThrownError = async (input: {
   }
 
   if (input.signal?.aborted === true || isAbortLikeError(input.error)) {
-    return await failLocalizationTaskAndThrow({
+    return await failOperationAndThrow({
       db: input.db,
-      taskId: input.taskId,
-      meta: input.meta,
+      resources: input.resources,
       identifier: "canceled",
       message: "Translation operation was canceled",
-      status: "CANCELED",
       decisionFields: input.decisionFields,
       onOperationFailure: input.onOperationFailure,
     });
   }
 
-  return await failLocalizationTaskAndThrow({
+  return await failOperationAndThrow({
     db: input.db,
-    taskId: input.taskId,
-    meta: input.meta,
+    resources: input.resources,
     identifier: "operation_failed",
     message: "Translation operation failed",
-    status: "FAILED",
     decisionFields: input.decisionFields,
     onOperationFailure: input.onOperationFailure,
   });
@@ -424,21 +341,15 @@ export const directTranslationWriteContract = defineOperationContract({
     const { db, actor, auth, pluginManager, signal } = context;
     const { elementId, languageId, text, createMemory } = input;
 
-    const inputTaskMeta = buildTranslationTaskMeta({
-      actor,
+    const inputResources = buildTranslationResources({
       projectId: input.projectId,
       elementId,
     });
-    let failureTaskMeta = inputTaskMeta;
+    let failureResources = inputResources;
     let failureDecisionFields: OperationFailureDecisionFields | undefined;
     let onOperationFailure:
       | ((operationFailure: OperationFailure) => Promise<void>)
       | undefined;
-    const runningTask = await executeCommand({ db }, upsertLocalizationTask, {
-      status: "RUNNING",
-      meta: inputTaskMeta,
-    });
-
     try {
       const element = await executeQuery({ db }, getElementWithChunkIds, {
         elementId,
@@ -475,18 +386,16 @@ export const directTranslationWriteContract = defineOperationContract({
         );
       }
 
-      const executionTaskMeta = buildTranslationTaskMeta({
-        actor,
+      const executionResources = buildTranslationResources({
         projectId: element.projectId,
         elementId,
       });
-      failureTaskMeta = executionTaskMeta;
+      failureResources = executionResources;
 
       if (!hasRequiredProjectScope(auth.scopes, "editor")) {
-        await failLocalizationTaskAndThrow({
+        await failOperationAndThrow({
           db,
-          taskId: runningTask.id,
-          meta: executionTaskMeta,
+          resources: executionResources,
           identifier: "execution_denied",
           message: "api_key_scope_denied: project:editor scope is required",
           decisionFields: {
@@ -505,10 +414,9 @@ export const directTranslationWriteContract = defineOperationContract({
       );
       switch (writeMode) {
         case "no_access":
-          return await failLocalizationTaskAndThrow({
+          return await failOperationAndThrow({
             db,
-            taskId: runningTask.id,
-            meta: executionTaskMeta,
+            resources: executionResources,
             identifier: "execution_denied",
             message: "write_mode_denied: project editor access is required",
             decisionFields: {
@@ -532,22 +440,13 @@ export const directTranslationWriteContract = defineOperationContract({
               },
             },
           });
-          const reviewableChangeMeta = buildTranslationTaskMeta({
-            actor,
+          const reviewableChangeResources = buildTranslationResources({
             projectId: element.projectId,
             elementId,
-            relatedReviewableChange: {
-              sourceOperation: "translation.directWrite",
-              pullRequestId: pr.id,
-            },
-            relatedPullRequest: {
-              id: pr.id,
-              number: pr.number,
-            },
           });
-          failureTaskMeta = reviewableChangeMeta;
+          failureResources = reviewableChangeResources;
           failureDecisionFields = {
-            reviewBlocker: "reviewable_change_write_failed",
+            blocker: "reviewable_change_write_failed",
           };
           onOperationFailure = async (operationFailure) => {
             await executeCommand({ db }, updatePR, {
@@ -555,7 +454,6 @@ export const directTranslationWriteContract = defineOperationContract({
               metadata: {
                 ...asJSONObject(pr.metadata),
                 operationFailure,
-                localizationTaskId: runningTask.id,
               },
             });
           };
@@ -566,15 +464,13 @@ export const directTranslationWriteContract = defineOperationContract({
           });
 
           if (branchWriteContext === null) {
-            return await failLocalizationTaskAndThrow({
+            return await failOperationAndThrow({
               db,
-              taskId: runningTask.id,
-              meta: reviewableChangeMeta,
+              resources: reviewableChangeResources,
               identifier: "review_change_blocked",
               message: "Reviewable Change write context could not be created",
-              status: "BLOCKED",
               decisionFields: {
-                reviewBlocker: "branch_write_context_unavailable",
+                blocker: "branch_write_context_unavailable",
               },
               onOperationFailure,
             });
@@ -603,32 +499,11 @@ export const directTranslationWriteContract = defineOperationContract({
             async () => undefined,
           );
 
-          const completedTask = await executeCommand(
-            { db },
-            upsertLocalizationTask,
-            {
-              taskId: runningTask.id,
-              status: "COMPLETED",
-              meta: buildTranslationTaskMeta({
-                actor,
-                projectId: element.projectId,
-                elementId,
-                relatedReviewableChange: {
-                  sourceOperation: "translation.directWrite",
-                  pullRequestId: pr.id,
-                },
-                relatedPullRequest: {
-                  id: pr.id,
-                  number: pr.number,
-                },
-              }),
-            },
-          );
-
           return {
             translationIds: [],
+            memoryItemIds: [],
+            derivations: [],
             writeMode: "reviewable_change",
-            localizationTask: completedTask,
             reviewableChange: {
               sourceOperation: "translation.directWrite",
               pullRequestId: pr.id,
@@ -646,31 +521,35 @@ export const directTranslationWriteContract = defineOperationContract({
           break;
       }
 
-      const storage = firstOrGivenService(pluginManager, "VECTOR_STORAGE");
-      const vectorizer = firstOrGivenService(pluginManager, "TEXT_VECTORIZER");
+      const storage = selectFirstServiceImplementation(
+        pluginManager,
+        "VECTOR_STORAGE",
+      );
+      const vectorizer = selectFirstServiceImplementation(
+        pluginManager,
+        "TEXT_VECTORIZER",
+      );
 
       if (!storage) {
-        return await failLocalizationTaskAndThrow({
+        return await failOperationAndThrow({
           db,
-          taskId: runningTask.id,
-          meta: executionTaskMeta,
+          resources: executionResources,
           identifier: "missing_capability",
           message: "No vector storage provider available",
           decisionFields: {
-            missingCapability: "VECTOR_STORAGE",
+            capability: "VECTOR_STORAGE",
           },
         });
       }
 
       if (!vectorizer) {
-        return await failLocalizationTaskAndThrow({
+        return await failOperationAndThrow({
           db,
-          taskId: runningTask.id,
-          meta: executionTaskMeta,
+          resources: executionResources,
           identifier: "missing_capability",
           message: "No text vectorizer capability available",
           decisionFields: {
-            missingCapability: "TEXT_VECTORIZER",
+            capability: "TEXT_VECTORIZER",
           },
         });
       }
@@ -687,8 +566,8 @@ export const directTranslationWriteContract = defineOperationContract({
             },
           ],
           memoryIds: [],
-          vectorStorageId: storage.id,
-          vectorizerId: vectorizer.id,
+          vectorStorage: storage.reference,
+          vectorizer: vectorizer.reference,
           translatorId: actor.id,
         },
         {
@@ -703,45 +582,36 @@ export const directTranslationWriteContract = defineOperationContract({
         },
       );
 
+      let memoryItemIds = result.memoryItemIds;
+      let derivations: RecallDerivationReference[] = result.derivations;
       if (createMemory && result.translationIds.length > 0) {
         try {
-          await writePersonalTranslationMemoryOp({
+          const personalMemory = await writePersonalTranslationMemoryOp({
             translationIds: result.translationIds,
             userId: actor.id,
             projectId: element.projectId,
           });
+          memoryItemIds = [
+            ...new Set([...memoryItemIds, ...personalMemory.memoryItemIds]),
+          ];
+          derivations = [...derivations, ...personalMemory.derivations];
         } catch (error) {
           logger
-            .withSituation("RPC")
-            .error(error, "personal memory write failed");
+            .child({ component: "rpc" })
+            .error("personal memory write failed", { error: error });
         }
       }
 
-      const completedTask = await executeCommand(
-        { db },
-        upsertLocalizationTask,
-        {
-          taskId: runningTask.id,
-          status: "COMPLETED",
-          meta: buildTranslationTaskMeta({
-            actor,
-            projectId: element.projectId,
-            elementId,
-            translationIds: result.translationIds,
-          }),
-        },
-      );
-
       return {
         translationIds: result.translationIds,
+        memoryItemIds,
+        derivations,
         writeMode: "direct",
-        localizationTask: completedTask,
       };
     } catch (error) {
-      return await failTaskForThrownError({
+      return await failOperationForThrownError({
         db,
-        taskId: runningTask.id,
-        meta: failureTaskMeta,
+        resources: failureResources,
         signal,
         error,
         decisionFields: failureDecisionFields,

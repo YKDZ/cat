@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from "vue";
-import { inject, onScopeDispose, provide } from "vue";
+import { inject, provide } from "vue";
 
 // px
 export const SIDEBAR_WIDTH = 240;
@@ -9,6 +9,7 @@ export const SIDEBAR_MAX_WIDTH = 420;
 // rem
 export const SIDEBAR_WIDTH_MOBILE = 18;
 export const SIDEBAR_WIDTH_ICON = 3;
+export const SIDEBAR_MOBILE_MAX_WIDTH = 768;
 
 export const SIDEBAR_KEYBOARD_SHORTCUT = "b";
 
@@ -28,39 +29,24 @@ export type SidebarContextValue = {
   widthMobile: Ref<number>;
 };
 
-const sidebarRegistry = new Map<string, SidebarContextValue>();
+const sidebarInjectionKey = (id: string): symbol =>
+  Symbol.for(`cat.sidebar.${id}`);
 
 export function provideSidebarContext(
   id: string,
   context: SidebarContextValue,
 ): void {
-  provide(Symbol.for(id), context);
-  sidebarRegistry.set(id, context);
-
-  onScopeDispose(() => {
-    const current = sidebarRegistry.get(id);
-    if (current === context) {
-      sidebarRegistry.delete(id);
-    }
-  });
+  provide(sidebarInjectionKey(id), context);
 }
 
 export function useSidebar(id: string): SidebarContextValue {
-  if (id) {
-    const target = sidebarRegistry.get(id);
-    if (!target) {
-      throw new Error(
-        `useSidebar: context for id "${id}" was not found. Make sure a <SidebarProvider id="${id}"> is mounted.`,
-      );
-    }
-    return target;
-  }
-
-  const context = inject(Symbol.for(id), null);
+  const context = inject(sidebarInjectionKey(id), null);
 
   if (!context) {
     throw new Error(
-      "useSidebar: context not found. Make sure to wrap your component tree in <SidebarProvider> or pass a valid id.",
+      id
+        ? `useSidebar: context for id "${id}" was not found. Make sure a <SidebarProvider id="${id}"> is mounted.`
+        : "useSidebar: context not found. Make sure to wrap your component tree in <SidebarProvider> or pass a valid id.",
     );
   }
 

@@ -77,7 +77,7 @@ const main = async (): Promise<void> => {
   const cacheDir = resolve(absoluteDir, "../../.vector-cache");
   const pluginLoader = new CompositePluginLoader([
     new BuiltinPluginLoader([systemPgVectorEntry]),
-    new FileSystemPluginLoader(pluginsDir),
+    new FileSystemPluginLoader({ pluginsDir }),
   ]);
 
   const runtimeEnv = loadSeedRuntimeEnv({
@@ -163,7 +163,10 @@ const main = async (): Promise<void> => {
     .catch(() => undefined);
 
   if (process.env.REDIS_URL) {
-    const redisConn = new RedisConnection();
+    const redisConn = new RedisConnection({
+      mode: "fail-fast",
+      onError: () => {},
+    });
     try {
       await redisConn.connect();
       await redisConn.redis.del("queue:vectorization:pending");

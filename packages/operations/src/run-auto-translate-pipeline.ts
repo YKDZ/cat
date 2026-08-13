@@ -91,10 +91,10 @@ export const runAutoTranslatePipeline = async (
               return candidate ? { elementId: elem.id, ...candidate } : null;
             } catch (error) {
               logger
-                .withSituation("SERVER")
+                .child({ component: "server" })
                 .error(
-                  error,
                   `Failed to fetch candidate for element ${elem.id} lang ${languageId}`,
+                  { error: error },
                 );
               return null;
             }
@@ -122,11 +122,10 @@ export const runAutoTranslatePipeline = async (
         );
       } catch (error) {
         logger
-          .withSituation("SERVER")
-          .error(
-            error,
-            `Auto-translate pipeline failed for language ${languageId}`,
-          );
+          .child({ component: "server" })
+          .error(`Auto-translate pipeline failed for language ${languageId}`, {
+            error: error,
+          });
       }
     }),
   );

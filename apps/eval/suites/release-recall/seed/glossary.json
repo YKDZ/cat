@@ -1,0 +1,21 @@
+{
+  "glossary": {
+    "name": "Release Recall Glossary",
+    "sourceLanguage": "en",
+    "translationLanguage": "zh-Hans",
+    "concepts": [
+      {
+        "ref": "concept:release-gate",
+        "definition": "A deterministic term used to prove release recall.",
+        "terms": [
+          {
+            "term": "release gate",
+            "termLanguageId": "en",
+            "translation": "发布门禁",
+            "translationLanguageId": "zh-Hans"
+          }
+        ]
+      }
+    ]
+  }
+}

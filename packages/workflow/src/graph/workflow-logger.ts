@@ -8,20 +8,32 @@ export interface WorkflowEventMeta extends Record<string, unknown> {
   runId?: RunId;
 }
 
-const agentBaseLogger = serverLogger.withSituation("AGENT");
-const workflowEventLogger = agentBaseLogger.withType<WorkflowEventMeta>();
+const agentBaseLogger = serverLogger.child({ component: "agent" });
+const workflowEventLogger = agentBaseLogger.child({ domain: "workflow" });
 
 export class WorkflowLogger {
   scheduler = (event: string, meta: Record<string, unknown>): void => {
-    workflowEventLogger.debug({ domain: "scheduler", event, ...meta });
+    workflowEventLogger.debug("diagnostic event", {
+      domain: "scheduler",
+      event,
+      ...meta,
+    });
   };
 
   executorPool = (event: string, meta: Record<string, unknown>): void => {
-    workflowEventLogger.debug({ domain: "executor-pool", event, ...meta });
+    workflowEventLogger.debug("diagnostic event", {
+      domain: "executor-pool",
+      event,
+      ...meta,
+    });
   };
 
   compensation = (event: string, meta: Record<string, unknown>): void => {
-    workflowEventLogger.debug({ domain: "compensation", event, ...meta });
+    workflowEventLogger.debug("diagnostic event", {
+      domain: "compensation",
+      event,
+      ...meta,
+    });
   };
 
   runSummary = (
@@ -29,7 +41,12 @@ export class WorkflowLogger {
     event: string,
     meta: Record<string, unknown>,
   ): void => {
-    workflowEventLogger.info({ runId, domain: "workflow", event, ...meta });
+    workflowEventLogger.info("diagnostic event", {
+      runId,
+      domain: "workflow",
+      event,
+      ...meta,
+    });
   };
 }
 

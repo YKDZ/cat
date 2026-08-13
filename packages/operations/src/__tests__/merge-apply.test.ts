@@ -10,18 +10,25 @@
 import {
   addChangesetEntry,
   createChangeset,
+  createGlossary,
+  createGlossaryTerms,
   createPR,
   createProject,
   createUser,
   executeCommand,
   executeQuery,
+  ensureLanguages,
+  domainEventBus,
   getChangeset,
   getChangesetEntries,
   getBranchById,
   getPR,
+  getGlossaryConceptMaterialization,
+  reserveGlossaryEntityIds,
+  updateGlossaryConcept,
 } from "@cat/domain";
 import type { TestDB } from "@cat/test-utils";
-import { setupTestDB } from "@cat/test-utils";
+import { eq, recallDerivationState, setupTestDB, sql } from "@cat/test-utils";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
 import { mergePRFull } from "../merge-pr-full.ts";
@@ -61,9 +68,331 @@ async function seedProject(): Promise<{ projectId: string; userId: string }> {
   return { projectId: newProject.id, userId: newUser.id };
 }
 
+async function seedGlossaryMerge(): Promise<{
+  projectId: string;
+  userId: string;
+  prExternalId: string;
+  prId: number;
+  conceptId: number;
+}> {
+  const { projectId, userId } = await seedProject();
+  await executeCommand({ db: testDb.client }, ensureLanguages, {
+    languageIds: ["en"],
+  });
+  const glossary = await executeCommand({ db: testDb.client }, createGlossary, {
+    name: `Merge event glossary ${crypto.randomUUID()}`,
+    creatorId: userId,
+    projectIds: [projectId],
+  });
+  const pr = await executeCommand({ db: testDb.client }, createPR, {
+    projectId,
+    title: "Merge event glossary",
+    body: "",
+    reviewers: [],
+    authorId: userId,
+  });
+  const ids = await executeCommand(
+    { db: testDb.client },
+    reserveGlossaryEntityIds,
+    { conceptCount: 1, termCount: 1 },
+  );
+  const conceptId = ids.conceptIds[0]!;
+  const termId = ids.termIds[0]!;
+  const branchChangeset = await executeCommand(
+    { db: testDb.client },
+    createChangeset,
+    { projectId, branchId: pr.branchId, status: "PENDING" },
+  );
+  await executeCommand({ db: testDb.client }, addChangesetEntry, {
+    changesetId: branchChangeset.id,
+    entityType: "term_concept",
+    entityId: String(conceptId),
+    action: "CREATE",
+    after: {
+      concept: {
+        id: conceptId,
+        glossaryId: glossary.id,
+        creatorId: null,
+        definition: "merge event",
+      },
+      terms: [
+        {
+          id: termId,
+          termConceptId: conceptId,
+          creatorId: userId,
+          text: "merge",
+          languageId: "en",
+          type: "NOT_SPECIFIED",
+          status: "PREFERRED",
+        },
+      ],
+      subjects: [],
+    },
+    riskLevel: "MEDIUM",
+  });
+  return {
+    projectId,
+    userId,
+    prExternalId: pr.externalId,
+    prId: pr.id,
+    conceptId,
+  };
+}
+
+async function seedStaleGlossaryMerge(): Promise<{
+  projectId: string;
+  userId: string;
+  prExternalId: string;
+  branchId: number;
+  branchChangesetId: number;
+  conceptId: number;
+}> {
+  const { projectId, userId } = await seedProject();
+  await executeCommand({ db: testDb.client }, ensureLanguages, {
+    languageIds: ["en", "zh-Hans"],
+  });
+  const glossary = await executeCommand({ db: testDb.client }, createGlossary, {
+    name: `Stale merge glossary ${crypto.randomUUID()}`,
+    creatorId: userId,
+    projectIds: [projectId],
+  });
+  const created = await executeCommand(
+    { db: testDb.client },
+    createGlossaryTerms,
+    {
+      glossaryId: glossary.id,
+      creatorId: userId,
+      data: [
+        {
+          definition: "before",
+          term: "source",
+          translation: "target",
+          termLanguageId: "en",
+          translationLanguageId: "zh-Hans",
+        },
+      ],
+    },
+  );
+  const conceptId = created.conceptIds[0]!;
+  const before = await executeQuery(
+    { db: testDb.client },
+    getGlossaryConceptMaterialization,
+    { conceptId },
+  );
+  if (before === null) throw new Error("Expected canonical concept.");
+  const pr = await executeCommand({ db: testDb.client }, createPR, {
+    projectId,
+    title: "Stale OCC merge",
+    body: "",
+    reviewers: [],
+    authorId: userId,
+  });
+  const branchChangeset = await executeCommand(
+    { db: testDb.client },
+    createChangeset,
+    {
+      projectId,
+      branchId: pr.branchId,
+      status: "PENDING",
+    },
+  );
+  await executeCommand({ db: testDb.client }, addChangesetEntry, {
+    changesetId: branchChangeset.id,
+    entityType: "term_concept",
+    entityId: String(conceptId),
+    action: "UPDATE",
+    before,
+    after: {
+      ...before,
+      concept: { ...before.concept, definition: "branch change" },
+    },
+    riskLevel: "MEDIUM",
+  });
+  return {
+    projectId,
+    userId,
+    prExternalId: pr.externalId,
+    branchId: pr.branchId,
+    branchChangesetId: branchChangeset.id,
+    conceptId,
+  };
+}
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("mergePRFull — integration", () => {
+  test("rolls back merge when a direct writer commits between detection and locked apply", async () => {
+    const fixture = await seedStaleGlossaryMerge();
+    const [blocker, writer, merger] = await Promise.all([
+      testDb.openConcurrentClient(),
+      testDb.openConcurrentClient(),
+      testDb.openConcurrentClient(),
+    ]);
+    let release!: () => void;
+    const released = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let locked!: () => void;
+    const lockHeld = new Promise<void>((resolve) => {
+      locked = resolve;
+    });
+    const hold = blocker.client.transaction(async (tx) => {
+      await tx
+        .select({ id: recallDerivationState.id })
+        .from(recallDerivationState)
+        .where(eq(recallDerivationState.targetId, String(fixture.conceptId)))
+        .for("update");
+      locked();
+      await released;
+    });
+    await lockHeld;
+    try {
+      const direct = executeCommand(
+        { db: writer.client },
+        updateGlossaryConcept,
+        {
+          conceptId: fixture.conceptId,
+          definition: "direct winner",
+        },
+      );
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      const merged = mergePRFull(
+        { db: merger.client },
+        { prExternalId: fixture.prExternalId, mergedBy: fixture.userId },
+      );
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      release();
+      await hold;
+      await direct;
+      const result = await merged;
+      expect(result.success).toBe(false);
+      await expect(
+        executeQuery({ db: testDb.client }, getGlossaryConceptMaterialization, {
+          conceptId: fixture.conceptId,
+        }),
+      ).resolves.toMatchObject({ concept: { definition: "direct winner" } });
+      await expect(
+        executeQuery({ db: testDb.client }, getPR, {
+          id: fixture.prExternalId,
+        }),
+      ).resolves.toMatchObject({ status: "DRAFT" });
+      await expect(
+        executeQuery({ db: testDb.client }, getBranchById, {
+          branchId: fixture.branchId,
+        }),
+      ).resolves.toMatchObject({ status: "ACTIVE" });
+      await expect(
+        executeQuery({ db: testDb.client }, getChangesetEntries, {
+          changesetId: fixture.branchChangesetId,
+        }),
+      ).resolves.toHaveLength(1);
+    } finally {
+      release();
+      await Promise.allSettled([
+        hold,
+        blocker.cleanup(),
+        writer.cleanup(),
+        merger.cleanup(),
+      ]);
+    }
+  });
+
+  test("flushes concept and PR events only after the outer merge transaction commits", async () => {
+    const fixture = await seedGlossaryMerge();
+    const observer = await testDb.openConcurrentClient();
+    const conceptVisibility: boolean[] = [];
+    const mergedPrIds: number[] = [];
+    const unsubscribeConcept = domainEventBus.subscribe(
+      "concept:updated",
+      async (event) => {
+        if (event.payload.conceptId !== fixture.conceptId) return;
+        conceptVisibility.push(
+          (await executeQuery(
+            { db: observer.client },
+            getGlossaryConceptMaterialization,
+            { conceptId: fixture.conceptId },
+          )) !== null,
+        );
+      },
+    );
+    const unsubscribePr = domainEventBus.subscribe("pr:merged", (event) => {
+      if (event.payload.prId === fixture.prId)
+        mergedPrIds.push(event.payload.prId);
+    });
+    try {
+      const result = await mergePRFull(
+        { db: testDb.client },
+        { prExternalId: fixture.prExternalId, mergedBy: fixture.userId },
+      );
+      expect(result.success).toBe(true);
+      expect(conceptVisibility).toEqual([true]);
+      expect(mergedPrIds).toEqual([fixture.prId]);
+    } finally {
+      unsubscribeConcept();
+      unsubscribePr();
+      await observer.cleanup();
+    }
+  });
+
+  test("does not leak concept or PR events when outer merge commit fails after mergePR", async () => {
+    const fixture = await seedGlossaryMerge();
+    const observedConcepts: number[] = [];
+    const observedPrs: number[] = [];
+    const unsubscribeConcept = domainEventBus.subscribe(
+      "concept:updated",
+      (event) => {
+        if (event.payload.conceptId === fixture.conceptId)
+          observedConcepts.push(event.payload.conceptId);
+      },
+    );
+    const unsubscribePr = domainEventBus.subscribe("pr:merged", (event) => {
+      if (event.payload.prId === fixture.prId)
+        observedPrs.push(event.payload.prId);
+    });
+    let triggerInstalled = false;
+    await testDb.client.execute(sql`
+      CREATE FUNCTION reject_pr_merge_commit() RETURNS trigger AS $$
+      BEGIN
+        RAISE EXCEPTION 'reject merge commit';
+      END;
+      $$ LANGUAGE plpgsql;
+      CREATE CONSTRAINT TRIGGER reject_pr_merge_commit
+      AFTER UPDATE ON "PullRequest"
+      DEFERRABLE INITIALLY DEFERRED
+      FOR EACH ROW EXECUTE FUNCTION reject_pr_merge_commit();
+    `);
+    triggerInstalled = true;
+    try {
+      await expect(
+        mergePRFull(
+          { db: testDb.client },
+          { prExternalId: fixture.prExternalId, mergedBy: fixture.userId },
+        ),
+      ).rejects.toBeDefined();
+      expect(observedConcepts).toEqual([]);
+      expect(observedPrs).toEqual([]);
+      await expect(
+        executeQuery({ db: testDb.client }, getGlossaryConceptMaterialization, {
+          conceptId: fixture.conceptId,
+        }),
+      ).resolves.toBeNull();
+      await expect(
+        executeQuery({ db: testDb.client }, getPR, {
+          id: fixture.prExternalId,
+        }),
+      ).resolves.toMatchObject({ status: "DRAFT" });
+    } finally {
+      unsubscribeConcept();
+      unsubscribePr();
+      if (triggerInstalled) {
+        await testDb.client.execute(sql`
+          DROP TRIGGER IF EXISTS reject_pr_merge_commit ON "PullRequest";
+          DROP FUNCTION IF EXISTS reject_pr_merge_commit();
+        `);
+      }
+    }
+  });
+
   test("happy path: branch entries copied to main changeset and APPLIED", async () => {
     const { projectId, userId } = await seedProject();
 

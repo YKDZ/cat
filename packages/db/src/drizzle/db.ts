@@ -10,9 +10,9 @@ import { relations } from "#/drizzle/schema.ts";
 export class DrizzleDB {
   public client: NodePgDatabase<typeof relations> & { $client: Pool };
 
-  constructor() {
+  constructor(connectionString = process.env.DATABASE_URL) {
     const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString,
     });
     this.client = drizzle({
       client: pool,

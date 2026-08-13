@@ -113,6 +113,29 @@ describe("useBranchStore", () => {
     expect(store.validationStatus).toBe("pending");
   });
 
+  test("restoreRouteBranch 无 URL 时使用 main 而不是 profile 回填", () => {
+    const store = useBranchStore();
+    const profile = useProfileStore();
+    profile.setProjectBranchSelection({
+      projectId: projectA,
+      branchId: 42,
+      prId: 7,
+      prNumber: 3,
+      label: "pr-3",
+      updatedAt: "2026-05-26T00:00:00.000Z",
+    });
+
+    store.restoreRouteBranch({
+      projectId: projectA,
+      branchIdFromRoute: null,
+    });
+
+    expect(store.currentProjectId).toBe(projectA);
+    expect(store.currentBranchId).toBeNull();
+    expect(store.validationStatus).toBe("main");
+    expect(profile.projectBranchSelections[projectA]?.branchId).toBe(42);
+  });
+
   test("leaveBranch 回到 main 并清除该项目保存项", () => {
     const store = useBranchStore();
     const profile = useProfileStore();

@@ -18,9 +18,10 @@ import { useI18n } from "vue-i18n";
 
 import { orpc } from "#/rpc/orpc.ts";
 import { useNotificationStore } from "#/stores/notification.ts";
+import { formatCalendarDate } from "#/utils/format.ts";
 import { getCategoryLabel as _getCategoryLabel } from "#/utils/notification.ts";
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const store = useNotificationStore();
 const getCategoryLabel = (category: string) => _getCategoryLabel(t, category);
 
@@ -132,7 +133,7 @@ const handleMarkAllRead = async () => {
             </p>
           </div>
           <time class="shrink-0 text-xs text-muted-foreground">
-            {{ new Date(item.createdAt).toLocaleDateString() }}
+            {{ formatCalendarDate(item.createdAt, locale) }}
           </time>
         </CardContent>
       </Card>

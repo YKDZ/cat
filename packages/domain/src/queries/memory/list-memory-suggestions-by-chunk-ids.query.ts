@@ -5,9 +5,11 @@ import {
   eq,
   inArray,
   memoryItem,
+  sql,
   vectorizedString,
   union,
 } from "@cat/db";
+import { NormalizedLanguageIdSchema } from "@cat/shared";
 import * as z from "zod";
 
 import type { Query } from "#/types.ts";
@@ -16,11 +18,14 @@ export const ListMemorySuggestionsByChunkIdsQuerySchema = z.object({
   searchedChunkIds: z.array(z.int()),
   memoryIds: z.array(z.uuidv4()),
   maxAmount: z.int().min(1),
-  sourceLanguageId: z.string(),
-  translationLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
+  translationLanguageId: NormalizedLanguageIdSchema,
 });
 
 export type ListMemorySuggestionsByChunkIdsQuery = z.infer<
+  typeof ListMemorySuggestionsByChunkIdsQuerySchema
+>;
+type ListMemorySuggestionsByChunkIdsQueryInput = z.input<
   typeof ListMemorySuggestionsByChunkIdsQuerySchema
 >;
 
@@ -41,9 +46,10 @@ export type MemorySuggestionCandidateRow = {
 };
 
 export const listMemorySuggestionsByChunkIds: Query<
-  ListMemorySuggestionsByChunkIdsQuery,
+  ListMemorySuggestionsByChunkIdsQueryInput,
   MemorySuggestionCandidateRow[]
-> = async (ctx, query) => {
+> = async (ctx, input) => {
+  const query = ListMemorySuggestionsByChunkIdsQuerySchema.parse(input);
   if (query.searchedChunkIds.length === 0 || query.memoryIds.length === 0) {
     return [];
   }
@@ -64,8 +70,8 @@ export const listMemorySuggestionsByChunkIds: Query<
       translationId: memoryItem.translationId,
       source: sourceString.value,
       translation: translationString.value,
-      sourceTemplate: memoryItem.sourceTemplate,
-      translationTemplate: memoryItem.translationTemplate,
+      sourceTemplate: sql<string | null>`NULL`,
+      translationTemplate: sql<string | null>`NULL`,
       sourceChunkSetId: sourceString.chunkSetId,
       translationChunkSetId: translationString.chunkSetId,
       memoryId: memoryItem.memoryId,
@@ -100,8 +106,8 @@ export const listMemorySuggestionsByChunkIds: Query<
       translationId: memoryItem.translationId,
       source: sourceString.value,
       translation: translationString.value,
-      sourceTemplate: memoryItem.sourceTemplate,
-      translationTemplate: memoryItem.translationTemplate,
+      sourceTemplate: sql<string | null>`NULL`,
+      translationTemplate: sql<string | null>`NULL`,
       sourceChunkSetId: sourceString.chunkSetId,
       translationChunkSetId: translationString.chunkSetId,
       memoryId: memoryItem.memoryId,
@@ -139,8 +145,8 @@ export const listMemorySuggestionsByChunkIds: Query<
       translationId: memoryItem.translationId,
       source: translationString.value,
       translation: sourceString.value,
-      sourceTemplate: memoryItem.sourceTemplate,
-      translationTemplate: memoryItem.translationTemplate,
+      sourceTemplate: sql<string | null>`NULL`,
+      translationTemplate: sql<string | null>`NULL`,
       sourceChunkSetId: translationString.chunkSetId,
       translationChunkSetId: sourceString.chunkSetId,
       memoryId: memoryItem.memoryId,
@@ -175,8 +181,8 @@ export const listMemorySuggestionsByChunkIds: Query<
       translationId: memoryItem.translationId,
       source: translationString.value,
       translation: sourceString.value,
-      sourceTemplate: memoryItem.sourceTemplate,
-      translationTemplate: memoryItem.translationTemplate,
+      sourceTemplate: sql<string | null>`NULL`,
+      translationTemplate: sql<string | null>`NULL`,
       sourceChunkSetId: translationString.chunkSetId,
       translationChunkSetId: sourceString.chunkSetId,
       memoryId: memoryItem.memoryId,

@@ -4,8 +4,10 @@ import {
   getContentNodeBlobInfo,
   getSessionStore,
 } from "@cat/domain";
-import type { StorageProvider } from "@cat/plugin-core";
-import { getDownloadUrl, getServiceFromDBId } from "@cat/server-shared";
+import {
+  getDownloadUrl,
+  resolveServiceImplementation,
+} from "@cat/server-shared";
 import { render } from "vike/abort";
 import type { PageContextServer } from "vike/types";
 
@@ -30,33 +32,34 @@ export const data = async (ctx: PageContextServer) => {
 
   let fileUrl: string | null = null;
   let activeFileInfo: {
-    storageProviderId: number;
+    storageProvider: import("@cat/shared").ServiceImplementationReference;
     key: string;
     fileName: string;
   } | null = null;
 
   if (
     fileInfo &&
-    fileInfo.storageProviderId !== null &&
+    fileInfo.storageProvider !== null &&
     fileInfo.key !== null &&
     fileInfo.fileName !== null
   ) {
     activeFileInfo = {
-      storageProviderId: fileInfo.storageProviderId,
+      storageProvider: fileInfo.storageProvider,
       key: fileInfo.key,
       fileName: fileInfo.fileName,
     };
 
-    const provider = getServiceFromDBId<StorageProvider>(
+    const provider = resolveServiceImplementation(
       pluginManager,
-      activeFileInfo.storageProviderId,
+      activeFileInfo.storageProvider,
+      "STORAGE_PROVIDER",
     );
 
     const sessionStore = getSessionStore();
     fileUrl = await getDownloadUrl(
       sessionStore,
       provider,
-      activeFileInfo.storageProviderId,
+      activeFileInfo.storageProvider,
       activeFileInfo.key,
       120,
       activeFileInfo.fileName,

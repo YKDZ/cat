@@ -7,6 +7,7 @@ import { seed } from "#/seeder/index.ts";
 import type { RefResolver } from "#/seeder/ref-resolver.ts";
 import type { SeededContext } from "#/seeder/types.ts";
 
+import { throwIfEvaluationAborted } from "../cancellation.ts";
 import { getStrategy } from "./strategies/index.ts";
 import type { HarnessContext, ScenarioResult } from "./types.ts";
 
@@ -26,10 +27,11 @@ export type HarnessOptions = {
   cacheDir: string;
   pluginsDir: string;
   scenarioFilter?: string;
+  signal?: AbortSignal | undefined;
 };
 
 export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
-  const { suite, cacheDir, pluginsDir, scenarioFilter } = opts;
+  const { suite, cacheDir, pluginsDir, scenarioFilter, signal } = opts;
   const runId = `eval-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const startTime = performance.now();
 
@@ -38,7 +40,10 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
     { attributes: { "eval.suite": suite.config.name, "eval.run_id": runId } },
     async (rootSpan) => {
       let seededCtx: SeededContext | undefined;
+      let executionError: unknown;
+      let runResult: RunResult | undefined;
       try {
+        throwIfEvaluationAborted(signal);
         console.log(
           `[eval] Seeding database for suite "${suite.config.name}"...`,
         );
@@ -48,7 +53,7 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
           { attributes: { "eval.suite": suite.config.name } },
           async (seedSpan) => {
             try {
-              const ctx = await seed({ suite, cacheDir, pluginsDir });
+              const ctx = await seed({ suite, cacheDir, pluginsDir, signal });
               seedSpan.setAttribute("eval.project_id", ctx.projectId);
               seedSpan.setStatus({ code: SpanStatusCode.OK });
               return ctx;
@@ -76,11 +81,13 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
           contentNodeId: seededCtx.contentNodeId,
           db: seededCtx.db,
           userId: seededCtx.userId,
+          signal,
         };
 
         const scenarioResults: ScenarioResult[] = [];
 
         for (const scenarioCfg of suite.config.scenarios) {
+          throwIfEvaluationAborted(signal);
           if (scenarioFilter && scenarioCfg.type !== scenarioFilter) continue;
 
           const testSetPath = scenarioCfg["test-set"];
@@ -103,6 +110,7 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
             },
             async (scenarioSpan) => {
               try {
+                throwIfEvaluationAborted(signal);
                 const strategy = getStrategy(scenarioCfg.type);
                 const r = await strategy.execute(
                   scenarioCfg,
@@ -147,7 +155,7 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
         );
         rootSpan.setStatus({ code: SpanStatusCode.OK });
 
-        return {
+        runResult = {
           runId,
           suiteName: suite.config.name,
           timestamp: new Date().toISOString(),
@@ -156,18 +164,30 @@ export const runHarness = async (opts: HarnessOptions): Promise<RunResult> => {
           refs: seededCtx.refs,
         };
       } catch (err) {
+        executionError = err;
         rootSpan.setStatus({
           code: SpanStatusCode.ERROR,
           message: String(err),
         });
-        throw err;
-      } finally {
-        rootSpan.end();
-        if (seededCtx) {
-          console.log("[eval] Cleaning up test database...");
+      }
+
+      rootSpan.end();
+      if (seededCtx) {
+        console.log("[eval] Cleaning up test database...");
+        try {
           await seededCtx.cleanup();
+        } catch (cleanupError) {
+          if (executionError === undefined) throw cleanupError;
+          throw new AggregateError(
+            [executionError, cleanupError],
+            "Eval execution failed and cleanup failed.",
+          );
         }
       }
+      if (executionError !== undefined) throw executionError;
+      if (runResult === undefined)
+        throw new Error("Eval did not produce a run.");
+      return runResult;
     },
   );
 };

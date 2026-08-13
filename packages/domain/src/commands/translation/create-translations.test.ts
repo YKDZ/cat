@@ -1,10 +1,13 @@
 import { randomUUID } from "node:crypto";
 
-import { vectorizedString } from "@cat/db";
+import { agentRun, eq, translation, vectorizedString } from "@cat/db";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
   createContentNodeUnderParent,
+  createAgentDefinition,
+  createAgentRun,
+  createAgentSession,
   createElements,
   createProject,
   createRootContentNode,
@@ -12,6 +15,7 @@ import {
   createUser,
   ensureCoreRelationTypes,
   ensureLanguages,
+  claimAgentRunOwner,
 } from "#/commands/index.ts";
 import { executeCommand, executeQuery } from "#/executor.ts";
 import { getTranslationCreatedEventContext } from "#/queries/translation/get-translation-created-event-context.query.ts";
@@ -112,6 +116,121 @@ afterAll(async () => {
 });
 
 describe("createTranslations", () => {
+  it("atomically reuses a root-run element write after recovery", async () => {
+    const fixture = await seedProjectElements({
+      labelPrefix: "workflow-idempotency",
+      sourceTexts: ["Recover me"],
+    });
+    const targetStringId = await insertString("恢复我", "zh-Hans");
+    const changedTargetStringId = await insertString("请恢复我", "zh-Hans");
+    const definition = await executeCommand(
+      { db: testDb.client },
+      createAgentDefinition,
+      {
+        name: `translation-owner-${randomUUID()}`,
+        description: "",
+        scopeType: "GLOBAL",
+        scopeId: "",
+        definitionId: `translation-owner-${randomUUID()}`,
+        version: "1.0.0",
+        type: "WORKFLOW",
+        tools: [],
+        content: "",
+        isBuiltin: false,
+      },
+    );
+    const session = await executeCommand(
+      { db: testDb.client },
+      createAgentSession,
+      { agentDefinitionId: definition.id, userId: creatorId },
+    );
+    const run = await executeCommand({ db: testDb.client }, createAgentRun, {
+      sessionId: session.sessionId,
+      graphDefinition: {
+        id: "translation-owner",
+        version: "1.0.0",
+        nodes: { main: { id: "main", type: "transform", config: {} } },
+        edges: [],
+        entry: "main",
+      },
+    });
+    const ownerId = randomUUID();
+    const lease = await executeCommand(
+      { db: testDb.client },
+      claimAgentRunOwner,
+      {
+        externalId: run.runId,
+        ownerId,
+        leaseDurationMs: 30_000,
+      },
+    );
+    if (!lease) throw new Error("Expected workflow ownership lease.");
+    const fence = { runId: run.runId, ownerId, epoch: lease.epoch };
+    const elementId = requireFixtureValue(fixture.elementIds[0]);
+    const command = {
+      data: [
+        {
+          translatableElementId: elementId,
+          translatorId: creatorId,
+          stringId: targetStringId,
+        },
+      ],
+      ownershipFence: fence,
+      workflowOutput: {
+        nodeId: "main",
+        outputKey: `element:${elementId}`,
+        idempotencyKey: `${run.runId}:element:${elementId}`,
+      },
+    };
+
+    const first = await executeCommand(
+      { db: testDb.client },
+      createTranslations,
+      command,
+    );
+    const recovered = await executeCommand(
+      { db: testDb.client },
+      createTranslations,
+      {
+        ...command,
+        data: [
+          {
+            translatableElementId: elementId,
+            translatorId: creatorId,
+            stringId: changedTargetStringId,
+          },
+        ],
+      },
+    );
+
+    expect(recovered).toEqual(first);
+    const rows = await testDb.client
+      .select({ id: translation.id })
+      .from(translation)
+      .where(eq(translation.translatableElementId, elementId));
+    expect(rows).toEqual([{ id: requireFixtureValue(first[0]) }]);
+
+    await testDb.client
+      .update(agentRun)
+      .set({ status: "cancelled" })
+      .where(eq(agentRun.externalId, run.runId));
+    await expect(
+      executeCommand({ db: testDb.client }, createTranslations, {
+        ...command,
+        workflowOutput: {
+          ...command.workflowOutput,
+          idempotencyKey: `${run.runId}:element:${elementId}:late`,
+        },
+      }),
+    ).rejects.toThrow("owner lease lost");
+    expect(
+      await testDb.client
+        .select({ id: translation.id })
+        .from(translation)
+        .where(eq(translation.translatableElementId, elementId)),
+    ).toHaveLength(1);
+  });
+
   it("emits a project-scoped translation event with element and content-node context", async () => {
     const fixture = await seedProjectElements({
       labelPrefix: "same-project",

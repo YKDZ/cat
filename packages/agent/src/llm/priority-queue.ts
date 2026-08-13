@@ -44,16 +44,30 @@ export class PriorityQueue<T> {
    * @param priority - Priority (default NORMAL)
    * @returns - Promise that resolves when this request is dequeued
    */
-  async enqueue(value: T, priority: LLMPriority = "NORMAL"): Promise<void> {
+  async enqueue(
+    value: T,
+    priority: LLMPriority,
+    signal: AbortSignal,
+  ): Promise<void> {
+    if (signal.aborted) throw signal.reason;
     return new Promise<void>((resolve, reject) => {
+      const abort = () => {
+        const index = this.items.indexOf(item);
+        if (index >= 0) this.items.splice(index, 1);
+        reject(signal.reason);
+      };
       const item: QueueItem<T> = {
         value,
         priority,
         seq: (this.seq += 1),
-        resolve,
+        resolve: () => {
+          signal.removeEventListener("abort", abort);
+          resolve();
+        },
         reject,
       };
       this.items.push(item);
+      signal.addEventListener("abort", abort, { once: true });
       this.items.sort((a, b) => {
         const pd = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
         return pd !== 0 ? pd : a.seq - b.seq;

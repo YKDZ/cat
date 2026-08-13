@@ -8,22 +8,27 @@ import {
   CardTitle,
 } from "@cat/ui";
 import { TestTube2, XCircle } from "@lucide/vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import type { NonNullPluginDetail, PluginProbeResult } from "./types.ts";
+import type {
+  NonNullPluginDetail,
+  PluginProbeResult,
+  PluginProbeTarget,
+} from "./types.ts";
 
 const { t } = useI18n();
 
 /**
  * Props for the plugin probe panel.
  */
-defineProps<{
+const props = defineProps<{
   /** Plugin detail read model. */
   detail: NonNullPluginDetail;
   /** Latest probe result. */
   result: PluginProbeResult | null;
-  /** Whether a probe request is in progress. */
-  isProbing: boolean;
+  /** Target currently being probed, if any. */
+  activeProbeTarget: PluginProbeTarget | null;
 }>();
 
 /**
@@ -35,6 +40,9 @@ const emit = defineEmits<{
   /** Cancel the in-flight probe request. */
   cancelProbe: [];
 }>();
+
+const isRuntimeProbing = computed(() => props.activeProbeTarget === "RUNTIME");
+const isProbeInProgress = computed(() => props.activeProbeTarget !== null);
 </script>
 
 <template>
@@ -72,13 +80,17 @@ const emit = defineEmits<{
       <div class="flex flex-wrap gap-2">
         <Button
           variant="outline"
-          :disabled="isProbing || !detail.actions.canProbeRuntime"
+          :disabled="isProbeInProgress || !detail.actions.canProbeRuntime"
           @click="emit('probeRuntime')"
         >
           <TestTube2 class="mr-2 size-4" />
-          {{ isProbing ? t("检测中…") : t("检测当前运行配置") }}
+          {{ isRuntimeProbing ? t("检测中…") : t("检测当前运行配置") }}
         </Button>
-        <Button v-if="isProbing" variant="ghost" @click="emit('cancelProbe')">
+        <Button
+          v-if="isProbeInProgress"
+          variant="ghost"
+          @click="emit('cancelProbe')"
+        >
           <XCircle class="mr-2 size-4" />
           {{ t("取消检测") }}
         </Button>

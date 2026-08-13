@@ -10,6 +10,7 @@ import {
   agentRun,
   agentSession,
   blob,
+  bootstrapReceipt,
   chunk,
   chunkSet,
   comment,
@@ -24,12 +25,15 @@ import {
   glossary,
   glossaryToProject,
   language,
+  languageAnalysisObservation,
+  languageAnalysisSelection,
   memory,
   memoryItemDeletion,
   memoryItem,
   memoryPromotionRecord,
   memoryRecallVariant,
   memoryToProject,
+  operationFailure,
   personalMemoryBinding,
   mfaProvider,
   plugin,
@@ -49,6 +53,8 @@ import {
   qaReviewQueueItem,
   qaReviewRun,
   qaReviewSuggestion,
+  recallDerivationState,
+  recallDerivationTaskDemand,
   runtimeCacheEntry,
   runtimeQueueTask,
   runtimeSessionEntry,
@@ -57,6 +63,7 @@ import {
   sessionRecord,
   setting,
   task,
+  workflowTaskDispatch,
   term,
   termConcept,
   termConceptSubject,
@@ -94,6 +101,7 @@ type SelectSchemaTable =
   | typeof agentRun
   | typeof agentSession
   | typeof blob
+  | typeof bootstrapReceipt
   | typeof chunk
   | typeof chunkSet
   | typeof comment
@@ -108,12 +116,15 @@ type SelectSchemaTable =
   | typeof glossary
   | typeof glossaryToProject
   | typeof language
+  | typeof languageAnalysisObservation
+  | typeof languageAnalysisSelection
   | typeof memory
   | typeof memoryItemDeletion
   | typeof memoryItem
   | typeof memoryPromotionRecord
   | typeof memoryRecallVariant
   | typeof memoryToProject
+  | typeof operationFailure
   | typeof personalMemoryBinding
   | typeof mfaProvider
   | typeof plugin
@@ -133,6 +144,8 @@ type SelectSchemaTable =
   | typeof qaReviewQueueItem
   | typeof qaReviewRun
   | typeof qaReviewSuggestion
+  | typeof recallDerivationState
+  | typeof recallDerivationTaskDemand
   | typeof runtimeCacheEntry
   | typeof runtimeQueueTask
   | typeof runtimeSessionEntry
@@ -141,6 +154,7 @@ type SelectSchemaTable =
   | typeof sessionRecord
   | typeof setting
   | typeof task
+  | typeof workflowTaskDispatch
   | typeof term
   | typeof termConcept
   | typeof termConceptSubject
@@ -172,6 +186,7 @@ type TableDeclaration = {
   typeExportName: string;
   buildShape: () => Record<string, unknown>;
   overrides?: Record<string, string>;
+  refinement?: string;
 };
 
 type ManualDeclaration = {
@@ -202,6 +217,9 @@ const manualDeclaration = (source: string): ManualDeclaration => ({
 export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   {
     outputFile: "api-key.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -217,11 +235,17 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "SessionRecordSchema",
         typeExportName: "SessionRecord",
         buildShape: buildSelectShape(sessionRecord),
+        overrides: {
+          authProvider: "ServiceImplementationReferenceSchema",
+        },
       },
     ],
   },
   {
     outputFile: "user.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -239,6 +263,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(account),
         overrides: {
           meta: "safeZDotJson.nullable()",
+          authProvider: "ServiceImplementationReferenceSchema",
         },
       },
       {
@@ -248,6 +273,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(mfaProvider),
         overrides: {
           payload: "nonNullSafeZDotJson",
+          mfaService: "ServiceImplementationReferenceSchema",
         },
       },
     ],
@@ -274,7 +300,41 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
     ],
   },
   {
+    outputFile: "language-analysis.ts",
+    imports: [
+      'import { LanguageAnalysisSelectionFingerprintSchema } from "#/schema/language-analysis-requirement.ts";',
+      'import { LanguageAnalysisRequirementAssessmentSchema } from "#/schema/language-analysis-requirement.ts";',
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
+    declarations: [
+      {
+        kind: "table",
+        schemaExportName: "LanguageAnalysisSelectionRecordSchema",
+        typeExportName: "LanguageAnalysisSelectionRecord",
+        buildShape: buildSelectShape(languageAnalysisSelection),
+        overrides: {
+          configurationFingerprint:
+            "LanguageAnalysisSelectionFingerprintSchema.nullable()",
+          implementation: "ServiceImplementationReferenceSchema.nullable()",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "LanguageAnalysisObservationRecordSchema",
+        typeExportName: "LanguageAnalysisObservationRecord",
+        buildShape: buildSelectShape(languageAnalysisObservation),
+        overrides: {
+          assessment: "LanguageAnalysisRequirementAssessmentSchema",
+        },
+      },
+    ],
+  },
+  {
     outputFile: "content.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "#/schema/content.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -284,6 +344,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         overrides: {
           provenance: "safeZDotJson.nullable()",
           metadata: "safeZDotJson.nullable()",
+          fileHandler: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -341,6 +402,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           jsonData: "safeZDotJson.nullable()",
           provenance: "safeZDotJson.nullable()",
           graphExplanation: "safeZDotJson.nullable()",
+          storageProvider: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -370,9 +432,6 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           payload: "SemanticDiffEntryPayloadSchema",
         },
       },
-    ],
-    imports: [
-      'import { ContentRelationAllowedEndpointPairSchema, ContextProfilePayloadSchema, SemanticDiffEntryPayloadSchema } from "#/schema/content.ts";',
     ],
   },
   {
@@ -409,6 +468,10 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "glossary.ts",
+    imports: [
+      'import { TermRecallVariantMetaSchema } from "#/schema/glossary-recall-derivation.ts";',
+      'import { CanonicalInputVersionSchema, RecallDerivationVersionSchema } from "#/schema/recall-derivation.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -452,14 +515,21 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "TermRecallVariant",
         buildShape: buildSelectShape(termRecallVariant),
         overrides: {
-          meta: "safeZDotJson.nullable()",
+          meta: "TermRecallVariantMetaSchema",
+          canonicalInputVersion: "CanonicalInputVersionSchema",
+          recallDerivationVersion: "RecallDerivationVersionSchema",
         },
       },
     ],
   },
   {
     outputFile: "memory.ts",
-    imports: ['import { TokenTypeSchema } from "#/schema/enum.ts";'],
+    imports: [
+      'import { TokenTypeSchema } from "#/schema/enum.ts";',
+      'import { MemoryRecallVariantMetaSchema } from "#/schema/memory-recall-derivation.ts";',
+      'import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";',
+      'import { CanonicalInputVersionSchema, RecallDerivationBlockerSchema, RecallDerivationTargetIdSchema, RecallDerivationVersionSchema } from "#/schema/recall-derivation.ts";',
+    ],
     declarations: [
       manualDeclaration(
         `export const SlotMappingEntrySchema = z.object({\n  placeholder: z.string(),\n  value: z.string(),\n  tokenType: TokenTypeSchema,\n});\n\nexport type SlotMappingEntry = z.infer<typeof SlotMappingEntrySchema>;`,
@@ -475,9 +545,6 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "MemoryItemSchema",
         typeExportName: "MemoryItem",
         buildShape: buildSelectShape(memoryItem),
-        overrides: {
-          slotMapping: "z.array(SlotMappingEntrySchema).nullable()",
-        },
       },
       {
         kind: "table",
@@ -505,11 +572,40 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
       },
       {
         kind: "table",
+        schemaExportName: "RecallDerivationStateSchema",
+        typeExportName: "RecallDerivationState",
+        buildShape: buildSelectShape(recallDerivationState),
+        overrides: {
+          blocker: "RecallDerivationBlockerSchema.nullable()",
+          canonicalInputVersion: "CanonicalInputVersionSchema",
+          currentCanonicalInputVersion:
+            "CanonicalInputVersionSchema.nullable()",
+          currentDerivationVersion: "RecallDerivationVersionSchema.nullable()",
+          languageId: "NormalizedLanguageIdSchema",
+          requiredDerivationVersion: "RecallDerivationVersionSchema.nullable()",
+          targetId: "RecallDerivationTargetIdSchema",
+        },
+      },
+      {
+        kind: "table",
+        schemaExportName: "RecallDerivationTaskDemandSchema",
+        typeExportName: "RecallDerivationTaskDemand",
+        buildShape: buildSelectShape(recallDerivationTaskDemand),
+        overrides: {
+          languageId: "NormalizedLanguageIdSchema",
+          targetId: "RecallDerivationTargetIdSchema",
+        },
+      },
+      {
+        kind: "table",
         schemaExportName: "MemoryRecallVariantSchema",
         typeExportName: "MemoryRecallVariant",
         buildShape: buildSelectShape(memoryRecallVariant),
         overrides: {
-          meta: "safeZDotJson.nullable()",
+          canonicalInputVersion: "CanonicalInputVersionSchema",
+          languageId: "NormalizedLanguageIdSchema",
+          meta: "MemoryRecallVariantMetaSchema.nullable()",
+          recallDerivationVersion: "RecallDerivationVersionSchema",
         },
       },
     ],
@@ -517,6 +613,12 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   {
     outputFile: "plugin.ts",
     declarations: [
+      {
+        kind: "table",
+        schemaExportName: "BootstrapReceiptSchema",
+        typeExportName: "BootstrapReceipt",
+        buildShape: buildSelectShape(bootstrapReceipt),
+      },
       {
         kind: "table",
         schemaExportName: "PluginSchema",
@@ -575,6 +677,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "misc.ts",
+    imports: [
+      'import { TaskAffectedResourceSchema, TaskKindSchema, TaskPayloadSchema, TaskRuntimeSchema } from "#/schema/localization-task.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -588,7 +693,33 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         typeExportName: "Task",
         buildShape: buildSelectShape(task),
         overrides: {
-          meta: "safeZDotJson.nullable()",
+          payload: "TaskPayloadSchema",
+          resources: "z.array(TaskAffectedResourceSchema)",
+          runtime: "TaskRuntimeSchema",
+        },
+        refinement: `(value, ctx) => {
+  const parsed = TaskKindSchema.safeParse({
+    kind: value.kind,
+    payload: value.payload,
+  });
+  if (!parsed.success) {
+    ctx.addIssue({ code: "custom", message: "Task kind and payload must agree." });
+  }
+}`,
+      },
+      {
+        kind: "table",
+        schemaExportName: "WorkflowTaskDispatchSchema",
+        typeExportName: "WorkflowTaskDispatch",
+        buildShape: buildSelectShape(workflowTaskDispatch),
+      },
+      {
+        kind: "table",
+        schemaExportName: "OperationFailureRecordSchema",
+        typeExportName: "OperationFailureRecord",
+        buildShape: buildSelectShape(operationFailure),
+        overrides: {
+          affectedResources: "z.array(TaskAffectedResourceSchema)",
         },
       },
       {
@@ -747,6 +878,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "file.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -759,6 +893,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         schemaExportName: "BlobSchema",
         typeExportName: "Blob",
         buildShape: buildSelectShape(blob),
+        overrides: {
+          storageProvider: "ServiceImplementationReferenceSchema",
+        },
       },
     ],
   },
@@ -766,6 +903,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
     outputFile: "qa.ts",
     imports: [
       'import { QaReviewProfileConfigSchema, QaReviewRunMetaSchema, QaReviewSpanSchema, QaReviewTextRangeSchema } from "#/schema/qa-review.ts";',
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
     ],
     declarations: [
       {
@@ -781,6 +919,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(qaResultItem),
         overrides: {
           meta: "nonNullSafeZDotJson",
+          checker: "ServiceImplementationReferenceSchema",
         },
       },
       {
@@ -799,6 +938,8 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(qaReviewRun),
         overrides: {
           meta: "QaReviewRunMetaSchema.nullable()",
+          checkerService: "ServiceImplementationReferenceSchema.nullable()",
+          modelService: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -810,6 +951,7 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
           sourceSpan: "QaReviewSpanSchema.nullable()",
           targetSpan: "QaReviewSpanSchema.nullable()",
           meta: "safeZDotJson.nullable()",
+          checkerService: "ServiceImplementationReferenceSchema.nullable()",
         },
       },
       {
@@ -848,6 +990,9 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
   },
   {
     outputFile: "vector.ts",
+    imports: [
+      'import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";',
+    ],
     declarations: [
       {
         kind: "table",
@@ -865,6 +1010,8 @@ export const generatedSharedSchemaFiles: GeneratedFileSpec[] = [
         buildShape: buildSelectShape(chunk),
         overrides: {
           meta: "safeZDotJson.nullable()",
+          vectorizer: "ServiceImplementationReferenceSchema",
+          vectorStorage: "ServiceImplementationReferenceSchema",
         },
       },
       manualDeclaration(

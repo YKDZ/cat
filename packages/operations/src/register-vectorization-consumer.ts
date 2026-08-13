@@ -20,8 +20,8 @@ export const registerVectorizationConsumer = async (
   if (isLeaseRecoverableTaskQueue(queue)) {
     const recovered = await queue.requeueExpiredLeases();
     serverLogger
-      .withSituation("QUEUE")
-      .info({ recovered }, "Recovered expired vectorization task leases");
+      .child({ component: "queue" })
+      .info("Recovered expired vectorization task leases", { recovered });
   }
 
   registered = true;
@@ -43,6 +43,8 @@ export const registerVectorizationConsumer = async (
       pending = await queue.pendingCount();
     }
   })().catch((err: unknown) => {
-    serverLogger.error({ err }, "Vectorization pending drain failed");
+    serverLogger.error("Vectorization pending drain failed", {
+      error: { err },
+    });
   });
 };

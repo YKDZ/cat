@@ -65,7 +65,7 @@
               "RERANK_PROVIDER",
               "AGENT_TOOL_PROVIDER",
               "AGENT_CONTEXT_PROVIDER",
-              "NLP_WORD_SEGMENTER",
+              "LANGUAGE_ANALYZER",
               "EMAIL_PROVIDER"
             ]
           },
@@ -94,6 +94,11 @@
     "config": {
       "description": "Standard JSON Schema for this config",
       "$ref": "https://json-schema.org/draft-07/schema"
+    },
+    "configVersion": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Version of the configuration schema, independent from the plugin package version"
     },
     "components": {
       "type": "array",
@@ -164,5 +169,11 @@
       }
     }
   },
+  "allOf": [
+    {
+      "if": { "required": ["config"] },
+      "then": { "required": ["configVersion"] }
+    }
+  ],
   "additionalProperties": false
 }

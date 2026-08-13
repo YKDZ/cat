@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import {
+  type ServiceImplementationReference,
+  serviceImplementationReferenceKey,
+} from "@cat/shared";
+import {
   Button,
   DropdownMenu,
   DropdownMenuContent,
@@ -12,8 +16,11 @@ import { useI18n } from "vue-i18n";
 
 const props = withDefaults(
   defineProps<{
-    providers: { id: number; serviceId: string; name: string }[];
-    modelValue: number | null;
+    providers: {
+      reference: ServiceImplementationReference;
+      name: string;
+    }[];
+    modelValue: string | null;
     compact?: boolean;
     disabled?: boolean;
   }>(),
@@ -21,14 +28,18 @@ const props = withDefaults(
 );
 
 const emit = defineEmits<{
-  "update:modelValue": [value: number | null];
+  "update:modelValue": [value: string | null];
 }>();
 
 const { t } = useI18n();
 
 const selectedProvider = computed(() => {
   return (
-    props.providers.find((provider) => provider.id === props.modelValue) ?? null
+    props.providers.find(
+      (provider) =>
+        serviceImplementationReferenceKey(provider.reference) ===
+        props.modelValue,
+    ) ?? null
   );
 });
 
@@ -37,9 +48,9 @@ const triggerLabel = computed(() => {
   return selectedProvider.value?.name ?? t("选择 LLM Provider");
 });
 
-const handleSelect = (providerId: number) => {
+const handleSelect = (providerReferenceKey: string) => {
   if (props.disabled) return;
-  emit("update:modelValue", providerId);
+  emit("update:modelValue", providerReferenceKey);
 };
 </script>
 
@@ -66,19 +77,23 @@ const handleSelect = (providerId: number) => {
       </DropdownMenuItem>
       <DropdownMenuItem
         v-for="provider in providers"
-        :key="provider.id"
+        :key="serviceImplementationReferenceKey(provider.reference)"
         class="items-start gap-3 py-2"
-        @click="handleSelect(provider.id)"
+        @click="
+          handleSelect(serviceImplementationReferenceKey(provider.reference))
+        "
       >
         <Cpu class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
         <div class="min-w-0 flex-1">
           <div class="truncate text-sm font-medium">{{ provider.name }}</div>
           <div class="truncate text-xs text-muted-foreground">
-            {{ provider.serviceId }}
+            {{ provider.reference.serviceId }}
           </div>
         </div>
         <Check
-          v-if="modelValue === provider.id"
+          v-if="
+            modelValue === serviceImplementationReferenceKey(provider.reference)
+          "
           class="size-4 shrink-0 text-primary"
         />
       </DropdownMenuItem>

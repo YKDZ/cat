@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import type { ContentNode, ElementSortMode, Language } from "@cat/shared";
-import { ElementSortModeSchema, ElementSortModeValues } from "@cat/shared";
+import {
+  ElementSortModeSchema,
+  ElementSortModeValues,
+  serviceImplementationReferenceKey,
+} from "@cat/shared";
 import {
   Button,
   Dialog,
@@ -22,7 +26,7 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { usePageContext } from "vike-vue/usePageContext";
 import { navigate } from "vike/client/router";
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import * as z from "zod";
 
@@ -37,16 +41,20 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const hydrated = ref(false);
+onMounted(() => {
+  hydrated.value = true;
+});
 
 const schema = toTypedSchema(
   z.object({
     minMemorySimilarity: z
       .array(z.number().min(0).max(1).default(0.72))
       .length(1),
-    advisorId: z.int().optional(),
+    advisorReferenceKey: z.string().optional(),
     sortMode: ElementSortModeSchema.default("structure"),
     enableLlmRefine: z.boolean().default(false),
-    llmProviderId: z.int().optional(),
+    llmProviderReferenceKey: z.string().optional(),
     gatherScopeContext: z.boolean().default(false),
   }),
 );
@@ -61,23 +69,23 @@ const { handleSubmit, values } = useForm({
   },
 });
 
-const advisorOptions = computed<PickerOption<number>[]>(() => {
+const advisorOptions = computed<PickerOption<string>[]>(() => {
   if (!advisorState.value || !advisorState.value.data) return [];
   return advisorState.value.data.map(
     (advisor) =>
       ({
-        value: advisor.id,
+        value: serviceImplementationReferenceKey(advisor.reference),
         content: advisor.name,
       }) satisfies PickerOption,
   );
 });
 
-const llmProviderOptions = computed<PickerOption<number>[]>(() => {
+const llmProviderOptions = computed<PickerOption<string>[]>(() => {
   if (!llmState.value || !llmState.value.data) return [];
   return llmState.value.data.map(
     (provider) =>
       ({
-        value: provider.id,
+        value: serviceImplementationReferenceKey(provider.reference),
         content: provider.name,
       }) satisfies PickerOption,
   );
@@ -96,7 +104,7 @@ const sortModeOptions = computed<PickerOption<ElementSortMode>[]>(() =>
 );
 
 const onSubmit = handleSubmit(async (formValues) => {
-  const { runId } = await orpc.translation.autoTranslate({
+  const { taskId } = await orpc.translation.autoTranslate({
     scope: {
       projectId: props.contentNode.projectId,
       contentNodeIds: [props.contentNode.id],
@@ -104,18 +112,26 @@ const onSubmit = handleSubmit(async (formValues) => {
       sortMode: formValues.sortMode,
     },
     languageId: props.language.id,
-    advisorId: formValues.advisorId,
+    advisor: advisorState.value.data?.find(
+      (advisor) =>
+        serviceImplementationReferenceKey(advisor.reference) ===
+        formValues.advisorReferenceKey,
+    )?.reference,
     minMemorySimilarity: formValues.minMemorySimilarity[0],
     config: {
       llm: {
         enabled: formValues.enableLlmRefine,
-        llmProviderId: formValues.llmProviderId,
+        llmProvider: llmState.value.data?.find(
+          (provider) =>
+            serviceImplementationReferenceKey(provider.reference) ===
+            formValues.llmProviderReferenceKey,
+        )?.reference,
       },
       gatherScopeContext: formValues.gatherScopeContext,
     },
   });
   const projectId = ctx.routeParams?.projectId;
-  await navigate(`/project/${projectId}/workflows/${runId}`);
+  await navigate(`/project/${projectId}/tasks?taskId=${taskId}`);
 });
 
 const { state: advisorState } = useQuery({
@@ -132,9 +148,9 @@ const { state: llmState } = useQuery({
 </script>
 
 <template>
-  <Dialog>
-    <DialogTrigger>
-      <Button variant="outline" size="icon">
+  <Dialog v-if="hydrated">
+    <DialogTrigger as-child>
+      <Button variant="outline" size="icon" :title="t('自动翻译')">
         <div class="icon-[mdi--translate] size-4" />
       </Button>
     </DialogTrigger>
@@ -172,7 +188,7 @@ const { state: llmState } = useQuery({
             </FormDescription>
           </FormItem>
         </FormField>
-        <FormField v-slot="{ setValue }" name="advisorId">
+        <FormField v-slot="{ setValue }" name="advisorReferenceKey">
           <FormItem>
             <FormLabel> {{ t("翻译建议器") }}</FormLabel>
             <FormControl>
@@ -219,7 +235,7 @@ const { state: llmState } = useQuery({
         <FormField
           v-if="values.enableLlmRefine"
           v-slot="{ setValue }"
-          name="llmProviderId"
+          name="llmProviderReferenceKey"
         >
           <FormItem>
             <FormLabel>{{ t("LLM Provider") }}</FormLabel>

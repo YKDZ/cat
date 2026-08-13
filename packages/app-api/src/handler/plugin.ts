@@ -1,18 +1,52 @@
 import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { Readable } from "node:stream";
 
-import { PluginManager } from "@cat/plugin-core";
+import { getRuntimeCapabilities } from "@cat/app-api/context";
 import { resolvePluginComponentPath } from "@cat/server-shared";
 import { serverLogger as logger } from "@cat/server-shared";
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { stream } from "hono/streaming";
 
 const app = new Hono();
 
+const runtimePluginManager = ():
+  | ReturnType<typeof getRuntimeCapabilities>["pluginManager"]
+  | null => {
+  try {
+    return getRuntimeCapabilities().pluginManager;
+  } catch {
+    return null;
+  }
+};
+
+const proxyPluginRequest = async (c: Context): Promise<Response> => {
+  const pluginManager = runtimePluginManager();
+  if (pluginManager === null) return c.text("Server is starting...", 503);
+
+  const params = c.req.param();
+  const pluginId = params["pluginId"] ?? c.req.path.split("/")[3];
+  if (pluginId === undefined || pluginId === "") return c.notFound();
+
+  const requestedAsset = new URL(c.req.url).searchParams.get("path");
+  if (requestedAsset !== null) {
+    const asset = await pluginManager
+      .getLoader()
+      .resolveAssetPath?.(pluginId, requestedAsset);
+    if (asset === null || asset === undefined) return c.notFound();
+    return new Response(await readFile(asset), {
+      headers: { "content-type": "text/javascript; charset=utf-8" },
+    });
+  }
+
+  const pluginApp = pluginManager.getRouteRegistry().resolve(pluginId);
+  if (!pluginApp) return c.notFound();
+  return pluginApp.fetch(c.req.raw);
+};
+
 app.get("/:pluginId/component/:componentName", async (c) => {
   // TODO 客户端传参
-  const pluginManager = PluginManager.get("GLOBAL", "");
+  const { pluginManager } = getRuntimeCapabilities();
   const pluginId = c.req.param("pluginId");
   const componentName = c.req.param("componentName");
 
@@ -48,22 +82,28 @@ app.get("/:pluginId/component/:componentName", async (c) => {
         await s.pipe(fileStream as unknown as ReadableStream);
       },
       async (err) => {
-        logger.withSituation("SERVER").error(
-          {
-            pluginId,
-            componentName,
-          },
-          err,
-          "Error streaming plugin component",
-        );
+        logger
+          .child({ component: "server" })
+          .error("Error streaming plugin component", {
+            ...{
+              pluginId,
+              componentName,
+            },
+            error: err,
+          });
       },
     );
   } catch (error) {
-    logger
-      .withSituation("SERVER")
-      .error({ pluginId, componentName }, error, "Plugin component not found");
+    logger.child({ component: "server" }).error("Plugin component not found", {
+      ...{ pluginId, componentName },
+      error: error,
+    });
     return c.text("module not found", 404);
   }
 });
+
+app.all("/:scopeType/:scopeId/:pluginId/*", proxyPluginRequest);
+app.all("/GLOBAL//:pluginId/*", proxyPluginRequest);
+app.all("/:scopeType/*", proxyPluginRequest);
 
 export default app;

@@ -9,6 +9,7 @@ export {
 export {
   normalizeMemorySeed,
   runSeedPipeline,
+  runFixtureHydration,
   type DevSeedResult,
   type SeedSummary,
 } from "./pipeline.ts";

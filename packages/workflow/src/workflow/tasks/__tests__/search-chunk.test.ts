@@ -16,7 +16,11 @@ import {
 import { afterAll, beforeAll, expect, test } from "vitest";
 
 import { runGraph } from "#/graph/dsl/index.ts";
-import { createDefaultGraphRuntime } from "#/graph/index.ts";
+import {
+  cleanupTestGraphFixture,
+  createTestGraphRuntime,
+  type TestGraphRuntimeFixture,
+} from "#/graph/testing/test-graph-runtime.ts";
 
 import { createVectorizedStringGraph } from "../create-vectorized-string.ts";
 import { searchChunkGraph } from "../search-chunk.ts";
@@ -27,12 +31,16 @@ const data = [
   { text: "Search chunk text 3", languageId: "en" },
 ];
 
-let cleanup: () => Promise<void>;
+let cleanup: (() => Promise<void>) | undefined;
+let runtimeFixture: TestGraphRuntimeFixture | undefined;
 let pluginManager: PluginManager;
 let vectorizationQueue: ReturnType<typeof installTestVectorizationQueue>;
 
 afterAll(async () => {
-  await cleanup?.();
+  await cleanupTestGraphFixture(
+    runtimeFixture,
+    cleanup ? { cleanup } : undefined,
+  );
 });
 
 beforeAll(async () => {
@@ -65,12 +73,13 @@ beforeAll(async () => {
   );
 
   vectorizationQueue = installTestVectorizationQueue();
-  createDefaultGraphRuntime(drizzle, pluginManager);
+  runtimeFixture = createTestGraphRuntime(db, pluginManager);
 
   await runGraph(createVectorizedStringGraph, {
     data,
-    vectorizerId: vectorizer.dbId,
-    vectorStorageId: vectorStorage.dbId,
+    vectorizer: pluginManager2.createServiceImplementationReference(vectorizer),
+    vectorStorage:
+      pluginManager2.createServiceImplementationReference(vectorStorage),
   });
 
   await processVectorizationBatch(vectorizationQueue, 10, {
@@ -100,7 +109,8 @@ test("search-chunk should return similar chunks", async () => {
     maxAmount: 10,
     searchRange,
     queryChunkIds: [queryChunkId],
-    vectorStorageId: vectorStorage.dbId,
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
 
   expect(Array.isArray(chunks)).toBe(true);
@@ -135,7 +145,8 @@ test("search-chunk with empty searchRange should return empty chunks", async () 
     maxAmount: 10,
     searchRange: [],
     queryChunkIds: [queryChunkId],
-    vectorStorageId: vectorStorage.dbId,
+    vectorStorage:
+      pluginManager.createServiceImplementationReference(vectorStorage),
   });
   expect(Array.isArray(chunks)).toBe(true);
   expect(chunks.length).toEqual(0);

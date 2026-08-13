@@ -6,6 +6,7 @@ import {
   ContentNodeLifecycleStatusSchema,
   ContentRelationLifecycleStatusSchema,
   RelationEndpointKindSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import * as z from "zod";
 
@@ -27,7 +28,7 @@ export const EditorOverlayContentNodeRowSchema = z.object({
   languageId: z.string().nullable(),
   exportRole: ContentNodeExportRoleSchema,
   boundaryType: ContentBoundaryTypeSchema,
-  fileHandlerId: z.int().nullable(),
+  fileHandler: ServiceImplementationReferenceSchema.nullable(),
   fileId: z.int().nullable(),
   lifecycleStatus: ContentNodeLifecycleStatusSchema,
   provenance: z.unknown().nullable(),

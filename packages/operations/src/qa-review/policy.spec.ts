@@ -12,7 +12,7 @@ const baseFinding = (
   overrides: Partial<NormalizedQaFinding> = {},
 ): NormalizedQaFinding => ({
   layer: "DETERMINISTIC",
-  checkerServiceId: 1,
+  checkerService: null,
   qaResultItemId: 1,
   ruleId: "rule.base",
   ruleFamily: "generic",

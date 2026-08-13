@@ -1,19 +1,14 @@
-import { Logger, type LoggerTransport, type LogEntry } from "@cat/shared";
+import {
+  Logger,
+  type DiagnosticEvent,
+  type DiagnosticTransport,
+} from "@cat/shared";
 
-class ConsoleTransport implements LoggerTransport {
-  log(entry: LogEntry) {
-    const { level, situation, message, payload, error } = entry;
-    const prefix = `[${situation}]`;
+class ConsoleTransport implements DiagnosticTransport {
+  emit(event: DiagnosticEvent): void {
+    const args: unknown[] = [event.message, event];
 
-    const args: unknown[] = [prefix, message];
-    if (payload && Object.keys(payload).length > 0) {
-      args.push(payload);
-    }
-    if (error) {
-      args.push(error);
-    }
-
-    switch (level) {
+    switch (event.level) {
       case "debug":
         // oxlint-disable-next-line no-console -- logger transport
         console.debug(...args);
@@ -35,4 +30,6 @@ class ConsoleTransport implements LoggerTransport {
   }
 }
 
-export const clientLogger = new Logger("APP", [new ConsoleTransport()]);
+export const clientLogger = new Logger({ runtime: "client" }, [
+  new ConsoleTransport(),
+]);

@@ -97,7 +97,10 @@ export class VectorizedStringApplicationMethod implements ApplicationMethod {
     }
 
     const existingTranslations = await executeQuery(
-      { db: ctx.db },
+      {
+        db: ctx.db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
       listTranslationsByElement,
       { elementId, languageId },
     );
@@ -117,21 +120,28 @@ export class VectorizedStringApplicationMethod implements ApplicationMethod {
       },
     );
     const stringId = assertFirstNonNullish(stringIds);
-    await executeCommand({ db: ctx.db }, createTranslations, {
-      data: [
-        {
-          translatableElementId: elementId,
-          stringId,
-          meta: {
-            ...(isJsonObject(payload.meta) ? payload.meta : {}),
-            [VCS_ENTITY_ID_META_KEY]: entry.entityId,
+    await executeCommand(
+      {
+        db: ctx.db,
+        ...(ctx.collector === undefined ? {} : { collector: ctx.collector }),
+      },
+      createTranslations,
+      {
+        data: [
+          {
+            translatableElementId: elementId,
+            stringId,
+            meta: {
+              ...(isJsonObject(payload.meta) ? payload.meta : {}),
+              [VCS_ENTITY_ID_META_KEY]: entry.entityId,
+            },
+            ...(typeof translatorId === "string" || translatorId === null
+              ? { translatorId }
+              : {}),
           },
-          ...(typeof translatorId === "string" || translatorId === null
-            ? { translatorId }
-            : {}),
-        },
-      ],
-    });
+        ],
+      },
+    );
     return { status: "APPLIED" };
   }
 

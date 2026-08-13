@@ -1,4 +1,5 @@
 import type { JSONObject } from "@cat/shared";
+import { OperationFailureInputSchema } from "@cat/shared";
 
 import type { Checkpointer } from "#/graph/checkpointer/index.ts";
 import type { EventEnvelopeInput } from "#/graph/events.ts";
@@ -43,8 +44,24 @@ export type ExecutorPool = {
   shutdown?: () => Promise<void>;
 };
 
-const sleep = async (ms: number): Promise<void> => {
-  await new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = async (ms: number, signal?: AbortSignal): Promise<void> => {
+  if (signal?.aborted) return;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const elapsed = new Promise<void>((resolve) => {
+    timeout = setTimeout(resolve, ms);
+  });
+  if (!signal) {
+    await elapsed;
+    return;
+  }
+  let handleAbort: (() => void) | undefined;
+  const aborted = new Promise<void>((resolve) => {
+    handleAbort = resolve;
+    signal.addEventListener("abort", handleAbort, { once: true });
+  });
+  await Promise.race([elapsed, aborted]);
+  if (timeout) clearTimeout(timeout);
+  if (handleAbort) signal.removeEventListener("abort", handleAbort);
 };
 
 const defaultRetry = {
@@ -123,6 +140,10 @@ export class QueuedExecutorPool implements ExecutorPool {
 
   shutdown = async (): Promise<void> => {
     this.shuttingDown = true;
+    const shutdownError = new Error("QueuedExecutorPool is shutting down");
+    for (const item of this.queue.splice(0)) {
+      item.reject(shutdownError);
+    }
     await new Promise<void>((resolve) => {
       const poll = (): void => {
         if (this.activeCount === 0) {
@@ -144,15 +165,10 @@ export class QueuedExecutorPool implements ExecutorPool {
       const next = this.queue.shift();
       if (!next) return;
       this.activeCount += 1;
-      void this.executeQueuedItem(next)
-        .then(() => {
-          this.activeCount -= 1;
-          this.tryDrain();
-        })
-        .catch(() => {
-          this.activeCount -= 1;
-          this.tryDrain();
-        });
+      void this.executeQueuedItem(next).finally(() => {
+        this.activeCount -= 1;
+        this.tryDrain();
+      });
     }
   };
 
@@ -174,6 +190,7 @@ export class QueuedExecutorPool implements ExecutorPool {
     let lastError: unknown;
 
     while (attempt < retry.maxAttempts) {
+      if (task.signal?.aborted) return;
       const leaseDurationMs = task.nodeDef.timeoutMs ?? 120_000;
       // oxlint-disable-next-line no-await-in-loop
       const lease = await this.leaseManager.acquire(
@@ -201,12 +218,13 @@ export class QueuedExecutorPool implements ExecutorPool {
       };
       const heartbeatTimer = setInterval(() => {
         void renewLease().then(async (renewed) => {
-          if (renewed) return;
+          if (renewed) return undefined;
           abortController.abort(new Error("Node lease expired"));
           await task.emitProxy({
             type: "node:lease:expired",
             payload: { leaseId: lease.leaseId },
           });
+          return undefined;
         });
       }, lease.heartbeatIntervalMs);
 
@@ -242,6 +260,15 @@ export class QueuedExecutorPool implements ExecutorPool {
           task.config,
         );
 
+        signal?.throwIfAborted();
+
+        // Publication is the commit point. Fence it with a final lease check so
+        // an executor that lost ownership cannot publish stale output.
+        // oxlint-disable-next-line no-await-in-loop
+        if (!(await renewLease())) {
+          throw new Error("Node lease expired before output publication");
+        }
+
         // oxlint-disable-next-line no-await-in-loop
         await task.publishToStream([
           buildNodeEndEvent(result),
@@ -262,6 +289,8 @@ export class QueuedExecutorPool implements ExecutorPool {
         // oxlint-disable-next-line no-await-in-loop
         await this.leaseManager.release(task.runId, task.nodeId, lease.leaseId);
 
+        if (task.signal?.aborted) return;
+
         if (attempt < retry.maxAttempts) {
           // oxlint-disable-next-line no-await-in-loop
           await task.emitProxy({
@@ -277,17 +306,26 @@ export class QueuedExecutorPool implements ExecutorPool {
             retry.backoffMs * retry.backoffMultiplier ** (attempt - 1),
           );
           // oxlint-disable-next-line no-await-in-loop
-          await sleep(delay);
+          await sleep(delay, task.signal);
+          if (task.signal?.aborted) return;
           continue;
         }
       }
     }
 
+    const operationFailure = OperationFailureInputSchema.safeParse(
+      typeof lastError === "object" && lastError !== null
+        ? Reflect.get(lastError, "operationFailure")
+        : undefined,
+    );
     await task.emitProxy({
       type: "node:error",
       payload: {
         error:
           lastError instanceof Error ? lastError.message : String(lastError),
+        ...(operationFailure.success
+          ? { operationFailure: operationFailure.data }
+          : {}),
       },
     });
   };

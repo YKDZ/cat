@@ -1,4 +1,4 @@
-import type { RecallChannel } from "@cat/shared";
+import type { EvidenceLane } from "@cat/shared";
 import { describe, expect, it } from "vitest";
 
 import { requireFixtureValue } from "#/testing/require-fixture-value.ts";
@@ -18,7 +18,7 @@ const PROFILE = {
 
 const make = (
   id: number,
-  channel: RecallChannel,
+  channel: EvidenceLane,
   confidence = 0.8,
 ): RecallCandidate => ({
   surface: "term",

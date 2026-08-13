@@ -1,5 +1,5 @@
 {
-  "$schema": "../../plugin-core/manifest-schema.json",
+  "$schema": "../../packages/plugin-core/manifest-schema.json",
   "id": "password-auth-provider",
   "entry": "dist/index.js",
   "version": "0.1.0",

@@ -21,7 +21,7 @@ export const applySelfExclusion = <T extends { memoryId: string }>(
 
   if (filtered.length < originalCount) {
     logger
-      .withSituation("OP")
+      .child({ component: "operation" })
       .info(
         `SELF_EX: excluded ${originalCount - filtered.length} self-matches (excluded IDs: ${[...excludeSet].join(", ")})`,
       );

@@ -1,6 +1,24 @@
 import { test, expect } from "#/fixtures.ts";
+import { gotoHydrated, reloadHydrated } from "#/pages/app-navigation.ts";
 
 test.describe("Branch workspace", () => {
+  test("keeps seeded pull-request content in SSR HTML and hydrates without warnings", async ({
+    page,
+    refs,
+  }) => {
+    const projectId = refs.project;
+    const response = await gotoHydrated(
+      page,
+      `/project/${projectId}/pull-requests`,
+    );
+    if (!response)
+      throw new Error("Pull-request page did not return an SSR response");
+    const html = await response.text();
+
+    expect(html).toContain("E2E branch workspace");
+    await expect(page.getByText("E2E branch workspace")).toBeVisible();
+  });
+
   test("keeps selected branch after refresh and writes translation to branch", async ({
     page,
     editorPage,
@@ -13,7 +31,7 @@ test.describe("Branch workspace", () => {
     const translationText = `branch translation ${Date.now()}`;
     const branchTrigger = () =>
       page
-        .locator("button")
+        .getByRole("button", { name: "Show popup" })
         .filter({
           hasText: new RegExp(`main|pr-${prNumber}|branch-${branchId}`),
         })
@@ -30,17 +48,20 @@ test.describe("Branch workspace", () => {
       .click();
     await expect(page).toHaveURL(/branchId=/);
 
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await reloadHydrated(page, { waitUntil: "domcontentloaded" });
     await expect(page).toHaveURL(new RegExp(`branchId=${branchId}`));
+    await expect(branchTrigger()).toBeVisible({ timeout: 15_000 });
     await expect(branchTrigger()).toContainText(
       new RegExp(`pr-${prNumber}|branch-${branchId}`),
+      { timeout: 15_000 },
     );
 
     await editorPage.selectElement(0, { waitForWritable: true });
     await editorPage.inputTranslation(translationText);
     await editorPage.submitTranslation();
+    await editorPage.expectTranslationVisible(translationText);
 
-    await page.goto(`/project/${projectId}/pull-requests/${prNumber}`);
+    await gotoHydrated(page, `/project/${projectId}/pull-requests/${prNumber}`);
     await page.getByRole("tab", { name: "变更" }).click();
     await expect(page.getByText(translationText)).toBeVisible({
       timeout: 15_000,

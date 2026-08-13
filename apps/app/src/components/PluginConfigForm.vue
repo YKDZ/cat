@@ -33,7 +33,7 @@ const configSetter = async (value: NonNullJSONType) => {
     scopeType: props.scopeType,
     scopeId: props.scopeId,
     value,
-    expectedUpdatedAt: instance.value?.updatedAt.toISOString() ?? null,
+    expectedRevision: instance.value?.revision ?? null,
   });
   if (result.configInstance) instance.value = result.configInstance;
 };

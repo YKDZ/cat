@@ -1,15 +1,10 @@
 [
   "password-auth-provider",
   "json-file-handler",
-  "libretranslate-advisor",
-  "openai-vectorizer",
   "yaml-file-handler",
-  "local-storage-provider",
   "markdown-file-handler",
   "tiny-widget",
   "basic-tokenizer",
   "basic-qa-checker",
-  "openai-llm-provider",
-  "spacy-segmenter",
-  "tei-rerank-provider"
+  "openai-vectorizer"
 ]

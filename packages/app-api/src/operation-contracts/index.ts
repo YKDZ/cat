@@ -14,3 +14,17 @@ export {
   type DirectTranslationWriteInput,
   type DirectTranslationWriteOutput,
 } from "./direct-translation-write.ts";
+export {
+  glossaryTermWriteContract,
+  GlossaryTermWriteInputSchema,
+  GlossaryTermWriteOutputSchema,
+  type GlossaryTermWriteInput,
+  type GlossaryTermWriteOutput,
+} from "./glossary-term-write.ts";
+export {
+  glossaryRecallRebuildContract,
+  GlossaryRecallRebuildInputSchema,
+  GlossaryRecallRebuildOutputSchema,
+  type GlossaryRecallRebuildInput,
+  type GlossaryRecallRebuildOutput,
+} from "./glossary-recall-rebuild.ts";

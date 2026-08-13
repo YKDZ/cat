@@ -12,7 +12,9 @@ const quote = ref<Quote | null>(null);
 
 const fetchQuote = async () => {
   try {
-    const res = await fetch("https://dummyjson.com/quotes/random");
+    const res = await fetch("https://dummyjson.com/quotes/random", {
+      keepalive: true,
+    });
 
     if (!res.ok) {
       throw new Error("network error");

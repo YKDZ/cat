@@ -1,5 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
+import { gotoHydrated } from "./app-navigation.ts";
+
 export class EditorPage {
   private readonly page: Page;
 
@@ -8,7 +10,7 @@ export class EditorPage {
   }
 
   private getEditorSidebar(): ReturnType<Page["locator"]> {
-    return this.page.locator('[data-sidebar="sidebar"]').filter({
+    return this.page.locator('[data-sidebar="sidebar"]:visible').filter({
       has: this.page.locator('[data-sidebar="footer"] .tabular-nums'),
     });
   }
@@ -29,7 +31,8 @@ export class EditorPage {
     languageToId: string;
     contentNodeId: string;
   }): Promise<void> {
-    await this.page.goto(
+    await gotoHydrated(
+      this.page,
       `/editor/project/${input.projectId}/${input.languageToId}/auto?nodes=${input.contentNodeId}`,
     );
     await this.waitForEditorReady();
@@ -49,7 +52,8 @@ export class EditorPage {
     }
 
     const suffix = params.toString();
-    await this.page.goto(
+    await gotoHydrated(
+      this.page,
       `/editor/project/${projectId}/${languageToId}/auto${suffix ? `?${suffix}` : ""}`,
     );
     await this.waitForEditorReady();
@@ -83,7 +87,7 @@ export class EditorPage {
     languageId: string,
     contentNodeName: string,
   ): Promise<void> {
-    await this.page.goto(`/project/${projectId}/${languageId}`);
+    await gotoHydrated(this.page, `/project/${projectId}/${languageId}`);
     await this.page.getByText(contentNodeName).first().click();
     await this.waitForEditorReady();
   }

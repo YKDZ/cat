@@ -16,6 +16,8 @@ import {
   VectorInvalidationReasonSchema,
 } from "#/schema/enum.ts";
 import { safeZDotJson } from "#/schema/json.ts";
+import { NormalizedLanguageIdSchema } from "#/schema/language-analysis.ts";
+import { ServiceImplementationReferenceSchema } from "#/schema/service-implementation-reference.ts";
 
 export const StableElementIdentitySchema = z.object({
   importerId: z.string().min(1),
@@ -123,11 +125,14 @@ export const StructuredContentNodeInputSchema = z.object({
   sourceUri: z.string().nullable().optional(),
   sourcePath: z.string().nullable().optional(),
   sourceType: z.string().nullable().optional(),
-  languageId: z.string().nullable().optional(),
+  languageId: NormalizedLanguageIdSchema.nullable().optional(),
   exportRole: ContentNodeExportRoleSchema.default("NONE"),
   boundaryType: ContentBoundaryTypeSchema.default("NONE"),
   file: z
-    .object({ fileId: z.int(), fileHandlerId: z.int().nullable().optional() })
+    .object({
+      fileId: z.int(),
+      fileHandler: ServiceImplementationReferenceSchema.nullable().optional(),
+    })
     .nullable()
     .optional(),
   metadata: safeZDotJson.nullable().optional(),
@@ -142,7 +147,7 @@ export const StructuredTranslatableElementInputSchema = z.object({
   stableSourceRef: z.string().min(1),
   sourceNodeRef: z.string().min(1),
   text: z.string(),
-  languageId: z.string(),
+  languageId: NormalizedLanguageIdSchema,
   localOrder: z.int().optional(),
   meta: safeZDotJson.nullable().optional(),
   location: z
@@ -186,7 +191,7 @@ export const StructuredEvidenceInputSchema = z.object({
   textData: z.string().nullable().optional(),
   jsonData: safeZDotJson.nullable().optional(),
   fileId: z.int().nullable().optional(),
-  storageProviderId: z.int().nullable().optional(),
+  storageProvider: ServiceImplementationReferenceSchema.nullable().optional(),
   displayLabel: z.string().nullable().optional(),
   trustLevel: EvidenceTrustLevelSchema.default("COLLECTED"),
   freshness: z.iso.datetime().nullable().optional(),
@@ -199,7 +204,7 @@ export type StructuredEvidenceInput = z.infer<
 export const StructuredContentPayloadSchema = z.object({
   payloadVersion: z.literal("content-graph/v1"),
   projectId: z.uuidv4(),
-  sourceLanguageId: z.string(),
+  sourceLanguageId: NormalizedLanguageIdSchema,
   importerId: z.string().min(1),
   sourceRootRef: z.string().min(1),
   relationTypes: z.array(RegisteredRelationTypeInputSchema).default([]),

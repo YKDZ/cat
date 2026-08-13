@@ -1,10 +1,12 @@
 import type { OperationContext } from "@cat/domain";
 import {
   collectLLMResponse,
-  firstOrGivenService,
+  resolveServiceImplementation,
+  selectFirstServiceImplementation,
   resolvePluginManager,
   serverLogger as logger,
 } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 // ─── Input / Output Schemas ───
@@ -32,7 +34,7 @@ export const LlmTermAlignInputSchema = z.object({
     }),
   ),
   config: z.object({
-    llmProviderId: z.int().optional(),
+    llmProvider: ServiceImplementationReferenceSchema.optional(),
     batchSize: z.int().min(1).max(50).default(30),
   }),
 });
@@ -151,11 +153,16 @@ export const llmTermAlignOp = async (
   ctx?: OperationContext,
 ): Promise<LlmTermAlignOutput> => {
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const llmService = firstOrGivenService(
-    pluginManager,
-    "LLM_PROVIDER",
-    data.config.llmProviderId,
-  );
+  const llmService = data.config.llmProvider
+    ? {
+        reference: data.config.llmProvider,
+        service: resolveServiceImplementation(
+          pluginManager,
+          data.config.llmProvider,
+          "LLM_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "LLM_PROVIDER");
 
   if (!llmService || data.unalignedGroupPairs.length === 0) {
     return { alignedPairs: [] };
@@ -226,8 +233,8 @@ export const llmTermAlignOp = async (
         };
       } catch (err: unknown) {
         logger
-          .withSituation("OP")
-          .error(err, "llmTermAlignOp: LLM batch failed");
+          .child({ component: "operation" })
+          .error("llmTermAlignOp: LLM batch failed", { error: err });
         return { batch, results: [] };
       }
     }),

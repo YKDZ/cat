@@ -75,6 +75,8 @@ export interface AgentNodeContext {
   constraints: AgentConstraints;
   /** Run start time */
   startedAt: Date;
+  /** Cancellation signal for the complete agent execution. */
+  signal: AbortSignal;
   /** Structured logger */
   logger: AgentLogger;
   /**

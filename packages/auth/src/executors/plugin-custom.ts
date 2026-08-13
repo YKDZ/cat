@@ -5,7 +5,7 @@ import type { AuthNodeExecutor } from "../types.ts";
  * The `factorId` on the node definition selects which AUTH_FACTOR plugin to call.
  * If no plugin is registered for the factorId, returns a failed result.
  */
-export const pluginCustomExecutor: AuthNodeExecutor = async (ctx, nodeDef) => {
+export const pluginCustomExecutor: AuthNodeExecutor = async (_ctx, nodeDef) => {
   // Actual dispatch to plugin is wired in the app-layer executor override.
   return {
     updates: {},

@@ -6,12 +6,12 @@ import {
   listProjectGlossaryIds,
 } from "@cat/domain";
 import {
+  collectTermRecallOp,
   collectEffectiveMemoryRecallOp,
   createSuggestionCollector,
+  getEffectiveMemoryRecallCandidates,
+  getTermRecallCandidates,
   llmTranslateOp,
-  nlpSegmentOp,
-  type MemorySuggestionWithPrecision,
-  termRecallOp,
 } from "@cat/operations";
 import {
   AsyncMessageQueue,
@@ -30,6 +30,7 @@ import {
 import * as z from "zod";
 
 import { authed, checkElementPermission } from "#/orpc/server.ts";
+import { throwRecallOperationFailure } from "#/services/recall-operation-failure.ts";
 
 type EffectiveMemoryIds = {
   projectMemoryIds: string[];
@@ -72,9 +73,7 @@ export const onNew = authed
   .handler(async function* ({ context, input }) {
     const SuggestionEventPayloadSchema = z.object({
       elementId: z.int(),
-      suggestion: TranslationSuggestionSchema.extend({
-        advisorId: z.int().optional(),
-      }),
+      suggestion: TranslationSuggestionSchema,
     });
     const {
       cacheStore,
@@ -116,76 +115,73 @@ export const onNew = authed
       { db: drizzle },
       listMemoryItemIdsByElement,
       { elementId },
-    ).catch((err: unknown) => {
-      logger
-        .withSituation("RPC")
-        .warn(
-          { err },
-          "suggestion.onNew: listMemoryItemIdsByElement failed, skipping self-exclusion",
-        );
-      return [] as string[];
-    });
-
-    // ── NLP tokenization (once, shared by memory + term recall) ───────
-    const nlpResult = await nlpSegmentOp(
-      {
-        text: element.value,
-        languageId: element.languageId,
-      },
-      { pluginManager, traceId: crypto.randomUUID() },
-    ).catch((err: unknown) => {
-      logger
-        .withSituation("RPC")
-        .warn({ err }, "suggestion.onNew: nlpSegmentOp failed");
-      return null;
-    });
-    const sourceNlpTokens = nlpResult?.tokens;
+    );
 
     // ── Assemble suggestion context once (shared by Smart Suggest + advisors) ─
-    const [recalledMemories, termContext] = await Promise.all([
+    const [memoryRecallResult, termContext] = await Promise.all([
       allMemoryIds.length > 0
-        ? collectEffectiveMemoryRecallOp(
-            {
-              text: element.value,
-              sourceLanguageId: element.languageId,
-              translationLanguageId: languageId,
-              projectMemoryIds,
-              personalMemoryIds,
-              chunkIds: element.chunkIds,
-              excludeMemoryItemIds,
-              sourceNlpTokens,
-            },
-            { pluginManager, traceId: crypto.randomUUID() },
-          ).catch((err: unknown) => {
-            logger
-              .withSituation("RPC")
-              .warn(
-                { err },
-                "suggestion.onNew: memory recall failed, continuing without",
+        ? (async () => {
+            try {
+              return await collectEffectiveMemoryRecallOp(
+                {
+                  text: element.value,
+                  sourceLanguageId: element.languageId,
+                  translationLanguageId: languageId,
+                  projectMemoryIds,
+                  personalMemoryIds,
+                  excludeMemoryItemIds,
+                },
+                {
+                  pluginManager,
+                  signal: context.requestSignal,
+                  traceId: crypto.randomUUID(),
+                },
               );
-            return [] as MemorySuggestionWithPrecision[];
-          })
-        : Promise.resolve([]),
+            } catch (error) {
+              return await throwRecallOperationFailure({
+                context,
+                error,
+                affectedResources: [
+                  { type: "PROJECT", id: element.projectId },
+                  { type: "ELEMENT", id: String(elementId) },
+                ],
+              });
+            }
+          })()
+        : Promise.resolve(undefined),
       glossaryIds.length > 0
-        ? termRecallOp(
-            {
-              text: element.value,
-              sourceLanguageId: element.languageId,
-              translationLanguageId: languageId,
-              glossaryIds,
-            },
-            { pluginManager, traceId: crypto.randomUUID() },
-          ).catch((err: unknown) => {
-            logger
-              .withSituation("RPC")
-              .warn(
-                { err },
-                "suggestion.onNew: term recall failed, continuing without",
+        ? (async () => {
+            try {
+              return await collectTermRecallOp(
+                {
+                  text: element.value,
+                  sourceLanguageId: element.languageId,
+                  translationLanguageId: languageId,
+                  glossaryIds,
+                },
+                {
+                  pluginManager,
+                  signal: context.requestSignal,
+                  traceId: crypto.randomUUID(),
+                },
               );
-            return { terms: [] };
-          })
-        : Promise.resolve({ terms: [] }),
+            } catch (error) {
+              return await throwRecallOperationFailure({
+                context,
+                error,
+                affectedResources: [
+                  { type: "PROJECT", id: element.projectId },
+                  { type: "ELEMENT", id: String(elementId) },
+                ],
+              });
+            }
+          })()
+        : Promise.resolve(undefined),
     ]);
+    const recalledMemories =
+      memoryRecallResult === undefined
+        ? []
+        : getEffectiveMemoryRecallCandidates(memoryRecallResult);
 
     // Flatten context for downstream consumers
     const preloadedMemoriesForAdvisors = recalledMemories.map((m) => ({
@@ -194,12 +190,14 @@ export const onNew = authed
       confidence: m.confidence,
     }));
 
-    const preloadedTermsForAdvisors = termContext.terms.map((t) => ({
+    const recalledTerms =
+      termContext === undefined ? [] : getTermRecallCandidates(termContext);
+    const preloadedTermsForAdvisors = recalledTerms.map((t) => ({
       term: t.term,
       translation: t.translation,
       confidence: t.confidence,
       definition: t.definition,
-      concept: t.concept,
+      concept: { subjects: [], definition: t.definition },
     }));
 
     // ── Suggestion queue (receives both Smart Suggest and advisor results) ────
@@ -213,8 +211,8 @@ export const onNew = authed
         );
         if (!parsed.success) {
           logger
-            .withSituation("RPC")
-            .error(parsed.error, "Invalid suggestion format");
+            .child({ component: "rpc" })
+            .error("Invalid suggestion format", { error: parsed.error });
           return;
         }
 
@@ -240,14 +238,18 @@ export const onNew = authed
           adaptedTranslation: m.adaptedTranslation,
           confidence: m.confidence,
         })),
-        terms: termContext.terms.map((t) => ({
+        terms: recalledTerms.map((t) => ({
           term: t.term,
           translation: t.translation,
           definition: t.definition,
         })),
         sessionTranslations: input.sessionTranslations,
       },
-      { pluginManager, traceId: crypto.randomUUID() },
+      {
+        pluginManager,
+        signal: context.requestSignal,
+        traceId: crypto.randomUUID(),
+      },
     )
       .then(({ suggestion }) => {
         if (suggestion) {
@@ -256,15 +258,15 @@ export const onNew = authed
       })
       .catch((err: unknown) => {
         logger
-          .withSituation("RPC")
-          .warn({ err }, "suggestion.onNew: LLM Translate failed, continuing");
+          .child({ component: "rpc" })
+          .warn("suggestion.onNew: LLM Translate failed, continuing", { err });
       });
 
     const advisorTasks = advisors.map(async (advisor) => {
       const elementHash = hash({
         ...element,
         targetLanguageId: languageId,
-        advisorId: advisor.dbId,
+        advisor: pluginManager.createServiceImplementationReference(advisor),
       });
       const cacheKey = `cache:suggestions:${elementHash}`;
 
@@ -282,22 +284,24 @@ export const onNew = authed
           text: element.value,
           glossaryIds,
           memoryIds: allMemoryIds,
-          advisorId: advisor.dbId,
+          advisor: pluginManager.createServiceImplementationReference(advisor),
           sourceLanguageId: element.languageId,
           translationLanguageId: languageId,
           eventElementId: elementId,
-          eventAdvisorId: advisor.dbId,
+          eventAdvisor:
+            pluginManager.createServiceImplementationReference(advisor),
           preloadedMemories: preloadedMemoriesForAdvisors,
           preloadedTerms: preloadedTermsForAdvisors,
         },
         {
           pluginManager,
+          signal: context.requestSignal,
         },
       );
 
       const advisorSuggestions = suggestions.map((suggestion) => ({
         ...suggestion,
-        advisorId: advisor.dbId,
+        advisor: pluginManager.createServiceImplementationReference(advisor),
       }));
 
       await cacheStore.set(cacheKey, advisorSuggestions, 60 * 60);
@@ -308,7 +312,9 @@ export const onNew = authed
         suggestionsQueue.close();
       })
       .catch((err: unknown) => {
-        logger.withSituation("RPC").error(err, "Error processing suggestions");
+        logger
+          .child({ component: "rpc" })
+          .error("Error processing suggestions", { error: err });
         suggestionsQueue.close();
       });
 
@@ -324,9 +330,9 @@ export const onNew = authed
 
     try {
       for await (const suggestion of suggestionsQueue.consume()) {
-        // LLM-translate suggestions have no advisorId; advisor suggestions do.
+        // LLM-translate suggestions have no advisor reference; advisor suggestions do.
         const sourceType: "llm-translate" | "advisor" =
-          suggestion.advisorId === undefined ? "llm-translate" : "advisor";
+          suggestion.advisor === undefined ? "llm-translate" : "advisor";
 
         const key = `${suggestion.translation}\0${sourceType}`;
         if (yielded.has(key)) continue;

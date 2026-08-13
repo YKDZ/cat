@@ -1,23 +1,20 @@
 import {
-  executeCommand,
   executeQuery,
   getPlugin,
   getPluginConfig,
   getPluginConfigInstance,
-  getPluginServiceById,
   isPluginInstalled,
   listPluginServiceIdsByType,
   listPlugins,
-  upsertPluginConfigInstance,
 } from "@cat/domain";
-import { ComponentRecordSchema, PluginManager } from "@cat/plugin-core";
+import { ComponentRecordSchema } from "@cat/plugin-core";
 import {
   PluginConfigInstanceSchema,
   PluginConfigSchema,
   PluginSchema,
+  ServiceImplementationReferenceSchema,
 } from "@cat/shared";
 import { ScopeTypeSchema } from "@cat/shared";
-import { nonNullSafeZDotJson } from "@cat/shared";
 import {
   AuthMethodSchema,
   TranslationAdvisorDataSchema,
@@ -31,7 +28,9 @@ import { authed, base, checkPermission } from "#/orpc/server.ts";
 import {
   installPluginToScope,
   getPluginDetailModel,
+  migratePluginConfigAndApply,
   reloadPluginRuntime,
+  resolvePluginManager,
   savePluginConfigAndApply,
   uninstallPluginFromScope,
 } from "#/services/plugin-management.ts";
@@ -39,6 +38,7 @@ import { probePluginConfig } from "#/services/plugin-probe.ts";
 import {
   PluginActionResultSchema,
   PluginDetailSchema,
+  MigratePluginConfigAndApplyInputSchema,
   PluginProbeResultSchema,
   PluginScopeInputSchema,
   ProbePluginConfigInputSchema,
@@ -77,6 +77,14 @@ export const saveConfigAndApply = authed
     return await savePluginConfigAndApply(context, input);
   });
 
+export const migrateConfigAndApply = authed
+  .input(MigratePluginConfigAndApplyInputSchema)
+  .use(checkPermission("system", "admin"), () => "*")
+  .output(PluginActionResultSchema)
+  .handler(async ({ context, input }) => {
+    return await migratePluginConfigAndApply(context, input);
+  });
+
 export const probeConfig = authed
   .input(ProbePluginConfigInputSchema)
   .use(checkPermission("system", "admin"), () => "*")
@@ -99,7 +107,7 @@ export const reload = authed
     } = context;
     const { scopeType, scopeId } = input;
 
-    const registry = PluginManager.get(scopeType, scopeId);
+    const registry = resolvePluginManager(context, { scopeType, scopeId });
 
     await registry.restore(drizzle);
   });
@@ -142,28 +150,6 @@ export const getConfig = authed
     return executeQuery({ db: drizzle }, getPluginConfig, input);
   });
 
-export const upsertConfigInstance = authed
-  .input(
-    z.object({
-      pluginId: z.string(),
-      scopeType: ScopeTypeSchema,
-      scopeId: z.string(),
-      value: nonNullSafeZDotJson,
-    }),
-  )
-  .use(checkPermission("system", "admin"), () => "*")
-  .output(PluginConfigInstanceSchema)
-  .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      user,
-    } = context;
-    return executeCommand({ db: drizzle }, upsertPluginConfigInstance, {
-      ...input,
-      creatorId: user.id,
-    });
-  });
-
 export const get = authed
   .input(
     z.object({
@@ -204,12 +190,9 @@ export const getAllAuthMethod = base
 
     const methods: AuthMethod[] = [];
 
-    for (const { dbId, id, service } of pluginManager.getServices(
-      "AUTH_FACTOR",
-    )) {
+    for (const { id, service } of pluginManager.getServices("AUTH_FACTOR")) {
       if (service.getAal() === 1 && providersData.includes(service.getId())) {
         methods.push({
-          providerDBId: dbId,
           providerId: id,
           name: service.getName(),
           icon: service.getIcon(),
@@ -228,10 +211,11 @@ export const getAllTranslationAdvisors = authed
 
     return Promise.all(
       pluginManager.getServices("TRANSLATION_ADVISOR").map(
-        async ({ dbId, service }) =>
+        async (registered) =>
           ({
-            id: dbId,
-            name: service.getDisplayName(),
+            reference:
+              pluginManager.createServiceImplementationReference(registered),
+            name: registered.service.getDisplayName(),
           }) satisfies TranslationAdvisorData,
       ),
     );
@@ -240,43 +224,21 @@ export const getAllTranslationAdvisors = authed
 export const getTranslationAdvisor = authed
   .input(
     z.object({
-      advisorId: z.int(),
+      advisor: ServiceImplementationReferenceSchema,
     }),
   )
   .output(TranslationAdvisorDataSchema)
   .handler(async ({ context, input }) => {
-    const {
-      drizzleDB: { client: drizzle },
-      pluginManager,
-    } = context;
-    const { advisorId } = input;
-
-    const dbAdvisor = await executeQuery(
-      { db: drizzle },
-      getPluginServiceById,
-      {
-        serviceDbId: advisorId,
-        serviceType: "TRANSLATION_ADVISOR",
-      },
-    );
-
-    if (!dbAdvisor) {
-      throw new ORPCError("NOT_FOUND", {
-        message: "Translation Advisor not found",
-      });
-    }
-
-    const service = pluginManager.getService(
-      dbAdvisor.pluginId,
+    const { pluginManager } = context;
+    const service = pluginManager.resolveServiceImplementationReference(
+      input.advisor,
       "TRANSLATION_ADVISOR",
-      dbAdvisor.serviceId,
     );
-
-    if (!service) throw new ORPCError("NOT_FOUND");
+    if (service.kind !== "RESOLVED") throw new ORPCError("NOT_FOUND");
 
     return {
-      id: advisorId,
-      name: service.service.getDisplayName(),
+      reference: input.advisor,
+      name: service.service.service.getDisplayName(),
     };
   });
 

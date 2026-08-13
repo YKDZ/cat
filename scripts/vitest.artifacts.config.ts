@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     environment: "node",
     hookTimeout: 180_000,
-    include: ["scripts/public-packages.test.ts"],
+    include: ["scripts/package-artifacts.test.ts"],
     reporters: ["agent"],
     silent: "passed-only",
     testTimeout: 180_000,

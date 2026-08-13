@@ -1,5 +1,8 @@
 import { account, hashPassword, user } from "@cat/db";
-import { assertSingleNonNullish } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
@@ -8,7 +11,7 @@ export const RegisterUserWithPasswordAccountCommandSchema = z.object({
   email: z.email(),
   name: z.string(),
   password: z.string(),
-  authProviderId: z.int(),
+  authProvider: ServiceImplementationReferenceSchema,
 });
 
 export type RegisterUserWithPasswordAccountCommand = z.infer<
@@ -46,7 +49,7 @@ export const registerUserWithPasswordAccount: Command<
         meta: {
           password: await hashPassword(command.password),
         },
-        authProviderId: command.authProviderId,
+        authProvider: command.authProvider,
       })
       .returning({
         providerIssuer: account.providerIssuer,

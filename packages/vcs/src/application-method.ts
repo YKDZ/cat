@@ -1,4 +1,4 @@
-import type { DbHandle } from "@cat/domain";
+import type { DbHandle, EventCollector } from "@cat/domain";
 import type { JSONType } from "@cat/shared";
 
 /**
@@ -55,6 +55,7 @@ export interface ApplicationContext {
   sessionId?: string;
   agentRunId?: number;
   db?: DbHandle;
+  collector?: EventCollector;
 }
 
 /**

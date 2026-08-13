@@ -19,9 +19,10 @@ import { useI18n } from "vue-i18n";
 import Markdown from "#/components/Markdown.vue";
 import { orpc } from "#/rpc/orpc.ts";
 import { useNotificationStore } from "#/stores/notification.ts";
+import { formatTimestamp } from "#/utils/format.ts";
 import { getCategoryLabel as _getCategoryLabel } from "#/utils/notification.ts";
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const ctx = usePageContext();
 const store = useNotificationStore();
 const getCategoryLabel = (category: string) => _getCategoryLabel(t, category);
@@ -80,7 +81,7 @@ const item = computed(() => state.value.data);
             getCategoryLabel(item.category)
           }}</Badge>
           <time class="text-xs text-muted-foreground">
-            {{ new Date(item.createdAt).toLocaleString() }}
+            {{ formatTimestamp(item.createdAt, locale) }}
           </time>
         </div>
         <CardTitle class="text-xl">{{ t(item.title) }}</CardTitle>

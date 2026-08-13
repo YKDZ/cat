@@ -1,13 +1,19 @@
 import type { OperationContext } from "@cat/domain";
 import { getDbHandle } from "@cat/domain";
 import { createVectorizedChunks, executeCommand } from "@cat/domain";
-import { resolvePluginManager } from "@cat/server-shared";
-import type { JSONType } from "@cat/shared";
+import {
+  resolvePluginManager,
+  resolveServiceImplementation,
+} from "@cat/server-shared";
+import {
+  type JSONType,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import z from "zod";
 
 const InputSchema = z.object({
-  vectorizerId: z.int(),
-  vectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  vectorStorage: ServiceImplementationReferenceSchema,
   data: z.array(
     z.object({
       languageId: z.string(),
@@ -41,7 +47,7 @@ export type VectorizeOutput = z.infer<typeof OutputSchema>;
  * @returns - List of ChunkSet IDs, one per input text
  */
 export const vectorizeToChunkSetOp = async (
-  { data, vectorStorageId, vectorizerId }: VectorizeInput,
+  { data, vectorStorage, vectorizer }: VectorizeInput,
   ctx?: OperationContext,
 ): Promise<VectorizeOutput> => {
   const { client: drizzle } = await getDbHandle();
@@ -49,33 +55,18 @@ export const vectorizeToChunkSetOp = async (
 
   if (data.length === 0) return { chunkSetIds: [] };
 
-  const vectorizer = pluginManager
-    .getServices("TEXT_VECTORIZER")
-    .find((service) => service.dbId === vectorizerId)?.service;
-  const storage = pluginManager
-    .getServices("VECTOR_STORAGE")
-    .find((service) => service.dbId === vectorStorageId)?.service;
+  const vectorizerService = resolveServiceImplementation(
+    pluginManager,
+    vectorizer,
+    "TEXT_VECTORIZER",
+  );
+  const storage = resolveServiceImplementation(
+    pluginManager,
+    vectorStorage,
+    "VECTOR_STORAGE",
+  );
 
-  if (!vectorizer || !storage) {
-    throw new Error(
-      [
-        "Vectorize services not available in current plugin scope",
-        `scope=${pluginManager.scopeType}:${pluginManager.scopeId}`,
-        `vectorizerId=${vectorizerId}`,
-        `availableVectorizers=${pluginManager
-          .getServices("TEXT_VECTORIZER")
-          .map((service) => service.dbId)
-          .join(",")}`,
-        `vectorStorageId=${vectorStorageId}`,
-        `availableStorages=${pluginManager
-          .getServices("VECTOR_STORAGE")
-          .map((service) => service.dbId)
-          .join(",")}`,
-      ].join(" | "),
-    );
-  }
-
-  const chunkDataList = await vectorizer.vectorize({ elements: data });
+  const chunkDataList = await vectorizerService.vectorize({ elements: data });
   if (chunkDataList.length !== data.length) {
     throw new Error("Vectorizer result length mismatch with input texts");
   }
@@ -111,8 +102,8 @@ export const vectorizeToChunkSetOp = async (
     { db: drizzle },
     createVectorizedChunks,
     {
-      vectorizerId,
-      vectorStorageId,
+      vectorizer,
+      vectorStorage,
       chunkSetCount: numSets,
       chunks: flattened.map((item) => ({
         textIndex: item.textIndex,

@@ -3,6 +3,18 @@ import * as z from "zod";
 import { DrizzleDateTimeSchema } from "#/schema/misc.ts";
 import { _JSONSchemaSchema, nonNullSafeZDotJson, safeZDotJson } from "#/schema/json.ts";
 
+export const BootstrapReceiptSchema = z.object({
+  id: z.int(),
+  idempotencyKey: z.string(),
+  planVersion: z.string(),
+  inputDigest: z.string(),
+  schemaDigest: z.string(),
+  pluginDigest: z.string(),
+  appliedAt: DrizzleDateTimeSchema,
+});
+
+export type BootstrapReceipt = z.infer<typeof BootstrapReceiptSchema>;
+
 export const PluginSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -33,6 +45,9 @@ export const PluginConfigSchema = z.object({
   id: z.int(),
   pluginId: z.string(),
   schema: _JSONSchemaSchema,
+  schemaVersion: z.string(),
+  schemaDigest: z.string(),
+  isAvailable: z.boolean(),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });
@@ -43,6 +58,8 @@ export const PluginConfigInstanceSchema = z.object({
   id: z.int(),
   value: nonNullSafeZDotJson,
   creatorId: z.uuidv4().nullable(),
+  appliedVersion: z.string(),
+  revision: z.int(),
   configId: z.int(),
   pluginInstallationId: z.int(),
   createdAt: DrizzleDateTimeSchema,
@@ -55,7 +72,7 @@ export const PluginServiceSchema = z.object({
   id: z.int(),
   serviceId: z.string(),
   pluginInstallationId: z.int(),
-  serviceType: z.enum(["AUTH_FACTOR", "STORAGE_PROVIDER", "FILE_IMPORTER", "FILE_EXPORTER", "TRANSLATION_ADVISOR", "TEXT_VECTORIZER", "VECTOR_STORAGE", "QA_CHECKER", "TOKENIZER", "LLM_PROVIDER", "RERANK_PROVIDER", "AGENT_TOOL_PROVIDER", "AGENT_CONTEXT_PROVIDER", "NLP_WORD_SEGMENTER", "EMAIL_PROVIDER"]),
+  serviceType: z.enum(["AUTH_FACTOR", "STORAGE_PROVIDER", "FILE_IMPORTER", "FILE_EXPORTER", "TRANSLATION_ADVISOR", "TEXT_VECTORIZER", "VECTOR_STORAGE", "QA_CHECKER", "TOKENIZER", "LLM_PROVIDER", "RERANK_PROVIDER", "AGENT_TOOL_PROVIDER", "AGENT_CONTEXT_PROVIDER", "LANGUAGE_ANALYZER", "EMAIL_PROVIDER"]),
   createdAt: DrizzleDateTimeSchema,
   updatedAt: DrizzleDateTimeSchema,
 });

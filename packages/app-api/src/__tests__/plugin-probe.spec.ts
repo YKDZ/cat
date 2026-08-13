@@ -30,11 +30,27 @@ import { errorMessage, redactJson } from "#/services/plugin-redaction.ts";
 const PLUGIN_ID = "probe-plugin";
 const UPDATED_AT = new Date("2026-05-16T00:00:00.000Z");
 
+type TransactionClient = {
+  transaction: <T>(
+    callback: (transaction: TransactionClient) => Promise<T>,
+  ) => Promise<T>;
+};
+
+const createTransactionClient = (): TransactionClient => {
+  let client: TransactionClient;
+  const transaction: TransactionClient["transaction"] = vi.fn(
+    async (callback) => await callback(client),
+  );
+  client = { transaction };
+  return client;
+};
+
 const createContext = (
   manager: PluginManager,
   requestSignal?: AbortSignal,
 ): Context => {
   const base = createAuthedTestContext();
+  const client = createTransactionClient();
   return {
     ...base,
     pluginManager: manager,
@@ -46,7 +62,7 @@ const createContext = (
     },
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     drizzleDB: {
-      client: { transaction: vi.fn() },
+      client,
     } as unknown as Context["drizzleDB"],
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion
     redis: {} as unknown as Context["redis"],
@@ -111,6 +127,7 @@ const mockDetailQueries = (options?: {
     id: number;
     pluginId: string;
     schema: Record<string, unknown>;
+    isAvailable?: boolean;
   } | null;
   installation?: { id: number } | null;
   configInstance?: {
@@ -174,6 +191,17 @@ describe("plugin redaction helpers", () => {
     expect(redactJson({ nested: { secretAccessKey: "minio-secret" } })).toEqual(
       { nested: { secretAccessKey: "[REDACTED]" } },
     );
+    expect(
+      redactJson({
+        csrfToken: "csrf-secret",
+        tokenCount: 2,
+        tokens: ["Hello", "world"],
+      }),
+    ).toEqual({
+      csrfToken: "[REDACTED]",
+      tokenCount: 2,
+      tokens: ["Hello", "world"],
+    });
   });
 
   it("redacts secret-bearing error messages", () => {
@@ -192,6 +220,76 @@ describe("plugin probe service", () => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     PluginManager.clear();
+  });
+
+  it("uses the request runtime manager loader for candidate probes", async () => {
+    const analyze = vi.fn().mockResolvedValue({
+      sentences: [{ text: "Hello world", start: 0, end: 11, tokens: [] }],
+      tokens: [],
+      attestation: {
+        contract: "cat.language-analysis/v1",
+        languageId: "en",
+        implementation: {
+          reference: {
+            pluginId: PLUGIN_ID,
+            serviceId: "runtime-language-analyzer",
+            serviceType: "LANGUAGE_ANALYZER",
+            scopeType: "GLOBAL",
+            scopeId: "",
+          },
+          packageName: PLUGIN_ID,
+          packageVersion: "0.0.1",
+        },
+        generation: {
+          id: `sha256:${"a".repeat(64)}`,
+          planDigest: "b".repeat(64),
+          schemaVersion: "1",
+          provisionerVersion: "1",
+          serverProtocolVersion: "1",
+          sitePackagesDigest: "d".repeat(64),
+          pythonAbi: "cpython-312",
+          pythonImplementation: "cpython",
+          pythonVersion: "3.12.0",
+          platform: "linux-x86_64",
+          spacyVersion: "3.8.0",
+        },
+        semanticConfig: {},
+        engine: { name: "test", version: "1" },
+        pipeline: { id: "test", version: "1" },
+        model: { id: "test", version: "1" },
+        assets: [{ id: "test", version: "1", sha256: "c".repeat(64) }],
+      },
+    });
+    const analyzer = {
+      getId: () => "runtime-language-analyzer",
+      getType: () => "LANGUAGE_ANALYZER" as const,
+      getLanguageAnalysisConfigurationAssessment: () => ({
+        status: "VALID" as const,
+        supportedLanguages: ["en"],
+        semanticConfiguration: {},
+      }),
+      analyze,
+    };
+    const manager = makeManager(
+      async () => [analyzer],
+      [{ id: "runtime-language-analyzer", type: "LANGUAGE_ANALYZER" }],
+    );
+    vi.spyOn(PluginManager, "get").mockImplementation(() => {
+      throw new Error("candidate probes must not create a default manager");
+    });
+    mockDetailQueries();
+
+    const result = await probePluginConfig(createContext(manager), {
+      pluginId: PLUGIN_ID,
+      scopeType: "GLOBAL",
+      scopeId: "",
+      target: "CANDIDATE",
+    });
+
+    expect(result.overallStatus).toBe("SUCCESS");
+    expect(analyze).toHaveBeenCalledWith(
+      expect.objectContaining({ languageId: "en", text: "Hello world" }),
+    );
   });
 
   it("candidate LLM probe succeeds without mutating runtime state", async () => {
@@ -567,6 +665,7 @@ describe("plugin probe service", () => {
           properties: { endpoint: { type: "string" } },
           required: ["endpoint"],
         },
+        isAvailable: true,
       },
       installation: { id: 1 },
       configInstance: null,

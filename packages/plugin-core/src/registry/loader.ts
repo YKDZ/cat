@@ -12,7 +12,7 @@ import {
 import { logger } from "@cat/shared";
 import z from "zod";
 
-import type { CatPlugin } from "#/entities/plugin.ts";
+import type { CatPlugin, PluginLogger } from "#/entities/plugin.ts";
 
 const PluginObjectSchema = z.custom<CatPlugin>();
 
@@ -27,11 +27,18 @@ export interface PluginLoader {
   ) => Promise<string | null>;
 }
 
+export type FileSystemPluginLoaderOptions = {
+  diagnosticLogger?: PluginLogger;
+  pluginsDir?: string;
+};
+
 export class FileSystemPluginLoader implements PluginLoader {
+  private readonly diagnosticLogger: PluginLogger;
   private readonly pluginsDir: string;
 
-  constructor(pluginsDir?: string) {
-    this.pluginsDir = pluginsDir ?? join(process.cwd(), "plugins");
+  public constructor(options: FileSystemPluginLoaderOptions = {}) {
+    this.diagnosticLogger = options.diagnosticLogger ?? logger;
+    this.pluginsDir = options.pluginsDir ?? join(process.cwd(), "plugins");
   }
 
   private getPluginFsPath = (id: string): string => join(this.pluginsDir, id);
@@ -48,8 +55,8 @@ export class FileSystemPluginLoader implements PluginLoader {
     try {
       await access(manifestPath);
     } catch {
-      logger
-        .withSituation("PLUGIN")
+      this.diagnosticLogger
+        .child({ component: "plugin" })
         .debug(`Plugin ${pluginId} missing manifest.json`);
       throw new Error(`Plugin ${pluginId} missing manifest.json`);
     }
@@ -115,9 +122,11 @@ export class FileSystemPluginLoader implements PluginLoader {
           const manifest = await this.getManifest(dir.name);
           results.push(manifest);
         } catch (err) {
-          logger
-            .withSituation("PLUGIN")
-            .error(err, `Error reading manifest.json in ${dir.name}`);
+          this.diagnosticLogger
+            .child({ component: "plugin" })
+            .error(`Error reading manifest.json in ${dir.name}`, {
+              error: err,
+            });
         }
       }),
     );

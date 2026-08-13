@@ -14,12 +14,17 @@ export type QueueTask<T> = {
   leasedUntil?: string;
 };
 
+export type EnqueueOptions = {
+  /** Stable queue identities. Existing identities are not enqueued again. */
+  taskIds?: string[];
+};
+
 /**
  * Task queue interface — abstracts enqueue, dequeue, ack, and nack operations.
  */
 export type TaskQueue<T> = {
-  /** Enqueue tasks in batch */
-  enqueue: (payloads: T[]) => Promise<string[]>;
+  /** Enqueue tasks in batch, returning only identities inserted by this call. */
+  enqueue: (payloads: T[], options?: EnqueueOptions) => Promise<string[]>;
   /** Dequeue up to maxCount pending tasks */
   dequeue: (maxCount: number) => Promise<QueueTask<T>[]>;
   /** Acknowledge task completion */

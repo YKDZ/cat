@@ -9,12 +9,16 @@ import {
 } from "@cat/domain";
 import {
   collectLLMResponse,
-  firstOrGivenService,
+  resolveServiceImplementation,
   resolvePluginManager,
   serverLogger as logger,
+  selectFirstServiceImplementation,
 } from "@cat/server-shared";
-import type { FlattenedContextEvidence } from "@cat/shared";
-import { TranslationAdviseSchema } from "@cat/shared";
+import {
+  type FlattenedContextEvidence,
+  ServiceImplementationReferenceSchema,
+  TranslationAdviseSchema,
+} from "@cat/shared";
 import * as z from "zod";
 
 // ─── Config schema ─────────────────────────────────────────────────────────────
@@ -88,7 +92,7 @@ export const LlmTranslateInputSchema = z.object({
 
   sessionTranslations: z.array(SessionTranslationSchema).default([]),
 
-  llmProviderId: z.int().optional(),
+  llmProvider: ServiceImplementationReferenceSchema.optional(),
   temperature: z.number().default(0.3),
   maxTokens: z.int().default(1024),
 });
@@ -333,11 +337,11 @@ const loadContext = async (
       return await fn();
     } catch (err: unknown) {
       logger
-        .withSituation("OP")
-        .warn(
-          { err, elementId: input.elementId },
-          `llmTranslateOp: ${label} failed, omitting`,
-        );
+        .child({ component: "operation" })
+        .warn(`llmTranslateOp: ${label} failed, omitting`, {
+          err,
+          elementId: input.elementId,
+        });
       return null;
     }
   };
@@ -433,11 +437,16 @@ export const llmTranslateOp = async (
 ): Promise<LlmTranslateOutput> => {
   const input = LlmTranslateInputSchema.parse(data);
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const llmService = firstOrGivenService(
-    pluginManager,
-    "LLM_PROVIDER",
-    input.llmProviderId,
-  );
+  const llmService = input.llmProvider
+    ? {
+        reference: input.llmProvider,
+        service: resolveServiceImplementation(
+          pluginManager,
+          input.llmProvider,
+          "LLM_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "LLM_PROVIDER");
 
   if (!llmService) {
     return { suggestion: null };
@@ -449,11 +458,10 @@ export const llmTranslateOp = async (
     resolved = await loadContext(input);
   } catch (err: unknown) {
     logger
-      .withSituation("OP")
-      .error(
-        { err, elementId: input.elementId },
-        "llmTranslateOp: data loading failed, returning null",
-      );
+      .child({ component: "operation" })
+      .error("llmTranslateOp: data loading failed, returning null", {
+        error: { err, elementId: input.elementId },
+      });
     return { suggestion: null };
   }
 
@@ -517,11 +525,11 @@ export const llmTranslateOp = async (
     };
   } catch (err: unknown) {
     logger
-      .withSituation("OP")
-      .warn(
-        { err, elementId: input.elementId },
-        "llmTranslateOp: LLM call failed",
-      );
+      .child({ component: "operation" })
+      .warn("llmTranslateOp: LLM call failed", {
+        err,
+        elementId: input.elementId,
+      });
     return { suggestion: null };
   }
 };

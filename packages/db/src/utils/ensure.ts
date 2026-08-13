@@ -1,6 +1,10 @@
 import { randomBytes } from "node:crypto";
 
-import { assertSingleNonNullish, assertSingleOrNull } from "@cat/shared";
+import {
+  assertSingleNonNullish,
+  assertSingleOrNull,
+  ServiceImplementationReferenceSchema,
+} from "@cat/shared";
 import { eq } from "drizzle-orm";
 
 import { DrizzleDB } from "#/drizzle/db.ts";
@@ -10,6 +14,7 @@ import {
 } from "#/drizzle/index.ts";
 import {
   language as languageTable,
+  pluginInstallation,
   pluginService,
 } from "#/drizzle/schema/schema.ts";
 import {
@@ -85,13 +90,23 @@ export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
         ? "password"
         : randomBytes(8).toString("hex");
 
-    const { id: authProviderId } = assertSingleNonNullish(
-      await tx
-        .select({
-          id: pluginService.id,
-        })
-        .from(pluginService)
-        .where(eq(pluginService.serviceId, "PASSWORD")),
+    const authProvider = ServiceImplementationReferenceSchema.parse(
+      assertSingleNonNullish(
+        await tx
+          .select({
+            pluginId: pluginInstallation.pluginId,
+            serviceId: pluginService.serviceId,
+            serviceType: pluginService.serviceType,
+            scopeType: pluginInstallation.scopeType,
+            scopeId: pluginInstallation.scopeId,
+          })
+          .from(pluginService)
+          .innerJoin(
+            pluginInstallation,
+            eq(pluginService.pluginInstallationId, pluginInstallation.id),
+          )
+          .where(eq(pluginService.serviceId, "PASSWORD")),
+      ),
     );
 
     await tx
@@ -99,7 +114,7 @@ export const ensureRootUser = async (tx: DrizzleTransaction): Promise<void> => {
       .values({
         providerIssuer: "PASSWORD",
         providedAccountId: "admin@encmys.cn",
-        authProviderId,
+        authProvider,
         userId: admin.id,
         meta: {
           password: await hashPassword(password),

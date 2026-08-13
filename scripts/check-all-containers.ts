@@ -1,43 +1,45 @@
 import { randomUUID } from "node:crypto";
 import { setTimeout as sleep } from "node:timers/promises";
 
+import { redactDiagnosticText } from "@cat/shared";
+
+import { parseTestServiceLease } from "../apps/app-e2e/test-service-lease.ts";
+import {
+  type ReleaseImage,
+  type ReleaseImageBuildResult,
+  type ReleaseImageTarget,
+} from "./image-builder.ts";
 import {
   CommandExecutionError,
   type ApplicationLifecycleContext,
-} from "./check-all.ts";
+  type VerificationCommandResult as CommandExecutionResult,
+} from "./verification-runtime.ts";
 
 const dockerfile = "apps/app/Dockerfile";
 const cleanupTimeoutMs = 30_000;
 const lifecycleDatabaseCleanupTimeoutMs = 60_000;
 const lifecycleDatabaseCleanupAttempts = 3;
-const initializeSearchRuntimeCommand = `CREATE EXTENSION IF NOT EXISTS vector;
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS rum;
-CREATE EXTENSION IF NOT EXISTS zhparser;
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_ts_config WHERE cfgname = 'cat_zh_hans'
-  ) THEN
-    CREATE TEXT SEARCH CONFIGURATION cat_zh_hans (PARSER = zhparser);
-    ALTER TEXT SEARCH CONFIGURATION cat_zh_hans
-      ADD MAPPING FOR n, v, a, i, e, l WITH simple;
-  END IF;
-END
-$$;`;
-
-type ImageMode = "standalone" | "runtime";
+type ImageMode = Exclude<ReleaseImageTarget, "spacy">;
 
 type ContainerServiceUrls = {
   databaseUrl: string;
   redisUrl: string;
+  spacyUrl: string;
 };
 
 type LifecycleDatabase = {
-  initializeSearchRuntime: () => Promise<void>;
   serviceUrls: ContainerServiceUrls;
   remove: () => Promise<void>;
+};
+
+type LifecycleStorage = {
+  mountArgs: string[];
+  remove: () => Promise<void>;
+};
+
+export type ApplicationLifecycleReport = {
+  validatedImageIds: Record<ReleaseImageTarget, string>;
 };
 
 type ImageConfig = {
@@ -49,26 +51,82 @@ type ImageConfig = {
   Volumes?: Record<string, unknown>;
 };
 
+const runDocker = async (
+  context: ApplicationLifecycleContext,
+  args: string[],
+  stdio: "inherit" | "pipe" = "pipe",
+  signal: AbortSignal = context.signal,
+): Promise<CommandExecutionResult> =>
+  await context.run("docker", args, {
+    cwd: process.cwd(),
+    env: context.env,
+    signal,
+    stdio,
+  });
+
 const docker = async (
   context: ApplicationLifecycleContext,
   args: string[],
-  stdio: "inherit" | "pipe" = "inherit",
+  stdio: "inherit" | "pipe" = "pipe",
   signal: AbortSignal = context.signal,
-): Promise<string> =>
-  (
-    await context.run("docker", args, {
-      cwd: process.cwd(),
-      env: context.env,
-      signal,
-      stdio,
-    })
-  ).stdout;
+): Promise<string> => (await runDocker(context, args, stdio, signal)).stdout;
 
 const cleanupDocker = async (
   context: ApplicationLifecycleContext,
   args: string[],
 ): Promise<string> =>
-  await docker(context, args, "inherit", AbortSignal.timeout(cleanupTimeoutMs));
+  await docker(context, args, "pipe", AbortSignal.timeout(cleanupTimeoutMs));
+
+const reportError = (
+  context: ApplicationLifecycleContext,
+  message: string,
+): void => {
+  (context.reportError ?? ((value: string) => process.stderr.write(value)))(
+    redactDiagnosticText(message),
+  );
+};
+
+const reportServerFailure = async (
+  context: ApplicationLifecycleContext,
+  container: string,
+): Promise<void> => {
+  reportError(context, `container lifecycle failure container=${container}\n`);
+  try {
+    const logs = await runDocker(
+      context,
+      ["logs", "--tail", "200", container],
+      "pipe",
+    );
+    if (logs.stdout !== "") reportError(context, logs.stdout);
+    if (logs.stderr !== "") reportError(context, logs.stderr);
+  } catch (error) {
+    reportError(
+      context,
+      `container lifecycle logs container=${container} unavailable=${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  }
+  try {
+    const state = await docker(
+      context,
+      [
+        "inspect",
+        "--format",
+        "status={{.State.Status}} exit-code={{.State.ExitCode}} oom-killed={{.State.OOMKilled}} error={{.State.Error}}",
+        container,
+      ],
+      "pipe",
+    );
+    reportError(
+      context,
+      `container lifecycle state container=${container} ${state.trim() || "<empty>"}\n`,
+    );
+  } catch (error) {
+    reportError(
+      context,
+      `container lifecycle inspect container=${container} unavailable=${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  }
+};
 
 const cleanupLifecycleDatabase = async (
   context: ApplicationLifecycleContext,
@@ -77,31 +135,97 @@ const cleanupLifecycleDatabase = async (
   await docker(
     context,
     args,
-    "inherit",
+    "pipe",
     AbortSignal.timeout(lifecycleDatabaseCleanupTimeoutMs),
   );
 
-const imageName = (
+const contextContractImageName = (
   context: ApplicationLifecycleContext,
-  target: "context-contract" | ImageMode,
-): string => `${context.projectName}-app:${target}`;
+): string => `${context.projectName}-app:context-contract`;
 
-const build = async (
+const serviceProjectName = (context: ApplicationLifecycleContext): string => {
+  const serializedLease = context.env.CAT_TEST_SERVICE_LEASE;
+  if (serializedLease === undefined) return context.projectName;
+  return parseTestServiceLease(serializedLease).ownership.projectName;
+};
+
+const releaseImage = (
+  images: ReleaseImageBuildResult,
+  target: ReleaseImageTarget,
+): ReleaseImage => {
+  const image = images.images.find((candidate) => candidate.target === target);
+  if (image === undefined) {
+    throw new Error(
+      `Missing immutable ${target} image for container validation`,
+    );
+  }
+  return image;
+};
+
+const assertSpacyImageConfig = async (
   context: ApplicationLifecycleContext,
-  target: "context-contract" | ImageMode,
+  image: string,
 ): Promise<void> => {
+  const config = parseImageConfig(
+    await docker(
+      context,
+      ["image", "inspect", "--format", "{{json .Config}}", image],
+      "pipe",
+    ),
+    image,
+  );
+  if (
+    config.User !== "10001:10001" ||
+    JSON.stringify(config.Cmd) !== JSON.stringify(["provision-and-serve"]) ||
+    JSON.stringify(config.Entrypoint) !==
+      JSON.stringify(["python", "-m", "src.cli"]) ||
+    config.Labels?.["org.opencontainers.image.version"] !==
+      (context.buildId ?? context.projectName) ||
+    !("/models" in (config.Volumes ?? {})) ||
+    !Array.isArray(config.Healthcheck?.Test) ||
+    !config.Healthcheck.Test.join(" ").includes("/ready")
+  ) {
+    throw new Error(`Image ${image} does not satisfy its config contract`);
+  }
+
+  await docker(context, [
+    "run",
+    "--rm",
+    "--read-only",
+    "--tmpfs",
+    "/tmp:rw,nosuid,nodev,noexec,mode=1777",
+    "--mount",
+    "type=volume,dst=/models",
+    "--entrypoint",
+    "/bin/sh",
+    image,
+    "-ec",
+    `test "$(id -u):$(id -g)" = "10001:10001"
+test "$(stat -c '%u:%g' /app)" = "0:0"
+test ! -w /app
+test -w /models
+test -w /tmp`,
+  ]);
+};
+
+const buildContextContract = async (
+  context: ApplicationLifecycleContext,
+): Promise<string> => {
+  const image = contextContractImageName(context);
   await docker(context, [
     "build",
+    "--progress=quiet",
     "--file",
     dockerfile,
     "--target",
-    target,
+    "context-contract",
     "--build-arg",
     `DEPLOYMENT_BUILD_ID=${context.projectName}`,
     "--tag",
-    imageName(context, target),
+    image,
     ".",
   ]);
+  return image;
 };
 
 const environmentArgs = (serviceUrls: ContainerServiceUrls): string[] => {
@@ -111,11 +235,16 @@ const environmentArgs = (serviceUrls: ContainerServiceUrls): string[] => {
   const redis = new URL(serviceUrls.redisUrl);
   redis.hostname = "redis";
   redis.port = "6379";
+  const spacy = new URL(serviceUrls.spacyUrl);
+  spacy.hostname = "spacy";
+  spacy.port = "8000";
   return [
     "--env",
     `DATABASE_URL=${database.toString()}`,
     "--env",
     `REDIS_URL=${redis.toString()}`,
+    "--env",
+    `SPACY_SERVER_URL=${spacy.toString()}`,
     "--env",
     "HOST=127.0.0.1",
     "--env",
@@ -123,13 +252,55 @@ const environmentArgs = (serviceUrls: ContainerServiceUrls): string[] => {
   ];
 };
 
+const lifecycleStorageVolumeName = (
+  context: ApplicationLifecycleContext,
+): string => `${context.projectName}-lifecycle-storage`;
+
+const lifecycleBootstrapPlan = (context: ApplicationLifecycleContext): string =>
+  JSON.stringify({
+    idempotencyKey: `${context.projectName}-lifecycle-services-v1`,
+    operations: [
+      {
+        pluginId: "local-storage-provider",
+        scopeId: "",
+        scopeType: "GLOBAL",
+        type: "install-if-absent",
+        value: { "root-path": "/data/storage" },
+      },
+      {
+        pluginId: "spacy-language-analyzer",
+        scopeId: "",
+        scopeType: "GLOBAL",
+        type: "install-if-absent",
+        value: { serverUrl: "http://spacy:8000" },
+      },
+    ],
+    version: "1",
+  });
+
+const createLifecycleStorage = async (
+  context: ApplicationLifecycleContext,
+): Promise<LifecycleStorage> => {
+  const volumeName = lifecycleStorageVolumeName(context);
+  await docker(context, ["volume", "create", volumeName], "pipe");
+  return {
+    mountArgs: ["--mount", `type=volume,src=${volumeName},dst=/data/storage`],
+    remove: async (): Promise<void> => {
+      await cleanupDocker(context, ["volume", "rm", "--force", volumeName]);
+    },
+  };
+};
+
 const createLifecycleDatabase = async (
   context: ApplicationLifecycleContext,
 ): Promise<LifecycleDatabase> => {
   const databaseUrl = context.env.DATABASE_URL;
   const redisUrl = context.env.REDIS_URL;
-  if (!databaseUrl || !redisUrl) {
-    throw new Error("check:all container lifecycle requires database URLs");
+  const spacyUrl = context.env.SPACY_SERVER_URL;
+  if (!databaseUrl || !redisUrl || !spacyUrl) {
+    throw new Error(
+      "Complete verification container lifecycle requires database URLs",
+    );
   }
 
   const connection = new URL(databaseUrl);
@@ -137,11 +308,11 @@ const createLifecycleDatabase = async (
   const password = decodeURIComponent(connection.password);
   if (username === "" || password === "") {
     throw new Error(
-      "check:all container lifecycle requires database credentials",
+      "Complete verification container lifecycle requires database credentials",
     );
   }
   const databaseName = `cat_lifecycle_${randomUUID().replaceAll("-", "")}`;
-  const postgresContainer = `${context.projectName}-postgresql-1`;
+  const postgresContainer = `${serviceProjectName(context)}-postgresql-1`;
   const createCommand = `CREATE DATABASE "${databaseName}"`;
   const terminateConnectionsCommand = `SELECT pg_terminate_backend(pid)
 FROM pg_stat_activity
@@ -169,24 +340,7 @@ WHERE datname = '${databaseName}'
   connection.port = "5432";
   connection.pathname = `/${databaseName}`;
   return {
-    initializeSearchRuntime: async (): Promise<void> => {
-      await docker(context, [
-        "exec",
-        "--env",
-        `PGPASSWORD=${password}`,
-        postgresContainer,
-        "psql",
-        "--username",
-        username,
-        "--dbname",
-        databaseName,
-        "--set",
-        "ON_ERROR_STOP=1",
-        "--command",
-        initializeSearchRuntimeCommand,
-      ]);
-    },
-    serviceUrls: { databaseUrl: connection.toString(), redisUrl },
+    serviceUrls: { databaseUrl: connection.toString(), redisUrl, spacyUrl },
     remove: async (): Promise<void> => {
       let lastError: unknown;
       for (
@@ -249,8 +403,8 @@ const parseImageConfig = (raw: string, image: string): ImageConfig => {
 const assertImageConfig = async (
   context: ApplicationLifecycleContext,
   mode: ImageMode,
+  image: string,
 ): Promise<void> => {
-  const image = imageName(context, mode);
   const config = parseImageConfig(
     await docker(
       context,
@@ -267,7 +421,7 @@ const assertImageConfig = async (
     JSON.stringify(config.Entrypoint) !==
       JSON.stringify(["/usr/local/bin/container-entrypoint"]) ||
     config.Labels?.["org.opencontainers.image.version"] !==
-      context.projectName ||
+      (context.buildId ?? context.projectName) ||
     !("/data" in (config.Volumes ?? {})) ||
     !Array.isArray(config.Healthcheck?.Test) ||
     !config.Healthcheck.Test.join(" ").includes(
@@ -277,10 +431,10 @@ const assertImageConfig = async (
     throw new Error(`Image ${image} does not satisfy its config contract`);
   }
 
-  const preparationAssertion =
+  const lifecycleArtifactsAssertion =
     mode === "standalone"
-      ? "test -f /app/.preparation/prepare-database.mjs && test -d /app/.preparation/drizzle"
-      : "test ! -e /app/.preparation && test ! -e /app/drizzle && test ! -e /app/scripts/prepare-database.mjs";
+      ? "test -f /app/.preparation/prepare-database.mjs && test -f /app/.preparation/database-requirements.mjs && test -d /app/.preparation/drizzle && test -f /app/dist/bootstrap-only/bootstrap-only-cli.js"
+      : "test ! -e /app/.preparation && test ! -e /app/drizzle && test ! -e /app/scripts && test ! -e /app/dist/bootstrap-only && test ! -e /app/compose.yaml && test ! -e /app/compose.local.yaml && test ! -e /app/compose.services.yaml && test ! -e /app/Dockerfile";
   await docker(context, [
     "run",
     "--rm",
@@ -297,20 +451,58 @@ test "$(stat -c '%u:%g' /app/dist)" = "0:0"
 test "$(stat -c '%u:%g' /app/plugins)" = "0:0"
 test "$(stat -c '%u:%g' /data/storage)" = "1001:1001"
 test ! -w /app
+test ! -w /app/plugins
+test -w /data
 test -w /data/storage
+test -w /tmp
 test -d /app/plugins
 test -L /app/storage
 test "$(readlink /app/storage)" = "/data/storage"
-${preparationAssertion}`,
+${lifecycleArtifactsAssertion}`,
   ]);
+};
+
+const assertRuntimeCannotBypassLifecycle = async (
+  context: ApplicationLifecycleContext,
+  image: string,
+): Promise<void> => {
+  for (const implementation of [
+    "/app/.preparation/prepare-database.mjs",
+    "/app/dist/bootstrap-only/bootstrap-only-cli.js",
+    "/app/scripts/bootstrap-local.mjs",
+    "/app/scripts/container-entrypoint-standalone.sh",
+    "/app/scripts/copy-drizzle.ts",
+    "/app/scripts/dev.ts",
+  ]) {
+    try {
+      await docker(context, [
+        "run",
+        "--rm",
+        "--entrypoint",
+        "node",
+        image,
+        implementation,
+      ]);
+    } catch (error) {
+      if (error instanceof CommandExecutionError) continue;
+      throw error;
+    }
+    throw new Error(
+      `Runtime image exposed lifecycle implementation ${implementation}`,
+    );
+  }
 };
 
 const runOneShot = async (
   context: ApplicationLifecycleContext,
-  mode: ImageMode,
+  image: string,
   network: string,
   serviceUrls: ContainerServiceUrls,
   command: string,
+  options: {
+    environment?: string[];
+    storage?: LifecycleStorage;
+  } = {},
 ): Promise<void> => {
   await docker(context, [
     "run",
@@ -320,8 +512,10 @@ const runOneShot = async (
     "/tmp:rw,nosuid,nodev,noexec,mode=1777",
     "--network",
     network,
+    ...(options.storage?.mountArgs ?? []),
     ...environmentArgs(serviceUrls),
-    imageName(context, mode),
+    ...(options.environment ?? []),
+    image,
     command,
   ]);
 };
@@ -342,7 +536,6 @@ const waitForHealthy = async (
     context.signal.throwIfAborted();
     if (status === "healthy") return;
     if (status === "unhealthy") {
-      await docker(context, ["logs", container]);
       throw new Error(`Container ${container} became unhealthy`);
     }
     await sleep(2_000, undefined, { signal: context.signal });
@@ -352,11 +545,13 @@ const waitForHealthy = async (
 
 const runServer = async (
   context: ApplicationLifecycleContext,
-  mode: ImageMode,
+  image: string,
   network: string,
   serviceUrls: ContainerServiceUrls,
   container: string,
   command: string,
+  storage: LifecycleStorage,
+  bootstrapPlan?: string,
 ): Promise<void> => {
   await docker(
     context,
@@ -370,120 +565,239 @@ const runServer = async (
       "/tmp:rw,nosuid,nodev,noexec,mode=1777",
       "--network",
       network,
+      ...storage.mountArgs,
       ...environmentArgs(serviceUrls),
-      imageName(context, mode),
+      ...(bootstrapPlan === undefined
+        ? []
+        : ["--env", `CAT_BOOTSTRAP_PLAN=${bootstrapPlan}`]),
+      image,
       command,
     ],
     "pipe",
   );
+  let failure: unknown;
   try {
     await waitForHealthy(context, container);
-  } finally {
-    await cleanupDocker(context, ["rm", "--force", "--volumes", container]);
+  } catch (error) {
+    failure = error;
+    await reportServerFailure(context, container);
   }
+  let cleanupFailure: unknown;
+  try {
+    await cleanupDocker(context, ["rm", "--force", "--volumes", container]);
+    if (failure !== undefined) {
+      reportError(
+        context,
+        `container lifecycle cleanup container=${container} result=passed\n`,
+      );
+    }
+  } catch (error) {
+    cleanupFailure = error;
+    reportError(
+      context,
+      `container lifecycle cleanup container=${container} result=failed failure=${error instanceof Error ? error.message : String(error)}\n`,
+    );
+  }
+  if (failure !== undefined && cleanupFailure !== undefined) {
+    throw new AggregateError(
+      [failure, cleanupFailure],
+      "Application container validation and cleanup failed",
+    );
+  }
+  if (failure !== undefined) throw failure;
+  if (cleanupFailure !== undefined) throw cleanupFailure;
 };
 
-const assertRuntimeRejectsPreparation = async (
+const assertRejectedLifecycleCommand = async (
   context: ApplicationLifecycleContext,
+  mode: ImageMode,
+  image: string,
   network: string,
   serviceUrls: ContainerServiceUrls,
+  command: string,
 ): Promise<void> => {
   try {
-    await runOneShot(context, "runtime", network, serviceUrls, "prepare-only");
+    await runOneShot(context, image, network, serviceUrls, command);
   } catch (error) {
     if (error instanceof CommandExecutionError && error.exitCode === 64) return;
     throw error;
   }
-  throw new Error("Runtime image accepted a database preparation command");
+  throw new Error(`Image ${mode} accepted unsupported command ${command}`);
 };
 
-const exportValidatedImages = async (
+const assertRuntimeRejectsCapabilityOverride = async (
   context: ApplicationLifecycleContext,
+  image: string,
+  network: string,
+  serviceUrls: ContainerServiceUrls,
 ): Promise<void> => {
-  const directory = context.env.CAT_CHECK_ALL_EXPORT_IMAGES_DIR;
-  if (directory === undefined || directory === "") return;
-  for (const mode of ["standalone", "runtime"] as const) {
+  try {
     await docker(context, [
-      "image",
-      "save",
-      "--output",
-      `${directory}/${mode}.tar`,
-      imageName(context, mode),
+      "run",
+      "--rm",
+      "--read-only",
+      "--tmpfs",
+      "/tmp:rw,nosuid,nodev,noexec,mode=1777",
+      "--network",
+      network,
+      "--env",
+      "CONTAINER_CAPABILITY=prepare-and-start",
+      ...environmentArgs(serviceUrls),
+      image,
+      "bootstrap-only",
     ]);
+  } catch (error) {
+    if (error instanceof CommandExecutionError && error.exitCode === 64) return;
+    throw error;
   }
+  throw new Error("Runtime image accepted an overridden lifecycle capability");
 };
 
 export const runApplicationLifecycle = async (
   context: ApplicationLifecycleContext,
-): Promise<void> => {
-  const network = `${context.projectName}_default`;
-  const images: string[] = [];
+  images: ReleaseImageBuildResult,
+): Promise<ApplicationLifecycleReport> => {
+  const network = `${serviceProjectName(context)}_default`;
+  const temporaryImages: string[] = [];
   let lifecycleDatabase: LifecycleDatabase | undefined;
+  let lifecycleStorage: LifecycleStorage | undefined;
   let failure: unknown;
   try {
-    await build(context, "context-contract");
-    images.push(imageName(context, "context-contract"));
-    await build(context, "standalone");
-    images.push(imageName(context, "standalone"));
-    await build(context, "runtime");
-    images.push(imageName(context, "runtime"));
-    await assertImageConfig(context, "standalone");
-    await assertImageConfig(context, "runtime");
+    const contextContractImage = await buildContextContract(context);
+    temporaryImages.push(contextContractImage);
+    const standaloneImage = releaseImage(images, "standalone").imageId;
+    const runtimeImage = releaseImage(images, "runtime").imageId;
+    const spacyImage = releaseImage(images, "spacy").imageId;
+    await assertImageConfig(context, "standalone", standaloneImage);
+    await assertImageConfig(context, "runtime", runtimeImage);
+    await assertSpacyImageConfig(context, spacyImage);
+    await assertRuntimeCannotBypassLifecycle(context, runtimeImage);
 
     lifecycleDatabase = await createLifecycleDatabase(context);
-    await lifecycleDatabase.initializeSearchRuntime();
+    lifecycleStorage = await createLifecycleStorage(context);
     await runOneShot(
       context,
-      "standalone",
+      standaloneImage,
       network,
       lifecycleDatabase.serviceUrls,
       "prepare-only",
+      { storage: lifecycleStorage },
+    );
+    const bootstrapPlan = lifecycleBootstrapPlan(context);
+    await runOneShot(
+      context,
+      standaloneImage,
+      network,
+      lifecycleDatabase.serviceUrls,
+      "prepare-only",
+      { storage: lifecycleStorage },
     );
     await runOneShot(
       context,
-      "standalone",
+      standaloneImage,
       network,
       lifecycleDatabase.serviceUrls,
-      "prepare-only",
+      "bootstrap-only",
+      {
+        environment: ["--env", `CAT_BOOTSTRAP_PLAN=${bootstrapPlan}`],
+        storage: lifecycleStorage,
+      },
     );
     await runServer(
       context,
-      "standalone",
+      standaloneImage,
       network,
       lifecycleDatabase.serviceUrls,
       `${context.projectName}-standalone`,
       "prepare-and-start",
+      lifecycleStorage,
+      bootstrapPlan,
     );
     await runServer(
       context,
-      "runtime",
+      runtimeImage,
       network,
       lifecycleDatabase.serviceUrls,
       `${context.projectName}-runtime`,
       "start-only",
+      lifecycleStorage,
     );
-    await assertRuntimeRejectsPreparation(
+    for (const command of [
+      "prepare-only",
+      "bootstrap-only",
+      "prepare-and-start",
+    ]) {
+      await assertRejectedLifecycleCommand(
+        context,
+        "runtime",
+        runtimeImage,
+        network,
+        lifecycleDatabase.serviceUrls,
+        command,
+      );
+    }
+    await assertRuntimeRejectsCapabilityOverride(
       context,
+      runtimeImage,
       network,
       lifecycleDatabase.serviceUrls,
     );
-    await exportValidatedImages(context);
+    await assertRejectedLifecycleCommand(
+      context,
+      "standalone",
+      standaloneImage,
+      network,
+      lifecycleDatabase.serviceUrls,
+      "start-only",
+    );
   } catch (error) {
     failure = error;
+  }
+  const cleanupFailures: unknown[] = [];
+  if (lifecycleStorage !== undefined) {
+    try {
+      await lifecycleStorage.remove();
+    } catch (error) {
+      cleanupFailures.push(error);
+    }
   }
   if (lifecycleDatabase !== undefined) {
     try {
       await lifecycleDatabase.remove();
     } catch (error) {
-      if (failure === undefined) failure = error;
+      cleanupFailures.push(error);
     }
   }
-  if (images.length > 0) {
+  if (temporaryImages.length > 0) {
     try {
-      await cleanupDocker(context, ["image", "rm", "--force", ...images]);
+      await cleanupDocker(context, [
+        "image",
+        "rm",
+        "--force",
+        ...temporaryImages,
+      ]);
     } catch (error) {
-      if (failure === undefined) failure = error;
+      cleanupFailures.push(error);
     }
+  }
+  if (failure !== undefined && cleanupFailures.length > 0) {
+    throw new AggregateError(
+      [failure, ...cleanupFailures],
+      "Application lifecycle validation and cleanup failed",
+    );
   }
   if (failure !== undefined) throw failure;
+  if (cleanupFailures.length > 0) {
+    throw new AggregateError(
+      cleanupFailures,
+      "Application lifecycle cleanup failed",
+    );
+  }
+  return {
+    validatedImageIds: {
+      runtime: releaseImage(images, "runtime").imageId,
+      spacy: releaseImage(images, "spacy").imageId,
+      standalone: releaseImage(images, "standalone").imageId,
+    },
+  };
 };

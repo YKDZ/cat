@@ -16,7 +16,7 @@ import Markdown from "#/components/Markdown.vue";
 import TextTooltip from "#/components/tooltip/TextTooltip.vue";
 import UserAvatar from "#/components/UserAvatar.vue";
 import { orpc } from "#/rpc/orpc.ts";
-import { i18nUseTimeAgoMessages } from "#/utils/i18n.ts";
+import { createTimeAgoMessages } from "#/utils/i18n.ts";
 
 import CommentReact from "./CommentReact.vue";
 import CommentReaction from "./CommentReaction.vue";
@@ -37,6 +37,7 @@ const emits = defineEmits<{
 
 const { t } = useI18n();
 const ctx = usePageContext();
+const timeAgoMessages = createTimeAgoMessages(t);
 
 const emojis: {
   emoji: string;
@@ -79,7 +80,7 @@ const emojis: {
 const user = ref<User | null>(null);
 
 const timeAgo = useTimeAgo(props.comment.createdAt, {
-  messages: i18nUseTimeAgoMessages,
+  messages: timeAgoMessages,
 });
 const createdAt = useDateFormat(props.comment.createdAt, "YYYY-MM-DD HH:mm:ss");
 

@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 import { orpc } from "#/rpc/orpc.ts";
-import { ws } from "#/rpc/ws.ts";
+import { setNotificationStreamSignal, waitForWsOpen, ws } from "#/rpc/ws.ts";
 import { clientLogger as logger } from "#/utils/logger.ts";
 
 export type NotificationItem = {
@@ -15,6 +15,10 @@ export type NotificationItem = {
   data: unknown;
   createdAt: Date;
 };
+
+type StreamGeneration = Readonly<{
+  controller: AbortController;
+}>;
 
 const isNotificationPushPayload = (
   value: unknown,
@@ -41,7 +45,22 @@ export const useNotificationStore = defineStore("notification", () => {
   const unreadCount = ref(0);
   const recentNotifications = ref<NotificationItem[]>([]);
   const isStreaming = ref(false);
-  let abortController: AbortController | null = null;
+  let activeGeneration: StreamGeneration | null = null;
+  let navigationStopInstalled = false;
+
+  const stopStreaming = () => {
+    const generation = activeGeneration;
+    activeGeneration = null;
+    if (generation !== null) {
+      generation.controller.abort();
+      setNotificationStreamSignal(undefined);
+    }
+    isStreaming.value = false;
+    if (navigationStopInstalled && typeof window !== "undefined") {
+      window.removeEventListener("beforeunload", stopStreaming);
+      navigationStopInstalled = false;
+    }
+  };
 
   /** Load recent notifications and unread count. */
   const loadInitial = async () => {
@@ -55,14 +74,28 @@ export const useNotificationStore = defineStore("notification", () => {
 
   /** Start the WebSocket notification stream. */
   const startStreaming = async () => {
-    if (isStreaming.value) return;
+    if (activeGeneration !== null) return;
     isStreaming.value = true;
-    abortController = new AbortController();
+    const generation: StreamGeneration = {
+      controller: new AbortController(),
+    };
+    const { controller } = generation;
+    activeGeneration = generation;
+    setNotificationStreamSignal(controller.signal);
+    if (!navigationStopInstalled && typeof window !== "undefined") {
+      window.addEventListener("beforeunload", stopStreaming, { once: true });
+      navigationStopInstalled = true;
+    }
 
     try {
-      const stream = await ws.notification.stream();
+      await waitForWsOpen(controller.signal);
+      if (activeGeneration !== generation || controller.signal.aborted) return;
+      const stream = await ws.notification.stream(undefined, {
+        signal: controller.signal,
+      });
+      if (activeGeneration !== generation || controller.signal.aborted) return;
       for await (const payload of stream) {
-        if (abortController?.signal.aborted) break;
+        if (activeGeneration !== generation || controller.signal.aborted) break;
         if (!isNotificationPushPayload(payload)) continue;
         const item = payload;
         unreadCount.value += 1;
@@ -75,25 +108,28 @@ export const useNotificationStore = defineStore("notification", () => {
           data: item.data,
           createdAt: new Date(),
         });
-        // 保持最近 10 条
+        // Keep the most recent 10 notifications.
         if (recentNotifications.value.length > 10) {
           recentNotifications.value = recentNotifications.value.slice(0, 10);
         }
       }
     } catch (err) {
-      if (!abortController?.signal.aborted) {
-        logger.withSituation("WEB").error(err, "Notification stream error");
+      if (activeGeneration === generation && !controller.signal.aborted) {
+        logger
+          .child({ component: "web" })
+          .error("Notification stream error", { error: err });
       }
     } finally {
-      isStreaming.value = false;
+      if (activeGeneration === generation) {
+        activeGeneration = null;
+        setNotificationStreamSignal(undefined);
+        isStreaming.value = false;
+        if (navigationStopInstalled && typeof window !== "undefined") {
+          window.removeEventListener("beforeunload", stopStreaming);
+          navigationStopInstalled = false;
+        }
+      }
     }
-  };
-
-  /** Stop the stream. */
-  const stopStreaming = () => {
-    abortController?.abort();
-    abortController = null;
-    isStreaming.value = false;
   };
 
   /** Mark a notification as read. */

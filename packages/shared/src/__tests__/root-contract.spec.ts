@@ -7,6 +7,8 @@ describe("@cat/shared root contract", () => {
     expect(shared.AgentDefinitionMetadataSchema).toBeDefined();
     expect(shared.StoredAgentDefinitionSchema).toBeDefined();
     expect(shared.PermissionCheckSchema).toBeDefined();
+    expect(shared.formatDiagnosticErrorTree).toBeDefined();
+    expect(shared.redactDiagnosticText).toBeDefined();
     expect(shared.sanitizeFileName).toBeDefined();
   });
 

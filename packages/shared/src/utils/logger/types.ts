@@ -1,15 +1,23 @@
 export type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
-export type OutputSituation = string;
 
-export interface LogEntry<T = Record<string, unknown>> {
+export type DiagnosticContext = Readonly<Record<string, unknown>>;
+export type DiagnosticFields = Readonly<Record<string, unknown>>;
+
+/** Versioned event shared by browser, server, and plugin diagnostics. */
+export type DiagnosticEvent = Readonly<{
+  version: 1;
+  code: string;
   level: LogLevel;
-  situation: OutputSituation;
   message: string;
-  payload?: T;
-  error?: unknown;
-  timestamp: Date;
-}
+  context: DiagnosticContext;
+  fields: DiagnosticFields;
+  timestamp: string;
+}>;
 
-export interface LoggerTransport {
-  log(entry: LogEntry): void;
-}
+export type DiagnosticTransport = {
+  emit: (event: DiagnosticEvent) => void | Promise<void>;
+};
+
+export type DiagnosticObserver = (
+  event: DiagnosticEvent,
+) => void | Promise<void>;

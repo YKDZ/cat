@@ -24,6 +24,12 @@ export type Command<C, R = void> = (
   command: C,
 ) => Promise<CommandResult<R>>;
 
+export type OperationOwnershipFence = {
+  runId: string;
+  ownerId: string;
+  epoch: number;
+};
+
 /**
  * Cross-cutting context passed through operation chains.
  * Contains a trace ID for distributed tracing, an optional abort signal,
@@ -33,4 +39,6 @@ export type OperationContext = {
   traceId: string;
   signal?: AbortSignal | undefined;
   pluginManager?: unknown;
+  ownershipFence?: OperationOwnershipFence | null | undefined;
+  assertRunOwnership?: (() => Promise<void>) | undefined;
 };

@@ -3,18 +3,29 @@ import { randomUUID } from "node:crypto";
 import * as dbExports from "@cat/db";
 import { relations, type DrizzleDB } from "@cat/db";
 import {
+  prepareDatabaseCapabilities,
+  prepareVectorRuntimeSchema,
+} from "@cat/db/database-capabilities";
+import {
   generateDrizzleJson,
   generateMigration,
 } from "drizzle-kit/api-postgres";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { Client } from "pg";
+import { Client, Pool } from "pg";
 
-export type TestDB = DrizzleDB & { cleanup: () => Promise<void> };
+export type TestDB = DrizzleDB & {
+  cleanup: () => Promise<void>;
+  openConcurrentClient: () => Promise<{
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  }>;
+  openPooledClient: () => {
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  };
+};
 
-/**
- * 向 globalThis 填充基于 NodePg 的测试数据库
- * 并完成迁移
- */
+/** Create a migrated NodePg test database and register it for test consumers. */
 export const setupTestDB = async (): Promise<TestDB> => {
   const connectionString =
     process.env.TEST_DATABASE_URL ||
@@ -24,154 +35,186 @@ export const setupTestDB = async (): Promise<TestDB> => {
   const client = new Client({ connectionString });
   await client.connect();
 
-  // Ensure vector extension is installed in public schema
-  // CI 并行跑多个测试进程时可能会同时执行 CREATE EXTENSION，导致唯一约束冲突
   try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS vector SCHEMA public");
-  } catch (err: unknown) {
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const pgError = err as { code?: string };
-    // 23505: duplicate key (并发创建), 42710: duplicate_object
-    if (pgError.code !== "23505" && pgError.code !== "42710") {
-      throw err;
-    }
-  }
-  try {
-    await client.query("ALTER EXTENSION vector SET SCHEMA public");
-  } catch {
-    // Ignore
-  }
-
-  // Ensure pg_trgm extension is installed in public schema (for ILIKE GIN indexes)
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public");
-  } catch (err: unknown) {
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const pgError = err as { code?: string };
-    if (pgError.code !== "23505" && pgError.code !== "42710") {
-      throw err;
-    }
-  }
-  try {
-    await client.query("ALTER EXTENSION pg_trgm SET SCHEMA public");
-  } catch {
-    // Ignore
-  }
-
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS rum SCHEMA public");
-  } catch (err: unknown) {
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const pgError = err as { code?: string };
-    if (pgError.code !== "23505" && pgError.code !== "42710") {
-      throw err;
-    }
-  }
-  try {
-    await client.query("ALTER EXTENSION rum SET SCHEMA public");
-  } catch {
-    // Ignore
-  }
-
-  try {
-    await client.query("CREATE EXTENSION IF NOT EXISTS zhparser SCHEMA public");
-  } catch (err: unknown) {
-    // oxlint-disable-next-line no-unsafe-type-assertion
-    const pgError = err as { code?: string };
-    if (pgError.code !== "23505" && pgError.code !== "42710") {
-      throw err;
-    }
-  }
-  try {
-    await client.query("ALTER EXTENSION zhparser SET SCHEMA public");
-  } catch {
-    // Ignore
+    await prepareDatabaseCapabilities(client);
+  } catch (error) {
+    await client.end();
+    throw error;
   }
 
   const schemaName = `test_${randomUUID().replace(/-/g, "_")}`;
-  await client.query(`CREATE SCHEMA "${schemaName}"`);
-  // Include public in search_path so that extensions installed in public are visible
-  await client.query(`SET search_path TO "${schemaName}", public`);
-  await client.query(`
-    DO $$
-    DECLARE
-      current_schema_name text := current_schema();
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1
-        FROM pg_ts_config cfg
-        JOIN pg_namespace ns ON ns.oid = cfg.cfgnamespace
-        WHERE cfg.cfgname = 'cat_zh_hans'
-          AND ns.nspname = current_schema_name
-      ) THEN
-        EXECUTE format(
-          'CREATE TEXT SEARCH CONFIGURATION %I.cat_zh_hans (PARSER = zhparser)',
-          current_schema_name
-        );
-        EXECUTE format(
-          'ALTER TEXT SEARCH CONFIGURATION %I.cat_zh_hans ADD MAPPING FOR n, v, a, i, e, l WITH simple',
-          current_schema_name
-        );
-      END IF;
-    END
-    $$;
-  `);
+  const childCleanups = new Set<() => Promise<void>>();
+  const registerChildCleanup = (
+    cleanupChild: () => Promise<void>,
+  ): (() => Promise<void>) => {
+    let cleanupAttempt: Promise<void> | undefined;
+    let cleaned = false;
+    const cleanup = async (): Promise<void> => {
+      if (cleaned) return;
+      if (cleanupAttempt) return await cleanupAttempt;
 
-  const db = drizzle({
-    client,
-    relations,
-  });
+      const attempt = cleanupChild();
+      cleanupAttempt = attempt;
+      try {
+        await attempt;
+        cleaned = true;
+        childCleanups.delete(cleanup);
+      } finally {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      }
+    };
+    childCleanups.add(cleanup);
+    return cleanup;
+  };
+  try {
+    await client.query(`CREATE SCHEMA "${schemaName}"`);
+  } catch (error) {
+    await client.end();
+    throw error;
+  }
+  let cleanupAttempt: Promise<void> | undefined;
+  let clientClosed = false;
+  let schemaDropped = false;
+  const cleanupSchema = async (): Promise<void> => {
+    if (clientClosed) return;
+    if (cleanupAttempt) return await cleanupAttempt;
 
-  const emptySnapshot = await generateDrizzleJson({});
-  const curSnapshot = await generateDrizzleJson(
-    dbExports as Record<string, unknown>,
-  );
-  const sqlStatements = await generateMigration(emptySnapshot, curSnapshot);
-  await client.query(sqlStatements.join("\n"));
-
-  // Manually create Vector table for testing since it was removed from production schema
-  // but TestVectorStorage still relies on it.
-  await client.query(`
-    CREATE TABLE "${schemaName}"."Vector" (
-      "id" serial PRIMARY KEY,
-      "vector" vector(1024) NOT NULL,
-      "chunk_id" integer NOT NULL REFERENCES "${schemaName}"."Chunk"("id") ON DELETE CASCADE ON UPDATE CASCADE
+    const attempt = (async () => {
+      if (!schemaDropped) {
+        await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
+        schemaDropped = true;
+      }
+      await client.end();
+      clientClosed = true;
+    })();
+    cleanupAttempt = attempt;
+    void attempt.then(
+      () => {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      },
+      () => {
+        if (cleanupAttempt === attempt) cleanupAttempt = undefined;
+      },
     );
-    CREATE INDEX "embeddingIndex" ON "${schemaName}"."Vector" USING hnsw ("vector" vector_cosine_ops);
-  `);
+    return await attempt;
+  };
 
-  // oxlint-disable-next-line no-unsafe-type-assertion
-  const drizzleDB = {
-    client: db,
-    connect: async () => {
-      /* noop: connection is managed by pg Client */
-    },
-    disconnect: async () => {
-      // 这里的 disconnect 会被应用逻辑调用，如果是真实环境应该断开连接
-      // 但在测试环境中，我们需要保持连接直到 cleanup 被调用
-    },
-    ping: async () => {
-      await client.query("SELECT 1");
-    },
-  } as unknown as DrizzleDB;
+  let drizzleDB: DrizzleDB;
+  try {
+    // Include public in search_path so that extensions installed in public are visible.
+    await client.query(`SET search_path TO "${schemaName}", public`);
+    const db = drizzle({ client, relations });
+    const emptySnapshot = await generateDrizzleJson({});
+    const curSnapshot = await generateDrizzleJson(
+      dbExports as Record<string, unknown>,
+    );
+    const sqlStatements = await generateMigration(emptySnapshot, curSnapshot);
+    await client.query(sqlStatements.join("\n"));
+
+    await prepareVectorRuntimeSchema(client);
+    // oxlint-disable-next-line no-unsafe-type-assertion
+    drizzleDB = {
+      client: db,
+      connect: async () => {
+        /* noop: connection is managed by pg Client */
+      },
+      disconnect: async () => {
+        // Keep the shared client open until test cleanup owns the connection lifecycle.
+      },
+      ping: async () => {
+        await client.query("SELECT 1");
+      },
+    } as unknown as DrizzleDB;
+  } catch (error) {
+    await cleanupSchema();
+    throw error;
+  }
+
+  const openConcurrentClient = async (): Promise<{
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  }> => {
+    const concurrent = new Client({ connectionString });
+    const cleanup = registerChildCleanup(async () => {
+      await concurrent.end();
+    });
+    try {
+      await concurrent.connect();
+      await concurrent.query(`SET search_path TO "${schemaName}", public`);
+    } catch (setupError) {
+      try {
+        await cleanup();
+      } catch (cleanupError) {
+        throw new AggregateError(
+          [setupError, cleanupError],
+          "Concurrent test database client setup and cleanup failed.",
+        );
+      }
+      throw setupError;
+    }
+    return {
+      client: drizzle({
+        client: concurrent,
+        relations,
+      }) as unknown as DrizzleDB["client"],
+      cleanup,
+    };
+  };
+
+  const openPooledClient = (): {
+    client: DrizzleDB["client"];
+    cleanup: () => Promise<void>;
+  } => {
+    const pool = new Pool({
+      connectionString,
+      options: `-c search_path=${schemaName},public`,
+    });
+    const cleanup = registerChildCleanup(async () => {
+      await pool.end();
+    });
+    return {
+      client: drizzle({
+        client: pool,
+        relations,
+      }) as unknown as DrizzleDB["client"],
+      cleanup,
+    };
+  };
 
   globalThis["__DRIZZLE_DB__"] = drizzleDB;
 
   const cleanup = async () => {
-    // 清除全局引用，防止其他测试获取到已关闭的连接
+    // Do not leave later tests with a closed shared client.
     if (globalThis["__DRIZZLE_DB__"] === drizzleDB) {
       globalThis["__DRIZZLE_DB__"] = undefined;
     }
+    const errors: unknown[] = [];
+    for (const cleanupChild of [...childCleanups]) {
+      try {
+        // Child resources are closed in creation order before dropping their schema.
+        // oxlint-disable-next-line no-await-in-loop
+        await cleanupChild();
+      } catch (error) {
+        errors.push(error);
+      }
+    }
     try {
-      await client.query(`DROP SCHEMA "${schemaName}" CASCADE`);
-    } catch (e) {
-      // oxlint-disable-next-line no-console
-      console.error(`Failed to cleanup schema ${schemaName}`, e);
-    } finally {
-      await client.end();
+      await cleanupSchema();
+    } catch (error) {
+      errors.push(error);
+    }
+    if (errors.length === 1) throw errors[0];
+    if (errors.length > 1) {
+      throw new AggregateError(errors, "Test database cleanup failed.");
     }
   };
 
-  // oxlint-disable-next-line typescript/no-misused-spread, no-unsafe-type-assertion
-  return { ...drizzleDB, cleanup } as unknown as TestDB;
+  // oxlint-disable-next-line no-unsafe-type-assertion
+  return {
+    // oxlint-disable-next-line typescript/no-misused-spread
+    ...drizzleDB,
+    cleanup,
+    openConcurrentClient,
+    openPooledClient,
+  } as unknown as TestDB;
 };

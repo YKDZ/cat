@@ -1,18 +1,20 @@
-import { access } from "fs/promises";
-import { join } from "path";
-
-import { registerBuiltinAgents } from "@cat/agent";
-import app from "@cat/app-api/app";
-import { ensureDB, ensureRootUser } from "@cat/db";
 import {
-  executeCommand,
+  configureReadinessReporter,
+  createReadinessReporter,
+  ReadinessProbeFailure,
+} from "@cat/app-api/app";
+import app from "@cat/app-api/app";
+import {
   executeQuery,
-  getFirstRegisteredUser,
   getSetting,
   getDbHandle,
   getCurrentRedisHandle,
+  getCacheStore,
+  getSessionStore,
+  getRuntimeState,
+  assertDatabaseRequirements,
+  assessDatabaseRequirements,
   initRuntimeState,
-  recoverCrashedAgentRuns,
   resolveRuntimeProfile,
   type DrizzleClient,
   initCacheStore,
@@ -20,34 +22,39 @@ import {
 } from "@cat/domain";
 import { MessageGateway } from "@cat/message";
 import {
+  executeLanguageAnalysisReadinessAssessment,
+  createRecallDerivationTaskProjectionObserver,
   registerDomainEventHandlers,
   registerVectorizationConsumer,
+  startRecallDerivationWorker,
+  type RecallDerivationWorker,
 } from "@cat/operations";
-import {
-  grantFirstUserSuperadmin,
-  initPermissionEngine,
-  registerAuditHandler,
-  seedSystemRoles,
-} from "@cat/permissions";
+import { initPermissionEngine, registerAuditHandler } from "@cat/permissions";
 import { PluginManager } from "@cat/plugin-core";
 import {
   serverLogger as logger,
   setVectorizationQueue,
 } from "@cat/server-shared";
-import { assertPromise } from "@cat/shared";
 import { getDefaultRegistries, wireEntityStateFetchers } from "@cat/vcs";
 import {
   createDefaultGraphRuntime,
+  type DefaultGraphRuntime,
   getGlobalGraphRuntimeOrNull,
 } from "@cat/workflow";
 
-import {
-  createAppPluginLoader,
-  getDefaultPluginIds,
-} from "./default-plugins/catalog.ts";
+import { bootstrapApplicationData } from "./application-data-bootstrap.ts";
+import { createAppPluginLoader } from "./default-plugins/catalog.ts";
+import { createApplicationReadinessReporter } from "./readiness.ts";
 import { createRuntimeBackends } from "./runtime-backends.ts";
-import { startPostgresRuntimeCleanup } from "./runtime-cleanup.ts";
-import { assertSearchRuntimeHealth } from "./search-runtime-health.ts";
+import {
+  getRuntimeCapabilities,
+  hasRuntimeCapabilities,
+  publishRuntimeCapabilities,
+} from "./runtime-capabilities.ts";
+import {
+  startPostgresRuntimeCleanup,
+  type RuntimeCleanupHandle,
+} from "./runtime-cleanup.ts";
 
 const getStringSetting = async (
   drizzle: DrizzleClient,
@@ -58,35 +65,83 @@ const getStringSetting = async (
   return typeof value === "string" ? value : fallback;
 };
 
-export const initializeApp = async (): Promise<void> => {
+const awaitAbortableQuery = async <T>(
+  query: Promise<T>,
+  signal: AbortSignal | undefined,
+): Promise<T> => {
+  if (signal === undefined) return await query;
+
+  let removeAbortListener = (): void => {};
+  const aborted = new Promise<never>((_, reject) => {
+    const abort = (): void => reject(signal.reason);
+    if (signal.aborted) {
+      abort();
+      return;
+    }
+    signal.addEventListener("abort", abort, { once: true });
+    removeAbortListener = (): void =>
+      signal.removeEventListener("abort", abort);
+  });
+
+  try {
+    return await Promise.race([query, aborted]);
+  } finally {
+    removeAbortListener();
+    // node-postgres has no AbortSignal query API; query_timeout bounds this query.
+    void query.catch(() => {});
+  }
+};
+
+const initializeAppOnce = async (): Promise<void> => {
+  const profile = resolveRuntimeProfile();
+  let graphRuntime: DefaultGraphRuntime | null = null;
+  let messageGateway: MessageGateway | null = null;
+  let recallDerivationWorker: RecallDerivationWorker | null = null;
+  let runtimeCleanup: RuntimeCleanupHandle | null = null;
+  configureReadinessReporter(
+    createReadinessReporter({
+      profile: profile.name,
+      probes: [
+        {
+          cost: "cheap",
+          id: "bootstrap",
+          required: true,
+          run: async (): Promise<void> => {
+            if (!globalThis.inited) {
+              throw new ReadinessProbeFailure("BOOTSTRAP_PENDING");
+            }
+          },
+        },
+      ],
+    }),
+  );
   try {
     globalThis.app ??= app;
 
     const drizzleDB = await getDbHandle();
     await drizzleDB.ping();
 
-    if (process.env.DRIZZLE_MIGRATE === "true") {
-      const migrations = join(process.cwd(), "drizzle");
-      await assertPromise(
-        async () => access(migrations),
-        "Does not found drizzle migration folder.",
-      );
-
-      logger.withSituation("SERVER").info("Start to migrate database...");
-
-      const failure = await drizzleDB.migrate(migrations);
-      if (failure) {
-        throw new Error(
-          `Database migration failed with exit code: ${failure.exitCode}`,
+    const requirementDb = {
+      execute: async (
+        statement: string,
+        options: { signal?: AbortSignal; timeoutMs?: number } = {},
+      ) => {
+        options.signal?.throwIfAborted();
+        const query = {
+          text: statement,
+          ...(options.timeoutMs === undefined
+            ? {}
+            : { query_timeout: options.timeoutMs }),
+        };
+        const result = await awaitAbortableQuery(
+          drizzleDB.client.$client.query(query),
+          options.signal,
         );
-      }
-
-      logger.withSituation("SERVER").info("Successfully migrated database!");
-    }
-
-    await ensureDB(drizzleDB);
-    const profile = resolveRuntimeProfile();
-    const database = await assertSearchRuntimeHealth(drizzleDB.client, profile);
+        options.signal?.throwIfAborted();
+        return { rows: result.rows };
+      },
+    };
+    const database = await assertDatabaseRequirements(requirementDb);
     initRuntimeState({
       profile,
       database,
@@ -104,10 +159,11 @@ export const initializeApp = async (): Promise<void> => {
     initSessionStore(backends.sessionStore);
     setVectorizationQueue(backends.vectorizationQueue);
     globalThis.runtimeCleanup?.stop();
-    globalThis.runtimeCleanup = startPostgresRuntimeCleanup([
+    runtimeCleanup = startPostgresRuntimeCleanup([
       backends.cacheStore,
       backends.sessionStore,
     ]);
+    globalThis.runtimeCleanup = runtimeCleanup;
 
     // Clear stale PluginManager instances before re-initialization.
     // In Vite dev mode, HMR re-evaluates +server.ts and calls initializeApp()
@@ -115,87 +171,35 @@ export const initializeApp = async (): Promise<void> => {
     // would otherwise cause PluginManager.get() to throw because the existing
     // GLOBAL instance was created with a different (previous) loader reference.
     PluginManager.clear();
-    const pluginLoader = createAppPluginLoader();
-    const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader);
+    const pluginLoader = createAppPluginLoader(logger);
+    const pluginManager = PluginManager.get("GLOBAL", "", pluginLoader, logger);
 
-    const routeRegistry = pluginManager.getRouteRegistry();
-    globalThis.app.all(
-      "/_plugin/:scopeType/:scopeId/:pluginId/*",
-      async (c) => {
-        const { pluginId } = c.req.param();
-        const pluginApp = routeRegistry.resolve(pluginId);
-        if (!pluginApp) return c.notFound();
-        return pluginApp.fetch(c.req.raw);
-      },
-    );
+    await bootstrapApplicationData({ database: drizzleDB, pluginManager });
 
-    await pluginManager.getDiscovery().syncDefinitions(drizzleDB.client);
-    await PluginManager.installDefaults(
-      drizzleDB.client,
-      pluginManager,
-      getDefaultPluginIds(),
-    );
-
-    // restore() 必须在事务外用 pool client 调用，确保 capabilities 持有的
-    // DB 句柄是长期有效的 pool 连接，而非已提交/关闭的事务句柄。
-    await pluginManager.restore(drizzleDB.client);
-
-    // ensureRootUser 依赖插件服务已被 restore() 写入 DB（PASSWORD 服务），
-    // 因此必须在 restore() 之后的独立事务中调用。
-    await drizzleDB.client.transaction(async (tx) => {
-      await ensureRootUser(tx);
-    });
-
-    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
-
-    const existingRuntime = getGlobalGraphRuntimeOrNull();
-    const activeRunIds = existingRuntime?.scheduler.getActiveRunIds() ?? [];
-    const crashRecovery = await executeCommand(
-      { db: drizzleDB.client },
-      recoverCrashedAgentRuns,
-      { activeRunIds },
-    );
-    if (crashRecovery.recoveredRunIds.length > 0) {
-      logger
-        .withSituation("SERVER")
-        .warn(
-          { recoveredRunIds: crashRecovery.recoveredRunIds },
-          "Recovered crashed workflow runs",
-        );
+    const previousRecallDerivationWorker = globalThis.recallDerivationWorker;
+    if (previousRecallDerivationWorker) {
+      globalThis.recallDerivationWorker = undefined;
+      await previousRecallDerivationWorker.stop();
     }
-
-    await registerVectorizationConsumer(backends.vectorizationQueue);
-
-    const messageGateway = new MessageGateway({
+    recallDerivationWorker = await startRecallDerivationWorker({
       db: drizzleDB.client,
-      getEmailProvider: () => {
-        const services = pluginManager.getServices("EMAIL_PROVIDER");
-        return services[0]?.service;
-      },
+      pluginManager,
+      onStateCommitted: createRecallDerivationTaskProjectionObserver({
+        db: drizzleDB.client,
+      }),
     });
-    messageGateway.start();
-    globalThis.messageGateway = messageGateway;
+    globalThis.recallDerivationWorker = recallDerivationWorker;
 
-    createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+    graphRuntime =
+      getGlobalGraphRuntimeOrNull() ??
+      createDefaultGraphRuntime(drizzleDB.client, pluginManager);
+    await graphRuntime.ensureTaskRecovery();
 
     initPermissionEngine({
       db: drizzleDB.client,
       cache: backends.cacheStore,
       auditEnabled: true,
     });
-
-    await seedSystemRoles(drizzleDB.client);
-
-    await registerBuiltinAgents(drizzleDB.client);
-
-    const firstUser = await executeQuery(
-      { db: drizzleDB.client },
-      getFirstRegisteredUser,
-      {},
-    );
-    if (firstUser !== null) {
-      await grantFirstUserSuperadmin(drizzleDB.client, firstUser.id);
-    }
 
     registerAuditHandler(drizzleDB.client);
 
@@ -216,12 +220,126 @@ export const initializeApp = async (): Promise<void> => {
       "server.url",
       "http://localhost:3000/",
     );
+    configureReadinessReporter(
+      createApplicationReadinessReporter({
+        backends,
+        database: drizzleDB,
+        getRuntimeState,
+        profile,
+        redis: backends.redis,
+        assessDatabaseRequirements: async (signal) =>
+          await assessDatabaseRequirements(requirementDb, { signal }),
+        assessLanguageAnalysis: async (signal) =>
+          await executeLanguageAnalysisReadinessAssessment({
+            db: drizzleDB.client,
+            pluginManager,
+            signal,
+            traceId: "readiness-language-analysis",
+          }),
+        storageServices: () =>
+          pluginManager
+            .getServices("STORAGE_PROVIDER")
+            .map(({ service }) => service),
+      }),
+    );
 
+    registerDomainEventHandlers(drizzleDB.client, { pluginManager });
+    await registerVectorizationConsumer(backends.vectorizationQueue);
+
+    messageGateway = new MessageGateway({
+      db: drizzleDB.client,
+      getEmailProvider: () => {
+        const services = pluginManager.getServices("EMAIL_PROVIDER");
+        return services[0]?.service;
+      },
+    });
+    messageGateway.start();
+    globalThis.messageGateway = messageGateway;
+
+    publishRuntimeCapabilities({
+      baseURL: globalThis.serverBaseURL,
+      cacheStore: getCacheStore(),
+      drizzleDB,
+      name: globalThis.serverName,
+      pluginManager,
+      redis: backends.redis,
+      sessionStore: getSessionStore(),
+    });
     globalThis.inited = true;
   } catch (err) {
     logger
-      .withSituation("SERVER")
-      .error(err, "Failed to initialize server. Process will exit with code 1");
-    process.exit(1);
+      .child({ component: "server" })
+      .error("Failed to initialize server. Readiness will remain failed.", {
+        error: err,
+      });
+
+    const cleanupResults = await Promise.allSettled([
+      Promise.resolve().then(() => messageGateway?.stop()),
+      graphRuntime?.dispose() ?? Promise.resolve(),
+      Promise.resolve().then(async () => {
+        if (globalThis.recallDerivationWorker === recallDerivationWorker) {
+          globalThis.recallDerivationWorker = undefined;
+        }
+        await recallDerivationWorker?.stop();
+      }),
+      Promise.resolve().then(() => runtimeCleanup?.stop()),
+    ]);
+    for (const result of cleanupResults) {
+      if (result.status === "fulfilled") continue;
+      logger
+        .child({ component: "server" })
+        .error("Failed to clean up incomplete server initialization.", {
+          error: result.reason,
+        });
+    }
+    if (globalThis.messageGateway === messageGateway) {
+      globalThis.messageGateway = undefined;
+    }
+    if (globalThis.runtimeCleanup === runtimeCleanup) {
+      globalThis.runtimeCleanup = undefined;
+    }
+
+    configureReadinessReporter(
+      createReadinessReporter({
+        profile: profile.name,
+        probes: [
+          {
+            cost: "cheap",
+            id: "bootstrap",
+            required: true,
+            run: async (): Promise<void> => {
+              throw new ReadinessProbeFailure("BOOTSTRAP_FAILED");
+            },
+          },
+        ],
+      }),
+    );
   }
+};
+
+const initializationPromiseKey = "__CAT_INITIALIZATION_PROMISE__";
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof Reflect.get(value, "then") === "function";
+
+/**
+ * Vite may evaluate the server entry more than once while optimizing modules.
+ * Keep initialization single-flight across those module instances so a fresh
+ * database cannot observe concurrent bootstrap writes.
+ */
+export const initializeApp = async (): Promise<void> => {
+  if (hasRuntimeCapabilities()) {
+    getRuntimeCapabilities();
+    return;
+  }
+  const existing = Reflect.get(process, initializationPromiseKey);
+  if (isPromiseLike(existing)) {
+    await existing;
+    return;
+  }
+  const initialization = initializeAppOnce();
+  Reflect.set(process, initializationPromiseKey, initialization);
+  await initialization;
 };

@@ -2,6 +2,7 @@
   "$schema": "../../packages/plugin-core/manifest-schema.json",
   "id": "tei-rerank-provider",
   "version": "0.1.0",
+  "configVersion": "1",
   "entry": "dist/index.js",
   "services": [
     {

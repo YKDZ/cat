@@ -19,6 +19,25 @@ class StubRerankProvider extends RerankProvider {
     vi.fn<(input: { request: RerankRequest }) => Promise<RerankResponse>>();
 }
 
+type RegisteredRerankProvider = ReturnType<
+  PluginManager["getServices"]
+>[number] & {
+  type: "RERANK_PROVIDER";
+  service: StubRerankProvider;
+};
+
+const globalRerankProvider = (
+  provider: StubRerankProvider,
+): RegisteredRerankProvider => ({
+  pluginId: "stub-plugin",
+  type: "RERANK_PROVIDER",
+  id: "stub",
+  dbId: 1,
+  service: provider,
+  scopeType: "GLOBAL",
+  scopeId: "",
+});
+
 const makeCandidate = (
   conceptId: number,
   confidence: number,
@@ -99,13 +118,7 @@ describe("applyModelReranker", () => {
 
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
 
     const result = await applyModelReranker({
@@ -135,13 +148,7 @@ describe("applyModelReranker", () => {
 
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
 
     const result = await applyModelReranker({
@@ -180,13 +187,7 @@ describe("applyModelReranker", () => {
     });
     const pluginManager = new PluginManager("GLOBAL", "");
     vi.spyOn(pluginManager, "getServices").mockReturnValue([
-      {
-        pluginId: "stub-plugin",
-        type: "RERANK_PROVIDER" as const,
-        id: "stub",
-        dbId: 1,
-        service: provider,
-      },
+      globalRerankProvider(provider),
     ]);
 
     const result = await applyModelReranker({

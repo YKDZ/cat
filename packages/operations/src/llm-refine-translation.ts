@@ -1,9 +1,11 @@
 import type { OperationContext } from "@cat/domain";
 import {
   collectLLMResponse,
-  firstOrGivenService,
+  resolveServiceImplementation,
   resolvePluginManager,
+  selectFirstServiceImplementation,
 } from "@cat/server-shared";
+import { ServiceImplementationReferenceSchema } from "@cat/shared";
 import * as z from "zod";
 
 const DEFAULT_REFINE_SYSTEM_PROMPT = `You are an expert translation post-editor. Your task is to refine a machine-generated or memory-matched translation.
@@ -35,7 +37,7 @@ export const LlmRefineTranslationInputSchema = z.object({
       }),
     )
     .optional(),
-  llmProviderId: z.int().optional(),
+  llmProvider: ServiceImplementationReferenceSchema.optional(),
   systemPrompt: z.string().optional(),
   temperature: z.number().default(0.3),
   maxTokens: z.int().default(1024),
@@ -97,11 +99,16 @@ export const llmRefineTranslationOp = async (
   ctx?: OperationContext,
 ): Promise<LlmRefineTranslationOutput> => {
   const pluginManager = resolvePluginManager(ctx?.pluginManager);
-  const llmService = firstOrGivenService(
-    pluginManager,
-    "LLM_PROVIDER",
-    data.llmProviderId,
-  );
+  const llmService = data.llmProvider
+    ? {
+        reference: data.llmProvider,
+        service: resolveServiceImplementation(
+          pluginManager,
+          data.llmProvider,
+          "LLM_PROVIDER",
+        ),
+      }
+    : selectFirstServiceImplementation(pluginManager, "LLM_PROVIDER");
 
   if (!llmService) {
     return { refinedText: data.candidateTranslation, refined: false };

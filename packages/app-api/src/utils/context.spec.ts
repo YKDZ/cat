@@ -12,6 +12,7 @@ const {
   mockUpdateApiKeyLastUsedAsync,
   mockGenerateCsrfToken,
   mockPluginManager,
+  mockDrizzleDB,
   mockCacheStore,
   mockSessionStore,
 } = vi.hoisted(() => ({
@@ -26,6 +27,7 @@ const {
   mockUpdateApiKeyLastUsedAsync: vi.fn(),
   mockGenerateCsrfToken: vi.fn(),
   mockPluginManager: { kind: "plugin-manager" },
+  mockDrizzleDB: { client: {} },
   mockCacheStore: {
     get: vi.fn().mockResolvedValue(null),
     set: vi.fn().mockResolvedValue(undefined),
@@ -78,11 +80,16 @@ vi.mock("#/middleware/csrf.ts", () => ({
 }));
 
 import { getContext } from "./context.ts";
+import {
+  publishRuntimeCapabilities,
+  resetRuntimeCapabilitiesForTest,
+} from "./runtime-capabilities.ts";
 
 describe("getContext", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGetDbHandle.mockResolvedValue({ client: {} });
+    resetRuntimeCapabilitiesForTest();
+    mockGetDbHandle.mockResolvedValue(mockDrizzleDB);
     mockGetCacheStore.mockReturnValue(mockCacheStore);
     mockGetSessionStore.mockReturnValue(mockSessionStore);
     mockGetCurrentRedisHandle.mockReturnValue(undefined);
@@ -91,9 +98,18 @@ describe("getContext", () => {
     mockUserFromSessionId.mockResolvedValue(null);
     mockResolveApiKey.mockResolvedValue(null);
     mockGenerateCsrfToken.mockReturnValue("csrf-token");
+    publishRuntimeCapabilities({
+      baseURL: "http://localhost:3000/",
+      cacheStore: mockCacheStore,
+      drizzleDB: mockDrizzleDB as never,
+      name: "CAT",
+      pluginManager: mockPluginManager as never,
+      redis: undefined,
+      sessionStore: mockSessionStore,
+    });
   });
 
-  it("reuses initialized cache/session stores without creating a Redis connection", async () => {
+  it("uses host capabilities without creating realm-local runtime services", async () => {
     const responseHeaders = new Headers();
 
     const context = await getContext(
@@ -102,8 +118,10 @@ describe("getContext", () => {
     );
 
     expect(mockGetRedisHandle).not.toHaveBeenCalled();
-    expect(mockGetCurrentRedisHandle).toHaveBeenCalledOnce();
+    expect(mockGetCurrentRedisHandle).not.toHaveBeenCalled();
     expect(context.redis).toBeUndefined();
+    expect(context.drizzleDB).toBe(mockDrizzleDB);
+    expect(context.pluginManager).toBe(mockPluginManager);
     expect(context.cacheStore).toBe(mockCacheStore);
     expect(context.sessionStore).toBe(mockSessionStore);
     expect(responseHeaders.get("set-cookie")).toContain("csrfToken=csrf-token");
@@ -111,7 +129,16 @@ describe("getContext", () => {
 
   it("exposes the current Redis handle when one is already initialized", async () => {
     const redisHandle = { redis: {} };
-    mockGetCurrentRedisHandle.mockReturnValue(redisHandle);
+    resetRuntimeCapabilitiesForTest();
+    publishRuntimeCapabilities({
+      baseURL: "http://localhost:3000/",
+      cacheStore: mockCacheStore,
+      drizzleDB: mockDrizzleDB as never,
+      name: "CAT",
+      pluginManager: mockPluginManager as never,
+      redis: redisHandle as never,
+      sessionStore: mockSessionStore,
+    });
 
     const context = await getContext(
       new Request("https://example.com/api/rpc"),

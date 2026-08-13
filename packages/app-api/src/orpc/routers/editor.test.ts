@@ -412,7 +412,7 @@ const seedFixture = async () => {
       languageId: "en",
       exportRole: "FILE",
       boundaryType: "FILE",
-      fileHandlerId: null,
+      fileHandler: null,
       fileId: null,
       lifecycleStatus: "ACTIVE",
       provenance: null,

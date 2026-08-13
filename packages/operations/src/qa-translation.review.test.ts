@@ -1,6 +1,10 @@
 import { randomUUID } from "node:crypto";
 
 import {
+  ServiceImplementationReferenceSchema,
+  type ServiceImplementationReference,
+} from "@cat/shared";
+import {
   eq,
   plugin,
   pluginInstallation,
@@ -55,7 +59,7 @@ import { qaTranslationOp } from "./qa-translation.ts";
 
 let testDb: TestDB;
 let creatorId: string;
-let checkerId: number;
+let checker: ServiceImplementationReference;
 
 const insertString = async (value: string, languageId: string) => {
   const [row] = await testDb.client
@@ -174,8 +178,14 @@ beforeAll(async () => {
       pluginInstallationId: requireFixtureValue(installation).id,
       serviceType: "QA_CHECKER",
     })
-    .returning({ id: pluginService.id });
-  checkerId = requireFixtureValue(service).id;
+    .returning({ id: pluginService.id, serviceId: pluginService.serviceId });
+  checker = ServiceImplementationReferenceSchema.parse({
+    pluginId,
+    serviceId: requireFixtureValue(service).serviceId,
+    serviceType: "QA_CHECKER",
+    scopeType: "GLOBAL",
+    scopeId: "",
+  });
 });
 
 afterAll(async () => {
@@ -190,7 +200,7 @@ describe("qaTranslationOp review integration", () => {
       result: [
         {
           isPassed: false,
-          checkerId,
+          checker,
           meta: {
             ruleId: "basic.variable-consistency",
             ruleFamily: "placeholder",
@@ -202,7 +212,7 @@ describe("qaTranslationOp review integration", () => {
         },
         {
           isPassed: false,
-          checkerId,
+          checker,
           meta: {
             ruleId: "basic.number-consistency",
             ruleFamily: "number",

@@ -1,10 +1,10 @@
 {
-  "extends": "../../tsconfig.node-base.json",
+  "extends": "@cat/typescript-config/node.json",
   "compilerOptions": {
     "noEmit": true,
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["tests/**/*.ts", "global-setup.ts", "playwright.config.ts"],
+  "include": ["**/*.ts"],
   "exclude": ["tests/project-crud.spec.ts", "tests/agent-phase2.spec.ts"]
 }

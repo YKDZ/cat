@@ -1,0 +1,11 @@
+{
+  "name": "@cat/e2e-hmr-private",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/probe.vue",
+      "import": "./src/probe.vue"
+    }
+  }
+}

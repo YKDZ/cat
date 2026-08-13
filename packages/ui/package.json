@@ -11,11 +11,13 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "format": "node ../../tooling/oxlint/run.ts format",
-    "lint": "node ../../tooling/oxlint/run.ts lint",
+    "format:check": "cd ../.. && oxfmt --list-different --config oxfmt.config.ts packages/ui",
+    "format:write": "cd ../.. && oxfmt --write --config oxfmt.config.ts packages/ui",
+    "lint": "cd ../.. && oxlint --quiet --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern packages/ui",
+    "lint:fix": "cd ../.. && oxlint --fix --format=unix --type-aware --config oxlint.config.ts --no-error-on-unmatched-pattern packages/ui",
     "test": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts",
     "test:unit": "vitest run --reporter=agent --silent=passed-only --config vitest.config.ts --passWithNoTests",
-    "typecheck": "tsc --noEmit -p tsconfig.json && vue-tsc --noEmit -p tsconfig.json"
+    "typecheck": "pnpm --workspace-root exec tsc --build packages/ui/tsconfig.json --noEmit --pretty false && vue-tsc --noEmit --pretty false -p tsconfig.json"
   },
   "dependencies": {
     "@lucide/vue": "catalog:",
@@ -36,10 +38,13 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@cat/typescript-config": "link:../typescript-config",
     "@vitejs/plugin-vue": "catalog:",
     "@vue/test-utils": "catalog:",
+    "@vue/tsconfig": "catalog:",
     "happy-dom": "catalog:",
     "shadcn-vue": "catalog:",
+    "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "catalog:"

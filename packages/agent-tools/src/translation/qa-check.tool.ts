@@ -45,6 +45,7 @@ export const qaCheckTool: AgentToolDefinition = {
   sideEffectType: "none",
   toolSecurityLevel: "standard",
   async execute(args, ctx) {
+    ctx.signal.throwIfAborted();
     const parsed = qaCheckArgs.parse(args);
     const sourceLanguageId =
       parsed.sourceLanguageId ?? ctx.session.sourceLanguageId;
@@ -56,25 +57,34 @@ export const qaCheckTool: AgentToolDefinition = {
       );
     }
 
-    // Tokenize source and translation in parallel
+    const operationContext = {
+      traceId: `agent-tool:${ctx.session.runId}:qa-check`,
+      signal: ctx.signal,
+      pluginManager: ctx.pluginManager,
+    };
     const [sourceTokens, translationTokens] = await Promise.all([
-      tokenizeOp({ text: parsed.sourceText }),
-      tokenizeOp({ text: parsed.translatedText }),
+      tokenizeOp({ text: parsed.sourceText }, operationContext),
+      tokenizeOp({ text: parsed.translatedText }, operationContext),
     ]);
+    ctx.signal.throwIfAborted();
 
-    const result = await qaOp({
-      source: {
-        languageId: sourceLanguageId,
-        text: parsed.sourceText,
-        tokens: sourceTokens.tokens,
+    const result = await qaOp(
+      {
+        source: {
+          languageId: sourceLanguageId,
+          text: parsed.sourceText,
+          tokens: sourceTokens.tokens,
+        },
+        translation: {
+          languageId: targetLanguageId,
+          text: parsed.translatedText,
+          tokens: translationTokens.tokens,
+        },
+        glossaryIds: parsed.glossaryIds,
       },
-      translation: {
-        languageId: targetLanguageId,
-        text: parsed.translatedText,
-        tokens: translationTokens.tokens,
-      },
-      glossaryIds: parsed.glossaryIds,
-    });
+      operationContext,
+    );
+    ctx.signal.throwIfAborted();
 
     const passed = result.result.length === 0;
     return { passed, issues: result.result };

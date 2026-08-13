@@ -40,12 +40,13 @@ import { useI18n } from "vue-i18n";
 import TextTooltip from "#/components/tooltip/TextTooltip.vue";
 import { orpc } from "#/rpc/orpc.ts";
 import { useToastStore } from "#/stores/toast.ts";
+import { formatTimestamp } from "#/utils/format.ts";
 import { clientLogger as logger } from "#/utils/logger.ts";
 
 type ListMemoryItemsResult = Awaited<ReturnType<typeof orpc.memory.listItems>>;
 type MemoryItemRow = ListMemoryItemsResult["items"][number];
 
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const { info, rpcWarn } = useToastStore();
 
 const props = defineProps<{
@@ -80,13 +81,8 @@ const displayRange = computed(() => {
   return { from, to };
 });
 
-const formatDateTime = (value: Date): string => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return t("—");
-  }
-  return date.toLocaleString();
-};
+const formatDateTime = (value: Date): string =>
+  formatTimestamp(value, locale.value);
 
 const formatCreator = (creatorId: string | null): string => {
   if (!creatorId) return t("系统");
@@ -118,7 +114,9 @@ const fetchItems = async () => {
     items.value = result.items;
     total.value = result.total;
   } catch (error) {
-    logger.withSituation("WEB").error(error, "Failed to fetch memory items");
+    logger
+      .child({ component: "web" })
+      .error("Failed to fetch memory items", { error: error });
     rpcWarn(error);
   } finally {
     isLoading.value = false;

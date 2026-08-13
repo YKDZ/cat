@@ -1,12 +1,15 @@
 import { randomUUID } from "node:crypto";
 
+import type { DbHandle } from "@cat/domain";
 import { evaluateCondition } from "@cat/graph";
 import type { PluginManager } from "@cat/plugin-core";
 import type { JSONObject } from "@cat/shared";
+import { OperationFailureInputSchema } from "@cat/shared";
 import type { VCSContext, VCSMiddleware } from "@cat/vcs";
 
 import { Blackboard } from "#/graph/blackboard.ts";
 import type { Checkpointer } from "#/graph/checkpointer/index.ts";
+import type { RunOwnershipAcquisition } from "#/graph/checkpointer/types.ts";
 import type { CompensationRegistry } from "#/graph/compensation.ts";
 import { InMemoryCompensationRegistry } from "#/graph/compensation.ts";
 import type { AgentEventBus } from "#/graph/event-bus.ts";
@@ -38,12 +41,16 @@ type RunContext = {
   deduplicationKey?: string | undefined;
   metadata?: JSONObject | null | undefined;
   status: RunStatus;
+  abortController: AbortController;
+  cancelRequested: boolean;
+  dispatches: Set<Promise<void>>;
   pendingNodeIds: Set<NodeId>;
   currentNodeIds: Set<NodeId>;
   completedNodes: Set<NodeId>;
 };
 
 export type SchedulerOptions = {
+  db?: DbHandle | undefined;
   eventBus: AgentEventBus;
   checkpointer: Checkpointer;
   executorPool: ExecutorPool;
@@ -53,10 +60,13 @@ export type SchedulerOptions = {
   leaseManager?: LeaseManager;
   reclaimIntervalMs?: number;
   reclaimCooldownMs?: number;
+  cancellationTimeoutMs?: number;
   logger?: WorkflowLogger;
 };
 
 export type SchedulerStartOptions = {
+  /** A workflow owner may preallocate a durable run identity before scheduling. */
+  preallocatedRunId?: RunId | undefined;
   /** DB-internal session ID, used to associate AgentRun records */
   sessionId?: number | undefined;
   /** Additional persisted run metadata */
@@ -68,11 +78,42 @@ export type SchedulerStartOptions = {
   vcsContext?: VCSContext | undefined;
   /** Optional VCS middleware instance */
   vcsMiddleware?: VCSMiddleware | undefined;
+  /** Invoked after a run ID is allocated and before lifecycle events can fire. */
+  onRunCreated?: ((runId: RunId) => Promise<void>) | undefined;
+  /** Called after durable run ownership is obtained but before snapshots/events/nodes. */
+  onRunActivated?: ((runId: RunId) => Promise<boolean>) | undefined;
+  ownershipFence?:
+    | import("#/graph/checkpointer/types.ts").RunOwnershipFence
+    | null;
+  assertRunOwnership?: (() => Promise<void>) | undefined;
+  /** Supplies a durable ownership result obtained by a higher-level owner. */
+  acquireRunOwnership?: RunOwnershipAcquisition | undefined;
 };
 
 export type SchedulerRecoverOptions = {
   runtime?: GraphRuntimeContext | undefined;
+  cancelRequested?: boolean | undefined;
+  onRunActivated?: ((runId: RunId) => Promise<boolean>) | undefined;
+  ownershipFence?:
+    | import("#/graph/checkpointer/types.ts").RunOwnershipFence
+    | null;
 };
+
+export class WorkflowRunOwnershipConflictError extends Error {
+  constructor(runId: RunId) {
+    super(`Workflow run ${runId} is owned by another live instance.`);
+    this.name = "WorkflowRunOwnershipConflictError";
+  }
+}
+
+export class WorkflowRunIdentityConflictError extends Error {
+  constructor(input: { externalIdRunId: RunId; deduplicationKeyRunId: RunId }) {
+    super(
+      `Workflow run identities resolve to different runs: ${input.externalIdRunId} and ${input.deduplicationKeyRunId}.`,
+    );
+    this.name = "WorkflowRunIdentityConflictError";
+  }
+}
 
 const SCHEDULER_PENDING_NODE_IDS_KEY = "__scheduler.pendingNodeIds";
 
@@ -163,18 +204,29 @@ export class Scheduler {
 
   readonly logger: WorkflowLogger;
 
+  private readonly db: DbHandle | undefined;
+
   private readonly reclaimIntervalMs: number;
 
   private readonly reclaimCooldownMs: number;
+
+  private readonly cancellationTimeoutMs: number;
 
   private activeRuns = new Map<RunId, RunContext>();
 
   private pausedRuns = new Map<RunId, RunContext>();
 
+  private cancellationFinalizers = new Map<RunId, Promise<void>>();
+
   private reclaimTimer: ReturnType<typeof setInterval> | null = null;
+  private ownerHeartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly delayedCallbacks = new Set<ReturnType<typeof setTimeout>>();
+  private readonly terminalCompletions = new Map<RunId, Promise<void>>();
+  private disposed = false;
 
   constructor(options: SchedulerOptions) {
     this.eventBus = options.eventBus;
+    this.db = options.db;
     this.checkpointer = options.checkpointer;
     this.executorPool = options.executorPool;
     this.graphRegistry = options.graphRegistry;
@@ -185,9 +237,11 @@ export class Scheduler {
     this.logger = options.logger ?? defaultWorkflowLogger;
     this.reclaimIntervalMs = options.reclaimIntervalMs ?? 30_000;
     this.reclaimCooldownMs = options.reclaimCooldownMs ?? 5_000;
+    this.cancellationTimeoutMs = options.cancellationTimeoutMs ?? 10_000;
 
     this.setupEventHandlers();
     this.startReclaimLoop();
+    this.startOwnerHeartbeat();
   }
 
   private setupEventHandlers = (): void => {
@@ -206,12 +260,47 @@ export class Scheduler {
     });
   };
 
+  private buildRuntime = (
+    runId: RunId,
+    options?: SchedulerStartOptions,
+  ): GraphRuntimeContext => {
+    const ownershipRunId = options?.ownershipFence?.runId ?? runId;
+    const ownershipRequired =
+      options?.ownershipFence != null || options?.sessionId !== undefined;
+    return {
+      db: this.db,
+      pluginManager: options?.pluginManager,
+      vcsContext: options?.vcsContext,
+      vcsMiddleware: options?.vcsMiddleware,
+      assertRunOwnership:
+        options?.assertRunOwnership ??
+        (async () => {
+          if (!ownershipRequired) return;
+          if (!(await this.checkpointer.renewRunOwnership(ownershipRunId))) {
+            throw new Error("Workflow owner lease lost");
+          }
+        }),
+      ownershipFence: options?.ownershipFence ?? null,
+    };
+  };
+
+  private assertContextOwnership = async (
+    context: RunContext,
+  ): Promise<void> => {
+    if (context.runtime.ownershipFence == null) return;
+    if (!context.runtime.assertRunOwnership) {
+      throw new Error("Workflow ownership assertion is missing");
+    }
+    await context.runtime.assertRunOwnership();
+  };
+
   start = async (
     graphId: string,
     input: JSONObject,
     options?: SchedulerStartOptions,
   ): Promise<RunId> => {
-    if (options?.deduplicationKey) {
+    if (this.disposed) throw new Error("Scheduler is disposed.");
+    if (options?.deduplicationKey && !options.acquireRunOwnership) {
       const existing = await this.checkpointer.findRunByDeduplicationKey(
         options.deduplicationKey,
       );
@@ -219,27 +308,114 @@ export class Scheduler {
         existing &&
         (existing.status === "running" || existing.status === "paused")
       ) {
-        await this.recover(existing.runId, { runtime: undefined });
+        const existingGraph =
+          existing.graphDefinition ?? this.graphRegistry.get(existing.graphId);
+        const ownership = await this.checkpointer.createOrClaimRunOwnership({
+          runId: existing.runId,
+          sessionId: options?.sessionId,
+          graphId: existing.graphId,
+          graphDefinition: existingGraph,
+          deduplicationKey: existing.deduplicationKey,
+          metadata: existing.metadata,
+          startedAt: existing.startedAt,
+        });
+        if (ownership.kind === "conflict") {
+          throw new WorkflowRunOwnershipConflictError(ownership.runId);
+        }
+        if (ownership.kind === "identity-conflict") {
+          throw new WorkflowRunIdentityConflictError(ownership);
+        }
+        const runtime = this.buildRuntime(existing.runId, options);
+        runtime.ownershipFence =
+          options?.ownershipFence ?? ownership.ownershipFence;
+        if ((await options?.onRunActivated?.(existing.runId)) === false) {
+          await this.checkpointer.saveRunMetadata(existing.runId, {
+            ...ownership.metadata,
+            status: "cancelled",
+            completedAt: new Date().toISOString(),
+          });
+          return existing.runId;
+        }
+        const snapshot = await this.checkpointer.loadSnapshot(existing.runId);
+        if (!snapshot) {
+          const repaired = new Blackboard({
+            runId: existing.runId,
+            initialData: { ...input },
+          });
+          await this.checkpointer.saveSnapshot(
+            existing.runId,
+            repaired.getSnapshot(),
+          );
+        }
+        await options?.onRunCreated?.(existing.runId);
+        await this.recover(existing.runId, {
+          runtime,
+          ownershipFence: ownership.ownershipFence,
+        });
         return existing.runId;
       }
     }
 
-    const runId = randomUUID();
+    const requestedRunId = options?.preallocatedRunId ?? randomUUID();
     const graph = this.graphRegistry.get(graphId);
 
     const initialData: Record<string, unknown> = { ...input };
 
-    const runtime: GraphRuntimeContext = {
-      pluginManager: options?.pluginManager,
-      vcsContext: options?.vcsContext,
-      vcsMiddleware: options?.vcsMiddleware,
-    };
     const persistedMetadata = {
       ...(options?.metadata ?? {}),
       ...(options?.sessionId !== undefined
         ? { sessionId: options.sessionId }
         : {}),
     };
+
+    const ownership = await (
+      options?.acquireRunOwnership ??
+      this.checkpointer.createOrClaimRunOwnership
+    )({
+      runId: requestedRunId,
+      sessionId: options?.sessionId,
+      graphId,
+      graphDefinition: graph,
+      deduplicationKey: options?.deduplicationKey,
+      metadata:
+        Object.keys(persistedMetadata).length > 0 ? persistedMetadata : null,
+      startedAt: new Date().toISOString(),
+    });
+    if (ownership.kind === "conflict") {
+      throw new WorkflowRunOwnershipConflictError(ownership.runId);
+    }
+    if (ownership.kind === "identity-conflict") {
+      throw new WorkflowRunIdentityConflictError(ownership);
+    }
+    if (ownership.ownershipFence) {
+      this.checkpointer.registerRunOwnershipFence(ownership.ownershipFence);
+    }
+    const runId = ownership.metadata.runId;
+    const runtime = this.buildRuntime(runId, options);
+
+    if (!ownership.created) {
+      runtime.ownershipFence =
+        options?.ownershipFence ?? ownership.ownershipFence;
+      if ((await options?.onRunActivated?.(runId)) === false) {
+        await this.checkpointer.saveRunMetadata(runId, {
+          ...ownership.metadata,
+          status: "cancelled",
+          completedAt: new Date().toISOString(),
+        });
+        return runId;
+      }
+      const snapshot = await this.checkpointer.loadSnapshot(runId);
+      if (!snapshot) {
+        const repaired = new Blackboard({ runId, initialData: { ...input } });
+        await this.checkpointer.saveSnapshot(runId, repaired.getSnapshot());
+      }
+      await options?.onRunCreated?.(runId);
+      await this.recover(runId, {
+        runtime,
+        ownershipFence: ownership.ownershipFence,
+      });
+      return runId;
+    }
 
     const blackboard = new Blackboard({
       runId,
@@ -255,32 +431,101 @@ export class Scheduler {
       metadata:
         Object.keys(persistedMetadata).length > 0 ? persistedMetadata : null,
       status: "running",
+      abortController: new AbortController(),
+      cancelRequested: false,
+      dispatches: new Set(),
       pendingNodeIds: new Set<NodeId>(),
       currentNodeIds: new Set<NodeId>(),
       completedNodes: new Set<NodeId>(),
     };
 
-    this.activeRuns.set(runId, context);
+    context.runtime.ownershipFence =
+      options?.ownershipFence ?? ownership.ownershipFence;
 
-    await this.checkpointer.saveRunMetadata(runId, {
-      graphId,
-      status: "running",
-      deduplicationKey: options?.deduplicationKey,
-      startedAt: new Date().toISOString(),
-      graphDefinition: graph,
-      metadata: withPendingNodeIds(context.metadata, context.pendingNodeIds),
-    });
+    let activationFailureHandled = false;
+    try {
+      try {
+        if ((await options?.onRunActivated?.(runId)) === false) {
+          await this.abandonRunAllocation(context, "cancelled");
+          return runId;
+        }
+      } catch (error) {
+        activationFailureHandled = true;
+        let discardedUnstartedRun = false;
+        try {
+          discardedUnstartedRun =
+            await this.checkpointer.discardUnstartedRun(runId);
+        } catch (discardError) {
+          this.logger.scheduler("run:activation-discard:error", {
+            runId,
+            error:
+              discardError instanceof Error
+                ? discardError.message
+                : String(discardError),
+          });
+        }
+        if (discardedUnstartedRun) {
+          context.abortController.abort(
+            new Error("Workflow allocation discarded"),
+          );
+          this.compensationRegistry.clear(runId);
+        } else {
+          await this.abandonRunAllocation(context, "failed").catch(
+            (cleanupError: unknown) => {
+              this.logger.scheduler("run:allocation-cleanup:error", {
+                runId,
+                error:
+                  cleanupError instanceof Error
+                    ? cleanupError.message
+                    : String(cleanupError),
+              });
+            },
+          );
+        }
+        throw error;
+      }
+      await this.checkpointer.saveSnapshot(runId, blackboard.getSnapshot());
+      this.activeRuns.set(runId, context);
+      await options?.onRunCreated?.(runId);
+    } catch (error) {
+      if (activationFailureHandled) throw error;
+      await this.abandonRunAllocation(context, "failed").catch(
+        (cleanupError: unknown) => {
+          this.logger.scheduler("run:allocation-cleanup:error", {
+            runId,
+            error:
+              cleanupError instanceof Error
+                ? cleanupError.message
+                : String(cleanupError),
+          });
+        },
+      );
+      throw error;
+    }
 
-    await this.checkpointer.saveSnapshot(runId, blackboard.getSnapshot());
-
-    await this.eventBus.publish(
-      createAgentEvent({
-        runId,
-        type: "run:start",
-        timestamp: new Date().toISOString(),
-        payload: { graphId, input },
-      }),
-    );
+    try {
+      await this.eventBus.publish(
+        createAgentEvent({
+          runId,
+          type: "run:start",
+          timestamp: new Date().toISOString(),
+          payload: { graphId, input },
+        }),
+      );
+    } catch (error) {
+      await this.abandonRunAllocation(context, "failed").catch(
+        (cleanupError: unknown) => {
+          this.logger.scheduler("run:start-cleanup:error", {
+            runId,
+            error:
+              cleanupError instanceof Error
+                ? cleanupError.message
+                : String(cleanupError),
+          });
+        },
+      );
+      throw error;
+    }
 
     this.enqueuePendingNode(context, graph.entry);
     this.drainPendingNodes(runId);
@@ -322,11 +567,39 @@ export class Scheduler {
     );
   };
 
+  cancel = async (runId: RunId): Promise<void> => {
+    const terminalCompletion = this.terminalCompletions.get(runId);
+    if (terminalCompletion) {
+      await terminalCompletion;
+      return;
+    }
+    if (!this.hasRun(runId)) {
+      const metadata = await this.checkpointer.loadRunMetadata(runId);
+      if (
+        !metadata ||
+        (metadata.status !== "running" && metadata.status !== "paused")
+      ) {
+        throw new Error(`Run not active: ${runId}`);
+      }
+      await this.recover(runId);
+    }
+    await this.eventBus.publish(
+      createAgentEvent({
+        runId,
+        type: "run:cancel",
+        timestamp: new Date().toISOString(),
+        payload: {},
+      }),
+    );
+  };
+
   resume = async (runId: RunId): Promise<void> => {
     const context = this.pausedRuns.get(runId);
     if (!context) {
       throw new Error(`Run not paused: ${runId}`);
     }
+
+    await this.assertContextOwnership(context);
 
     context.status = "running";
     this.pausedRuns.delete(runId);
@@ -368,8 +641,30 @@ export class Scheduler {
   };
 
   private scheduleNodeDispatch = (runId: RunId, nodeId: NodeId): void => {
-    void this.dispatchNode(runId, nodeId).catch(async (error: unknown) => {
-      await this.handleDispatchFailure(runId, nodeId, error);
+    const context = this.activeRuns.get(runId);
+    if (!context || context.cancelRequested) return;
+    context.currentNodeIds.add(nodeId);
+
+    const dispatch = Promise.resolve()
+      .then(async () => {
+        if (context.runtime.ownershipFence != null) {
+          try {
+            await this.assertContextOwnership(context);
+          } catch (error) {
+            context.abortController.abort(
+              new Error("Workflow owner lease lost"),
+            );
+            throw error;
+          }
+        }
+        return await this.dispatchNode(runId, nodeId);
+      })
+      .catch(async (error: unknown) => {
+        await this.handleDispatchFailure(runId, nodeId, error);
+      });
+    context.dispatches.add(dispatch);
+    void dispatch.finally(() => {
+      context.dispatches.delete(dispatch);
     });
   };
 
@@ -378,6 +673,11 @@ export class Scheduler {
     nodeId: NodeId,
     error: unknown,
   ): Promise<void> => {
+    const operationFailure = OperationFailureInputSchema.safeParse(
+      typeof error === "object" && error !== null
+        ? Reflect.get(error, "operationFailure")
+        : undefined,
+    );
     await this.eventBus.publish(
       createAgentEvent({
         runId,
@@ -386,24 +686,55 @@ export class Scheduler {
         timestamp: new Date().toISOString(),
         payload: {
           error: error instanceof Error ? error.message : String(error),
+          ...(operationFailure.success
+            ? { operationFailure: operationFailure.data }
+            : {}),
         },
       }),
     );
 
-    await this.completeRun(runId, "failed");
+    const context = this.activeRuns.get(runId) ?? this.pausedRuns.get(runId);
+    if (!context?.cancelRequested) await this.completeRun(runId, "failed");
   };
 
   recover = async (
     runId: RunId,
     options?: SchedulerRecoverOptions,
   ): Promise<void> => {
+    if (options?.ownershipFence && options.ownershipFence.runId !== runId) {
+      throw new Error("Workflow recovery fence run identity does not match.");
+    }
+    if (options?.ownershipFence) {
+      this.checkpointer.registerRunOwnershipFence(options.ownershipFence);
+    }
+    if (this.terminalCompletions.has(runId)) return;
     const existingContext =
       this.activeRuns.get(runId) ?? this.pausedRuns.get(runId) ?? null;
     if (existingContext) {
-      if (options?.runtime) {
-        existingContext.runtime = options.runtime;
+      if (options?.runtime || options?.ownershipFence) {
+        existingContext.runtime = {
+          ...existingContext.runtime,
+          ...(options?.runtime ?? {}),
+          ownershipFence:
+            options?.runtime?.ownershipFence ??
+            options?.ownershipFence ??
+            existingContext.runtime.ownershipFence,
+        };
+      }
+      if (options?.cancelRequested && !existingContext.cancelRequested) {
+        existingContext.cancelRequested = true;
+        existingContext.abortController.abort(
+          new DOMException("Cancelled", "AbortError"),
+        );
       }
       return;
+    }
+
+    if (
+      !options?.ownershipFence &&
+      !(await this.checkpointer.claimRunOwnership(runId))
+    ) {
+      throw new WorkflowRunOwnershipConflictError(runId);
     }
 
     const metadata = await this.checkpointer.loadRunMetadata(runId);
@@ -411,23 +742,56 @@ export class Scheduler {
       throw new Error(`Run metadata not found: ${runId}`);
     }
 
+    const graph =
+      metadata.graphDefinition ?? this.graphRegistry.get(metadata.graphId);
+
+    const runtime: GraphRuntimeContext = {
+      ...(options?.runtime ?? {}),
+      db: options?.runtime?.db ?? this.db,
+      ownershipFence:
+        options?.runtime?.ownershipFence ??
+        options?.ownershipFence ??
+        this.checkpointer.getRunOwnershipFence(runId),
+      assertRunOwnership:
+        options?.runtime?.assertRunOwnership ??
+        (async () => {
+          if (!(await this.checkpointer.renewRunOwnership(runId))) {
+            throw new Error("Workflow owner lease lost");
+          }
+        }),
+    };
+
+    const abortController = new AbortController();
+    if ((await options?.onRunActivated?.(runId)) === false) {
+      await this.checkpointer.saveRunMetadata(runId, {
+        ...metadata,
+        status: "cancelled",
+        completedAt: new Date().toISOString(),
+      });
+      return;
+    }
+    // A crash can occur after durable allocation but before the first
+    // snapshot. The owner-fenced activation gate must run before requiring a
+    // snapshot so cancellation can settle that allocation without dispatching.
     const snapshot = await this.checkpointer.loadSnapshot(runId);
     if (!snapshot) {
       throw new Error(`Run snapshot not found: ${runId}`);
     }
-
-    const graph =
-      metadata.graphDefinition ?? this.graphRegistry.get(metadata.graphId);
     const blackboard = Blackboard.fromSnapshot(snapshot);
-
+    if (options?.cancelRequested) {
+      abortController.abort(new DOMException("Cancelled", "AbortError"));
+    }
     const context: RunContext = {
       runId,
       graph,
       blackboard,
-      runtime: options?.runtime ?? {},
+      runtime,
       deduplicationKey: metadata.deduplicationKey,
       metadata: metadata.metadata,
       status: metadata.status,
+      abortController,
+      cancelRequested: options?.cancelRequested ?? false,
+      dispatches: new Set(),
       pendingNodeIds: getPendingNodeIds(
         metadata.metadata,
         metadata.currentNodeId,
@@ -442,10 +806,27 @@ export class Scheduler {
     }
 
     this.activeRuns.set(runId, context);
+    const nodes =
+      context.pendingNodeIds.size > 0
+        ? [...context.pendingNodeIds]
+        : [context.graph.entry];
+    context.pendingNodeIds.clear();
+    for (const nodeId of nodes) this.enqueuePendingNode(context, nodeId);
+    this.drainPendingNodes(runId);
   };
 
   dispose = async (): Promise<void> => {
+    if (this.disposed) return;
+    this.disposed = true;
     this.stopReclaimLoop();
+    this.stopOwnerHeartbeat();
+    for (const timer of this.delayedCallbacks) clearTimeout(timer);
+    this.delayedCallbacks.clear();
+    for (const context of this.activeRuns.values()) {
+      context.abortController.abort(new Error("Scheduler disposed"));
+    }
+    await Promise.allSettled(this.cancellationFinalizers.values());
+    await Promise.allSettled(this.terminalCompletions.values());
     await this.executorPool.shutdown?.();
   };
 
@@ -462,6 +843,29 @@ export class Scheduler {
     this.reclaimTimer = null;
   };
 
+  private startOwnerHeartbeat = (): void => {
+    if (this.ownerHeartbeatTimer) return;
+    this.ownerHeartbeatTimer = setInterval(() => {
+      const ownedContexts = [
+        ...this.activeRuns.values(),
+        ...this.pausedRuns.values(),
+      ];
+      for (const context of ownedContexts) {
+        if (context.runtime.ownershipFence == null) continue;
+        void this.assertContextOwnership(context).catch(() => {
+          context.abortController.abort(new Error("Workflow owner lease lost"));
+        });
+      }
+    }, 10_000);
+    this.ownerHeartbeatTimer.unref?.();
+  };
+
+  private stopOwnerHeartbeat = (): void => {
+    if (!this.ownerHeartbeatTimer) return;
+    clearInterval(this.ownerHeartbeatTimer);
+    this.ownerHeartbeatTimer = null;
+  };
+
   private reclaimExpiredLeases = async (): Promise<void> => {
     const expired = await this.leaseManager.findExpired();
     for (const lease of expired) {
@@ -472,7 +876,8 @@ export class Scheduler {
 
   private reclaimLease = async (lease: LeaseRecord): Promise<void> => {
     const context = this.activeRuns.get(lease.runId);
-    if (!context || context.status !== "running") return;
+    if (!context || context.status !== "running" || context.cancelRequested)
+      return;
     if (!context.currentNodeIds.has(lease.nodeId)) return;
 
     context.currentNodeIds.delete(lease.nodeId);
@@ -490,7 +895,7 @@ export class Scheduler {
       }),
     );
 
-    setTimeout(() => {
+    this.scheduleDelayed(() => {
       this.drainPendingNodes(lease.runId);
     }, this.reclaimCooldownMs);
   };
@@ -506,7 +911,8 @@ export class Scheduler {
 
   private drainPendingNodes = (runId: RunId): void => {
     const context = this.activeRuns.get(runId);
-    if (!context || context.status !== "running") return;
+    if (!context || context.status !== "running" || context.cancelRequested)
+      return;
 
     const maxConcurrentNodes = this.getMaxConcurrentNodes(context.graph);
     while (
@@ -525,14 +931,13 @@ export class Scheduler {
     nodeId: NodeId,
   ): Promise<void> => {
     const context = this.activeRuns.get(runId);
-    if (!context || context.status !== "running") return;
+    if (!context || context.status !== "running" || context.cancelRequested)
+      return;
 
     const nodeDef = context.graph.nodes[nodeId];
     if (!nodeDef) {
       throw new Error(`Node not found in graph: ${nodeId}`);
     }
-
-    context.currentNodeIds.add(nodeId);
 
     await this.eventBus.publish(
       createAgentEvent({
@@ -581,6 +986,7 @@ export class Scheduler {
       checkpointer: this.checkpointer,
       emitProxy,
       publishToStream,
+      signal: context.abortController.signal,
       idempotencyKey,
       retry: nodeDef.retry,
     });
@@ -596,6 +1002,7 @@ export class Scheduler {
     const context =
       this.activeRuns.get(event.runId) ?? this.pausedRuns.get(event.runId);
     if (!context) return;
+    if (context.cancelRequested) return;
 
     const payload = toRecord(event.payload);
     const patchCandidate = payload["patch"];
@@ -631,7 +1038,7 @@ export class Scheduler {
 
     const status = payload.status;
     if (status === "paused") {
-      setTimeout(() => {
+      this.scheduleDelayed(() => {
         void this.pause(event.runId, event.nodeId);
       }, 0);
       return;
@@ -639,7 +1046,7 @@ export class Scheduler {
 
     const nextNodes = this.evaluateNextNodes(context, event.nodeId);
     if (nextNodes.length === 0 && context.currentNodeIds.size === 0) {
-      setTimeout(() => {
+      this.scheduleDelayed(() => {
         void this.completeRun(event.runId, "completed");
       }, 0);
       return;
@@ -668,6 +1075,9 @@ export class Scheduler {
   };
 
   private onNodeError = async (event: AgentEvent): Promise<void> => {
+    const context =
+      this.activeRuns.get(event.runId) ?? this.pausedRuns.get(event.runId);
+    if (context?.cancelRequested) return;
     await this.eventBus.publish(
       createAgentEvent({
         runId: event.runId,
@@ -706,7 +1116,35 @@ export class Scheduler {
   };
 
   private onRunCancel = async (event: AgentEvent): Promise<void> => {
-    await this.completeRun(event.runId, "cancelled");
+    const context =
+      this.activeRuns.get(event.runId) ?? this.pausedRuns.get(event.runId);
+    if (!context) return;
+
+    if (!context.cancelRequested) {
+      context.cancelRequested = true;
+      context.abortController.abort(
+        new DOMException("Cancelled", "AbortError"),
+      );
+    }
+
+    let finalizer = this.cancellationFinalizers.get(event.runId);
+    if (!finalizer) {
+      finalizer = Promise.allSettled([...context.dispatches]).then(async () => {
+        await this.completeRun(event.runId, "cancelled");
+        this.cancellationFinalizers.delete(event.runId);
+        return undefined;
+      });
+      this.cancellationFinalizers.set(event.runId, finalizer);
+    }
+
+    const completed = await Promise.race([
+      finalizer.then(() => true),
+      new Promise<false>((resolve) => {
+        setTimeout(() => resolve(false), this.cancellationTimeoutMs);
+      }),
+    ]);
+    if (!completed) return;
+    await finalizer;
   };
 
   private evaluateNextNodes = (
@@ -740,11 +1178,46 @@ export class Scheduler {
     runId: RunId,
     status: RunStatus,
   ): Promise<void> => {
+    const existing = this.terminalCompletions.get(runId);
+    if (existing) return await existing;
+    const completion = this.finishRun(runId, status).finally(() => {
+      if (this.terminalCompletions.get(runId) === completion) {
+        this.terminalCompletions.delete(runId);
+      }
+    });
+    this.terminalCompletions.set(runId, completion);
+    await completion;
+  };
+
+  private abandonRunAllocation = async (
+    context: RunContext,
+    status: "failed" | "cancelled",
+  ): Promise<void> => {
+    const { runId } = context;
+    if (this.activeRuns.get(runId) === context) this.activeRuns.delete(runId);
+    if (this.pausedRuns.get(runId) === context) this.pausedRuns.delete(runId);
+    context.abortController.abort(new Error("Workflow allocation abandoned"));
+    this.compensationRegistry.clear(runId);
+    const sessionId = context.metadata?.["sessionId"];
+    await this.checkpointer.saveRunMetadata(runId, {
+      graphId: context.graph.id,
+      status,
+      deduplicationKey: undefined,
+      startedAt: context.blackboard.getSnapshot().createdAt,
+      completedAt: new Date().toISOString(),
+      graphDefinition: context.graph,
+      metadata: typeof sessionId === "number" ? { sessionId } : null,
+    });
+  };
+
+  private finishRun = async (
+    runId: RunId,
+    status: RunStatus,
+  ): Promise<void> => {
     const context = this.activeRuns.get(runId) ?? this.pausedRuns.get(runId);
     if (!context) return;
 
-    this.activeRuns.delete(runId);
-    this.pausedRuns.delete(runId);
+    context.status = status;
 
     if (status === "failed" || status === "cancelled") {
       await this.eventBus.publish(
@@ -774,12 +1247,15 @@ export class Scheduler {
     await this.checkpointer.saveRunMetadata(runId, {
       graphId: context.graph.id,
       status,
-      deduplicationKey: context.deduplicationKey,
+      deduplicationKey: undefined,
       startedAt: context.blackboard.getSnapshot().createdAt,
       completedAt: new Date().toISOString(),
       graphDefinition: context.graph,
       metadata: withPendingNodeIds(context.metadata, context.pendingNodeIds),
     });
+
+    this.activeRuns.delete(runId);
+    this.pausedRuns.delete(runId);
 
     await this.eventBus.publish(
       createAgentEvent({
@@ -794,12 +1270,25 @@ export class Scheduler {
     );
   };
 
+  private scheduleDelayed = (callback: () => void, delayMs: number): void => {
+    if (this.disposed) return;
+    const timer = setTimeout(() => {
+      this.delayedCallbacks.delete(timer);
+      if (!this.disposed) callback();
+    }, delayMs);
+    this.delayedCallbacks.add(timer);
+  };
+
   hasPausedRun = (runId: RunId): boolean => {
     return this.pausedRuns.has(runId);
   };
 
   hasRun = (runId: RunId): boolean => {
-    return this.activeRuns.has(runId) || this.pausedRuns.has(runId);
+    return (
+      this.activeRuns.has(runId) ||
+      this.pausedRuns.has(runId) ||
+      this.terminalCompletions.has(runId)
+    );
   };
 
   /**

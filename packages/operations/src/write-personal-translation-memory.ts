@@ -3,6 +3,10 @@ import {
   executeCommand,
   getDbHandle,
 } from "@cat/domain";
+import {
+  RecallDerivationReferenceSchema,
+  type RecallDerivationReference,
+} from "@cat/shared";
 import * as z from "zod";
 
 import { insertMemory } from "./memory.ts";
@@ -17,10 +21,15 @@ export type WritePersonalTranslationMemoryInput = z.infer<
   typeof WritePersonalTranslationMemoryInputSchema
 >;
 
-export type WritePersonalTranslationMemoryOutput = {
-  memoryId: string;
-  memoryItemIds: number[];
-};
+export const WritePersonalTranslationMemoryOutputSchema = z.object({
+  memoryId: z.uuidv4(),
+  memoryItemIds: z.array(z.int()),
+  derivations: z.array(RecallDerivationReferenceSchema),
+});
+
+export type WritePersonalTranslationMemoryOutput = z.infer<
+  typeof WritePersonalTranslationMemoryOutputSchema
+>;
 
 export const writePersonalTranslationMemoryOp = async (
   input: WritePersonalTranslationMemoryInput,
@@ -41,5 +50,6 @@ export const writePersonalTranslationMemoryOp = async (
   return {
     memoryId: ensured.memoryId,
     memoryItemIds: inserted.memoryItemIds,
+    derivations: inserted.derivations satisfies RecallDerivationReference[],
   };
 };

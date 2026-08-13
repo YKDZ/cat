@@ -5,12 +5,11 @@ import {
   getActiveFileBlobInfo,
   getContentNode,
 } from "@cat/domain";
+import { PluginManager, type FileImporter } from "@cat/plugin-core";
 import {
-  PluginManager,
-  type FileImporter,
-  type StorageProvider,
-} from "@cat/plugin-core";
-import { getServiceFromDBId, readableToBuffer } from "@cat/server-shared";
+  readableToBuffer,
+  resolveServiceImplementation,
+} from "@cat/server-shared";
 import {
   assertFirstNonNullish,
   StructuredContentPayloadSchema,
@@ -63,7 +62,7 @@ export const parseFileOp = async (
     throw new Error(`File ${data.fileId} not found`);
   }
 
-  const { name, key, storageProviderId } = fileBlobInfo;
+  const { name, key, storageProvider } = fileBlobInfo;
   const existingContentNode = data.contentNodeId
     ? await executeQuery({ db: drizzle }, getContentNode, {
         id: data.contentNodeId,
@@ -74,9 +73,10 @@ export const parseFileOp = async (
     throw new Error(`Content node ${data.contentNodeId} not found`);
   }
 
-  const provider = getServiceFromDBId<StorageProvider>(
+  const provider = resolveServiceImplementation(
     pluginManager,
-    storageProviderId,
+    storageProvider,
+    "STORAGE_PROVIDER",
   );
   const handler = assertFirstNonNullish(
     pluginManager
@@ -133,7 +133,7 @@ export const parseFileOp = async (
     file: existingContentNode
       ? {
           fileId: data.fileId,
-          fileHandlerId: existingContentNode.fileHandlerId,
+          fileHandler: existingContentNode.fileHandler,
         }
       : null,
   };

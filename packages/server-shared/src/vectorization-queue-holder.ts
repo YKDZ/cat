@@ -1,4 +1,5 @@
 import type { TaskQueue } from "@cat/core";
+import type { ServiceImplementationReference } from "@cat/shared";
 
 /**
  * Payload type for a vectorization task.
@@ -7,8 +8,8 @@ export type VectorizationTask = {
   taskId: string;
   stringIds: number[];
   data: Array<{ text: string; languageId: string }>;
-  vectorizerId: number;
-  vectorStorageId: number;
+  vectorizer: ServiceImplementationReference;
+  vectorStorage: ServiceImplementationReference;
 };
 
 let queue: TaskQueue<VectorizationTask> | null = null;
@@ -20,6 +21,24 @@ export const setVectorizationQueue = (
   q: TaskQueue<VectorizationTask>,
 ): void => {
   queue = q;
+};
+
+/**
+ * Install a queue and return an idempotent handle that restores the previous
+ * queue only while this installation still owns the holder.
+ */
+export const installVectorizationQueue = (
+  nextQueue: TaskQueue<VectorizationTask>,
+): (() => void) => {
+  const previousQueue = queue;
+  let restored = false;
+  queue = nextQueue;
+
+  return () => {
+    if (restored) return;
+    restored = true;
+    if (queue === nextQueue) queue = previousQueue;
+  };
 };
 
 /**

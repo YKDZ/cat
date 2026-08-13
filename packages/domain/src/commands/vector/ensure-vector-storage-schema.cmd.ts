@@ -1,11 +1,11 @@
 import { sql } from "@cat/db";
-import { assertFirstNonNullish } from "@cat/shared";
+import { RequiredVectorDimension } from "@cat/shared";
 import * as z from "zod";
 
 import type { Command } from "#/types.ts";
 
 export const EnsureVectorStorageSchemaCommandSchema = z.object({
-  dimension: z.int().min(1),
+  dimension: z.literal(RequiredVectorDimension),
 });
 
 export type EnsureVectorStorageSchemaCommand = z.infer<
@@ -15,58 +15,31 @@ export type EnsureVectorStorageSchemaCommand = z.infer<
 export const ensureVectorStorageSchema: Command<
   EnsureVectorStorageSchemaCommand
 > = async (ctx, command) => {
-  // Extension is guaranteed by DB's  Docker image init script; this is a safety fallback.
-  await ctx.db.execute(sql`CREATE EXTENSION IF NOT EXISTS vector`);
-
-  // Create the table if it doesn't exist yet.
-  await ctx.db.execute(sql`
-    CREATE TABLE IF NOT EXISTS "Vector" (
-      "id" serial PRIMARY KEY,
-      "vector" vector(${sql.raw(command.dimension.toString())}) NOT NULL,
-      "chunk_id" integer NOT NULL REFERENCES "Chunk"("id") ON DELETE CASCADE ON UPDATE CASCADE
-    )
-  `);
-
-  // Check the current dimension of the vector column and ALTER if it differs.
-  // For pgvector, atttypmod IS the dimension (stored directly, no offset).
+  EnsureVectorStorageSchemaCommandSchema.parse(command);
+  // Schema preparation owns all vector DDL. Runtime can only attest it.
   const result = await ctx.db.execute<{ typmod: number }>(sql`
     SELECT a.atttypmod AS typmod
     FROM pg_attribute a
     JOIN pg_class c ON c.oid = a.attrelid
-    WHERE c.relname = 'Vector'
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = current_schema()
+      AND c.relname = 'Vector'
+      AND c.relkind = 'r'
       AND a.attname = 'vector'
       AND a.attnum > 0
   `);
 
-  const dimensionRow = result.rows.at(0);
-  const currentDimension =
-    dimensionRow && dimensionRow.typmod > 0 ? dimensionRow.typmod : null;
-
-  if (currentDimension !== null && currentDimension !== command.dimension) {
-    // Only ALTER if the table is empty; if it has data the dimension change must
-    // go through updateVectorDimension which truncates first.
-    const countResult = await ctx.db.execute<{ n: string }>(
-      sql`SELECT COUNT(*) AS n FROM "Vector"`,
-    );
-    if (Number.parseInt(assertFirstNonNullish(countResult.rows).n, 10) > 0) {
-      throw new Error(
-        `Vector table has data with dimension ${currentDimension} but ensureVectorStorageSchema was called with dimension ${command.dimension}. ` +
-          `Call updateVectorDimension(${command.dimension}) explicitly to truncate and re-dimension.`,
-      );
-    }
-    // Drop the HNSW index before altering the column type (required by pgvector).
-    await ctx.db.execute(sql`DROP INDEX IF EXISTS "embeddingIndex"`);
-    await ctx.db.execute(
-      sql`ALTER TABLE "Vector" ALTER COLUMN vector TYPE vector(${sql.raw(command.dimension.toString())})`,
+  const currentDimension = result.rows.at(0)?.typmod;
+  if (currentDimension === undefined) {
+    throw new Error(
+      "Vector schema is missing. Run schema preparation before starting CAT.",
     );
   }
-
-  await ctx.db.execute(sql`
-    CREATE INDEX IF NOT EXISTS "embeddingIndex" ON "Vector" USING hnsw ("vector" vector_cosine_ops)
-  `);
-  await ctx.db.execute(sql`
-    CREATE UNIQUE INDEX IF NOT EXISTS "Vector_chunkId_unique" ON "Vector" ("chunk_id")
-  `);
+  if (currentDimension !== RequiredVectorDimension) {
+    throw new Error(
+      `Vector schema dimension ${currentDimension} does not match the fixed vector dimension ${RequiredVectorDimension}. CAT requires a prepared vector(${RequiredVectorDimension}) schema and a vectorizer configured to output ${RequiredVectorDimension} dimensions.`,
+    );
+  }
 
   return {
     result: undefined,

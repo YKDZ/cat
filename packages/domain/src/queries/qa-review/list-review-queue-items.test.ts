@@ -51,7 +51,7 @@ const buildFinding = (
   overrides: Partial<NormalizedQaFinding> = {},
 ): NormalizedQaFinding => ({
   layer: "DETERMINISTIC",
-  checkerServiceId: null,
+  checkerService: null,
   qaResultItemId: null,
   ruleId: "qa.rule",
   ruleFamily: "generic",
@@ -202,12 +202,12 @@ const seedFixture = async () => {
     },
   );
 
-  const sourceStringIds = await Promise.all([
-    insertString("Apple", "en"),
-    insertString("Banana", "en"),
-    insertString("Cherry", "en"),
-    insertString("Durian", "en"),
-  ]);
+  const sourceStringIds = [
+    await insertString("Apple", "en"),
+    await insertString("Banana", "en"),
+    await insertString("Cherry", "en"),
+    await insertString("Durian", "en"),
+  ] as const;
 
   const elementIds = await executeCommand(
     { db: testDb.client },
@@ -258,13 +258,13 @@ const seedFixture = async () => {
     },
   );
 
-  const translationStringIds = await Promise.all([
-    insertString("苹果", "zh-Hans"),
-    insertString("香蕉", "zh-Hans"),
-    insertString("樱桃", "zh-Hans"),
-    insertString("榴莲", "zh-Hans"),
-    insertString("分支苹果", "zh-Hans"),
-  ]);
+  const translationStringIds = [
+    await insertString("苹果", "zh-Hans"),
+    await insertString("香蕉", "zh-Hans"),
+    await insertString("樱桃", "zh-Hans"),
+    await insertString("榴莲", "zh-Hans"),
+    await insertString("分支苹果", "zh-Hans"),
+  ] as const;
 
   const translationIds = await executeCommand(
     { db: testDb.client },
@@ -311,8 +311,8 @@ const seedFixture = async () => {
     createdBy: creatorId,
   });
 
-  await Promise.all([
-    createQueue({
+  const queueInputs: Parameters<typeof createQueue>[0][] = [
+    {
       projectId: project.id,
       elementId: requireFixtureValue(elementIds[0]),
       translationId: requireFixtureValue(translationIds[0]),
@@ -325,8 +325,8 @@ const seedFixture = async () => {
           message: "Apple info",
         }),
       ],
-    }),
-    createQueue({
+    },
+    {
       projectId: project.id,
       elementId: requireFixtureValue(elementIds[1]),
       translationId: requireFixtureValue(translationIds[1]),
@@ -339,8 +339,8 @@ const seedFixture = async () => {
           message: "Banana warning",
         }),
       ],
-    }),
-    createQueue({
+    },
+    {
       projectId: project.id,
       elementId: requireFixtureValue(elementIds[2]),
       translationId: requireFixtureValue(translationIds[2]),
@@ -355,8 +355,8 @@ const seedFixture = async () => {
           message: "Cherry blocker",
         }),
       ],
-    }),
-    createQueue({
+    },
+    {
       projectId: project.id,
       elementId: requireFixtureValue(elementIds[3]),
       translationId: requireFixtureValue(translationIds[3]),
@@ -368,8 +368,8 @@ const seedFixture = async () => {
           message: "Durian warning",
         }),
       ],
-    }),
-    createQueue({
+    },
+    {
       projectId: project.id,
       elementId: requireFixtureValue(elementIds[0]),
       translationId: requireFixtureValue(translationIds[4]),
@@ -383,12 +383,18 @@ const seedFixture = async () => {
           message: "Apple branch risk",
         }),
       ],
-    }),
-  ]);
+    },
+  ];
+  // The fixture owns one PostgreSQL client, so setup queries are sequential.
+  // oxlint-disable-next-line no-await-in-loop
+  for (const input of queueInputs) await createQueue(input);
 
   return {
     project,
     branch,
+    elements: {
+      apple: requireFixtureValue(elementIds[0]),
+    },
     nodes: { dirA, dirB, fileA, fileB, fileC },
   };
 };
@@ -546,6 +552,33 @@ describe("listQaReviewQueueItems", () => {
 
   it("returns all pending candidates for the selected element detail", async () => {
     const fixture = await seedFixture();
+    const alternateStringId = await insertString("苹果（备选）", "zh-Hans");
+    const [alternateTranslationId] = await executeCommand(
+      { db: testDb.client },
+      createTranslations,
+      {
+        data: [
+          {
+            translatableElementId: fixture.elements.apple,
+            translatorId: creatorId,
+            stringId: alternateStringId,
+          },
+        ],
+      },
+    );
+    await createQueue({
+      projectId: fixture.project.id,
+      elementId: fixture.elements.apple,
+      translationId: requireFixtureValue(alternateTranslationId),
+      summary: "Apple alternate summary",
+      findings: [
+        buildFinding({
+          ruleId: "apple-alternate",
+          riskScore: 25,
+          message: "Apple alternate warning",
+        }),
+      ],
+    });
     const [apple] = await executeQuery(
       { db: testDb.client },
       listQaReviewableElements,
@@ -570,13 +603,26 @@ describe("listQaReviewQueueItems", () => {
     );
 
     expect(detail?.sourceText).toBe("Apple");
+    expect(detail?.candidates).toHaveLength(2);
     expect(
       detail?.candidates.every(
         (candidate) => candidate.queueItem.status !== "RESOLVED",
       ),
     ).toBe(true);
-    expect(requireFixtureValue(detail?.candidates[0])?.findings).toEqual(
-      expect.any(Array),
-    );
+    expect(
+      detail?.candidates.map((candidate) => ({
+        summary: candidate.latestRunSummary,
+        findings: candidate.findings.map((finding) => finding.message),
+      })),
+    ).toEqual([
+      {
+        summary: "Apple alternate summary",
+        findings: ["Apple alternate warning"],
+      },
+      {
+        summary: "Apple main summary",
+        findings: ["Apple info"],
+      },
+    ]);
   });
 });

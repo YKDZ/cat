@@ -109,9 +109,9 @@ const findByElement = async (
     async () => {
       const stream = await config.client.glossary.findTerm(input);
 
-      for await (const term of stream) {
+      for await (const event of stream) {
         // oxlint-disable-next-line no-console
-        console.log(JSON.stringify(term, null, 2));
+        console.log(JSON.stringify(event, null, 2));
       }
     },
     { path: "glossary.findTerm", input },
@@ -167,9 +167,9 @@ const searchByText = async (
     async () => {
       const stream = await config.client.glossary.searchTerm(input);
 
-      for await (const term of stream) {
+      for await (const event of stream) {
         // oxlint-disable-next-line no-console
-        console.log(JSON.stringify(term, null, 2));
+        console.log(JSON.stringify(event, null, 2));
       }
     },
     { path: "glossary.searchTerm", input },

@@ -1,12 +1,23 @@
 import {
+  executeQuery,
+  getAgentRunInternalId,
+  getDbHandle,
+  listTranslationsByIds,
+  loadAgentExternalOutputByIdempotency,
+} from "@cat/domain";
+import {
+  collectTermRecallOp,
   collectMemoryRecallOp,
   fetchAdviseOp,
+  getMemoryRecallCandidates,
+  getTermRecallCandidates,
   llmRefineTranslationOp,
-  termRecallOp,
 } from "@cat/operations";
 import {
   MemorySuggestionSchema,
+  AutoTranslateConfigSchema,
   safeZDotJson,
+  ServiceImplementationReferenceSchema,
   ScopeTranslationSeedSchema,
   TranslationAdviseSchema,
 } from "@cat/shared";
@@ -15,30 +26,10 @@ import * as z from "zod";
 import { defineNode, defineGraph } from "#/graph/dsl/index.ts";
 import { runGraph } from "#/graph/dsl/run-graph.ts";
 
-import { createTranslationGraph } from "./create-translation.ts";
-
-// ─── Config Schema ────────────────────────────────────────────────────────────
-
-export const AutoTranslateConfigSchema = z.object({
-  llm: z
-    .object({
-      enabled: z.boolean().default(false),
-      llmProviderId: z.int().optional(),
-      systemPrompt: z.string().optional(),
-      temperature: z.number().min(0).max(2).default(0.3),
-      maxTokens: z.int().default(1024),
-    })
-    .optional(),
-  gatherScopeContext: z.boolean().default(false),
-  weights: z
-    .object({
-      memory: z.number().min(0).default(1.0),
-      advisor: z.number().min(0).default(0.8),
-    })
-    .optional(),
-  /** confidence >= 此阈值时跳过 LLM 精修（仅 llm.enabled 时有意义） */
-  highConfidenceThreshold: z.number().min(0).max(1).default(0.95),
-});
+import {
+  CREATE_TRANSLATION_WRITE_NODE_ID,
+  createTranslationGraph,
+} from "./create-translation.ts";
 
 export type AutoTranslateConfig = z.infer<typeof AutoTranslateConfigSchema>;
 
@@ -51,16 +42,16 @@ export const AutoTranslateInputSchema = z.object({
   sourceLanguageId: z.string(),
   primaryContentNodeId: z.uuidv4().nullable().optional(),
   translatorId: z.uuidv4().nullable(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   memoryIds: z.array(z.uuidv4()).default([]),
   glossaryIds: z.array(z.uuidv4()).default([]),
   chunkIds: z.array(z.int()).default([]),
   scopeTranslationSeeds: z.array(ScopeTranslationSeedSchema).default([]),
   minMemorySimilarity: z.number().min(0).max(1),
   maxMemoryAmount: z.int().min(0).default(3),
-  memoryVectorStorageId: z.int(),
-  translationVectorStorageId: z.int(),
-  vectorizerId: z.int(),
+  memoryVectorStorage: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  vectorizer: ServiceImplementationReferenceSchema,
   config: AutoTranslateConfigSchema.optional(),
 });
 
@@ -72,6 +63,23 @@ export const AutoTranslateOutputSchema = z.object({
 export type AutoTranslateInput = z.infer<typeof AutoTranslateInputSchema>;
 export type AutoTranslateOutput = z.infer<typeof AutoTranslateOutputSchema>;
 
+const DurableAutoTranslateOutcomeSchema = z.object({
+  translationIds: z.array(z.int()),
+  scopeTranslationSeed: ScopeTranslationSeedSchema,
+});
+
+const DurableTranslationWriteSchema = z.object({
+  translationIds: z.array(z.int()),
+  durableOutcomes: z
+    .array(
+      z.object({
+        translatableElementId: z.int(),
+        scopeTranslationSeed: ScopeTranslationSeedSchema,
+      }),
+    )
+    .optional(),
+});
+
 // ─── 中间节点 Schemas ─────────────────────────────────────────────────────────
 
 const GatherContextOutputSchema = z.object({
@@ -81,6 +89,7 @@ const GatherContextOutputSchema = z.object({
   neighborTranslations: z.array(
     z.object({ source: z.string(), translation: z.string() }),
   ),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const TermContextItemSchema = z.object({
@@ -109,33 +118,38 @@ const RecallNodeInputSchema = z.object({
   memoryIds: z.array(z.uuidv4()),
   minSimilarity: z.number().min(0).max(1),
   maxAmount: z.int().min(0),
-  vectorStorageId: z.int(),
+  vectorStorage: ServiceImplementationReferenceSchema,
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const RecallNodeOutputSchema = z.object({
   terms: z.array(TermContextItemSchema),
   memories: z.array(MemorySuggestionSchema),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const MtAdviseNodeInputSchema = z.object({
   text: z.string(),
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
-  advisorId: z.int().optional(),
+  advisor: ServiceImplementationReferenceSchema.optional(),
   glossaryIds: z.array(z.uuidv4()),
   terms: z.array(TermContextItemSchema),
   memories: z.array(MemorySuggestionSchema),
   scopeTranslationSeeds: z.array(ScopeTranslationSeedSchema).default([]),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const MtAdviseNodeOutputSchema = z.object({
   suggestions: z.array(TranslationAdviseSchema),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const AggregateNodeInputSchema = z.object({
   memories: z.array(MemorySuggestionSchema),
   suggestions: z.array(TranslationAdviseSchema),
   config: AutoTranslateConfigSchema.optional(),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const AggregateOutputSchema = z.object({
@@ -151,6 +165,7 @@ const AggregateOutputSchema = z.object({
   topCandidateMeta: safeZDotJson,
   topCandidateConfidence: z.number().min(0).max(1).nullable(),
   skipLlmRefine: z.boolean(),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const LlmRefineNodeInputSchema = z.object({
@@ -165,12 +180,14 @@ const LlmRefineNodeInputSchema = z.object({
   sourceLanguageId: z.string(),
   translationLanguageId: z.string(),
   config: AutoTranslateConfigSchema.optional(),
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const LlmRefineNodeOutputSchema = z.object({
   selectedText: z.string(),
   refined: z.boolean(),
   meta: safeZDotJson,
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const CreateTranslationNodeInputSchema = z.object({
@@ -186,8 +203,9 @@ const CreateTranslationNodeInputSchema = z.object({
   translatorId: z.uuidv4().nullable(),
   translationLanguageId: z.string(),
   memoryIds: z.array(z.uuidv4()),
-  vectorizerId: z.int(),
-  translationVectorStorageId: z.int(),
+  vectorizer: ServiceImplementationReferenceSchema,
+  translationVectorStorage: ServiceImplementationReferenceSchema,
+  durableOutcome: DurableAutoTranslateOutcomeSchema.nullable(),
 });
 
 const usableScopeSeeds = (
@@ -209,7 +227,71 @@ export const autoTranslateGraph = defineGraph({
     "gather-context": defineNode({
       input: AutoTranslateInputSchema,
       output: GatherContextOutputSchema,
-      handler: async (input, _ctx) => {
+      handler: async (input, ctx) => {
+        let durableOutcome: z.infer<
+          typeof DurableAutoTranslateOutcomeSchema
+        > | null = null;
+        if (ctx.ownershipFence) {
+          await ctx.assertRunOwnership();
+          const durableWriteKey = `owned-element-write:${input.translatableElementId}`;
+          const { client: db } = await getDbHandle();
+          const runInternalId = await executeQuery(
+            { db },
+            getAgentRunInternalId,
+            { externalId: ctx.ownershipFence.runId },
+          );
+          const record =
+            runInternalId === null
+              ? null
+              : await executeQuery(
+                  { db },
+                  loadAgentExternalOutputByIdempotency,
+                  {
+                    runInternalId,
+                    idempotencyKey: `${CREATE_TRANSLATION_WRITE_NODE_ID}:${ctx.ownershipFence.runId}:${durableWriteKey}`,
+                  },
+                );
+          const durable = DurableTranslationWriteSchema.safeParse(
+            record?.payload,
+          );
+          if (durable.success) {
+            const storedSeed = durable.data.durableOutcomes?.find(
+              (outcome) =>
+                outcome.translatableElementId === input.translatableElementId,
+            )?.scopeTranslationSeed;
+            const translations = await executeQuery(
+              { db },
+              listTranslationsByIds,
+              { translationIds: durable.data.translationIds },
+            );
+            const persisted = translations.find(
+              (translation) =>
+                translation.translatableElementId ===
+                input.translatableElementId,
+            );
+            if (!persisted) {
+              throw new Error(
+                `Durable translation outcome for element ${input.translatableElementId} is missing its translation.`,
+              );
+            }
+            durableOutcome = {
+              translationIds: durable.data.translationIds,
+              scopeTranslationSeed: {
+                ...(storedSeed ?? {
+                  elementId: input.translatableElementId,
+                  source: input.text,
+                  sourceLanguageId: input.sourceLanguageId,
+                  targetLanguageId: input.translationLanguageId,
+                  primaryContentNodeId: input.primaryContentNodeId ?? null,
+                  confidence: 0,
+                  trustLevel: "MEDIUM" as const,
+                  reason: "batch-runtime" as const,
+                }),
+                translation: persisted.text,
+              },
+            };
+          }
+        }
         const seeds = usableScopeSeeds(input.scopeTranslationSeeds);
         const neighborTranslations = input.config?.gatherScopeContext
           ? seeds.map((seed) => ({
@@ -222,7 +304,8 @@ export const autoTranslateGraph = defineGraph({
           text: input.text,
           sourceLanguageId: input.sourceLanguageId,
           translationLanguageId: input.translationLanguageId,
-          neighborTranslations,
+          neighborTranslations: durableOutcome ? [] : neighborTranslations,
+          durableOutcome,
         };
       },
     }),
@@ -240,11 +323,19 @@ export const autoTranslateGraph = defineGraph({
         memoryIds: "memoryIds",
         minSimilarity: "minMemorySimilarity",
         maxAmount: "maxMemoryAmount",
-        vectorStorageId: "memoryVectorStorageId",
+        vectorStorage: "memoryVectorStorage",
+        durableOutcome: "gather-context.durableOutcome",
       },
       handler: async (input, ctx) => {
+        if (input.durableOutcome) {
+          return {
+            terms: [],
+            memories: [],
+            durableOutcome: input.durableOutcome,
+          };
+        }
         const [termResult, memoryResult] = await Promise.all([
-          termRecallOp(
+          collectTermRecallOp(
             {
               text: input.text,
               sourceLanguageId: input.sourceLanguageId,
@@ -257,13 +348,12 @@ export const autoTranslateGraph = defineGraph({
           collectMemoryRecallOp(
             {
               text: input.text,
-              chunkIds: input.chunkIds,
               memoryIds: input.memoryIds,
               sourceLanguageId: input.sourceLanguageId,
               translationLanguageId: input.translationLanguageId,
               minSimilarity: input.minSimilarity,
               maxAmount: input.maxAmount,
-              vectorStorageId: input.vectorStorageId,
+              vectorStorage: input.vectorStorage,
             },
             {
               traceId: ctx.runId,
@@ -272,7 +362,14 @@ export const autoTranslateGraph = defineGraph({
             },
           ),
         ]);
-        return { terms: termResult.terms, memories: memoryResult };
+        return {
+          terms: getTermRecallCandidates(termResult).map((term) => ({
+            ...term,
+            concept: { subjects: [], definition: term.definition },
+          })),
+          memories: getMemoryRecallCandidates(memoryResult),
+          durableOutcome: null,
+        };
       },
     }),
 
@@ -283,19 +380,23 @@ export const autoTranslateGraph = defineGraph({
         text: "gather-context.text",
         sourceLanguageId: "gather-context.sourceLanguageId",
         translationLanguageId: "gather-context.translationLanguageId",
-        advisorId: "advisorId",
+        advisor: "advisor",
         glossaryIds: "glossaryIds",
         terms: "recall.terms",
         memories: "recall.memories",
         scopeTranslationSeeds: "scopeTranslationSeeds",
+        durableOutcome: "recall.durableOutcome",
       },
       handler: async (input, ctx) => {
-        return fetchAdviseOp(
+        if (input.durableOutcome) {
+          return { suggestions: [], durableOutcome: input.durableOutcome };
+        }
+        const result = await fetchAdviseOp(
           {
             text: input.text,
             sourceLanguageId: input.sourceLanguageId,
             translationLanguageId: input.translationLanguageId,
-            advisorId: input.advisorId,
+            advisor: input.advisor,
             glossaryIds: input.glossaryIds,
             memoryIds: [],
             preloadedTerms: input.terms,
@@ -318,6 +419,7 @@ export const autoTranslateGraph = defineGraph({
             pluginManager: ctx.pluginManager,
           },
         );
+        return { ...result, durableOutcome: null };
       },
     }),
 
@@ -328,8 +430,19 @@ export const autoTranslateGraph = defineGraph({
         memories: "recall.memories",
         suggestions: "mt-advise.suggestions",
         config: "config",
+        durableOutcome: "mt-advise.durableOutcome",
       },
       handler: async (input, _ctx) => {
+        if (input.durableOutcome) {
+          return {
+            candidates: [],
+            topCandidateText: null,
+            topCandidateMeta: {},
+            topCandidateConfidence: null,
+            skipLlmRefine: true,
+            durableOutcome: input.durableOutcome,
+          };
+        }
         const memoryWeight = input.config?.weights?.memory ?? 1.0;
         const advisorWeight = input.config?.weights?.advisor ?? 0.8;
         const threshold = input.config?.highConfidenceThreshold ?? 0.95;
@@ -372,6 +485,7 @@ export const autoTranslateGraph = defineGraph({
           topCandidateMeta: top?.meta ?? {},
           topCandidateConfidence: top?.confidence ?? null,
           skipLlmRefine,
+          durableOutcome: null,
         };
       },
     }),
@@ -391,13 +505,23 @@ export const autoTranslateGraph = defineGraph({
         sourceLanguageId: "gather-context.sourceLanguageId",
         translationLanguageId: "gather-context.translationLanguageId",
         config: "config",
+        durableOutcome: "aggregate.durableOutcome",
       },
       handler: async (input, ctx) => {
+        if (input.durableOutcome) {
+          return {
+            selectedText: "",
+            refined: false,
+            meta: {},
+            durableOutcome: input.durableOutcome,
+          };
+        }
         if (input.skipLlmRefine || !input.topCandidateText) {
           return {
             selectedText: input.topCandidateText ?? "",
             refined: false,
             meta: input.topCandidateMeta ?? {},
+            durableOutcome: null,
           };
         }
 
@@ -413,7 +537,7 @@ export const autoTranslateGraph = defineGraph({
               definition: t.definition,
             })),
             neighborTranslations: input.neighborTranslations,
-            llmProviderId: input.config?.llm?.llmProviderId,
+            llmProvider: input.config?.llm?.llmProvider,
             systemPrompt: input.config?.llm?.systemPrompt,
             temperature: input.config?.llm?.temperature ?? 0.3,
             maxTokens: input.config?.llm?.maxTokens ?? 1024,
@@ -432,6 +556,7 @@ export const autoTranslateGraph = defineGraph({
             ...(input.topCandidateMeta ?? {}),
             refined,
           },
+          durableOutcome: null,
         };
       },
     }),
@@ -452,12 +577,58 @@ export const autoTranslateGraph = defineGraph({
         translatorId: "translatorId",
         translationLanguageId: "translationLanguageId",
         memoryIds: "memoryIds",
-        vectorizerId: "vectorizerId",
-        translationVectorStorageId: "translationVectorStorageId",
+        vectorizer: "vectorizer",
+        translationVectorStorage: "translationVectorStorage",
+        durableOutcome: "llm-refine.durableOutcome",
       },
       handler: async (input, ctx) => {
+        if (input.durableOutcome) {
+          await runGraph(
+            createTranslationGraph,
+            {
+              data: [
+                {
+                  translatableElementId: input.translatableElementId,
+                  languageId: input.translationLanguageId,
+                  text: input.durableOutcome.scopeTranslationSeed.translation,
+                  meta: {},
+                  durableScopeTranslationSeed:
+                    input.durableOutcome.scopeTranslationSeed,
+                },
+              ],
+              vectorizer: input.vectorizer,
+              vectorStorage: input.translationVectorStorage,
+              translatorId: input.translatorId,
+            },
+            {
+              signal: ctx.signal,
+              ownershipFence: ctx.ownershipFence,
+              assertRunOwnership: ctx.assertRunOwnership,
+              vcsContext: ctx.vcsContext,
+              vcsMiddleware: ctx.vcsMiddleware,
+            },
+          );
+          return input.durableOutcome;
+        }
         const text = input.selectedText || input.fallbackText;
         if (!text) return {};
+
+        const scopeTranslationSeed = {
+          elementId: input.translatableElementId,
+          source: input.sourceText,
+          translation: text,
+          sourceLanguageId: input.sourceLanguageId,
+          targetLanguageId: input.translationLanguageId,
+          primaryContentNodeId: input.primaryContentNodeId ?? null,
+          confidence: input.refined
+            ? Math.max(input.topCandidateConfidence ?? 0, 0.9)
+            : (input.topCandidateConfidence ?? 0),
+          trustLevel:
+            input.refined || (input.topCandidateConfidence ?? 0) >= 0.85
+              ? ("HIGH" as const)
+              : ("MEDIUM" as const),
+          reason: "batch-runtime" as const,
+        };
 
         const { translationIds } = await runGraph(
           createTranslationGraph,
@@ -468,35 +639,27 @@ export const autoTranslateGraph = defineGraph({
                 languageId: input.translationLanguageId,
                 text,
                 meta: input.topCandidateMeta ?? {},
+                durableScopeTranslationSeed: scopeTranslationSeed,
               },
             ],
             // 自动翻译暂时不创建记忆
             // memoryIds: input.memoryIds,
-            vectorizerId: input.vectorizerId,
-            vectorStorageId: input.translationVectorStorageId,
+            vectorizer: input.vectorizer,
+            vectorStorage: input.translationVectorStorage,
             translatorId: input.translatorId,
           },
-          { signal: ctx.signal },
+          {
+            signal: ctx.signal,
+            ownershipFence: ctx.ownershipFence,
+            assertRunOwnership: ctx.assertRunOwnership,
+            vcsContext: ctx.vcsContext,
+            vcsMiddleware: ctx.vcsMiddleware,
+          },
         );
 
         return {
           translationIds,
-          scopeTranslationSeed: {
-            elementId: input.translatableElementId,
-            source: input.sourceText,
-            translation: text,
-            sourceLanguageId: input.sourceLanguageId,
-            targetLanguageId: input.translationLanguageId,
-            primaryContentNodeId: input.primaryContentNodeId ?? null,
-            confidence: input.refined
-              ? Math.max(input.topCandidateConfidence ?? 0, 0.9)
-              : (input.topCandidateConfidence ?? 0),
-            trustLevel:
-              input.refined || (input.topCandidateConfidence ?? 0) >= 0.85
-                ? ("HIGH" as const)
-                : ("MEDIUM" as const),
-            reason: "batch-runtime" as const,
-          },
+          scopeTranslationSeed,
         };
       },
     }),
