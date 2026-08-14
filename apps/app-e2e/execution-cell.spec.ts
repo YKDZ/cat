@@ -133,6 +133,10 @@ const readyReport = (profile: "lite" | "production") => ({
 });
 
 describe("ExecutionCell scheduler", () => {
+  it("uses the operating-system temporary directory for local diagnostics", () => {
+    expect(e2eArtifactRootFrom({})).toBe(join(tmpdir(), "cat-e2e"));
+  });
+
   it("places execution-cell diagnostics beneath the configured artifact root", () => {
     expect(
       e2eArtifactRootFrom({
@@ -1415,7 +1419,7 @@ describe("ExecutionCell scheduler", () => {
       "e2e cell target=dev browser=chromium image=development status=started",
     );
     expect(output[1]).toMatch(
-      /^e2e cell target=dev browser=chromium result=passed duration=\d+ms cleanup=passed$/,
+      /^e2e cell target=dev browser=chromium result=passed duration=\d+ms phases=prepare:\d+ms,bootstrap:\d+ms,external-service:\d+ms,hydrate:\d+ms,start:\d+ms,attest:\d+ms,playwright:\d+ms,stop:\d+ms cleanup=passed$/,
     );
     expect(existsSync(artifactDirectory)).toBe(false);
   });
@@ -1469,6 +1473,7 @@ describe("ExecutionCell scheduler", () => {
     await writeFile(join(playwrightOutput, ".auth", "admin.json"), "secret");
     await writeFile(join(playwrightOutput, "trace.zip"), "trace");
     const errors: string[] = [];
+    const replayLogs = vi.fn();
     const target: TargetAdapter = {
       applyExternalServicePlan: async () => undefined,
       attest: async () => undefined,
@@ -1481,7 +1486,8 @@ describe("ExecutionCell scheduler", () => {
           label: "test application",
           ownedPids: new Set(),
           processIdentities: new Map(),
-        }) satisfies StartedProcess,
+          replayLogs,
+        }) as StartedProcess,
       stop: async () => undefined,
     };
 
@@ -1511,7 +1517,10 @@ describe("ExecutionCell scheduler", () => {
       ),
     ]);
     expect(errors[0]).toContain("phase=playwright");
+    expect(errors[0]).toContain("last-phase=playwright");
+    expect(errors[0]).toMatch(/phases=.*playwright:\d+ms/);
     expect(errors[0]).toContain("browser validation failed");
+    expect(replayLogs).toHaveBeenCalledOnce();
     await rm(artifactDirectory, { force: true, recursive: true });
   });
 
@@ -2135,6 +2144,112 @@ describe("ExecutionCell scheduler", () => {
       expect(child.kill).toHaveBeenNthCalledWith(2, "SIGKILL");
       expect(child.listenerCount("close")).toBe(0);
     } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("replays redacted captured command output when the command fails", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-replay-"));
+    const output = join(directory, "command.log");
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await expect(
+        runAbortableCommand(
+          process.execPath,
+          [
+            "-e",
+            "process.stdout.write('application startup failure\\n'); process.stderr.write('password=diagnostic-secret\\n'); process.exitCode=2",
+          ],
+          process.env,
+          "captured failure",
+          { outputPath: output },
+        ),
+      ).rejects.toThrow("captured failure exited with 2");
+
+      expect(readFileSync(output, "utf8")).toContain(
+        "password=diagnostic-secret",
+      );
+      expect(stdout).toHaveBeenCalledWith("application startup failure\n");
+      expect(stderr).toHaveBeenCalledWith("password=[REDACTED]\n");
+      expect(stderr).not.toHaveBeenCalledWith(
+        expect.stringContaining("diagnostic-secret"),
+      );
+    } finally {
+      stdout.mockRestore();
+      stderr.mockRestore();
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("keeps captured command output quiet when the command succeeds", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-quiet-"));
+    const output = join(directory, "command.log");
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await runAbortableCommand(
+        process.execPath,
+        [
+          "-e",
+          "process.stdout.write('successful output\\n'); process.stderr.write('successful diagnostic\\n')",
+        ],
+        process.env,
+        "captured success",
+        { outputPath: output },
+      );
+
+      expect(readFileSync(output, "utf8")).toContain("successful output\n");
+      expect(readFileSync(output, "utf8")).toContain("successful diagnostic\n");
+      expect(stdout).not.toHaveBeenCalledWith("successful output\n");
+      expect(stderr).not.toHaveBeenCalledWith("successful diagnostic\n");
+    } finally {
+      stdout.mockRestore();
+      stderr.mockRestore();
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("bounds replayed failure output while retaining the complete local log", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-bounded-"));
+    const output = join(directory, "command.log");
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await expect(
+        runAbortableCommand(
+          process.execPath,
+          [
+            "-e",
+            "process.stdout.write('x'.repeat(300000)); process.exitCode=2",
+          ],
+          process.env,
+          "large captured failure",
+          { outputPath: output },
+        ),
+      ).rejects.toThrow("large captured failure exited with 2");
+
+      expect(readFileSync(output, "utf8")).toHaveLength(300_000);
+      const replay = stdout.mock.calls.find(([value]) =>
+        String(value).startsWith("[diagnostic output truncated"),
+      );
+      expect(replay).toBeDefined();
+      expect(String(replay?.[0]).length).toBeGreaterThan(256_000);
+      expect(String(replay?.[0]).length).toBeLessThan(257_000);
+    } finally {
+      stdout.mockRestore();
       await rm(directory, { force: true, recursive: true });
     }
   });

@@ -85,6 +85,18 @@ const actionStep = (name: string): WorkflowStep => {
   return step!;
 };
 
+const compatibilityCohort = (
+  patterns: string[],
+): {
+  "applies-to": "version-updates";
+  patterns: string[];
+  "update-types": ["patch", "minor"];
+} => ({
+  "applies-to": "version-updates",
+  patterns,
+  "update-types": ["patch", "minor"],
+});
+
 describe("CI configuration contract", () => {
   it("projects the typed plan into the distributed Complete Verification graph", () => {
     expect(workflow.on).toMatchObject({
@@ -540,7 +552,15 @@ describe("CI configuration contract", () => {
       updates?: Array<{
         directories?: string[];
         directory?: string;
-        groups?: Record<string, { "group-by"?: string; patterns?: string[] }>;
+        groups?: Record<
+          string,
+          {
+            "applies-to"?: string;
+            patterns?: string[];
+            "update-types"?: string[];
+          }
+        >;
+        ignore?: Array<{ "dependency-name"?: string }>;
         "package-ecosystem"?: string;
       }>;
       version?: number;
@@ -551,29 +571,45 @@ describe("CI configuration contract", () => {
     expect(dependabot.version).toBe(2);
     expect(
       dependabot.updates?.map((update) => update["package-ecosystem"]),
-    ).toEqual(["npm", "docker", "github-actions"]);
+    ).toEqual(["npm", "docker", "uv", "github-actions"]);
 
     const npm = dependabot.updates?.find(
       (update) => update["package-ecosystem"] === "npm",
     );
     expect(npm?.directory).toBe("/");
-    expect(npm?.groups).toHaveProperty("workspace-toolchain");
-    expect(npm?.groups).toHaveProperty("testing");
-
-    const nodeImages = dependabot.updates?.find(
-      (update) => update.directories !== undefined,
-    );
-    expect(nodeImages?.["package-ecosystem"]).toBe("docker");
-    expect(nodeImages?.directories).toEqual(["/.devcontainer", "/apps/app"]);
-    expect(nodeImages?.groups?.["node-runtime"]).toEqual({
-      "group-by": "dependency-name",
-      patterns: ["node"],
+    expect(npm?.groups).toEqual({
+      "aws-sdk": compatibilityCohort(["@aws-sdk/*"]),
+      "drizzle-core": compatibilityCohort(["drizzle-kit", "drizzle-orm"]),
+      orpc: compatibilityCohort(["@orpc/*"]),
+      playwright: compatibilityCohort(["playwright", "@playwright/*"]),
+      vitest: compatibilityCohort(["vitest", "@vitest/*"]),
+      "vue-core": compatibilityCohort(["vue", "@vue/compiler-*"]),
+      vueuse: compatibilityCohort(["@vueuse/*"]),
     });
+
+    const devcontainerImages = dependabot.updates?.find(
+      (update) => update["package-ecosystem"] === "docker",
+    );
+    expect(devcontainerImages?.directory).toBe("/.devcontainer");
+    expect(devcontainerImages?.ignore).toContainEqual({
+      "dependency-name": "node",
+    });
+
+    const uv = dependabot.updates?.find(
+      (update) => update["package-ecosystem"] === "uv",
+    );
+    expect(uv?.directory).toBe("/apps/spacy-server");
+
     expect(
       dependabot.updates?.filter(
         (update) => update["package-ecosystem"] === "github-actions",
       ),
     ).toHaveLength(1);
+    expect(
+      dependabot.updates?.find(
+        (update) => update["package-ecosystem"] === "github-actions",
+      )?.groups,
+    ).toBeUndefined();
   });
 
   it("provides Docker CLI, buildx, and Compose through the Dockerfile-first devcontainer", () => {

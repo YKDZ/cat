@@ -1,4 +1,5 @@
 import http from "node:http";
+import { tmpdir } from "node:os";
 import { isAbsolute, relative, resolve } from "node:path";
 
 import { injectApplicationWebSocket } from "@cat/app-api/app";
@@ -21,7 +22,7 @@ const resolvedProbeRoot =
   probeRoot === undefined ? undefined : resolve(workspaceRoot, probeRoot);
 
 if (resolvedProbeRoot !== undefined) {
-  const probeParent = resolve(workspaceRoot, ".tmp/e2e");
+  const probeParent = resolve(tmpdir(), "cat-e2e-probes");
   const probePath = relative(probeParent, resolvedProbeRoot);
   if (
     probePath === "" ||
@@ -30,7 +31,9 @@ if (resolvedProbeRoot !== undefined) {
     probePath.startsWith("../") ||
     probePath.startsWith("..\\")
   ) {
-    throw new Error("CAT_E2E_HMR_PROBE_DIRECTORY must be below .tmp/e2e");
+    throw new Error(
+      "CAT_E2E_HMR_PROBE_DIRECTORY must be below the system temporary probe root",
+    );
   }
 }
 
@@ -55,7 +58,7 @@ const hmrProbePaths = (): string[] => [
 const initializeDevelopmentServer = () => ({
   name: "cat:initialize-development-server",
   configureServer(server: ViteDevServer) {
-    // E2E places its private source package below .tmp, outside Vite's root.
+    // E2E places its private source package outside Vite's workspace root.
     // Aliasing resolves the import, while this registers the actual file events.
     server.watcher.add(hmrProbePaths());
     if (!(server.httpServer instanceof http.Server)) {
@@ -155,6 +158,9 @@ export default defineConfig({
   },
 
   server: {
+    ...(resolvedProbeRoot === undefined
+      ? {}
+      : { fs: { allow: [workspaceRoot, resolvedProbeRoot] } }),
     watch: {
       ignored: ["plugins/**"],
     },

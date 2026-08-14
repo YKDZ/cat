@@ -137,6 +137,12 @@ describe("Logger", () => {
     expect(redactDiagnosticText(diagnostic)).toBe(diagnostic);
   });
 
+  it("handles large ordinary diagnostics without URL-pattern backtracking", () => {
+    const diagnostic = "x".repeat(300_000);
+
+    expect(redactDiagnosticText(diagnostic)).toBe(diagnostic);
+  });
+
   it("recursively formats bounded error trees without exposing credentials", () => {
     const cleanup = new Error("cleanup password=cleanup-secret");
     const root = new AggregateError(
