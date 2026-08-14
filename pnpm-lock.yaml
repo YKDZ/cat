@@ -338,8 +338,8 @@ catalogs:
       specifier: ^4.3.3
       version: 4.3.3
     telefunc:
-      specifier: ^0.2.20
-      version: 0.2.20
+      specifier: ^0.2.23
+      version: 0.2.23
     ts-morph:
       specifier: ^28.0.0
       version: 28.0.0
@@ -1020,10 +1020,10 @@ importers:
         version: 1.14.6(@opentelemetry/api@1.9.1)
       '@orpc/experimental-pino':
         specifier: 'catalog:'
-        version: 1.14.6(@opentelemetry/api@1.9.1)(pino@10.3.1)(ws@8.21.0)
+        version: 1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(pino@10.3.1)(ws@8.21.0)
       '@orpc/server':
         specifier: 'catalog:'
-        version: 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
+        version: 1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(ws@8.21.0)
       '@pinia/colada':
         specifier: 'catalog:'
         version: 1.3.1(pinia@3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
@@ -1107,7 +1107,7 @@ importers:
         version: 4.3.3
       telefunc:
         specifier: 'catalog:'
-        version: 0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 0.2.23(@babel/core@7.29.7)(@babel/parser@7.29.8)(@babel/types@7.29.8)(react@19.2.7)(srvx@0.11.16)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       tw-animate-css:
         specifier: 'catalog:'
         version: 1.4.0
@@ -1252,7 +1252,7 @@ importers:
         version: 1.14.6(@opentelemetry/api@1.9.1)
       '@orpc/server':
         specifier: 'catalog:'
-        version: 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
+        version: 1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(ws@8.21.0)
     devDependencies:
       '@cat/typescript-config':
         specifier: link:../../packages/typescript-config
@@ -1539,16 +1539,16 @@ importers:
         version: 1.14.6(@opentelemetry/api@1.9.1)
       '@orpc/experimental-pino':
         specifier: 'catalog:'
-        version: 1.14.6(@opentelemetry/api@1.9.1)(pino@10.3.1)(ws@8.21.0)
+        version: 1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(pino@10.3.1)(ws@8.21.0)
       '@orpc/server':
         specifier: 'catalog:'
-        version: 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
+        version: 1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(ws@8.21.0)
       hono:
         specifier: 'catalog:'
         version: 4.13.1
       telefunc:
         specifier: 'catalog:'
-        version: 0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.2.1(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
+        version: 0.2.23(@babel/core@7.29.7)(@babel/parser@7.29.8)(@babel/types@7.29.8)(react@19.2.7)(srvx@0.11.16)(vite@8.2.1(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0))
       zod:
         specifier: 'catalog:'
         version: 4.4.3
@@ -6442,6 +6442,14 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
+  crossws@0.4.10:
+    resolution: {integrity: sha512-pz3oubH/dt12KjqsUB0IuXW4nwRDQ583iDsP4555Cpdqx0NoU7pGlWBcayyFI8f/l/idRpgjMEfwuOxSWJYlIA==}
+    peerDependencies:
+      srvx: '>=0.11.5'
+    peerDependenciesMeta:
+      srvx:
+        optional: true
+
   css-select@5.2.2:
     resolution: {integrity: sha512-TizTzUddG/xYLA3NXodFM0fSbNizXjOKhqiQQwvhlspadZokn1KDy0NZFS0wuEubIYAV5/c1/lAr0TaaFXEXzw==}
 
@@ -9136,9 +9144,9 @@ packages:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
     engines: {node: '>=6'}
 
-  telefunc@0.2.20:
-    resolution: {integrity: sha512-WzvLZtGorY4mLdVgS+eskMzT5f0/Ob6FbaMEW78RhPFPImZwOVeh4k5wNz6jQujBiRIVbZ6t90k0+Mxo/yrsdA==}
-    engines: {node: '>=12.19.0'}
+  telefunc@0.2.23:
+    resolution: {integrity: sha512-nA4pVFPRA32Qr7L4BUBe1oTllJtrT3EfyMzjGSV45EhzeIowRKy47nR/AXI4WiISp1T0uV2II/sSVmRTxlGkVA==}
+    engines: {node: '>=20'}
     peerDependencies:
       '@babel/core': '>=7.0.0'
       '@babel/parser': '>=7.0.0'
@@ -12163,10 +12171,10 @@ snapshots:
     transitivePeerDependencies:
       - '@opentelemetry/api'
 
-  '@orpc/experimental-pino@1.14.6(@opentelemetry/api@1.9.1)(pino@10.3.1)(ws@8.21.0)':
+  '@orpc/experimental-pino@1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(pino@10.3.1)(ws@8.21.0)':
     dependencies:
       '@orpc/client': 1.14.6(@opentelemetry/api@1.9.1)
-      '@orpc/server': 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
+      '@orpc/server': 1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(ws@8.21.0)
       '@orpc/shared': 1.14.6(@opentelemetry/api@1.9.1)
       pino: 10.3.1
     transitivePeerDependencies:
@@ -12177,7 +12185,7 @@ snapshots:
 
   '@orpc/interop@1.14.6': {}
 
-  '@orpc/server@1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)':
+  '@orpc/server@1.14.6(@opentelemetry/api@1.9.1)(crossws@0.4.10(srvx@0.11.16))(ws@8.21.0)':
     dependencies:
       '@orpc/client': 1.14.6(@opentelemetry/api@1.9.1)
       '@orpc/contract': 1.14.6(@opentelemetry/api@1.9.1)
@@ -12191,6 +12199,7 @@ snapshots:
       '@orpc/standard-server-peer': 1.14.6(@opentelemetry/api@1.9.1)
       cookie: 1.1.1
     optionalDependencies:
+      crossws: 0.4.10(srvx@0.11.16)
       ws: 8.21.0
     transitivePeerDependencies:
       - '@opentelemetry/api'
@@ -14165,6 +14174,10 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
+
+  crossws@0.4.10(srvx@0.11.16):
+    optionalDependencies:
+      srvx: 0.11.16
 
   css-select@5.2.2:
     dependencies:
@@ -17133,37 +17146,43 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  telefunc@0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)):
+  telefunc@0.2.23(@babel/core@7.29.7)(@babel/parser@7.29.8)(@babel/types@7.29.8)(react@19.2.7)(srvx@0.11.16)(vite@8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)):
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/json-serializer': 0.5.25
       '@brillout/picocolors': 1.0.31
       '@brillout/vite-plugin-server-entry': 0.7.18
+      crossws: 0.4.10(srvx@0.11.16)
       es-module-lexer: 1.7.0
       magic-string: 0.30.21
       ts-morph: 26.0.0
     optionalDependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
       react: 19.2.7
       vite: 8.2.1(@types/node@24.13.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - srvx
 
-  telefunc@0.2.20(@babel/core@7.29.7)(@babel/parser@7.29.7)(@babel/types@7.29.7)(react@19.2.7)(vite@8.2.1(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)):
+  telefunc@0.2.23(@babel/core@7.29.7)(@babel/parser@7.29.8)(@babel/types@7.29.8)(react@19.2.7)(srvx@0.11.16)(vite@8.2.1(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)):
     dependencies:
       '@brillout/import': 0.2.6
       '@brillout/json-serializer': 0.5.25
       '@brillout/picocolors': 1.0.31
       '@brillout/vite-plugin-server-entry': 0.7.18
+      crossws: 0.4.10(srvx@0.11.16)
       es-module-lexer: 1.7.0
       magic-string: 0.30.21
       ts-morph: 26.0.0
     optionalDependencies:
       '@babel/core': 7.29.7
-      '@babel/parser': 7.29.7
-      '@babel/types': 7.29.7
+      '@babel/parser': 7.29.8
+      '@babel/types': 7.29.8
       react: 19.2.7
       vite: 8.2.1(@types/node@25.9.3)(esbuild@0.28.0)(jiti@2.7.0)(stylus@0.57.0)(tsx@4.22.4)(yaml@2.9.0)
+    transitivePeerDependencies:
+      - srvx
 
   thread-stream@4.2.0:
     dependencies:
