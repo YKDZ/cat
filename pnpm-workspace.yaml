@@ -65,7 +65,7 @@ catalog:
   "@orpc/experimental-pino": ^1.14.6
   "@orpc/server": ^1.14.6
   "@oxlint/plugins": ^1.69.0
-  "@pinia/colada": ^1.3.1
+  "@pinia/colada": ^1.4.2
   "@pinia/colada-devtools": ^1.0.0
   "@pinia/testing": ^1.0.3
   "@playwright/test": ^1.60.0
