@@ -116,7 +116,7 @@ catalog:
   isomorphic-dompurify: ^3.21.0
   jiti: ^2.7.0
   js-yaml: ^5.2.3
-  marked: ^18.0.5
+  marked: ^18.0.9
   mermaid: ^11.16.1
   openai: ^7.4.0
   oxfmt: ^0.62.0
