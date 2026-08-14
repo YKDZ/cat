@@ -110,8 +110,8 @@ catalogs:
       specifier: ^1.69.0
       version: 1.73.0
     '@pinia/colada':
-      specifier: ^1.3.1
-      version: 1.3.1
+      specifier: ^1.4.2
+      version: 1.4.2
     '@pinia/colada-devtools':
       specifier: ^1.0.0
       version: 1.0.0
@@ -1026,7 +1026,7 @@ importers:
         version: 1.14.6(@opentelemetry/api@1.9.1)(ws@8.21.0)
       '@pinia/colada':
         specifier: 'catalog:'
-        version: 1.3.1(pinia@3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
+        version: 1.4.2(pinia@3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))
       '@pinia/testing':
         specifier: 'catalog:'
         version: 1.0.3(pinia@3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))
@@ -4675,10 +4675,10 @@ packages:
   '@pinia/colada-devtools@1.0.0':
     resolution: {integrity: sha512-DS23RyFqQ+Gy2B4Wu5GjRLEeCRKZCnP0txjFxN04CMyt6quYudCdq4JnFByT6Km2aNd/TjjENFdfJK/gd8A+Sg==}
 
-  '@pinia/colada@1.3.1':
-    resolution: {integrity: sha512-DLHtyCud5sACbNLdVIHsoPrhcHMT/1LvObFHxxbmJKU2fqGPluc8Y8CtmCTQ71BgnzcNMuAl97G5XrAgOZqxvg==}
+  '@pinia/colada@1.4.2':
+    resolution: {integrity: sha512-HDCFSBd+Uxzuw/BEdl7Kwsm4uccWwkX5uSxpZhc4/MhfFASU+t+DmjByyzNoAG9EK3SGJ7uf6pNR7bJg+dX80w==}
     peerDependencies:
-      pinia: ^2.2.6 || ^3.0.0
+      pinia: ^2.2.6 || ^3.0.0 || ^4.0.2
       vue: ^3.5.17
 
   '@pinia/testing@1.0.3':
@@ -8229,6 +8229,9 @@ packages:
     resolution: {integrity: sha512-taM24ViiimT/XntxbPyJQzCG+p4EKOpgD3mxFwW38mGjVUrfERQOeY4EDHjdnptttfHuHQXFx+lTP08Q+mLa/w==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     hasBin: true
+
+  nostics@1.2.0:
+    resolution: {integrity: sha512-FGqEfhQjrvo1lL8KFifdTQiNwwQHJxC1jtYE1Rc54qF/jxONUNL+kC9gS1krX8Q65PgrQ5fCqH/I4NhWBvdSqg==}
 
   npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -12438,8 +12441,9 @@ snapshots:
 
   '@pinia/colada-devtools@1.0.0': {}
 
-  '@pinia/colada@1.3.1(pinia@3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))':
+  '@pinia/colada@1.4.2(pinia@3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(vue@3.5.41(typescript@6.0.3))':
     dependencies:
+      nostics: 1.2.0
       pinia: 3.0.4(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3))
       vue: 3.5.41(typescript@6.0.3)
 
@@ -16016,6 +16020,8 @@ snapshots:
   nopt@7.2.1:
     dependencies:
       abbrev: 2.0.0
+
+  nostics@1.2.0: {}
 
   npm-run-path@4.0.1:
     dependencies:
