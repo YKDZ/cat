@@ -181,6 +181,7 @@ export type ExecutionCellDependencies = {
     runtime: CellRuntime,
     process: StartedProcess,
   ) => Promise<void>;
+  waitForValidationPeers?: () => Promise<void>;
   write?: (message: string) => void;
   writeError?: (message: string) => void;
 };
@@ -196,6 +197,7 @@ type ExecutionCellPhase =
   | "start"
   | "attest"
   | "playwright"
+  | "peer-validation"
   | "stop"
   | "server-diagnostics"
   | "cleanup"
@@ -3397,6 +3399,15 @@ export class ExecutionCell {
     };
     let runtime: CellRuntime | undefined;
     let validationProcess: StartedProcess | undefined;
+    let validationPeersPromise: Promise<void> | undefined;
+    const waitForValidationPeers = async (): Promise<void> => {
+      if (this.dependencies.waitForValidationPeers === undefined) return;
+      validationPeersPromise ??= runPhase(
+        "peer-validation",
+        this.dependencies.waitForValidationPeers,
+      );
+      await validationPeersPromise;
+    };
     try {
       const { activeRuntime, target } = await runPhase("prepare", async () => {
         this.throwIfAborted();
@@ -3462,6 +3473,8 @@ export class ExecutionCell {
         failurePhases.set(toError(error), "playwright");
       }
 
+      await waitForValidationPeers();
+
       let stopFailure: unknown;
       try {
         await runPhase("stop", async () => await target.stop(validation));
@@ -3514,6 +3527,28 @@ export class ExecutionCell {
     } catch (error) {
       primaryFailure = error;
       failurePhases.set(toError(error), primaryFailurePhase);
+    }
+    if (
+      this.dependencies.waitForValidationPeers !== undefined &&
+      validationPeersPromise === undefined
+    ) {
+      try {
+        await waitForValidationPeers();
+      } catch (error) {
+        const peerFailure = toError(error);
+        failurePhases.set(peerFailure, "peer-validation");
+        if (primaryFailure === undefined) {
+          primaryFailure = peerFailure;
+          primaryFailurePhase = "peer-validation";
+        } else {
+          const combinedFailure = new AggregateError(
+            [toError(primaryFailure), peerFailure],
+            "Execution cell validation and peer synchronization failed",
+          );
+          primaryFailure = combinedFailure;
+          failurePhases.set(combinedFailure, primaryFailurePhase);
+        }
+      }
     }
     const cleanupFailures = await this.cleanup(writeError);
     const outputDirectory = runtime?.environment.CAT_E2E_OUTPUT_DIR;
@@ -3854,11 +3889,33 @@ export type ScheduleOptions = {
   createCell?: (
     input: ExecutionCellInput,
     reportFatalFailure: (error: Error) => void,
+    waitForValidationPeers: () => Promise<void>,
   ) => {
     run: (signal: AbortSignal) => Promise<void>;
   };
   retryFailedCells?: boolean;
   signal?: AbortSignal;
+};
+
+const createValidationPeerWaiters = (
+  participants: number,
+): ReadonlyArray<() => Promise<void>> => {
+  let arrived = 0;
+  let release: (() => void) | undefined;
+  const allArrived = new Promise<void>((resolveBarrier) => {
+    release = resolveBarrier;
+  });
+  return Array.from({ length: participants }, () => {
+    let participantWait: Promise<void> | undefined;
+    return async (): Promise<void> => {
+      if (participantWait === undefined) {
+        arrived += 1;
+        if (arrived === participants) release?.();
+        participantWait = allArrived;
+      }
+      await participantWait;
+    };
+  });
 };
 
 /**
@@ -3884,49 +3941,93 @@ export const runExecutionCells = async (
   };
   const createCell =
     options.createCell ??
-    ((input: ExecutionCellInput, reportFatalFailure: (error: Error) => void) =>
-      new ExecutionCell(input, {}, signal, reportFatalFailure));
+    ((
+      input: ExecutionCellInput,
+      reportFatalFailure: (error: Error) => void,
+      waitForValidationPeers: () => Promise<void>,
+    ) =>
+      new ExecutionCell(
+        input,
+        { waitForValidationPeers },
+        signal,
+        reportFatalFailure,
+      ));
   signal.addEventListener("abort", stopScheduling, { once: true });
 
-  const runCell = async (input: ExecutionCellInput): Promise<void> => {
-    try {
-      await createCell(input, stopScheduling).run(signal);
-    } catch (firstFailure) {
-      if (!options.retryFailedCells) throw firstFailure;
-      if (signal.aborted || stopped) throw firstFailure;
-      try {
-        // Creating a new ExecutionCell gives the retry fresh database, storage,
-        // port, process, and artifact ownership rather than reusing failed state.
-        await createCell(input, stopScheduling).run(signal);
-      } catch (retryFailure) {
-        throw new AggregateError(
-          [firstFailure, retryFailure],
-          "Execution cell failed after its explicit whole-cell retry",
-        );
-      }
-    }
-  };
-
-  const worker = async (): Promise<void> => {
-    while (!stopped) {
-      const input = inputs[nextInputIndex];
-      if (input === undefined) return;
-      nextInputIndex += 1;
-      try {
-        await runCell(input);
-        completed.push(input);
-      } catch (error) {
-        failures.push(error);
-        stopped = true;
-        return;
-      }
-    }
+  type AttemptOutcome =
+    | { input: ExecutionCellInput; status: "fulfilled" }
+    | { error: unknown; input: ExecutionCellInput; status: "rejected" };
+  const runWave = async (
+    waveInputs: readonly ExecutionCellInput[],
+  ): Promise<AttemptOutcome[]> => {
+    const waitForValidationPeers = createValidationPeerWaiters(
+      waveInputs.length,
+    );
+    return await Promise.all(
+      waveInputs.map(async (input, index): Promise<AttemptOutcome> => {
+        const waitForPeers = waitForValidationPeers[index]!;
+        let outcome: AttemptOutcome;
+        try {
+          await createCell(input, stopScheduling, waitForPeers).run(signal);
+          outcome = { input, status: "fulfilled" };
+        } catch (error) {
+          outcome = { error, input, status: "rejected" };
+        }
+        await waitForPeers();
+        return outcome;
+      }),
+    );
   };
 
   try {
-    await Promise.all(
-      Array.from({ length: Math.min(concurrency, inputs.length) }, worker),
-    );
+    while (!stopped && nextInputIndex < inputs.length) {
+      const waveInputs = inputs.slice(
+        nextInputIndex,
+        nextInputIndex + concurrency,
+      );
+      nextInputIndex += waveInputs.length;
+      const firstOutcomes = await runWave(waveInputs);
+      const firstFailures = firstOutcomes.filter(
+        (outcome): outcome is Extract<AttemptOutcome, { status: "rejected" }> =>
+          outcome.status === "rejected",
+      );
+      let retryOutcomes: AttemptOutcome[] = [];
+      if (
+        firstFailures.length > 0 &&
+        options.retryFailedCells &&
+        !signal.aborted &&
+        !stopped
+      ) {
+        // Retrying as a new wave keeps fresh cell ownership while ensuring no
+        // application starts during a previous wave's network teardown.
+        retryOutcomes = await runWave(
+          firstFailures.map((outcome) => outcome.input),
+        );
+      }
+
+      let retryIndex = 0;
+      for (const firstOutcome of firstOutcomes) {
+        if (firstOutcome.status === "fulfilled") {
+          completed.push(firstOutcome.input);
+          continue;
+        }
+        const retryOutcome = retryOutcomes[retryIndex];
+        retryIndex += 1;
+        if (retryOutcome?.status === "fulfilled") {
+          completed.push(firstOutcome.input);
+          continue;
+        }
+        failures.push(
+          retryOutcome?.status === "rejected"
+            ? new AggregateError(
+                [firstOutcome.error, retryOutcome.error],
+                "Execution cell failed after its explicit whole-cell retry",
+              )
+            : firstOutcome.error,
+        );
+      }
+      if (failures.length > 0) stopped = true;
+    }
   } finally {
     signal.removeEventListener("abort", stopScheduling);
   }

@@ -484,9 +484,17 @@ export const consumeMatchingNavigationOwnedCancellationPageError = (
   consumedCancellationRecordIds: Set<string>,
 ): boolean => {
   for (const cancellation of cancellations) {
+    const linkedFailure =
+      failure.navigationTransactionId === undefined &&
+      cancellation.navigationTransactionId !== undefined
+        ? {
+            ...failure,
+            navigationTransactionId: cancellation.navigationTransactionId,
+          }
+        : failure;
     if (
       consumeNavigationOwnedCancellationPageError(
-        failure,
+        linkedFailure,
         cancellation,
         committedNavigationIds,
         consumedCancellationRecordIds,

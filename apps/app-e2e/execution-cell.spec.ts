@@ -2982,6 +2982,50 @@ describe("ExecutionCell scheduler", () => {
     ).rejects.toThrow("must be 1 or 2");
   });
 
+  it("holds application teardown until every validation peer reaches the wave barrier", async () => {
+    let releaseSecondValidation: (() => void) | undefined;
+    let created = 0;
+    const events: string[] = [];
+    const createCell = vi.fn(
+      (
+        _current: ExecutionCellInput,
+        _reportFatalFailure: (error: Error) => void,
+        waitForValidationPeers: () => Promise<void>,
+      ) => {
+        created += 1;
+        const cell = created;
+        return {
+          run: async () => {
+            events.push(`validation:${cell}`);
+            if (cell === 2) {
+              await new Promise<void>((resolveValidation) => {
+                releaseSecondValidation = resolveValidation;
+              });
+            }
+            events.push(`barrier:${cell}`);
+            await waitForValidationPeers();
+            events.push(`teardown:${cell}`);
+          },
+        };
+      },
+    );
+
+    const scheduled = runExecutionCells([input, input], { createCell });
+    await vi.waitFor(() => expect(releaseSecondValidation).toBeDefined());
+    expect(events).toEqual(["validation:1", "barrier:1", "validation:2"]);
+
+    releaseSecondValidation?.();
+
+    await expect(scheduled).resolves.toEqual([input, input]);
+    expect(events.slice(0, 4)).toEqual([
+      "validation:1",
+      "barrier:1",
+      "validation:2",
+      "barrier:2",
+    ]);
+    expect(events.slice(4).sort()).toEqual(["teardown:1", "teardown:2"]);
+  });
+
   it("recreates the entire cell for an explicit retry", async () => {
     const first = vi.fn(
       async () => await Promise.reject(new Error("transient")),
@@ -3213,7 +3257,7 @@ describe("ExecutionCell scheduler", () => {
     expect(createCell).toHaveBeenCalledTimes(4);
   });
 
-  it("does not retry a worker after another worker has failed the matrix", async () => {
+  it("starts explicit retries only after every cell in the initial wave finishes", async () => {
     const firstInput = { ...input };
     const secondInput = { ...input };
     let releaseFirstAttempt: (() => void) | undefined;
@@ -3246,15 +3290,16 @@ describe("ExecutionCell scheduler", () => {
       retryFailedCells: true,
     });
     await vi.waitFor(() => {
-      expect(attempts.get(secondInput)).toBe(2);
       expect(releaseFirstAttempt).toBeDefined();
     });
+    expect(attempts.get(firstInput)).toBe(1);
+    expect(attempts.get(secondInput)).toBe(1);
     releaseFirstAttempt?.();
 
     await expect(scheduled).rejects.toThrow(
-      "Multiple execution cells failed while completing matrix diagnostics",
+      "Execution cell failed after its explicit whole-cell retry",
     );
-    expect(attempts.get(firstInput)).toBe(1);
+    expect(attempts.get(firstInput)).toBe(2);
     expect(attempts.get(secondInput)).toBe(2);
   });
 
@@ -3432,6 +3477,9 @@ describe("ExecutionCell scheduler", () => {
         events.push("playwright");
         throw playwrightFailure;
       },
+      waitForValidationPeers: async () => {
+        events.push("peer-validation");
+      },
       write: discardCellOutput,
       writeError: discardCellOutput,
     });
@@ -3444,6 +3492,6 @@ describe("ExecutionCell scheduler", () => {
     }
     expect(failure).toBeInstanceOf(AggregateError);
     expect((failure as AggregateError).errors[0]).toBe(playwrightFailure);
-    expect(events).toEqual(["playwright", "stop", "drain"]);
+    expect(events).toEqual(["playwright", "peer-validation", "stop", "drain"]);
   });
 });

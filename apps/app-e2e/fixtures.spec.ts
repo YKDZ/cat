@@ -663,6 +663,33 @@ describe("browser diagnostics navigation transaction", () => {
         lateConsumedCancellationRecordIds,
       ),
     ).toBe(false);
+
+    const {
+      navigationTransactionId: _unlinkedNavigationTransactionId,
+      ...firefoxCopiedPageError
+    } = failure;
+    const firefoxConsumedCancellationRecordIds = new Set<string>();
+    expect(
+      consumeMatchingNavigationOwnedCancellationPageError(
+        firefoxCopiedPageError,
+        [cancellation],
+        transaction.committedNavigationIds,
+        firefoxConsumedCancellationRecordIds,
+      ),
+    ).toBe(true);
+    expect(
+      consumeMatchingNavigationOwnedCancellationPageError(
+        { ...firefoxCopiedPageError, documentUrl: "http://localhost/other" },
+        [
+          {
+            ...cancellation,
+            recordId: "cancel-error-wrong-document",
+          },
+        ],
+        transaction.committedNavigationIds,
+        new Set(),
+      ),
+    ).toBe(false);
   });
 
   it("keeps a stored cancellation bound to its original same-URL navigation epoch", () => {
