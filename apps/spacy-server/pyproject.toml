@@ -1,7 +1,7 @@
 [project]
 name = "cat-spacy-server"
 version = "0.1.0"
-requires-python = "==3.12.11"
+requires-python = ">=3.12,<3.13"
 dependencies = [
   "fastapi==0.116.1",
   "langcodes==3.5.0",
