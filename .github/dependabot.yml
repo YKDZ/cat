@@ -73,6 +73,11 @@ updates:
     ignore:
       - dependency-name: node
 
+  - package-ecosystem: docker
+    directory: /apps/spacy-server
+    schedule:
+      interval: weekly
+
   - package-ecosystem: uv
     directory: /apps/spacy-server
     schedule:

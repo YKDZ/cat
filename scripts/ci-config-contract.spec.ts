@@ -571,7 +571,7 @@ describe("CI configuration contract", () => {
     expect(dependabot.version).toBe(2);
     expect(
       dependabot.updates?.map((update) => update["package-ecosystem"]),
-    ).toEqual(["npm", "docker", "uv", "github-actions"]);
+    ).toEqual(["npm", "docker", "docker", "uv", "github-actions"]);
 
     const npm = dependabot.updates?.find(
       (update) => update["package-ecosystem"] === "npm",
@@ -587,13 +587,24 @@ describe("CI configuration contract", () => {
       vueuse: compatibilityCohort(["@vueuse/*"]),
     });
 
-    const devcontainerImages = dependabot.updates?.find(
+    const containerImages = dependabot.updates?.filter(
       (update) => update["package-ecosystem"] === "docker",
     );
-    expect(devcontainerImages?.directory).toBe("/.devcontainer");
+    expect(containerImages?.map((update) => update.directory)).toEqual([
+      "/.devcontainer",
+      "/apps/spacy-server",
+    ]);
+    const devcontainerImages = containerImages?.find(
+      (update) => update.directory === "/.devcontainer",
+    );
     expect(devcontainerImages?.ignore).toContainEqual({
       "dependency-name": "node",
     });
+    expect(
+      containerImages?.find(
+        (update) => update.directory === "/apps/spacy-server",
+      )?.ignore,
+    ).toBeUndefined();
 
     const uv = dependabot.updates?.find(
       (update) => update["package-ecosystem"] === "uv",
@@ -610,6 +621,35 @@ describe("CI configuration contract", () => {
         (update) => update["package-ecosystem"] === "github-actions",
       )?.groups,
     ).toBeUndefined();
+  });
+
+  it("separates Python compatibility from the exact deployed patch for native uv updates", () => {
+    const pythonVersion = String(
+      workflow.jobs?.quality?.steps?.find((step) =>
+        step.uses?.startsWith("astral-sh/setup-uv@"),
+      )?.with?.["python-version"],
+    );
+    expect(pythonVersion).toMatch(/^3\.12\.\d+$/);
+    const [major, minor] = pythonVersion.split(".").map(Number);
+    const supportedRange = `>=${major}.${minor},<${major}.${minor! + 1}`;
+    expect(
+      readFileSync(resolve(root, "apps/spacy-server/pyproject.toml"), "utf8"),
+    ).toContain(`requires-python = "${supportedRange}"`);
+    expect(
+      readFileSync(resolve(root, "apps/spacy-server/uv.lock"), "utf8"),
+    ).toContain(`requires-python = "==${major}.${minor}.*"`);
+
+    const spacyDockerfile = readFileSync(
+      resolve(root, "apps/spacy-server/Dockerfile"),
+      "utf8",
+    );
+    expect(spacyDockerfile.match(/^FROM python:/gm)).toHaveLength(2);
+    expect(spacyDockerfile).not.toMatch(
+      new RegExp(`^FROM python:(?!${pythonVersion}-)`, "m"),
+    );
+    expect(
+      readFileSync(resolve(root, ".devcontainer/Dockerfile"), "utf8"),
+    ).toContain(`UV_PYTHON=${pythonVersion}`);
   });
 
   it("provides Docker CLI, buildx, and Compose through the Dockerfile-first devcontainer", () => {
