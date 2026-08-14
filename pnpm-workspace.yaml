@@ -50,7 +50,7 @@ catalog:
   "@iconify-json/fluent": ^1.2.49
   "@iconify-json/mdi": ^1.2.3
   "@iconify/tailwind4": ^1.2.3
-  "@intlify/unplugin-vue-i18n": ^11.2.3
+  "@intlify/unplugin-vue-i18n": ^11.2.4
   "@lucide/vue": ^1.18.0
   "@mermaid-js/mermaid-zenuml": ^0.2.3
   "@modelcontextprotocol/sdk": ^1.29.0
