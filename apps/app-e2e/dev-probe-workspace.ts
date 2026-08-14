@@ -1,4 +1,5 @@
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve } from "node:path";
 
 export type DevHmrProbeKind = "application" | "private-jit";
@@ -14,11 +15,8 @@ export type DevProbeWorkspace = {
 const moduleSource = (testId: string, value: string): string =>
   `<script setup lang="ts">\nconst value = ${JSON.stringify(value)};\n</script>\n\n<template>\n  <span data-testid="${testId}" :data-value="value" />\n</template>\n`;
 
-const assertWorkspaceDirectory = (
-  repositoryRoot: string,
-  directory: string,
-): void => {
-  const allowedRoot = resolve(repositoryRoot, ".tmp/e2e");
+const assertWorkspaceDirectory = (directory: string): void => {
+  const allowedRoot = resolve(tmpdir(), "cat-e2e-probes");
   const pathFromAllowedRoot = relative(allowedRoot, directory);
   if (
     pathFromAllowedRoot === "" ||
@@ -28,17 +26,16 @@ const assertWorkspaceDirectory = (
     pathFromAllowedRoot.startsWith("..\\")
   ) {
     throw new Error(
-      "Development probe workspace must be a cell below .tmp/e2e",
+      "Development probe workspace must be a cell below the system temporary probe root",
     );
   }
 };
 
 export const createDevProbeWorkspace = async (
-  repositoryRoot: string,
   cellId: string,
 ): Promise<DevProbeWorkspace> => {
-  const directory = resolve(repositoryRoot, ".tmp/e2e", cellId);
-  assertWorkspaceDirectory(repositoryRoot, directory);
+  const directory = resolve(tmpdir(), "cat-e2e-probes", cellId);
+  assertWorkspaceDirectory(directory);
   const applicationSourcePath = join(directory, "application-probe.vue");
   const privateJitDirectory = join(directory, "private-jit");
   const privateJitSourcePath = join(privateJitDirectory, "src/probe.vue");

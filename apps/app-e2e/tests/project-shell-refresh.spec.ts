@@ -9,8 +9,7 @@ test.describe("Project shell SSR refresh", () => {
     const projectId = refs["project"];
 
     await gotoHydrated(page, `/project/${projectId}/pull-requests`);
-    await page.waitForLoadState("networkidle");
-    await reloadHydrated(page, { waitUntil: "networkidle" });
+    await reloadHydrated(page);
 
     await expect(page.getByRole("navigation")).toContainText("拉取请求");
     await expect(page.getByText("main").first()).toBeVisible();
@@ -23,8 +22,7 @@ test.describe("Project shell SSR refresh", () => {
     const projectId = refs["project"];
 
     await gotoHydrated(page, `/project/${projectId}/workflows`);
-    await page.waitForLoadState("networkidle");
-    await reloadHydrated(page, { waitUntil: "networkidle" });
+    await reloadHydrated(page);
 
     await expect(page.getByRole("navigation")).toContainText("工作流");
     await expect(page.getByText("main").first()).toBeVisible();

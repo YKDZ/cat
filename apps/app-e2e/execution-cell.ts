@@ -14,6 +14,7 @@ import {
   type Server,
   type Socket,
 } from "node:net";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
 import { DrizzleDB, task, vectorizedString } from "@cat/db";
@@ -61,7 +62,7 @@ const root = resolve(import.meta.dirname, "../..");
 export const e2eArtifactRootFrom = (env: NodeJS.ProcessEnv): string =>
   resolve(
     env.CAT_E2E_ARTIFACT_ROOT === undefined || env.CAT_E2E_ARTIFACT_ROOT === ""
-      ? join(root, ".tmp", "e2e")
+      ? join(tmpdir(), "cat-e2e")
       : env.CAT_E2E_ARTIFACT_ROOT,
   );
 const startupTimeoutMs = 300_000;
@@ -72,6 +73,7 @@ const cleanupSettlementTimeoutMs = executionCellCleanupSettlementTimeoutMs;
 const processTerminationGraceMs = 5_000;
 const forcedProcessExitTimeoutMs = 5_000;
 const logDrainTimeoutMs = 5_000;
+const diagnosticReplayCharacterLimit = 256_000;
 export const playwrightTimeoutMs = 10 * 60_000;
 
 export type ExecutionTarget = "dev" | "standalone" | "runtime";
@@ -126,6 +128,7 @@ export type StartedProcess = {
   label: string;
   ownedPids: Set<number>;
   processIdentities: Map<number, ProcessIdentity>;
+  replayLogs?: () => void;
 };
 
 type ProcessIdentity = {
@@ -178,6 +181,7 @@ export type ExecutionCellDependencies = {
     runtime: CellRuntime,
     process: StartedProcess,
   ) => Promise<void>;
+  waitForValidationPeers?: () => Promise<void>;
   write?: (message: string) => void;
   writeError?: (message: string) => void;
 };
@@ -193,6 +197,7 @@ type ExecutionCellPhase =
   | "start"
   | "attest"
   | "playwright"
+  | "peer-validation"
   | "stop"
   | "server-diagnostics"
   | "cleanup"
@@ -225,6 +230,13 @@ const cellIdentity = (input: ExecutionCellInput): string =>
 
 const cellDuration = (startedAt: number): string =>
   `${Math.round(performance.now() - startedAt)}ms`;
+
+const formatPhaseDurations = (
+  durations: ReadonlyMap<ExecutionCellPhase, number>,
+): string =>
+  [...durations]
+    .map(([phase, duration]) => `${phase}:${Math.round(duration)}ms`)
+    .join(",");
 
 const waitForAbortableDelay = async (
   milliseconds: number,
@@ -282,8 +294,10 @@ const attachServerDiagnostics = (
   child: ChildProcess,
   log: ReturnType<typeof createWriteStream>,
   diagnostics: Error[],
-): Pick<StartedProcess, "drainLogs" | "forceDrainLogs"> => {
+): Pick<StartedProcess, "drainLogs" | "forceDrainLogs" | "replayLogs"> => {
   const flushes: Array<() => void> = [];
+  let capturedOutput = "";
+  let capturedOutputTruncated = false;
   for (const stream of [child.stdout, child.stderr]) {
     let pending = "";
     const consume = (line: string): void => {
@@ -296,7 +310,13 @@ const attachServerDiagnostics = (
       }
     };
     stream?.on("data", (chunk: Buffer | string) => {
-      const lines = `${pending}${chunk.toString()}`.split("\n");
+      const value = chunk.toString();
+      capturedOutput += value;
+      if (capturedOutput.length > diagnosticReplayCharacterLimit) {
+        capturedOutputTruncated = true;
+        capturedOutput = capturedOutput.slice(-diagnosticReplayCharacterLimit);
+      }
+      const lines = `${pending}${value}`.split("\n");
       pending = lines.pop() ?? "";
       for (const line of lines) consume(line);
     });
@@ -321,9 +341,19 @@ const attachServerDiagnostics = (
     log.once("finish", resolveDrain);
     log.once("error", rejectDrain);
   });
+  let replayed = false;
   return {
     drainLogs: async () => await drained,
     forceDrainLogs: endLog,
+    replayLogs: () => {
+      if (replayed) return;
+      replayed = true;
+      replayCapturedDiagnostic(
+        capturedOutput,
+        process.stderr.write.bind(process.stderr),
+        capturedOutputTruncated,
+      );
+    },
   };
 };
 
@@ -451,6 +481,24 @@ const closeOutputStream = async (
   });
 };
 
+const replayCapturedDiagnostic = (
+  value: string,
+  write: (value: string) => boolean,
+  alreadyTruncated = false,
+): void => {
+  if (value === "") return;
+  const truncated =
+    alreadyTruncated || value.length > diagnosticReplayCharacterLimit;
+  const bounded =
+    value.length > diagnosticReplayCharacterLimit
+      ? value.slice(-diagnosticReplayCharacterLimit)
+      : value;
+  const diagnostic = redactDiagnosticText(
+    `${truncated ? `[diagnostic output truncated to last ${diagnosticReplayCharacterLimit} characters]\n` : ""}${bounded}`,
+  );
+  write(diagnostic.endsWith("\n") ? diagnostic : `${diagnostic}\n`);
+};
+
 export const runManagedCommand = async (
   command: string,
   args: string[],
@@ -542,7 +590,19 @@ export const runManagedCommand = async (
               [initialFailure, processGroupExitFailure],
               `Could not confirm ${label} stopped`,
             );
+      const replayOutput = (): void => {
+        if (options.outputPath === undefined || stdio !== "capture") return;
+        replayCapturedDiagnostic(
+          stdout,
+          process.stdout.write.bind(process.stdout),
+        );
+        replayCapturedDiagnostic(
+          stderr,
+          process.stderr.write.bind(process.stderr),
+        );
+      };
       if (finalFailure !== undefined) {
+        replayOutput();
         reject(finalFailure);
         return;
       }
@@ -550,6 +610,7 @@ export const runManagedCommand = async (
         resolveRun({ stderr, stdout });
         return;
       }
+      replayOutput();
       const diagnostic = stderr.trim();
       reject(
         new Error(
@@ -558,7 +619,7 @@ export const runManagedCommand = async (
               ? diagnostic === ""
                 ? ""
                 : `: ${diagnostic}`
-              : `; see ${options.outputPath}`
+              : ""
           }`,
         ),
       );
@@ -1976,11 +2037,28 @@ export class DevTargetAdapter implements TargetAdapter {
 
   public async bootstrap(runtime: CellRuntime): Promise<void> {
     const bootstrap = await this.start(runtime, "bootstrap");
+    let bootstrapFailure: unknown;
     try {
       await waitForApplicationBootstrap(runtime, bootstrap, this.signal);
-    } finally {
-      await this.stop(bootstrap);
+    } catch (error) {
+      bootstrapFailure = error;
     }
+    let stopFailure: unknown;
+    try {
+      await this.stop(bootstrap);
+    } catch (error) {
+      stopFailure = error;
+    }
+    if (bootstrapFailure !== undefined || stopFailure !== undefined)
+      bootstrap.replayLogs?.();
+    if (bootstrapFailure !== undefined && stopFailure !== undefined) {
+      throw new AggregateError(
+        [bootstrapFailure, stopFailure],
+        "Development bootstrap and shutdown failed",
+      );
+    }
+    if (bootstrapFailure !== undefined) throw bootstrapFailure;
+    if (stopFailure !== undefined) throw stopFailure;
   }
 
   public async start(
@@ -3303,31 +3381,72 @@ export class ExecutionCell {
     let primaryFailure: unknown;
     let primaryFailurePhase: ExecutionCellPhase = "prepare";
     const failurePhases = new Map<Error, ExecutionCellPhase>();
+    const phaseDurations = new Map<ExecutionCellPhase, number>();
+    const runPhase = async <Value>(
+      phase: ExecutionCellPhase,
+      operation: () => Promise<Value>,
+    ): Promise<Value> => {
+      primaryFailurePhase = phase;
+      const phaseStartedAt = performance.now();
+      try {
+        return await operation();
+      } finally {
+        phaseDurations.set(
+          phase,
+          (phaseDurations.get(phase) ?? 0) + performance.now() - phaseStartedAt,
+        );
+      }
+    };
     let runtime: CellRuntime | undefined;
+    let validationProcess: StartedProcess | undefined;
+    let validationPeersPromise: Promise<void> | undefined;
+    const waitForValidationPeers = async (): Promise<void> => {
+      if (this.dependencies.waitForValidationPeers === undefined) return;
+      validationPeersPromise ??= runPhase(
+        "peer-validation",
+        this.dependencies.waitForValidationPeers,
+      );
+      await validationPeersPromise;
+    };
     try {
+      const { activeRuntime, target } = await runPhase("prepare", async () => {
+        this.throwIfAborted();
+        const preparedRuntime =
+          (await this.dependencies.createRuntime?.(this.register.bind(this))) ??
+          (await this.createRuntime());
+        runtime = preparedRuntime;
+        this.artifactDirectory ??= preparedRuntime.artifactDirectory;
+        this.throwIfAborted();
+        const preparedTarget =
+          this.dependencies.createTarget?.(this.input) ??
+          adapterFor(this.input, this.register.bind(this), this.signal);
+        await preparedTarget.prepare(preparedRuntime);
+        return { activeRuntime: preparedRuntime, target: preparedTarget };
+      });
       this.throwIfAborted();
-      runtime =
-        (await this.dependencies.createRuntime?.(this.register.bind(this))) ??
-        (await this.createRuntime());
-      this.artifactDirectory ??= runtime.artifactDirectory;
+      await runPhase(
+        "bootstrap",
+        async () => await target.bootstrap(activeRuntime),
+      );
       this.throwIfAborted();
-      const target =
-        this.dependencies.createTarget?.(this.input) ??
-        adapterFor(this.input, this.register.bind(this), this.signal);
-      primaryFailurePhase = "prepare";
-      await target.prepare(runtime);
+      await runPhase(
+        "external-service",
+        async () => await target.applyExternalServicePlan(activeRuntime),
+      );
       this.throwIfAborted();
-      primaryFailurePhase = "bootstrap";
-      await target.bootstrap(runtime);
+      await runPhase(
+        "hydrate",
+        async () =>
+          await (this.dependencies.hydrateFixtures ?? hydrateFixtures)(
+            activeRuntime,
+          ),
+      );
       this.throwIfAborted();
-      primaryFailurePhase = "external-service";
-      await target.applyExternalServicePlan(runtime);
-      this.throwIfAborted();
-      primaryFailurePhase = "hydrate";
-      await (this.dependencies.hydrateFixtures ?? hydrateFixtures)(runtime);
-      this.throwIfAborted();
-      primaryFailurePhase = "start";
-      const validation = await target.start(runtime, "validation");
+      const validation = await runPhase(
+        "start",
+        async () => await target.start(activeRuntime, "validation"),
+      );
+      validationProcess = validation;
       const unregisterValidation = this.register(
         "validation application process",
         async (signal) => await target.stop(validation, signal),
@@ -3335,25 +3454,30 @@ export class ExecutionCell {
       if (this.input.target !== "dev") {
         this.register(
           "cell loopback proxy",
-          await createLoopbackProxy(runtime),
+          await createLoopbackProxy(activeRuntime),
         );
       }
-      primaryFailurePhase = "attest";
-      await target.attest(runtime, validation);
+      await runPhase(
+        "attest",
+        async () => await target.attest(activeRuntime, validation),
+      );
       this.throwIfAborted();
       let playwrightFailure: unknown;
       try {
-        primaryFailurePhase = "playwright";
-        await this.runPlaywright(runtime.environment);
+        await runPhase(
+          "playwright",
+          async () => await this.runPlaywright(activeRuntime.environment),
+        );
       } catch (error) {
         playwrightFailure = error;
         failurePhases.set(toError(error), "playwright");
       }
 
+      await waitForValidationPeers();
+
       let stopFailure: unknown;
       try {
-        primaryFailurePhase = "stop";
-        await target.stop(validation);
+        await runPhase("stop", async () => await target.stop(validation));
         unregisterValidation();
       } catch (error) {
         stopFailure = error;
@@ -3404,6 +3528,28 @@ export class ExecutionCell {
       primaryFailure = error;
       failurePhases.set(toError(error), primaryFailurePhase);
     }
+    if (
+      this.dependencies.waitForValidationPeers !== undefined &&
+      validationPeersPromise === undefined
+    ) {
+      try {
+        await waitForValidationPeers();
+      } catch (error) {
+        const peerFailure = toError(error);
+        failurePhases.set(peerFailure, "peer-validation");
+        if (primaryFailure === undefined) {
+          primaryFailure = peerFailure;
+          primaryFailurePhase = "peer-validation";
+        } else {
+          const combinedFailure = new AggregateError(
+            [toError(primaryFailure), peerFailure],
+            "Execution cell validation and peer synchronization failed",
+          );
+          primaryFailure = combinedFailure;
+          failurePhases.set(combinedFailure, primaryFailurePhase);
+        }
+      }
+    }
     const cleanupFailures = await this.cleanup(writeError);
     const outputDirectory = runtime?.environment.CAT_E2E_OUTPUT_DIR;
     if (outputDirectory !== undefined) {
@@ -3425,7 +3571,7 @@ export class ExecutionCell {
       try {
         await this.removeArtifacts();
         write(
-          `e2e cell ${identity} result=passed duration=${cellDuration(startedAt)} cleanup=passed`,
+          `e2e cell ${identity} result=passed duration=${cellDuration(startedAt)} phases=${formatPhaseDurations(phaseDurations)} cleanup=passed`,
         );
         return;
       } catch (error) {
@@ -3434,16 +3580,21 @@ export class ExecutionCell {
         failurePhases.set(failure, "artifact-cleanup");
       }
     }
+    validationProcess?.replayLogs?.();
     const cleanup = cleanupFailures.length === 0 ? "passed" : "failed";
     const artifact = this.artifactDirectory ?? "<not-created>";
     write(
-      `e2e cell ${identity} result=failed duration=${cellDuration(startedAt)} cleanup=${cleanup}`,
+      `e2e cell ${identity} result=failed duration=${cellDuration(startedAt)} phases=${formatPhaseDurations(phaseDurations)} cleanup=${cleanup}`,
     );
     const cleanupFailureDetails = cleanupFailures
       .map((failure) => formatFailureTree(failure, failurePhases, "cleanup"))
       .join("; ");
+    const lastPhase =
+      primaryFailure === undefined
+        ? (failurePhases.get(cleanupFailures[0]!) ?? "cleanup")
+        : primaryFailurePhase;
     writeError(
-      `e2e cell ${identity} result=failed artifact=${artifact} cleanup=${cleanup} failure=${
+      `e2e cell ${identity} result=failed artifact=${artifact} cleanup=${cleanup} last-phase=${lastPhase} phases=${formatPhaseDurations(phaseDurations)} failure=${
         primaryFailure === undefined
           ? cleanupFailureDetails
           : formatFailureTree(
@@ -3483,7 +3634,7 @@ export class ExecutionCell {
       ),
     );
     this.artifactDirectory = artifactDirectory;
-    const probeWorkspace = await createDevProbeWorkspace(root, cellId);
+    const probeWorkspace = await createDevProbeWorkspace(cellId);
     this.register(
       "development probe workspace",
       async () => await removeDevProbeWorkspace(probeWorkspace),
@@ -3738,11 +3889,33 @@ export type ScheduleOptions = {
   createCell?: (
     input: ExecutionCellInput,
     reportFatalFailure: (error: Error) => void,
+    waitForValidationPeers: () => Promise<void>,
   ) => {
     run: (signal: AbortSignal) => Promise<void>;
   };
   retryFailedCells?: boolean;
   signal?: AbortSignal;
+};
+
+const createValidationPeerWaiters = (
+  participants: number,
+): ReadonlyArray<() => Promise<void>> => {
+  let arrived = 0;
+  let release: (() => void) | undefined;
+  const allArrived = new Promise<void>((resolveBarrier) => {
+    release = resolveBarrier;
+  });
+  return Array.from({ length: participants }, () => {
+    let participantWait: Promise<void> | undefined;
+    return async (): Promise<void> => {
+      if (participantWait === undefined) {
+        arrived += 1;
+        if (arrived === participants) release?.();
+        participantWait = allArrived;
+      }
+      await participantWait;
+    };
+  });
 };
 
 /**
@@ -3768,49 +3941,93 @@ export const runExecutionCells = async (
   };
   const createCell =
     options.createCell ??
-    ((input: ExecutionCellInput, reportFatalFailure: (error: Error) => void) =>
-      new ExecutionCell(input, {}, signal, reportFatalFailure));
+    ((
+      input: ExecutionCellInput,
+      reportFatalFailure: (error: Error) => void,
+      waitForValidationPeers: () => Promise<void>,
+    ) =>
+      new ExecutionCell(
+        input,
+        { waitForValidationPeers },
+        signal,
+        reportFatalFailure,
+      ));
   signal.addEventListener("abort", stopScheduling, { once: true });
 
-  const runCell = async (input: ExecutionCellInput): Promise<void> => {
-    try {
-      await createCell(input, stopScheduling).run(signal);
-    } catch (firstFailure) {
-      if (!options.retryFailedCells) throw firstFailure;
-      if (signal.aborted || stopped) throw firstFailure;
-      try {
-        // Creating a new ExecutionCell gives the retry fresh database, storage,
-        // port, process, and artifact ownership rather than reusing failed state.
-        await createCell(input, stopScheduling).run(signal);
-      } catch (retryFailure) {
-        throw new AggregateError(
-          [firstFailure, retryFailure],
-          "Execution cell failed after its explicit whole-cell retry",
-        );
-      }
-    }
-  };
-
-  const worker = async (): Promise<void> => {
-    while (!stopped) {
-      const input = inputs[nextInputIndex];
-      if (input === undefined) return;
-      nextInputIndex += 1;
-      try {
-        await runCell(input);
-        completed.push(input);
-      } catch (error) {
-        failures.push(error);
-        stopped = true;
-        return;
-      }
-    }
+  type AttemptOutcome =
+    | { input: ExecutionCellInput; status: "fulfilled" }
+    | { error: unknown; input: ExecutionCellInput; status: "rejected" };
+  const runWave = async (
+    waveInputs: readonly ExecutionCellInput[],
+  ): Promise<AttemptOutcome[]> => {
+    const waitForValidationPeers = createValidationPeerWaiters(
+      waveInputs.length,
+    );
+    return await Promise.all(
+      waveInputs.map(async (input, index): Promise<AttemptOutcome> => {
+        const waitForPeers = waitForValidationPeers[index]!;
+        let outcome: AttemptOutcome;
+        try {
+          await createCell(input, stopScheduling, waitForPeers).run(signal);
+          outcome = { input, status: "fulfilled" };
+        } catch (error) {
+          outcome = { error, input, status: "rejected" };
+        }
+        await waitForPeers();
+        return outcome;
+      }),
+    );
   };
 
   try {
-    await Promise.all(
-      Array.from({ length: Math.min(concurrency, inputs.length) }, worker),
-    );
+    while (!stopped && nextInputIndex < inputs.length) {
+      const waveInputs = inputs.slice(
+        nextInputIndex,
+        nextInputIndex + concurrency,
+      );
+      nextInputIndex += waveInputs.length;
+      const firstOutcomes = await runWave(waveInputs);
+      const firstFailures = firstOutcomes.filter(
+        (outcome): outcome is Extract<AttemptOutcome, { status: "rejected" }> =>
+          outcome.status === "rejected",
+      );
+      let retryOutcomes: AttemptOutcome[] = [];
+      if (
+        firstFailures.length > 0 &&
+        options.retryFailedCells &&
+        !signal.aborted &&
+        !stopped
+      ) {
+        // Retrying as a new wave keeps fresh cell ownership while ensuring no
+        // application starts during a previous wave's network teardown.
+        retryOutcomes = await runWave(
+          firstFailures.map((outcome) => outcome.input),
+        );
+      }
+
+      let retryIndex = 0;
+      for (const firstOutcome of firstOutcomes) {
+        if (firstOutcome.status === "fulfilled") {
+          completed.push(firstOutcome.input);
+          continue;
+        }
+        const retryOutcome = retryOutcomes[retryIndex];
+        retryIndex += 1;
+        if (retryOutcome?.status === "fulfilled") {
+          completed.push(firstOutcome.input);
+          continue;
+        }
+        failures.push(
+          retryOutcome?.status === "rejected"
+            ? new AggregateError(
+                [firstOutcome.error, retryOutcome.error],
+                "Execution cell failed after its explicit whole-cell retry",
+              )
+            : firstOutcome.error,
+        );
+      }
+      if (failures.length > 0) stopped = true;
+    }
   } finally {
     signal.removeEventListener("abort", stopScheduling);
   }

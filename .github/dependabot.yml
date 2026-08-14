@@ -8,54 +8,77 @@ updates:
     versioning-strategy: increase
     open-pull-requests-limit: 20
     groups:
-      workspace-toolchain:
+      aws-sdk:
+        applies-to: version-updates
         patterns:
-          - turbo
-          - typescript
-          - "@typescript/*"
-          - oxlint
-          - oxfmt
-          - pnpm
-      frontend:
+          - "@aws-sdk/*"
+        update-types:
+          - patch
+          - minor
+      orpc:
+        applies-to: version-updates
         patterns:
-          - vue
-          - "@vue/*"
-          - "@vueuse/*"
-      backend:
+          - "@orpc/*"
+        update-types:
+          - patch
+          - minor
+      playwright:
+        applies-to: version-updates
         patterns:
-          - hono
-          - "@hono/*"
-          - "drizzle-*"
-      testing:
+          - playwright
+          - "@playwright/*"
+        update-types:
+          - patch
+          - minor
+      vitest:
+        applies-to: version-updates
         patterns:
           - vitest
           - "@vitest/*"
-          - playwright
-          - "@playwright/*"
+        update-types:
+          - patch
+          - minor
+      vue-core:
+        applies-to: version-updates
+        patterns:
+          - vue
+          - "@vue/compiler-*"
+        update-types:
+          - patch
+          - minor
+      vueuse:
+        applies-to: version-updates
+        patterns:
+          - "@vueuse/*"
+        update-types:
+          - patch
+          - minor
+      drizzle-core:
+        applies-to: version-updates
+        patterns:
+          - drizzle-kit
+          - drizzle-orm
+        update-types:
+          - patch
+          - minor
     ignore:
       - dependency-name: "@types/node"
         update-types:
           - version-update:semver-major
 
-  # One multi-directory group keeps both official Node image references together.
-  # The CI config contract requires the same exact patch in package.json engines.
   - package-ecosystem: docker
-    directories:
-      - /.devcontainer
-      - /apps/app
+    directory: /.devcontainer
     schedule:
       interval: weekly
-    groups:
-      node-runtime:
-        group-by: dependency-name
-        patterns:
-          - node
+    ignore:
+      - dependency-name: node
+
+  - package-ecosystem: uv
+    directory: /apps/spacy-server
+    schedule:
+      interval: weekly
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-    groups:
-      github-actions:
-        patterns:
-          - "*"

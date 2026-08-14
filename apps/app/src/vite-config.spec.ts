@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -27,12 +27,9 @@ describe("server workspace externalization", () => {
     const packagesRoot = resolve(import.meta.dirname, "../../../packages");
     const privateJitPackages = readdirSync(packagesRoot).flatMap(
       (directory) => {
-        const manifest = parseJson(
-          readFileSync(
-            resolve(packagesRoot, directory, "package.json"),
-            "utf8",
-          ),
-        );
+        const manifestPath = resolve(packagesRoot, directory, "package.json");
+        if (!existsSync(manifestPath)) return [];
+        const manifest = parseJson(readFileSync(manifestPath, "utf8"));
         return isRecord(manifest) &&
           manifest.private === true &&
           hasTypeScriptSourceExport(manifest.exports) &&

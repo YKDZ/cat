@@ -15,7 +15,7 @@ const SENSITIVE_TEXT =
   /(["']?(?:authorization|cookie|password|secret|token|api[-_]?key|credential|session(?:[-_]?id)?|csrf(?:[-_]?token)?)["']?)(\s*[:=]\s*)(?:Bearer\s+[^\s,;}&]+|"[^"]*"|'[^']*'|[^\s,;}&]+)/gi;
 const BEARER_TOKEN = /\bBearer\s+[^\s,;}&]+/gi;
 const URL_USERINFO =
-  /([a-z][a-z\d+.-]*:\/\/)(?:[^\s/@:?#]*:[^\s/@?#]*|[^\s/@:?#]+)@/gi;
+  /(^|[^a-z\d+.-])([a-z][a-z\d+.-]*:\/\/)(?:[^\s/@:?#]*:[^\s/@?#]*|[^\s/@:?#]+)@/gi;
 
 type LoggerState = {
   readonly transports: readonly DiagnosticTransport[];
@@ -45,7 +45,7 @@ const isCustomEventConstructor = (
 /** Redacts credentials before diagnostic text crosses a process boundary. */
 export const redactDiagnosticText = (value: string): string =>
   value
-    .replace(URL_USERINFO, `$1${REDACTED}@`)
+    .replace(URL_USERINFO, `$1$2${REDACTED}@`)
     .replace(
       SENSITIVE_TEXT,
       (_match, key: string, separator: string) =>

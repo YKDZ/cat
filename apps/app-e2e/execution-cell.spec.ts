@@ -133,6 +133,10 @@ const readyReport = (profile: "lite" | "production") => ({
 });
 
 describe("ExecutionCell scheduler", () => {
+  it("uses the operating-system temporary directory for local diagnostics", () => {
+    expect(e2eArtifactRootFrom({})).toBe(join(tmpdir(), "cat-e2e"));
+  });
+
   it("places execution-cell diagnostics beneath the configured artifact root", () => {
     expect(
       e2eArtifactRootFrom({
@@ -1415,7 +1419,7 @@ describe("ExecutionCell scheduler", () => {
       "e2e cell target=dev browser=chromium image=development status=started",
     );
     expect(output[1]).toMatch(
-      /^e2e cell target=dev browser=chromium result=passed duration=\d+ms cleanup=passed$/,
+      /^e2e cell target=dev browser=chromium result=passed duration=\d+ms phases=prepare:\d+ms,bootstrap:\d+ms,external-service:\d+ms,hydrate:\d+ms,start:\d+ms,attest:\d+ms,playwright:\d+ms,stop:\d+ms cleanup=passed$/,
     );
     expect(existsSync(artifactDirectory)).toBe(false);
   });
@@ -1469,6 +1473,7 @@ describe("ExecutionCell scheduler", () => {
     await writeFile(join(playwrightOutput, ".auth", "admin.json"), "secret");
     await writeFile(join(playwrightOutput, "trace.zip"), "trace");
     const errors: string[] = [];
+    const replayLogs = vi.fn();
     const target: TargetAdapter = {
       applyExternalServicePlan: async () => undefined,
       attest: async () => undefined,
@@ -1481,7 +1486,8 @@ describe("ExecutionCell scheduler", () => {
           label: "test application",
           ownedPids: new Set(),
           processIdentities: new Map(),
-        }) satisfies StartedProcess,
+          replayLogs,
+        }) as StartedProcess,
       stop: async () => undefined,
     };
 
@@ -1511,7 +1517,10 @@ describe("ExecutionCell scheduler", () => {
       ),
     ]);
     expect(errors[0]).toContain("phase=playwright");
+    expect(errors[0]).toContain("last-phase=playwright");
+    expect(errors[0]).toMatch(/phases=.*playwright:\d+ms/);
     expect(errors[0]).toContain("browser validation failed");
+    expect(replayLogs).toHaveBeenCalledOnce();
     await rm(artifactDirectory, { force: true, recursive: true });
   });
 
@@ -2135,6 +2144,112 @@ describe("ExecutionCell scheduler", () => {
       expect(child.kill).toHaveBeenNthCalledWith(2, "SIGKILL");
       expect(child.listenerCount("close")).toBe(0);
     } finally {
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("replays redacted captured command output when the command fails", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-replay-"));
+    const output = join(directory, "command.log");
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await expect(
+        runAbortableCommand(
+          process.execPath,
+          [
+            "-e",
+            "process.stdout.write('application startup failure\\n'); process.stderr.write('password=diagnostic-secret\\n'); process.exitCode=2",
+          ],
+          process.env,
+          "captured failure",
+          { outputPath: output },
+        ),
+      ).rejects.toThrow("captured failure exited with 2");
+
+      expect(readFileSync(output, "utf8")).toContain(
+        "password=diagnostic-secret",
+      );
+      expect(stdout).toHaveBeenCalledWith("application startup failure\n");
+      expect(stderr).toHaveBeenCalledWith("password=[REDACTED]\n");
+      expect(stderr).not.toHaveBeenCalledWith(
+        expect.stringContaining("diagnostic-secret"),
+      );
+    } finally {
+      stdout.mockRestore();
+      stderr.mockRestore();
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("keeps captured command output quiet when the command succeeds", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-quiet-"));
+    const output = join(directory, "command.log");
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderr = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await runAbortableCommand(
+        process.execPath,
+        [
+          "-e",
+          "process.stdout.write('successful output\\n'); process.stderr.write('successful diagnostic\\n')",
+        ],
+        process.env,
+        "captured success",
+        { outputPath: output },
+      );
+
+      expect(readFileSync(output, "utf8")).toContain("successful output\n");
+      expect(readFileSync(output, "utf8")).toContain("successful diagnostic\n");
+      expect(stdout).not.toHaveBeenCalledWith("successful output\n");
+      expect(stderr).not.toHaveBeenCalledWith("successful diagnostic\n");
+    } finally {
+      stdout.mockRestore();
+      stderr.mockRestore();
+      await rm(directory, { force: true, recursive: true });
+    }
+  });
+
+  it("bounds replayed failure output while retaining the complete local log", async () => {
+    const directory = await mkdtemp(join(tmpdir(), "cat-e2e-bounded-"));
+    const output = join(directory, "command.log");
+    const stdout = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+
+    try {
+      await expect(
+        runAbortableCommand(
+          process.execPath,
+          [
+            "-e",
+            "process.stdout.write('x'.repeat(300000)); process.exitCode=2",
+          ],
+          process.env,
+          "large captured failure",
+          { outputPath: output },
+        ),
+      ).rejects.toThrow("large captured failure exited with 2");
+
+      expect(readFileSync(output, "utf8")).toHaveLength(300_000);
+      const replay = stdout.mock.calls.find(([value]) =>
+        String(value).startsWith("[diagnostic output truncated"),
+      );
+      expect(replay).toBeDefined();
+      expect(String(replay?.[0]).length).toBeGreaterThan(256_000);
+      expect(String(replay?.[0]).length).toBeLessThan(257_000);
+    } finally {
+      stdout.mockRestore();
       await rm(directory, { force: true, recursive: true });
     }
   });
@@ -2867,6 +2982,50 @@ describe("ExecutionCell scheduler", () => {
     ).rejects.toThrow("must be 1 or 2");
   });
 
+  it("holds application teardown until every validation peer reaches the wave barrier", async () => {
+    let releaseSecondValidation: (() => void) | undefined;
+    let created = 0;
+    const events: string[] = [];
+    const createCell = vi.fn(
+      (
+        _current: ExecutionCellInput,
+        _reportFatalFailure: (error: Error) => void,
+        waitForValidationPeers: () => Promise<void>,
+      ) => {
+        created += 1;
+        const cell = created;
+        return {
+          run: async () => {
+            events.push(`validation:${cell}`);
+            if (cell === 2) {
+              await new Promise<void>((resolveValidation) => {
+                releaseSecondValidation = resolveValidation;
+              });
+            }
+            events.push(`barrier:${cell}`);
+            await waitForValidationPeers();
+            events.push(`teardown:${cell}`);
+          },
+        };
+      },
+    );
+
+    const scheduled = runExecutionCells([input, input], { createCell });
+    await vi.waitFor(() => expect(releaseSecondValidation).toBeDefined());
+    expect(events).toEqual(["validation:1", "barrier:1", "validation:2"]);
+
+    releaseSecondValidation?.();
+
+    await expect(scheduled).resolves.toEqual([input, input]);
+    expect(events.slice(0, 4)).toEqual([
+      "validation:1",
+      "barrier:1",
+      "validation:2",
+      "barrier:2",
+    ]);
+    expect(events.slice(4).sort()).toEqual(["teardown:1", "teardown:2"]);
+  });
+
   it("recreates the entire cell for an explicit retry", async () => {
     const first = vi.fn(
       async () => await Promise.reject(new Error("transient")),
@@ -3098,7 +3257,7 @@ describe("ExecutionCell scheduler", () => {
     expect(createCell).toHaveBeenCalledTimes(4);
   });
 
-  it("does not retry a worker after another worker has failed the matrix", async () => {
+  it("starts explicit retries only after every cell in the initial wave finishes", async () => {
     const firstInput = { ...input };
     const secondInput = { ...input };
     let releaseFirstAttempt: (() => void) | undefined;
@@ -3131,15 +3290,16 @@ describe("ExecutionCell scheduler", () => {
       retryFailedCells: true,
     });
     await vi.waitFor(() => {
-      expect(attempts.get(secondInput)).toBe(2);
       expect(releaseFirstAttempt).toBeDefined();
     });
+    expect(attempts.get(firstInput)).toBe(1);
+    expect(attempts.get(secondInput)).toBe(1);
     releaseFirstAttempt?.();
 
     await expect(scheduled).rejects.toThrow(
-      "Multiple execution cells failed while completing matrix diagnostics",
+      "Execution cell failed after its explicit whole-cell retry",
     );
-    expect(attempts.get(firstInput)).toBe(1);
+    expect(attempts.get(firstInput)).toBe(2);
     expect(attempts.get(secondInput)).toBe(2);
   });
 
@@ -3317,6 +3477,9 @@ describe("ExecutionCell scheduler", () => {
         events.push("playwright");
         throw playwrightFailure;
       },
+      waitForValidationPeers: async () => {
+        events.push("peer-validation");
+      },
       write: discardCellOutput,
       writeError: discardCellOutput,
     });
@@ -3329,6 +3492,6 @@ describe("ExecutionCell scheduler", () => {
     }
     expect(failure).toBeInstanceOf(AggregateError);
     expect((failure as AggregateError).errors[0]).toBe(playwrightFailure);
-    expect(events).toEqual(["playwright", "stop", "drain"]);
+    expect(events).toEqual(["playwright", "peer-validation", "stop", "drain"]);
   });
 });
