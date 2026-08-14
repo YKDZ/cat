@@ -71,7 +71,7 @@ catalog:
   "@playwright/test": ^1.60.0
   "@tailwindcss/typography": ^0.5.20
   "@tailwindcss/vite": ^4.3.0
-  "@tanstack/vue-table": ^8.21.3
+  "@tanstack/vue-table": ^9.1.2
   "@types/better-sqlite3": ^7.6.13
   "@types/js-yaml": ^4.0.9
   "@types/mdast": ^4.0.4
