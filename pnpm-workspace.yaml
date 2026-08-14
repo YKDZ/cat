@@ -150,7 +150,7 @@ catalog:
   unified: ^11.0.5
   universal-cookie: ^8.1.2
   vee-validate: ^4.15.1
-  vike: ^0.4.259
+  vike: ^0.4.260
   vike-vue: ^0.9.11
   vite: ^8.2.1
   vite-plugin-vue-devtools: ^8.2.1
@@ -212,7 +212,7 @@ catalogs:
     tailwindcss: ^4.2.0
     telefunc: ^0.2.20
     undici: ^7.24.7
-    vike: ^0.4.259
+    vike: ^0.4.260
     vike-vue: ^0.9.11
     vitest: ^4.1.0
     vue-sonner: ^2.0.9
