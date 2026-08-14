@@ -35,7 +35,7 @@ catalog:
   "@aws-sdk/lib-storage": ^3.1066.0
   "@aws-sdk/s3-request-presigner": ^3.1066.0
   "@codemirror/autocomplete": ^6.20.3
-  "@codemirror/commands": ^6.10.3
+  "@codemirror/commands": ^6.10.4
   "@codemirror/lang-json": ^6.0.2
   "@codemirror/lang-markdown": ^6.5.0
   "@codemirror/language": ^6.12.4
